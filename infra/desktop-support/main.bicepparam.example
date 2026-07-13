@@ -1,0 +1,18 @@
+using './main.bicep'
+
+param namePrefix = 'sapphirus-beta'
+param location = 'westeurope'
+param containerImage = 'replace-with-registry.azurecr.io/desktop-support-api@sha256:replace-with-64-hex-digest'
+param entraAuthority = 'https://login.microsoftonline.com/replace-with-tenant-id/v2.0'
+param entraAudience = 'api://replace-with-application-id'
+param sqlAdministratorObjectId = 'replace-with-entra-group-object-id'
+param sqlAdministratorLogin = 'Sapphirus SQL Administrators'
+param modelName = 'replace-with-approved-model-name'
+param modelVersion = 'replace-with-pinned-model-version'
+param releaseChannel = 'beta'
+param tags = {
+  application: 'sapphirus'
+  component: 'desktop-support'
+  dataClassification: 'metadata-only'
+  environment: 'beta'
+}

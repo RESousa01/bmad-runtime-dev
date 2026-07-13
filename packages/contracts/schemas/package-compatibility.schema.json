@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json",
+  "title": "sapphirus.package-compatibility.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "packageVersion",
+    "packageDigest",
+    "packageManifestSchemaVersion",
+    "bmadRuntimeRange",
+    "contractEpoch",
+    "supportedDeliveryModels",
+    "runtimeRanges",
+    "requiredCapabilities",
+    "optionalCapabilities",
+    "forbiddenCapabilities",
+    "conformanceBundle",
+    "revocationPolicyId",
+    "issuedAt",
+    "expiresAt",
+    "signedPayloadHash",
+    "signature"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.package-compatibility.v1" },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "packageVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "packageDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "packageManifestSchemaVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "bmadRuntimeRange": { "$ref": "#/$defs/VersionRange" },
+    "contractEpoch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "properties": {
+        "minimum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "supportedDeliveryModels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/DeliveryModel" }
+    },
+    "runtimeRanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "webDotnet",
+        "desktopRustHost",
+        "typescriptUi"
+      ],
+      "properties": {
+        "webDotnet": {
+          "oneOf": [
+            { "$ref": "#/$defs/VersionRange" },
+            { "type": "null" }
+          ]
+        },
+        "desktopRustHost": {
+          "oneOf": [
+            { "$ref": "#/$defs/VersionRange" },
+            { "type": "null" }
+          ]
+        },
+        "typescriptUi": { "$ref": "#/$defs/VersionRange" }
+      }
+    },
+    "requiredCapabilities": { "$ref": "#/$defs/CapabilitySet" },
+    "optionalCapabilities": { "$ref": "#/$defs/CapabilitySet" },
+    "forbiddenCapabilities": { "$ref": "#/$defs/CapabilitySet" },
+    "conformanceBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureSetId",
+        "fixtureSetHash",
+        "minimumConformanceLevel"
+      ],
+      "properties": {
+        "fixtureSetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fixtureSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "minimumConformanceLevel": {
+          "enum": [
+            "schema",
+            "semantic",
+            "execution_rehearsal"
+          ]
+        }
+      }
+    },
+    "revocationPolicyId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "issuedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "expiresAt": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+        { "type": "null" }
+      ]
+    },
+    "signedPayloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "keyId",
+        "certificateChainRef",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "ed25519",
+            "ecdsa-p256-sha256"
+          ]
+        },
+        "keyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "certificateChainRef": {
+          "oneOf": [
+            { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+            { "type": "null" }
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "VersionRange": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "CapabilitySet": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    }
+  }
+}

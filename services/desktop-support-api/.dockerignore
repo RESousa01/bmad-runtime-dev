@@ -1,0 +1,7 @@
+**/bin
+**/obj
+**/*.user
+**/*.suo
+.git
+.vs
+README.md

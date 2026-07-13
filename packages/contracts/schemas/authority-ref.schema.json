@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/authority-ref.schema.json",
+  "title": "sapphirus.authority-ref.v1",
+  "$ref": "./common.schema.json#/$defs/AuthorityRef"
+}

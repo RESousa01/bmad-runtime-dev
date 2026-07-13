@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "sapphirus.spec-consumption.v1",
+  "consumptionId": "consume_01J00000000000000000000000",
+  "deliveryModel": "windows_local",
+  "authorityRef": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "specId": "spec_01J00000000000000000000000",
+  "specHash": "sha256:66d66e9a9790b29b12f43d6718fc3bced655f71db93afab45ac5ddf73bf110f4",
+  "candidateHash": "sha256:73d958acf9db5b72907deb3febe6652e74938d90b437965f57c835f20e545d9b",
+  "singleUseNonceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "executorAudienceHash": "sha256:c6cdf2f6fcd2c119b98e3374621cea7c85aa1773487d5d2a98bd8ea1f49df6f2",
+  "executionId": "execution_01J00000000000000000000000",
+  "attemptNumber": 1,
+  "consumedAt": "2026-07-13T10:02:00.000Z",
+  "consumptionHash": "sha256:e87fc1dd29a3159b8f8296a55a230cd973ef0fe1ee5bb0dd69048f203c7aee4a"
+}

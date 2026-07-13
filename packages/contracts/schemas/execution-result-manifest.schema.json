@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/execution-result-manifest.schema.json",
+  "title": "sapphirus.execution-result-manifest.v1",
+  "$comment": "D3 result variant records only host-observed local patch effects; command results are intentionally unavailable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "manifestId",
+    "deliveryModel",
+    "manifestKind",
+    "authorityRef",
+    "ownerScopeRef",
+    "projectId",
+    "runId",
+    "executionId",
+    "candidateId",
+    "candidateHash",
+    "specId",
+    "specHash",
+    "policyHash",
+    "approvalId",
+    "consumptionId",
+    "consumptionHash",
+    "workspaceTargetHash",
+    "executorAudienceHash",
+    "startedAt",
+    "completedAt",
+    "status",
+    "redactedLogRefs",
+    "outputArtifacts",
+    "validationSummaryHash",
+    "failureClassification",
+    "installationId",
+    "hostBuildId",
+    "hostBinarySha256",
+    "workspaceCapabilityId",
+    "grantEpoch",
+    "rootIdentityHashBefore",
+    "rootIdentityHashAfter",
+    "effectJournalId",
+    "preWriteCheckpointId",
+    "observedEffect",
+    "changedFiles",
+    "rollbackPlanId",
+    "recoveryDisposition",
+    "manifestHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.execution-result-manifest.v1" },
+    "manifestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "deliveryModel": { "const": "windows_local" },
+    "manifestKind": { "const": "windows_local_result" },
+    "authorityRef": { "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+    "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "executionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "candidateId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "candidateHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "specId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "specHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "policyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "approvalId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "consumptionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "consumptionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "workspaceTargetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "executorAudienceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "startedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "completedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "status": { "enum": ["succeeded", "failed", "cancelled", "timed_out"] },
+    "redactedLogRefs": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "./common.schema.json#/$defs/ContentRef" }
+    },
+    "outputArtifacts": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "./common.schema.json#/$defs/ArtifactRef" }
+    },
+    "validationSummaryHash": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/Sha256" },
+        { "type": "null" }
+      ]
+    },
+    "failureClassification": {
+      "oneOf": [
+        { "type": "string", "minLength": 1, "maxLength": 128 },
+        { "type": "null" }
+      ]
+    },
+    "installationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "hostBuildId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "hostBinarySha256": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "workspaceCapabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "grantEpoch": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "rootIdentityHashBefore": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "rootIdentityHashAfter": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "effectJournalId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "preWriteCheckpointId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "observedEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observedKind", "patchHash"],
+      "properties": {
+        "observedKind": { "const": "patch" },
+        "patchHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "changedFiles": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relativePath",
+          "operation",
+          "preFileIdentityHash",
+          "preContentHash",
+          "postFileIdentityHash",
+          "postContentHash",
+          "declared"
+        ],
+        "properties": {
+          "relativePath": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+          "operation": { "enum": ["created", "modified", "deleted"] },
+          "preFileIdentityHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          },
+          "preContentHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          },
+          "postFileIdentityHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          },
+          "postContentHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          },
+          "declared": { "type": "boolean" }
+        }
+      }
+    },
+    "rollbackPlanId": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/ContractId" },
+        { "type": "null" }
+      ]
+    },
+    "recoveryDisposition": { "enum": ["clean", "recovered", "manual_review"] },
+    "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  }
+}

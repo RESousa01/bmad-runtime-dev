@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/remote-job-handoff.schema.json",
+  "title": "sapphirus.remote-job-handoff.v1",
+  "oneOf": [
+    { "$ref": "#/$defs/DraftHandoff" },
+    { "$ref": "#/$defs/UploadPreviewedHandoff" },
+    { "$ref": "#/$defs/LocallyAuthorizedHandoff" },
+    { "$ref": "#/$defs/CloudWorkHandoff" },
+    { "$ref": "#/$defs/RemoteResultHandoff" },
+    { "$ref": "#/$defs/ImportedProposalHandoff" },
+    { "$ref": "#/$defs/FailedHandoff" }
+  ],
+  "$defs": {
+    "UploadPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uploadManifestRef",
+        "uploadManifestHash",
+        "selectedEntryCount",
+        "selectedByteCount",
+        "redactionSummaryHash",
+        "retentionPolicyHash"
+      ],
+      "properties": {
+        "uploadManifestRef": { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+        "uploadManifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "selectedEntryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "selectedByteCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "redactionSummaryHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "retentionPolicyHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "LocalHandoffAuthorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateId",
+        "candidateHash",
+        "approvalId",
+        "specId",
+        "specHash",
+        "consumptionId"
+      ],
+      "properties": {
+        "candidateId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "candidateHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "approvalId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "specId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "specHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "consumptionId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+      }
+    },
+    "CloudWorkLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetAuthority",
+        "targetProjectId",
+        "targetRunId",
+        "targetWorkItemId"
+      ],
+      "properties": {
+        "targetAuthority": { "$ref": "./common.schema.json#/$defs/AzureControlPlaneAuthorityRef" },
+        "targetProjectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "targetRunId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "targetWorkItemId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+      }
+    },
+    "RemoteResultLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "remoteManifestRef",
+        "remoteManifestHash",
+        "remoteEvidenceRangeHash",
+        "cannotApplyDirectly"
+      ],
+      "properties": {
+        "remoteManifestRef": { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+        "remoteManifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "remoteEvidenceRangeHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "cannotApplyDirectly": { "const": true }
+      }
+    },
+    "DraftHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": { "const": "draft" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "UploadPreviewedHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "uploadPreview",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": { "const": "upload_previewed" },
+        "uploadPreview": { "$ref": "#/$defs/UploadPreview" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "LocallyAuthorizedHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "uploadPreview",
+        "localAuthorization",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": {
+          "enum": [
+            "locally_approved",
+            "uploading"
+          ]
+        },
+        "uploadPreview": { "$ref": "#/$defs/UploadPreview" },
+        "localAuthorization": { "$ref": "#/$defs/LocalHandoffAuthorization" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "CloudWorkHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "uploadPreview",
+        "localAuthorization",
+        "cloudWork",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": {
+          "enum": [
+            "cloud_accepted",
+            "remote_running"
+          ]
+        },
+        "uploadPreview": { "$ref": "#/$defs/UploadPreview" },
+        "localAuthorization": { "$ref": "#/$defs/LocalHandoffAuthorization" },
+        "cloudWork": { "$ref": "#/$defs/CloudWorkLink" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "RemoteResultHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "uploadPreview",
+        "localAuthorization",
+        "cloudWork",
+        "remoteResult",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": {
+          "enum": [
+            "result_available",
+            "result_verified"
+          ]
+        },
+        "uploadPreview": { "$ref": "#/$defs/UploadPreview" },
+        "localAuthorization": { "$ref": "#/$defs/LocalHandoffAuthorization" },
+        "cloudWork": { "$ref": "#/$defs/CloudWorkLink" },
+        "remoteResult": { "$ref": "#/$defs/RemoteResultLink" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "ImportedProposalHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "uploadPreview",
+        "localAuthorization",
+        "cloudWork",
+        "remoteResult",
+        "importedProposalId",
+        "importedProposalHash",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": {
+          "enum": [
+            "imported_as_local_proposal",
+            "closed"
+          ]
+        },
+        "uploadPreview": { "$ref": "#/$defs/UploadPreview" },
+        "localAuthorization": { "$ref": "#/$defs/LocalHandoffAuthorization" },
+        "cloudWork": { "$ref": "#/$defs/CloudWorkLink" },
+        "remoteResult": { "$ref": "#/$defs/RemoteResultLink" },
+        "importedProposalId": { "$ref": "#/$defs/ContractId" },
+        "importedProposalHash": { "$ref": "#/$defs/Sha256" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "FailedHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "handoffId",
+        "sourceAuthority",
+        "sourceProjectId",
+        "sourceRunId",
+        "sourceCheckpointId",
+        "sourceWorkspaceManifestHash",
+        "handoffVersion",
+        "previousHandoffHash",
+        "createdAt",
+        "state",
+        "failureCode",
+        "failureEvidenceHash",
+        "handoffHash"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/SchemaVersion" },
+        "handoffId": { "$ref": "#/$defs/ContractId" },
+        "sourceAuthority": { "$ref": "#/$defs/SourceAuthority" },
+        "sourceProjectId": { "$ref": "#/$defs/ContractId" },
+        "sourceRunId": { "$ref": "#/$defs/ContractId" },
+        "sourceCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "sourceWorkspaceManifestHash": { "$ref": "#/$defs/Sha256" },
+        "handoffVersion": { "$ref": "#/$defs/HandoffVersion" },
+        "previousHandoffHash": { "$ref": "#/$defs/PreviousHandoffHash" },
+        "createdAt": { "$ref": "#/$defs/UtcInstant" },
+        "state": {
+          "enum": [
+            "cancelled",
+            "expired",
+            "upload_failed",
+            "remote_failed",
+            "result_rejected"
+          ]
+        },
+        "failureCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "failureEvidenceHash": { "$ref": "#/$defs/Sha256" },
+        "handoffHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "SchemaVersion": { "const": "sapphirus.remote-job-handoff.v1" },
+    "ContractId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "Sha256": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "UtcInstant": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "SourceAuthority": { "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+    "HandoffVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "PreviousHandoffHash": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/Sha256" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

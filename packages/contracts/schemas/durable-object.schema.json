@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/durable-object.schema.json",
+  "title": "sapphirus.durable-object.v1",
+  "oneOf": [
+    { "$ref": "#/$defs/WebManagedObject" },
+    { "$ref": "#/$defs/WindowsLocalObject" }
+  ],
+  "$defs": {
+    "CandidatePointer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateId"],
+      "properties": {
+        "candidateId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+      }
+    },
+    "WebManagedObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope", "payload"],
+      "properties": {
+        "envelope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaVersion",
+            "objectType",
+            "objectId",
+            "deliveryModel",
+            "authorityRef",
+            "ownerScopeRef",
+            "projectId",
+            "createdAt",
+            "contentHash"
+          ],
+          "properties": {
+            "schemaVersion": { "const": "sapphirus.durable-object.v1" },
+            "objectType": { "const": "execution_spec_candidate" },
+            "objectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "deliveryModel": { "const": "web_managed" },
+            "authorityRef": { "$ref": "./common.schema.json#/$defs/AzureControlPlaneAuthorityRef" },
+            "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+            "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+          }
+        },
+        "payload": { "$ref": "#/$defs/CandidatePointer" }
+      }
+    },
+    "WindowsLocalObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope", "payload"],
+      "properties": {
+        "envelope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaVersion",
+            "objectType",
+            "objectId",
+            "deliveryModel",
+            "authorityRef",
+            "ownerScopeRef",
+            "projectId",
+            "createdAt",
+            "contentHash"
+          ],
+          "properties": {
+            "schemaVersion": { "const": "sapphirus.durable-object.v1" },
+            "objectType": { "const": "execution_spec_candidate" },
+            "objectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "deliveryModel": { "const": "windows_local" },
+            "authorityRef": { "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+            "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+            "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+          }
+        },
+        "payload": { "$ref": "#/$defs/CandidatePointer" }
+      }
+    }
+  }
+}

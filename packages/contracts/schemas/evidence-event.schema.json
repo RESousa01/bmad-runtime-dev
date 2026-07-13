@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v2/evidence-event.schema.json",
+  "title": "sapphirus.evidence-event.v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "deliveryModel",
+    "authorityRef",
+    "streamId",
+    "sequence",
+    "eventType",
+    "ownerScopeRef",
+    "projectId",
+    "runId",
+    "actor",
+    "correlationId",
+    "causationId",
+    "occurredAt",
+    "payloadHash",
+    "payloadRef",
+    "redactionLevel",
+    "retentionClass",
+    "previousEventHash",
+    "eventHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.evidence-event.v2" },
+    "eventId": { "$ref": "../v1/common.schema.json#/$defs/ContractId" },
+    "deliveryModel": { "const": "windows_local" },
+    "authorityRef": { "$ref": "../v1/common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+    "streamId": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "sequence": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "eventType": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$" },
+    "ownerScopeRef": { "$ref": "../v1/common.schema.json#/$defs/ContractId" },
+    "projectId": { "$ref": "../v1/common.schema.json#/$defs/ContractId" },
+    "runId": {
+      "oneOf": [
+        { "$ref": "../v1/common.schema.json#/$defs/ContractId" },
+        { "type": "null" }
+      ]
+    },
+    "actor": { "$ref": "../v1/common.schema.json#/$defs/EvidenceActor" },
+    "correlationId": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "causationId": {
+      "oneOf": [
+        { "type": "string", "minLength": 1, "maxLength": 256 },
+        { "type": "null" }
+      ]
+    },
+    "occurredAt": { "$ref": "../v1/common.schema.json#/$defs/UtcInstant" },
+    "payloadHash": { "$ref": "../v1/common.schema.json#/$defs/Sha256" },
+    "payloadRef": {
+      "oneOf": [
+        { "$ref": "../v1/common.schema.json#/$defs/OpaqueRef" },
+        { "type": "null" }
+      ]
+    },
+    "redactionLevel": { "enum": ["summary", "redacted", "privileged"] },
+    "retentionClass": { "enum": ["operational", "evidence", "debug", "privileged"] },
+    "previousEventHash": {
+      "oneOf": [
+        { "$ref": "../v1/common.schema.json#/$defs/Sha256" },
+        { "type": "null" }
+      ]
+    },
+    "eventHash": { "$ref": "../v1/common.schema.json#/$defs/Sha256" }
+  }
+}

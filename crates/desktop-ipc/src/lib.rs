@@ -1,0 +1,28 @@
+//! Strict renderer-to-host transport validation.
+//!
+//! The renderer can request only the catalog represented by [`LocalCommand`].
+//! Validation binds a request to a Rust-issued renderer session and to the
+//! installation before a domain command is created.
+
+mod envelope;
+mod gate;
+mod unique_json;
+
+pub use envelope::{
+    CommandEnvelopeValidator, IpcReply, IpcValidationContext, IpcValidationError,
+    ProjectionEventEnvelope, ValidatedCommandEnvelope, MAX_COMMAND_BYTES,
+};
+pub use gate::{Admission, AdmissionPolicy, RequestGate};
+
+use serde::de::DeserializeOwned;
+
+/// Deserializes trusted-shape local records while preserving the same
+/// duplicate-key rejection used by renderer command envelopes.
+pub fn deserialize_strict<T>(bytes: &[u8]) -> Result<T, IpcValidationError>
+where
+    T: DeserializeOwned,
+{
+    let unique_json::UniqueJson(value) =
+        serde_json::from_slice(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
+    serde_json::from_value(value).map_err(|_| IpcValidationError::InvalidJson)
+}

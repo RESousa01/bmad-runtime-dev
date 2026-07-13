@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "sapphirus.evidence-event.v2",
+  "eventId": "event_01J00000000000000000000000",
+  "deliveryModel": "windows_local",
+  "authorityRef": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "streamId": "run:run_01J00000000000000000000000",
+  "sequence": 1,
+  "eventType": "execution.completed",
+  "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+  "projectId": "project_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "actor": {
+    "actorKind": "desktop_host",
+    "installationId": "install_01J00000000000000000000000",
+    "hostBinarySha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "correlationId": "corr-fixture-0001",
+  "causationId": "consume_01J00000000000000000000000",
+  "occurredAt": "2026-07-13T10:02:03.000Z",
+  "payloadHash": "sha256:9106cd149d443b693157b3192f6ed0c84bf0df869d382b4c20a48539c47a8da3",
+  "payloadRef": "cas://sha256/result-fixture",
+  "redactionLevel": "redacted",
+  "retentionClass": "evidence",
+  "previousEventHash": null,
+  "eventHash": "sha256:a1bcaf39578f9684359f6e8085da0cda7bc737d24bba3138bfc90ad86d00faba"
+}

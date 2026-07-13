@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/common.schema.json",
+  "title": "sapphirus.common.v1",
+  "$defs": {
+    "Sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "ContractId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{16,64}$"
+    },
+    "UtcInstant": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+    },
+    "OpaqueRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "RelativeWorkspacePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?:\\.|(?!/)(?![A-Za-z]:)(?!.*:)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*\\\\).+)$"
+    },
+    "DeliveryModel": {
+      "enum": [
+        "web_managed",
+        "windows_local"
+      ]
+    },
+    "AzureControlPlaneAuthorityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityKind",
+        "authorityId",
+        "tenantId",
+        "controlPlaneInstanceId",
+        "authorityEpoch",
+        "region"
+      ],
+      "properties": {
+        "authorityKind": { "const": "azure_control_plane" },
+        "authorityId": { "$ref": "#/$defs/ContractId" },
+        "tenantId": { "$ref": "#/$defs/ContractId" },
+        "controlPlaneInstanceId": { "$ref": "#/$defs/ContractId" },
+        "authorityEpoch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "region": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "DesktopLocalStoreAuthorityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityKind",
+        "authorityId",
+        "installationId",
+        "localStoreId",
+        "authorityEpoch"
+      ],
+      "properties": {
+        "authorityKind": { "const": "desktop_local_store" },
+        "authorityId": { "$ref": "#/$defs/ContractId" },
+        "installationId": { "$ref": "#/$defs/ContractId" },
+        "localStoreId": { "$ref": "#/$defs/ContractId" },
+        "authorityEpoch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "AuthorityRef": {
+      "oneOf": [
+        { "$ref": "#/$defs/AzureControlPlaneAuthorityRef" },
+        { "$ref": "#/$defs/DesktopLocalStoreAuthorityRef" }
+      ]
+    },
+    "CloudSnapshotTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetKind",
+        "workspaceId",
+        "snapshotId",
+        "snapshotHash",
+        "snapshotObjectRef",
+        "baseCheckpointId",
+        "checkoutPolicyHash"
+      ],
+      "properties": {
+        "targetKind": { "const": "cloud_snapshot" },
+        "workspaceId": { "$ref": "#/$defs/ContractId" },
+        "snapshotId": { "$ref": "#/$defs/ContractId" },
+        "snapshotHash": { "$ref": "#/$defs/Sha256" },
+        "snapshotObjectRef": { "$ref": "#/$defs/OpaqueRef" },
+        "baseCheckpointId": {
+          "oneOf": [
+            { "$ref": "#/$defs/ContractId" },
+            { "type": "null" }
+          ]
+        },
+        "checkoutPolicyHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "LocalFolderCapabilityTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetKind",
+        "workspaceCapabilityId",
+        "grantEpoch",
+        "rootIdentityHash",
+        "filesystemCapabilityHash",
+        "baseCheckpointId",
+        "workspaceManifestHash"
+      ],
+      "properties": {
+        "targetKind": { "const": "local_folder_capability" },
+        "workspaceCapabilityId": { "$ref": "#/$defs/ContractId" },
+        "grantEpoch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "rootIdentityHash": { "$ref": "#/$defs/Sha256" },
+        "filesystemCapabilityHash": { "$ref": "#/$defs/Sha256" },
+        "baseCheckpointId": { "$ref": "#/$defs/ContractId" },
+        "workspaceManifestHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "WorkspaceTarget": {
+      "oneOf": [
+        { "$ref": "#/$defs/CloudSnapshotTarget" },
+        { "$ref": "#/$defs/LocalFolderCapabilityTarget" }
+      ]
+    },
+    "NativePatchEngineAudience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audienceKind",
+        "installationId",
+        "hostBuildId",
+        "hostBinarySha256",
+        "patchEngineProfileHash"
+      ],
+      "properties": {
+        "audienceKind": { "const": "native_patch_engine" },
+        "installationId": { "$ref": "#/$defs/ContractId" },
+        "hostBuildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "hostBinarySha256": { "$ref": "#/$defs/Sha256" },
+        "patchEngineProfileHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "AzureJobAudience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audienceKind",
+        "jobTemplateId",
+        "workerImageDigest",
+        "azureRegion",
+        "workloadIdentityRef",
+        "networkProfileHash",
+        "sandboxProfileHash"
+      ],
+      "properties": {
+        "audienceKind": { "const": "azure_job_template" },
+        "jobTemplateId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "workerImageDigest": { "$ref": "#/$defs/Sha256" },
+        "azureRegion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "workloadIdentityRef": { "$ref": "#/$defs/ContractId" },
+        "networkProfileHash": { "$ref": "#/$defs/Sha256" },
+        "sandboxProfileHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "ExecutorAudience": {
+      "oneOf": [
+        { "$ref": "#/$defs/AzureJobAudience" },
+        { "$ref": "#/$defs/NativePatchEngineAudience" }
+      ]
+    },
+    "MutableInputBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputKind",
+        "inputId",
+        "contentHash"
+      ],
+      "properties": {
+        "inputKind": {
+          "enum": [
+            "workspace_manifest",
+            "path_preimage",
+            "package",
+            "toolchain",
+            "policy",
+            "external_resource"
+          ]
+        },
+        "inputId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "contentHash": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "DeclaredWrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pathPattern",
+        "operation",
+        "preimageHash"
+      ],
+      "properties": {
+        "pathPattern": { "$ref": "#/$defs/RelativeWorkspacePath" },
+        "operation": {
+          "enum": [
+            "create",
+            "modify",
+            "delete",
+            "generated_output"
+          ]
+        },
+        "preimageHash": {
+          "oneOf": [
+            { "$ref": "#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "LocalPathPreimage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relativePath",
+        "exists",
+        "fileIdentityHash",
+        "contentHash",
+        "metadataHash"
+      ],
+      "properties": {
+        "relativePath": { "$ref": "#/$defs/RelativeWorkspacePath" },
+        "exists": { "type": "boolean" },
+        "fileIdentityHash": {
+          "oneOf": [
+            { "$ref": "#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        },
+        "contentHash": {
+          "oneOf": [
+            { "$ref": "#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        },
+        "metadataHash": {
+          "oneOf": [
+            { "$ref": "#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "ContentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "contentHash",
+        "byteLength",
+        "mediaType"
+      ],
+      "properties": {
+        "ref": { "$ref": "#/$defs/OpaqueRef" },
+        "contentHash": { "$ref": "#/$defs/Sha256" },
+        "byteLength": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "mediaType": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "contentHash",
+        "byteLength",
+        "mediaType",
+        "artifactId",
+        "classification"
+      ],
+      "properties": {
+        "ref": { "$ref": "#/$defs/OpaqueRef" },
+        "contentHash": { "$ref": "#/$defs/Sha256" },
+        "byteLength": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "mediaType": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "artifactId": { "$ref": "#/$defs/ContractId" },
+        "classification": {
+          "enum": [
+            "public",
+            "internal",
+            "confidential",
+            "restricted"
+          ]
+        }
+      }
+    },
+    "EvidenceActor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actorKind", "subjectId"],
+          "properties": {
+            "actorKind": { "const": "user" },
+            "subjectId": { "type": "string", "minLength": 1, "maxLength": 256 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actorKind", "serviceId"],
+          "properties": {
+            "actorKind": { "const": "service" },
+            "serviceId": { "type": "string", "minLength": 1, "maxLength": 256 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actorKind", "installationId", "hostBinarySha256"],
+          "properties": {
+            "actorKind": { "const": "desktop_host" },
+            "installationId": { "$ref": "#/$defs/ContractId" },
+            "hostBinarySha256": { "$ref": "#/$defs/Sha256" }
+          }
+        }
+      ]
+    }
+  }
+}

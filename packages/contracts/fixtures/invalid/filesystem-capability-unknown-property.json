@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "sapphirus.filesystem-capability.v1",
+  "snapshotId": "fsc_01J00000000000000000000000",
+  "workspaceCapabilityId": "lwc_01J00000000000000000000000",
+  "grantEpoch": 1,
+  "capturedAt": "2026-07-13T10:00:02.000Z",
+  "filesystemKind": "ntfs",
+  "locationClass": "fixed_local",
+  "volumeIdentityHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "rootFileIdentityHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "caseSensitiveDirectory": false,
+  "cloudPlaceholderState": "none",
+  "capabilities": {
+    "stableFileIds": "verified",
+    "reparseInspection": "verified",
+    "hardlinkCount": "verified",
+    "perFileAtomicReplace": "verified",
+    "durableFileFlush": "verified",
+    "durableDirectoryFlush": "unknown"
+  },
+  "supportTier": "supported_writable",
+  "policyVersion": "desktop-filesystem.2026-07-13",
+  "policyHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+  "snapshotHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "unreviewedCapability": true
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json",
+  "title": "sapphirus.filesystem-capability.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "workspaceCapabilityId",
+    "grantEpoch",
+    "capturedAt",
+    "filesystemKind",
+    "locationClass",
+    "volumeIdentityHash",
+    "rootFileIdentityHash",
+    "caseSensitiveDirectory",
+    "cloudPlaceholderState",
+    "capabilities",
+    "supportTier",
+    "policyVersion",
+    "policyHash",
+    "snapshotHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.filesystem-capability.v1" },
+    "snapshotId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "workspaceCapabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "grantEpoch": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "capturedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "filesystemKind": {
+      "enum": [
+        "ntfs",
+        "refs",
+        "fat",
+        "exfat",
+        "other"
+      ]
+    },
+    "locationClass": {
+      "enum": [
+        "fixed_local",
+        "removable",
+        "unc",
+        "virtual",
+        "cloud_backed",
+        "unknown"
+      ]
+    },
+    "volumeIdentityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "rootFileIdentityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "caseSensitiveDirectory": { "type": "boolean" },
+    "cloudPlaceholderState": {
+      "enum": [
+        "none",
+        "fully_hydrated",
+        "contains_placeholders",
+        "unknown"
+      ]
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stableFileIds",
+        "reparseInspection",
+        "hardlinkCount",
+        "perFileAtomicReplace",
+        "durableFileFlush",
+        "durableDirectoryFlush"
+      ],
+      "properties": {
+        "stableFileIds": { "$ref": "#/$defs/CapabilityStatus" },
+        "reparseInspection": { "$ref": "#/$defs/CapabilityStatus" },
+        "hardlinkCount": { "$ref": "#/$defs/CapabilityStatus" },
+        "perFileAtomicReplace": { "$ref": "#/$defs/CapabilityStatus" },
+        "durableFileFlush": { "$ref": "#/$defs/CapabilityStatus" },
+        "durableDirectoryFlush": { "$ref": "#/$defs/CapabilityStatus" }
+      }
+    },
+    "supportTier": {
+      "enum": [
+        "supported_writable",
+        "read_only_evaluation",
+        "blocked"
+      ]
+    },
+    "policyVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "policyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "snapshotHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "CapabilityStatus": {
+      "enum": [
+        "verified",
+        "unsupported",
+        "unknown"
+      ]
+    }
+  }
+}

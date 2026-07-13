@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "sapphirus.error.v1",
+  "errorId": "error_01J00000000000000000000000",
+  "code": "COMPATIBILITY_BLOCKED",
+  "message": "The request failed.\nContact the workspace owner.",
+  "correlationId": "corr-fixture-0002",
+  "retryable": false,
+  "detailsRef": null
+}

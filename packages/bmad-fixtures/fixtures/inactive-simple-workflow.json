@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "sapphirus.bmad-fixture.v1",
+  "fixtureId": "bmad_builder_simple_workflow_v1",
+  "fixtureKind": "builder_simple_workflow",
+  "distributionProfile": "builder_source_tree",
+  "validationProfile": "BuilderOutcomeSkillV2",
+  "executionProfile": "inline",
+  "activationState": "not_active",
+  "builderActions": [
+    "Build",
+    "Edit",
+    "Analyze"
+  ],
+  "scriptExecution": "blocked",
+  "networkAccess": "blocked",
+  "source": {
+    "project": "bmad-builder",
+    "packageVersion": "2.1.0",
+    "license": "MIT",
+    "relativePath": "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-workflow-builder/SKILL.md",
+    "byteLength": 4528,
+    "sha256": "ed28d89b38b1821fce92e09845e94300a4b3d2ec94e8ce7e86e8fa6fe170a644"
+  },
+  "payload": {
+    "relativePath": "packages/bmad-fixtures/fixtures/payloads/simple-workflow/SKILL.md",
+    "byteLength": 628,
+    "sha256": "a49b5d2a4e31429766e9513ff08b67e3bdf92f18e399ae251c0d8b620319432c"
+  },
+  "assertions": {
+    "inlineFirst": true,
+    "usesReservedPrefix": false
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "sapphirus.candidate-action.v9",
+  "candidateId": "candidate_01J00000000000000000000000",
+  "projectId": "project_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "proposalId": "proposal_01J00000000000000000000000",
+  "proposalHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "deliveryModel": "windows_local",
+  "actionKind": "patch_apply",
+  "authorityRef": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+  "policyContextHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "workspaceTarget": {
+    "targetKind": "local_folder_capability",
+    "workspaceCapabilityId": "lwc_01J00000000000000000000000",
+    "grantEpoch": 1,
+    "rootIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "filesystemCapabilityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "baseCheckpointId": "lcp_01J00000000000000000000000",
+    "workspaceManifestHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "executorAudience": {
+    "audienceKind": "native_patch_engine",
+    "installationId": "install_01J00000000000000000000000",
+    "hostBuildId": "desktop-0.1.0-beta.1",
+    "hostBinarySha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "patchEngineProfileHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "mutableInputs": [
+    {
+      "inputKind": "path_preimage",
+      "inputId": "README.md",
+      "contentHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    {
+      "inputKind": "workspace_manifest",
+      "inputId": "manifest_01J00000000000000000000000",
+      "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+    }
+  ],
+  "declaredWrites": [
+    {
+      "pathPattern": "README.md",
+      "operation": "modify",
+      "preimageHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    {
+      "pathPattern": "src/app.ts",
+      "operation": "create",
+      "preimageHash": null
+    }
+  ],
+  "limits": {
+    "timeoutSeconds": 0,
+    "maxOutputBytes": 0,
+    "maxChangedFiles": 20,
+    "maxChangedBytes": 1048576,
+    "maxProcessCount": 0
+  },
+  "rollbackClass": "file_tracked",
+  "patchRef": "cas://sha256/patch-fixture",
+  "patchHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "preimages": [
+    {
+      "relativePath": "README.md",
+      "exists": true,
+      "fileIdentityHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "contentHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "metadataHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "relativePath": "src/app.ts",
+      "exists": false,
+      "fileIdentityHash": null,
+      "contentHash": null,
+      "metadataHash": null
+    }
+  ],
+  "createdAt": "2026-07-13T10:00:00.000Z",
+  "expiresAt": "2026-07-13T10:15:00.000Z",
+  "candidateHash": "sha256:73d958acf9db5b72907deb3febe6652e74938d90b437965f57c835f20e545d9b"
+}

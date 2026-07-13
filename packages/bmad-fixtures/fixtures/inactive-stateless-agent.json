@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "sapphirus.bmad-fixture.v1",
+  "fixtureId": "bmad_builder_stateless_agent_v1",
+  "fixtureKind": "builder_stateless_agent",
+  "distributionProfile": "builder_source_tree",
+  "validationProfile": "BuilderAgentV2Stateless",
+  "executionProfile": "direct",
+  "activationState": "not_active",
+  "builderActions": [
+    "Build",
+    "Edit",
+    "Analyze"
+  ],
+  "scriptExecution": "blocked",
+  "networkAccess": "blocked",
+  "source": {
+    "project": "bmad-builder",
+    "packageVersion": "2.1.0",
+    "license": "MIT",
+    "relativePath": "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-agent-builder/SKILL.md",
+    "byteLength": 5686,
+    "sha256": "806ea0a5c3bd9d4ef5dfa2e0beb37490b0fb3faef848ac493db2db0e99f32dda"
+  },
+  "payload": {
+    "relativePath": "packages/bmad-fixtures/fixtures/payloads/stateless-agent/SKILL.md",
+    "byteLength": 625,
+    "sha256": "eddd5da0ba4e2ace5825e6e8578631230254387583a50a4e0889ab1eddb79317"
+  },
+  "assertions": {
+    "agentType": "stateless",
+    "sanctumPresent": false,
+    "usesReservedPrefix": false
+  }
+}

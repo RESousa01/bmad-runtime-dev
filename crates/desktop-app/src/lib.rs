@@ -1,0 +1,86 @@
+#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
+
+mod commands;
+mod state;
+mod wire;
+
+use tauri::Manager as _;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("Sapphirus desktop startup failed")]
+pub struct StartupError;
+
+pub fn run() -> Result<(), StartupError> {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let storage_root = app
+                .path()
+                .app_local_data_dir()
+                .ok()
+                .map(|path| path.join("authority-v1"));
+            let state = state::HostState::initialize(storage_root)
+                .map_err(|_| Box::new(StartupError) as Box<dyn std::error::Error>)?;
+            if !app.manage(state) {
+                return Err(Box::new(StartupError) as Box<dyn std::error::Error>);
+            }
+
+            tauri::WebviewWindowBuilder::new(
+                app,
+                "main",
+                tauri::WebviewUrl::App("index.html".into()),
+            )
+            .title("Sapphirus")
+            .inner_size(1440.0, 900.0)
+            .min_inner_size(1100.0, 700.0)
+            .center()
+            .decorations(false)
+            .resizable(true)
+            .maximizable(true)
+            .minimizable(true)
+            .closable(true)
+            .fullscreen(false)
+            .always_on_top(false)
+            .visible(true)
+            .on_navigation(is_allowed_navigation)
+            .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
+            .build()
+            .map_err(|_| Box::new(StartupError) as Box<dyn std::error::Error>)?;
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            commands::host_bootstrap,
+            commands::host_dispatch,
+            commands::host_projection_snapshot,
+            commands::host_projection_events,
+        ])
+        .run(tauri::generate_context!())
+        .map_err(|_| StartupError)
+}
+
+fn is_allowed_navigation(url: &tauri::Url) -> bool {
+    let packaged = url.scheme() == "tauri"
+        || (matches!(url.scheme(), "http" | "https") && url.host_str() == Some("tauri.localhost"));
+    let local_development = cfg!(debug_assertions)
+        && url.scheme() == "http"
+        && url.host_str() == Some("127.0.0.1")
+        && url.port() == Some(1420);
+    packaged || local_development
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_allowed_navigation;
+
+    #[test]
+    fn navigation_guard_allows_only_packaged_or_exact_development_origin() {
+        let packaged = tauri::Url::parse("http://tauri.localhost/index.html");
+        let remote = tauri::Url::parse("https://example.com/");
+        let lookalike = tauri::Url::parse("http://tauri.localhost.example.com/");
+
+        assert!(packaged.is_ok_and(|url| is_allowed_navigation(&url)));
+        assert!(remote.is_ok_and(|url| !is_allowed_navigation(&url)));
+        assert!(lookalike.is_ok_and(|url| !is_allowed_navigation(&url)));
+    }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "sapphirus.package-compatibility.v1",
+  "packageId": "bmad.core.developer",
+  "packageVersion": "1.4.0",
+  "packageDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "packageManifestSchemaVersion": "sapphirus.bmad-package.v2",
+  "bmadRuntimeRange": ">=1.4.0 <2.0.0",
+  "contractEpoch": {
+    "minimum": 1,
+    "maximum": 1
+  },
+  "supportedDeliveryModels": [
+    "web_managed",
+    "windows_local"
+  ],
+  "runtimeRanges": {
+    "webDotnet": ">=1.0.0 <2.0.0",
+    "desktopRustHost": ">=0.1.0 <1.0.0",
+    "typescriptUi": ">=1.0.0 <2.0.0"
+  },
+  "requiredCapabilities": [
+    "bmad.method_state.v1",
+    "typed_model_output.v1"
+  ],
+  "optionalCapabilities": [
+    "remote_job_handoff.v1"
+  ],
+  "forbiddenCapabilities": [
+    "untrusted_package_assets.v1"
+  ],
+  "conformanceBundle": {
+    "fixtureSetId": "bmad-core-developer-1.4.0",
+    "fixtureSetHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "minimumConformanceLevel": "semantic"
+  },
+  "revocationPolicyId": "shared-packages-2026-01",
+  "issuedAt": "2026-07-13T10:07:00.000Z",
+  "expiresAt": null,
+  "signedPayloadHash": "sha256:fa91a8817bb6f098ec7a6af92d94ed2eee36e25680eb3e813aec3ccc81a197eb",
+  "signature": {
+    "algorithm": "ed25519",
+    "keyId": "shared-package-signing-2026-01",
+    "certificateChainRef": null,
+    "signature": "ZXhhbXBsZS1wYWNrYWdlLXNpZ25hdHVyZQ"
+  }
+}

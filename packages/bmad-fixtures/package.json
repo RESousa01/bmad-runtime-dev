@@ -1,0 +1,21 @@
+{
+  "name": "@sapphirus/bmad-fixtures",
+  "version": "0.1.0-beta.1",
+  "description": "Sealed BMAD Method and inactive Builder conformance fixtures.",
+  "private": true,
+  "type": "module",
+  "files": [
+    "fixtures",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "node ./scripts/verify.mjs",
+    "lint": "node ./scripts/verify.mjs",
+    "test": "node --test --test-isolation=none ./tests/*.test.mjs",
+    "verify": "node ./scripts/verify.mjs && node --test --test-isolation=none ./tests/*.test.mjs"
+  },
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.12.0"
+  }
+}

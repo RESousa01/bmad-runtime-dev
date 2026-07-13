@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "sapphirus.remote-job-handoff.v1",
+  "handoffId": "handoff_01J00000000000000000000000",
+  "sourceAuthority": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "sourceProjectId": "project_01J00000000000000000000000",
+  "sourceRunId": "run_01J00000000000000000000000",
+  "sourceCheckpointId": "lcp_01J00000000000000000000000",
+  "sourceWorkspaceManifestHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "handoffVersion": 8,
+  "previousHandoffHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "createdAt": "2026-07-13T10:06:00.000Z",
+  "state": "imported_as_local_proposal",
+  "uploadPreview": {
+    "uploadManifestRef": "cas://sha256/33/33",
+    "uploadManifestHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "selectedEntryCount": 120,
+    "selectedByteCount": 870000,
+    "redactionSummaryHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "retentionPolicyHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "localAuthorization": {
+    "candidateId": "candidate_01J00000000000000000000000",
+    "candidateHash": "sha256:73d958acf9db5b72907deb3febe6652e74938d90b437965f57c835f20e545d9b",
+    "approvalId": "approval_01J00000000000000000000000",
+    "specId": "spec_01J00000000000000000000000",
+    "specHash": "sha256:66d66e9a9790b29b12f43d6718fc3bced655f71db93afab45ac5ddf73bf110f4",
+    "consumptionId": "consume_01J00000000000000000000000"
+  },
+  "cloudWork": {
+    "targetAuthority": {
+      "authorityKind": "azure_control_plane",
+      "authorityId": "authority_01J11111111111111111111111",
+      "tenantId": "tenant_01J00000000000000000000000",
+      "controlPlaneInstanceId": "controlplane_01J00000000000000000000000",
+      "authorityEpoch": 1,
+      "region": "westeurope"
+    },
+    "targetProjectId": "project_01J11111111111111111111111",
+    "targetRunId": "run_01J11111111111111111111111",
+    "targetWorkItemId": "work_01J00000000000000000000000"
+  },
+  "remoteResult": {
+    "remoteManifestRef": "azure-blob://remote-results/manifest.json",
+    "remoteManifestHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "remoteEvidenceRangeHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "cannotApplyDirectly": true
+  },
+  "importedProposalId": "proposal_01J11111111111111111111111",
+  "importedProposalHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "handoffHash": "sha256:d1d4d2fbc44a965e2b7e8c38aa5078f74f22d4e9c0fb7a5ea4af9f796a2e679a"
+}

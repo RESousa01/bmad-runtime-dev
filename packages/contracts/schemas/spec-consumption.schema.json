@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/spec-consumption.schema.json",
+  "title": "sapphirus.spec-consumption.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "consumptionId",
+    "deliveryModel",
+    "authorityRef",
+    "specId",
+    "specHash",
+    "candidateHash",
+    "singleUseNonceHash",
+    "executorAudienceHash",
+    "executionId",
+    "attemptNumber",
+    "consumedAt",
+    "consumptionHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.spec-consumption.v1" },
+    "consumptionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "deliveryModel": { "const": "windows_local" },
+    "authorityRef": { "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+    "specId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "specHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "candidateHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "singleUseNonceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "executorAudienceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "executionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "attemptNumber": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "consumedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "consumptionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  }
+}

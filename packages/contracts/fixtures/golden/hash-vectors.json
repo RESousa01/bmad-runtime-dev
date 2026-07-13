@@ -1,0 +1,61 @@
+{
+  "source": "bmad-runtime-lib/99 section 14.2",
+  "required": [
+    {
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "deliveryModel": "windows_local",
+        "objectId": "run_01J00000000000000000000000"
+      },
+      "canonicalJson": "{\"deliveryModel\":\"windows_local\",\"objectId\":\"run_01J00000000000000000000000\"}",
+      "expectedHash": "sha256:cee935f23a73790e45e1226e6f6c2ad8dd74f33059dc77e646863db08327d9b4"
+    },
+    {
+      "purpose": "evidence-event",
+      "schemaMajor": "v2",
+      "value": {
+        "eventId": "evt_01J00000000000000000000000",
+        "previousEventHash": null,
+        "sequence": 1
+      },
+      "canonicalJson": "{\"eventId\":\"evt_01J00000000000000000000000\",\"previousEventHash\":null,\"sequence\":1}",
+      "expectedHash": "sha256:80dcb430cf9139ad48f2c869d2476560fa4e4e84d5a61b6438eefecd2d19f9e1"
+    },
+    {
+      "purpose": "mutable-input-set",
+      "schemaMajor": "v1",
+      "value": [],
+      "canonicalJson": "[]",
+      "expectedHash": "sha256:2ca367f19010d684123667da585b3c4e2ecbbb86e2b69a3e58765485d14acfef"
+    }
+  ],
+  "supplemental": [
+    {
+      "name": "unicode-and-member-order",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "z": "é",
+        "a": "😀",
+        "nested": {
+          "beta": 2,
+          "alpha": 1
+        }
+      },
+      "canonicalJson": "{\"a\":\"😀\",\"nested\":{\"alpha\":1,\"beta\":2},\"z\":\"é\"}",
+      "expectedHash": "sha256:29f8effc5fec855a361b7ed5b8d63a09b40f0ac55fd8d4c051f298fe2425a5b8"
+    },
+    {
+      "name": "integer-boundaries",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991
+      },
+      "canonicalJson": "{\"maximum\":9007199254740991,\"minimum\":-9007199254740991}",
+      "expectedHash": "sha256:85317bb0b884abe579795130ca6a3dbcfad1882814555d30a1a6ca1d5fcfac28"
+    }
+  ]
+}

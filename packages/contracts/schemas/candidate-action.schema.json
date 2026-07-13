@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/candidate-action.schema.json",
+  "title": "sapphirus.candidate-action.v1",
+  "$comment": "D3 exposes only governed Windows text patch candidates. Command and remote execution variants are intentionally absent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "candidateId",
+    "projectId",
+    "runId",
+    "proposalId",
+    "proposalHash",
+    "deliveryModel",
+    "actionKind",
+    "authorityRef",
+    "ownerScopeRef",
+    "policyContextHash",
+    "workspaceTarget",
+    "executorAudience",
+    "mutableInputs",
+    "declaredWrites",
+    "limits",
+    "rollbackClass",
+    "patchRef",
+    "patchHash",
+    "preimages",
+    "createdAt",
+    "expiresAt",
+    "candidateHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.candidate-action.v1" },
+    "candidateId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "proposalId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "proposalHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deliveryModel": { "const": "windows_local" },
+    "actionKind": { "const": "patch_apply" },
+    "authorityRef": { "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef" },
+    "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "policyContextHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "workspaceTarget": { "$ref": "./common.schema.json#/$defs/LocalFolderCapabilityTarget" },
+    "executorAudience": { "$ref": "./common.schema.json#/$defs/NativePatchEngineAudience" },
+    "mutableInputs": {
+      "type": "array",
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/MutableInputBinding" }
+    },
+    "declaredWrites": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/DeclaredWrite" }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeoutSeconds",
+        "maxOutputBytes",
+        "maxChangedFiles",
+        "maxChangedBytes",
+        "maxProcessCount"
+      ],
+      "properties": {
+        "timeoutSeconds": { "const": 0 },
+        "maxOutputBytes": { "const": 0 },
+        "maxChangedFiles": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "maxChangedBytes": { "type": "integer", "minimum": 0, "maximum": 1048576 },
+        "maxProcessCount": { "const": 0 }
+      }
+    },
+    "rollbackClass": { "const": "file_tracked" },
+    "patchRef": { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+    "patchHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "preimages": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/LocalPathPreimage" }
+    },
+    "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "expiresAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "candidateHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "envelope": {
+    "schemaVersion": "sapphirus.durable-object.v1",
+    "objectType": "execution_spec_candidate",
+    "objectId": "object_01J00000000000000000000000",
+    "deliveryModel": "windows_local",
+    "authorityRef": {
+      "authorityKind": "desktop_local_store",
+      "authorityId": "authority_01J00000000000000000000000",
+      "installationId": "install_01J00000000000000000000000",
+      "localStoreId": "store_01J00000000000000000000000",
+      "authorityEpoch": 1
+    },
+    "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+    "projectId": "project_01J00000000000000000000000",
+    "runId": "run_01J00000000000000000000000",
+    "createdAt": "2026-07-13T10:00:01.000Z",
+    "contentHash": "sha256:d7c8a99c8d932aa60e38ce452216144f79af7a1b4ef0b6277cc977c1b07a0256"
+  },
+  "payload": {
+    "candidateId": "candidate_01J00000000000000000000000"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "sapphirus.bmad-fixture.v1",
+  "fixtureId": "bmad_method_help_v6",
+  "fixtureKind": "method_direct_skill",
+  "distributionProfile": "method_source_tree",
+  "validationProfile": "MethodOfficialSkillV6",
+  "executionProfile": "direct",
+  "activationState": "sealed_read_only",
+  "builderActions": [],
+  "scriptExecution": "blocked",
+  "networkAccess": "blocked",
+  "source": {
+    "project": "BMAD-METHOD",
+    "packageVersion": "6.10.0",
+    "license": "MIT",
+    "relativePath": "bmad-runtime-lib/_source_review/BMAD-METHOD-main/BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
+    "byteLength": 4617,
+    "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642"
+  },
+  "payload": null,
+  "assertions": {
+    "sourceDerived": true,
+    "officialPrefix": true
+  }
+}

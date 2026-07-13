@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Sapphirus",
+  "version": "0.1.0-beta.1",
+  "identifier": "com.sapphirus.desktop",
+  "mainBinaryName": "sapphirus",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../.. --filter @sapphirus/desktop-ui dev --host 127.0.0.1",
+    "beforeBuildCommand": "pnpm --dir ../.. --filter @sapphirus/desktop-ui build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../../apps/desktop-ui/dist",
+    "removeUnusedCommands": true,
+    "windows": {
+      "staticVCRuntime": true
+    }
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [],
+    "security": {
+      "capabilities": ["main-workbench"],
+      "csp": "default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' data:; connect-src ipc: http://ipc.localhost",
+      "devCsp": "default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src ipc: http://ipc.localhost http://127.0.0.1:1420 ws://127.0.0.1:1420",
+      "freezePrototype": true,
+      "dangerousDisableAssetCspModification": false,
+      "assetProtocol": {
+        "enable": false,
+        "scope": []
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": false,
+    "category": "DeveloperTool",
+    "shortDescription": "Read-only AI workspace companion for internal organization use.",
+    "longDescription": "Sapphirus is an organization-managed Windows desktop workbench for bounded local workspace inspection and context review.",
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English"],
+        "displayLanguageSelector": false,
+        "compression": "lzma"
+      }
+    }
+  },
+  "plugins": {}
+}

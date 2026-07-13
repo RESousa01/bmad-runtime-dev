@@ -1,0 +1,212 @@
+[
+  {
+    "file": "valid/windows-local-candidate.json",
+    "schema": "candidate-action.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/approved-execution-spec.json",
+    "schema": "approved-execution-spec.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/spec-consumption.json",
+    "schema": "spec-consumption.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/execution-result-manifest.json",
+    "schema": "execution-result-manifest.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/evidence-event.json",
+    "schema": "evidence-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/durable-object.json",
+    "schema": "durable-object.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/filesystem-capability.json",
+    "schema": "filesystem-capability.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/contract-error.json",
+    "schema": "contract-error.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/package-compatibility.json",
+    "schema": "package-compatibility.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/remote-job-handoff.json",
+    "schema": "remote-job-handoff.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "invalid/unknown-discriminator.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/authority-mismatch.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/workspace-target-mismatch.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/executor-audience-mismatch.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/hash-mismatch.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "HASH_MISMATCH"
+  },
+  {
+    "file": "invalid/unsorted-inputs.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "MUTABLE_INPUT_SET_NOT_CANONICAL"
+  },
+  {
+    "file": "invalid/unknown-property.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/traversal-path.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "PATTERN_MISMATCH"
+  },
+  {
+    "file": "invalid/mutable-spec-state.json",
+    "schema": "approved-execution-spec.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/evidence-chain-gap.json",
+    "schema": "evidence-event.schema.json",
+    "valid": false,
+    "reasonCode": "EVIDENCE_CHAIN_PREVIOUS_HASH_REQUIRED"
+  },
+  {
+    "file": "invalid/invalid-timestamp.json",
+    "schema": "evidence-event.schema.json",
+    "valid": false,
+    "reasonCode": "INVALID_UTC_INSTANT"
+  },
+  {
+    "file": "invalid/unknown-schema-major.json",
+    "schema": "candidate-action.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/filesystem-capability-unknown-property.json",
+    "schema": "filesystem-capability.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/contract-error-control-character.json",
+    "schema": "contract-error.schema.json",
+    "valid": false,
+    "reasonCode": "ERROR_MESSAGE_CONTROL_CHARACTER"
+  },
+  {
+    "file": "invalid/contract-error-path-disclosure.json",
+    "schema": "contract-error.schema.json",
+    "valid": false,
+    "reasonCode": "ERROR_MESSAGE_PATH_DISCLOSURE"
+  },
+  {
+    "file": "invalid/contract-error-details-ref-control-character.json",
+    "schema": "contract-error.schema.json",
+    "valid": false,
+    "reasonCode": "ERROR_DETAILS_REF_CONTROL_CHARACTER"
+  },
+  {
+    "file": "invalid/contract-error-details-ref-local-path.json",
+    "schema": "contract-error.schema.json",
+    "valid": false,
+    "reasonCode": "ERROR_DETAILS_REF_LOCAL_PATH"
+  },
+  {
+    "file": "invalid/remote-handoff-unknown-state.json",
+    "schema": "remote-job-handoff.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/remote-handoff-direct-apply.json",
+    "schema": "remote-job-handoff.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/package-capability-overlap.json",
+    "schema": "package-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "CAPABILITY_SET_OVERLAP"
+  },
+  {
+    "file": "invalid/package-capability-unsorted.json",
+    "schema": "package-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "CAPABILITY_SET_NOT_CANONICAL"
+  },
+  {
+    "file": "invalid/package-contract-epoch-inverted.json",
+    "schema": "package-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "CONTRACT_EPOCH_RANGE_INVALID"
+  },
+  {
+    "file": "invalid/remote-handoff-genesis-previous-hash.json",
+    "schema": "remote-job-handoff.schema.json",
+    "valid": false,
+    "reasonCode": "HANDOFF_GENESIS_PREVIOUS_HASH"
+  },
+  {
+    "file": "invalid/remote-handoff-missing-previous-hash.json",
+    "schema": "remote-job-handoff.schema.json",
+    "valid": false,
+    "reasonCode": "HANDOFF_CHAIN_PREVIOUS_HASH_REQUIRED"
+  },
+  {
+    "file": "invalid/duplicate-member.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER"
+  }
+]

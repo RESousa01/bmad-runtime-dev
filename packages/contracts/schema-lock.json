@@ -1,0 +1,399 @@
+{
+  "schemaVersion": "sapphirus.schema-lock.v1",
+  "packageVersion": "0.1.0-beta.1",
+  "contractEpoch": 1,
+  "jsonSchemaDraft": "2020-12",
+  "compatibility": {
+    "writes": [
+      "v1",
+      "evidence-event/v2"
+    ],
+    "reads": [
+      "v1",
+      "evidence-event/v2"
+    ],
+    "unknownMajors": "fail_closed"
+  },
+  "generators": {
+    "bootstrap": "scripts/generate.mjs@3",
+    "typescriptCompiler": "typescript@7.0.2",
+    "typescript": "json-schema-to-typescript@15.0.4; ignoreMinAndMaxItems=true; unreachableDefinitions=false",
+    "typescriptValidator": "ajv@8.17.1",
+    "rust": "typify-cli@0.6.1",
+    "rustValidator": "jsonschema@0.44.1",
+    "dotnet": "Corvus.Json.CodeGeneration.Cli@5.1.0",
+    "dotnetRuntime": "Corvus.Text.Json@5.1.0"
+  },
+  "languageCoverage": {
+    "typescript": {
+      "status": "generated",
+      "families": [
+        "approved-execution-spec",
+        "authority-ref",
+        "candidate-action",
+        "contract-error",
+        "durable-object",
+        "evidence-event",
+        "execution-result-manifest",
+        "filesystem-capability",
+        "package-compatibility",
+        "remote-job-handoff",
+        "spec-consumption"
+      ]
+    },
+    "rust": {
+      "status": "deferred_for_new_families",
+      "deferredFamilies": [
+        "contract-error",
+        "filesystem-capability",
+        "package-compatibility",
+        "remote-job-handoff"
+      ]
+    },
+    "dotnet": {
+      "status": "deferred_for_new_families",
+      "deferredFamilies": [
+        "contract-error",
+        "filesystem-capability",
+        "package-compatibility",
+        "remote-job-handoff"
+      ]
+    }
+  },
+  "schemas": [
+    {
+      "file": "schemas/approved-execution-spec.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/approved-execution-spec.schema.json",
+      "title": "sapphirus.approved-execution-spec.v1",
+      "sha256": "sha256:ed604b481bd247800f299965132f05c4d25201d50ab4a8c1ba2f1c9de7d8c3a2",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/authority-ref.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/authority-ref.schema.json",
+      "title": "sapphirus.authority-ref.v1",
+      "sha256": "sha256:66ce5aac41b92f46e7fe98ceda7f9a8a125c1ee38ec8211031df17a8ae5b23d0",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/candidate-action.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/candidate-action.schema.json",
+      "title": "sapphirus.candidate-action.v1",
+      "sha256": "sha256:66b56c4b537a7366e26ccc06beb3c137745bc15c775081fb8723cfb85076bc8a",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/common.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/common.schema.json",
+      "title": "sapphirus.common.v1",
+      "sha256": "sha256:9429072eae30a7b1e5a3415b4a19992883daec233b76b2058e2231b8b3753171",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/contract-error.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
+      "title": "sapphirus.contract-error.v1",
+      "sha256": "sha256:7ab1394f77e16437949966c9bef85c6989d4cf9beb5bd03157d85078eb77b90c",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/durable-object.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/durable-object.schema.json",
+      "title": "sapphirus.durable-object.v1",
+      "sha256": "sha256:ca7ef8c6013235df7c2c205c3a2b8e8bf3f3cdc6b850fef084355cd259475248",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/evidence-event.schema.json",
+      "id": "https://schemas.sapphirus.dev/v2/evidence-event.schema.json",
+      "title": "sapphirus.evidence-event.v2",
+      "sha256": "sha256:e1ca81f76cbf330da0a6371b4fb3dbff6c39b20c6325ce40fc370a6fa1136983",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/execution-result-manifest.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/execution-result-manifest.schema.json",
+      "title": "sapphirus.execution-result-manifest.v1",
+      "sha256": "sha256:cdb20af9f2a70b20e35142fa2088c3916e8d5220b4415d20bbe9c25ffd8793d7",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/filesystem-capability.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json",
+      "title": "sapphirus.filesystem-capability.v1",
+      "sha256": "sha256:ea670f7a037d661e8b136f863c8084d704b1626d71b0784ef5c7b1715764c323",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/package-compatibility.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json",
+      "title": "sapphirus.package-compatibility.v1",
+      "sha256": "sha256:6e51e9607d01672b774defedac74d2b60634410ace51340e6c34968dae0215e2",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/remote-job-handoff.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/remote-job-handoff.schema.json",
+      "title": "sapphirus.remote-job-handoff.v1",
+      "sha256": "sha256:1f3ed4a19db94b76c5220d57b04666ff84510323132e936c16250d8f9cb787d6",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/spec-consumption.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/spec-consumption.schema.json",
+      "title": "sapphirus.spec-consumption.v1",
+      "sha256": "sha256:62b8a09ab9f10af299d00dce51892fe50832cb580cc2de07ce72d7396996fb8c",
+      "compatibility": "major-locked"
+    }
+  ],
+  "generatedTree": {
+    "sha256": "sha256:89b44dc9956a365ef073522f0a6934030b01da96ccbdb0dcb8a212d1abfdad1d",
+    "files": [
+      {
+        "file": "generated/dotnet/Contracts.g.cs",
+        "sha256": "sha256:c03874b03e1ba1fac0c03ed6d8e7d34951b0630ee24e40ef3330c77f90494d16"
+      },
+      {
+        "file": "generated/rust/contracts.rs",
+        "sha256": "sha256:2dfac1b915478a35238e0c2bdbd0886d5a169c5e78619711747a75098ba815b6"
+      },
+      {
+        "file": "generated/typescript/contracts.ts",
+        "sha256": "sha256:eb5b241dbc42e28e79df216f933623e8b90d615e2d22162ffaab72ee638ba4f8"
+      },
+      {
+        "file": "generated/typescript/runtime.mjs",
+        "sha256": "sha256:cabe25de0091898d26dc477d9a04f7ea229a0ae8bab2ba73ad1f00bfededa8b3"
+      },
+      {
+        "file": "generated/typescript/schema/approved-execution-spec.ts",
+        "sha256": "sha256:c70999cc63ce8dae79f4c63f9f3519c4de985195a8e7a16240d5b58a1e2e9529"
+      },
+      {
+        "file": "generated/typescript/schema/authority-ref.ts",
+        "sha256": "sha256:9b52008f757c49e72f64cb3e252497c03f06e5c756fa2d22340de50a92b563c3"
+      },
+      {
+        "file": "generated/typescript/schema/candidate-action.ts",
+        "sha256": "sha256:1c68cdc1068409f4dffa9b97a39a6af9e4b10deb6088f17ca2e11b28cb069a84"
+      },
+      {
+        "file": "generated/typescript/schema/contract-error.ts",
+        "sha256": "sha256:0c37dcb70b860bac6b35488383cadf0f632af5dcf82f8723588a47c9c9630d12"
+      },
+      {
+        "file": "generated/typescript/schema/durable-object.ts",
+        "sha256": "sha256:ef45d747f0869cceed4b7f101c5460fef7f14e4ffd1151285a31ef3e5c8998e7"
+      },
+      {
+        "file": "generated/typescript/schema/evidence-event.ts",
+        "sha256": "sha256:20997e8830ebef10cfc0305d8aadae6ac92f0ad51e92cccb4953f1666e289db6"
+      },
+      {
+        "file": "generated/typescript/schema/execution-result-manifest.ts",
+        "sha256": "sha256:71738d8ed6138bdabe44fbfa2db14df4f4c2a057f962ade98229f679769d3e1a"
+      },
+      {
+        "file": "generated/typescript/schema/filesystem-capability.ts",
+        "sha256": "sha256:ebbe4a7187152862a3c8fc0422003b8d8d70d52bb5558dbec03e2a77eaad6419"
+      },
+      {
+        "file": "generated/typescript/schema/package-compatibility.ts",
+        "sha256": "sha256:182640762186aaf3ac57a570b308be5fda3a24be926857e484befe57ac6bae39"
+      },
+      {
+        "file": "generated/typescript/schema/remote-job-handoff.ts",
+        "sha256": "sha256:2b1b2a71335d529342d40723e5404520ee0ce5dce882687a82924464e6f9c292"
+      },
+      {
+        "file": "generated/typescript/schema/spec-consumption.ts",
+        "sha256": "sha256:b864993a9de4cba4c094b661306e90fe3b96112cace1297970521a51e29350e4"
+      },
+      {
+        "file": "generated/typescript/semantic-validation.d.mts",
+        "sha256": "sha256:d1651bb8ab6ba419d84cdf24118746ae28512ecbfdced48964f2924d176a30d0"
+      },
+      {
+        "file": "generated/typescript/semantic-validation.mjs",
+        "sha256": "sha256:fac1b669958096c520118b1ba4977fd4c28717c0b6bb25c93b4eb7a48dd4192e"
+      },
+      {
+        "file": "generated/typescript/strict-json.mjs",
+        "sha256": "sha256:c98f32bbcdcc9e46e4a9a96e95c3c86b644888b398d734c0fcef8f3aa8188483"
+      },
+      {
+        "file": "generated/typescript/unicode.mjs",
+        "sha256": "sha256:656f4438e8155e00d34704671f9bc5da6c4f7d0dc1246bb7118ea56a5a5c1a52"
+      },
+      {
+        "file": "generated/typescript/validation.d.mts",
+        "sha256": "sha256:2a6291cf48a8e12a52699b42dbc793d423082cb2b837a02530c0543b2d732eb0"
+      },
+      {
+        "file": "generated/typescript/validation.mjs",
+        "sha256": "sha256:734ab66a71b06d50ee9ebb0b9514bbe94ea8b550f36471dd01bdf21ae3d5ce24"
+      },
+      {
+        "file": "generated/typescript/validators.d.mts",
+        "sha256": "sha256:4da6185a367079e21e3f54688bc282011422d11c8d521e1b592cf56b3edeaf60"
+      },
+      {
+        "file": "generated/typescript/validators.mjs",
+        "sha256": "sha256:dfcab99b38f91bd991ef73581bd971d8c1198960082ee8f25eb5bca4b24fcd1e"
+      }
+    ]
+  },
+  "fixtureTree": {
+    "sha256": "sha256:ec05389d3b68e2b3bfbb833448d73039e79759d191c64384c7d8997673fb4ddc",
+    "files": [
+      {
+        "file": "fixtures/catalog.json",
+        "sha256": "sha256:cce02495990dac6328fadd2efb455989526b13ecbdeca95a09007401c3e09142"
+      },
+      {
+        "file": "fixtures/golden/hash-vectors.json",
+        "sha256": "sha256:d2dea9445dcc0a33e7ad7f4505eb651327c0c3da6f00217e2cf12d7f6f47cc39"
+      },
+      {
+        "file": "fixtures/invalid/authority-mismatch.json",
+        "sha256": "sha256:0fff96e1c84323d0e74af4f2fba3f776cd894604afba91dbbcf6efa5cc1b29f0"
+      },
+      {
+        "file": "fixtures/invalid/contract-error-control-character.json",
+        "sha256": "sha256:b32d724ccd305682ca4f0ac0b03cfcc1ab8d612b7854848dc253a7c896c6539f"
+      },
+      {
+        "file": "fixtures/invalid/contract-error-details-ref-control-character.json",
+        "sha256": "sha256:ecef2e35b4d1773017cf86d418ae8ff0fdb63d829bf3737cdcb22df50c665169"
+      },
+      {
+        "file": "fixtures/invalid/contract-error-details-ref-local-path.json",
+        "sha256": "sha256:f074a5a3d8509f331f538d1f1531f2d8efafafb5ea85a82ac0cae33ab921067f"
+      },
+      {
+        "file": "fixtures/invalid/contract-error-path-disclosure.json",
+        "sha256": "sha256:a623ac1b22562e157f97469594aeb65883e2bdb6563006f40228f81b258f85d5"
+      },
+      {
+        "file": "fixtures/invalid/duplicate-member.json",
+        "sha256": "sha256:eb496e7cc5618eb115761aff1a6fc88f76e4f086d7386d98f81d98971d48d4b0"
+      },
+      {
+        "file": "fixtures/invalid/evidence-chain-gap.json",
+        "sha256": "sha256:c31913c70a3164c110185edad33c374f93ad2d1934fd7ebd79d5480286e54d1e"
+      },
+      {
+        "file": "fixtures/invalid/executor-audience-mismatch.json",
+        "sha256": "sha256:2f9f353fdef5c0c600c0c49c25351c197567de7adaa9f48badd050ccb08b6bef"
+      },
+      {
+        "file": "fixtures/invalid/filesystem-capability-unknown-property.json",
+        "sha256": "sha256:c99bb495acf7743a5595ca86150839e706e6284bcd0ddd8bd8be39cfad77fc63"
+      },
+      {
+        "file": "fixtures/invalid/hash-mismatch.json",
+        "sha256": "sha256:53c4b0dd60244a7d9c0c4a8e62e8974bce3763aff3bd9ba94e8788d9477cde7d"
+      },
+      {
+        "file": "fixtures/invalid/invalid-timestamp.json",
+        "sha256": "sha256:6e0ed41d54af037c696f38b75e287a81f9000bf1f2bbac1ed51410b67c4f94ca"
+      },
+      {
+        "file": "fixtures/invalid/mutable-spec-state.json",
+        "sha256": "sha256:e489d30fde85736080881205566d7ceff939753363b3dd555550ae73b05bccdf"
+      },
+      {
+        "file": "fixtures/invalid/package-capability-overlap.json",
+        "sha256": "sha256:56f6ee883b17dc2cfbfe5b7aa499ac08737221e30d6cb866a5afabb16cea05e5"
+      },
+      {
+        "file": "fixtures/invalid/package-capability-unsorted.json",
+        "sha256": "sha256:1616642ed8b586b22c6c2e5e01d96ec474cfd0f0cf00efc479e5ccbd8c6a1f23"
+      },
+      {
+        "file": "fixtures/invalid/package-contract-epoch-inverted.json",
+        "sha256": "sha256:7a4c321d3c3c24347e38a3cbba8d688e516f8332666341f5c27a3c3b1ce250c0"
+      },
+      {
+        "file": "fixtures/invalid/remote-handoff-direct-apply.json",
+        "sha256": "sha256:cdce3f6a62cfaabc75eb9d104f0971460e67f787a8a83c59afd8fef244de1920"
+      },
+      {
+        "file": "fixtures/invalid/remote-handoff-genesis-previous-hash.json",
+        "sha256": "sha256:688075aef232acd1489010b4f8d2f7a71a70eb04ad799814b81ae6fd98305c59"
+      },
+      {
+        "file": "fixtures/invalid/remote-handoff-missing-previous-hash.json",
+        "sha256": "sha256:20c0a1802d0dc20a0ef5f4a6b5dc892f254860ba480fd1cc1bab9acd0ed6490d"
+      },
+      {
+        "file": "fixtures/invalid/remote-handoff-unknown-state.json",
+        "sha256": "sha256:87f609d300691b17b682a8efb0391f257876359871f07367d5da5ca7761ea38e"
+      },
+      {
+        "file": "fixtures/invalid/traversal-path.json",
+        "sha256": "sha256:99d16128d50fb52973ea669203e1334d5538c775d9e5b1ce0370107346ee1b29"
+      },
+      {
+        "file": "fixtures/invalid/unknown-discriminator.json",
+        "sha256": "sha256:166c50075f5fd5890335a944d5bbf3d887fad86d521758c37e03520d2b3a2552"
+      },
+      {
+        "file": "fixtures/invalid/unknown-property.json",
+        "sha256": "sha256:03ba4b948a0896da5fd6e5d2091a97e7b5cdeb192a61c557673cf50b8300f3b3"
+      },
+      {
+        "file": "fixtures/invalid/unknown-schema-major.json",
+        "sha256": "sha256:3bb2961c968a821de7be61c82a24165b047e536a65a7858ca8dcc66196cfcc90"
+      },
+      {
+        "file": "fixtures/invalid/unsorted-inputs.json",
+        "sha256": "sha256:8ab2d26a97324a82cb5b5bb5e161cc125731554fba0025b33283ed40d7768ef4"
+      },
+      {
+        "file": "fixtures/invalid/workspace-target-mismatch.json",
+        "sha256": "sha256:0182857a2cfc5a8732f060464507fbd2e78dff698f4a5d484ccd65a3868eba07"
+      },
+      {
+        "file": "fixtures/valid/approved-execution-spec.json",
+        "sha256": "sha256:53d56d8ac427424575c2cfcbd8e6e5682af3bae09be94160f555f6e2057997ec"
+      },
+      {
+        "file": "fixtures/valid/contract-error.json",
+        "sha256": "sha256:3a9ff711c67a2db6769c69e951324567e9ad7521b077607a783b3f6e7bd4d736"
+      },
+      {
+        "file": "fixtures/valid/durable-object.json",
+        "sha256": "sha256:24800f03e8795a25a83583a11a012ddaf0b198e335ce78ee1879838ae0e25d0e"
+      },
+      {
+        "file": "fixtures/valid/evidence-event.json",
+        "sha256": "sha256:b155610f9280babb262c6fe97c057cf7da6f344fe5c9ea7f2a3025f00d3fb6c1"
+      },
+      {
+        "file": "fixtures/valid/execution-result-manifest.json",
+        "sha256": "sha256:9134230514afc75e10997c31a826af0712238c79e76c633d63c99ddb42789060"
+      },
+      {
+        "file": "fixtures/valid/filesystem-capability.json",
+        "sha256": "sha256:340327dc40b22d78533940c07f324dd2751936cf47aa0463f9b73b5b3df5f0a3"
+      },
+      {
+        "file": "fixtures/valid/package-compatibility.json",
+        "sha256": "sha256:58a2126928712198b836db3cc3335047f2b037645d771f5c152c8c2eddf04b37"
+      },
+      {
+        "file": "fixtures/valid/remote-job-handoff.json",
+        "sha256": "sha256:3007a6154f5d94f49cbeb11a6d42d795fcd8681fc2cb68ae0d5f7849bb40ea8b"
+      },
+      {
+        "file": "fixtures/valid/spec-consumption.json",
+        "sha256": "sha256:9c5623809aa94dbb88832f44b8940d0809003282dded90b9b3eae7642240bb90"
+      },
+      {
+        "file": "fixtures/valid/windows-local-candidate.json",
+        "sha256": "sha256:fd6df535a61d907284cfce317310197a8e31ea29610c742b202359092d2a0802"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "./generated/typescript"
+  },
+  "include": [
+    "generated/typescript/**/*.ts",
+    "generated/typescript/**/*.d.mts"
+  ]
+}

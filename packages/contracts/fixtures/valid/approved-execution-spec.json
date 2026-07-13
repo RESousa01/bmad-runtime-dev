@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "sapphirus.approved-execution-spec.v1",
+  "specId": "spec_01J00000000000000000000000",
+  "deliveryModel": "windows_local",
+  "authorityRef": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+  "projectId": "project_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "proposalId": "proposal_01J00000000000000000000000",
+  "proposalHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "candidateId": "candidate_01J00000000000000000000000",
+  "candidateHash": "sha256:73d958acf9db5b72907deb3febe6652e74938d90b437965f57c835f20e545d9b",
+  "approvalId": "approval_01J00000000000000000000000",
+  "approvalDecisionHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "policyVersion": "desktop-airlock.2026-07-13",
+  "policyHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "workspaceTargetHash": "sha256:8692995343a1f1ff7df77958dae606dac81e573a238ff9b9dd005c1607701630",
+  "mutableInputSetHash": "sha256:931768a1e92343fd2542109371da3335f51772e755c21c64d153c0defe2aafcb",
+  "executorAudience": {
+    "audienceKind": "native_patch_engine",
+    "installationId": "install_01J00000000000000000000000",
+    "hostBuildId": "desktop-0.1.0-beta.1",
+    "hostBinarySha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "patchEngineProfileHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "issuedAt": "2026-07-13T10:01:00.000Z",
+  "expiresAt": "2026-07-13T10:11:00.000Z",
+  "singleUseNonceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "specHash": "sha256:66d66e9a9790b29b12f43d6718fc3bced655f71db93afab45ac5ddf73bf110f4"
+}

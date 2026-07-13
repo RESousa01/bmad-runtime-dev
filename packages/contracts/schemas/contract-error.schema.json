@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
+  "title": "sapphirus.contract-error.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "errorId",
+    "code",
+    "message",
+    "correlationId",
+    "retryable",
+    "detailsRef"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.error.v1" },
+    "errorId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "code": {
+      "enum": [
+        "SCHEMA_UNSUPPORTED",
+        "SCHEMA_INVALID",
+        "DELIVERY_MODEL_MISMATCH",
+        "AUTHORITY_MISMATCH",
+        "WORKSPACE_TARGET_MISMATCH",
+        "EXECUTOR_AUDIENCE_MISMATCH",
+        "HASH_MISMATCH",
+        "STALE_MUTABLE_INPUT",
+        "SPEC_EXPIRED",
+        "SPEC_ALREADY_CONSUMED",
+        "SYNC_CONFLICT",
+        "SIGNATURE_INVALID",
+        "COMPATIBILITY_BLOCKED"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "retryable": { "type": "boolean" },
+    "detailsRef": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+        { "type": "null" }
+      ]
+    }
+  }
+}
