@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
@@ -9,6 +10,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <InvariantGlobalization>true</InvariantGlobalization>
     <AssemblyName>Sapphirus.WindowsAuthBroker</AssemblyName>
     <RootNamespace>Sapphirus.WindowsAuthBroker</RootNamespace>
@@ -18,4 +20,3 @@
     <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.83.3" />
   </ItemGroup>
 </Project>
-
