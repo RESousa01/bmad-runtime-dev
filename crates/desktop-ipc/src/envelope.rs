@@ -110,6 +110,13 @@ pub enum IpcValidationError {
 pub struct CommandEnvelopeValidator;
 
 impl CommandEnvelopeValidator {
+    /// Parses and validates a renderer command against its native-host context.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IpcValidationError`] when the envelope is malformed, exceeds
+    /// a boundary limit, fails its renderer bindings, names an unavailable
+    /// capability, or contains an invalid payload.
     pub fn parse(
         bytes: &[u8],
         context: &IpcValidationContext,
@@ -289,75 +296,92 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 workspace_id: input.workspace_id,
             })
         }
-        "workspace.list_entries" => {
-            let input: ListEntriesPayload = parse_payload(payload)?;
-            if input.limit == 0 || input.limit > MAX_LIST_ENTRIES {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            if input
-                .cursor
-                .as_ref()
-                .is_some_and(|cursor| cursor.len() > 256)
-            {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            Ok(LocalCommand::ListWorkspaceEntries {
-                workspace_id: input.workspace_id,
-                cursor: input.cursor,
-                limit: input.limit,
-            })
-        }
-        "workspace.read_text" => {
-            let input: ReadTextPayload = parse_payload(payload)?;
-            if input.max_bytes == 0 || input.max_bytes > MAX_READ_BYTES {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            Ok(LocalCommand::ReadWorkspaceText {
-                workspace_id: input.workspace_id,
-                relative_path: input.relative_path,
-                max_bytes: input.max_bytes,
-            })
-        }
-        "workspace.search" => {
-            let input: SearchPayload = parse_payload(payload)?;
-            if input.query.trim().is_empty()
-                || input.query.len() > MAX_QUERY_BYTES
-                || input.query.contains('\0')
-                || input.max_results == 0
-                || input.max_results > MAX_SEARCH_RESULTS
-            {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            Ok(LocalCommand::SearchWorkspace {
-                workspace_id: input.workspace_id,
-                query: input.query,
-                max_results: input.max_results,
-            })
-        }
+        "workspace.list_entries" => parse_list_entries(payload),
+        "workspace.read_text" => parse_read_text(payload),
+        "workspace.search" => parse_search(payload),
         "bmad.scan" => {
             let input: WorkspaceIdPayload = parse_payload(payload)?;
             Ok(LocalCommand::ScanBmad {
                 workspace_id: input.workspace_id,
             })
         }
-        "context.preview" => {
-            let input: ContextPayload = parse_payload(payload)?;
-            if input.relative_paths.is_empty() || input.relative_paths.len() > MAX_CONTEXT_PATHS {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            let unique_paths: std::collections::BTreeSet<_> = input
-                .relative_paths
-                .iter()
-                .map(RelativeWorkspacePath::case_folded)
-                .collect();
-            if unique_paths.len() != input.relative_paths.len() {
-                return Err(IpcValidationError::InvalidPayload);
-            }
-            Ok(LocalCommand::PreviewContext {
-                workspace_id: input.workspace_id,
-                relative_paths: input.relative_paths,
-            })
-        }
+        "context.preview" => parse_context_preview(payload),
+        _ => parse_later_phase_command(command, payload),
+    }
+}
+
+fn parse_list_entries(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ListEntriesPayload = parse_payload(payload)?;
+    if input.limit == 0 || input.limit > MAX_LIST_ENTRIES {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    if input
+        .cursor
+        .as_ref()
+        .is_some_and(|cursor| cursor.len() > 256)
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::ListWorkspaceEntries {
+        workspace_id: input.workspace_id,
+        cursor: input.cursor,
+        limit: input.limit,
+    })
+}
+
+fn parse_read_text(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ReadTextPayload = parse_payload(payload)?;
+    if input.max_bytes == 0 || input.max_bytes > MAX_READ_BYTES {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::ReadWorkspaceText {
+        workspace_id: input.workspace_id,
+        relative_path: input.relative_path,
+        max_bytes: input.max_bytes,
+    })
+}
+
+fn parse_search(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: SearchPayload = parse_payload(payload)?;
+    if input.query.trim().is_empty()
+        || input.query.len() > MAX_QUERY_BYTES
+        || input.query.contains('\0')
+        || input.max_results == 0
+        || input.max_results > MAX_SEARCH_RESULTS
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::SearchWorkspace {
+        workspace_id: input.workspace_id,
+        query: input.query,
+        max_results: input.max_results,
+    })
+}
+
+fn parse_context_preview(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ContextPayload = parse_payload(payload)?;
+    if input.relative_paths.is_empty() || input.relative_paths.len() > MAX_CONTEXT_PATHS {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    let unique_paths: std::collections::BTreeSet<_> = input
+        .relative_paths
+        .iter()
+        .map(RelativeWorkspacePath::case_folded)
+        .collect();
+    if unique_paths.len() != input.relative_paths.len() {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::PreviewContext {
+        workspace_id: input.workspace_id,
+        relative_paths: input.relative_paths,
+    })
+}
+
+fn parse_later_phase_command(
+    command: &str,
+    payload: Value,
+) -> Result<LocalCommand, IpcValidationError> {
+    match command {
         "session.create" => {
             let input: WorkspaceIdPayload = parse_payload(payload)?;
             Ok(LocalCommand::CreateSession {

@@ -127,9 +127,8 @@ impl HostState {
             return Ok(Self::recovery(recovery_id, None));
         };
 
-        let store = match LocalStore::open(root, &UserDpapiProtector) {
-            Ok(store) => store,
-            Err(_) => return Ok(Self::recovery(recovery_id, None)),
+        let Ok(store) = LocalStore::open(root, &UserDpapiProtector) else {
+            return Ok(Self::recovery(recovery_id, None));
         };
         let installation_id = ContractId::new(format!(
             "installation_{}",
@@ -424,9 +423,8 @@ impl HostState {
 }
 
 fn load_workspace_catalog(store: &LocalStore) -> Option<(WorkspaceBroker, CatalogState)> {
-    let aggregate = match store.load_aggregate("workspace_catalog", "local") {
-        Ok(value) => value,
-        Err(_) => return None,
+    let Ok(aggregate) = store.load_aggregate("workspace_catalog", "local") else {
+        return None;
     };
     let (version, catalog) = match aggregate {
         Some(record) => {

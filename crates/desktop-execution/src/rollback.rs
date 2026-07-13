@@ -35,7 +35,30 @@ pub struct RollbackPlan {
     pub rollback_plan_hash: Sha256Digest,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RollbackPlanDraft<'a> {
+    schema_version: &'static str,
+    rollback_plan_id: &'a ContractId,
+    source_execution_id: &'a ContractId,
+    target_checkpoint_id: &'a ContractId,
+    workspace_target_hash: Sha256Digest,
+    operations: &'a [PatchOperation],
+    conflicts: &'a [RollbackConflict],
+    created_at: UnixMillis,
+}
+
+struct RollbackChanges {
+    operations: Vec<PatchOperation>,
+    conflicts: Vec<RollbackConflict>,
+}
+
 impl RollbackPlan {
+    /// Verifies the rollback plan's canonical content hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError`] when the plan schema or bound hash is invalid.
     pub fn verify(&self) -> Result<(), ExecutionError> {
         if self.schema_version != "sapphirus.local-rollback-plan.v1" {
             return Err(ExecutionError::IntegrityFailure);
@@ -49,6 +72,12 @@ impl RollbackPlan {
         Ok(())
     }
 
+    /// Converts a conflict-free rollback plan into a governed patch set.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError`] when plan verification fails, a conflict is
+    /// present, or the generated patch is invalid.
     pub fn to_patch_set(&self) -> Result<Option<PatchSet>, ExecutionError> {
         self.verify()?;
         if !self.conflicts.is_empty() {
@@ -63,6 +92,12 @@ impl RollbackPlan {
     }
 }
 
+/// Builds a fresh rollback plan from a verified checkpoint and execution result.
+///
+/// # Errors
+///
+/// Returns [`ExecutionError`] when authority bindings, checkpoint or result
+/// integrity, workspace observations, or canonical hashing fail.
 pub fn plan_rollback<W>(
     workspace: &W,
     rollback_plan_id: ContractId,
@@ -86,6 +121,51 @@ where
     }
 
     let expected = observation_map(&result.files)?;
+    let RollbackChanges {
+        operations,
+        conflicts,
+    } = build_rollback_changes(workspace, checkpoint, &expected)?;
+    if expected.len() != checkpoint.entries.len() {
+        return Err(ExecutionError::IntegrityFailure);
+    }
+
+    let rollback_plan_hash = canonical_hash(
+        "local-rollback-plan",
+        1,
+        &RollbackPlanDraft {
+            schema_version: "sapphirus.local-rollback-plan.v1",
+            rollback_plan_id: &rollback_plan_id,
+            source_execution_id: &result.execution_id,
+            target_checkpoint_id: &checkpoint.checkpoint_id,
+            workspace_target_hash: checkpoint.workspace_target_hash,
+            operations: &operations,
+            conflicts: &conflicts,
+            created_at,
+        },
+    )
+    .map_err(DomainValidationError::from)?;
+
+    Ok(RollbackPlan {
+        schema_version: "sapphirus.local-rollback-plan.v1".to_owned(),
+        rollback_plan_id,
+        source_execution_id: result.execution_id.clone(),
+        target_checkpoint_id: checkpoint.checkpoint_id.clone(),
+        workspace_target_hash: checkpoint.workspace_target_hash,
+        operations,
+        conflicts,
+        created_at,
+        rollback_plan_hash,
+    })
+}
+
+fn build_rollback_changes<W>(
+    workspace: &W,
+    checkpoint: &LocalCheckpoint,
+    expected: &BTreeMap<String, &FileObservation>,
+) -> Result<RollbackChanges, ExecutionError>
+where
+    W: WorkspaceFileIo,
+{
     let mut operations = Vec::new();
     let mut conflicts = Vec::new();
     for entry in &checkpoint.entries {
@@ -110,7 +190,6 @@ where
         }
 
         match (&entry.before, current_bytes) {
-            (CheckpointFileState::Absent, None) => {}
             (CheckpointFileState::Absent, Some(_)) => {
                 if let Some(preimage_hash) = current_hash {
                     operations.push(PatchOperation::delete(
@@ -144,55 +223,21 @@ where
                     ));
                 }
             }
-            (CheckpointFileState::Utf8 { .. }, Some(_)) => {}
+            (CheckpointFileState::Absent, None) | (CheckpointFileState::Utf8 { .. }, Some(_)) => {}
         }
     }
-    if expected.len() != checkpoint.entries.len() {
-        return Err(ExecutionError::IntegrityFailure);
-    }
-
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct Draft<'a> {
-        schema_version: &'static str,
-        rollback_plan_id: &'a ContractId,
-        source_execution_id: &'a ContractId,
-        target_checkpoint_id: &'a ContractId,
-        workspace_target_hash: Sha256Digest,
-        operations: &'a [PatchOperation],
-        conflicts: &'a [RollbackConflict],
-        created_at: UnixMillis,
-    }
-
-    let rollback_plan_hash = canonical_hash(
-        "local-rollback-plan",
-        1,
-        &Draft {
-            schema_version: "sapphirus.local-rollback-plan.v1",
-            rollback_plan_id: &rollback_plan_id,
-            source_execution_id: &result.execution_id,
-            target_checkpoint_id: &checkpoint.checkpoint_id,
-            workspace_target_hash: checkpoint.workspace_target_hash,
-            operations: &operations,
-            conflicts: &conflicts,
-            created_at,
-        },
-    )
-    .map_err(DomainValidationError::from)?;
-
-    Ok(RollbackPlan {
-        schema_version: "sapphirus.local-rollback-plan.v1".to_owned(),
-        rollback_plan_id,
-        source_execution_id: result.execution_id.clone(),
-        target_checkpoint_id: checkpoint.checkpoint_id.clone(),
-        workspace_target_hash: checkpoint.workspace_target_hash,
+    Ok(RollbackChanges {
         operations,
         conflicts,
-        created_at,
-        rollback_plan_hash,
     })
 }
 
+/// Classifies an interrupted effect journal using current workspace observations.
+///
+/// # Errors
+///
+/// Returns [`ExecutionError`] when checkpoint or journal integrity, authority
+/// bindings, or workspace observations cannot be verified.
 pub fn plan_recovery<W>(
     workspace: &W,
     journal: &EffectJournal,

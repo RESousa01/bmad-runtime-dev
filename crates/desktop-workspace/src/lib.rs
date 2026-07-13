@@ -18,6 +18,27 @@ const MAX_DIRECTORY_ENTRIES: usize = 10_000;
 const MAX_WALK_ENTRIES: usize = 10_000;
 const MAX_RELATIVE_PATH_BYTES: usize = 1_024;
 const MAX_SEGMENT_UTF16_UNITS: usize = 255;
+const CONFIG_CREDENTIAL_STORES: &[&str] = &[
+    "1password",
+    "aws",
+    "azure",
+    "doctl",
+    "gcloud",
+    "gh",
+    "hub",
+    "op",
+    "pulumi",
+];
+const APPDATA_CREDENTIAL_STORES: &[&str] = &[
+    "1password",
+    "aws",
+    "azure",
+    "docker",
+    "gcloud",
+    "github cli",
+    "gnupg",
+    "google",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -195,6 +216,12 @@ impl WorkspaceBroker {
         Self::default()
     }
 
+    /// Creates a read-only grant for a selected fixed local NTFS directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the selected root is unsupported or inaccessible,
+    /// or when its stable host identity cannot be read.
     pub fn grant(
         &self,
         project_id: impl Into<String>,
@@ -230,6 +257,13 @@ impl WorkspaceBroker {
         Ok(projection)
     }
 
+    /// Restores a persisted read-only grant after revalidating its root identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the projection is invalid, the selected root is
+    /// unsupported or inaccessible, the root identity changed, or the grant is
+    /// already present.
     pub fn restore_grant(
         &self,
         mut projection: WorkspaceProjection,
@@ -283,6 +317,12 @@ impl WorkspaceBroker {
         projections
     }
 
+    /// Revokes an active workspace grant and advances its epoch.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is absent, already revoked, or its epoch
+    /// cannot be advanced without wrapping.
     pub fn revoke(&self, workspace_id: &str) -> Result<WorkspaceProjection, WorkspaceError> {
         let _authority = self.revocation_barrier.write();
         let mut grants = self.grants.write();
@@ -302,6 +342,13 @@ impl WorkspaceBroker {
         Ok(grant.projection.clone())
     }
 
+    /// Lists a bounded number of direct children in a workspace directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is unavailable, the root identity or
+    /// requested path is invalid, a policy limit is exceeded, or an I/O
+    /// operation fails.
     pub fn list_entries(
         &self,
         workspace_id: &str,
@@ -341,6 +388,12 @@ impl WorkspaceBroker {
     /// Returns a stable bounded page for a directory. `after` is an internal
     /// host cursor value obtained from the previous page; it is never accepted
     /// directly from a renderer path field.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is unavailable, the root identity,
+    /// directory, or cursor is invalid, the bounded scan limit is exceeded, or
+    /// an I/O operation fails.
     pub fn list_entries_page(
         &self,
         workspace_id: &str,
@@ -366,9 +419,10 @@ impl WorkspaceBroker {
             let path = item.path();
             let relative_path = to_relative_wire_path(&grant.root, &path)?;
             let metadata = fs::symlink_metadata(&path)?;
+            let kind = classify_entry(&path, &relative_path, &metadata);
             entries.push(WorkspaceEntry {
                 relative_path,
-                kind: classify_entry(&path, &relative_path, &metadata),
+                kind,
                 size_bytes: metadata.len(),
             });
         }
@@ -402,6 +456,13 @@ impl WorkspaceBroker {
         })
     }
 
+    /// Reads a bounded UTF-8 preview from a policy-approved workspace file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when authority or root identity validation fails, the
+    /// path is invalid or blocked, the file is unsupported text, a limit cannot
+    /// be represented safely, or an I/O operation fails.
     pub fn read_text(
         &self,
         workspace_id: &str,
@@ -425,14 +486,18 @@ impl WorkspaceBroker {
         }
 
         let limit = max_bytes.clamp(1, DEFAULT_MAX_TEXT_BYTES);
+        let limit_usize = usize::try_from(limit).map_err(|_| WorkspaceError::LimitExceeded)?;
+        let initial_capacity = usize::try_from(metadata.len().min(limit))
+            .map_err(|_| WorkspaceError::LimitExceeded)?
+            .saturating_add(1);
         let mut file = File::open(&path)?;
-        let mut bytes = Vec::with_capacity((metadata.len().min(limit) as usize).saturating_add(1));
+        let mut bytes = Vec::with_capacity(initial_capacity);
         file.by_ref()
             .take(limit.saturating_add(1))
             .read_to_end(&mut bytes)?;
-        let truncated = bytes.len() as u64 > limit;
+        let truncated = bytes.len() > limit_usize;
         if truncated {
-            bytes.truncate(limit as usize);
+            bytes.truncate(limit_usize);
         }
         if bytes.contains(&0) {
             return Err(WorkspaceError::UnsupportedText);
@@ -449,6 +514,13 @@ impl WorkspaceBroker {
         })
     }
 
+    /// Searches bounded, policy-approved UTF-8 workspace content.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the query or workspace authority is invalid, the
+    /// root identity changes, the walk budget is exhausted, or an I/O operation
+    /// fails.
     pub fn search(
         &self,
         workspace_id: &str,
@@ -531,6 +603,12 @@ impl WorkspaceBroker {
         Ok(matches)
     }
 
+    /// Detects bounded BMAD Method assets and inactive Builder drafts.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when workspace authority or root identity validation
+    /// fails, a path cannot be normalized, or a directory walk operation fails.
     pub fn scan_bmad(
         &self,
         workspace_id: &str,
@@ -604,6 +682,12 @@ impl WorkspaceBroker {
         })
     }
 
+    /// Returns the opaque host authority binding for an active grant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is unavailable, the selected root
+    /// identity changed, or root revalidation encounters an I/O failure.
     pub fn authority_binding(
         &self,
         workspace_id: &str,
@@ -836,7 +920,11 @@ fn classify_entry(path: &Path, relative_path: &str, metadata: &fs::Metadata) -> 
 
 fn read_bounded_file(path: &Path, limit: u64) -> Result<Option<Vec<u8>>, WorkspaceError> {
     let mut file = File::open(path)?;
-    let mut bytes = Vec::with_capacity((limit as usize).saturating_add(1));
+    let capacity = usize::try_from(limit)
+        .map_err(|_| WorkspaceError::LimitExceeded)?
+        .checked_add(1)
+        .ok_or(WorkspaceError::LimitExceeded)?;
+    let mut bytes = Vec::with_capacity(capacity);
     file.by_ref()
         .take(limit.saturating_add(1))
         .read_to_end(&mut bytes)?;
@@ -913,31 +1001,10 @@ fn is_sensitive_relative_path(path: &str) -> bool {
         return true;
     }
 
-    const CONFIG_CREDENTIAL_STORES: &[&str] = &[
-        "1password",
-        "aws",
-        "azure",
-        "doctl",
-        "gcloud",
-        "gh",
-        "hub",
-        "op",
-        "pulumi",
-    ];
     segments
         .windows(2)
         .any(|pair| pair[0] == ".config" && CONFIG_CREDENTIAL_STORES.contains(&pair[1]))
         || segments.windows(3).any(|triple| {
-            const APPDATA_CREDENTIAL_STORES: &[&str] = &[
-                "1password",
-                "aws",
-                "azure",
-                "docker",
-                "gcloud",
-                "github cli",
-                "gnupg",
-                "google",
-            ];
             triple[0] == "appdata"
                 && matches!(triple[1], "local" | "roaming")
                 && APPDATA_CREDENTIAL_STORES.contains(&triple[2])
@@ -1019,9 +1086,7 @@ fn is_sensitive_path_segment(segment: &str) -> bool {
 }
 
 fn has_sensitive_name_marker(value: &str, marker: &str) -> bool {
-    value
-        .split(|character| matches!(character, '.' | '-' | '_'))
-        .any(|part| part == marker)
+    value.split(['.', '-', '_']).any(|part| part == marker)
 }
 
 fn has_unsupported_prefix(path: &Path) -> bool {
@@ -1106,9 +1171,7 @@ fn is_cloud_placeholder(_metadata: &fs::Metadata) -> bool {
 #[cfg(windows)]
 fn has_unexpected_hardlinks(path: &Path, metadata: &fs::Metadata) -> bool {
     metadata.is_file()
-        && file_information(path, false)
-            .map(|information| information.nNumberOfLinks > 1)
-            .unwrap_or(true)
+        && file_information(path, false).map_or(true, |information| information.nNumberOfLinks > 1)
 }
 
 #[cfg(not(windows))]
@@ -1117,6 +1180,10 @@ fn has_unexpected_hardlinks(_path: &Path, _metadata: &fs::Metadata) -> bool {
 }
 
 #[cfg(windows)]
+#[expect(
+    unsafe_code,
+    reason = "GetFileInformationByHandle requires a Win32 FFI call using a live owned file handle and a writable output structure"
+)]
 fn file_information(
     path: &Path,
     is_directory: bool,
@@ -1142,18 +1209,22 @@ fn file_information(
     // SAFETY: the handle is borrowed from `file`, which stays alive through the call, and the
     // output pointer refers to an initialized, writable structure of the expected size.
     unsafe {
-        if GetFileInformationByHandle(HANDLE(file.as_raw_handle()), &mut information).is_err() {
-            return Err(WorkspaceError::Io(std::io::Error::last_os_error()));
-        }
+        GetFileInformationByHandle(HANDLE(file.as_raw_handle()), &raw mut information)
+            .map_err(|error| WorkspaceError::Io(std::io::Error::other(error)))?;
     }
     Ok(information)
 }
 
 #[cfg(windows)]
+#[expect(
+    unsafe_code,
+    reason = "GetDriveTypeW and GetVolumeInformationW require Win32 FFI calls using a validated NUL-terminated drive root and bounded writable buffer"
+)]
 fn is_supported_volume(path: &Path) -> bool {
     use std::os::windows::ffi::OsStrExt;
     use windows::core::PCWSTR;
-    use windows::Win32::Storage::FileSystem::{GetDriveTypeW, GetVolumeInformationW, DRIVE_FIXED};
+    use windows::Win32::Storage::FileSystem::{GetDriveTypeW, GetVolumeInformationW};
+    use windows::Win32::System::WindowsProgramming::DRIVE_FIXED;
 
     let Some(prefix) = path.components().next() else {
         return false;

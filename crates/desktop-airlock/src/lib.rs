@@ -43,6 +43,13 @@ pub struct PatchPolicy {
 }
 
 impl PatchPolicyBody {
+    /// Validates and seals this policy body with its canonical content hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AirlockError::PolicyDenied`] when a policy limit or authority
+    /// binding is invalid, or [`AirlockError::InvalidDomain`] when canonical
+    /// hashing fails.
     pub fn seal(self) -> Result<PatchPolicy, AirlockError> {
         validate_policy_body(&self)?;
         let policy_hash = canonical_hash("desktop-patch-policy", 1, &self)
@@ -55,6 +62,12 @@ impl PatchPolicyBody {
 }
 
 impl PatchPolicy {
+    /// Verifies the policy body and its canonical content hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`AirlockError`] when the policy body is invalid, cannot be
+    /// hashed canonically, or does not match its bound hash.
     pub fn verify(&self) -> Result<(), AirlockError> {
         validate_policy_body(&self.body)?;
         let actual = canonical_hash("desktop-patch-policy", 1, &self.body)
@@ -80,6 +93,12 @@ pub struct ConsumptionStoreError;
 /// Durable implementations must enforce a unique key and commit the record in
 /// the same transaction as the successful compare-and-swap.
 pub trait ConsumptionLedger: Send + Sync {
+    /// Atomically records a previously unseen consumption key and record.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ConsumptionStoreError`] when the durable store cannot complete
+    /// the atomic insert-if-absent operation.
     fn insert_if_absent(
         &self,
         key: &ConsumptionKey,
@@ -135,6 +154,12 @@ pub struct ConsumeSpecInput<'a> {
 pub struct PatchAirlock;
 
 impl PatchAirlock {
+    /// Validates the exact approval inputs and issues a single-use execution spec.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`AirlockError`] when any candidate, patch, approval, policy,
+    /// lifetime, nonce, or authority binding is invalid.
     pub fn issue(input: IssueSpecInput<'_>) -> Result<ApprovedExecutionSpec, AirlockError> {
         validate_exact_patch(input.candidate, input.patch)?;
         input.approval.verify_for(input.candidate)?;
@@ -201,6 +226,12 @@ impl PatchAirlock {
         .map_err(AirlockError::from)
     }
 
+    /// Validates and atomically consumes a single-use execution spec.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`AirlockError`] when any bound input is invalid, the spec is
+    /// expired or already consumed, or the consumption store is unavailable.
     pub fn consume<L>(
         ledger: &L,
         input: ConsumeSpecInput<'_>,
@@ -411,20 +442,19 @@ mod tests {
         Ok(ContractId::new(value)?)
     }
 
-    fn fixture() -> Result<
-        (
-            desktop_runtime::WindowsPatchCandidate,
-            PatchSet,
-            desktop_runtime::ApprovalDecision,
-            PatchPolicy,
-            NativePatchEngineAudience,
-        ),
-        Box<dyn std::error::Error>,
-    > {
-        let path = RelativeWorkspacePath::new("src/App.tsx")?;
+    type AirlockFixture = (
+        desktop_runtime::WindowsPatchCandidate,
+        PatchSet,
+        desktop_runtime::ApprovalDecision,
+        PatchPolicy,
+        NativePatchEngineAudience,
+    );
+
+    fn fixture() -> Result<AirlockFixture, Box<dyn std::error::Error>> {
+        let relative_path = RelativeWorkspacePath::new("src/App.tsx")?;
         let old_hash = sha256_bytes(b"old");
         let patch = PatchSet::new(vec![PatchOperation::replace(
-            path.clone(),
+            relative_path.clone(),
             old_hash,
             "new".to_owned(),
         )]);
@@ -461,7 +491,7 @@ mod tests {
                     content_hash: sha256_bytes(b"manifest"),
                 }],
                 declared_writes: vec![DeclaredWrite {
-                    path_pattern: path.clone(),
+                    path_pattern: relative_path.clone(),
                     operation: DeclaredWriteOperation::Modify,
                     preimage_hash: Some(old_hash),
                 }],
@@ -485,7 +515,7 @@ mod tests {
             patch_ref: format!("cas://sha256/{}", patch_hash.hex_value()),
             patch_hash,
             preimages: vec![LocalPathPreimage {
-                relative_path: path,
+                relative_path,
                 exists: true,
                 file_identity_hash: Some(sha256_bytes(b"file-id")),
                 content_hash: Some(old_hash),

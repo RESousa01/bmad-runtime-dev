@@ -33,6 +33,64 @@ const REQUIRED_TABLES: [&str; 6] = [
     "spec_consumptions",
     "store_meta",
 ];
+const INITIAL_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE IF NOT EXISTS store_meta (
+   key TEXT PRIMARY KEY,
+   value TEXT NOT NULL
+ ) STRICT;
+ CREATE TABLE IF NOT EXISTS payloads (
+   content_hash TEXT NOT NULL,
+   kind TEXT NOT NULL,
+   schema_version TEXT NOT NULL,
+   byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
+   key_version INTEGER NOT NULL CHECK(key_version >= 1),
+   created_at TEXT NOT NULL,
+   PRIMARY KEY (content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE TABLE IF NOT EXISTS aggregates (
+   aggregate_type TEXT NOT NULL,
+   aggregate_id TEXT NOT NULL,
+   version INTEGER NOT NULL CHECK(version >= 1),
+   state_json TEXT NOT NULL,
+   updated_at TEXT NOT NULL,
+   PRIMARY KEY (aggregate_type, aggregate_id)
+ ) STRICT;
+ CREATE TABLE IF NOT EXISTS evidence_events (
+   event_id TEXT PRIMARY KEY,
+   stream_id TEXT NOT NULL,
+   sequence INTEGER NOT NULL CHECK(sequence >= 1),
+   event_type TEXT NOT NULL,
+   payload_hash TEXT NOT NULL,
+   payload_ref TEXT,
+   previous_event_hash TEXT,
+   event_hash TEXT NOT NULL,
+   correlation_id TEXT NOT NULL,
+   causation_id TEXT,
+   redaction_level TEXT NOT NULL,
+   retention_class TEXT NOT NULL,
+   occurred_at TEXT NOT NULL,
+   UNIQUE(stream_id, sequence)
+ ) STRICT;
+ CREATE TABLE IF NOT EXISTS outbox (
+   outbox_id TEXT PRIMARY KEY,
+   event_id TEXT NOT NULL REFERENCES evidence_events(event_id),
+   created_at TEXT NOT NULL,
+   dispatched_at TEXT
+ ) STRICT;
+ CREATE UNIQUE INDEX outbox_event_once ON outbox(event_id);
+ CREATE TABLE IF NOT EXISTS spec_consumptions (
+   consumption_id TEXT PRIMARY KEY,
+   spec_hash TEXT NOT NULL UNIQUE,
+   candidate_hash TEXT NOT NULL,
+   nonce_hash TEXT NOT NULL,
+   audience_hash TEXT NOT NULL,
+   execution_id TEXT NOT NULL,
+   consumption_hash TEXT NOT NULL UNIQUE,
+   record_json TEXT NOT NULL,
+   consumed_at TEXT NOT NULL
+ ) STRICT;
+ PRAGMA user_version = 4;
+ COMMIT;";
 
 #[derive(Debug, Error)]
 pub enum StoreError {
@@ -59,7 +117,19 @@ pub enum StoreError {
 }
 
 pub trait KeyProtector: Send + Sync {
+    /// Protects store-key bytes for the current user.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when key protection cannot be completed.
     fn protect(&self, plaintext: &[u8]) -> Result<Vec<u8>, StoreError>;
+
+    /// Recovers store-key bytes for the current user.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when protected bytes cannot be authenticated or
+    /// recovered.
     fn unprotect(&self, protected: &[u8]) -> Result<Vec<u8>, StoreError>;
 }
 
@@ -166,6 +236,14 @@ struct StoredConsumptionRow {
     consumed_at: String,
 }
 
+struct IntegritySnapshot {
+    quick_check: String,
+    outbox_link_errors: u64,
+    events: Vec<StoredEvidenceRow>,
+    payloads: Vec<PayloadRef>,
+    consumptions: Vec<StoredConsumptionRow>,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct EvidenceHashInput<'a> {
@@ -193,6 +271,12 @@ pub struct LocalStore {
 }
 
 impl LocalStore {
+    /// Opens or creates a local authority store and its encrypted CAS.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the root, key, database, configuration, or
+    /// schema cannot be opened and verified safely.
     pub fn open(root: impl AsRef<Path>, protector: &dyn KeyProtector) -> Result<Self, StoreError> {
         let root = root.as_ref().to_path_buf();
         let cas_root = root.join("cas");
@@ -228,6 +312,12 @@ impl LocalStore {
         self.root.join("authority.sqlite3")
     }
 
+    /// Encrypts and durably registers a content-addressed payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when labels are invalid, encryption or durable I/O
+    /// fails, or the stored payload does not authenticate against its metadata.
     pub fn put_payload(
         &self,
         kind: &str,
@@ -241,7 +331,7 @@ impl LocalStore {
         let path = self.cas_path(kind, schema_version, &content_hash)?;
         if !path.exists() {
             let encrypted = self.encrypt(kind, schema_version, &content_hash, plaintext)?;
-            self.persist_cas(&path, &encrypted)?;
+            Self::persist_cas(&path, &encrypted)?;
         }
         let existing = self.decrypt(
             kind,
@@ -255,7 +345,7 @@ impl LocalStore {
         }
 
         let byte_count = u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?;
-        let now = canonical_now()?;
+        let now = canonical_now();
         let connection = self.connection.lock();
         connection.execute(
             "INSERT OR IGNORE INTO payloads
@@ -290,6 +380,12 @@ impl LocalStore {
         })
     }
 
+    /// Loads and authenticates a registered content-addressed payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when metadata is inconsistent, the encrypted file
+    /// cannot be read, or authenticated decryption fails.
     pub fn get_payload(&self, reference: &PayloadRef) -> Result<Vec<u8>, StoreError> {
         let stored = self
             .connection
@@ -328,6 +424,12 @@ impl LocalStore {
         Ok(plaintext)
     }
 
+    /// Atomically advances an aggregate, evidence stream, and outbox record.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when input validation, version ordering, canonical
+    /// hashing, or the `SQLite` transaction fails.
     pub fn append_transition(
         &self,
         aggregate_type: &str,
@@ -336,24 +438,7 @@ impl LocalStore {
         aggregate_state_json: &str,
         event: &EvidenceAppend,
     ) -> Result<EvidenceRecord, StoreError> {
-        validate_label(aggregate_type)?;
-        validate_label(aggregate_id)?;
-        validate_evidence_label(&event.stream_id)?;
-        validate_evidence_label(&event.event_type)?;
-        validate_evidence_label(&event.correlation_id)?;
-        if let Some(causation_id) = &event.causation_id {
-            validate_evidence_label(causation_id)?;
-        }
-        validate_label(&event.redaction_level)?;
-        validate_label(&event.retention_class)?;
-        validate_sha256(&event.payload_hash)?;
-        if let Some(payload_ref) = &event.payload_ref {
-            validate_bound_payload_reference(payload_ref, &event.payload_hash)?;
-        }
-        let state: serde_json::Value = serde_json::from_str(aggregate_state_json)?;
-        if !state.is_object() {
-            return Err(StoreError::Inconsistent);
-        }
+        validate_transition_input(aggregate_type, aggregate_id, aggregate_state_json, event)?;
         let mut connection = self.connection.lock();
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
         if event.payload_ref.is_some() {
@@ -383,39 +468,24 @@ impl LocalStore {
         if aggregate_version != expected_version {
             return Err(StoreError::StateConflict);
         }
-        let previous = transaction
-            .query_row(
-                "SELECT sequence, event_hash FROM evidence_events
-                 WHERE stream_id = ?1 ORDER BY sequence DESC LIMIT 1",
-                params![event.stream_id],
-                |row| Ok((row.get::<_, u64>(0)?, row.get::<_, String>(1)?)),
-            )
-            .optional()?;
-        let (sequence, previous_event_hash) = match previous {
-            Some((previous_sequence, previous_hash)) => (
-                previous_sequence
-                    .checked_add(1)
-                    .ok_or(StoreError::Inconsistent)?,
-                Some(previous_hash),
-            ),
-            None => (1, None),
-        };
+        let (sequence, previous_event_hash) =
+            next_evidence_position(&transaction, &event.stream_id)?;
         let event_id = format!("event_{}", Ulid::new());
-        let occurred_at = canonical_now()?;
-        let event_hash = hash_event(
-            &event_id,
-            &event.stream_id,
+        let occurred_at = canonical_now();
+        let event_hash = hash_event(&EvidenceHashInput {
+            event_id: &event_id,
+            stream_id: &event.stream_id,
             sequence,
-            &event.event_type,
-            &event.payload_hash,
-            event.payload_ref.as_deref(),
-            previous_event_hash.as_deref(),
-            &event.correlation_id,
-            event.causation_id.as_deref(),
-            &event.redaction_level,
-            &event.retention_class,
-            &occurred_at,
-        )?;
+            event_type: &event.event_type,
+            payload_hash: &event.payload_hash,
+            payload_ref: event.payload_ref.as_deref(),
+            previous_event_hash: previous_event_hash.as_deref(),
+            correlation_id: &event.correlation_id,
+            causation_id: event.causation_id.as_deref(),
+            redaction_level: &event.redaction_level,
+            retention_class: &event.retention_class,
+            occurred_at: &occurred_at,
+        })?;
 
         transaction.execute(
             "INSERT INTO aggregates (aggregate_type, aggregate_id, version, state_json, updated_at)
@@ -472,6 +542,12 @@ impl LocalStore {
         })
     }
 
+    /// Loads the latest durable aggregate projection, when present.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when identifiers are invalid or `SQLite` cannot
+    /// complete the query.
     pub fn load_aggregate(
         &self,
         aggregate_type: &str,
@@ -496,6 +572,12 @@ impl LocalStore {
             .map_err(StoreError::from)
     }
 
+    /// Durably records a validated one-time spec consumption.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the record is invalid, serialization or
+    /// storage fails, or the spec was already consumed.
     pub fn consume_spec_record(
         &self,
         record: &SpecConsumptionRecord,
@@ -543,93 +625,22 @@ impl LocalStore {
         }
     }
 
+    /// Verifies `SQLite`, evidence, payload, and consumption integrity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when any durable relationship, canonical hash,
+    /// payload authentication, or database invariant fails.
     pub fn verify_integrity(&self) -> Result<(), StoreError> {
-        let (quick_check, outbox_link_errors, events, payloads, consumptions) = {
+        let IntegritySnapshot {
+            quick_check,
+            outbox_link_errors,
+            events,
+            payloads,
+            consumptions,
+        } = {
             let connection = self.connection.lock();
-            require_outbox_event_uniqueness(&connection)?;
-            let quick_check: String =
-                connection.query_row("PRAGMA quick_check", [], |row| row.get(0))?;
-            let outbox_link_errors: u64 = connection.query_row(
-                "SELECT
-                   (SELECT COUNT(*)
-                      FROM evidence_events AS event
-                      LEFT JOIN outbox AS item ON item.event_id = event.event_id
-                     WHERE item.event_id IS NULL)
-                   +
-                   (SELECT COUNT(*)
-                      FROM outbox AS item
-                      LEFT JOIN evidence_events AS event ON event.event_id = item.event_id
-                     WHERE event.event_id IS NULL)",
-                [],
-                |row| row.get(0),
-            )?;
-            let mut event_statement = connection.prepare(
-                "SELECT event_id, stream_id, sequence, event_type, payload_hash, payload_ref,
-                        previous_event_hash, event_hash, correlation_id, causation_id,
-                        redaction_level, retention_class, occurred_at
-                 FROM evidence_events ORDER BY stream_id, sequence",
-            )?;
-            let events = event_statement
-                .query_map([], |row| {
-                    Ok(StoredEvidenceRow {
-                        event_id: row.get(0)?,
-                        stream_id: row.get(1)?,
-                        sequence: row.get(2)?,
-                        event_type: row.get(3)?,
-                        payload_hash: row.get(4)?,
-                        payload_ref: row.get(5)?,
-                        previous_event_hash: row.get(6)?,
-                        event_hash: row.get(7)?,
-                        correlation_id: row.get(8)?,
-                        causation_id: row.get(9)?,
-                        redaction_level: row.get(10)?,
-                        retention_class: row.get(11)?,
-                        occurred_at: row.get(12)?,
-                    })
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
-            let mut payload_statement = connection.prepare(
-                "SELECT content_hash, kind, schema_version, byte_count, key_version
-                 FROM payloads ORDER BY content_hash, kind, schema_version",
-            )?;
-            let payloads = payload_statement
-                .query_map([], |row| {
-                    Ok(PayloadRef {
-                        content_hash: row.get(0)?,
-                        kind: row.get(1)?,
-                        schema_version: row.get(2)?,
-                        byte_count: row.get(3)?,
-                        key_version: row.get(4)?,
-                    })
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
-            let mut consumption_statement = connection.prepare(
-                "SELECT consumption_id, spec_hash, candidate_hash, nonce_hash, audience_hash,
-                        execution_id, consumption_hash, record_json, consumed_at
-                 FROM spec_consumptions ORDER BY consumption_id",
-            )?;
-            let consumptions = consumption_statement
-                .query_map([], |row| {
-                    Ok(StoredConsumptionRow {
-                        consumption_id: row.get(0)?,
-                        spec_hash: row.get(1)?,
-                        candidate_hash: row.get(2)?,
-                        nonce_hash: row.get(3)?,
-                        audience_hash: row.get(4)?,
-                        execution_id: row.get(5)?,
-                        consumption_hash: row.get(6)?,
-                        record_json: row.get(7)?,
-                        consumed_at: row.get(8)?,
-                    })
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
-            (
-                quick_check,
-                outbox_link_errors,
-                events,
-                payloads,
-                consumptions,
-            )
+            load_integrity_snapshot(&connection)?
         };
         if quick_check != "ok" || outbox_link_errors != 0 {
             Err(StoreError::Inconsistent)
@@ -652,6 +663,11 @@ impl LocalStore {
         }
     }
 
+    /// Runs a controlled truncating WAL checkpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when `SQLite` cannot checkpoint every log frame.
     pub fn checkpoint_wal(&self) -> Result<(), StoreError> {
         let (busy, log_frames, checkpointed_frames) =
             self.connection
@@ -763,7 +779,7 @@ impl LocalStore {
         Ok(self.cas_root.join(&digest[..2]).join(digest))
     }
 
-    fn persist_cas(&self, destination: &Path, encrypted: &[u8]) -> Result<(), StoreError> {
+    fn persist_cas(destination: &Path, encrypted: &[u8]) -> Result<(), StoreError> {
         let parent = destination.parent().ok_or(StoreError::Inconsistent)?;
         fs::create_dir_all(parent)?;
         if destination.exists() {
@@ -778,6 +794,142 @@ impl LocalStore {
             Err(error) => Err(StoreError::Io(error.error)),
         }
     }
+}
+
+fn validate_transition_input(
+    aggregate_type: &str,
+    aggregate_id: &str,
+    aggregate_state_json: &str,
+    event: &EvidenceAppend,
+) -> Result<(), StoreError> {
+    validate_label(aggregate_type)?;
+    validate_label(aggregate_id)?;
+    validate_evidence_label(&event.stream_id)?;
+    validate_evidence_label(&event.event_type)?;
+    validate_evidence_label(&event.correlation_id)?;
+    if let Some(causation_id) = &event.causation_id {
+        validate_evidence_label(causation_id)?;
+    }
+    validate_label(&event.redaction_level)?;
+    validate_label(&event.retention_class)?;
+    validate_sha256(&event.payload_hash)?;
+    if let Some(payload_ref) = &event.payload_ref {
+        validate_bound_payload_reference(payload_ref, &event.payload_hash)?;
+    }
+    let state: serde_json::Value = serde_json::from_str(aggregate_state_json)?;
+    if !state.is_object() {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
+}
+
+fn next_evidence_position(
+    transaction: &rusqlite::Transaction<'_>,
+    stream_id: &str,
+) -> Result<(u64, Option<String>), StoreError> {
+    let previous = transaction
+        .query_row(
+            "SELECT sequence, event_hash FROM evidence_events
+             WHERE stream_id = ?1 ORDER BY sequence DESC LIMIT 1",
+            params![stream_id],
+            |row| Ok((row.get::<_, u64>(0)?, row.get::<_, String>(1)?)),
+        )
+        .optional()?;
+    match previous {
+        Some((previous_sequence, previous_hash)) => Ok((
+            previous_sequence
+                .checked_add(1)
+                .ok_or(StoreError::Inconsistent)?,
+            Some(previous_hash),
+        )),
+        None => Ok((1, None)),
+    }
+}
+
+fn load_integrity_snapshot(connection: &Connection) -> Result<IntegritySnapshot, StoreError> {
+    require_outbox_event_uniqueness(connection)?;
+    let quick_check = connection.query_row("PRAGMA quick_check", [], |row| row.get(0))?;
+    let outbox_link_errors = connection.query_row(
+        "SELECT
+           (SELECT COUNT(*)
+              FROM evidence_events AS event
+              LEFT JOIN outbox AS item ON item.event_id = event.event_id
+             WHERE item.event_id IS NULL)
+           +
+           (SELECT COUNT(*)
+              FROM outbox AS item
+              LEFT JOIN evidence_events AS event ON event.event_id = item.event_id
+             WHERE event.event_id IS NULL)",
+        [],
+        |row| row.get(0),
+    )?;
+    let mut event_statement = connection.prepare(
+        "SELECT event_id, stream_id, sequence, event_type, payload_hash, payload_ref,
+                previous_event_hash, event_hash, correlation_id, causation_id,
+                redaction_level, retention_class, occurred_at
+         FROM evidence_events ORDER BY stream_id, sequence",
+    )?;
+    let events = event_statement
+        .query_map([], |row| {
+            Ok(StoredEvidenceRow {
+                event_id: row.get(0)?,
+                stream_id: row.get(1)?,
+                sequence: row.get(2)?,
+                event_type: row.get(3)?,
+                payload_hash: row.get(4)?,
+                payload_ref: row.get(5)?,
+                previous_event_hash: row.get(6)?,
+                event_hash: row.get(7)?,
+                correlation_id: row.get(8)?,
+                causation_id: row.get(9)?,
+                redaction_level: row.get(10)?,
+                retention_class: row.get(11)?,
+                occurred_at: row.get(12)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut payload_statement = connection.prepare(
+        "SELECT content_hash, kind, schema_version, byte_count, key_version
+         FROM payloads ORDER BY content_hash, kind, schema_version",
+    )?;
+    let payloads = payload_statement
+        .query_map([], |row| {
+            Ok(PayloadRef {
+                content_hash: row.get(0)?,
+                kind: row.get(1)?,
+                schema_version: row.get(2)?,
+                byte_count: row.get(3)?,
+                key_version: row.get(4)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut consumption_statement = connection.prepare(
+        "SELECT consumption_id, spec_hash, candidate_hash, nonce_hash, audience_hash,
+                execution_id, consumption_hash, record_json, consumed_at
+         FROM spec_consumptions ORDER BY consumption_id",
+    )?;
+    let consumptions = consumption_statement
+        .query_map([], |row| {
+            Ok(StoredConsumptionRow {
+                consumption_id: row.get(0)?,
+                spec_hash: row.get(1)?,
+                candidate_hash: row.get(2)?,
+                nonce_hash: row.get(3)?,
+                audience_hash: row.get(4)?,
+                execution_id: row.get(5)?,
+                consumption_hash: row.get(6)?,
+                record_json: row.get(7)?,
+                consumed_at: row.get(8)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(IntegritySnapshot {
+        quick_check,
+        outbox_link_errors,
+        events,
+        payloads,
+        consumptions,
+    })
 }
 
 fn configure_connection(connection: &Connection) -> Result<(), StoreError> {
@@ -810,66 +962,7 @@ fn migrate(connection: &Connection) -> Result<(), StoreError> {
             if !store_table_names(connection)?.is_empty() {
                 return Err(StoreError::Inconsistent);
             }
-            connection.execute_batch(
-                "BEGIN IMMEDIATE;
-         CREATE TABLE IF NOT EXISTS store_meta (
-           key TEXT PRIMARY KEY,
-           value TEXT NOT NULL
-         ) STRICT;
-         CREATE TABLE IF NOT EXISTS payloads (
-           content_hash TEXT NOT NULL,
-           kind TEXT NOT NULL,
-           schema_version TEXT NOT NULL,
-           byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-           key_version INTEGER NOT NULL CHECK(key_version >= 1),
-           created_at TEXT NOT NULL,
-           PRIMARY KEY (content_hash, kind, schema_version)
-         ) STRICT;
-         CREATE TABLE IF NOT EXISTS aggregates (
-           aggregate_type TEXT NOT NULL,
-           aggregate_id TEXT NOT NULL,
-           version INTEGER NOT NULL CHECK(version >= 1),
-           state_json TEXT NOT NULL,
-           updated_at TEXT NOT NULL,
-           PRIMARY KEY (aggregate_type, aggregate_id)
-         ) STRICT;
-         CREATE TABLE IF NOT EXISTS evidence_events (
-           event_id TEXT PRIMARY KEY,
-           stream_id TEXT NOT NULL,
-           sequence INTEGER NOT NULL CHECK(sequence >= 1),
-           event_type TEXT NOT NULL,
-           payload_hash TEXT NOT NULL,
-           payload_ref TEXT,
-           previous_event_hash TEXT,
-           event_hash TEXT NOT NULL,
-           correlation_id TEXT NOT NULL,
-           causation_id TEXT,
-           redaction_level TEXT NOT NULL,
-           retention_class TEXT NOT NULL,
-           occurred_at TEXT NOT NULL,
-           UNIQUE(stream_id, sequence)
-         ) STRICT;
-         CREATE TABLE IF NOT EXISTS outbox (
-           outbox_id TEXT PRIMARY KEY,
-           event_id TEXT NOT NULL REFERENCES evidence_events(event_id),
-           created_at TEXT NOT NULL,
-           dispatched_at TEXT
-         ) STRICT;
-         CREATE UNIQUE INDEX outbox_event_once ON outbox(event_id);
-         CREATE TABLE IF NOT EXISTS spec_consumptions (
-           consumption_id TEXT PRIMARY KEY,
-           spec_hash TEXT NOT NULL UNIQUE,
-           candidate_hash TEXT NOT NULL,
-           nonce_hash TEXT NOT NULL,
-           audience_hash TEXT NOT NULL,
-           execution_id TEXT NOT NULL,
-           consumption_hash TEXT NOT NULL UNIQUE,
-           record_json TEXT NOT NULL,
-           consumed_at TEXT NOT NULL
-         ) STRICT;
-         PRAGMA user_version = 4;
-         COMMIT;",
-            )?;
+            connection.execute_batch(INITIAL_SCHEMA_SQL)?;
         }
         1 | 2 => {
             require_store_tables(connection)?;
@@ -922,10 +1015,11 @@ fn store_table_names(connection: &Connection) -> Result<HashSet<String>, StoreEr
         "SELECT name FROM sqlite_schema
          WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
     )?;
-    statement
+    let table_names = statement
         .query_map([], |row| row.get::<_, String>(0))?
         .collect::<Result<HashSet<_>, _>>()
-        .map_err(StoreError::from)
+        .map_err(StoreError::from)?;
+    Ok(table_names)
 }
 
 fn require_store_tables(connection: &Connection) -> Result<(), StoreError> {
@@ -1015,35 +1109,8 @@ fn load_or_create_key(path: &Path, protector: &dyn KeyProtector) -> Result<Store
     Ok(key)
 }
 
-fn hash_event(
-    event_id: &str,
-    stream_id: &str,
-    sequence: u64,
-    event_type: &str,
-    payload_hash: &str,
-    payload_ref: Option<&str>,
-    previous_event_hash: Option<&str>,
-    correlation_id: &str,
-    causation_id: Option<&str>,
-    redaction_level: &str,
-    retention_class: &str,
-    occurred_at: &str,
-) -> Result<String, StoreError> {
-    let value = EvidenceHashInput {
-        event_id,
-        stream_id,
-        sequence,
-        event_type,
-        payload_hash,
-        payload_ref,
-        previous_event_hash,
-        correlation_id,
-        causation_id,
-        redaction_level,
-        retention_class,
-        occurred_at,
-    };
-    canonical_hash("local-evidence-event", 1, &value)
+fn hash_event(value: &EvidenceHashInput<'_>) -> Result<String, StoreError> {
+    canonical_hash("local-evidence-event", 1, value)
         .map(|digest| digest.to_string())
         .map_err(|_| StoreError::Inconsistent)
 }
@@ -1072,41 +1139,40 @@ fn verify_evidence_rows(
         validate_label(&row.redaction_level)?;
         validate_label(&row.retention_class)?;
 
-        let expected_previous = match stream_heads.get(row.stream_id.as_str()) {
-            Some((previous_sequence, previous_hash)) => {
-                if row.sequence
-                    != previous_sequence
-                        .checked_add(1)
-                        .ok_or(StoreError::Inconsistent)?
-                {
-                    return Err(StoreError::Inconsistent);
-                }
-                Some(*previous_hash)
+        let expected_previous = if let Some((previous_sequence, previous_hash)) =
+            stream_heads.get(row.stream_id.as_str())
+        {
+            if row.sequence
+                != previous_sequence
+                    .checked_add(1)
+                    .ok_or(StoreError::Inconsistent)?
+            {
+                return Err(StoreError::Inconsistent);
             }
-            None => {
-                if row.sequence != 1 {
-                    return Err(StoreError::Inconsistent);
-                }
-                None
+            Some(*previous_hash)
+        } else {
+            if row.sequence != 1 {
+                return Err(StoreError::Inconsistent);
             }
+            None
         };
         if row.previous_event_hash.as_deref() != expected_previous {
             return Err(StoreError::Inconsistent);
         }
-        let expected_hash = hash_event(
-            &row.event_id,
-            &row.stream_id,
-            row.sequence,
-            &row.event_type,
-            &row.payload_hash,
-            row.payload_ref.as_deref(),
-            row.previous_event_hash.as_deref(),
-            &row.correlation_id,
-            row.causation_id.as_deref(),
-            &row.redaction_level,
-            &row.retention_class,
-            &row.occurred_at,
-        )?;
+        let expected_hash = hash_event(&EvidenceHashInput {
+            event_id: &row.event_id,
+            stream_id: &row.stream_id,
+            sequence: row.sequence,
+            event_type: &row.event_type,
+            payload_hash: &row.payload_hash,
+            payload_ref: row.payload_ref.as_deref(),
+            previous_event_hash: row.previous_event_hash.as_deref(),
+            correlation_id: &row.correlation_id,
+            causation_id: row.causation_id.as_deref(),
+            redaction_level: &row.redaction_level,
+            retention_class: &row.retention_class,
+            occurred_at: &row.occurred_at,
+        })?;
         if row.event_hash != expected_hash {
             return Err(StoreError::Inconsistent);
         }
@@ -1235,7 +1301,7 @@ fn directory_has_entries(path: &Path) -> Result<bool, StoreError> {
     }
 }
 
-fn canonical_now() -> Result<String, StoreError> {
+fn canonical_now() -> String {
     let now = OffsetDateTime::now_utc();
     let value = format!(
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
@@ -1247,7 +1313,7 @@ fn canonical_now() -> Result<String, StoreError> {
         now.second(),
         now.millisecond()
     );
-    Ok(value)
+    value
 }
 
 fn is_unique_violation(error: &rusqlite::Error) -> bool {
@@ -1259,8 +1325,11 @@ fn is_unique_violation(error: &rusqlite::Error) -> bool {
 }
 
 #[cfg(windows)]
+#[expect(
+    unsafe_code,
+    reason = "Windows DPAPI and LocalFree expose only unsafe FFI entry points"
+)]
 fn dpapi_protect(plaintext: &[u8]) -> Result<Vec<u8>, StoreError> {
-    use std::ptr;
     use windows::Win32::Foundation::{LocalFree, HLOCAL};
     use windows::Win32::Security::Cryptography::{
         CryptProtectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB,
@@ -1276,13 +1345,13 @@ fn dpapi_protect(plaintext: &[u8]) -> Result<Vec<u8>, StoreError> {
     // DPAPI and released exactly once with LocalFree below. UI is explicitly forbidden.
     unsafe {
         CryptProtectData(
-            &input,
+            &raw const input,
             None,
             None,
             None,
             None,
             CRYPTPROTECT_UI_FORBIDDEN,
-            &mut output,
+            &raw mut output,
         )
         .map_err(|_| StoreError::KeyProtection)?;
         if output.pbData.is_null() {
@@ -1291,14 +1360,16 @@ fn dpapi_protect(plaintext: &[u8]) -> Result<Vec<u8>, StoreError> {
         let length = usize::try_from(output.cbData).map_err(|_| StoreError::KeyProtection)?;
         let protected = std::slice::from_raw_parts(output.pbData, length).to_vec();
         let _ = LocalFree(Some(HLOCAL(output.pbData.cast())));
-        output.pbData = ptr::null_mut();
         Ok(protected)
     }
 }
 
 #[cfg(windows)]
+#[expect(
+    unsafe_code,
+    reason = "Windows DPAPI and LocalFree expose only unsafe FFI entry points"
+)]
 fn dpapi_unprotect(protected: &[u8]) -> Result<Vec<u8>, StoreError> {
-    use std::ptr;
     use windows::Win32::Foundation::{LocalFree, HLOCAL};
     use windows::Win32::Security::Cryptography::{
         CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB,
@@ -1314,13 +1385,13 @@ fn dpapi_unprotect(protected: &[u8]) -> Result<Vec<u8>, StoreError> {
     // released exactly once with LocalFree. No description or UI output is requested.
     unsafe {
         CryptUnprotectData(
-            &input,
+            &raw const input,
             None,
             None,
             None,
             None,
             CRYPTPROTECT_UI_FORBIDDEN,
-            &mut output,
+            &raw mut output,
         )
         .map_err(|_| StoreError::KeyProtection)?;
         if output.pbData.is_null() {
@@ -1329,7 +1400,6 @@ fn dpapi_unprotect(protected: &[u8]) -> Result<Vec<u8>, StoreError> {
         let length = usize::try_from(output.cbData).map_err(|_| StoreError::KeyProtection)?;
         let plaintext = std::slice::from_raw_parts(output.pbData, length).to_vec();
         let _ = LocalFree(Some(HLOCAL(output.pbData.cast())));
-        output.pbData = ptr::null_mut();
         Ok(plaintext)
     }
 }
@@ -1353,6 +1423,28 @@ mod tests {
         fn unprotect(&self, protected: &[u8]) -> Result<Vec<u8>, StoreError> {
             Ok(protected.iter().map(|byte| byte ^ 0xA5).collect())
         }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn user_dpapi_protector_round_trips_and_rejects_tamper() -> Result<(), StoreError> {
+        let plaintext = b"sapphirus user-scoped store key";
+        let protector = UserDpapiProtector;
+        let mut protected = protector.protect(plaintext)?;
+
+        assert_ne!(protected, plaintext);
+        assert_eq!(protector.unprotect(&protected)?, plaintext);
+
+        let tamper_index = protected.len() / 2;
+        let Some(byte) = protected.get_mut(tamper_index) else {
+            return Err(StoreError::KeyProtection);
+        };
+        *byte ^= 0x01;
+        assert!(matches!(
+            protector.unprotect(&protected),
+            Err(StoreError::KeyProtection)
+        ));
+        Ok(())
     }
 
     #[test]
@@ -1698,20 +1790,20 @@ mod tests {
             "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
         let unregistered_ref =
             "cas://sha256/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-        let tampered_event_hash = hash_event(
-            &record.event_id,
-            &record.stream_id,
-            record.sequence,
-            &record.event_type,
-            unregistered_hash,
-            Some(unregistered_ref),
-            record.previous_event_hash.as_deref(),
-            &event.correlation_id,
-            event.causation_id.as_deref(),
-            &event.redaction_level,
-            &event.retention_class,
-            &record.occurred_at,
-        )?;
+        let tampered_event_hash = hash_event(&EvidenceHashInput {
+            event_id: &record.event_id,
+            stream_id: &record.stream_id,
+            sequence: record.sequence,
+            event_type: &record.event_type,
+            payload_hash: unregistered_hash,
+            payload_ref: Some(unregistered_ref),
+            previous_event_hash: record.previous_event_hash.as_deref(),
+            correlation_id: &event.correlation_id,
+            causation_id: event.causation_id.as_deref(),
+            redaction_level: &event.redaction_level,
+            retention_class: &event.retention_class,
+            occurred_at: &record.occurred_at,
+        })?;
         store.connection.lock().execute(
             "UPDATE evidence_events
                 SET payload_hash = ?1, payload_ref = ?2, event_hash = ?3

@@ -19,6 +19,12 @@ pub enum IdentifierError {
 pub struct ContractId(String);
 
 impl ContractId {
+    /// Creates an opaque identifier containing 3 to 128 safe ASCII bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdentifierError::InvalidContractId`] when the value has an
+    /// invalid length or contains a character outside the contract alphabet.
     pub fn new(value: impl Into<String>) -> Result<Self, IdentifierError> {
         let value = value.into();
         let valid_length = (3..=MAX_ID_BYTES).contains(&value.len());
@@ -67,6 +73,13 @@ impl<'de> Deserialize<'de> for ContractId {
 pub struct RelativeWorkspacePath(String);
 
 impl RelativeWorkspacePath {
+    /// Creates a validated, workspace-relative path using forward slashes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdentifierError::InvalidRelativePath`] when the value is
+    /// rooted, escapes the workspace, uses a Windows alias or reserved form,
+    /// or violates the path length and character constraints.
     pub fn new(value: impl Into<String>) -> Result<Self, IdentifierError> {
         let value = value.into();
         if value.is_empty()
@@ -137,6 +150,10 @@ pub struct UnixMillis(pub u64);
 
 /// Serialize an internal millisecond clock value as the contract's canonical
 /// RFC 3339 UTC instant with exactly three fractional digits.
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde serialize_with callbacks receive field values by reference"
+)]
 pub(crate) fn serialize_utc_instant<S>(value: &UnixMillis, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,

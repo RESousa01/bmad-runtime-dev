@@ -50,6 +50,10 @@ fn supported_commands(boot_mode: BootMode) -> Vec<String> {
 }
 
 #[tauri::command]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Tauri injects command arguments through owned boundary wrapper types"
+)]
 pub(crate) fn host_bootstrap(
     window: WebviewWindow,
     state: tauri::State<'_, HostState>,
@@ -81,6 +85,10 @@ pub(crate) fn host_bootstrap(
 }
 
 #[tauri::command]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Tauri injects command arguments through owned boundary wrapper types"
+)]
 pub(crate) fn host_dispatch(
     app: tauri::AppHandle,
     window: WebviewWindow,
@@ -102,14 +110,14 @@ pub(crate) fn host_dispatch(
     let envelope = match CommandEnvelopeValidator::parse(body.as_bytes(), &context) {
         Ok(envelope) => envelope,
         Err(error) => {
-            return HostDispatchReply::error(None, state.sequence(), map_ipc_error(error));
+            return HostDispatchReply::error(None, state.sequence(), map_ipc_error(&error));
         }
     };
     let request_id = envelope.request_id().clone();
     let admission = match state.gate.admit(&envelope, accepted_at) {
         Ok(admission) => admission,
         Err(error) => {
-            let safe_error = map_ipc_error(error).with_correlation_id(request_id.clone());
+            let safe_error = map_ipc_error(&error).with_correlation_id(request_id.clone());
             return HostDispatchReply::error(Some(request_id), state.sequence(), safe_error);
         }
     };
@@ -154,6 +162,10 @@ pub(crate) fn host_dispatch(
 }
 
 #[tauri::command]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Tauri injects command arguments through owned boundary wrapper types"
+)]
 pub(crate) fn host_projection_snapshot(
     window: WebviewWindow,
     state: tauri::State<'_, HostState>,
@@ -179,6 +191,10 @@ pub(crate) fn host_projection_snapshot(
 }
 
 #[tauri::command]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Tauri injects command arguments through owned boundary wrapper types"
+)]
 pub(crate) fn host_projection_events(
     window: WebviewWindow,
     state: tauri::State<'_, HostState>,
@@ -215,151 +231,16 @@ fn execute_command(
 ) -> Result<HostCommandData, LocalError> {
     match command {
         LocalCommand::GetBootState => Ok(HostCommandData::BootState(boot_state(state))),
-        LocalCommand::SelectWorkspace => {
-            if state.boot_mode() != BootMode::Ready {
-                return Err(recovery_error());
-            }
-            let selected = app
-                .dialog()
-                .file()
-                .set_title("Choose a local workspace")
-                .blocking_pick_folder();
-            let Some(selected) = selected else {
-                return Ok(HostCommandData::NoSelection);
-            };
-            let selected_root = selected.into_path().map_err(|_| {
-                invalid_request("The selected folder is not a local filesystem path.")
-            })?;
-            let authority = state.ready_authority()?;
-            let projection = state
-                .workspace
-                .grant(format!("project_{}", Ulid::new()), &selected_root)
-                .map_err(map_workspace_error)?;
-            let binding = match state.workspace.authority_binding(&projection.workspace_id) {
-                Ok(binding) => binding,
-                Err(error) => {
-                    let _ = state.workspace.revoke(&projection.workspace_id);
-                    drop(authority);
-                    state.enter_recovery();
-                    return Err(map_workspace_error(error));
-                }
-            };
-            if let Err(error) = state.persist_workspace(
-                &authority,
-                projection.clone(),
-                &selected_root,
-                &binding.root_identity_hash,
-                request_id,
-            ) {
-                let _ = state.workspace.revoke(&projection.workspace_id);
-                drop(authority);
-                if error.code == LocalErrorCode::RecoveryRequired {
-                    state.enter_recovery();
-                }
-                return Err(error);
-            }
-            let workspace_id = match ContractId::new(projection.workspace_id.clone()) {
-                Ok(workspace_id) => workspace_id,
-                Err(_) => {
-                    drop(authority);
-                    state.enter_recovery();
-                    return Err(recovery_error());
-                }
-            };
-            state.record_event(ProjectionEventKind::WorkspaceChanged { workspace_id });
-            Ok(HostCommandData::WorkspaceSelected(projection))
-        }
+        LocalCommand::SelectWorkspace => select_workspace(app, state, request_id),
         LocalCommand::ListWorkspaces => Ok(HostCommandData::WorkspaceList(state.workspace.list())),
         LocalCommand::RevokeWorkspace { workspace_id } => {
-            let authority = state.ready_authority()?;
-            if let Err(error) = state.persist_revocation(&authority, &workspace_id, request_id) {
-                drop(authority);
-                if error.code == LocalErrorCode::RecoveryRequired {
-                    state.enter_recovery();
-                }
-                return Err(error);
-            }
-            let projection = match state.workspace.revoke(workspace_id.as_str()) {
-                Ok(projection) => projection,
-                Err(_) => {
-                    drop(authority);
-                    state.enter_recovery();
-                    return Err(recovery_error());
-                }
-            };
-            state.record_event(ProjectionEventKind::WorkspaceChanged {
-                workspace_id: workspace_id.clone(),
-            });
-            Ok(HostCommandData::WorkspaceRevoked(projection))
+            revoke_workspace(state, request_id, workspace_id)
         }
         LocalCommand::ListWorkspaceEntries {
             workspace_id,
             cursor,
             limit,
-        } => {
-            let _authority = state.ready_authority()?;
-            let binding = state
-                .workspace
-                .authority_binding(workspace_id.as_str())
-                .map_err(map_workspace_error)?;
-            let target = if let Some(cursor) = cursor {
-                state.resolve_cursor(&cursor, renderer_session_id, &workspace_id)?
-            } else {
-                DirectoryCursor {
-                    renderer_session_id: renderer_session_id.clone(),
-                    workspace_id: workspace_id.clone(),
-                    grant_epoch: binding.grant_epoch,
-                    relative_directory: ".".to_owned(),
-                    after: None,
-                }
-            };
-            let page = state
-                .workspace
-                .list_entries_page(
-                    workspace_id.as_str(),
-                    &target.relative_directory,
-                    target.after.as_deref(),
-                    usize::from(limit),
-                )
-                .map_err(map_workspace_error)?;
-            let entries = page
-                .entries
-                .into_iter()
-                .map(|entry| {
-                    let child_cursor = (entry.kind == EntryKind::Directory).then(|| {
-                        state.insert_cursor(DirectoryCursor {
-                            renderer_session_id: renderer_session_id.clone(),
-                            workspace_id: workspace_id.clone(),
-                            grant_epoch: binding.grant_epoch,
-                            relative_directory: entry.relative_path.clone(),
-                            after: None,
-                        })
-                    });
-                    TreeEntryProjection {
-                        relative_path: entry.relative_path,
-                        kind: entry.kind,
-                        size_bytes: entry.size_bytes,
-                        child_cursor,
-                    }
-                })
-                .collect();
-            let next_cursor = page.next_after.map(|after| {
-                state.insert_cursor(DirectoryCursor {
-                    renderer_session_id: renderer_session_id.clone(),
-                    workspace_id: workspace_id.clone(),
-                    grant_epoch: binding.grant_epoch,
-                    relative_directory: target.relative_directory,
-                    after: Some(after),
-                })
-            });
-            Ok(HostCommandData::WorkspaceEntries(
-                WorkspaceEntriesProjection {
-                    workspace_id,
-                    entries,
-                    next_cursor,
-                },
-            ))
-        }
+        } => list_workspace_entries(state, renderer_session_id, workspace_id, cursor, limit),
         LocalCommand::ReadWorkspaceText {
             workspace_id,
             relative_path,
@@ -374,7 +255,7 @@ fn execute_command(
                     u64::from(max_bytes),
                 )
                 .map(HostCommandData::WorkspaceText)
-                .map_err(map_workspace_error)
+                .map_err(|error| map_workspace_error(&error))
         }
         LocalCommand::SearchWorkspace {
             workspace_id,
@@ -386,7 +267,7 @@ fn execute_command(
                 .workspace
                 .search(workspace_id.as_str(), &query, usize::from(max_results))
                 .map(HostCommandData::SearchResults)
-                .map_err(map_workspace_error)
+                .map_err(|error| map_workspace_error(&error))
         }
         LocalCommand::ScanBmad { workspace_id } => {
             let _authority = state.ready_authority()?;
@@ -394,7 +275,7 @@ fn execute_command(
                 .workspace
                 .scan_bmad(workspace_id.as_str(), 256)
                 .map(HostCommandData::BmadScan)
-                .map_err(map_workspace_error)
+                .map_err(|error| map_workspace_error(&error))
         }
         LocalCommand::PreviewContext {
             workspace_id,
@@ -419,6 +300,155 @@ fn execute_command(
     }
 }
 
+fn select_workspace(
+    app: &tauri::AppHandle,
+    state: &HostState,
+    request_id: &ContractId,
+) -> Result<HostCommandData, LocalError> {
+    if state.boot_mode() != BootMode::Ready {
+        return Err(recovery_error());
+    }
+    let selected = app
+        .dialog()
+        .file()
+        .set_title("Choose a local workspace")
+        .blocking_pick_folder();
+    let Some(selected) = selected else {
+        return Ok(HostCommandData::NoSelection);
+    };
+    let selected_root = selected
+        .into_path()
+        .map_err(|_| invalid_request("The selected folder is not a local filesystem path."))?;
+    let authority = state.ready_authority()?;
+    let projection = state
+        .workspace
+        .grant(format!("project_{}", Ulid::new()), &selected_root)
+        .map_err(|error| map_workspace_error(&error))?;
+    let binding = match state.workspace.authority_binding(&projection.workspace_id) {
+        Ok(binding) => binding,
+        Err(error) => {
+            let _ = state.workspace.revoke(&projection.workspace_id);
+            drop(authority);
+            state.enter_recovery();
+            return Err(map_workspace_error(&error));
+        }
+    };
+    if let Err(error) = state.persist_workspace(
+        &authority,
+        projection.clone(),
+        &selected_root,
+        &binding.root_identity_hash,
+        request_id,
+    ) {
+        let _ = state.workspace.revoke(&projection.workspace_id);
+        drop(authority);
+        if error.code == LocalErrorCode::RecoveryRequired {
+            state.enter_recovery();
+        }
+        return Err(error);
+    }
+    let Ok(workspace_id) = ContractId::new(projection.workspace_id.clone()) else {
+        drop(authority);
+        state.enter_recovery();
+        return Err(recovery_error());
+    };
+    state.record_event(ProjectionEventKind::WorkspaceChanged { workspace_id });
+    Ok(HostCommandData::WorkspaceSelected(projection))
+}
+
+fn revoke_workspace(
+    state: &HostState,
+    request_id: &ContractId,
+    workspace_id: ContractId,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_authority()?;
+    if let Err(error) = state.persist_revocation(&authority, &workspace_id, request_id) {
+        drop(authority);
+        if error.code == LocalErrorCode::RecoveryRequired {
+            state.enter_recovery();
+        }
+        return Err(error);
+    }
+    let Ok(projection) = state.workspace.revoke(workspace_id.as_str()) else {
+        drop(authority);
+        state.enter_recovery();
+        return Err(recovery_error());
+    };
+    state.record_event(ProjectionEventKind::WorkspaceChanged { workspace_id });
+    Ok(HostCommandData::WorkspaceRevoked(projection))
+}
+
+fn list_workspace_entries(
+    state: &HostState,
+    renderer_session_id: &ContractId,
+    workspace_id: ContractId,
+    cursor: Option<String>,
+    limit: u16,
+) -> Result<HostCommandData, LocalError> {
+    let _authority = state.ready_authority()?;
+    let binding = state
+        .workspace
+        .authority_binding(workspace_id.as_str())
+        .map_err(|error| map_workspace_error(&error))?;
+    let target = if let Some(cursor) = cursor {
+        state.resolve_cursor(&cursor, renderer_session_id, &workspace_id)?
+    } else {
+        DirectoryCursor {
+            renderer_session_id: renderer_session_id.clone(),
+            workspace_id: workspace_id.clone(),
+            grant_epoch: binding.grant_epoch,
+            relative_directory: ".".to_owned(),
+            after: None,
+        }
+    };
+    let page = state
+        .workspace
+        .list_entries_page(
+            workspace_id.as_str(),
+            &target.relative_directory,
+            target.after.as_deref(),
+            usize::from(limit),
+        )
+        .map_err(|error| map_workspace_error(&error))?;
+    let entries = page
+        .entries
+        .into_iter()
+        .map(|entry| {
+            let child_cursor = (entry.kind == EntryKind::Directory).then(|| {
+                state.insert_cursor(DirectoryCursor {
+                    renderer_session_id: renderer_session_id.clone(),
+                    workspace_id: workspace_id.clone(),
+                    grant_epoch: binding.grant_epoch,
+                    relative_directory: entry.relative_path.clone(),
+                    after: None,
+                })
+            });
+            TreeEntryProjection {
+                relative_path: entry.relative_path,
+                kind: entry.kind,
+                size_bytes: entry.size_bytes,
+                child_cursor,
+            }
+        })
+        .collect();
+    let next_cursor = page.next_after.map(|after| {
+        state.insert_cursor(DirectoryCursor {
+            renderer_session_id: renderer_session_id.clone(),
+            workspace_id: workspace_id.clone(),
+            grant_epoch: binding.grant_epoch,
+            relative_directory: target.relative_directory,
+            after: Some(after),
+        })
+    });
+    Ok(HostCommandData::WorkspaceEntries(
+        WorkspaceEntriesProjection {
+            workspace_id,
+            entries,
+            next_cursor,
+        },
+    ))
+}
+
 fn preview_context(
     state: &HostState,
     workspace_id: ContractId,
@@ -436,7 +466,7 @@ fn preview_context(
                 relative_path.as_str(),
                 MAX_CONTEXT_FILE_BYTES,
             )
-            .map_err(map_workspace_error)?;
+            .map_err(|error| map_workspace_error(&error))?;
         if preview.truncated {
             return Err(resource_limit_error(
                 "A selected context file exceeds the per-file preview limit.",
@@ -531,7 +561,8 @@ fn boot_state(state: &HostState) -> BootStateProjection {
 }
 
 fn parse_projection_request(body: &str) -> Result<ProjectionRequest, LocalError> {
-    let request: ProjectionRequest = deserialize_strict(body.as_bytes()).map_err(map_ipc_error)?;
+    let request: ProjectionRequest =
+        deserialize_strict(body.as_bytes()).map_err(|error| map_ipc_error(&error))?;
     if request.schema_version != PROJECTION_REQUEST_SCHEMA {
         return Err(invalid_request(
             "The projection request schema is unsupported.",
@@ -567,7 +598,7 @@ fn validate_projection_binding<'a>(
     Ok(authority)
 }
 
-fn map_ipc_error(error: IpcValidationError) -> LocalError {
+fn map_ipc_error(error: &IpcValidationError) -> LocalError {
     match error {
         IpcValidationError::BindingMismatch => unauthorized_error(),
         IpcValidationError::RateLimited => LocalError::new(
@@ -596,7 +627,7 @@ fn map_ipc_error(error: IpcValidationError) -> LocalError {
     }
 }
 
-fn map_workspace_error(error: WorkspaceError) -> LocalError {
+fn map_workspace_error(error: &WorkspaceError) -> LocalError {
     match error {
         WorkspaceError::UnsupportedRoot => invalid_request(
             "Choose a fixed local NTFS folder without reparse points or cloud placeholders.",

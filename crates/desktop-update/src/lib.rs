@@ -88,6 +88,12 @@ impl UpdatePolicy {
         }
     }
 
+    /// Evaluates whether a release can be offered to this installation.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateError::Inapplicable`] when the release product, channel,
+    /// or architecture does not match this installation.
     pub fn evaluate(
         &self,
         release: &ReleaseMetadata,

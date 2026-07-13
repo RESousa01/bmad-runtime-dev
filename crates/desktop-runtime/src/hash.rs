@@ -29,6 +29,12 @@ impl Sha256Digest {
         hex::encode(self.0)
     }
 
+    /// Parses the contract's canonical `sha256:`-prefixed lowercase form.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CanonicalHashError::InvalidDigest`] when the prefix, encoded
+    /// length, character case, or hexadecimal payload is invalid.
     pub fn parse(value: &str) -> Result<Self, CanonicalHashError> {
         let encoded = value
             .strip_prefix(DIGEST_PREFIX)
@@ -108,6 +114,11 @@ pub fn sha256_bytes(value: &[u8]) -> Sha256Digest {
 /// Object keys use RFC 8785's UTF-16 code-unit ordering. Contract values in
 /// this crate contain only finite integers, so `serde_json`'s number rendering
 /// is deterministic for the supported domain.
+///
+/// # Errors
+///
+/// Returns [`CanonicalHashError::Serialization`] when the value cannot be
+/// represented as supported canonical JSON.
 pub fn canonical_json_bytes<T>(value: &T) -> Result<Vec<u8>, CanonicalHashError>
 where
     T: Serialize + ?Sized,
@@ -119,6 +130,11 @@ where
 }
 
 /// Compute the purpose-separated contract hash defined by note 99.
+///
+/// # Errors
+///
+/// Returns [`CanonicalHashError`] when the purpose or schema major is invalid,
+/// or when canonical JSON serialization fails.
 pub fn canonical_hash<T>(
     purpose: &str,
     schema_major: u32,
@@ -134,6 +150,11 @@ where
 }
 
 /// Compute a purpose-separated hash after removing one top-level self-hash.
+///
+/// # Errors
+///
+/// Returns [`CanonicalHashError`] when the hash domain is invalid, the value is
+/// not a JSON object, the excluded field is absent, or serialization fails.
 pub fn canonical_hash_without_field<T>(
     purpose: &str,
     schema_major: u32,

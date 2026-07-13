@@ -1,0 +1,2 @@
+[env]
+STATIC_VCRUNTIME = { value = "true", force = true }

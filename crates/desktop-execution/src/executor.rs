@@ -27,9 +27,26 @@ where
         Self { workspace, store }
     }
 
+    /// Applies a fully authorized patch through checkpointed journal transitions.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError`] when authorization, preimage validation,
+    /// durable storage, a workspace effect, or postimage verification fails.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "the public execution boundary consumes its single-use authorization request"
+    )]
     pub fn apply(&self, request: ExecutionRequest<'_>) -> Result<ExecutionOutcome, ExecutionError> {
-        let workspace_target_hash = self.validate_authorization(&request)?;
-        let checkpoint = self.capture_checkpoint(&request, workspace_target_hash)?;
+        self.apply_authorized(&request)
+    }
+
+    fn apply_authorized(
+        &self,
+        request: &ExecutionRequest<'_>,
+    ) -> Result<ExecutionOutcome, ExecutionError> {
+        let workspace_target_hash = self.validate_authorization(request)?;
+        let checkpoint = self.capture_checkpoint(request, workspace_target_hash)?;
         self.store
             .persist_checkpoint(&checkpoint)
             .map_err(|_| ExecutionError::StoreFailure)?;
@@ -65,7 +82,7 @@ where
             request.started_at,
         )?;
 
-        self.revalidate_checkpoint(&request, &checkpoint)?;
+        self.revalidate_checkpoint(request, &checkpoint)?;
         self.persist_transition(
             &mut journal,
             JournalState::PreconditionsVerified,
@@ -73,40 +90,7 @@ where
         )?;
         self.persist_transition(&mut journal, JournalState::Applying, request.started_at)?;
 
-        for (index, operation) in request.patch.operations.iter().enumerate() {
-            let Some(journal_operation) = journal.operations.get_mut(index) else {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::IntegrityFailure);
-            };
-            journal_operation.state = JournalOperationState::Applying;
-            journal.updated_at = request.started_at;
-            if self.store.update_journal(&journal).is_err() {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::RecoveryRequired);
-            }
-
-            let Some(expected_preimage) = request.candidate.draft.preimages.get(index) else {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::IntegrityFailure);
-            };
-            if self
-                .apply_operation(operation, expected_preimage.file_identity_hash)
-                .is_err()
-            {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::RecoveryRequired);
-            }
-            let Some(journal_operation) = journal.operations.get_mut(index) else {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::IntegrityFailure);
-            };
-            journal_operation.state = JournalOperationState::Applied;
-            journal.updated_at = request.started_at;
-            if self.store.update_journal(&journal).is_err() {
-                self.mark_recovery_required(&mut journal, request.completed_at);
-                return Err(ExecutionError::RecoveryRequired);
-            }
-        }
+        self.apply_operations(request, &mut journal)?;
 
         if self
             .persist_transition(
@@ -155,6 +139,48 @@ where
             journal,
             result,
         })
+    }
+
+    fn apply_operations(
+        &self,
+        request: &ExecutionRequest<'_>,
+        journal: &mut EffectJournal,
+    ) -> Result<(), ExecutionError> {
+        for (index, operation) in request.patch.operations.iter().enumerate() {
+            let Some(journal_operation) = journal.operations.get_mut(index) else {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::IntegrityFailure);
+            };
+            journal_operation.state = JournalOperationState::Applying;
+            journal.updated_at = request.started_at;
+            if self.store.update_journal(journal).is_err() {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::RecoveryRequired);
+            }
+
+            let Some(expected_preimage) = request.candidate.draft.preimages.get(index) else {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::IntegrityFailure);
+            };
+            if self
+                .apply_operation(operation, expected_preimage.file_identity_hash)
+                .is_err()
+            {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::RecoveryRequired);
+            }
+            let Some(journal_operation) = journal.operations.get_mut(index) else {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::IntegrityFailure);
+            };
+            journal_operation.state = JournalOperationState::Applied;
+            journal.updated_at = request.started_at;
+            if self.store.update_journal(journal).is_err() {
+                self.mark_recovery_required(journal, request.completed_at);
+                return Err(ExecutionError::RecoveryRequired);
+            }
+        }
+        Ok(())
     }
 
     fn validate_authorization(
@@ -676,6 +702,24 @@ mod tests {
         target_hash: desktop_runtime::Sha256Digest,
     }
 
+    struct AuthorizationFixture {
+        authority: AuthorityRef,
+        audience: NativePatchEngineAudience,
+        target: WorkspaceTarget,
+        target_hash: desktop_runtime::Sha256Digest,
+        mutable_inputs: Vec<MutableInputBinding>,
+    }
+
+    struct CandidateFixtureInput<'a> {
+        authorization: &'a AuthorizationFixture,
+        new_path: RelativeWorkspacePath,
+        old_path: RelativeWorkspacePath,
+        remove_path: RelativeWorkspacePath,
+        old_hash: desktop_runtime::Sha256Digest,
+        remove_hash: desktop_runtime::Sha256Digest,
+        patch_hash: desktop_runtime::Sha256Digest,
+    }
+
     impl Fixture {
         fn request(&self) -> Result<ExecutionRequest<'_>, Box<dyn std::error::Error>> {
             Ok(ExecutionRequest {
@@ -699,18 +743,7 @@ mod tests {
         Ok(RelativeWorkspacePath::new(value)?)
     }
 
-    fn fixture() -> Result<Fixture, Box<dyn std::error::Error>> {
-        let new_path = path("new.txt")?;
-        let old_path = path("old.txt")?;
-        let remove_path = path("remove.txt")?;
-        let old_hash = sha256_bytes(b"old");
-        let remove_hash = sha256_bytes(b"remove");
-        let patch = PatchSet::new(vec![
-            PatchOperation::create(new_path.clone(), "created".to_owned()),
-            PatchOperation::replace(old_path.clone(), old_hash, "updated".to_owned()),
-            PatchOperation::delete(remove_path.clone(), remove_hash),
-        ]);
-        let patch_hash = patch.content_hash()?;
+    fn authorization_fixture() -> Result<AuthorizationFixture, Box<dyn std::error::Error>> {
         let authority = AuthorityRef {
             authority_kind: "desktop_local_store".to_owned(),
             authority_id: id("authority_1")?,
@@ -740,7 +773,28 @@ mod tests {
             input_id: "manifest_1".to_owned(),
             content_hash: sha256_bytes(b"manifest"),
         }];
-        let candidate = WindowsPatchCandidateDraft {
+        Ok(AuthorizationFixture {
+            authority,
+            audience,
+            target,
+            target_hash,
+            mutable_inputs,
+        })
+    }
+
+    fn candidate_fixture(
+        input: CandidateFixtureInput<'_>,
+    ) -> Result<desktop_runtime::WindowsPatchCandidate, Box<dyn std::error::Error>> {
+        let CandidateFixtureInput {
+            authorization,
+            new_path,
+            old_path,
+            remove_path,
+            old_hash,
+            remove_hash,
+            patch_hash,
+        } = input;
+        Ok(WindowsPatchCandidateDraft {
             schema_version: "sapphirus.candidate-action.v1".to_owned(),
             common: CandidateCommon {
                 candidate_id: id("candidate_1")?,
@@ -748,10 +802,10 @@ mod tests {
                 run_id: id("run_1")?,
                 proposal_id: id("proposal_1")?,
                 proposal_hash: sha256_bytes(b"proposal"),
-                authority_ref: authority.clone(),
+                authority_ref: authorization.authority.clone(),
                 owner_scope_ref: id("owner_1")?,
                 policy_context_hash: sha256_bytes(b"policy-context"),
-                mutable_inputs: mutable_inputs.clone(),
+                mutable_inputs: authorization.mutable_inputs.clone(),
                 declared_writes: vec![
                     DeclaredWrite {
                         path_pattern: new_path.clone(),
@@ -776,8 +830,8 @@ mod tests {
             },
             delivery_model: DeliveryModel::WindowsLocal,
             action_kind: "patch_apply".to_owned(),
-            workspace_target: target,
-            executor_audience: audience.clone(),
+            workspace_target: authorization.target.clone(),
+            executor_audience: authorization.audience.clone(),
             patch_ref: format!("cas://sha256/{}", patch_hash.hex_value()),
             patch_hash,
             preimages: vec![
@@ -804,13 +858,37 @@ mod tests {
                 },
             ],
         }
-        .seal()?;
+        .seal()?)
+    }
+
+    fn fixture() -> Result<Fixture, Box<dyn std::error::Error>> {
+        let new_path = path("new.txt")?;
+        let old_path = path("old.txt")?;
+        let remove_path = path("remove.txt")?;
+        let old_hash = sha256_bytes(b"old");
+        let remove_hash = sha256_bytes(b"remove");
+        let patch = PatchSet::new(vec![
+            PatchOperation::create(new_path.clone(), "created".to_owned()),
+            PatchOperation::replace(old_path.clone(), old_hash, "updated".to_owned()),
+            PatchOperation::delete(remove_path.clone(), remove_hash),
+        ]);
+        let patch_hash = patch.content_hash()?;
+        let authorization = authorization_fixture()?;
+        let candidate = candidate_fixture(CandidateFixtureInput {
+            authorization: &authorization,
+            new_path,
+            old_path,
+            remove_path,
+            old_hash,
+            remove_hash,
+            patch_hash,
+        })?;
         let nonce_hash = sha256_bytes(b"0123456789abcdef");
         let spec = ApprovedExecutionSpecDraft {
             schema_version: "sapphirus.approved-execution-spec.v1".to_owned(),
             spec_id: id("spec_1")?,
             delivery_model: DeliveryModel::WindowsLocal,
-            authority_ref: authority.clone(),
+            authority_ref: authorization.authority.clone(),
             owner_scope_ref: candidate.draft.common.owner_scope_ref.clone(),
             project_id: candidate.draft.common.project_id.clone(),
             run_id: candidate.draft.common.run_id.clone(),
@@ -822,20 +900,24 @@ mod tests {
             approval_decision_hash: sha256_bytes(b"approval"),
             policy_version: "policy-1".to_owned(),
             policy_hash: sha256_bytes(b"policy"),
-            workspace_target_hash: target_hash,
-            mutable_input_set_hash: canonical_hash("mutable-input-set", 1, &mutable_inputs)?,
-            executor_audience: audience.clone(),
+            workspace_target_hash: authorization.target_hash,
+            mutable_input_set_hash: canonical_hash(
+                "mutable-input-set",
+                1,
+                &authorization.mutable_inputs,
+            )?,
+            executor_audience: authorization.audience.clone(),
             issued_at: UnixMillis(2_000),
             expires_at: UnixMillis(9_000),
             single_use_nonce_hash: nonce_hash,
         }
         .seal()?;
-        let audience_hash = canonical_hash("executor-audience", 1, &audience)?;
+        let audience_hash = canonical_hash("executor-audience", 1, &authorization.audience)?;
         let consumption = SpecConsumptionRecordDraft {
             schema_version: "sapphirus.spec-consumption.v1".to_owned(),
             consumption_id: id("consumption_1")?,
             delivery_model: DeliveryModel::WindowsLocal,
-            authority_ref: authority,
+            authority_ref: authorization.authority,
             spec_id: spec.draft.spec_id.clone(),
             spec_hash: spec.spec_hash,
             candidate_hash: candidate.candidate_hash,
@@ -851,7 +933,7 @@ mod tests {
             patch,
             spec,
             consumption,
-            target_hash,
+            target_hash: authorization.target_hash,
         })
     }
 

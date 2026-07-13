@@ -16,7 +16,7 @@ ulid.workspace = true
 walkdir.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows.workspace = true
+windows = { workspace = true, features = ["Win32_System_WindowsProgramming"] }
 
 [dev-dependencies]
 tempfile.workspace = true

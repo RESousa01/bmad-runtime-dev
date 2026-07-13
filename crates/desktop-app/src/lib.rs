@@ -11,6 +11,12 @@ use thiserror::Error;
 #[error("Sapphirus desktop startup failed")]
 pub struct StartupError;
 
+/// Starts the signed desktop host and its single local renderer window.
+///
+/// # Errors
+///
+/// Returns [`StartupError`] when host state, the renderer window, or the
+/// Tauri event loop cannot be initialized.
 pub fn run() -> Result<(), StartupError> {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())

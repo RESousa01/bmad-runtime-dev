@@ -18,6 +18,11 @@ use serde::de::DeserializeOwned;
 
 /// Deserializes trusted-shape local records while preserving the same
 /// duplicate-key rejection used by renderer command envelopes.
+///
+/// # Errors
+///
+/// Returns [`IpcValidationError::InvalidJson`] when the input is malformed,
+/// contains duplicate object keys, or cannot be converted to `T`.
 pub fn deserialize_strict<T>(bytes: &[u8]) -> Result<T, IpcValidationError>
 where
     T: DeserializeOwned,

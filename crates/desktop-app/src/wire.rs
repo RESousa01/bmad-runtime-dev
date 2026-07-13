@@ -61,7 +61,10 @@ impl HostDispatchReply {
             schema_version: DISPATCH_REPLY_SCHEMA.to_owned(),
             request_id: Some(request_id),
             sequence,
-            outcome: HostDispatchOutcome::Ok { receipt, data },
+            outcome: HostDispatchOutcome::Ok {
+                receipt,
+                data: Box::new(data),
+            },
         }
     }
 
@@ -80,7 +83,7 @@ impl HostDispatchReply {
 pub enum HostDispatchOutcome {
     Ok {
         receipt: CommandReceipt,
-        data: HostCommandData,
+        data: Box<HostCommandData>,
     },
     Error {
         error: LocalError,

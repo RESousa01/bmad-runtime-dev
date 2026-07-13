@@ -9,10 +9,7 @@
     "beforeBuildCommand": "pnpm --dir ../.. --filter @sapphirus/desktop-ui build",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../../apps/desktop-ui/dist",
-    "removeUnusedCommands": true,
-    "windows": {
-      "staticVCRuntime": true
-    }
+    "removeUnusedCommands": true
   },
   "app": {
     "withGlobalTauri": false,

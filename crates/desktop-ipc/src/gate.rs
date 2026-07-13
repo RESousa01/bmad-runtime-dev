@@ -60,6 +60,13 @@ impl RequestGate {
         }
     }
 
+    /// Applies rate limiting and mutation idempotency admission checks.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IpcValidationError`] when policy or state is unavailable, the
+    /// session exceeds its rate limit, the request identifier conflicts with a
+    /// prior mutation, or the command cannot be fingerprinted.
     pub fn admit(
         &self,
         envelope: &ValidatedCommandEnvelope,

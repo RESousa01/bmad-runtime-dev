@@ -24,9 +24,20 @@ pub enum WorkspaceIoError {
 /// grant epoch, reparse/file identity, hardlink policy, and same-volume atomic
 /// replacement immediately around each method call.
 pub trait WorkspaceFileIo: Send + Sync {
+    /// Returns the hash of the currently authorized workspace target.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when the workspace capability cannot be
+    /// revalidated or observed.
     fn workspace_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError>;
 
     /// Returns at most the broker's configured bounded file size.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when the path is unauthorized, its identity
+    /// changed, its content is unsupported, or the read cannot complete.
     fn read_file(
         &self,
         path: &RelativeWorkspacePath,
@@ -34,6 +45,11 @@ pub trait WorkspaceFileIo: Send + Sync {
     ) -> Result<Option<Vec<u8>>, WorkspaceIoError>;
 
     /// Create a new file and durably flush the file and owning directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when the path is unauthorized or already
+    /// exists, the content is unsupported, or the durable create cannot complete.
     fn create_utf8_durable(
         &self,
         path: &RelativeWorkspacePath,
@@ -42,6 +58,11 @@ pub trait WorkspaceFileIo: Send + Sync {
 
     /// Atomically replace an existing file on the same volume, then durably
     /// flush the replacement and owning directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when an expected identity or hash does not
+    /// match, the path is unauthorized, or the durable replacement fails.
     fn replace_utf8_durable(
         &self,
         path: &RelativeWorkspacePath,
@@ -51,6 +72,11 @@ pub trait WorkspaceFileIo: Send + Sync {
     ) -> Result<(), WorkspaceIoError>;
 
     /// Delete an existing exact preimage and durably flush the owning directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when an expected identity or hash does not
+    /// match, the path is unauthorized, or the durable deletion fails.
     fn delete_durable(
         &self,
         path: &RelativeWorkspacePath,
@@ -67,12 +93,33 @@ pub struct JournalStoreError;
 /// after its data is durable. `record_result` atomically records the result,
 /// domain transition, evidence event, and outbox entry.
 pub trait ExecutionStore: Send + Sync {
+    /// Persists a checkpoint before any governed file effect begins.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`JournalStoreError`] when the checkpoint cannot be made durable.
     fn persist_checkpoint(&self, checkpoint: &LocalCheckpoint) -> Result<(), JournalStoreError>;
 
+    /// Persists a newly prepared effect journal.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`JournalStoreError`] when the journal cannot be made durable.
     fn create_journal(&self, journal: &EffectJournal) -> Result<(), JournalStoreError>;
 
+    /// Persists a journal state transition.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`JournalStoreError`] when the transition cannot be made durable.
     fn update_journal(&self, journal: &EffectJournal) -> Result<(), JournalStoreError>;
 
+    /// Atomically records the execution result and its journal transition.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`JournalStoreError`] when the result transaction cannot be made
+    /// durable.
     fn record_result(
         &self,
         result: &LocalExecutionResult,
@@ -198,6 +245,12 @@ impl LocalCheckpoint {
         })
     }
 
+    /// Verifies checkpoint ordering, UTF-8 content, and the canonical manifest.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError`] when checkpoint content or its manifest hash
+    /// is invalid.
     pub fn verify(&self) -> Result<(), ExecutionError> {
         let recreated = Self::seal(
             self.checkpoint_id.clone(),
@@ -306,6 +359,12 @@ pub struct EffectJournal {
 }
 
 impl EffectJournal {
+    /// Verifies the immutable effect plan and its per-file hash invariants.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError::IntegrityFailure`] when the journal schema,
+    /// ordering, paths, or operation hashes are inconsistent.
     pub fn verify_plan(&self) -> Result<(), ExecutionError> {
         if self.schema_version != "sapphirus.local-effect-journal.v1"
             || self.operations.is_empty()
@@ -418,6 +477,12 @@ impl LocalExecutionResult {
         })
     }
 
+    /// Verifies file observations and the canonical execution-result hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExecutionError`] when result content, ordering, or its bound
+    /// hash is invalid.
     pub fn verify(&self) -> Result<(), ExecutionError> {
         if self.schema_version != "sapphirus.windows-local-result.v1"
             || self.files.windows(2).any(|pair| {

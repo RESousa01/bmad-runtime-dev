@@ -222,6 +222,13 @@ pub struct WindowsPatchCandidateDraft {
 }
 
 impl WindowsPatchCandidateDraft {
+    /// Validates the candidate's schema, authority bindings, governed limits,
+    /// content reference, and canonical input collections.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when any candidate invariant is
+    /// violated or a bound collection is not canonical.
     pub fn validate(&self) -> Result<(), DomainValidationError> {
         if self.schema_version != CANDIDATE_SCHEMA || self.action_kind != "patch_apply" {
             return Err(DomainValidationError::UnsupportedSchema);
@@ -259,6 +266,12 @@ impl WindowsPatchCandidateDraft {
         )
     }
 
+    /// Validates this draft and seals it with its canonical candidate hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when validation or canonical hashing
+    /// fails.
     pub fn seal(self) -> Result<WindowsPatchCandidate, DomainValidationError> {
         self.validate()?;
         let candidate_hash = canonical_hash("candidate-action", 1, &self)?;
@@ -278,6 +291,12 @@ pub struct WindowsPatchCandidate {
 }
 
 impl WindowsPatchCandidate {
+    /// Revalidates the sealed draft and its canonical candidate hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the draft is invalid, canonical
+    /// hashing fails, or the stored hash does not match the draft.
     pub fn verify(&self) -> Result<(), DomainValidationError> {
         self.draft.validate()?;
         let actual = canonical_hash("candidate-action", 1, &self.draft)?;
@@ -304,6 +323,14 @@ impl PatchSet {
         }
     }
 
+    /// Validates the patch schema, governed limits, unique paths, and
+    /// postimage hashes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the schema is unsupported, the
+    /// patch is empty, a hard limit is exceeded, a path is aliased, or a
+    /// postimage is invalid.
     pub fn validate(&self) -> Result<(), DomainValidationError> {
         if self.schema_version != PATCH_SCHEMA {
             return Err(DomainValidationError::UnsupportedSchema);
@@ -338,6 +365,12 @@ impl PatchSet {
         Ok(())
     }
 
+    /// Computes the canonical hash of a valid patch set.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when patch validation or canonical
+    /// hashing fails.
     pub fn content_hash(&self) -> Result<Sha256Digest, DomainValidationError> {
         self.validate()?;
         Ok(canonical_hash("patch-set", 1, self)?)
@@ -501,6 +534,13 @@ impl ApprovalDecisionDraft {
         }
     }
 
+    /// Validates the approval schema and seals the decision with its canonical
+    /// hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the schema is unsupported or
+    /// canonical hashing fails.
     pub fn seal(self) -> Result<ApprovalDecision, DomainValidationError> {
         if self.schema_version != APPROVAL_SCHEMA {
             return Err(DomainValidationError::UnsupportedSchema);
@@ -522,6 +562,13 @@ pub struct ApprovalDecision {
 }
 
 impl ApprovalDecision {
+    /// Verifies this decision is an intact approval for `candidate`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when canonical hashing fails, the
+    /// decision hash is invalid, or the decision does not approve the supplied
+    /// candidate.
     pub fn verify_for(
         &self,
         candidate: &WindowsPatchCandidate,
@@ -569,6 +616,12 @@ pub struct ApprovedExecutionSpecDraft {
 }
 
 impl ApprovedExecutionSpecDraft {
+    /// Validates and seals this Windows-local execution specification.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the schema, delivery model, or
+    /// validity interval is invalid, or when canonical hashing fails.
     pub fn seal(self) -> Result<ApprovedExecutionSpec, DomainValidationError> {
         if self.schema_version != SPEC_SCHEMA || self.delivery_model != DeliveryModel::WindowsLocal
         {
@@ -594,6 +647,13 @@ pub struct ApprovedExecutionSpec {
 }
 
 impl ApprovedExecutionSpec {
+    /// Verifies this execution specification's invariants and canonical hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the sealed draft is unsupported,
+    /// its validity interval is invalid, canonical hashing fails, or its hash
+    /// does not match.
     pub fn verify(&self) -> Result<(), DomainValidationError> {
         if self.draft.schema_version != SPEC_SCHEMA
             || self.draft.delivery_model != DeliveryModel::WindowsLocal
@@ -629,6 +689,12 @@ pub struct SpecConsumptionRecordDraft {
 }
 
 impl SpecConsumptionRecordDraft {
+    /// Validates and seals a first-attempt Windows-local consumption record.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the record does not satisfy the
+    /// consumption invariants or canonical hashing fails.
     pub fn seal(self) -> Result<SpecConsumptionRecord, DomainValidationError> {
         if self.schema_version != CONSUMPTION_SCHEMA
             || self.delivery_model != DeliveryModel::WindowsLocal
@@ -653,6 +719,13 @@ pub struct SpecConsumptionRecord {
 }
 
 impl SpecConsumptionRecord {
+    /// Verifies this consumption record's invariants and canonical hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the record does not satisfy the
+    /// consumption invariants, canonical hashing fails, or its hash does not
+    /// match.
     pub fn verify(&self) -> Result<(), DomainValidationError> {
         if self.draft.schema_version != CONSUMPTION_SCHEMA
             || self.draft.delivery_model != DeliveryModel::WindowsLocal
@@ -805,6 +878,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one conformance fixture keeps the candidate, spec, and consumption bindings visible"
+    )]
     fn authority_aggregates_match_generated_wire_shapes_and_hashes(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let relative_path = path("README.md")?;
