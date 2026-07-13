@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   EXPECTED_DESCRIPTOR_NAMES,
@@ -15,7 +16,6 @@ import {
 } from "../scripts/fixture-policy.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
-const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const fixtureDirectory = path.join(packageRoot, "fixtures");
 
 async function readDescriptor(name) {
@@ -39,7 +39,7 @@ function hasCode(code) {
     error instanceof FixtureValidationError && error.code === code;
 }
 
-test("sealed descriptor set and all bound bytes verify", async () => {
+test("sealed descriptor set and repository-owned payload bytes verify", async () => {
   const result = await verifyFixtureSet();
   assert.equal(result.descriptorCount, 3);
   assert.deepEqual(EXPECTED_DESCRIPTOR_NAMES, [
@@ -54,10 +54,18 @@ test("sealed descriptor set and all bound bytes verify", async () => {
   ]);
 });
 
-test("Method proof is exact, source-bound, and read-only", async () => {
+test("Method proof is exact, provenance-bound, and read-only", async () => {
   const fixture = await loadDescriptor("sealed-method-bmad-help.json");
   assert.equal(fixture.fixtureKind, "method_direct_skill");
   assert.equal(fixture.source.project, "BMAD-METHOD");
+  assert.equal(
+    fixture.source.archiveSha256,
+    "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+  );
+  assert.equal(
+    fixture.source.archivePath,
+    "BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
+  );
   assert.equal(fixture.executionProfile, "direct");
   assert.equal(fixture.activationState, "sealed_read_only");
   assert.deepEqual(fixture.builderActions, []);
@@ -217,6 +225,15 @@ test("closed schemas reject unknown fields and fixture kinds", async (t) => {
       hasCode("SCHEMA_UNKNOWN_FIELD"),
     );
   });
+  await t.test("source filesystem path field", () => {
+    const input = mutateDescriptor(source, (fixture) => {
+      fixture.source.relativePath = "reviewed/source/SKILL.md";
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
+      hasCode("SCHEMA_UNKNOWN_FIELD"),
+    );
+  });
   await t.test("unknown kind-specific assertion", () => {
     const input = mutateDescriptor(source, (fixture) => {
       fixture.assertions.futureSemantic = false;
@@ -282,13 +299,46 @@ test("closed schemas reject unknown fields and fixture kinds", async (t) => {
       hasCode("JSON_INTEGER_RANGE"),
     );
   });
-  await t.test("repository path traversal", () => {
+  await t.test("archive path traversal", () => {
     const input = mutateDescriptor(source, (fixture) => {
-      fixture.source.relativePath = "../outside/SKILL.md";
+      fixture.source.archivePath = "../outside/SKILL.md";
     });
     assert.throws(
       () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
       hasCode("SCHEMA_PATH"),
+    );
+  });
+  for (const [label, archivePath] of [
+    ["absolute archive path", "/outside/SKILL.md"],
+    ["Windows archive path", "outside\\SKILL.md"],
+    ["drive-qualified archive path", "C:/outside/SKILL.md"],
+  ]) {
+    await t.test(label, () => {
+      const input = mutateDescriptor(source, (fixture) => {
+        fixture.source.archivePath = archivePath;
+      });
+      assert.throws(
+        () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
+        hasCode("SCHEMA_PATH"),
+      );
+    });
+  }
+  await t.test("uppercase archive digest", () => {
+    const input = mutateDescriptor(source, (fixture) => {
+      fixture.source.archiveSha256 = fixture.source.archiveSha256.toUpperCase();
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
+      hasCode("SCHEMA_DIGEST"),
+    );
+  });
+  await t.test("well-formed but untrusted archive digest", () => {
+    const input = mutateDescriptor(source, (fixture) => {
+      fixture.source.archiveSha256 = "0".repeat(64);
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
+      hasCode("IDENTITY_MISMATCH"),
     );
   });
 });
@@ -415,8 +465,11 @@ test("descriptor names and source/payload identities are immutable", async (t) =
     );
   });
   for (const [label, mutate] of [
-    ["source path", (fixture) => {
-      fixture.source.relativePath = fixture.payload.relativePath;
+    ["archive path", (fixture) => {
+      fixture.source.archivePath = "bmad-builder-main/skills/other/SKILL.md";
+    }],
+    ["archive hash", (fixture) => {
+      fixture.source.archiveSha256 = "1".repeat(64);
     }],
     ["source hash", (fixture) => {
       fixture.source.sha256 = "0".repeat(64);
@@ -441,7 +494,7 @@ test("descriptor names and source/payload identities are immutable", async (t) =
 test("bound-content verification detects byte tampering", async () => {
   const fixture = await loadDescriptor("inactive-simple-workflow.json");
   const payload = await readFile(
-    path.join(repositoryRoot, ...fixture.payload.relativePath.split("/")),
+    path.join(packageRoot, ...fixture.payload.relativePath.split("/")),
   );
   assert.deepEqual(
     assertContentMatchesBinding(fixture.payload, payload, "payload"),
@@ -457,4 +510,52 @@ test("bound-content verification detects byte tampering", async () => {
     () => assertContentMatchesBinding(fixture.payload, tampered, "payload"),
     hasCode("CONTENT_DIGEST_MISMATCH"),
   );
+});
+
+test("package allowlist contains only conformance assets", async () => {
+  const packageManifest = JSON.parse(
+    await readFile(path.join(packageRoot, "package.json"), "utf8"),
+  );
+  assert.equal(packageManifest.private, true);
+  assert.deepEqual(packageManifest.files, [
+    "fixtures",
+    "scripts",
+    "tests",
+    "README.md",
+  ]);
+});
+
+test("verification succeeds in a minimal checkout containing only this package", async () => {
+  const isolatedRoot = await mkdtemp(
+    path.join(tmpdir(), "sapphirus-bmad-checkout-"),
+  );
+  const isolatedPackageRoot = path.join(
+    isolatedRoot,
+    "packages",
+    "bmad-fixtures",
+  );
+
+  try {
+    await cp(packageRoot, isolatedPackageRoot, { recursive: true });
+    assert.deepEqual(await readdir(isolatedRoot), ["packages"]);
+    const isolatedPolicyUrl = pathToFileURL(
+      path.join(isolatedPackageRoot, "scripts", "fixture-policy.mjs"),
+    );
+    const { verifyFixtureSet: verifyIsolatedFixtureSet } = await import(
+      isolatedPolicyUrl.href
+    );
+    assert.deepEqual(
+      await verifyIsolatedFixtureSet(),
+      {
+        descriptorCount: 3,
+        fixtureIds: [
+          "bmad_builder_simple_workflow_v1",
+          "bmad_builder_stateless_agent_v1",
+          "bmad_method_help_v6",
+        ],
+      },
+    );
+  } finally {
+    await rm(isolatedRoot, { recursive: true, force: true });
+  }
 });

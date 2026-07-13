@@ -6,6 +6,8 @@
   "type": "module",
   "files": [
     "fixtures",
+    "scripts",
+    "tests",
     "README.md"
   ],
   "scripts": {

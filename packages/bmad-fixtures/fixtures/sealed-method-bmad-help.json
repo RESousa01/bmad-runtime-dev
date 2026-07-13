@@ -13,7 +13,8 @@
     "project": "BMAD-METHOD",
     "packageVersion": "6.10.0",
     "license": "MIT",
-    "relativePath": "bmad-runtime-lib/_source_review/BMAD-METHOD-main/BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
+    "archiveSha256": "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+    "archivePath": "BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
     "byteLength": 4617,
     "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642"
   },

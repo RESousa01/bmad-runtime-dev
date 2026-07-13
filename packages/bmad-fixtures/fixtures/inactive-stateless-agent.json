@@ -17,12 +17,13 @@
     "project": "bmad-builder",
     "packageVersion": "2.1.0",
     "license": "MIT",
-    "relativePath": "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-agent-builder/SKILL.md",
+    "archiveSha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+    "archivePath": "bmad-builder-main/skills/bmad-agent-builder/SKILL.md",
     "byteLength": 5686,
     "sha256": "806ea0a5c3bd9d4ef5dfa2e0beb37490b0fb3faef848ac493db2db0e99f32dda"
   },
   "payload": {
-    "relativePath": "packages/bmad-fixtures/fixtures/payloads/stateless-agent/SKILL.md",
+    "relativePath": "fixtures/payloads/stateless-agent/SKILL.md",
     "byteLength": 625,
     "sha256": "eddd5da0ba4e2ace5825e6e8578631230254387583a50a4e0889ab1eddb79317"
   },

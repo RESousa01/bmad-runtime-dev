@@ -6,7 +6,6 @@ import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const defaultPackageRoot = fileURLToPath(new URL("../", import.meta.url));
-const defaultRepositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const MAX_DESCRIPTOR_BYTES = 64 * 1024;
 const MAX_JSON_DEPTH = 32;
 
@@ -29,7 +28,8 @@ const SOURCE_FIELDS = Object.freeze([
   "project",
   "packageVersion",
   "license",
-  "relativePath",
+  "archiveSha256",
+  "archivePath",
   "byteLength",
   "sha256",
 ]);
@@ -52,8 +52,10 @@ const LOCKED_FIXTURES = Object.freeze({
       project: "BMAD-METHOD",
       packageVersion: "6.10.0",
       license: "MIT",
-      relativePath:
-        "bmad-runtime-lib/_source_review/BMAD-METHOD-main/BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
+      archiveSha256:
+        "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+      archivePath:
+        "BMAD-METHOD-main/src/core-skills/bmad-help/SKILL.md",
       byteLength: 4617,
       sha256:
         "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
@@ -76,15 +78,16 @@ const LOCKED_FIXTURES = Object.freeze({
       project: "bmad-builder",
       packageVersion: "2.1.0",
       license: "MIT",
-      relativePath:
-        "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-agent-builder/SKILL.md",
+      archiveSha256:
+        "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      archivePath:
+        "bmad-builder-main/skills/bmad-agent-builder/SKILL.md",
       byteLength: 5686,
       sha256:
         "806ea0a5c3bd9d4ef5dfa2e0beb37490b0fb3faef848ac493db2db0e99f32dda",
     }),
     payload: Object.freeze({
-      relativePath:
-        "packages/bmad-fixtures/fixtures/payloads/stateless-agent/SKILL.md",
+      relativePath: "fixtures/payloads/stateless-agent/SKILL.md",
       byteLength: 625,
       sha256:
         "eddd5da0ba4e2ace5825e6e8578631230254387583a50a4e0889ab1eddb79317",
@@ -107,15 +110,16 @@ const LOCKED_FIXTURES = Object.freeze({
       project: "bmad-builder",
       packageVersion: "2.1.0",
       license: "MIT",
-      relativePath:
-        "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-workflow-builder/SKILL.md",
+      archiveSha256:
+        "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      archivePath:
+        "bmad-builder-main/skills/bmad-workflow-builder/SKILL.md",
       byteLength: 4528,
       sha256:
         "ed28d89b38b1821fce92e09845e94300a4b3d2ec94e8ce7e86e8fa6fe170a644",
     }),
     payload: Object.freeze({
-      relativePath:
-        "packages/bmad-fixtures/fixtures/payloads/simple-workflow/SKILL.md",
+      relativePath: "fixtures/payloads/simple-workflow/SKILL.md",
       byteLength: 628,
       sha256:
         "a49b5d2a4e31429766e9513ff08b67e3bdf92f18e399ae251c0d8b620319432c",
@@ -314,20 +318,26 @@ function validateLockedRecord(actual, expected, fields, location) {
   }
 }
 
-function validateContentBinding(actual, expected, location) {
-  const fields = expected.project === undefined ? PAYLOAD_FIELDS : SOURCE_FIELDS;
-  requireExactFields(actual, fields, location);
+function validateSourceProvenance(actual, expected, location) {
+  requireExactFields(actual, SOURCE_FIELDS, location);
+  requireString(actual.project, `${location}.project`);
+  requireString(actual.packageVersion, `${location}.packageVersion`);
+  requireExactValue(actual.license, "MIT", `${location}.license`);
+  requireDigest(actual.archiveSha256, `${location}.archiveSha256`);
+  requirePortableRepositoryPath(actual.archivePath, `${location}.archivePath`);
+  requireByteLength(actual.byteLength, `${location}.byteLength`);
+  requireDigest(actual.sha256, `${location}.sha256`);
 
-  if (expected.project !== undefined) {
-    requireString(actual.project, `${location}.project`);
-    requireString(actual.packageVersion, `${location}.packageVersion`);
-    requireExactValue(actual.license, "MIT", `${location}.license`);
-  }
+  validateLockedRecord(actual, expected, SOURCE_FIELDS, location);
+}
+
+function validatePayloadBinding(actual, expected, location) {
+  requireExactFields(actual, PAYLOAD_FIELDS, location);
   requirePortableRepositoryPath(actual.relativePath, `${location}.relativePath`);
   requireByteLength(actual.byteLength, `${location}.byteLength`);
   requireDigest(actual.sha256, `${location}.sha256`);
 
-  validateLockedRecord(actual, expected, fields, location);
+  validateLockedRecord(actual, expected, PAYLOAD_FIELDS, location);
 }
 
 function validateBuilderActions(actual, expected, location) {
@@ -405,7 +415,11 @@ function validateFixtureDescriptor(
     locked.builderActions,
     `${descriptorName}.builderActions`,
   );
-  validateContentBinding(descriptor.source, locked.source, `${descriptorName}.source`);
+  validateSourceProvenance(
+    descriptor.source,
+    locked.source,
+    `${descriptorName}.source`,
+  );
 
   if (locked.payload === null) {
     requireExactValue(descriptor.payload, null, `${descriptorName}.payload`);
@@ -414,10 +428,11 @@ function validateFixtureDescriptor(
       fail(
         "SEMANTIC_PAYLOAD",
         `${descriptorName}.payload`,
-        "inactive Builder fixtures require a source-bound draft payload",
+        "inactive Builder fixtures require a digest-bound, " +
+          "repository-owned draft payload",
       );
     }
-    validateContentBinding(
+    validatePayloadBinding(
       descriptor.payload,
       locked.payload,
       `${descriptorName}.payload`,
@@ -723,11 +738,14 @@ function isContained(root, candidate) {
   );
 }
 
-async function verifyRepositoryFile(binding, repositoryRoot, location) {
-  const resolvedRoot = path.resolve(repositoryRoot);
-  const resolvedFile = path.resolve(resolvedRoot, ...binding.relativePath.split("/"));
+async function verifyPackageFile(binding, packageRoot, location) {
+  const resolvedRoot = path.resolve(packageRoot);
+  const resolvedFile = path.resolve(
+    resolvedRoot,
+    ...binding.relativePath.split("/"),
+  );
   if (!isContained(resolvedRoot, resolvedFile)) {
-    fail("CONTENT_PATH_ESCAPE", location, "path resolves outside the repository root");
+    fail("CONTENT_PATH_ESCAPE", location, "path resolves outside the package root");
   }
 
   let fileStats;
@@ -746,7 +764,7 @@ async function verifyRepositoryFile(binding, repositoryRoot, location) {
     fail("CONTENT_FILE_TYPE", location, "bound path must be a regular file");
   }
   if (!isContained(realRoot, realFile)) {
-    fail("CONTENT_PATH_ESCAPE", location, "real path escapes the repository root");
+    fail("CONTENT_PATH_ESCAPE", location, "real path escapes the package root");
   }
 
   let content;
@@ -760,7 +778,6 @@ async function verifyRepositoryFile(binding, repositoryRoot, location) {
 
 export async function verifyFixtureSet({
   packageRoot = defaultPackageRoot,
-  repositoryRoot = defaultRepositoryRoot,
 } = {}) {
   const fixtureDirectory = path.join(packageRoot, "fixtures");
   const fixtureEntries = await readdir(fixtureDirectory, { withFileTypes: true });
@@ -856,15 +873,10 @@ export async function verifyFixtureSet({
   for (const descriptorName of descriptorNames) {
     const bytes = await readFile(path.join(fixtureDirectory, descriptorName));
     const descriptor = parseFixtureDescriptorBytes(bytes, descriptorName);
-    await verifyRepositoryFile(
-      descriptor.source,
-      repositoryRoot,
-      `${descriptorName}.source`,
-    );
     if (descriptor.payload !== null) {
-      await verifyRepositoryFile(
+      await verifyPackageFile(
         descriptor.payload,
-        repositoryRoot,
+        packageRoot,
         `${descriptorName}.payload`,
       );
     }

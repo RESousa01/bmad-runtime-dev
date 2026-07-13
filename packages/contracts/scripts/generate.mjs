@@ -718,7 +718,7 @@ const supplementalGoldenValues = [
 add(
   "fixtures/golden/hash-vectors.json",
   stableJson({
-    source: "bmad-runtime-lib/99 section 14.2",
+    source: "external-reference-note-99/section-14.2",
     required: requiredGoldenVectors,
     supplemental: supplementalGoldenValues,
   }),

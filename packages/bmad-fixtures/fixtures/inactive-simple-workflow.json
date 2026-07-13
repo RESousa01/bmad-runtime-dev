@@ -17,12 +17,13 @@
     "project": "bmad-builder",
     "packageVersion": "2.1.0",
     "license": "MIT",
-    "relativePath": "bmad-runtime-lib/_source_review/bmad-builder-main/bmad-builder-main/skills/bmad-workflow-builder/SKILL.md",
+    "archiveSha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+    "archivePath": "bmad-builder-main/skills/bmad-workflow-builder/SKILL.md",
     "byteLength": 4528,
     "sha256": "ed28d89b38b1821fce92e09845e94300a4b3d2ec94e8ce7e86e8fa6fe170a644"
   },
   "payload": {
-    "relativePath": "packages/bmad-fixtures/fixtures/payloads/simple-workflow/SKILL.md",
+    "relativePath": "fixtures/payloads/simple-workflow/SKILL.md",
     "byteLength": 628,
     "sha256": "a49b5d2a4e31429766e9513ff08b67e3bdf92f18e399ae251c0d8b620319432c"
   },
