@@ -23,8 +23,9 @@ unintegrated. The planned edits-capable internal release remains **edits first**
 - `helpers/windows-auth-broker` — frozen, non-integrated WAM broker scaffold (D2)
 - `services/desktop-support-api` — frozen, non-integrated Azure support-plane scaffold (D2)
 
-The optional `bmad-runtime-lib` folder is external, untracked implementation context. It is not a
-workspace package, build input, CI dependency, application resource, or distribution artifact.
+The tracked `bmad-runtime-lib` folder is a reference-only context vault. It is not a workspace
+package, build input, CI dependency, application resource, or distribution artifact, and its
+imported third-party scripts are never executed by the product toolchain.
 
 ## Local verification
 
@@ -33,11 +34,12 @@ pnpm install --frozen-lockfile
 pnpm verify:source
 ```
 
-`verify:source` (and the default `verify`) covers deterministic TypeScript 7.0.2 contract generation
-and conformance, sealed BMAD fixtures, renderer/UI typechecks and tests, the first-party secret
-scan, Node-based boundary inspection, and the Vite web-asset build. It does not require the
-external context library. The broader cross-language and native checks are enabled only when their
-installed toolchains are available; manual native CI jobs additionally require the
+`verify:source` (and the default `verify`) covers the 105-file reference-vault integrity check,
+deterministic TypeScript 7.0.2 contract generation and conformance, sealed BMAD fixtures,
+renderer/UI typechecks and tests, the first-party secret scan, Node-based boundary inspection, and
+the Vite web-asset build. It reads but never executes imported context-vault content. The broader
+cross-language and native checks are enabled only when their installed toolchains are available;
+manual native CI jobs additionally require the
 organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` gate.
 
 The planned internal deployment is single-tenant and uses organization-managed identity, policy,

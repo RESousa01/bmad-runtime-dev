@@ -19,7 +19,7 @@ target/
 !.env.example
 artifacts/
 tmp/
-bmad-runtime-lib/
+bmad-runtime-lib/tmp*/
 services/desktop-support-api/bin/
 services/desktop-support-api/obj/
 services/desktop-support-api.Tests/bin/

@@ -44,6 +44,7 @@ const referenceVaultAllowlist = new Set([
   "docs/provenance/vault-validation.json",
   "tools/check-boundaries.mjs",
   "tools/check-secrets.mjs",
+  "tools/verify-reference-vault.mjs",
 ]);
 const expectedProductionCsp = Object.freeze(new Map([
   ["default-src", Object.freeze(["'self'"])],
