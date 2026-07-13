@@ -1,5 +1,5 @@
 import { lstat, readFile, readdir } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { extname, join, relative } from "node:path";
 import process from "node:process";
 
 const root = process.cwd();
@@ -38,6 +38,13 @@ const exactToolchain = Object.freeze({
   typescript: "7.0.2",
 });
 const referenceVaultPattern = /(?:bmad-runtime-lib|_source_review)/iu;
+const referenceVaultAllowlist = new Set([
+  ".gitignore",
+  "README.md",
+  "docs/provenance/vault-validation.json",
+  "tools/check-boundaries.mjs",
+  "tools/check-secrets.mjs",
+]);
 const expectedProductionCsp = Object.freeze(new Map([
   ["default-src", Object.freeze(["'self'"])],
   ["base-uri", Object.freeze(["'none'"])],
@@ -151,6 +158,29 @@ function containsReferenceVault(value) {
     return Object.values(value).some(containsReferenceVault);
   }
   return false;
+}
+
+function normalizedRepositoryPath(path) {
+  return relative(root, path).replaceAll("\\", "/");
+}
+
+function hasForbiddenReferenceVaultDependency(path, source) {
+  const repositoryPath = normalizedRepositoryPath(path);
+  return referenceVaultPattern.test(source)
+    && !referenceVaultAllowlist.has(repositoryPath);
+}
+
+const referenceVaultGuardRegressionPath = join(root, "packages", "example", "package.json");
+if (
+  !hasForbiddenReferenceVaultDependency(
+    referenceVaultGuardRegressionPath,
+    '{"source":"../../bmad-runtime-lib/example"}',
+  )
+) {
+  violations.push("tools/check-boundaries.mjs: reference-vault dependency guard regression");
+}
+if (hasForbiddenReferenceVaultDependency(join(root, "README.md"), "bmad-runtime-lib")) {
+  violations.push("tools/check-boundaries.mjs: reference-vault provenance allowlist regression");
 }
 
 function validateProductionCsp(source, displayPath) {
@@ -435,6 +465,142 @@ async function walk(directory, extensions) {
     else if (extensions.some((extension) => entry.name.endsWith(extension))) files.push(path);
   }
   return files;
+}
+
+const referenceScanExtensions = new Set([
+  ".c",
+  ".bicep",
+  ".bicepparam",
+  ".bat",
+  ".cc",
+  ".cmd",
+  ".cpp",
+  ".cs",
+  ".csproj",
+  ".css",
+  ".example",
+  ".html",
+  ".js",
+  ".jsx",
+  ".json",
+  ".lock",
+  ".md",
+  ".mjs",
+  ".mts",
+  ".ps1",
+  ".props",
+  ".rs",
+  ".sh",
+  ".slnx",
+  ".targets",
+  ".toml",
+  ".ts",
+  ".tsx",
+  ".xml",
+  ".yaml",
+  ".yml",
+]);
+const referenceScanExactNames = new Set([
+  ".editorconfig",
+  ".gitattributes",
+  ".gitignore",
+  ".node-version",
+  ".npmrc",
+  ".nvmrc",
+  ".dockerignore",
+  "containerfile",
+  "dockerfile",
+  "makefile",
+]);
+const referenceScanIgnoredDirectories = new Set([
+  ".git",
+  "bin",
+  "dist",
+  "node_modules",
+  "obj",
+  "target",
+]);
+
+function isReferenceScanFile(name) {
+  const normalizedName = name.toLowerCase();
+  return referenceScanExtensions.has(extname(normalizedName))
+    || referenceScanExactNames.has(normalizedName);
+}
+
+async function walkFirstPartyInputs(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const path = join(directory, entry.name);
+    if (entry.isSymbolicLink()) {
+      if (!referenceScanIgnoredDirectories.has(entry.name)) {
+        violations.push(
+          `${normalizedRepositoryPath(path)}: linked first-party input is forbidden`,
+        );
+      }
+      continue;
+    }
+    if (entry.isDirectory()) {
+      if (!referenceScanIgnoredDirectories.has(entry.name)) {
+        files.push(...(await walkFirstPartyInputs(path)));
+      }
+      continue;
+    }
+    if (entry.isFile() && isReferenceScanFile(entry.name)) {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+async function rootFirstPartyInputs() {
+  const entries = await readdir(root, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const path = join(root, entry.name);
+    if (entry.isSymbolicLink()) {
+      if (!referenceScanIgnoredDirectories.has(entry.name)) {
+        violations.push(
+          `${normalizedRepositoryPath(path)}: linked first-party input is forbidden`,
+        );
+      }
+      continue;
+    }
+    if (entry.isFile() && isReferenceScanFile(entry.name)) {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+const referenceScanRoots = [
+  ".github",
+  "apps",
+  "crates",
+  "helpers",
+  "infra",
+  "packages",
+  "services",
+  "tests",
+  "tools",
+];
+const referenceScanAdditionalFiles = [
+  "docs/provenance/vault-validation.json",
+];
+const referenceScanFiles = [
+  ...(await rootFirstPartyInputs()),
+  ...referenceScanAdditionalFiles.map((path) => join(root, path)),
+  ...(await Promise.all(
+    referenceScanRoots.map((path) => walkFirstPartyInputs(join(root, path))),
+  )).flat(),
+];
+for (const path of referenceScanFiles) {
+  const source = await requiredText(path);
+  if (source !== undefined && hasForbiddenReferenceVaultDependency(path, source)) {
+    violations.push(
+      `${normalizedRepositoryPath(path)}: first-party input references the external context library`,
+    );
+  }
 }
 
 const rustFiles = await walk(join(root, "crates"), [".rs"]);

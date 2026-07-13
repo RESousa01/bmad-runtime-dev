@@ -19,9 +19,10 @@ target/
 !.env.example
 artifacts/
 tmp/
-bmad-runtime-lib/tmp*/
+bmad-runtime-lib/
 services/desktop-support-api/bin/
 services/desktop-support-api/obj/
+services/desktop-support-api.Tests/bin/
+services/desktop-support-api.Tests/obj/
 helpers/windows-auth-broker/bin/
 helpers/windows-auth-broker/obj/
-

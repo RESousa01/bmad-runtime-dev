@@ -22,7 +22,9 @@ unintegrated. The planned edits-capable internal release remains **edits first**
 - `packages/ui` — accessible product design system
 - `helpers/windows-auth-broker` — frozen, non-integrated WAM broker scaffold (D2)
 - `services/desktop-support-api` — frozen, non-integrated Azure support-plane scaffold (D2)
-- `bmad-runtime-lib` — validated architecture/reference vault; never packaged
+
+The optional `bmad-runtime-lib` folder is external, untracked implementation context. It is not a
+workspace package, build input, CI dependency, application resource, or distribution artifact.
 
 ## Local verification
 
@@ -31,14 +33,12 @@ pnpm install --frozen-lockfile
 pnpm verify:source
 ```
 
-`verify:source` (and the default `verify`) covers the 105-file reference-vault check, deterministic
-TypeScript 7.0.2 contract generation and conformance, sealed BMAD fixtures, renderer/UI typechecks
-and tests, the first-party secret scan, Node-based boundary inspection, and the Vite web-asset
-build. It statically reads Cargo/Rust/Tauri source for boundary policy but invokes no Rust/Cargo,
-C#/.NET, MSVC, Tauri, installer, or Visual Studio Build Tools command and neither reads nor
-regenerates C# bindings. Cross-language and native checks remain frozen; the manual native CI jobs
-also require the organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` gate. The
-`verify:deferred-full` script is reserved for an explicit future re-enable decision.
+`verify:source` (and the default `verify`) covers deterministic TypeScript 7.0.2 contract generation
+and conformance, sealed BMAD fixtures, renderer/UI typechecks and tests, the first-party secret
+scan, Node-based boundary inspection, and the Vite web-asset build. It does not require the
+external context library. The broader cross-language and native checks are enabled only when their
+installed toolchains are available; manual native CI jobs additionally require the
+organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` gate.
 
 The planned internal deployment is single-tenant and uses organization-managed identity, policy,
 and signed packages. No Docker, local server, local model, or GPU is required on employee
