@@ -1,0 +1,20 @@
+{
+  "objectKind": "analysis",
+  "schemaVersion": "sapphirus.bmad-builder-analysis.v1",
+  "analysisId": "agentanalysis_01J11111111111111111111111",
+  "draftId": "agentdraft_01J00000000000000000000000",
+  "revisionId": "agentrevision_01J00000000000000000000000",
+  "revisionHash": "sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8",
+  "builderKind": "agent",
+  "validationProfile": "BuilderAgentV2Stateless",
+  "analysisKind": "deterministic_static",
+  "sourceMemberSetHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "deterministicFactsHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "deterministicFindings": [],
+  "modelLensesPerformed": false,
+  "evaluationClaim": "none",
+  "createdAt": "2026-07-14T10:00:00.000Z",
+  "analysisHash": "sha256:6e12af2229a0a1b5f876409f7bfdb448cd2e8c596f66a4882da9bb38cde091e0",
+  "modelLensesNotPerformedReason": "not_requested"
+}

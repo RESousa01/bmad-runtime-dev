@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "external pattern"
+  },
+  "nullableValue": null,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "wrong"
+  },
+  "label": "external pattern",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "duplicate"
+  },
+  "nullableValue": null,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_A1B2",
+    "co\u0064e": "ext_C3D4"
+  },
+  "label": "decoded duplicate",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

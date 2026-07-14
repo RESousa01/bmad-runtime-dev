@@ -28,6 +28,47 @@ export type {
   SapphirusApprovedExecutionSpecV1 as ApprovedExecutionSpec,
 } from "./schema/approved-execution-spec.js";
 export type {
+  SapphirusBmadBuilderAuthoringV1 as BuilderAuthoringObject,
+  BuilderDraft,
+  BuilderDraftRevision,
+  BuilderAnalysisRun,
+  BuilderProposedFile,
+  BuilderProposedFileSet,
+} from "./schema/bmad-builder-authoring.js";
+export type {
+  SapphirusBmadCapabilityCatalogV1 as BmadCapabilityCatalog,
+  BmadCapabilityKey,
+  InstalledSkillRecord,
+  BmadHelpActionRecord,
+  BmadAgentRoster,
+  BmadAgentRecord,
+  BmadAgentMenuItem,
+  BmadAgentMenuTarget,
+} from "./schema/bmad-capability-catalog.js";
+export type {
+  SapphirusBmadMethodSessionV1 as MethodSession,
+  MethodAgentBinding,
+  MethodContextLedger,
+  BmadContextDecisionConsumption,
+  MethodCheckpoint,
+} from "./schema/bmad-method-session.js";
+export type {
+  SapphirusBmadPackageDescriptorV1 as BmadPackageDescriptor,
+  BmadSourceIdentity,
+  BmadInstructionProjection,
+  BmadSkillDescriptor,
+  SkillExecutionProfile,
+  BmadConfigGraphDescriptor,
+  BmadConfigResolution,
+} from "./schema/bmad-package-descriptor.js";
+export type {
+  SapphirusBmadValidationReportV1 as BmadValidationReport,
+  BmadValidationProfile,
+  BmadValidationFinding,
+  BmadValidationDependency,
+  BmadValidationDisposition,
+} from "./schema/bmad-validation-report.js";
+export type {
   SapphirusSpecConsumptionV1 as SpecConsumptionRecord,
 } from "./schema/spec-consumption.js";
 export type {

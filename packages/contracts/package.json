@@ -30,15 +30,17 @@
     "./schema-lock.json": "./schema-lock.json"
   },
   "scripts": {
-    "generate": "node ./scripts/generate.mjs && tsc --project ./tsconfig.json --noEmit",
-    "check": "node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit",
+    "generate": "node ./scripts/generate-all.mjs",
+    "check": "node ./scripts/qualify-generators.mjs --check && node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit",
     "check:typescript": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs",
+    "qualify:generators": "node ./scripts/qualify-generators.mjs --check && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit",
+    "qualify:typescript": "tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit",
     "lint": "node ./scripts/check-schemas.mjs",
     "test": "tsc --project ./tsconfig.json --noEmit && node --test --test-isolation=none ./tests/*.test.mjs",
     "typecheck": "tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs",
     "verify": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs",
     "verify:typescript": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs",
-    "verify:cross-language": "node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-generated-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs"
+    "verify:cross-language": "node ./scripts/qualify-generators.mjs --check && node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit && node ./scripts/check-generated-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs"
   },
   "dependencies": {
     "ajv": "8.17.1",
@@ -55,9 +57,9 @@
     "typescriptCompiler": "typescript@7.0.2",
     "typescriptGenerator": "json-schema-to-typescript@15.0.4",
     "typescriptValidator": "ajv@8.17.1",
-    "rustGenerator": "typify-cli@0.6.1",
+    "rustGenerator": "cargo-typify@0.6.1",
     "rustValidator": "jsonschema@0.44.1",
-    "dotnetGenerator": "Corvus.Json.CodeGeneration.Cli@5.1.0",
+    "dotnetGenerator": "Corvus.Json.Cli@5.1.0",
     "dotnetRuntime": "Corvus.Text.Json@5.1.0"
   },
   "engines": {

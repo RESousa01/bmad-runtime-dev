@@ -4,6 +4,11 @@ import type { StandaloneContractValidator, ContractValidationIssue } from "./val
 export type ContractKind =
   | "approved-execution-spec"
   | "authority-ref"
+  | "bmad-builder-authoring"
+  | "bmad-capability-catalog"
+  | "bmad-method-session"
+  | "bmad-package-descriptor"
+  | "bmad-validation-report"
   | "candidate-action"
   | "contract-error"
   | "durable-object"

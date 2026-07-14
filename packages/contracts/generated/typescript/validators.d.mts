@@ -10,6 +10,11 @@ export interface StandaloneContractValidator {
   readonly errors?: readonly ContractValidationIssue[] | null;
 }
 export declare const validateAuthorityRef: StandaloneContractValidator;
+export declare const validateBmadBuilderAuthoring: StandaloneContractValidator;
+export declare const validateBmadCapabilityCatalog: StandaloneContractValidator;
+export declare const validateBmadMethodSession: StandaloneContractValidator;
+export declare const validateBmadPackageDescriptor: StandaloneContractValidator;
+export declare const validateBmadValidationReport: StandaloneContractValidator;
 export declare const validateCandidateAction: StandaloneContractValidator;
 export declare const validateApprovedExecutionSpec: StandaloneContractValidator;
 export declare const validateSpecConsumption: StandaloneContractValidator;

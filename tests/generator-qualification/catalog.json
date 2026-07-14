@@ -1,0 +1,331 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.catalog.v1",
+  "rootSchema": "schemas/qualification.schema.json",
+  "resources": [
+    "schemas/qualification-external.schema.json"
+  ],
+  "parserLimits": {
+    "maxBytes": 262144,
+    "maxContainerDepth": 8
+  },
+  "reasonPriority": [
+    "DUPLICATE_MEMBER",
+    "MAX_DEPTH_EXCEEDED",
+    "INVALID_UNICODE",
+    "INTEGER_OUT_OF_RANGE",
+    "UNKNOWN_DISCRIMINATOR",
+    "UNKNOWN_PROPERTY",
+    "REQUIRED_PROPERTY_MISSING",
+    "TYPE_MISMATCH",
+    "NUMBER_TOO_SMALL",
+    "NUMBER_TOO_LARGE",
+    "PATTERN_MISMATCH",
+    "ONE_OF_MISMATCH",
+    "SCHEMA_INVALID"
+  ],
+  "fixtures": [
+    {
+      "id": "text-null-empty",
+      "file": "fixtures/valid/text-null-empty.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "closed_object",
+        "one_of_discriminator",
+        "required_null",
+        "optional_absent",
+        "local_external_ref",
+        "empty_string",
+        "empty_array",
+        "recursive_terminal"
+      ]
+    },
+    {
+      "id": "count-optional-null",
+      "file": "fixtures/valid/count-optional-null.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "count_variant",
+        "optional_null",
+        "signed_minimum",
+        "unsigned_maximum",
+        "interoperable_minimum"
+      ]
+    },
+    {
+      "id": "integer-upper-boundaries",
+      "file": "fixtures/valid/integer-upper-boundaries.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "signed_maximum",
+        "unsigned_zero",
+        "interoperable_maximum"
+      ]
+    },
+    {
+      "id": "unicode-nfc",
+      "file": "fixtures/valid/unicode-nfc.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "unicode_nfc",
+        "unicode_non_normalization"
+      ]
+    },
+    {
+      "id": "unicode-nfd",
+      "file": "fixtures/valid/unicode-nfd.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "unicode_nfd",
+        "unicode_non_normalization"
+      ]
+    },
+    {
+      "id": "recursive-depth-eight",
+      "file": "fixtures/valid/recursive-depth-eight.json",
+      "expected": "accept",
+      "reasonCategory": null,
+      "rejectionStage": "none",
+      "validatorInvoked": true,
+      "covers": [
+        "recursive_depth_exact_limit"
+      ]
+    },
+    {
+      "id": "duplicate-root",
+      "file": "fixtures/invalid/duplicate-root.json",
+      "expected": "reject",
+      "reasonCategory": "DUPLICATE_MEMBER",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "duplicate_key",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "duplicate-escaped-nested",
+      "file": "fixtures/invalid/duplicate-escaped-nested.json",
+      "expected": "reject",
+      "reasonCategory": "DUPLICATE_MEMBER",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "decoded_duplicate_key",
+        "nested_duplicate_key",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "unknown-root-property",
+      "file": "fixtures/invalid/unknown-root-property.json",
+      "expected": "reject",
+      "reasonCategory": "UNKNOWN_PROPERTY",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "closed_root_object",
+        "unknown_property"
+      ]
+    },
+    {
+      "id": "unknown-variant-property",
+      "file": "fixtures/invalid/unknown-variant-property.json",
+      "expected": "reject",
+      "reasonCategory": "UNKNOWN_PROPERTY",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "closed_variant_object",
+        "unknown_property"
+      ]
+    },
+    {
+      "id": "unknown-discriminator",
+      "file": "fixtures/invalid/unknown-discriminator.json",
+      "expected": "reject",
+      "reasonCategory": "UNKNOWN_DISCRIMINATOR",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "unknown_discriminator",
+        "closed_union"
+      ]
+    },
+    {
+      "id": "union-transplant",
+      "file": "fixtures/invalid/union-transplant.json",
+      "expected": "reject",
+      "reasonCategory": "ONE_OF_MISMATCH",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "union_transplant",
+        "recognized_discriminator_wrong_payload"
+      ]
+    },
+    {
+      "id": "nullable-required-absent",
+      "file": "fixtures/invalid/nullable-required-absent.json",
+      "expected": "reject",
+      "reasonCategory": "REQUIRED_PROPERTY_MISSING",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "required_null_vs_absent"
+      ]
+    },
+    {
+      "id": "nullable-wrong-type",
+      "file": "fixtures/invalid/nullable-wrong-type.json",
+      "expected": "reject",
+      "reasonCategory": "TYPE_MISMATCH",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "nullable_type"
+      ]
+    },
+    {
+      "id": "signed-below-minimum",
+      "file": "fixtures/invalid/signed-below-minimum.json",
+      "expected": "reject",
+      "reasonCategory": "NUMBER_TOO_SMALL",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "signed_below_minimum"
+      ]
+    },
+    {
+      "id": "signed-above-maximum",
+      "file": "fixtures/invalid/signed-above-maximum.json",
+      "expected": "reject",
+      "reasonCategory": "NUMBER_TOO_LARGE",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "signed_above_maximum"
+      ]
+    },
+    {
+      "id": "unsigned-negative",
+      "file": "fixtures/invalid/unsigned-negative.json",
+      "expected": "reject",
+      "reasonCategory": "NUMBER_TOO_SMALL",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "unsigned_negative"
+      ]
+    },
+    {
+      "id": "unsigned-above-maximum",
+      "file": "fixtures/invalid/unsigned-above-maximum.json",
+      "expected": "reject",
+      "reasonCategory": "NUMBER_TOO_LARGE",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "unsigned_above_maximum"
+      ]
+    },
+    {
+      "id": "fractional-integer",
+      "file": "fixtures/invalid/fractional-integer.json",
+      "expected": "reject",
+      "reasonCategory": "TYPE_MISMATCH",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "fractional_integer"
+      ]
+    },
+    {
+      "id": "unsafe-interoperable-integer",
+      "file": "fixtures/invalid/unsafe-interoperable-integer.json",
+      "expected": "reject",
+      "reasonCategory": "INTEGER_OUT_OF_RANGE",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "unsafe_integer",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "precision-smuggling-number",
+      "file": "fixtures/invalid/precision-smuggling-number.json",
+      "expected": "reject",
+      "reasonCategory": "INTEGER_OUT_OF_RANGE",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "numeric_precision_loss",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "non-finite-number",
+      "file": "fixtures/invalid/non-finite-number.json",
+      "expected": "reject",
+      "reasonCategory": "SCHEMA_INVALID",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "non_finite_number",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "external-pattern-mismatch",
+      "file": "fixtures/invalid/external-pattern-mismatch.json",
+      "expected": "reject",
+      "reasonCategory": "PATTERN_MISMATCH",
+      "rejectionStage": "structural_validator",
+      "validatorInvoked": true,
+      "covers": [
+        "local_external_ref",
+        "external_pattern"
+      ]
+    },
+    {
+      "id": "recursive-depth-nine",
+      "file": "fixtures/invalid/recursive-depth-nine.json",
+      "expected": "reject",
+      "reasonCategory": "MAX_DEPTH_EXCEEDED",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "recursive_depth_overflow",
+        "parser_before_validator"
+      ]
+    },
+    {
+      "id": "unpaired-surrogate",
+      "file": "fixtures/invalid/unpaired-surrogate.json",
+      "expected": "reject",
+      "reasonCategory": "INVALID_UNICODE",
+      "rejectionStage": "strict_parser",
+      "validatorInvoked": false,
+      "covers": [
+        "unpaired_unicode",
+        "parser_before_validator"
+      ]
+    }
+  ]
+}

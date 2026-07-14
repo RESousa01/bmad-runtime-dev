@@ -1,0 +1,93 @@
+{
+  "objectKind": "revision",
+  "schemaVersion": "sapphirus.bmad-builder-revision.v1",
+  "revisionId": "agentrevision_01J00000000000000000000000",
+  "draftId": "agentdraft_01J00000000000000000000000",
+  "builderKind": "agent",
+  "validationProfile": "BuilderAgentV2Stateless",
+  "authoringAction": {
+    "builderKind": "agent",
+    "action": "create_rebuild"
+  },
+  "ordinal": 1,
+  "parentRevisionHash": null,
+  "proposedFileSet": {
+    "limitProfile": "sapphirus.bmad-builder-limits.v1",
+    "files": [
+      {
+        "path": "references/file-0.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-1.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-2.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-3.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-4.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-5.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-6.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-7.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-8.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-9.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-10.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-11.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-12.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-13.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-14.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-15.md",
+        "content": "x"
+      },
+      {
+        "path": "references/file-16.md",
+        "content": "x"
+      }
+    ]
+  },
+  "sourceIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "rawResultHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "inventoryHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "createdAt": "2026-07-14T10:00:00.000Z",
+  "revisionHash": "sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8"
+}

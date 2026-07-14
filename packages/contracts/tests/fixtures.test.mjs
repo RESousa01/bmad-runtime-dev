@@ -4,6 +4,7 @@ import test from "node:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  bmadContextDecisionUniquenessKey,
   sealDocument,
   specConsumptionUniquenessKey,
   validateDurableObjectHash,
@@ -67,10 +68,18 @@ test("valid and adversarial fixtures produce stable reason categories", async ()
 
     const document = parseStrictJson(source);
     const schemaErrors = validateSchemaDocument(registry, entry.schema, document);
-    const semanticErrors =
-      entry.schema === "durable-object.schema.json"
+    const semanticErrors = schemaErrors.length > 0
+      ? []
+      : entry.schema === "durable-object.schema.json"
         ? validateDurableObjectHash(document)
-        : validateSemantics(document);
+        : validateSemantics(document, entry.contextFile === undefined
+          ? undefined
+          : await (async () => {
+              const context = parseStrictJson(await readFixture(entry.contextFile));
+              return context.schemaVersion === "sapphirus.bmad-capability-catalog.v1"
+                ? { catalog: context }
+                : { descriptor: context };
+            })());
     const reasonCodes = [...schemaErrors, ...semanticErrors].map((error) => error.code);
 
     if (entry.valid) {
@@ -82,6 +91,104 @@ test("valid and adversarial fixtures produce stable reason categories", async ()
       );
     }
   }
+});
+
+test("BMAD fixtures cover canonical catalog separation and single-use context decisions", async () => {
+  const descriptor = parseStrictJson(
+    await readFixture("valid/bmad/package-descriptor.json"),
+  );
+  const catalogFixture = parseStrictJson(
+    await readFixture("valid/bmad/capability-catalog.json"),
+  );
+  const session = parseStrictJson(
+    await readFixture("valid/bmad/method-architect-iterative.json"),
+  );
+
+  assert.deepEqual(validateSemantics(descriptor), []);
+  assert.deepEqual(validateSemantics(catalogFixture, { descriptor }), []);
+  assert.equal(catalogFixture.agentRoster.agents.length, 6);
+  assert.deepEqual(
+    catalogFixture.agentRoster.agents.map((agent) => agent.agentCode),
+    [
+      "bmad-agent-analyst",
+      "bmad-agent-architect",
+      "bmad-agent-dev",
+      "bmad-agent-pm",
+      "bmad-agent-tech-writer",
+      "bmad-agent-ux-designer",
+    ],
+  );
+  const singleAction = catalogFixture.installedSkills.find(
+    (skill) => skill.skillName === "bmad-help",
+  );
+  assert.equal(singleAction.actionCardinality, "single_action");
+  assert.equal(singleAction.capabilityKeys[0].normalizedAction, null);
+  const architecture = catalogFixture.installedSkills.find(
+    (skill) => skill.skillName === "bmad-architecture",
+  );
+  assert.equal(architecture.actionCardinality, "single_action");
+  assert.equal(architecture.capabilityKeys[0].normalizedAction, "create");
+  assert.equal(Object.hasOwn(singleAction, "rawRow"), false);
+  assert.equal(Object.hasOwn(catalogFixture.helpActionGraph.actions[0], "capabilityKeys"), false);
+  assert.deepEqual(
+    Object.keys(catalogFixture.helpActionGraph.actions[0].rawRow),
+    [
+      "module",
+      "skill",
+      "display-name",
+      "menu-code",
+      "description",
+      "action",
+      "args",
+      "phase",
+      "preceded-by",
+      "followed-by",
+      "required",
+      "output-location",
+      "outputs",
+    ],
+  );
+
+  const paige = catalogFixture.agentRoster.agents.find(
+    (agent) => agent.agentCode === "bmad-agent-tech-writer",
+  );
+  assert.ok(paige);
+  assert.deepEqual(
+    paige.menuItems.map((item) => [item.menuCode, item.target.targetKind]),
+    [
+      ["DP", "skill_target"],
+      ["WD", "prompt_reference"],
+      ["MG", "prompt_reference"],
+      ["VD", "prompt_reference"],
+      ["EC", "prompt_reference"],
+    ],
+  );
+  assert.equal(
+    catalogFixture.agentRoster.agents
+      .flatMap((agent) => agent.menuItems)
+      .filter((item) => item.menuCode === "DP").length,
+    2,
+    "DP may repeat across agent scopes but not within one agent",
+  );
+  for (const item of paige.menuItems.slice(1)) {
+    assert.equal(item.target.availability, "unavailable_source_prompt");
+    assert.equal(Object.hasOwn(item.target, "body"), false);
+    assert.equal(Object.hasOwn(item.target, "prompt"), false);
+    assert.equal(Object.hasOwn(item.target, "capabilityKey"), false);
+  }
+  assert.equal(session.checkpoints.length, 2);
+  assert.equal(session.decisionConsumptions.length, 2);
+  assert.equal(
+    new Set(session.decisionConsumptions.map(bmadContextDecisionUniquenessKey)).size,
+    2,
+  );
+  const replay = structuredClone(session.decisionConsumptions[0]);
+  replay.invocationId = "invoke_01J00000000000000000000009";
+  assert.equal(
+    bmadContextDecisionUniquenessKey(replay),
+    bmadContextDecisionUniquenessKey(session.decisionConsumptions[0]),
+    "the uniqueness key is decision-scoped, not invocation-scoped",
+  );
 });
 
 test("candidate, approval, consumption, result, and evidence remain linked", async () => {

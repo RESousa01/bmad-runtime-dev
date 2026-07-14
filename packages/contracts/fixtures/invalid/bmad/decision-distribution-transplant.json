@@ -1,0 +1,290 @@
+{
+  "schemaVersion": "sapphirus.bmad-method-session.v1",
+  "methodShape": "architect_iterative",
+  "sessionId": "session_01J22222222222222222222222",
+  "deliveryModel": "windows_local",
+  "authorityRef": {
+    "authorityKind": "desktop_local_store",
+    "authorityId": "authority_01J00000000000000000000000",
+    "installationId": "install_01J00000000000000000000000",
+    "localStoreId": "store_01J00000000000000000000000",
+    "authorityEpoch": 1
+  },
+  "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+  "projectId": "project_01J00000000000000000000000",
+  "runId": "run_01J22222222222222222222222",
+  "packageVersionId": "pkgver_01J00000000000000000000000",
+  "packageDescriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+  "packageSourceHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+  "capabilityCatalogHash": "sha256:347ba48ee9bab62426ef089238cea9c28f097140c9163d9cef906a7ab6727312",
+  "agentRosterHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "capabilityKey": {
+    "packageVersionId": "pkgver_01J00000000000000000000000",
+    "moduleCode": "bmm",
+    "skillName": "bmad-architecture",
+    "normalizedAction": "create"
+  },
+  "distributionProfile": "sapphirus_package",
+  "installProfile": "SapphirusManagedV1",
+  "executionProfile": {
+    "entrypointKind": "step_jit",
+    "invocationModes": {
+      "interactive": true,
+      "headless": false,
+      "actions": [
+        "create"
+      ]
+    },
+    "requiredRuntimes": [
+      {
+        "runtime": "node",
+        "versionRange": ">=20.12.0",
+        "required": true
+      }
+    ],
+    "resourcePolicy": {
+      "entrypointTiming": "invocation_start",
+      "resourceTiming": "current_step_only",
+      "declaredResourcePaths": [
+        "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+        "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md"
+      ]
+    },
+    "declaredToolIntents": [],
+    "stateHints": [],
+    "completionEvidence": [
+      "artifact"
+    ],
+    "customizationProfile": "method_skill_toml",
+    "validationProfile": "MethodStepWorkflowV6",
+    "profileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "validationProfile": "MethodStepWorkflowV6",
+  "validationProfileHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "configGraphHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "configResolutionHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "customizationHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+  "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "modelBinding": {
+    "bindingKind": "method_model",
+    "providerId": "fixture-provider",
+    "modelId": "fixture-model",
+    "deploymentId": "fixture-deployment",
+    "modelProfileHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "modelCapabilityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "contextWindowProfileHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "egressProfileHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "requestSchemaHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "responseSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "bindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+  },
+  "methodSchemaHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "artifactExpectations": [],
+  "agentBinding": {
+    "bindingKind": "agent",
+    "rosterHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+    "moduleCode": "bmm",
+    "agentRecordHash": "sha256:4dc48526aac64c60d15a389f707189ac313cfdf3c69290860790b0272c5f1d20",
+    "agentCode": "bmad-agent-architect",
+    "agentName": "Winston",
+    "agentTitle": "System Architect",
+    "personaHash": "sha256:6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4",
+    "customizationGraphHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+    "menuItemHash": "sha256:2632138da4a8af194c49bbb32b2ef28e9a38fd2b53d5e36aee54ed4637b5729d",
+    "menuCode": "CA",
+    "menuTargetKind": "skill_target",
+    "menuCapabilityKey": {
+      "packageVersionId": "pkgver_01J00000000000000000000000",
+      "moduleCode": "bmm",
+      "skillName": "bmad-architecture",
+      "normalizedAction": "create"
+    },
+    "agentBindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+  },
+  "contextLedger": {
+    "ledgerKind": "method_context_ledger",
+    "ledgerId": "ledger_01J22222222222222222222222",
+    "sessionId": "session_01J22222222222222222222222",
+    "entries": [
+      {
+        "entryKind": "accepted_context_review",
+        "reviewOrdinal": 1,
+        "contextDecisionId": "decision_01J11111111111111111111111",
+        "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "manifestHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "consentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "packageDescriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+        "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+        "configResolutionHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "customizationHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+        "modelBindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "methodSchemaHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "validationProfileHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "reviewedAt": "2026-07-14T10:00:00.000Z",
+        "entryHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      {
+        "entryKind": "accepted_context_review",
+        "reviewOrdinal": 2,
+        "contextDecisionId": "decision_01J22222222222222222222222",
+        "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "manifestHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "consentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "packageDescriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+        "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+        "configResolutionHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "customizationHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+        "modelBindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "methodSchemaHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "validationProfileHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "reviewedAt": "2026-07-14T10:00:00.000Z",
+        "entryHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    ],
+    "ledgerHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+  },
+  "checkpoints": [
+    {
+      "schemaVersion": "sapphirus.bmad-method-checkpoint.v1",
+      "checkpointId": "checkpoint_01J11111111111111111111111",
+      "sessionId": "session_01J22222222222222222222222",
+      "turnOrdinal": 1,
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-architecture",
+        "normalizedAction": "create"
+      },
+      "capabilityStepTableHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "currentStepKey": "discover",
+      "nextStepKey": "decide",
+      "contextDecisionId": "decision_01J11111111111111111111111",
+      "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "modelBindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "workingArtifacts": [],
+      "recordedAt": "2026-07-14T10:00:00.000Z",
+      "checkpointHash": "sha256:1df3a230a221fe501f63c398d1d786d496577498a053d4ed256eb327a345d100"
+    },
+    {
+      "schemaVersion": "sapphirus.bmad-method-checkpoint.v1",
+      "checkpointId": "checkpoint_01J22222222222222222222222",
+      "sessionId": "session_01J22222222222222222222222",
+      "turnOrdinal": 2,
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-architecture",
+        "normalizedAction": "create"
+      },
+      "capabilityStepTableHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "currentStepKey": "decide",
+      "nextStepKey": null,
+      "contextDecisionId": "decision_01J22222222222222222222222",
+      "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "modelBindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "workingArtifacts": [],
+      "recordedAt": "2026-07-14T10:00:00.000Z",
+      "checkpointHash": "sha256:14630c3c0a40bdc745d67b116049821794697bb203b5369d9488fc0d96c23477"
+    }
+  ],
+  "decisionConsumptions": [
+    {
+      "recordKind": "context_decision_consumption",
+      "consumptionId": "consume_01J11111111111111111111111",
+      "decisionId": "decision_01J11111111111111111111111",
+      "invocationId": "invoke_01J11111111111111111111111",
+      "idempotencyKey": "fixture-method-1",
+      "sessionId": "session_01J22222222222222222222222",
+      "manifestHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "consentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "packageDescriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+      "packageSourceHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+      "capabilityCatalogHash": "sha256:347ba48ee9bab62426ef089238cea9c28f097140c9163d9cef906a7ab6727312",
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-architecture",
+        "normalizedAction": "create"
+      },
+      "distributionProfile": "method_source_tree",
+      "installProfile": "SapphirusManagedV1",
+      "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "validationProfileHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "configResolutionHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "customizationHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+      "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "modelBinding": {
+        "bindingKind": "method_model",
+        "providerId": "fixture-provider",
+        "modelId": "fixture-model",
+        "deploymentId": "fixture-deployment",
+        "modelProfileHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "modelCapabilityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "contextWindowProfileHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "egressProfileHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "requestSchemaHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "responseSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "bindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "methodSchemaHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "consumedAt": "2026-07-14T10:00:00.000Z"
+    },
+    {
+      "recordKind": "context_decision_consumption",
+      "consumptionId": "consume_01J22222222222222222222222",
+      "decisionId": "decision_01J22222222222222222222222",
+      "invocationId": "invoke_01J22222222222222222222222",
+      "idempotencyKey": "fixture-method-2",
+      "sessionId": "session_01J22222222222222222222222",
+      "manifestHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "consentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "contextDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "packageDescriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+      "packageSourceHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+      "capabilityCatalogHash": "sha256:347ba48ee9bab62426ef089238cea9c28f097140c9163d9cef906a7ab6727312",
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-architecture",
+        "normalizedAction": "create"
+      },
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "validationProfileHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "configResolutionHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "customizationHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+      "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "modelBinding": {
+        "bindingKind": "method_model",
+        "providerId": "fixture-provider",
+        "modelId": "fixture-model",
+        "deploymentId": "fixture-deployment",
+        "modelProfileHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "modelCapabilityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "contextWindowProfileHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "egressProfileHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "requestSchemaHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "responseSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "bindingHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "methodSchemaHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "consumedAt": "2026-07-14T10:00:00.000Z"
+    }
+  ],
+  "createdAt": "2026-07-14T10:00:00.000Z",
+  "contentHash": "sha256:855d38cda9b237124d44ea1f39e3da9976ee8b5a06a8d2a1b0e6ce3270d7c940",
+  "architectureSpineDrafts": [],
+  "architectureReviewResults": []
+}

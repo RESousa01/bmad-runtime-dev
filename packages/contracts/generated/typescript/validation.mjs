@@ -3,6 +3,11 @@ import { parseStrictJson } from "./strict-json.mjs";
 import {
   validateApprovedExecutionSpec,
   validateAuthorityRef,
+  validateBmadBuilderAuthoring,
+  validateBmadCapabilityCatalog,
+  validateBmadMethodSession,
+  validateBmadPackageDescriptor,
+  validateBmadValidationReport,
   validateCandidateAction,
   validateContractError,
   validateDurableObject,
@@ -17,6 +22,11 @@ import {
 export const CONTRACT_VALIDATORS = Object.freeze({
   "approved-execution-spec": validateApprovedExecutionSpec,
   "authority-ref": validateAuthorityRef,
+  "bmad-builder-authoring": validateBmadBuilderAuthoring,
+  "bmad-capability-catalog": validateBmadCapabilityCatalog,
+  "bmad-method-session": validateBmadMethodSession,
+  "bmad-package-descriptor": validateBmadPackageDescriptor,
+  "bmad-validation-report": validateBmadValidationReport,
   "candidate-action": validateCandidateAction,
   "contract-error": validateContractError,
   "durable-object": validateDurableObject,
@@ -49,7 +59,7 @@ export function parseAndValidateContract(source, contractKind) {
       }),
     ]);
   }
-  if (typeof source !== "string" || source.length > 2_097_152) {
+  if (typeof source !== "string") {
     throw new ContractValidationError(contractKind, [
       Object.freeze({
         instancePath: "",
@@ -59,7 +69,10 @@ export function parseAndValidateContract(source, contractKind) {
       }),
     ]);
   }
-  parseStrictJson(source);
+  parseStrictJson(source, {
+    maxBytes: 2_097_152,
+    maxContainerDepth: 16,
+  });
   const value = JSON.parse(source);
   if (!validate(value)) {
     const issues = (validate.errors ?? []).map((issue) =>

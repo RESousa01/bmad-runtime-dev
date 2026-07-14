@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "count",
+    "count": 0
+  },
+  "nullableValue": null,
+  "signedValue": 0.5,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_A1B2"
+  },
+  "label": "fractional",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

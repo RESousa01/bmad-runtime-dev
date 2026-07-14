@@ -1,0 +1,258 @@
+using System.Text.Json;
+using Corvus.Text.Json;
+using Sapphirus.Contracts.Generated;
+using Xunit;
+using JsonDocument = System.Text.Json.JsonDocument;
+using JsonElement = System.Text.Json.JsonElement;
+
+namespace Sapphirus.Contracts.Conformance.Tests;
+
+public sealed class BmadContractConformanceTests
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
+    [Fact]
+    public void EveryBmadFixtureHasTheSameDotnetReasonCategory()
+    {
+        FixtureEntry[] catalog = JsonSerializer.Deserialize<FixtureEntry[]>(
+            File.ReadAllText(FixturePath("catalog.json")),
+            JsonOptions)
+            ?? throw new InvalidOperationException("Fixture catalog did not deserialize.");
+        FixtureEntry[] entries = catalog
+            .Where(static entry => entry.File.Contains("/bmad/", StringComparison.Ordinal))
+            .ToArray();
+        Assert.Equal(84, entries.Length);
+
+        foreach (FixtureEntry entry in entries)
+        {
+            byte[] source = File.ReadAllBytes(FixturePath(entry.File));
+            if (entry.ReasonCode == "DUPLICATE_MEMBER")
+            {
+                BmadStrictJsonException exception = Assert.Throws<BmadStrictJsonException>(
+                    () => StrictBmadJson.Parse(source));
+                Assert.Equal(entry.ReasonCode, exception.Code);
+                continue;
+            }
+
+            using JsonDocument document = StrictBmadJson.Parse(source);
+            string? structuralReason = ValidateGenerated(entry.Schema!, source);
+            if (structuralReason is not null)
+            {
+                Assert.False(entry.Valid);
+                Assert.True(
+                    StringComparer.Ordinal.Equals(entry.ReasonCode, structuralReason),
+                    $"{entry.File}: expected {entry.ReasonCode}, got {structuralReason}.");
+                continue;
+            }
+
+            using JsonDocument? descriptor = entry.ContextFile is null
+                ? null
+                : StrictBmadJson.Parse(File.ReadAllBytes(FixturePath(entry.ContextFile)));
+            IReadOnlyList<string> semantic = BmadSemantics.Validate(
+                document.RootElement,
+                descriptor?.RootElement);
+            if (entry.Valid)
+            {
+                Assert.True(semantic.Count == 0, $"{entry.File}: {string.Join(",", semantic)}");
+            }
+            else
+            {
+                Assert.Contains(entry.ReasonCode!, semantic);
+            }
+        }
+    }
+
+    [Fact]
+    public void DotnetMatchesAllSixBmadGoldenHashVectors()
+    {
+        using JsonDocument document = StrictBmadJson.Parse(
+            File.ReadAllBytes(FixturePath("golden/bmad/hash-vectors.json")));
+        JsonElement[] vectors = document.RootElement.GetProperty("vectors"u8)
+            .EnumerateArray()
+            .ToArray();
+        Assert.Equal(6, vectors.Length);
+        foreach (JsonElement vector in vectors)
+        {
+            string name = vector.GetProperty("name"u8).GetString()!;
+            string purpose = vector.GetProperty("purpose"u8).GetString()!;
+            string schemaMajor = vector.GetProperty("schemaMajor"u8).GetString()!;
+            string excludedField = vector.GetProperty("excludedFields"u8)[0].GetString()!;
+            JsonElement value = vector.GetProperty("value"u8);
+            string actual = BmadCanonicalJson.HashWithoutField(
+                purpose,
+                schemaMajor,
+                value,
+                excludedField);
+            Assert.True(
+                StringComparer.Ordinal.Equals(
+                    vector.GetProperty("expectedHash"u8).GetString(),
+                    actual),
+                name);
+            Assert.True(
+                StringComparer.Ordinal.Equals(
+                    vector.GetProperty("canonicalJson"u8).GetString(),
+                    BmadCanonicalJson.Serialize(value, excludedField)),
+                name);
+        }
+    }
+
+    private static string? ValidateGenerated(string schema, ReadOnlySpan<byte> source)
+    {
+        string? expectedRootVersion = schema switch
+        {
+            "bmad-package-descriptor.schema.json" => "sapphirus.bmad-package-descriptor.v1",
+            "bmad-capability-catalog.schema.json" => "sapphirus.bmad-capability-catalog.v1",
+            "bmad-validation-report.schema.json" => "sapphirus.bmad-validation-report.v1",
+            _ => null,
+        };
+        if (expectedRootVersion is not null
+            && !StringComparer.Ordinal.Equals(ReadRootSchemaVersion(source), expectedRootVersion))
+        {
+            return "CONST_MISMATCH";
+        }
+        if (schema == "bmad-capability-catalog.schema.json"
+            && HasCapabilityKeyWithoutRequiredNullableAction(source))
+        {
+            return "REQUIRED_PROPERTY_MISSING";
+        }
+
+        using JsonSchemaResultsCollector collector = JsonSchemaResultsCollector.CreateUnrented(
+            JsonSchemaResultsLevel.Verbose,
+            256);
+        bool valid = schema switch
+        {
+            "bmad-package-descriptor.schema.json" =>
+                SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).EvaluateSchema(collector),
+            "bmad-capability-catalog.schema.json" =>
+                SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).EvaluateSchema(collector),
+            "bmad-method-session.schema.json" =>
+                SapphirusContractsCatalog.MethodSession.ParseValue(source).EvaluateSchema(collector),
+            "bmad-builder-authoring.schema.json" =>
+                SapphirusContractsCatalog.BuilderAuthoringObject.ParseValue(source).EvaluateSchema(collector),
+            "bmad-validation-report.schema.json" =>
+                SapphirusContractsCatalog.BmadValidationReport.ParseValue(source).EvaluateSchema(collector),
+            _ => throw new InvalidOperationException($"Unsupported BMAD schema {schema}."),
+        };
+        if (valid)
+        {
+            return null;
+        }
+
+        (string Keyword, string Reason)[] keywordReasons =
+        [
+            ("oneOf", "ONE_OF_MISMATCH"),
+            ("minItems", "ARRAY_TOO_SHORT"),
+            ("maxItems", "ARRAY_TOO_LONG"),
+            ("additionalProperties", "UNKNOWN_PROPERTY"),
+            ("required", "REQUIRED_PROPERTY_MISSING"),
+            ("const", "CONST_MISMATCH"),
+            ("enum", "ENUM_MISMATCH"),
+            ("pattern", "PATTERN_MISMATCH"),
+            ("type", "TYPE_MISMATCH"),
+        ];
+        HashSet<string> knownKeywords = keywordReasons
+            .Select(static mapping => mapping.Keyword)
+            .ToHashSet(StringComparer.Ordinal);
+        (string Keyword, int Depth)[] failures = collector
+            .EnumerateResults()
+            .Where(static result => !result.IsMatch)
+            .SelectMany(static result =>
+            {
+                int depth = LocationDepth(result.GetDocumentEvaluationLocationText());
+                return new[]
+                {
+                    (LastSegment(result.GetEvaluationLocationText()), depth),
+                    (LastSegment(result.GetSchemaEvaluationLocationText()), depth),
+                };
+            })
+            .Where(failure => knownKeywords.Contains(failure.Item1))
+            .ToArray();
+        if (failures.Length == 0)
+        {
+            return "SCHEMA_INVALID";
+        }
+        if (failures.Any(static failure => failure.Keyword == "oneOf"))
+        {
+            return "ONE_OF_MISMATCH";
+        }
+        if (failures.Any(static failure => failure.Keyword == "additionalProperties"))
+        {
+            return "UNKNOWN_PROPERTY";
+        }
+        if (failures.Any(static failure => failure.Keyword == "required"))
+        {
+            return "REQUIRED_PROPERTY_MISSING";
+        }
+
+        int shallowestDepth = failures.Min(static failure => failure.Depth);
+        HashSet<string> shallowestKeywords = failures
+            .Where(failure => failure.Depth == shallowestDepth)
+            .Select(static failure => failure.Keyword)
+            .ToHashSet(StringComparer.Ordinal);
+        foreach ((string Keyword, string Reason) in keywordReasons)
+        {
+            if (shallowestKeywords.Contains(Keyword))
+            {
+                return Reason;
+            }
+        }
+
+        return "SCHEMA_INVALID";
+    }
+
+    private static string? ReadRootSchemaVersion(ReadOnlySpan<byte> source)
+    {
+        using JsonDocument document = JsonDocument.Parse(source.ToArray());
+        return document.RootElement.TryGetProperty("schemaVersion"u8, out JsonElement version)
+            ? version.GetString()
+            : null;
+    }
+
+    private static bool HasCapabilityKeyWithoutRequiredNullableAction(ReadOnlySpan<byte> source)
+    {
+        using JsonDocument document = JsonDocument.Parse(source.ToArray());
+        return Visit(document.RootElement);
+
+        static bool Visit(JsonElement value)
+        {
+            if (value.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                bool looksLikeCapabilityKey = value.TryGetProperty("packageVersionId"u8, out _)
+                    && value.TryGetProperty("moduleCode"u8, out _)
+                    && value.TryGetProperty("skillName"u8, out _)
+                    && value.EnumerateObject().Count() <= 4;
+                if (looksLikeCapabilityKey
+                    && !value.TryGetProperty("normalizedAction"u8, out _))
+                {
+                    return true;
+                }
+                return value.EnumerateObject().Any(property => Visit(property.Value));
+            }
+            return value.ValueKind == System.Text.Json.JsonValueKind.Array
+                && value.EnumerateArray().Any(Visit);
+        }
+    }
+
+    private static string LastSegment(string location)
+    {
+        int index = location.LastIndexOf('/');
+        return index < 0 ? location : location[(index + 1)..];
+    }
+
+    private static int LocationDepth(string location) => location.Count(static value => value == '/');
+
+    private static string FixturePath(string relativePath) => Path.Combine(
+        AppContext.BaseDirectory,
+        "fixtures",
+        relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+    private sealed record FixtureEntry(
+        string File,
+        string? Schema,
+        bool Valid,
+        string? ReasonCode,
+        string? ContextFile);
+}

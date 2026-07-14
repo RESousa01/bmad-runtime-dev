@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  isDiscriminatorRefinement,
   loadSchemaRegistry,
   resolveReference,
 } from "./lib/schema-validator.mjs";
@@ -11,6 +12,7 @@ const registry = await loadSchemaRegistry(path.join(packageRoot, "schemas"));
 const expectedDraft = "https://json-schema.org/draft/2020-12/schema";
 const seenIds = new Set();
 let objectSchemaCount = 0;
+let objectRefinementCount = 0;
 let referenceCount = 0;
 
 function inspect(node, documentName, pointer) {
@@ -21,12 +23,16 @@ function inspect(node, documentName, pointer) {
   }
 
   if (node.type === "object") {
-    objectSchemaCount += 1;
-    assert.equal(
-      node.additionalProperties,
-      false,
-      `${documentName}${pointer} must close object properties.`,
-    );
+    if (isDiscriminatorRefinement(node)) {
+      objectRefinementCount += 1;
+    } else {
+      objectSchemaCount += 1;
+      assert.equal(
+        node.additionalProperties,
+        false,
+        `${documentName}${pointer} must close object properties.`,
+      );
+    }
   }
   if (typeof node.$ref === "string") {
     referenceCount += 1;
@@ -57,5 +63,5 @@ for (const [documentName, schema] of registry.documents) {
 assert.ok(objectSchemaCount >= 20, "Expected representative closed object schemas.");
 assert.ok(referenceCount >= 40, "Expected schemas to reuse reviewed primitive definitions.");
 console.log(
-  `contracts: ${registry.documents.size} schemas, ${objectSchemaCount} closed objects, ${referenceCount} resolved refs`,
+  `contracts: ${registry.documents.size} schemas, ${objectSchemaCount} closed objects, ${objectRefinementCount} discriminator refinements, ${referenceCount} resolved refs`,
 );

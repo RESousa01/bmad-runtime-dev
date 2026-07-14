@@ -1,0 +1,864 @@
+{
+  "schemaVersion": "sapphirus.bmad-capability-catalog.v1",
+  "packageVersionId": "pkgver_01J00000000000000000000000",
+  "descriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+  "installedSkills": [
+    {
+      "packageVersionId": "pkgver_01J00000000000000000000000",
+      "moduleCode": "bmm",
+      "skillName": "bmad-architecture",
+      "actionCardinality": "single_action",
+      "capabilityKeys": [
+        {
+          "packageVersionId": "pkgver_01J00000000000000000000000",
+          "moduleCode": "bmm",
+          "skillName": "bmad-architecture",
+          "normalizedAction": "create"
+        }
+      ],
+      "sourceEntrypointHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "resourceSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "skillDescriptorHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "instructionProjectionHash": "sha256:95edec24556b9564d05d248d96ac2e9831830f3f756bb605b19237df130d6096",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "step_jit",
+      "validationProfile": "MethodStepWorkflowV6",
+      "installationObservationHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    {
+      "packageVersionId": "pkgver_01J00000000000000000000000",
+      "moduleCode": "core",
+      "skillName": "bmad-help",
+      "actionCardinality": "single_action",
+      "capabilityKeys": [
+        {
+          "packageVersionId": "pkgver_01J00000000000000000000000",
+          "moduleCode": "core",
+          "skillName": "bmad-help",
+          "normalizedAction": null
+        }
+      ],
+      "sourceEntrypointHash": "sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+      "resourceSetHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "skillDescriptorHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "executionProfileHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "instructionProjectionHash": "sha256:b62ebfc3fb9040c5247d7bcd715b53b371e99d745c9e406426299679dd96c189",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "MethodOfficialSkillV6",
+      "installationObservationHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    }
+  ],
+  "helpActionGraph": {
+    "packageVersionId": "pkgver_01J00000000000000000000000",
+    "actions": [
+      {
+        "capabilityKey": {
+          "packageVersionId": "pkgver_01J00000000000000000000000",
+          "moduleCode": "bmm",
+          "skillName": "bmad-architecture",
+          "normalizedAction": "create"
+        },
+        "sourceMemberHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+        "sourceRowHash": "sha256:d5f6469d0cffc3ed5c92df3ef44ea6e4d56a52170304a0f7a89c1b161ecd34c1",
+        "sourceOrdinal": 19,
+        "rawRow": {
+          "module": "BMad Method",
+          "skill": "bmad-architecture",
+          "display-name": "Architecture",
+          "menu-code": "CA",
+          "description": "Offer once requirements exist (a PRD or spec; plus UX if present) and the user is ready to move from what to how. Also offer any time independently-built parts risk diverging. Produces the architecture spine: the invariants that keep features epics and stories consistent. Comes before epics and stories and scales from a quick spine to a full architecture (brownfield: ratifies the existing codebase).",
+          "action": "",
+          "args": "",
+          "phase": "3-solutioning",
+          "preceded-by": "",
+          "followed-by": "",
+          "required": "true",
+          "output-location": "planning_artifacts",
+          "outputs": "architecture"
+        },
+        "normalized": {
+          "phase": "3-solutioning",
+          "precededBy": [],
+          "followedBy": [],
+          "required": true,
+          "outputLocations": [
+            "planning_artifacts"
+          ],
+          "outputs": [
+            "architecture"
+          ]
+        }
+      },
+      {
+        "capabilityKey": {
+          "packageVersionId": "pkgver_01J00000000000000000000000",
+          "moduleCode": "core",
+          "skillName": "bmad-help",
+          "normalizedAction": null
+        },
+        "sourceMemberHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+        "sourceRowHash": "sha256:a9bb673d22884409929796fdc38ac274a8b7886e71301118107bb7622ff8e487",
+        "sourceOrdinal": 4,
+        "rawRow": {
+          "module": "Core",
+          "skill": "bmad-help",
+          "display-name": "BMad Help",
+          "menu-code": "BH",
+          "description": "",
+          "action": "",
+          "args": "",
+          "phase": "anytime",
+          "preceded-by": "",
+          "followed-by": "",
+          "required": "false",
+          "output-location": "",
+          "outputs": ""
+        },
+        "normalized": {
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": [],
+          "required": false,
+          "outputLocations": [],
+          "outputs": []
+        }
+      }
+    ],
+    "graphHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "dependencyAvailability": [
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-brainstorming",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-check-implementation-readiness",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-code-review",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-correct-course",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-create-epics-and-stories",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-create-story",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-dev-story",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-document-project",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-domain-research",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-market-research",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-prd",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-prfaq",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-product-brief",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-qa-generate-e2e-tests",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-quick-dev",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-retrospective",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-sprint-planning",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-technical-research",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054"
+    },
+    {
+      "capabilityKey": {
+        "packageVersionId": "pkgver_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "skillName": "bmad-ux",
+        "normalizedAction": null
+      },
+      "availability": "unavailable_missing_skill",
+      "evidenceHash": "sha256:3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab"
+    }
+  ],
+  "agentRoster": {
+    "packageVersionId": "pkgver_01J00000000000000000000000",
+    "agents": [
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-analyst",
+        "name": "Mary",
+        "title": "Business Analyst",
+        "icon": "📊",
+        "team": "software-development",
+        "description": "Channels Porter's strategic rigor and Minto's Pyramid Principle, grounds every finding in verifiable evidence, represents every stakeholder voice. Speaks like a treasure hunter narrating the find: thrilled by every clue, precise once the pattern emerges.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:fca38a404e79508ebc39235d0162bcb475b02407a913e3e5bd8c5526b2b261a6",
+        "customizationSourceHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+        "personaCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+        "menuItems": [
+          {
+            "menuCode": "BP",
+            "displayName": "Brainstorm Project",
+            "description": "Expert guided brainstorming facilitation",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:5103bddd9f72cb164fc04c2a0cef2d5c3101e5301d944794a5718675e83b1a7c",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-brainstorming",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "MR",
+            "displayName": "Market Research",
+            "description": "Market analysis, competitive landscape, customer needs and trends",
+            "sourceOrdinal": 2,
+            "sourceMenuItemHash": "sha256:87967872ce22809536a6ce84c93303f88a6a47a4024494c7f8324262b447c7dd",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-market-research",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "DR",
+            "displayName": "Domain Research",
+            "description": "Industry domain deep dive, subject matter expertise and terminology",
+            "sourceOrdinal": 3,
+            "sourceMenuItemHash": "sha256:e3488ee314ad6b38d016ae7f6157269226ed85e0e69a1099a2fea10732ec5b62",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-domain-research",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "TR",
+            "displayName": "Technical Research",
+            "description": "Technical feasibility, architecture options and implementation approaches",
+            "sourceOrdinal": 4,
+            "sourceMenuItemHash": "sha256:1a65fecb2e4bcc26145bfa3fc4afb367d855adba2e7ecf0fcff31d01856e80a1",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-technical-research",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "CB",
+            "displayName": "Create Brief",
+            "description": "Create or update product briefs through guided or autonomous discovery",
+            "sourceOrdinal": 5,
+            "sourceMenuItemHash": "sha256:e607e729f02af10ab7f909ac4780fefe568e4fd564e5dee1d5938ddb8984186c",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-product-brief",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "WB",
+            "displayName": "PRFAQ Challenge",
+            "description": "Working Backwards PRFAQ challenge — forge and stress-test product concepts",
+            "sourceOrdinal": 6,
+            "sourceMenuItemHash": "sha256:ddee76ef5fbaa1add74449e6b895c80463f6a013aabd098c538bbf6484ce902e",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-prfaq",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "DP",
+            "displayName": "Document Project",
+            "description": "Analyze an existing project to produce documentation for human and LLM consumption",
+            "sourceOrdinal": 7,
+            "sourceMenuItemHash": "sha256:fe7e6f9113c7ddaecae05d1564ee10d87df0aa4ed54938d5ed38675061207268",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-document-project",
+                "normalizedAction": null
+              }
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:ec97a7604515bd27bb65839f4be333a6e1817d17e8da1b5a24986889fbe0a733",
+        "agentRecordHash": "sha256:6b37055d48b0b5a8186d4bac5986aefc68f30ca168124f0d101b6539c21adce9"
+      },
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-architect",
+        "name": "Winston",
+        "title": "System Architect",
+        "icon": "🏗️",
+        "team": "software-development",
+        "description": "Favors boring technology for stability, developer productivity as architecture, ties every decision to business value. Speaks like a seasoned engineer at the whiteboard: measured, always laying out trade-offs rather than verdicts.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
+        "customizationSourceHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+        "personaCustomizationGraphHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+        "menuItems": [
+          {
+            "menuCode": "CA",
+            "displayName": "Architecture",
+            "description": "Produce the architecture spine: the invariants that keep independently-built units consistent",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:2632138da4a8af194c49bbb32b2ef28e9a38fd2b53d5e36aee54ed4637b5729d",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-architecture",
+                "normalizedAction": "create"
+              }
+            }
+          },
+          {
+            "menuCode": "IR",
+            "displayName": "Check Implementation Readiness",
+            "description": "Ensure the PRD, UX, Architecture and Epics and Stories List are all aligned",
+            "sourceOrdinal": 2,
+            "sourceMenuItemHash": "sha256:3b5ab77c02f61941830fe7d962507b9d3a98a8b918eea9c302eb336bba326a4e",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-check-implementation-readiness",
+                "normalizedAction": null
+              }
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:04ed64316d1dafc0f3c6f86f8d46e59d35ccc4eb1caca7d0ebe433404e4588e9",
+        "agentRecordHash": "sha256:4dc48526aac64c60d15a389f707189ac313cfdf3c69290860790b0272c5f1d20"
+      },
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-dev",
+        "name": "Amelia",
+        "title": "Senior Software Engineer",
+        "icon": "💻",
+        "team": "software-development",
+        "description": "Test-first discipline (red, green, refactor), 100% pass before review, no fluff all precision. Speaks like a terminal prompt: exact file paths, AC IDs, and commit-message brevity — every statement citable.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:54ab6d9d60d7ed7e84d6510cf325734b66feb1b419131436672559584b4bf508",
+        "customizationSourceHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+        "personaCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+        "menuItems": [
+          {
+            "menuCode": "DS",
+            "displayName": "Dev Story",
+            "description": "Write the next or specified story's tests and code",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:c094fcf3dd7452b5d26bab29cc0bb0ecb2235e21de469a3fdb576d15c0c54b7e",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-dev-story",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "QD",
+            "displayName": "Quick Dev",
+            "description": "Unified quick flow — clarify intent, plan, implement, review, present",
+            "sourceOrdinal": 2,
+            "sourceMenuItemHash": "sha256:98be3cc71f739e937dec0b9cbbe15c63b396e0cee7fa65adb72d861ad4ef4316",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-quick-dev",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "QA",
+            "displayName": "QA Automation Test",
+            "description": "Generate API and E2E tests for existing features",
+            "sourceOrdinal": 3,
+            "sourceMenuItemHash": "sha256:78cfb9e37c54960477c411ad16a36ca79dd6d02043f3e1b9876252585c1fb45f",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-qa-generate-e2e-tests",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "CR",
+            "displayName": "Code Review",
+            "description": "Initiate a comprehensive code review across multiple quality facets",
+            "sourceOrdinal": 4,
+            "sourceMenuItemHash": "sha256:7bc12527542f84192b522ed9ed30c55608868d9f7fedd42fc20519cad2bafd40",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-code-review",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "SP",
+            "displayName": "Sprint Planning",
+            "description": "Generate or update the sprint plan that sequences tasks for implementation",
+            "sourceOrdinal": 5,
+            "sourceMenuItemHash": "sha256:2e874c8fe91cf11d8a73c9d24dd8b6fe1703cd1ec9300624005de308636673f7",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-sprint-planning",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "CS",
+            "displayName": "Create Story",
+            "description": "Prepare a story with all required context for implementation",
+            "sourceOrdinal": 6,
+            "sourceMenuItemHash": "sha256:67a9aee6f013b68d9d68b060d7bc8819f9e28f0adfe219b2338d3fb392d02f8d",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-create-story",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "ER",
+            "displayName": "Retrospective",
+            "description": "Party mode review of all work completed across an epic",
+            "sourceOrdinal": 7,
+            "sourceMenuItemHash": "sha256:0be7eef3027cf2a0e07206af0a4c122eea38488a7dd19eb1569e73f4fe899967",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-retrospective",
+                "normalizedAction": null
+              }
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:bcab411de221bd1227eb2707273c5e479923706d6101ae39a33f6801b4de0ea9",
+        "agentRecordHash": "sha256:00b6cd96945f5563f446e09f8cb5e5dc1c3cb11a2059e42555044d47f308f54f"
+      },
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-pm",
+        "name": "John",
+        "title": "Product Manager",
+        "icon": "📋",
+        "team": "software-development",
+        "description": "Drives Jobs-to-be-Done over template filling, user value first, technical feasibility is a constraint not the driver. Speaks like a detective interrogating a cold case: short questions, sharper follow-ups, every 'why?' tightening the net.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:e2ebea0bf6ee158fcb9e62731a185983f2ac59f664940f4f4320cf10e1bbdf92",
+        "customizationSourceHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+        "personaCustomizationGraphHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+        "menuItems": [
+          {
+            "menuCode": "PRD",
+            "displayName": "Create Edit and Review PRD",
+            "description": "Create, update, or validate a PRD — state your intent or the skill will ask",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:7751b02b4cb6426e40b8fcd299386beda470aa5f9f9d8d03684a6267e188a773",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-prd",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "CE",
+            "displayName": "Create Epics and Stories",
+            "description": "Create the Epics and Stories Listing that will drive development",
+            "sourceOrdinal": 2,
+            "sourceMenuItemHash": "sha256:660b7fe101cb687a4e4b0d23cc718484e6ac4f61736504c63a2ab80fdcde40b0",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-create-epics-and-stories",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "IR",
+            "displayName": "Check Implementation Readiness",
+            "description": "Ensure the PRD, UX, Architecture and Epics and Stories List are all aligned",
+            "sourceOrdinal": 3,
+            "sourceMenuItemHash": "sha256:3b5ab77c02f61941830fe7d962507b9d3a98a8b918eea9c302eb336bba326a4e",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-check-implementation-readiness",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "CC",
+            "displayName": "Correct Course",
+            "description": "Determine how to proceed if major need for change is discovered mid implementation",
+            "sourceOrdinal": 4,
+            "sourceMenuItemHash": "sha256:ef1425169692eb89588c2123a6a4d9b53686dab753c821b75c7f69881abcbd40",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-correct-course",
+                "normalizedAction": null
+              }
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:11015f1a545b340455df23d44a23c4e583e6736d7adf7f825df5152be92b40bb",
+        "agentRecordHash": "sha256:ee14a413e53a6f4f52d9ca83e24babe32ba7f5cd8d2324ef921cddeb89c24869"
+      },
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-tech-writer",
+        "name": "Paige",
+        "title": "Technical Writer",
+        "icon": "📚",
+        "team": "software-development",
+        "description": "Master of CommonMark, DITA, and OpenAPI; turns complex concepts into accessible structured docs, favors diagrams over walls of text, every word earning its place. Speaks like the patient teacher you wish you'd had, using analogies that make complex things feel simple.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:7544242ff68d0ddfd466274f40ae9f3b0ea06ee5f5f938f68f953e19b3598cd7",
+        "customizationSourceHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "personaCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "menuItems": [
+          {
+            "menuCode": "DP",
+            "displayName": "Document Project",
+            "description": "Generate comprehensive project documentation (brownfield analysis, architecture scanning)",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:c44c3e2b85b369aabbc6377ac3d9a6b3fc7945b0b3e1fb8fbb2b27bc4bf9443d",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-document-project",
+                "normalizedAction": null
+              }
+            }
+          },
+          {
+            "menuCode": "WD",
+            "displayName": "Write Document",
+            "description": "Author a document following documentation best practices through guided conversation",
+            "sourceOrdinal": 2,
+            "sourceMenuItemHash": "sha256:69b590de512f75afda24ed3053e08acf812299e66a3bc3b8287b3045584acc5c",
+            "target": {
+              "targetKind": "prompt_reference",
+              "sourceCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+              "sourceLocalMemberLabel": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+              "sourceMemberHash": "sha256:c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
+              "availability": "unavailable_source_prompt"
+            }
+          },
+          {
+            "menuCode": "MG",
+            "displayName": "Generate Mermaid",
+            "description": "Create a Mermaid-compliant diagram based on your description",
+            "sourceOrdinal": 3,
+            "sourceMenuItemHash": "sha256:2ff1627129c7fcf47954df46f13f2d66174ba626f3638a3627df968c6012a220",
+            "target": {
+              "targetKind": "prompt_reference",
+              "sourceCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+              "sourceLocalMemberLabel": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+              "sourceMemberHash": "sha256:1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d",
+              "availability": "unavailable_source_prompt"
+            }
+          },
+          {
+            "menuCode": "VD",
+            "displayName": "Validate Document",
+            "description": "Validate documentation against standards and best practices",
+            "sourceOrdinal": 4,
+            "sourceMenuItemHash": "sha256:e3eb342838db590c7545a5b6f9d169e85813bcc118e1d6b44341c81d7a8ffb0f",
+            "target": {
+              "targetKind": "prompt_reference",
+              "sourceCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+              "sourceLocalMemberLabel": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md",
+              "sourceMemberHash": "sha256:3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5",
+              "availability": "unavailable_source_prompt"
+            }
+          },
+          {
+            "menuCode": "EC",
+            "displayName": "Explain Concept",
+            "description": "Create clear technical explanations with examples and diagrams",
+            "sourceOrdinal": 5,
+            "sourceMenuItemHash": "sha256:f10c23408c760be5d5d2455961a0398c1eb354d66334222db682c0d376137fe5",
+            "target": {
+              "targetKind": "prompt_reference",
+              "sourceCustomizationGraphHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+              "sourceLocalMemberLabel": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md",
+              "sourceMemberHash": "sha256:6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9",
+              "availability": "unavailable_source_prompt"
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:069124c64bb1cca235aba092a26bef12ead4b40dd21a5d3e7df3ee9ce595b85f",
+        "agentRecordHash": "sha256:dbd78337564afb6d7b142c2ea3188f3b1eec3250d9ba8b64281bc016325f74bf"
+      },
+      {
+        "moduleCode": "bmm",
+        "agentCode": "bmad-agent-ux-designer",
+        "name": "Sally",
+        "title": "UX Designer",
+        "icon": "🎨",
+        "team": "software-development",
+        "description": "Balances empathy with edge-case rigor, starts simple and evolves through feedback, every decision serves a genuine user need. Speaks like a filmmaker pitching the scene before the code exists, painting user stories that make you feel the problem.",
+        "moduleSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "personaSourceHash": "sha256:d780ae59b9fb7e3a94c5ffe4ec75f90942d4a9a3944af4b36c2d279fdd7801db",
+        "customizationSourceHash": "sha256:3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+        "personaCustomizationGraphHash": "sha256:3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+        "menuItems": [
+          {
+            "menuCode": "CU",
+            "displayName": "Create UX",
+            "description": "Guidance through realizing the plan for your UX to inform architecture and implementation",
+            "sourceOrdinal": 1,
+            "sourceMenuItemHash": "sha256:b3daa6166da1c5bdb4c478c6412fe201e8e35b9d090440523c98a1b7ed61ff39",
+            "target": {
+              "targetKind": "skill_target",
+              "sourceCustomizationGraphHash": "sha256:3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+              "capabilityKey": {
+                "packageVersionId": "pkgver_01J00000000000000000000000",
+                "moduleCode": "bmm",
+                "skillName": "bmad-ux",
+                "normalizedAction": null
+              }
+            }
+          }
+        ],
+        "menuGraphHash": "sha256:31e35027a8c60b28eb471ebe79b42285b7e67cc8b32a0db6c9d4d174c62db9be",
+        "agentRecordHash": "sha256:bc39797efddbbf455b30c3de5e4b67f5df1bd9d0d4417567ab3cb109f98fcfd5"
+      }
+    ],
+    "rosterHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "catalogHash": "sha256:347ba48ee9bab62426ef089238cea9c28f097140c9163d9cef906a7ab6727312"
+}

@@ -38,4 +38,39 @@ export const HASH_RULES = Object.freeze({
     purpose: "package-compatibility",
     schemaMajor: "v1",
   }),
+  "sapphirus.bmad-package-descriptor.v1": Object.freeze({
+    excludedFields: Object.freeze(["descriptorHash"]),
+    purpose: "bmad-package-descriptor",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-capability-catalog.v1": Object.freeze({
+    excludedFields: Object.freeze(["catalogHash"]),
+    purpose: "bmad-capability-catalog",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-method-checkpoint.v1": Object.freeze({
+    excludedFields: Object.freeze(["checkpointHash"]),
+    purpose: "bmad-method-checkpoint",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-method-session.v1": Object.freeze({
+    excludedFields: Object.freeze(["contentHash"]),
+    purpose: "contract-object",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-builder-revision.v1": Object.freeze({
+    excludedFields: Object.freeze(["revisionHash"]),
+    purpose: "bmad-builder-revision",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-builder-analysis.v1": Object.freeze({
+    excludedFields: Object.freeze(["analysisHash"]),
+    purpose: "bmad-builder-analysis",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-validation-report.v1": Object.freeze({
+    excludedFields: Object.freeze(["reportHash"]),
+    purpose: "bmad-validation-report",
+    schemaMajor: "v1",
+  }),
 });

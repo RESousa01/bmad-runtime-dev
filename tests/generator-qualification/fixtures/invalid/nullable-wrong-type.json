@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "nullable wrong type"
+  },
+  "nullableValue": 7,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_A1B2"
+  },
+  "label": "nullable wrong type",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

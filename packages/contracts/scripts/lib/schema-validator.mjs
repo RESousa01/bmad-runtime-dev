@@ -3,6 +3,21 @@ import path from "node:path";
 import { canonicalize } from "./canonical-json.mjs";
 import { parseStrictJson } from "./strict-json.mjs";
 
+export function isDiscriminatorRefinement(node) {
+  const keys = Object.keys(node).sort();
+  if (keys.length !== 2 || keys[0] !== "properties" || keys[1] !== "type") return false;
+  const entries = Object.entries(node.properties ?? {});
+  if (entries.length < 1 || entries.length > 2) return false;
+  const allowedProperties = new Set(["builderKind", "lens", "validationProfile"]);
+  return entries.every(([name, constraint]) => {
+    if (!allowedProperties.has(name) || constraint === null || typeof constraint !== "object") {
+      return false;
+    }
+    const constraintKeys = Object.keys(constraint);
+    return constraintKeys.length === 1 && (constraintKeys[0] === "const" || constraintKeys[0] === "enum");
+  });
+}
+
 export async function loadSchemaRegistry(schemaDirectory) {
   const names = (await readdir(schemaDirectory))
     .filter((name) => name.endsWith(".schema.json"))
@@ -73,6 +88,16 @@ function deepEqual(left, right) {
 }
 
 function validateNode({ schema, value, registry, documentName, instancePath, errors }) {
+  if (schema === false) {
+    errors.push({
+      code: "FALSE_SCHEMA",
+      path: instancePath,
+      message: "Value is forbidden by the schema.",
+    });
+    return;
+  }
+  if (schema === true) return;
+
   if (schema.$ref !== undefined) {
     const resolved = resolveReference(registry, schema.$ref, documentName);
     validateNode({
@@ -83,7 +108,19 @@ function validateNode({ schema, value, registry, documentName, instancePath, err
       instancePath,
       errors,
     });
-    return;
+  }
+
+  if (schema.allOf !== undefined) {
+    for (const branch of schema.allOf) {
+      validateNode({
+        schema: branch,
+        value,
+        registry,
+        documentName,
+        instancePath,
+        errors,
+      });
+    }
   }
 
   if (schema.oneOf !== undefined) {
@@ -107,7 +144,6 @@ function validateNode({ schema, value, registry, documentName, instancePath, err
         message: `Expected exactly one matching branch, received ${matches.length}.`,
       });
     }
-    return;
   }
 
   if (schema.const !== undefined && !deepEqual(value, schema.const)) {
@@ -188,14 +224,25 @@ function validateNode({ schema, value, registry, documentName, instancePath, err
         errors.push({ code: "ARRAY_NOT_UNIQUE", path: instancePath, message: "Array contains duplicate items." });
       }
     }
+    for (let index = 0; index < Math.min(value.length, schema.prefixItems?.length ?? 0); index += 1) {
+      validateNode({
+        schema: schema.prefixItems[index],
+        value: value[index],
+        registry,
+        documentName,
+        instancePath: `${instancePath}/${index}`,
+        errors,
+      });
+    }
     if (schema.items !== undefined) {
-      value.forEach((item, index) => {
+      const start = schema.prefixItems?.length ?? 0;
+      value.slice(start).forEach((item, offset) => {
         validateNode({
           schema: schema.items,
           value: item,
           registry,
           documentName,
-          instancePath: `${instancePath}/${index}`,
+          instancePath: `${instancePath}/${start + offset}`,
           errors,
         });
       });

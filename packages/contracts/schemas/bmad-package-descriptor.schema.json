@@ -1,0 +1,894 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-package-descriptor.schema.json",
+  "title": "sapphirus.bmad-package-descriptor.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageVersionId",
+    "packageName",
+    "packageVersion",
+    "sourceIdentity",
+    "distributionProfile",
+    "installProfile",
+    "metadataOrigin",
+    "packageMetadataHash",
+    "sourceSnapshotHash",
+    "upstreamManifestObservationHashes",
+    "finalCompositeInventoryHash",
+    "modules",
+    "instructionProjections",
+    "resourceInventory",
+    "skills",
+    "configGraphs",
+    "configResolutions",
+    "validationReportHashes",
+    "descriptorHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-package-descriptor.v1" },
+    "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "packageName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+    },
+    "packageVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "sourceIdentity": { "$ref": "#/$defs/BmadSourceIdentity" },
+    "distributionProfile": { "$ref": "#/$defs/BmadDistributionProfile" },
+    "installProfile": { "$ref": "#/$defs/BmadInstallProfile" },
+    "metadataOrigin": { "$ref": "#/$defs/BmadMetadataOrigin" },
+    "packageMetadataHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "sourceSnapshotHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "upstreamManifestObservationHashes": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    },
+    "finalCompositeInventoryHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modules": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "moduleCode",
+          "moduleName",
+          "moduleVersion",
+          "metadataOrigin",
+          "metadataSourceHash",
+          "helpCatalogSourceHash",
+          "agentRosterSourceHash"
+        ],
+        "properties": {
+          "moduleCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "moduleName": { "type": "string", "minLength": 1, "maxLength": 256 },
+          "moduleVersion": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+              },
+              { "type": "null" }
+            ]
+          },
+          "metadataOrigin": { "$ref": "#/$defs/BmadMetadataOrigin" },
+          "metadataSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+          "helpCatalogSourceHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          },
+          "agentRosterSourceHash": {
+            "oneOf": [
+              { "$ref": "./common.schema.json#/$defs/Sha256" },
+              { "type": "null" }
+            ]
+          }
+        }
+      }
+    },
+    "instructionProjections": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/BmadInstructionProjection" }
+    },
+    "resourceInventory": {
+      "type": "array",
+      "maxItems": 65536,
+      "items": { "$ref": "#/$defs/BmadResourceInventoryEntry" }
+    },
+    "skills": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": { "$ref": "#/$defs/BmadSkillDescriptor" }
+    },
+    "configGraphs": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 4096,
+      "items": { "$ref": "#/$defs/BmadConfigGraphDescriptor" }
+    },
+    "configResolutions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 4096,
+      "items": { "$ref": "#/$defs/BmadConfigResolution" }
+    },
+    "validationReportHashes": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    },
+    "descriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "BmadSourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "upstreamLocator",
+        "immutableRef",
+        "archiveArtifactLabel",
+        "archiveSha256",
+        "sourceTreeHash",
+        "gitIdentity",
+        "packageName",
+        "packageVersion",
+        "moduleVersion",
+        "sourceFormatVersion",
+        "runtimeCompatibility",
+        "provenanceStatus"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "upstreamLocator": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "immutableRef": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 256 },
+            { "type": "null" }
+          ]
+        },
+        "archiveArtifactLabel": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "archiveSha256": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "sourceTreeHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "gitIdentity": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 256 },
+            { "type": "null" }
+          ]
+        },
+        "packageName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "packageVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "moduleVersion": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 128 },
+            { "type": "null" }
+          ]
+        },
+        "sourceFormatVersion": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 128 },
+            { "type": "null" }
+          ]
+        },
+        "runtimeCompatibility": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runtime", "versionRange"],
+            "properties": {
+              "runtime": { "enum": ["node", "python", "uv", "host"] },
+              "versionRange": { "type": "string", "minLength": 1, "maxLength": 128 }
+            }
+          }
+        },
+        "provenanceStatus": {
+          "enum": [
+            "immutable_identity_verified",
+            "reviewed_snapshot_only",
+            "blocked_provenance"
+          ]
+        }
+      }
+    },
+    "BmadDistributionProfile": {
+      "enum": [
+        "method_source_tree",
+        "method_claude_plugin",
+        "method_web_bundle_v1",
+        "builder_source_tree",
+        "builder_plugin",
+        "sapphirus_package"
+      ]
+    },
+    "BmadInstallProfile": {
+      "enum": [
+        "MethodCliV6",
+        "StandaloneBuilderSetupV2",
+        "SapphirusManagedV1"
+      ]
+    },
+    "BmadMetadataOrigin": {
+      "enum": [
+        "source",
+        "synthesized",
+        "installed_projection"
+      ]
+    },
+    "BmadSourceTreatment": {
+      "enum": [
+        "adopt",
+        "adapt",
+        "defer",
+        "reject"
+      ]
+    },
+    "BmadInstructionProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectionId",
+        "sourceIdentityHash",
+        "sourceEntrypoint",
+        "sourceResources",
+        "sourceSections",
+        "managedInstruction",
+        "blockedToolIntents",
+        "hostInputReplacements",
+        "projectionHash"
+      ],
+      "properties": {
+        "projectionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sourceIdentityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "sourceEntrypoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "contentHash", "treatment"],
+          "properties": {
+            "path": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+            "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "treatment": { "$ref": "#/$defs/BmadSourceTreatment" }
+          }
+        },
+        "sourceResources": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "contentHash", "treatment"],
+            "properties": {
+              "path": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+              "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+              "treatment": { "$ref": "#/$defs/BmadSourceTreatment" }
+            }
+          }
+        },
+        "sourceSections": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "contentHash", "treatment", "rationale"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1, "maxLength": 512 },
+              "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+              "treatment": { "$ref": "#/$defs/BmadSourceTreatment" },
+              "rationale": { "type": "string", "minLength": 1, "maxLength": 4096 }
+            }
+          }
+        },
+        "managedInstruction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "contentHash", "format"],
+          "properties": {
+            "path": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+            "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "format": { "const": "SapphirusManagedV1" }
+          }
+        },
+        "blockedToolIntents": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "file_read",
+              "file_write",
+              "process",
+              "web",
+              "subagent",
+              "browser",
+              "external_handoff"
+            ]
+          }
+        },
+        "hostInputReplacements": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toolIntent", "inputKind", "inputSchemaHash"],
+            "properties": {
+              "toolIntent": {
+                "enum": [
+                  "file_read",
+                  "file_write",
+                  "process",
+                  "web",
+                  "subagent",
+                  "browser",
+                  "external_handoff"
+                ]
+              },
+              "inputKind": {
+                "enum": [
+                  "bounded_resource_set",
+                  "resolved_config",
+                  "workspace_snapshot",
+                  "artifact_inventory",
+                  "catalog_snapshot",
+                  "unavailable_fact"
+                ]
+              },
+              "inputSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+            }
+          }
+        },
+        "projectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "BmadResourceInventoryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "locationKind",
+        "contentRole",
+        "contentHash",
+        "byteLength",
+        "treatment",
+        "runtimeUse"
+      ],
+      "properties": {
+        "path": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+        "locationKind": {
+          "enum": ["source_tree", "final_install", "managed_projection"]
+        },
+        "contentRole": {
+          "enum": [
+            "entrypoint",
+            "reference",
+            "asset",
+            "script",
+            "config",
+            "help_catalog",
+            "metadata",
+            "managed_instruction",
+            "evidence"
+          ]
+        },
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "treatment": { "$ref": "#/$defs/BmadSourceTreatment" },
+        "runtimeUse": {
+          "enum": [
+            "instruction_data",
+            "reference_data",
+            "descriptive_evidence",
+            "blocked_executable",
+            "unavailable_reference"
+          ]
+        }
+      }
+    },
+    "BmadSkillDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "moduleCode",
+        "skillName",
+        "displayName",
+        "description",
+        "metadataOrigin",
+        "sourceEntrypointPath",
+        "sourceEntrypointHash",
+        "resourceSetHash",
+        "instructionProjectionHash",
+        "distributionProfile",
+        "installProfile",
+        "executionProfile",
+        "skillDescriptorHash"
+      ],
+      "properties": {
+        "moduleCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "skillName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "metadataOrigin": { "$ref": "#/$defs/BmadMetadataOrigin" },
+        "sourceEntrypointPath": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+        "sourceEntrypointHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "instructionProjectionHash": {
+          "oneOf": [
+            { "$ref": "./common.schema.json#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        },
+        "distributionProfile": { "$ref": "#/$defs/BmadDistributionProfile" },
+        "installProfile": { "$ref": "#/$defs/BmadInstallProfile" },
+        "executionProfile": { "$ref": "#/$defs/SkillExecutionProfile" },
+        "skillDescriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "SkillExecutionProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entrypointKind",
+        "invocationModes",
+        "requiredRuntimes",
+        "resourcePolicy",
+        "declaredToolIntents",
+        "stateHints",
+        "completionEvidence",
+        "customizationProfile",
+        "validationProfile",
+        "profileHash"
+      ],
+      "properties": {
+        "entrypointKind": {
+          "enum": [
+            "direct",
+            "inline",
+            "step_jit",
+            "script_rendered",
+            "compatibility_shim"
+          ]
+        },
+        "invocationModes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["interactive", "headless", "actions"],
+          "properties": {
+            "interactive": { "type": "boolean" },
+            "headless": { "type": "boolean" },
+            "actions": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              }
+            }
+          }
+        },
+        "requiredRuntimes": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runtime", "versionRange", "required"],
+            "properties": {
+              "runtime": { "enum": ["node", "python", "uv", "host"] },
+              "versionRange": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "required": { "type": "boolean" }
+            }
+          }
+        },
+        "resourcePolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entrypointTiming", "resourceTiming", "declaredResourcePaths"],
+          "properties": {
+            "entrypointTiming": { "const": "invocation_start" },
+            "resourceTiming": {
+              "enum": [
+                "all_declared_at_start",
+                "current_step_only",
+                "render_inputs_only",
+                "forward_target_only",
+                "on_demand_declared"
+              ]
+            },
+            "declaredResourcePaths": {
+              "type": "array",
+              "maxItems": 4096,
+              "uniqueItems": true,
+              "items": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" }
+            }
+          }
+        },
+        "declaredToolIntents": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "file_read",
+              "file_write",
+              "process",
+              "web",
+              "subagent",
+              "browser",
+              "external_handoff"
+            ]
+          }
+        },
+        "stateHints": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "memlog",
+              "artifact_workspace",
+              "sprint_status",
+              "story",
+              "spec"
+            ]
+          }
+        },
+        "completionEvidence": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["artifact", "event", "status_evidence"]
+          }
+        },
+        "customizationProfile": {
+          "enum": [
+            "none",
+            "method_skill_toml",
+            "method_agent_toml",
+            "builder_agent_toml",
+            "builder_workflow_toml"
+          ]
+        },
+        "validationProfile": {
+          "enum": [
+            "MethodOfficialSkillV6",
+            "MethodStepWorkflowV6",
+            "BuilderOutcomeSkillV2",
+            "BuilderAgentV2Stateless",
+            "MethodCliInstalledV6",
+            "StandaloneBuilderSetupV2"
+          ]
+        },
+        "profileHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "BmadConfigLayer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphKind",
+            "layerKind",
+            "ordinal",
+            "sourcePath",
+            "sourceHash",
+            "entries",
+            "warnings"
+          ],
+          "properties": {
+            "graphKind": { "const": "method_central_toml" },
+            "layerKind": {
+              "enum": [
+                "installer_team",
+                "installer_user",
+                "custom_team",
+                "custom_user"
+              ]
+            },
+            "ordinal": { "type": "integer", "minimum": 0, "maximum": 3 },
+            "sourcePath": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+            "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "entries": {
+              "type": "array",
+              "maxItems": 4096,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["key", "canonicalJson", "valueHash", "interpretation"],
+                "properties": {
+                  "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+                  "canonicalJson": { "type": "string", "minLength": 1, "maxLength": 1048576 },
+                  "valueHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+                  "interpretation": { "enum": ["known_untrusted", "unknown_untrusted"] }
+                }
+              }
+            },
+            "warnings": {
+              "type": "array",
+              "maxItems": 1024,
+              "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphKind",
+            "layerKind",
+            "ordinal",
+            "sourcePath",
+            "sourceHash",
+            "entries",
+            "warnings"
+          ],
+          "properties": {
+            "graphKind": { "const": "skill_customization_toml" },
+            "layerKind": {
+              "enum": ["packaged_default", "team_override", "user_override"]
+            },
+            "ordinal": { "type": "integer", "minimum": 0, "maximum": 2 },
+            "sourcePath": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+            "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "entries": {
+              "type": "array",
+              "maxItems": 4096,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["key", "canonicalJson", "valueHash", "interpretation"],
+                "properties": {
+                  "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+                  "canonicalJson": { "type": "string", "minLength": 1, "maxLength": 1048576 },
+                  "valueHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+                  "interpretation": { "enum": ["known_untrusted", "unknown_untrusted"] }
+                }
+              }
+            },
+            "warnings": {
+              "type": "array",
+              "maxItems": 1024,
+              "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "graphKind",
+            "layerKind",
+            "ordinal",
+            "sourcePath",
+            "sourceHash",
+            "entries",
+            "warnings"
+          ],
+          "properties": {
+            "graphKind": { "const": "compatibility_yaml" },
+            "layerKind": {
+              "enum": [
+                "method_module_yaml",
+                "builder_root_yaml",
+                "builder_user_yaml"
+              ]
+            },
+            "ordinal": { "type": "integer", "minimum": 0, "maximum": 2 },
+            "sourcePath": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+            "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "entries": {
+              "type": "array",
+              "maxItems": 4096,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["key", "canonicalJson", "valueHash", "interpretation"],
+                "properties": {
+                  "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+                  "canonicalJson": { "type": "string", "minLength": 1, "maxLength": 1048576 },
+                  "valueHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+                  "interpretation": { "enum": ["known_untrusted", "unknown_untrusted"] }
+                }
+              }
+            },
+            "warnings": {
+              "type": "array",
+              "maxItems": 1024,
+              "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+            }
+          }
+        }
+      ]
+    },
+    "BmadConfigGraphDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graphKind", "scope", "layers", "mergeSemantics", "graphHash"],
+      "properties": {
+        "graphKind": {
+          "enum": [
+            "method_central_toml",
+            "skill_customization_toml",
+            "compatibility_yaml"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["packageVersionId", "moduleCode", "skillName"],
+          "properties": {
+            "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "moduleCode": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                { "type": "null" }
+              ]
+            },
+            "skillName": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                { "type": "null" }
+              ]
+            }
+          }
+        },
+        "layers": {
+          "type": "array",
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/BmadConfigLayer" }
+        },
+        "mergeSemantics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scalarRule",
+            "tableRule",
+            "keyedTableArrayRule",
+            "otherArrayRule",
+            "deletionOperator"
+          ],
+          "properties": {
+            "scalarRule": { "const": "later_replaces" },
+            "tableRule": { "const": "recursive_merge" },
+            "keyedTableArrayRule": { "const": "merge_by_code_or_id_when_all_items_keyed" },
+            "otherArrayRule": { "const": "append" },
+            "deletionOperator": { "const": "none" }
+          }
+        },
+        "graphHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "BmadConfigResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graphKind",
+        "scope",
+        "graphHash",
+        "orderedLayerHashes",
+        "resolvedEntries",
+        "warnings",
+        "resolutionHash"
+      ],
+      "properties": {
+        "graphKind": {
+          "enum": [
+            "method_central_toml",
+            "skill_customization_toml",
+            "compatibility_yaml"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["packageVersionId", "moduleCode", "skillName"],
+          "properties": {
+            "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "moduleCode": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                { "type": "null" }
+              ]
+            },
+            "skillName": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                { "type": "null" }
+              ]
+            }
+          }
+        },
+        "graphHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "orderedLayerHashes": {
+          "type": "array",
+          "maxItems": 4,
+          "items": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        },
+        "resolvedEntries": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "canonicalJson", "valueHash", "interpretation"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+              "canonicalJson": { "type": "string", "minLength": 1, "maxLength": 1048576 },
+              "valueHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+              "interpretation": { "enum": ["known_untrusted", "unknown_untrusted"] }
+            }
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+        },
+        "resolutionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    }
+  }
+}
