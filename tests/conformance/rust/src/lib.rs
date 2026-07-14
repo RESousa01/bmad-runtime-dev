@@ -139,7 +139,7 @@ fn verify_hash(value: &Value, errors: &mut Vec<String>) {
     }
 }
 
-fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
+fn validate_descriptor_source_identity(value: &Value, errors: &mut Vec<String>) {
     let source = value.get("sourceIdentity");
     if source.and_then(|source| string(source, "packageName")) != string(value, "packageName")
         || source.and_then(|source| string(source, "packageVersion"))
@@ -168,12 +168,13 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_METHOD_SOURCE_IDENTITY_MISMATCH");
         }
     }
-    let Some(graphs) = array(value, "configGraphs") else {
-        return;
-    };
-    let Some(resolutions) = array(value, "configResolutions") else {
-        return;
-    };
+}
+
+fn validate_descriptor_config_sets(
+    graphs: &[Value],
+    resolutions: &[Value],
+    errors: &mut Vec<String>,
+) {
     let kinds: HashSet<_> = graphs
         .iter()
         .filter_map(|graph| string(graph, "graphKind"))
@@ -215,6 +216,9 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_CONFIG_RESOLUTION_BINDING_MISMATCH");
         }
     }
+}
+
+fn validate_descriptor_config_graphs(value: &Value, graphs: &[Value], errors: &mut Vec<String>) {
     for graph in graphs {
         let kind = string(graph, "graphKind").unwrap_or_default();
         let allowed_layer_kinds: &[&str] = match kind {
@@ -263,6 +267,9 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_CONFIG_LAYER_INVALID");
         }
     }
+}
+
+fn validate_descriptor_collections(value: &Value, errors: &mut Vec<String>) {
     for (field, code, key) in [
         ("modules", "BMAD_MODULE_SET_NOT_CANONICAL", "moduleCode"),
         (
@@ -288,12 +295,14 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_SKILL_SET_NOT_CANONICAL");
         }
     }
-    let Some(resources) = array(value, "resourceInventory") else {
-        return;
-    };
-    let Some(projections) = array(value, "instructionProjections") else {
-        return;
-    };
+}
+
+fn validate_descriptor_projections(
+    value: &Value,
+    resources: &[Value],
+    projections: &[Value],
+    errors: &mut Vec<String>,
+) {
     if !is_strictly_sorted_unique(projections, |projection| {
         nullable_string(projection, "projectionId")
     }) {
@@ -339,6 +348,9 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             }
         }
     }
+}
+
+fn validate_descriptor_skills(value: &Value, projections: &[Value], errors: &mut Vec<String>) {
     if let Some(skills) = array(value, "skills") {
         let module_codes: HashSet<_> = array(value, "modules")
             .into_iter()
@@ -370,6 +382,27 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
             }
         }
     }
+}
+
+fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
+    validate_descriptor_source_identity(value, errors);
+    let Some(graphs) = array(value, "configGraphs") else {
+        return;
+    };
+    let Some(resolutions) = array(value, "configResolutions") else {
+        return;
+    };
+    validate_descriptor_config_sets(graphs, resolutions, errors);
+    validate_descriptor_config_graphs(value, graphs, errors);
+    validate_descriptor_collections(value, errors);
+    let Some(resources) = array(value, "resourceInventory") else {
+        return;
+    };
+    let Some(projections) = array(value, "instructionProjections") else {
+        return;
+    };
+    validate_descriptor_projections(value, resources, projections, errors);
+    validate_descriptor_skills(value, projections, errors);
 }
 
 fn descriptor_has_resource(descriptor: &Value, path: &str, hash: &str) -> bool {
@@ -419,17 +452,12 @@ fn agent_record_hash_is_exact(agent: &Value) -> bool {
             == string(agent, "customizationSourceHash")
 }
 
-fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<String>) {
-    if let Some(descriptor) = descriptor {
-        if string(value, "packageVersionId") != string(descriptor, "packageVersionId")
-            || string(value, "descriptorHash") != string(descriptor, "descriptorHash")
-        {
-            push_once(errors, "BMAD_CATALOG_DESCRIPTOR_BINDING_MISMATCH");
-        }
-    }
-    let Some(skills) = array(value, "installedSkills") else {
-        return;
-    };
+fn validate_installed_skills(
+    value: &Value,
+    descriptor: Option<&Value>,
+    skills: &[Value],
+    errors: &mut Vec<String>,
+) -> HashSet<String> {
     if !is_strictly_sorted_unique(skills, |skill| {
         format!(
             "{}\0{}",
@@ -504,6 +532,14 @@ fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<
             }
         }
     }
+    installed
+}
+
+fn validate_catalog_dependencies(
+    value: &Value,
+    installed: &HashSet<String>,
+    errors: &mut Vec<String>,
+) -> HashSet<String> {
     let mut dependencies = HashSet::new();
     if let Some(values) = array(value, "dependencyAvailability") {
         if !is_strictly_sorted_unique(values, |dependency| {
@@ -523,6 +559,15 @@ fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<
             }
         }
     }
+    dependencies
+}
+
+fn validate_help_action_graph(
+    value: &Value,
+    installed: &HashSet<String>,
+    dependencies: &HashSet<String>,
+    errors: &mut Vec<String>,
+) {
     if let Some(actions) = value
         .get("helpActionGraph")
         .and_then(|graph| array(graph, "actions"))
@@ -554,12 +599,96 @@ fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<
     {
         push_once(errors, "BMAD_CATALOG_PACKAGE_BINDING_MISMATCH");
     }
-    let Some(agents) = value
-        .get("agentRoster")
-        .and_then(|roster| array(roster, "agents"))
-    else {
+}
+
+fn validate_agent_menu(
+    agent: &Value,
+    descriptor: Option<&Value>,
+    installed: &HashSet<String>,
+    dependencies: &HashSet<String>,
+    errors: &mut Vec<String>,
+) {
+    let mut menu_codes = HashSet::new();
+    let mut previous_ordinal = None;
+    let Some(menu_items) = array(agent, "menuItems") else {
         return;
     };
+    for item in menu_items {
+        let code = string(item, "menuCode").unwrap_or_default();
+        let ordinal = item
+            .get("sourceOrdinal")
+            .and_then(Value::as_u64)
+            .unwrap_or_default();
+        if !menu_codes.insert(code) || previous_ordinal.is_some_and(|last| ordinal <= last) {
+            push_once(errors, "BMAD_MENU_SCOPE_AMBIGUOUS");
+        }
+        previous_ordinal = Some(ordinal);
+        let Some(target) = item.get("target") else {
+            continue;
+        };
+        if string(target, "sourceCustomizationGraphHash")
+            != string(agent, "personaCustomizationGraphHash")
+        {
+            push_once(errors, "BMAD_MENU_TARGET_TRANSPLANT");
+        }
+        match string(target, "targetKind") {
+            Some("skill_target") => {
+                let encoded = target
+                    .get("capabilityKey")
+                    .map_or_else(String::new, capability_key);
+                if !installed.contains(&encoded) && !dependencies.contains(&encoded) {
+                    push_once(errors, "BMAD_AGENT_MENU_ORPHAN");
+                }
+            }
+            Some("prompt_reference") => {
+                if let Some(descriptor) = descriptor {
+                    let path = string(target, "sourceLocalMemberLabel").unwrap_or_default();
+                    let hash = string(target, "sourceMemberHash").unwrap_or_default();
+                    if !descriptor_has_resource(descriptor, path, hash) {
+                        push_once(errors, "BMAD_PROMPT_REFERENCE_TRANSPLANT");
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    if let Some(descriptor) = descriptor {
+        let module = array(descriptor, "modules").and_then(|modules| {
+            modules
+                .iter()
+                .find(|module| string(module, "moduleCode") == string(agent, "moduleCode"))
+        });
+        if module.and_then(|module| string(module, "metadataSourceHash"))
+            != string(agent, "moduleSourceHash")
+        {
+            push_once(errors, "BMAD_AGENT_MODULE_HASH_MISMATCH");
+        }
+        for (field, code) in [
+            ("personaSourceHash", "BMAD_PERSONA_HASH_MISMATCH"),
+            (
+                "customizationSourceHash",
+                "BMAD_CUSTOMIZATION_HASH_MISMATCH",
+            ),
+        ] {
+            let expected = string(agent, field).unwrap_or_default();
+            if !array(descriptor, "resourceInventory").is_some_and(|resources| {
+                resources
+                    .iter()
+                    .any(|resource| string(resource, "contentHash") == Some(expected))
+            }) {
+                push_once(errors, code);
+            }
+        }
+    }
+}
+
+fn validate_agent_roster(
+    agents: &[Value],
+    descriptor: Option<&Value>,
+    installed: &HashSet<String>,
+    dependencies: &HashSet<String>,
+    errors: &mut Vec<String>,
+) {
     if !is_strictly_sorted_unique(agents, |agent| {
         format!(
             "{}\0{}",
@@ -577,79 +706,31 @@ fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<
         push_once(errors, "BMAD_AGENT_ROSTER_BINDING_MISMATCH");
     }
     for agent in agents {
-        let mut menu_codes = HashSet::new();
-        let mut previous_ordinal = None;
-        let Some(menu_items) = array(agent, "menuItems") else {
-            continue;
-        };
-        for item in menu_items {
-            let code = string(item, "menuCode").unwrap_or_default();
-            let ordinal = item
-                .get("sourceOrdinal")
-                .and_then(Value::as_u64)
-                .unwrap_or_default();
-            if !menu_codes.insert(code) || previous_ordinal.is_some_and(|last| ordinal <= last) {
-                push_once(errors, "BMAD_MENU_SCOPE_AMBIGUOUS");
-            }
-            previous_ordinal = Some(ordinal);
-            let Some(target) = item.get("target") else {
-                continue;
-            };
-            if string(target, "sourceCustomizationGraphHash")
-                != string(agent, "personaCustomizationGraphHash")
-            {
-                push_once(errors, "BMAD_MENU_TARGET_TRANSPLANT");
-            }
-            match string(target, "targetKind") {
-                Some("skill_target") => {
-                    let encoded = target
-                        .get("capabilityKey")
-                        .map_or_else(String::new, capability_key);
-                    if !installed.contains(&encoded) && !dependencies.contains(&encoded) {
-                        push_once(errors, "BMAD_AGENT_MENU_ORPHAN");
-                    }
-                }
-                Some("prompt_reference") => {
-                    if let Some(descriptor) = descriptor {
-                        let path = string(target, "sourceLocalMemberLabel").unwrap_or_default();
-                        let hash = string(target, "sourceMemberHash").unwrap_or_default();
-                        if !descriptor_has_resource(descriptor, path, hash) {
-                            push_once(errors, "BMAD_PROMPT_REFERENCE_TRANSPLANT");
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
-        if let Some(descriptor) = descriptor {
-            let module = array(descriptor, "modules").and_then(|modules| {
-                modules
-                    .iter()
-                    .find(|module| string(module, "moduleCode") == string(agent, "moduleCode"))
-            });
-            if module.and_then(|module| string(module, "metadataSourceHash"))
-                != string(agent, "moduleSourceHash")
-            {
-                push_once(errors, "BMAD_AGENT_MODULE_HASH_MISMATCH");
-            }
-            let persona = string(agent, "personaSourceHash").unwrap_or_default();
-            if !array(descriptor, "resourceInventory").is_some_and(|resources| {
-                resources
-                    .iter()
-                    .any(|resource| string(resource, "contentHash") == Some(persona))
-            }) {
-                push_once(errors, "BMAD_PERSONA_HASH_MISMATCH");
-            }
-            let customization = string(agent, "customizationSourceHash").unwrap_or_default();
-            if !array(descriptor, "resourceInventory").is_some_and(|resources| {
-                resources
-                    .iter()
-                    .any(|resource| string(resource, "contentHash") == Some(customization))
-            }) {
-                push_once(errors, "BMAD_CUSTOMIZATION_HASH_MISMATCH");
-            }
+        validate_agent_menu(agent, descriptor, installed, dependencies, errors);
+    }
+}
+
+fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<String>) {
+    if let Some(descriptor) = descriptor {
+        if string(value, "packageVersionId") != string(descriptor, "packageVersionId")
+            || string(value, "descriptorHash") != string(descriptor, "descriptorHash")
+        {
+            push_once(errors, "BMAD_CATALOG_DESCRIPTOR_BINDING_MISMATCH");
         }
     }
+    let Some(skills) = array(value, "installedSkills") else {
+        return;
+    };
+    let installed = validate_installed_skills(value, descriptor, skills, errors);
+    let dependencies = validate_catalog_dependencies(value, &installed, errors);
+    validate_help_action_graph(value, &installed, &dependencies, errors);
+    let Some(agents) = value
+        .get("agentRoster")
+        .and_then(|roster| array(roster, "agents"))
+    else {
+        return;
+    };
+    validate_agent_roster(agents, descriptor, &installed, &dependencies, errors);
 }
 
 fn same_capability(left: Option<&Value>, right: Option<&Value>) -> bool {
@@ -658,8 +739,13 @@ fn same_capability(left: Option<&Value>, right: Option<&Value>) -> bool {
     })
 }
 
-fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<String>) {
-    let profile = value.get("executionProfile");
+fn validate_method_profile(
+    value: &Value,
+    profile: Option<&Value>,
+    capability: Option<&Value>,
+    is_help: bool,
+    errors: &mut Vec<String>,
+) {
     if profile.and_then(|profile| string(profile, "profileHash"))
         != string(value, "executionProfileHash")
         || profile.and_then(|profile| string(profile, "validationProfile"))
@@ -667,8 +753,6 @@ fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<Stri
     {
         push_once(errors, "BMAD_METHOD_PROFILE_BINDING_MISMATCH");
     }
-    let capability = value.get("capabilityKey");
-    let is_help = string(value, "methodShape") == Some("no_agent_direct");
     if is_help {
         let actions = profile
             .and_then(|profile| profile.get("invocationModes"))
@@ -724,6 +808,15 @@ fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<Stri
             push_once(errors, "BMAD_ARCHITECT_BINDING_MISMATCH");
         }
     }
+}
+
+fn validate_method_catalog(
+    value: &Value,
+    catalog: Option<&Value>,
+    capability: Option<&Value>,
+    is_help: bool,
+    errors: &mut Vec<String>,
+) {
     if let Some(catalog) = catalog.filter(|catalog| {
         string(catalog, "schemaVersion") == Some("sapphirus.bmad-capability-catalog.v1")
     }) {
@@ -793,9 +886,14 @@ fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<Stri
             }
         }
     }
-    let Some(checkpoints) = array(value, "checkpoints") else {
-        return;
-    };
+}
+
+fn validate_method_checkpoints(
+    value: &Value,
+    capability: Option<&Value>,
+    checkpoints: &[Value],
+    errors: &mut Vec<String>,
+) -> HashSet<String> {
     let mut ids = HashSet::new();
     let mut checkpoint_decisions = HashSet::new();
     for (index, checkpoint) in checkpoints.iter().enumerate() {
@@ -815,12 +913,22 @@ fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<Stri
         }
         verify_hash(checkpoint, errors);
     }
+    checkpoint_decisions
+}
+
+fn validate_method_context(
+    value: &Value,
+    capability: Option<&Value>,
+    checkpoints_len: usize,
+    checkpoint_decisions: &HashSet<String>,
+    errors: &mut Vec<String>,
+) {
     let ledger = value.get("contextLedger");
     let entries = ledger.and_then(|ledger| array(ledger, "entries"));
     let consumptions = array(value, "decisionConsumptions");
     if ledger.and_then(|ledger| string(ledger, "sessionId")) != string(value, "sessionId")
         || entries.map(Vec::len) != consumptions.map(Vec::len)
-        || checkpoints.len() != consumptions.map_or(usize::MAX, Vec::len)
+        || checkpoints_len != consumptions.map_or(usize::MAX, Vec::len)
     {
         push_once(errors, "BMAD_CONTEXT_LEDGER_BINDING_MISMATCH");
     }
@@ -893,8 +1001,26 @@ fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<Stri
     }
 }
 
-fn validate_builder(value: &Value, errors: &mut Vec<String>) {
-    let kind = string(value, "builderKind").unwrap_or_default();
+fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<String>) {
+    let profile = value.get("executionProfile");
+    let capability = value.get("capabilityKey");
+    let is_help = string(value, "methodShape") == Some("no_agent_direct");
+    validate_method_profile(value, profile, capability, is_help, errors);
+    validate_method_catalog(value, catalog, capability, is_help, errors);
+    let Some(checkpoints) = array(value, "checkpoints") else {
+        return;
+    };
+    let checkpoint_decisions = validate_method_checkpoints(value, capability, checkpoints, errors);
+    validate_method_context(
+        value,
+        capability,
+        checkpoints.len(),
+        &checkpoint_decisions,
+        errors,
+    );
+}
+
+fn validate_builder_profile_and_action(value: &Value, kind: &str, errors: &mut Vec<String>) {
     let expected_profile = if kind == "agent" {
         "BuilderAgentV2Stateless"
     } else {
@@ -917,6 +1043,9 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_ACTION_UNSUPPORTED");
         }
     }
+}
+
+fn validate_builder_revision(value: &Value, kind: &str, errors: &mut Vec<String>) {
     if string(value, "objectKind") == Some("revision") {
         let Some(file_set) = value.get("proposedFileSet") else {
             return;
@@ -955,6 +1084,9 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
             push_once(errors, "BMAD_BUILDER_INVENTORY_INVALID");
         }
     }
+}
+
+fn validate_builder_analysis(value: &Value, kind: &str, errors: &mut Vec<String>) {
     if string(value, "objectKind") != Some("analysis") {
         return;
     }
@@ -1015,6 +1147,13 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
             }
         }
     }
+}
+
+fn validate_builder(value: &Value, errors: &mut Vec<String>) {
+    let kind = string(value, "builderKind").unwrap_or_default();
+    validate_builder_profile_and_action(value, kind, errors);
+    validate_builder_revision(value, kind, errors);
+    validate_builder_analysis(value, kind, errors);
 }
 
 /// Performs handwritten semantic checks after strict parsing and structural validation.
