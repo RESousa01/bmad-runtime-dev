@@ -1209,6 +1209,7 @@ export declare function validateRemoteJobHandoffTransition(
 export interface BmadSemanticContext {
   readonly descriptor?: BmadPackageDescriptor;
   readonly catalog?: BmadCapabilityCatalog;
+  readonly envelope?: MethodSession["envelope"];
 }
 export declare function validateBmadSemantics(
   document: BmadPackageDescriptor | BmadCapabilityCatalog | MethodSession["payload"] | BuilderAuthoringObject,

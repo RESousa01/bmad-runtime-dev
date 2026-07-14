@@ -8,6 +8,9 @@ import { parseStrictJson } from "./lib/strict-json.mjs";
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const repositoryRoot = path.resolve(packageRoot, "..", "..");
 const {
+  desktopAppCommandCatalogSource,
+  desktopAppRegistrationSource,
+  desktopRuntimeCommandSource,
   dotnetFiles,
   dotnetFileSources,
   hostClientSource,
@@ -67,35 +70,47 @@ const deferredRunnerVocabulary = [
   "run_shell",
   "process_spawn",
 ];
-const deferredBmadVocabulary = [
-  "SkillPackageCandidate",
-  "SkillPackageVersion",
-  "PackageRegistration",
-  "PackagePublication",
-  "InstallRehearsalRun",
-  "InvocationRehearsalRun",
-  "EvaluationRun",
-  "PackagePromotionRequest",
-  "PackageActivation",
-  "PackageRollback",
-  "BuilderModule",
-  "BuilderRegistration",
-  "BuilderRehearsal",
-  "BuilderEvaluation",
-  "BuilderPublication",
-  "BuilderPromotion",
-  "BuilderActivation",
-  "BuilderRollback",
-  "BuilderMemoryAgent",
-  "BuilderAutonomousAgent",
-  "RegisterBuilder",
-  "RehearseBuilder",
-  "EvaluateBuilder",
-  "PublishBuilder",
-  "PromoteBuilder",
-  "ActivateBuilder",
-  "RollbackBuilder",
+const deferredBmadPatterns = [
+  ["SkillPackageCandidate", /skill[._-]*package[._-]*candidate/iu],
+  ["SkillPackageVersion", /skill[._-]*package[._-]*version/iu],
+  ["PackageRegistration", /package[._-]*(?:register|registration)/iu],
+  ["PackagePublication", /package[._-]*(?:publish|publication)/iu],
+  ["InstallRehearsalRun", /install[._-]*rehearsal[._-]*run/iu],
+  ["InvocationRehearsalRun", /invocation[._-]*rehearsal[._-]*run/iu],
+  ["EvaluationRun", /evaluation[._-]*run/iu],
+  ["PackagePromotionRequest", /package[._-]*(?:promote|promotion)(?:[._-]*request)?/iu],
+  ["PackageActivation", /package[._-]*(?:activate|activation)/iu],
+  ["PackageRollback", /package[._-]*rollback/iu],
+  ["BuilderModule", /builder[._-]*module/iu],
+  ["BuilderRegistration", /builder[._-]*(?:register|registration)|(?:register|registration)[._-]*builder/iu],
+  ["BuilderRehearsal", /builder[._-]*rehearsal|rehearsal[._-]*builder/iu],
+  ["BuilderEvaluation", /builder[._-]*(?:evaluate|evaluation)|(?:evaluate|evaluation)[._-]*builder/iu],
+  ["BuilderPublication", /builder[._-]*(?:publish|publication)|(?:publish|publication)[._-]*builder/iu],
+  ["BuilderPromotion", /builder[._-]*(?:promote|promotion)|(?:promote|promotion)[._-]*builder/iu],
+  ["BuilderActivation", /builder[._-]*(?:activate|activation)|(?:activate|activation)[._-]*builder/iu],
+  ["BuilderRollback", /builder[._-]*rollback|rollback[._-]*builder/iu],
+  ["BuilderMemoryAgent", /builder[._-]*memory[._-]*agent|memory[._-]*builder[._-]*agent/iu],
+  ["BuilderAutonomousAgent", /builder[._-]*autonomous[._-]*agent|autonomous[._-]*builder[._-]*agent/iu],
 ];
+
+function assertNoDeferredBmadVocabulary(surface, source) {
+  for (const [label, pattern] of deferredBmadPatterns) {
+    assert.ok(!pattern.test(source), `${surface} must not expose deferred BMAD vocabulary: ${label}.`);
+  }
+}
+
+for (const spelling of [
+  "builder.activate",
+  "builder_activate",
+  "activateBuilder",
+  "BuilderActivation",
+]) {
+  assert.throws(
+    () => assertNoDeferredBmadVocabulary("scanner qualification", spelling),
+    /BuilderActivation/u,
+    `deferred scanner missed ${spelling}`,
+  );
+}
 
 for (const [runtime, source] of Object.entries(sources)) {
   if (runtime === "typescript") {
@@ -115,12 +130,7 @@ for (const [runtime, source] of Object.entries(sources)) {
       `${runtime} binding must not expose deferred runner vocabulary: ${forbidden}.`,
     );
   }
-  for (const forbidden of deferredBmadVocabulary) {
-    assert.ok(
-      !source.includes(forbidden),
-      `${runtime} binding must not expose deferred BMAD vocabulary: ${forbidden}.`,
-    );
-  }
+  assertNoDeferredBmadVocabulary(`${runtime} binding`, source);
 }
 
 for (const [schemaName, source] of schemaSources) {
@@ -130,12 +140,7 @@ for (const [schemaName, source] of schemaSources) {
       `${schemaName} must not expose deferred runner vocabulary: ${forbidden}.`,
     );
   }
-  for (const forbidden of deferredBmadVocabulary) {
-    assert.ok(
-      !source.includes(forbidden),
-      `${schemaName} must not expose deferred BMAD vocabulary: ${forbidden}.`,
-    );
-  }
+  assertNoDeferredBmadVocabulary(schemaName, source);
 }
 
 const publishedSurfaceSources = new Map([
@@ -146,6 +151,15 @@ const publishedSurfaceSources = new Map([
     ipcEnvelopeSource.split("#[cfg(test)]", 1)[0],
   ],
   ["apps/desktop-ui/src/lib/hostClient.ts", hostClientSource],
+  [
+    "crates/desktop-app/src/lib.rs#production",
+    desktopAppRegistrationSource.split("#[cfg(test)]", 1)[0],
+  ],
+  [
+    "crates/desktop-app/src/commands.rs#production",
+    desktopAppCommandCatalogSource.split("#[cfg(test)]", 1)[0],
+  ],
+  ["crates/desktop-runtime/src/command.rs#production", desktopRuntimeCommandSource],
   ...[...lockedGeneratedSources.entries()].map(([file, source]) => [
     `packages/contracts/${file}`,
     source,
@@ -159,6 +173,9 @@ for (const requiredSurface of [
   "packages/contracts/generated/rust/contracts.rs",
   "crates/desktop-ipc/src/envelope.rs#production",
   "apps/desktop-ui/src/lib/hostClient.ts",
+  "crates/desktop-app/src/lib.rs#production",
+  "crates/desktop-app/src/commands.rs#production",
+  "crates/desktop-runtime/src/command.rs#production",
 ]) {
   assert.ok(publishedSurfaceSources.has(requiredSurface), `${requiredSurface} is not scanned.`);
 }
@@ -169,12 +186,7 @@ for (const [surface, source] of publishedSurfaceSources) {
       `${surface} must not expose deferred runner vocabulary: ${forbidden}.`,
     );
   }
-  for (const forbidden of deferredBmadVocabulary) {
-    assert.ok(
-      !source.includes(forbidden),
-      `${surface} must not expose deferred BMAD vocabulary: ${forbidden}.`,
-    );
-  }
+  assertNoDeferredBmadVocabulary(surface, source);
 }
 
 assert.ok(!/\bany\b/.test(sources.typescript), "Generated TypeScript must not use any.");

@@ -293,8 +293,26 @@ export async function loadBindingCheckInputs({ packageRoot, repositoryRoot }) {
     path.join(repositoryRoot, "apps", "desktop-ui", "src", "lib", "hostClient.ts"),
     "desktop UI IPC client source",
   );
+  const desktopAppRegistrationSource = await readContainedUtf8File(
+    repositoryRoot,
+    path.join(repositoryRoot, "crates", "desktop-app", "src", "lib.rs"),
+    "desktop application command registration source",
+  );
+  const desktopAppCommandCatalogSource = await readContainedUtf8File(
+    repositoryRoot,
+    path.join(repositoryRoot, "crates", "desktop-app", "src", "commands.rs"),
+    "desktop application command catalog source",
+  );
+  const desktopRuntimeCommandSource = await readContainedUtf8File(
+    repositoryRoot,
+    path.join(repositoryRoot, "crates", "desktop-runtime", "src", "command.rs"),
+    "desktop runtime command union source",
+  );
 
   return {
+    desktopAppCommandCatalogSource,
+    desktopAppRegistrationSource,
+    desktopRuntimeCommandSource,
     dotnetFiles,
     dotnetFileSources,
     lock,

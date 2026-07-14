@@ -25,7 +25,7 @@
     "dotnetRuntime": "Corvus.Text.Json@5.1.0"
   },
   "toolLockSha256": "sha256:a15f6585429545311d795c524e2dc50e51e42b03bae3e2a36c42f9236acb997e",
-  "generationConfigSha256": "sha256:7c1608bd09f81bbda0add66755d6c66b61bef83aa98af767ac42e2a98b91061f",
+  "generationConfigSha256": "sha256:7aac3913132ac72c16f6e8b0e9ca9024ee3e6592faf65cfd19d04b439d1d53db",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
@@ -430,7 +430,7 @@
   "generatedTrees": {
     "production": {
       "typescript": {
-        "sha256": "sha256:6045944933e4ec1b70d46557ed69b18ff532ada2f836c4c70013f2c4d0a3af6e",
+        "sha256": "sha256:b67e05dcd9213a86325521d5392a3639c3165a536e807446b6579ef1b9d8364b",
         "files": [
           {
             "file": "generated/typescript/canonical-json.mjs",
@@ -510,7 +510,7 @@
           },
           {
             "file": "generated/typescript/semantic-validation.d.mts",
-            "sha256": "sha256:78a5b8d757a9f0fe907dc9f51d50d6a89f1eeb201fcb96361149d4ae6296f03c"
+            "sha256": "sha256:2e8e246fec3bfed9fda202b947405a93956faec44738205b8c3fbb7d2d464b77"
           },
           {
             "file": "generated/typescript/semantic-validation.mjs",
@@ -10594,7 +10594,7 @@
     }
   ],
   "generatedTree": {
-    "sha256": "sha256:8fcaf55d6132c3927e01fe7e9b0bb917477e6505b0e40792c751ba3cd1650460",
+    "sha256": "sha256:fe2c8405c3e2bc03e05c7bb90c1daae1642836a12d0ad0b30f63e0a9f2025baa",
     "files": [
       {
         "file": "generated/dotnet/Corvus__GlobalDeclarations.cs",
@@ -19646,7 +19646,7 @@
       },
       {
         "file": "generated/typescript/semantic-validation.d.mts",
-        "sha256": "sha256:78a5b8d757a9f0fe907dc9f51d50d6a89f1eeb201fcb96361149d4ae6296f03c"
+        "sha256": "sha256:2e8e246fec3bfed9fda202b947405a93956faec44738205b8c3fbb7d2d464b77"
       },
       {
         "file": "generated/typescript/semantic-validation.mjs",
