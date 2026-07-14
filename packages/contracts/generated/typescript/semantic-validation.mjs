@@ -346,6 +346,17 @@ function validateDescriptor(document, errors) {
   }
   for (const graph of document.configGraphs) {
     const { moduleCode, skillName } = graph.scope;
+    const allowedLayerKinds = {
+      method_central_toml: new Set([
+        "installer_team", "installer_user", "custom_team", "custom_user",
+      ]),
+      skill_customization_toml: new Set([
+        "packaged_default", "team_override", "user_override",
+      ]),
+      compatibility_yaml: new Set([
+        "method_module_yaml", "builder_root_yaml", "builder_user_yaml",
+      ]),
+    }[graph.graphKind];
     if (
       graph.scope.packageVersionId !== document.packageVersionId
       ||
@@ -359,7 +370,8 @@ function validateDescriptor(document, errors) {
     if (
       !bmadIsStrictlySortedUnique(graph.layers, (layer) =>
         bmadTuple([String(layer.ordinal).padStart(8, "0"), layer.sourcePath]))
-      || graph.layers.some((layer) => layer.graphKind !== graph.graphKind)
+      || graph.layers.some((layer) =>
+        layer.graphKind !== graph.graphKind || !allowedLayerKinds.has(layer.layerKind))
     ) {
       errors.push(bmadIssue("BMAD_CONFIG_LAYER_INVALID", "configGraphs.layers"));
     }
@@ -892,7 +904,19 @@ function validateBuilder(document, errors) {
   }
   if (
     document.authoringAction !== undefined
-    && document.authoringAction.builderKind !== document.builderKind
+    && (
+      document.authoringAction.builderKind !== document.builderKind
+      || !({
+        draft: {
+          agent: ["create_rebuild"],
+          workflow: ["build"],
+        },
+        revision: {
+          agent: ["create_rebuild", "edit"],
+          workflow: ["build", "edit"],
+        },
+      }[document.objectKind]?.[document.builderKind] ?? []).includes(document.authoringAction.action)
+    )
   ) {
     errors.push(bmadIssue("BMAD_ACTION_UNSUPPORTED", "authoringAction"));
   }

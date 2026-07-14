@@ -26,19 +26,19 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Generated from JSON Schema.
     /// </summary>
-    public readonly partial struct BmadPackageDescriptorBmadConfigLayer
+    public readonly partial struct BuilderAuthoringObjectBuilderAuthoringAction
     {
         /// <summary>
         /// Generated from JSON Schema.
         /// </summary>
-        public readonly partial struct OneOf1Entity
+        public readonly partial struct OneOf0Entity
         {
             /// <summary>
             /// Generated from JSON Schema.
             /// </summary>
             [DebuggerDisplay("{DebuggerDisplay,nq}")]
-            public readonly partial struct LayerKindEntity
-                : IJsonElement<LayerKindEntity>
+            public readonly partial struct BuilderKindEntity
+                : IJsonElement<BuilderKindEntity>
             {
                 /// <summary>
                 /// Provides accesors for enumerated values
@@ -46,237 +46,31 @@ public readonly partial struct SapphirusContractsCatalog
                 private static class Constants
                 {
                     /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
+                    /// A constant for the <c>const</c> keyword.
                     /// </summary>
-                    public static readonly byte[] Enum1 = "installer_team"u8.ToArray();
+                    public static readonly byte[] Const = "agent"u8.ToArray();
                     /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
+                    /// A constant for the <c>const</c> keyword.
                     /// </summary>
-                    public static readonly LayerKindEntity EnumJson1 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"installer_team\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum2 = "installer_user"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson2 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"installer_user\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum3 = "custom_team"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson3 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"custom_team\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum4 = "custom_user"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson4 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"custom_user\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum5 = "packaged_default"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson5 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"packaged_default\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum6 = "team_override"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson6 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"team_override\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum7 = "user_override"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson7 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"user_override\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum8 = "method_module_yaml"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson8 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"method_module_yaml\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum9 = "builder_root_yaml"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson9 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"builder_root_yaml\""u8]);
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly byte[] Enum10 = "builder_user_yaml"u8.ToArray();
-                    /// <summary>
-                    /// A constant for the <c>enum</c> keyword.
-                    /// </summary>
-                    public static readonly LayerKindEntity EnumJson10 = ParsedJsonDocument<LayerKindEntity>.StringConstant([.."\"builder_user_yaml\""u8]);
-                }
-
-                /// <summary>
-                /// Provides named constants for enum values.
-                /// </summary>
-                public static class EnumValues
-                {
-                    /// <summary>
-                    /// Gets the string "installer_team"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity InstallerTeam { get; } = Constants.EnumJson1;
-                    /// <summary>
-                    /// Gets the string "installer_team"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> InstallerTeamUtf8 => Constants.Enum1;
-
-                    /// <summary>
-                    /// Gets the string "installer_user"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity InstallerUser { get; } = Constants.EnumJson2;
-                    /// <summary>
-                    /// Gets the string "installer_user"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> InstallerUserUtf8 => Constants.Enum2;
-
-                    /// <summary>
-                    /// Gets the string "custom_team"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity CustomTeam { get; } = Constants.EnumJson3;
-                    /// <summary>
-                    /// Gets the string "custom_team"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> CustomTeamUtf8 => Constants.Enum3;
-
-                    /// <summary>
-                    /// Gets the string "custom_user"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity CustomUser { get; } = Constants.EnumJson4;
-                    /// <summary>
-                    /// Gets the string "custom_user"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> CustomUserUtf8 => Constants.Enum4;
-
-                    /// <summary>
-                    /// Gets the string "packaged_default"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity PackagedDefault { get; } = Constants.EnumJson5;
-                    /// <summary>
-                    /// Gets the string "packaged_default"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> PackagedDefaultUtf8 => Constants.Enum5;
-
-                    /// <summary>
-                    /// Gets the string "team_override"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity TeamOverride { get; } = Constants.EnumJson6;
-                    /// <summary>
-                    /// Gets the string "team_override"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> TeamOverrideUtf8 => Constants.Enum6;
-
-                    /// <summary>
-                    /// Gets the string "user_override"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity UserOverride { get; } = Constants.EnumJson7;
-                    /// <summary>
-                    /// Gets the string "user_override"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> UserOverrideUtf8 => Constants.Enum7;
-
-                    /// <summary>
-                    /// Gets the string "method_module_yaml"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity MethodModuleYaml { get; } = Constants.EnumJson8;
-                    /// <summary>
-                    /// Gets the string "method_module_yaml"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> MethodModuleYamlUtf8 => Constants.Enum8;
-
-                    /// <summary>
-                    /// Gets the string "builder_root_yaml"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity BuilderRootYaml { get; } = Constants.EnumJson9;
-                    /// <summary>
-                    /// Gets the string "builder_root_yaml"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> BuilderRootYamlUtf8 => Constants.Enum9;
-
-                    /// <summary>
-                    /// Gets the string "builder_user_yaml"
-                    /// as a <see cref="LayerKindEntity"/>.
-                    /// </summary>
-                    public static LayerKindEntity BuilderUserYaml { get; } = Constants.EnumJson10;
-                    /// <summary>
-                    /// Gets the string "builder_user_yaml"
-                    /// as a UTF8 byte array.
-                    /// </summary>
-                    public static ReadOnlySpan<byte> BuilderUserYamlUtf8 => Constants.Enum10;
+                    public static readonly BuilderKindEntity ConstJson = ParsedJsonDocument<BuilderKindEntity>.StringConstant([.."\"agent\""u8]);
                 }
 
                 public static partial class JsonSchema
                 {
-                    private static EnumStringSet BuildEnumStringSet()
-                    {
-                        return new EnumStringSet([
-                            static () => "installer_team"u8,
-                            static () => "installer_user"u8,
-                            static () => "custom_team"u8,
-                            static () => "custom_user"u8,
-                            static () => "packaged_default"u8,
-                            static () => "team_override"u8,
-                            static () => "user_override"u8,
-                            static () => "method_module_yaml"u8,
-                            static () => "builder_root_yaml"u8,
-                            static () => "builder_user_yaml"u8,
-                        ]);
-                    }
-
-                    private static EnumStringSet EnumStringSet { get; } = BuildEnumStringSet();
-
                     /// <summary>
                     /// Gets a provider for the schema location from which this type was generated.
                     /// </summary>
-                    public static readonly JsonSchemaPathProvider SchemaLocationProvider = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("/$defs/BmadPackageDescriptorBmadConfigLayer/oneOf/1/properties/layerKind"u8, buffer, out written);
+                    public static readonly JsonSchemaPathProvider SchemaLocationProvider = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("/$defs/BuilderAuthoringObjectBuilderAuthoringAction/oneOf/0/properties/builderKind"u8, buffer, out written);
 
                     /// <summary>
                     /// Gets the schema location from which this type was generated.
                     /// </summary>
-                    public const string SchemaLocation = "/$defs/BmadPackageDescriptorBmadConfigLayer/oneOf/1/properties/layerKind";
+                    public const string SchemaLocation = "/$defs/BuilderAuthoringObjectBuilderAuthoringAction/oneOf/0/properties/builderKind";
 
                     /// <summary>
                     /// Gets the schema location from which this type was generated as a UTF-8 string.
                     /// </summary>
-                    public static ReadOnlySpan<byte> SchemaLocationUtf8 => "/$defs/BmadPackageDescriptorBmadConfigLayer/oneOf/1/properties/layerKind"u8;
+                    public static ReadOnlySpan<byte> SchemaLocationUtf8 => "/$defs/BuilderAuthoringObjectBuilderAuthoringAction/oneOf/0/properties/builderKind"u8;
 
                     /// <summary>
                     /// Applies the JSON schema semantics defined by this type to the instance determined by the given document and index.
@@ -298,22 +92,12 @@ public readonly partial struct SapphirusContractsCatalog
                         if (tokenType == JsonTokenType.String)
                         {
                             using UnescapedUtf8JsonString unescapedUtf8JsonString = parentDocument.GetUtf8JsonString(parentIndex, JsonTokenType.String);
-                            if (EnumStringSet.Contains(unescapedUtf8JsonString.Span))
-                            {
-                                goto enumShortCircuitSuccess;
-                            }
+                            JsonSchemaEvaluation.MatchStringConstantValue(unescapedUtf8JsonString.Span, "agent"u8, "agent", "const"u8, ref context);
                         }
-
-                        context.EvaluatedKeyword(false, messageProvider: JsonSchemaEvaluation.DidNotMatchAtLeastOneConstantValue, "enum"u8);
-                        if (!context.HasCollector)
+                        else
                         {
-                            return;
+                            context.EvaluatedKeyword(false, "agent", messageProvider: JsonSchemaEvaluation.ExpectedStringEquals, "const"u8);
                         }
-
-                        goto enumAfterFailure;
-enumShortCircuitSuccess:
-                        context.EvaluatedKeyword(true, messageProvider: JsonSchemaEvaluation.MatchedAtLeastOneConstantValue, ", formattedKeyword, "u8);
-enumAfterFailure:;
                     }
 
                     internal static bool Evaluate(

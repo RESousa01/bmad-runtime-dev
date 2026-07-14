@@ -5081,7 +5081,13 @@ impl<'de> ::serde::Deserialize<'de>
 #[doc = "            \"installer_team\","]
 #[doc = "            \"installer_user\","]
 #[doc = "            \"custom_team\","]
-#[doc = "            \"custom_user\""]
+#[doc = "            \"custom_user\","]
+#[doc = "            \"packaged_default\","]
+#[doc = "            \"team_override\","]
+#[doc = "            \"user_override\","]
+#[doc = "            \"method_module_yaml\","]
+#[doc = "            \"builder_root_yaml\","]
+#[doc = "            \"builder_user_yaml\""]
 #[doc = "          ]"]
 #[doc = "        },"]
 #[doc = "        \"ordinal\": {"]
@@ -5159,9 +5165,16 @@ impl<'de> ::serde::Deserialize<'de>
 #[doc = "        },"]
 #[doc = "        \"layerKind\": {"]
 #[doc = "          \"enum\": ["]
+#[doc = "            \"installer_team\","]
+#[doc = "            \"installer_user\","]
+#[doc = "            \"custom_team\","]
+#[doc = "            \"custom_user\","]
 #[doc = "            \"packaged_default\","]
 #[doc = "            \"team_override\","]
-#[doc = "            \"user_override\""]
+#[doc = "            \"user_override\","]
+#[doc = "            \"method_module_yaml\","]
+#[doc = "            \"builder_root_yaml\","]
+#[doc = "            \"builder_user_yaml\""]
 #[doc = "          ]"]
 #[doc = "        },"]
 #[doc = "        \"ordinal\": {"]
@@ -5239,6 +5252,13 @@ impl<'de> ::serde::Deserialize<'de>
 #[doc = "        },"]
 #[doc = "        \"layerKind\": {"]
 #[doc = "          \"enum\": ["]
+#[doc = "            \"installer_team\","]
+#[doc = "            \"installer_user\","]
+#[doc = "            \"custom_team\","]
+#[doc = "            \"custom_user\","]
+#[doc = "            \"packaged_default\","]
+#[doc = "            \"team_override\","]
+#[doc = "            \"user_override\","]
 #[doc = "            \"method_module_yaml\","]
 #[doc = "            \"builder_root_yaml\","]
 #[doc = "            \"builder_user_yaml\""]
@@ -5611,7 +5631,13 @@ impl<'de> ::serde::Deserialize<'de> for BmadPackageDescriptorBmadConfigLayerEntr
 #[doc = "    \"installer_team\","]
 #[doc = "    \"installer_user\","]
 #[doc = "    \"custom_team\","]
-#[doc = "    \"custom_user\""]
+#[doc = "    \"custom_user\","]
+#[doc = "    \"packaged_default\","]
+#[doc = "    \"team_override\","]
+#[doc = "    \"user_override\","]
+#[doc = "    \"method_module_yaml\","]
+#[doc = "    \"builder_root_yaml\","]
+#[doc = "    \"builder_user_yaml\""]
 #[doc = "  ]"]
 #[doc = "}"]
 #[doc = r" ```"]
@@ -5637,6 +5663,18 @@ pub enum BmadPackageDescriptorBmadConfigLayerLayerKind {
     CustomTeam,
     #[serde(rename = "custom_user")]
     CustomUser,
+    #[serde(rename = "packaged_default")]
+    PackagedDefault,
+    #[serde(rename = "team_override")]
+    TeamOverride,
+    #[serde(rename = "user_override")]
+    UserOverride,
+    #[serde(rename = "method_module_yaml")]
+    MethodModuleYaml,
+    #[serde(rename = "builder_root_yaml")]
+    BuilderRootYaml,
+    #[serde(rename = "builder_user_yaml")]
+    BuilderUserYaml,
 }
 impl ::std::fmt::Display for BmadPackageDescriptorBmadConfigLayerLayerKind {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -5645,6 +5683,12 @@ impl ::std::fmt::Display for BmadPackageDescriptorBmadConfigLayerLayerKind {
             Self::InstallerUser => f.write_str("installer_user"),
             Self::CustomTeam => f.write_str("custom_team"),
             Self::CustomUser => f.write_str("custom_user"),
+            Self::PackagedDefault => f.write_str("packaged_default"),
+            Self::TeamOverride => f.write_str("team_override"),
+            Self::UserOverride => f.write_str("user_override"),
+            Self::MethodModuleYaml => f.write_str("method_module_yaml"),
+            Self::BuilderRootYaml => f.write_str("builder_root_yaml"),
+            Self::BuilderUserYaml => f.write_str("builder_user_yaml"),
         }
     }
 }
@@ -5656,6 +5700,12 @@ impl ::std::str::FromStr for BmadPackageDescriptorBmadConfigLayerLayerKind {
             "installer_user" => Ok(Self::InstallerUser),
             "custom_team" => Ok(Self::CustomTeam),
             "custom_user" => Ok(Self::CustomUser),
+            "packaged_default" => Ok(Self::PackagedDefault),
+            "team_override" => Ok(Self::TeamOverride),
+            "user_override" => Ok(Self::UserOverride),
+            "method_module_yaml" => Ok(Self::MethodModuleYaml),
+            "builder_root_yaml" => Ok(Self::BuilderRootYaml),
+            "builder_user_yaml" => Ok(Self::BuilderUserYaml),
             _ => Err("invalid value".into()),
         }
     }
@@ -13326,119 +13376,11 @@ impl ::std::convert::TryFrom<::std::string::String> for BuilderAuthoringObjectBu
 #[doc = "        },"]
 #[doc = "        \"modelLensResults\": {"]
 #[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": false,"]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
+#[doc = "          },"]
 #[doc = "          \"maxItems\": 6,"]
-#[doc = "          \"minItems\": 6,"]
-#[doc = "          \"prefixItems\": ["]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"leanness\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"architecture\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"determinism\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"customization\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"enhancement\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"agent\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"agent-cohesion\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            }"]
-#[doc = "          ]"]
+#[doc = "          \"minItems\": 6"]
 #[doc = "        },"]
 #[doc = "        \"modelLensesPerformed\": {"]
 #[doc = "          \"const\": true"]
@@ -13602,101 +13544,11 @@ impl ::std::convert::TryFrom<::std::string::String> for BuilderAuthoringObjectBu
 #[doc = "        },"]
 #[doc = "        \"modelLensResults\": {"]
 #[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": false,"]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
+#[doc = "          },"]
 #[doc = "          \"maxItems\": 5,"]
-#[doc = "          \"minItems\": 5,"]
-#[doc = "          \"prefixItems\": ["]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"workflow\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"leanness\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"workflow\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"architecture\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"workflow\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"determinism\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"workflow\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"customization\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderModelLensResult\""]
-#[doc = "                },"]
-#[doc = "                {"]
-#[doc = "                  \"properties\": {"]
-#[doc = "                    \"builderKind\": {"]
-#[doc = "                      \"const\": \"workflow\""]
-#[doc = "                    },"]
-#[doc = "                    \"lens\": {"]
-#[doc = "                      \"const\": \"enhancement\""]
-#[doc = "                    }"]
-#[doc = "                  },"]
-#[doc = "                  \"type\": \"object\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            }"]
-#[doc = "          ]"]
+#[doc = "          \"minItems\": 5"]
 #[doc = "        },"]
 #[doc = "        \"modelLensesPerformed\": {"]
 #[doc = "          \"const\": true"]
@@ -13756,8 +13608,7 @@ pub enum BuilderAuthoringObjectBuilderAnalysisRun {
         #[serde(rename = "modelBinding")]
         model_binding: BuilderAuthoringObjectBuilderAnalysisRunVariant1ModelBinding,
         #[serde(rename = "modelLensResults")]
-        model_lens_results:
-            [BuilderAuthoringObjectBuilderAnalysisRunVariant1ModelLensResultsItem; 6usize],
+        model_lens_results: [BuilderAuthoringObjectBuilderModelLensResult; 6usize],
         #[serde(rename = "modelLensesPerformed")]
         model_lenses_performed: ::serde_json::Value,
         #[serde(rename = "objectKind")]
@@ -13799,8 +13650,7 @@ pub enum BuilderAuthoringObjectBuilderAnalysisRun {
         #[serde(rename = "modelBinding")]
         model_binding: BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelBinding,
         #[serde(rename = "modelLensResults")]
-        model_lens_results:
-            [BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelLensResultsItem; 5usize],
+        model_lens_results: [BuilderAuthoringObjectBuilderModelLensResult; 5usize],
         #[serde(rename = "modelLensesPerformed")]
         model_lenses_performed: ::serde_json::Value,
         #[serde(rename = "objectKind")]
@@ -15670,28 +15520,6 @@ impl BuilderAuthoringObjectBuilderAnalysisRunVariant1ModelBinding {
         Default::default()
     }
 }
-#[doc = "`BuilderAuthoringObjectBuilderAnalysisRunVariant1ModelLensResultsItem`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "false"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(
-    :: serde :: Deserialize,
-    :: serde :: Serialize,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-)]
-#[serde(deny_unknown_fields)]
-pub enum BuilderAuthoringObjectBuilderAnalysisRunVariant1ModelLensResultsItem {}
 #[doc = "`BuilderAuthoringObjectBuilderAnalysisRunVariant2DeterministicFindingsItem`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -16119,28 +15947,6 @@ impl BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelBinding {
         Default::default()
     }
 }
-#[doc = "`BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelLensResultsItem`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "false"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(
-    :: serde :: Deserialize,
-    :: serde :: Serialize,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-)]
-#[serde(deny_unknown_fields)]
-pub enum BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelLensResultsItem {}
 #[doc = "`BuilderAuthoringObjectBuilderAuthoringAction`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -16159,7 +15965,8 @@ pub enum BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelLensResultsItem {}
 #[doc = "          \"enum\": ["]
 #[doc = "            \"create_rebuild\","]
 #[doc = "            \"edit\","]
-#[doc = "            \"analyze\""]
+#[doc = "            \"analyze\","]
+#[doc = "            \"build\""]
 #[doc = "          ]"]
 #[doc = "        },"]
 #[doc = "        \"builderKind\": {"]
@@ -16177,6 +15984,7 @@ pub enum BuilderAuthoringObjectBuilderAnalysisRunVariant2ModelLensResultsItem {}
 #[doc = "      \"properties\": {"]
 #[doc = "        \"action\": {"]
 #[doc = "          \"enum\": ["]
+#[doc = "            \"create_rebuild\","]
 #[doc = "            \"build\","]
 #[doc = "            \"edit\","]
 #[doc = "            \"analyze\""]
@@ -16209,7 +16017,8 @@ pub enum BuilderAuthoringObjectBuilderAuthoringAction {
 #[doc = "  \"enum\": ["]
 #[doc = "    \"create_rebuild\","]
 #[doc = "    \"edit\","]
-#[doc = "    \"analyze\""]
+#[doc = "    \"analyze\","]
+#[doc = "    \"build\""]
 #[doc = "  ]"]
 #[doc = "}"]
 #[doc = r" ```"]
@@ -16233,6 +16042,8 @@ pub enum BuilderAuthoringObjectBuilderAuthoringActionAction {
     Edit,
     #[serde(rename = "analyze")]
     Analyze,
+    #[serde(rename = "build")]
+    Build,
 }
 impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringActionAction {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -16240,6 +16051,7 @@ impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringActionAction 
             Self::CreateRebuild => f.write_str("create_rebuild"),
             Self::Edit => f.write_str("edit"),
             Self::Analyze => f.write_str("analyze"),
+            Self::Build => f.write_str("build"),
         }
     }
 }
@@ -16250,6 +16062,7 @@ impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringActionAction 
             "create_rebuild" => Ok(Self::CreateRebuild),
             "edit" => Ok(Self::Edit),
             "analyze" => Ok(Self::Analyze),
+            "build" => Ok(Self::Build),
             _ => Err("invalid value".into()),
         }
     }
@@ -16306,20 +16119,7 @@ impl ::std::convert::TryFrom<::std::string::String>
 #[doc = "      ],"]
 #[doc = "      \"properties\": {"]
 #[doc = "        \"authoringAction\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"action\","]
-#[doc = "            \"builderKind\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"action\": {"]
-#[doc = "              \"const\": \"create_rebuild\""]
-#[doc = "            },"]
-#[doc = "            \"builderKind\": {"]
-#[doc = "              \"const\": \"agent\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
+#[doc = "          \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAuthoringAction\""]
 #[doc = "        },"]
 #[doc = "        \"authoringSessionId\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
@@ -16379,20 +16179,7 @@ impl ::std::convert::TryFrom<::std::string::String>
 #[doc = "      ],"]
 #[doc = "      \"properties\": {"]
 #[doc = "        \"authoringAction\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"action\","]
-#[doc = "            \"builderKind\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"action\": {"]
-#[doc = "              \"const\": \"build\""]
-#[doc = "            },"]
-#[doc = "            \"builderKind\": {"]
-#[doc = "              \"const\": \"workflow\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
+#[doc = "          \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAuthoringAction\""]
 #[doc = "        },"]
 #[doc = "        \"authoringSessionId\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
@@ -16443,7 +16230,7 @@ pub enum BuilderAuthoringObjectBuilderDraft {
     #[serde(rename = "agent")]
     Agent {
         #[serde(rename = "authoringAction")]
-        authoring_action: BuilderAuthoringObjectBuilderDraftAuthoringAction,
+        authoring_action: BuilderAuthoringObjectBuilderAuthoringAction,
         #[serde(rename = "authoringSessionId")]
         authoring_session_id: CommonContractId,
         #[serde(rename = "createdAt")]
@@ -16470,7 +16257,7 @@ pub enum BuilderAuthoringObjectBuilderDraft {
     #[serde(rename = "workflow")]
     Workflow {
         #[serde(rename = "authoringAction")]
-        authoring_action: BuilderAuthoringObjectBuilderDraftAuthoringAction,
+        authoring_action: BuilderAuthoringObjectBuilderAuthoringAction,
         #[serde(rename = "authoringSessionId")]
         authoring_session_id: CommonContractId,
         #[serde(rename = "createdAt")]
@@ -16494,41 +16281,6 @@ pub enum BuilderAuthoringObjectBuilderDraft {
         #[serde(rename = "validationProfile")]
         validation_profile: ::serde_json::Value,
     },
-}
-#[doc = "`BuilderAuthoringObjectBuilderDraftAuthoringAction`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"action\","]
-#[doc = "    \"builderKind\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"action\": {"]
-#[doc = "      \"const\": \"create_rebuild\""]
-#[doc = "    },"]
-#[doc = "    \"builderKind\": {"]
-#[doc = "      \"const\": \"agent\""]
-#[doc = "    }"]
-#[doc = "  },"]
-#[doc = "  \"additionalProperties\": false"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(deny_unknown_fields)]
-pub struct BuilderAuthoringObjectBuilderDraftAuthoringAction {
-    pub action: ::serde_json::Value,
-    #[serde(rename = "builderKind")]
-    pub builder_kind: ::serde_json::Value,
-}
-impl BuilderAuthoringObjectBuilderDraftAuthoringAction {
-    pub fn builder() -> builder::BuilderAuthoringObjectBuilderDraftAuthoringAction {
-        Default::default()
-    }
 }
 #[doc = "`BuilderAuthoringObjectBuilderDraftRevision`"]
 #[doc = r""]
@@ -16559,23 +16311,7 @@ impl BuilderAuthoringObjectBuilderDraftAuthoringAction {
 #[doc = "      ],"]
 #[doc = "      \"properties\": {"]
 #[doc = "        \"authoringAction\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"action\","]
-#[doc = "            \"builderKind\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"action\": {"]
-#[doc = "              \"enum\": ["]
-#[doc = "                \"create_rebuild\","]
-#[doc = "                \"edit\""]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"builderKind\": {"]
-#[doc = "              \"const\": \"agent\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
+#[doc = "          \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAuthoringAction\""]
 #[doc = "        },"]
 #[doc = "        \"builderKind\": {"]
 #[doc = "          \"const\": \"agent\""]
@@ -16656,23 +16392,7 @@ impl BuilderAuthoringObjectBuilderDraftAuthoringAction {
 #[doc = "      ],"]
 #[doc = "      \"properties\": {"]
 #[doc = "        \"authoringAction\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"action\","]
-#[doc = "            \"builderKind\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"action\": {"]
-#[doc = "              \"enum\": ["]
-#[doc = "                \"build\","]
-#[doc = "                \"edit\""]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"builderKind\": {"]
-#[doc = "              \"const\": \"workflow\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
+#[doc = "          \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAuthoringAction\""]
 #[doc = "        },"]
 #[doc = "        \"builderKind\": {"]
 #[doc = "          \"const\": \"workflow\""]
@@ -16741,7 +16461,7 @@ pub enum BuilderAuthoringObjectBuilderDraftRevision {
     #[serde(rename = "agent")]
     Agent {
         #[serde(rename = "authoringAction")]
-        authoring_action: BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction,
+        authoring_action: BuilderAuthoringObjectBuilderAuthoringAction,
         #[serde(rename = "createdAt")]
         created_at: CommonUtcInstant,
         #[serde(rename = "draftId")]
@@ -16773,7 +16493,7 @@ pub enum BuilderAuthoringObjectBuilderDraftRevision {
     #[serde(rename = "workflow")]
     Workflow {
         #[serde(rename = "authoringAction")]
-        authoring_action: BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction,
+        authoring_action: BuilderAuthoringObjectBuilderAuthoringAction,
         #[serde(rename = "createdAt")]
         created_at: CommonUtcInstant,
         #[serde(rename = "draftId")]
@@ -16802,121 +16522,6 @@ pub enum BuilderAuthoringObjectBuilderDraftRevision {
         #[serde(rename = "validationProfile")]
         validation_profile: ::serde_json::Value,
     },
-}
-#[doc = "`BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"action\","]
-#[doc = "    \"builderKind\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"action\": {"]
-#[doc = "      \"enum\": ["]
-#[doc = "        \"create_rebuild\","]
-#[doc = "        \"edit\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"builderKind\": {"]
-#[doc = "      \"const\": \"agent\""]
-#[doc = "    }"]
-#[doc = "  },"]
-#[doc = "  \"additionalProperties\": false"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(deny_unknown_fields)]
-pub struct BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-    pub action: BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction,
-    #[serde(rename = "builderKind")]
-    pub builder_kind: ::serde_json::Value,
-}
-impl BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-    pub fn builder() -> builder::BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-        Default::default()
-    }
-}
-#[doc = "`BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"enum\": ["]
-#[doc = "    \"create_rebuild\","]
-#[doc = "    \"edit\""]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(
-    :: serde :: Deserialize,
-    :: serde :: Serialize,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-)]
-pub enum BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction {
-    #[serde(rename = "create_rebuild")]
-    CreateRebuild,
-    #[serde(rename = "edit")]
-    Edit,
-}
-impl ::std::fmt::Display for BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        match *self {
-            Self::CreateRebuild => f.write_str("create_rebuild"),
-            Self::Edit => f.write_str("edit"),
-        }
-    }
-}
-impl ::std::str::FromStr for BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction {
-    type Err = self::error::ConversionError;
-    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        match value {
-            "create_rebuild" => Ok(Self::CreateRebuild),
-            "edit" => Ok(Self::Edit),
-            _ => Err("invalid value".into()),
-        }
-    }
-}
-impl ::std::convert::TryFrom<&str>
-    for BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction
-{
-    type Error = self::error::ConversionError;
-    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<&::std::string::String>
-    for BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction
-{
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: &::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<::std::string::String>
-    for BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction
-{
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
 }
 #[doc = "`BuilderAuthoringObjectBuilderModelLensResult`"]
 #[doc = r""]
@@ -42165,127 +41770,6 @@ pub mod builder {
                 model_profile_hash: Ok(value.model_profile_hash),
                 result_hash: Ok(value.result_hash),
                 schema_hash: Ok(value.schema_hash),
-            }
-        }
-    }
-    #[derive(Clone, Debug)]
-    pub struct BuilderAuthoringObjectBuilderDraftAuthoringAction {
-        action: ::std::result::Result<::serde_json::Value, ::std::string::String>,
-        builder_kind: ::std::result::Result<::serde_json::Value, ::std::string::String>,
-    }
-    impl ::std::default::Default for BuilderAuthoringObjectBuilderDraftAuthoringAction {
-        fn default() -> Self {
-            Self {
-                action: Err("no value supplied for action".to_string()),
-                builder_kind: Err("no value supplied for builder_kind".to_string()),
-            }
-        }
-    }
-    impl BuilderAuthoringObjectBuilderDraftAuthoringAction {
-        pub fn action<T>(mut self, value: T) -> Self
-        where
-            T: ::std::convert::TryInto<::serde_json::Value>,
-            T::Error: ::std::fmt::Display,
-        {
-            self.action = value
-                .try_into()
-                .map_err(|e| format!("error converting supplied value for action: {e}"));
-            self
-        }
-        pub fn builder_kind<T>(mut self, value: T) -> Self
-        where
-            T: ::std::convert::TryInto<::serde_json::Value>,
-            T::Error: ::std::fmt::Display,
-        {
-            self.builder_kind = value
-                .try_into()
-                .map_err(|e| format!("error converting supplied value for builder_kind: {e}"));
-            self
-        }
-    }
-    impl ::std::convert::TryFrom<BuilderAuthoringObjectBuilderDraftAuthoringAction>
-        for super::BuilderAuthoringObjectBuilderDraftAuthoringAction
-    {
-        type Error = super::error::ConversionError;
-        fn try_from(
-            value: BuilderAuthoringObjectBuilderDraftAuthoringAction,
-        ) -> ::std::result::Result<Self, super::error::ConversionError> {
-            Ok(Self {
-                action: value.action?,
-                builder_kind: value.builder_kind?,
-            })
-        }
-    }
-    impl ::std::convert::From<super::BuilderAuthoringObjectBuilderDraftAuthoringAction>
-        for BuilderAuthoringObjectBuilderDraftAuthoringAction
-    {
-        fn from(value: super::BuilderAuthoringObjectBuilderDraftAuthoringAction) -> Self {
-            Self {
-                action: Ok(value.action),
-                builder_kind: Ok(value.builder_kind),
-            }
-        }
-    }
-    #[derive(Clone, Debug)]
-    pub struct BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-        action: ::std::result::Result<
-            super::BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction,
-            ::std::string::String,
-        >,
-        builder_kind: ::std::result::Result<::serde_json::Value, ::std::string::String>,
-    }
-    impl ::std::default::Default for BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-        fn default() -> Self {
-            Self {
-                action: Err("no value supplied for action".to_string()),
-                builder_kind: Err("no value supplied for builder_kind".to_string()),
-            }
-        }
-    }
-    impl BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction {
-        pub fn action<T>(mut self, value: T) -> Self
-        where
-            T: ::std::convert::TryInto<
-                super::BuilderAuthoringObjectBuilderDraftRevisionAuthoringActionAction,
-            >,
-            T::Error: ::std::fmt::Display,
-        {
-            self.action = value
-                .try_into()
-                .map_err(|e| format!("error converting supplied value for action: {e}"));
-            self
-        }
-        pub fn builder_kind<T>(mut self, value: T) -> Self
-        where
-            T: ::std::convert::TryInto<::serde_json::Value>,
-            T::Error: ::std::fmt::Display,
-        {
-            self.builder_kind = value
-                .try_into()
-                .map_err(|e| format!("error converting supplied value for builder_kind: {e}"));
-            self
-        }
-    }
-    impl ::std::convert::TryFrom<BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction>
-        for super::BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction
-    {
-        type Error = super::error::ConversionError;
-        fn try_from(
-            value: BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction,
-        ) -> ::std::result::Result<Self, super::error::ConversionError> {
-            Ok(Self {
-                action: value.action?,
-                builder_kind: value.builder_kind?,
-            })
-        }
-    }
-    impl ::std::convert::From<super::BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction>
-        for BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction
-    {
-        fn from(value: super::BuilderAuthoringObjectBuilderDraftRevisionAuthoringAction) -> Self {
-            Self {
-                action: Ok(value.action),
-                builder_kind: Ok(value.builder_kind),
             }
         }
     }

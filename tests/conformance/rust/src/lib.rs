@@ -217,6 +217,21 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
     }
     for graph in graphs {
         let kind = string(graph, "graphKind").unwrap_or_default();
+        let allowed_layer_kinds: &[&str] = match kind {
+            "method_central_toml" => &[
+                "installer_team",
+                "installer_user",
+                "custom_team",
+                "custom_user",
+            ],
+            "skill_customization_toml" => &["packaged_default", "team_override", "user_override"],
+            "compatibility_yaml" => &[
+                "method_module_yaml",
+                "builder_root_yaml",
+                "builder_user_yaml",
+            ],
+            _ => &[],
+        };
         let Some(scope) = graph.get("scope") else {
             continue;
         };
@@ -239,9 +254,11 @@ fn validate_descriptor(value: &Value, errors: &mut Vec<String>) {
                         .unwrap_or_default(),
                     nullable_string(layer, "sourcePath")
                 )
-            }) || layers
-                .iter()
-                .any(|layer| string(layer, "graphKind") != Some(kind))
+            }) || layers.iter().any(|layer| {
+                string(layer, "graphKind") != Some(kind)
+                    || !string(layer, "layerKind")
+                        .is_some_and(|layer_kind| allowed_layer_kinds.contains(&layer_kind))
+            })
         }) {
             push_once(errors, "BMAD_CONFIG_LAYER_INVALID");
         }
@@ -885,6 +902,20 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
     };
     if string(value, "validationProfile") != Some(expected_profile) {
         push_once(errors, "BMAD_PROFILE_AMBIGUOUS");
+    }
+    if let Some(action) = value.get("authoringAction") {
+        let allowed: &[&str] = match (string(value, "objectKind"), kind) {
+            (Some("draft"), "agent") => &["create_rebuild"],
+            (Some("draft"), "workflow") => &["build"],
+            (Some("revision"), "agent") => &["create_rebuild", "edit"],
+            (Some("revision"), "workflow") => &["build", "edit"],
+            _ => &[],
+        };
+        if string(action, "builderKind") != Some(kind)
+            || !string(action, "action").is_some_and(|action| allowed.contains(&action))
+        {
+            push_once(errors, "BMAD_ACTION_UNSUPPORTED");
+        }
     }
     if string(value, "objectKind") == Some("revision") {
         let Some(file_set) = value.get("proposedFileSet") else {

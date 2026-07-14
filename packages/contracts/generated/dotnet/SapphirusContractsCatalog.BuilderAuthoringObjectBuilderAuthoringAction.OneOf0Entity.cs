@@ -26,7 +26,7 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Generated from JSON Schema.
     /// </summary>
-    public readonly partial struct BuilderAuthoringObjectBuilderDraft
+    public readonly partial struct BuilderAuthoringObjectBuilderAuthoringAction
     {
         /// <summary>
         /// Generated from JSON Schema.
@@ -65,39 +65,18 @@ public readonly partial struct SapphirusContractsCatalog
             public static OneOf0Entity DefaultInstance { get; }
 
             /// <summary>
-            /// Gets the <c>authoringAction</c> property.
+            /// Gets the <c>action</c> property.
             /// </summary>
             /// <remarks>
             /// <para>
             /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
             /// </para>
             /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction AuthoringAction
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.OneOf0Entity.ActionEntity Action
             {
                 get
                 {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>authoringSessionId</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId AuthoringSessionId
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringSessionIdUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId value))
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.OneOf0Entity.ActionEntity value))
                     {
                         return value;
                     }
@@ -114,221 +93,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
             /// </para>
             /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.BuilderKindEntity BuilderKind
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.OneOf0Entity.BuilderKindEntity BuilderKind
             {
                 get
                 {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BuilderKindUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.BuilderKindEntity value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>createdAt</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant CreatedAt
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.CreatedAtUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>draftEffect</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.DraftEffectEntity DraftEffect
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DraftEffectUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.DraftEffectEntity value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>draftId</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId DraftId
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DraftIdUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>instructionProjectionSetHash</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 InstructionProjectionSetHash
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.InstructionProjectionSetHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>objectKind</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.ObjectKindEntity ObjectKind
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ObjectKindUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.ObjectKindEntity value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>ownerScopeRef</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId OwnerScopeRef
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.OwnerScopeRefUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>projectId</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId ProjectId
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ProjectIdUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>schemaVersion</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.SchemaVersionEntity SchemaVersion
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SchemaVersionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.SchemaVersionEntity value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>sourceIdentityHash</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 SourceIdentityHash
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SourceIdentityHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 value))
-                    {
-                        return value;
-                    }
-
-                    return default;
-                }
-            }
-
-            /// <summary>
-            /// Gets the <c>validationProfile</c> property.
-            /// </summary>
-            /// <remarks>
-            /// <para>
-            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
-            /// </para>
-            /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.ValidationProfileEntity ValidationProfile
-            {
-                get
-                {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ValidationProfileUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.ValidationProfileEntity value))
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BuilderKindUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.OneOf0Entity.BuilderKindEntity value))
                     {
                         return value;
                     }
@@ -759,14 +528,9 @@ public readonly partial struct SapphirusContractsCatalog
             public static class JsonPropertyNames
             {
                 /// <summary>
-                /// Gets the JSON property name for <see cref="AuthoringAction"/>.
+                /// Gets the JSON property name for <see cref="Action"/>.
                 /// </summary>
-                public const string AuthoringAction = "authoringAction";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="AuthoringSessionId"/>.
-                /// </summary>
-                public const string AuthoringSessionId = "authoringSessionId";
+                public const string Action = "action";
 
                 /// <summary>
                 /// Gets the JSON property name for <see cref="BuilderKind"/>.
@@ -774,119 +538,14 @@ public readonly partial struct SapphirusContractsCatalog
                 public const string BuilderKind = "builderKind";
 
                 /// <summary>
-                /// Gets the JSON property name for <see cref="CreatedAt"/>.
+                /// Gets the JSON property name for <see cref="Action"/>.
                 /// </summary>
-                public const string CreatedAt = "createdAt";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="DraftEffect"/>.
-                /// </summary>
-                public const string DraftEffect = "draftEffect";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="DraftId"/>.
-                /// </summary>
-                public const string DraftId = "draftId";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="InstructionProjectionSetHash"/>.
-                /// </summary>
-                public const string InstructionProjectionSetHash = "instructionProjectionSetHash";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ObjectKind"/>.
-                /// </summary>
-                public const string ObjectKind = "objectKind";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="OwnerScopeRef"/>.
-                /// </summary>
-                public const string OwnerScopeRef = "ownerScopeRef";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ProjectId"/>.
-                /// </summary>
-                public const string ProjectId = "projectId";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="SchemaVersion"/>.
-                /// </summary>
-                public const string SchemaVersion = "schemaVersion";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="SourceIdentityHash"/>.
-                /// </summary>
-                public const string SourceIdentityHash = "sourceIdentityHash";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ValidationProfile"/>.
-                /// </summary>
-                public const string ValidationProfile = "validationProfile";
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="AuthoringAction"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> AuthoringActionUtf8 => "authoringAction"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="AuthoringSessionId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> AuthoringSessionIdUtf8 => "authoringSessionId"u8;
+                public static ReadOnlySpan<byte> ActionUtf8 => "action"u8;
 
                 /// <summary>
                 /// Gets the JSON property name for <see cref="BuilderKind"/>.
                 /// </summary>
                 public static ReadOnlySpan<byte> BuilderKindUtf8 => "builderKind"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="CreatedAt"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> CreatedAtUtf8 => "createdAt"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="DraftEffect"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftEffectUtf8 => "draftEffect"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="DraftId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftIdUtf8 => "draftId"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="InstructionProjectionSetHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> InstructionProjectionSetHashUtf8 => "instructionProjectionSetHash"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ObjectKind"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ObjectKindUtf8 => "objectKind"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="OwnerScopeRef"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> OwnerScopeRefUtf8 => "ownerScopeRef"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ProjectId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ProjectIdUtf8 => "projectId"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="SchemaVersion"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SchemaVersionUtf8 => "schemaVersion"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="SourceIdentityHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SourceIdentityHashUtf8 => "sourceIdentityHash"u8;
-
-                /// <summary>
-                /// Gets the JSON property name for <see cref="ValidationProfile"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ValidationProfileUtf8 => "validationProfile"u8;
             }
 
             /// <summary>
@@ -895,69 +554,14 @@ public readonly partial struct SapphirusContractsCatalog
             private static class JsonPropertyNamesEscaped
             {
                 /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="AuthoringAction"/>.
+                /// Gets the escaped UTF-8 JSON property name for <see cref="Action"/>.
                 /// </summary>
-                public static ReadOnlySpan<byte> AuthoringAction => "authoringAction"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="AuthoringSessionId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> AuthoringSessionId => "authoringSessionId"u8;
+                public static ReadOnlySpan<byte> Action => "action"u8;
 
                 /// <summary>
                 /// Gets the escaped UTF-8 JSON property name for <see cref="BuilderKind"/>.
                 /// </summary>
                 public static ReadOnlySpan<byte> BuilderKind => "builderKind"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="CreatedAt"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> CreatedAt => "createdAt"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="DraftEffect"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftEffect => "draftEffect"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="DraftId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftId => "draftId"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="InstructionProjectionSetHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> InstructionProjectionSetHash => "instructionProjectionSetHash"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="ObjectKind"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ObjectKind => "objectKind"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="OwnerScopeRef"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> OwnerScopeRef => "ownerScopeRef"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="ProjectId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ProjectId => "projectId"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="SchemaVersion"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SchemaVersion => "schemaVersion"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="SourceIdentityHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SourceIdentityHash => "sourceIdentityHash"u8;
-
-                /// <summary>
-                /// Gets the escaped UTF-8 JSON property name for <see cref="ValidationProfile"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ValidationProfile => "validationProfile"u8;
             }
 
             /// <summary>
@@ -967,69 +571,14 @@ public readonly partial struct SapphirusContractsCatalog
             private static class JsonPropertyNamesPrebaked
             {
                 /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="AuthoringAction"/>.
+                /// Gets the pre-baked property name blob for <see cref="Action"/>.
                 /// </summary>
-                public static ReadOnlySpan<byte> AuthoringAction => [0x15, 0x01, 0x00, 0x00, 0x22, 0x61, 0x75, 0x74, 0x68, 0x6F, 0x72, 0x69, 0x6E, 0x67, 0x41, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="AuthoringSessionId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> AuthoringSessionId => [0x45, 0x01, 0x00, 0x00, 0x22, 0x61, 0x75, 0x74, 0x68, 0x6F, 0x72, 0x69, 0x6E, 0x67, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6F, 0x6E, 0x49, 0x64, 0x22];
+                public static ReadOnlySpan<byte> Action => [0x85, 0x00, 0x00, 0x00, 0x22, 0x61, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x22];
 
                 /// <summary>
                 /// Gets the pre-baked property name blob for <see cref="BuilderKind"/>.
                 /// </summary>
                 public static ReadOnlySpan<byte> BuilderKind => [0xD5, 0x00, 0x00, 0x00, 0x22, 0x62, 0x75, 0x69, 0x6C, 0x64, 0x65, 0x72, 0x4B, 0x69, 0x6E, 0x64, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="CreatedAt"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> CreatedAt => [0xB5, 0x00, 0x00, 0x00, 0x22, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="DraftEffect"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftEffect => [0xD5, 0x00, 0x00, 0x00, 0x22, 0x64, 0x72, 0x61, 0x66, 0x74, 0x45, 0x66, 0x66, 0x65, 0x63, 0x74, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="DraftId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> DraftId => [0x95, 0x00, 0x00, 0x00, 0x22, 0x64, 0x72, 0x61, 0x66, 0x74, 0x49, 0x64, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="InstructionProjectionSetHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> InstructionProjectionSetHash => [0xE5, 0x01, 0x00, 0x00, 0x22, 0x69, 0x6E, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x50, 0x72, 0x6F, 0x6A, 0x65, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x53, 0x65, 0x74, 0x48, 0x61, 0x73, 0x68, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="ObjectKind"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ObjectKind => [0xC5, 0x00, 0x00, 0x00, 0x22, 0x6F, 0x62, 0x6A, 0x65, 0x63, 0x74, 0x4B, 0x69, 0x6E, 0x64, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="OwnerScopeRef"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> OwnerScopeRef => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x6F, 0x77, 0x6E, 0x65, 0x72, 0x53, 0x63, 0x6F, 0x70, 0x65, 0x52, 0x65, 0x66, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="ProjectId"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ProjectId => [0xB5, 0x00, 0x00, 0x00, 0x22, 0x70, 0x72, 0x6F, 0x6A, 0x65, 0x63, 0x74, 0x49, 0x64, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="SchemaVersion"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SchemaVersion => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x73, 0x63, 0x68, 0x65, 0x6D, 0x61, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="SourceIdentityHash"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> SourceIdentityHash => [0x45, 0x01, 0x00, 0x00, 0x22, 0x73, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x49, 0x64, 0x65, 0x6E, 0x74, 0x69, 0x74, 0x79, 0x48, 0x61, 0x73, 0x68, 0x22];
-
-                /// <summary>
-                /// Gets the pre-baked property name blob for <see cref="ValidationProfile"/>.
-                /// </summary>
-                public static ReadOnlySpan<byte> ValidationProfile => [0x35, 0x01, 0x00, 0x00, 0x22, 0x76, 0x61, 0x6C, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x50, 0x72, 0x6F, 0x66, 0x69, 0x6C, 0x65, 0x22];
             }
         }
     }

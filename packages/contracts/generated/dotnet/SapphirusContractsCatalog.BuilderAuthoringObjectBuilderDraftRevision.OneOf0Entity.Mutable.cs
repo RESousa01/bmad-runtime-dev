@@ -179,11 +179,11 @@ public readonly partial struct SapphirusContractsCatalog
                 /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
                 /// </para>
                 /// </remarks>
-                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Mutable AuthoringAction
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Mutable AuthoringAction
                 {
                     get
                     {
-                        if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Mutable value))
+                        if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Mutable value))
                         {
                             return value;
                         }
@@ -540,7 +540,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>authoringAction</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetAuthoringAction(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source value)
+                public void SetAuthoringAction(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source value)
                 {
                     CheckValidInstance();
 
@@ -571,7 +571,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>authoringAction</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetAuthoringAction<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source<TContext> value)
+                public void SetAuthoringAction<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source<TContext> value)
 #if NET9_0_OR_GREATER
                     where TContext : allows ref struct
 #endif
@@ -1502,7 +1502,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// </summary>
                 internal static void Create(
                     ref ComplexValueBuilder builder,
-                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source authoringAction,
+                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source authoringAction,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash,
@@ -1537,7 +1537,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Creates an instance of a <see cref="OneOf0Entity"/>.
                 /// </summary>
                 public void Create(
-                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source authoringAction,
+                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source authoringAction,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash,
@@ -1559,7 +1559,7 @@ public readonly partial struct SapphirusContractsCatalog
                 internal static void Create<TContext>(
                     in TContext context,
                     ref ComplexValueBuilder builder,
-                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source<TContext> authoringAction,
+                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source<TContext> authoringAction,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash,
@@ -1598,7 +1598,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// </summary>
                 public void Create<TContext>(
                     in TContext context,
-                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source<TContext> authoringAction,
+                    in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source<TContext> authoringAction,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId,
                     in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash,
@@ -1754,7 +1754,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="sourceIdentityHash">The value of the property.</param>
             /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
             /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-            public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source authoringAction, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source inventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.ParentRevisionHashEntity.Source parentRevisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderProposedFileSet.Source proposedFileSet, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawResultHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source revisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source revisionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceIdentityHash, int initialCapacity = 30)
+            public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source authoringAction, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source inventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.ParentRevisionHashEntity.Source parentRevisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderProposedFileSet.Source proposedFileSet, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawResultHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source revisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source revisionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceIdentityHash, int initialCapacity = 30)
             {
                 JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
@@ -1787,7 +1787,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="sourceIdentityHash">The value of the property.</param>
             /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
             /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-            public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.AuthoringActionEntity.Source<TContext> authoringAction, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source inventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.ParentRevisionHashEntity.Source parentRevisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderProposedFileSet.Source<TContext> proposedFileSet, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawResultHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source revisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source revisionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceIdentityHash, int initialCapacity = 30)
+            public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.Source<TContext> authoringAction, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source draftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source inventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.ParentRevisionHashEntity.Source parentRevisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderProposedFileSet.Source<TContext> proposedFileSet, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawResultHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source revisionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source revisionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceIdentityHash, int initialCapacity = 30)
                 #if NET9_0_OR_GREATER
                 where TContext : allows ref struct
                 #endif

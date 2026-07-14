@@ -226,15 +226,15 @@ test("the closed BMAD v1 family has the exact canonical roots and named definiti
   }
 });
 
-test("Builder authoring keeps Agent and Workflow action vocabularies disjoint", async () => {
+test("Builder authoring keeps explicit Agent and Workflow action branches", async () => {
   const schema = await readSchema("bmad-builder-authoring.schema.json");
   const branches = schema.$defs.BuilderAuthoringAction.oneOf;
   assert.deepEqual(branches.map((branch) => branch.properties.builderKind.const), [
     "agent",
     "workflow",
   ]);
-  assert.deepEqual(branches[0].properties.action.enum, ["create_rebuild", "edit", "analyze"]);
-  assert.deepEqual(branches[1].properties.action.enum, ["build", "edit", "analyze"]);
+  assert.deepEqual(branches[0].properties.action.enum, ["create_rebuild", "edit", "analyze", "build"]);
+  assert.deepEqual(branches[1].properties.action.enum, ["create_rebuild", "build", "edit", "analyze"]);
 });
 
 test("every BMAD oneOf is explicitly discriminated or nullable", async () => {

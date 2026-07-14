@@ -26,25 +26,25 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Generated from JSON Schema.
     /// </summary>
-    public readonly partial struct BmadPackageDescriptorBmadConfigLayer
+    public readonly partial struct BuilderAuthoringObjectBuilderAuthoringAction
     {
         /// <summary>
         /// Generated from JSON Schema.
         /// </summary>
-        public readonly partial struct OneOf0Entity
+        public readonly partial struct OneOf1Entity
         {
             /// <summary>
             /// Generated from JSON Schema.
             /// </summary>
             [DebuggerDisplay("{DebuggerDisplay,nq}")]
-            public readonly partial struct LayerKindEntity
+            public readonly partial struct BuilderKindEntity
 #if NET8_0_OR_GREATER
-                : IJsonElement<LayerKindEntity>,
+                : IJsonElement<BuilderKindEntity>,
                   IFormattable,
                   ISpanFormattable,
                   IUtf8SpanFormattable
 #else
-                : IJsonElement<LayerKindEntity>,
+                : IJsonElement<BuilderKindEntity>,
                   IFormattable
 #endif
             {
@@ -54,10 +54,10 @@ public readonly partial struct SapphirusContractsCatalog
 
                 #pragma warning restore CS8618 // JsonDocument nullability
                 /// <summary>
-                /// Initializes a new instance of the <see cref="LayerKindEntity"/> struct.
+                /// Initializes a new instance of the <see cref="BuilderKindEntity"/> struct.
                 /// </summary>
                 /// <param name="value">The value from which to construct the instance.</param>
-                internal LayerKindEntity(IJsonDocument parent, int idx)
+                internal BuilderKindEntity(IJsonDocument parent, int idx)
                 {
                     Debug.Assert(idx >= 0);
                     _parent = parent;
@@ -67,7 +67,12 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <summary>
                 /// Gets the default instance.
                 /// </summary>
-                public static LayerKindEntity DefaultInstance { get; }
+                public static BuilderKindEntity DefaultInstance { get; }
+
+                /// <summary>
+                /// Gets the const instance.
+                /// </summary>
+                public static BuilderKindEntity ConstInstance => Constants.ConstJson;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool TryGetValue(out string? value) { CheckValidInstance(); return _parent.TryGetString(_idx, JsonTokenType.String, out value); }
@@ -88,7 +93,7 @@ public readonly partial struct SapphirusContractsCatalog
                 private JsonTokenType TokenType => _parent?.GetJsonTokenType(_idx) ?? JsonTokenType.None;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static explicit operator string(LayerKindEntity value) => value._parent.GetString(value._idx, JsonTokenType.String) ?? throw new FormatException();
+                public static explicit operator string(BuilderKindEntity value) => value._parent.GetString(value._idx, JsonTokenType.String) ?? throw new FormatException();
 
                 /// <summary>
                 /// Operator ==.
@@ -98,7 +103,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>
                 /// <c>True</c> if the values are equal.
                 /// </returns>
-                public static bool operator ==(in LayerKindEntity left, in LayerKindEntity right)
+                public static bool operator ==(in BuilderKindEntity left, in BuilderKindEntity right)
                 {
                     return left.Equals(right);
                 }
@@ -111,7 +116,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>
                 /// <c>True</c> if the values are not equal.
                 /// </returns>
-                public static bool operator !=(in LayerKindEntity left, in LayerKindEntity right)
+                public static bool operator !=(in BuilderKindEntity left, in BuilderKindEntity right)
                 {
                     return !left.Equals(right);
                 }
@@ -124,7 +129,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>
                 /// <c>True</c> if the values are equal.
                 /// </returns>
-                public static bool operator ==(in LayerKindEntity left, in JsonElement right)
+                public static bool operator ==(in BuilderKindEntity left, in JsonElement right)
                 {
                     return left.Equals(right);
                 }
@@ -137,7 +142,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>
                 /// <c>True</c> if the values are not equal.
                 /// </returns>
-                public static bool operator !=(in LayerKindEntity left, in JsonElement right)
+                public static bool operator !=(in BuilderKindEntity left, in JsonElement right)
                 {
                     return !left.Equals(right);
                 }
@@ -148,7 +153,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <param name="value">The instance of this type.</param>
                 /// <returns>An instance of JsonElement, initialized from the <see cref="IJsonElement{T}"/>.</returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator JsonElement(LayerKindEntity instance)
+                public static implicit operator JsonElement(BuilderKindEntity instance)
                 {
                     return JsonElement.From(instance);
                 }
@@ -159,9 +164,9 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <param name="value">The instance of this type as a JsonElement.</param>
                 /// <returns>An instance of the type, initialized from the <see cref="JsonElement"/>.</returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator LayerKindEntity(JsonElement instance)
+                public static implicit operator BuilderKindEntity(JsonElement instance)
                 {
-                    return LayerKindEntity.From(instance);
+                    return BuilderKindEntity.From(instance);
                 }
 
                 /// <summary>
@@ -170,7 +175,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <param name="value">The <see cref="IJsonElement{T}"/> value from which to instantiate the instance.</param>
                 /// <returns>An instance of this type, initialized from the JSON element.</returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static LayerKindEntity From<T>(in T instance)
+                public static BuilderKindEntity From<T>(in T instance)
                     where T : struct, IJsonElement<T>
                 {
                     return new(instance.ParentDocument, instance.ParentDocumentIndex);
@@ -194,9 +199,9 @@ public readonly partial struct SapphirusContractsCatalog
                 ///   A value could not be read from the span.
                 /// </exception>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static LayerKindEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
+                public static BuilderKindEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
                 {
-                    return JsonElementHelpers.ParseValue<LayerKindEntity>(utf8Json, options);
+                    return JsonElementHelpers.ParseValue<BuilderKindEntity>(utf8Json, options);
                 }
 
                 /// <summary>
@@ -217,9 +222,9 @@ public readonly partial struct SapphirusContractsCatalog
                 ///   A value could not be read from the span.
                 /// </exception>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static LayerKindEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
+                public static BuilderKindEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
                 {
-                    return JsonElementHelpers.ParseValue<LayerKindEntity>(json, options);
+                    return JsonElementHelpers.ParseValue<BuilderKindEntity>(json, options);
                 }
 
                 /// <summary>
@@ -240,9 +245,9 @@ public readonly partial struct SapphirusContractsCatalog
                 ///   A value could not be read from the text.
                 /// </exception>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static LayerKindEntity ParseValue(string json, JsonDocumentOptions options = default)
+                public static BuilderKindEntity ParseValue(string json, JsonDocumentOptions options = default)
                 {
-                    return JsonElementHelpers.ParseValue<LayerKindEntity>(json, options);
+                    return JsonElementHelpers.ParseValue<BuilderKindEntity>(json, options);
                 }
 
                 /// <summary>
@@ -280,9 +285,9 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the reader.
                 /// </exception>
-                public static LayerKindEntity ParseValue(ref Utf8JsonReader reader)
+                public static BuilderKindEntity ParseValue(ref Utf8JsonReader reader)
                 {
-                    return JsonElementHelpers.ParseValue<LayerKindEntity>(ref reader);
+                    return JsonElementHelpers.ParseValue<BuilderKindEntity>(ref reader);
                 }
 
                 /// <summary>
@@ -323,16 +328,16 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the reader.
                 /// </exception>
-                public static bool TryParseValue(ref Utf8JsonReader reader, out LayerKindEntity? result)
+                public static bool TryParseValue(ref Utf8JsonReader reader, out BuilderKindEntity? result)
                 {
-                    return JsonElementHelpers.TryParseValue<LayerKindEntity>(ref reader, out result);
+                    return JsonElementHelpers.TryParseValue<BuilderKindEntity>(ref reader, out result);
                 }
 
                 /// <inheritdoc/>
                 public override bool Equals(object? obj)
                 {
                     return
-                        (obj is IJsonElement value && Equals(new LayerKindEntity(value.ParentDocument, value.ParentDocumentIndex))) ||
+                        (obj is IJsonElement value && Equals(new BuilderKindEntity(value.ParentDocument, value.ParentDocumentIndex))) ||
                         (obj is null && this.IsNull());
                 }
 
@@ -473,11 +478,11 @@ public readonly partial struct SapphirusContractsCatalog
                 void IJsonElement.CheckValidInstance() => CheckValidInstance();
 
 #if NET
-                static LayerKindEntity IJsonElement<LayerKindEntity>.CreateInstance(IJsonDocument parentDocument, int parentDocumentIndex) => new(parentDocument, parentDocumentIndex);
+                static BuilderKindEntity IJsonElement<BuilderKindEntity>.CreateInstance(IJsonDocument parentDocument, int parentDocumentIndex) => new(parentDocument, parentDocumentIndex);
 #endif
 
                 [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-                private string DebuggerDisplay => $"LayerKindEntity: ValueKind = {ValueKind} : \"{ToString()}\"";
+                private string DebuggerDisplay => $"BuilderKindEntity: ValueKind = {ValueKind} : \"{ToString()}\"";
 
                 [DebuggerBrowsable(DebuggerBrowsableState.Never)]
                 IJsonDocument IJsonElement.ParentDocument => _parent;
@@ -492,11 +497,11 @@ public readonly partial struct SapphirusContractsCatalog
                 JsonValueKind IJsonElement.ValueKind => ValueKind;
 
                 /// <summary>
-                /// Gets a <see cref="LayerKindEntity"/> which can be safely stored beyond the lifetime of the
+                /// Gets a <see cref="BuilderKindEntity"/> which can be safely stored beyond the lifetime of the
                 /// original document.
                 /// </summary>
                 /// <returns>
-                /// A <see cref="LayerKindEntity"/> which can be safely stored beyond the lifetime of the
+                /// A <see cref="BuilderKindEntity"/> which can be safely stored beyond the lifetime of the
                 /// original document.
                 /// </returns>
                 /// <remarks>
@@ -505,10 +510,10 @@ public readonly partial struct SapphirusContractsCatalog
                 /// this method returns the same instance without additional allocation.
                 /// </para>
                 /// </remarks>
-                public LayerKindEntity Clone()
+                public BuilderKindEntity Clone()
                 {
                     CheckValidInstance();
-                    return _parent.CloneElement<LayerKindEntity>(_idx);
+                    return _parent.CloneElement<BuilderKindEntity>(_idx);
                 }
 
                 /// <summary>
@@ -516,7 +521,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// or returns this instance if it is already immutable.
                 /// </summary>
                 /// <returns>
-                /// An immutable <see cref="LayerKindEntity"/> that lives for the lifetime of its
+                /// An immutable <see cref="BuilderKindEntity"/> that lives for the lifetime of its
                 /// workspace and its associated documents.
                 /// </returns>
                 /// <remarks>
@@ -530,185 +535,15 @@ public readonly partial struct SapphirusContractsCatalog
                 /// If this instance is already backed by an immutable document, it is returned as-is.
                 /// </para>
                 /// </remarks>
-                public LayerKindEntity Freeze()
+                public BuilderKindEntity Freeze()
                 {
                     CheckValidInstance();
                     if (_parent is global::Corvus.Text.Json.Internal.IMutableJsonDocument mutable)
                     {
-                        return mutable.FreezeElement<LayerKindEntity>(_idx);
+                        return mutable.FreezeElement<BuilderKindEntity>(_idx);
                     }
 
                     return this;
-                }
-
-                /// <summary>
-                /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
-                /// </summary>
-                /// <typeparam name="TContext">The immutable context to pass in to the match function.</typeparam>
-                /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-                /// <param name="context">The context to pass to the match function.</param>
-                /// <param name="matchInstallerTeam">Match 1st item.</param>
-                /// <param name="matchInstallerUser">Match 2nd item.</param>
-                /// <param name="matchCustomTeam">Match 3rd item.</param>
-                /// <param name="matchCustomUser">Match 4th item.</param>
-                /// <param name="matchPackagedDefault">Match 5th item.</param>
-                /// <param name="matchTeamOverride">Match 6th item.</param>
-                /// <param name="matchUserOverride">Match 7th item.</param>
-                /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                /// <param name="matchBuilderUserYaml">Match 10th item.</param>
-                /// <param name="defaultMatch">Match any other value.</param>
-                /// <returns>An instance of the value returned by the match function.</returns>
-                public TResult Match<TContext, TResult>(
-                    in TContext context,
-                    Func<TContext, TResult> matchInstallerTeam,
-                    Func<TContext, TResult> matchInstallerUser,
-                    Func<TContext, TResult> matchCustomTeam,
-                    Func<TContext, TResult> matchCustomUser,
-                    Func<TContext, TResult> matchPackagedDefault,
-                    Func<TContext, TResult> matchTeamOverride,
-                    Func<TContext, TResult> matchUserOverride,
-                    Func<TContext, TResult> matchMethodModuleYaml,
-                    Func<TContext, TResult> matchBuilderRootYaml,
-                    Func<TContext, TResult> matchBuilderUserYaml,
-                    Func<TContext, TResult> defaultMatch)
-#if NET9_0_OR_GREATER
-                where TContext : allows ref struct
-#endif
-                {
-                    if (this.ValueEquals(Constants.Enum1))
-                    {
-                        return matchInstallerTeam(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum2))
-                    {
-                        return matchInstallerUser(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum3))
-                    {
-                        return matchCustomTeam(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum4))
-                    {
-                        return matchCustomUser(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum5))
-                    {
-                        return matchPackagedDefault(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum6))
-                    {
-                        return matchTeamOverride(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum7))
-                    {
-                        return matchUserOverride(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum8))
-                    {
-                        return matchMethodModuleYaml(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum9))
-                    {
-                        return matchBuilderRootYaml(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum10))
-                    {
-                        return matchBuilderUserYaml(context);
-                    }
-
-                    return defaultMatch(context);
-                }
-
-                /// <summary>
-                /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
-                /// </summary>
-                /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-                /// <param name="matchInstallerTeam">Match 1st item.</param>
-                /// <param name="matchInstallerUser">Match 2nd item.</param>
-                /// <param name="matchCustomTeam">Match 3rd item.</param>
-                /// <param name="matchCustomUser">Match 4th item.</param>
-                /// <param name="matchPackagedDefault">Match 5th item.</param>
-                /// <param name="matchTeamOverride">Match 6th item.</param>
-                /// <param name="matchUserOverride">Match 7th item.</param>
-                /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                /// <param name="matchBuilderUserYaml">Match 10th item.</param>
-                /// <param name="defaultMatch">Match any other value.</param>
-                /// <returns>An instance of the value returned by the match function.</returns>
-                public TResult Match<TResult>(
-                    Func<TResult> matchInstallerTeam,
-                    Func<TResult> matchInstallerUser,
-                    Func<TResult> matchCustomTeam,
-                    Func<TResult> matchCustomUser,
-                    Func<TResult> matchPackagedDefault,
-                    Func<TResult> matchTeamOverride,
-                    Func<TResult> matchUserOverride,
-                    Func<TResult> matchMethodModuleYaml,
-                    Func<TResult> matchBuilderRootYaml,
-                    Func<TResult> matchBuilderUserYaml,
-                    Func<TResult> defaultMatch)
-                {
-                    if (this.ValueEquals(Constants.Enum1))
-                    {
-                        return matchInstallerTeam();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum2))
-                    {
-                        return matchInstallerUser();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum3))
-                    {
-                        return matchCustomTeam();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum4))
-                    {
-                        return matchCustomUser();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum5))
-                    {
-                        return matchPackagedDefault();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum6))
-                    {
-                        return matchTeamOverride();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum7))
-                    {
-                        return matchUserOverride();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum8))
-                    {
-                        return matchMethodModuleYaml();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum9))
-                    {
-                        return matchBuilderRootYaml();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum10))
-                    {
-                        return matchBuilderUserYaml();
-                    }
-
-                    return defaultMatch();
                 }
             }
         }

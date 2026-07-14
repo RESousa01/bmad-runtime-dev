@@ -183,96 +183,12 @@ public readonly partial struct SapphirusContractsCatalog
                     /// <returns>The item at the given index.</returns>
                     /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
                     /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public JsonElement.Mutable this[int index]
+                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Mutable this[int index]
                     {
                         get
                         {
                             CheckValidInstance();
-                            return _parent.GetArrayIndexElement<JsonElement.Mutable>(_idx, index);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Mutable Item1
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Mutable>(_idx, 0);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Mutable Item2
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Mutable>(_idx, 1);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Mutable Item3
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Mutable>(_idx, 2);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Mutable Item4
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Mutable>(_idx, 3);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Mutable Item5
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Mutable>(_idx, 4);
-                        }
-                    }
-
-                    /// <summary>
-                    /// Gets the tuple item.
-                    /// </summary>
-                    /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
-                    /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Mutable Item6
-                    {
-                        get
-                        {
-                            CheckValidInstance();
-                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Mutable>(_idx, 5);
+                            return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Mutable>(_idx, index);
                         }
                     }
 
@@ -290,10 +206,10 @@ public readonly partial struct SapphirusContractsCatalog
                     /// Enumerates the array.
                     /// </summary>
                     /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                    public ArrayEnumerator<JsonElement.Mutable> EnumerateArray()
+                    public ArrayEnumerator<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Mutable> EnumerateArray()
                     {
                         CheckValidInstance();
-                        return EnumeratorCreator.CreateArrayEnumerator<JsonElement.Mutable>(_parent, _idx);
+                        return EnumeratorCreator.CreateArrayEnumerator<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Mutable>(_parent, _idx);
                     }
 
                     /// <inheritdoc/>
@@ -400,6 +316,358 @@ public readonly partial struct SapphirusContractsCatalog
 
                     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
                     private string DebuggerDisplay => $"ModelLensResultsArray.Mutable: ValueKind = {ValueKind} : \"{ToString()}\"";
+                    /// <summary>
+                    ///   Sets the value of an array element at the specified index.
+                    /// </summary>
+                    /// <param name="itemIndex">The zero-based index of the array element to set.</param>
+                    /// <param name="value">The item value to set.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="itemIndex"/> is negative or greater than the array length.
+                    /// </exception>
+                    /// <remarks>
+                    ///   <para>
+                    ///     This method allows replacing existing array elements or appending new elements
+                    ///     when <paramref name="itemIndex"/> equals the current array length.
+                    ///   </para>
+                    /// </remarks>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void SetItem(int itemIndex, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Source value)
+                    {
+                        CheckValidInstance();
+
+                        if (value.IsUndefined)
+                        {
+                            RemoveAt(itemIndex);
+                            return;
+                        }
+
+                        ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 30);
+                        value.AddAsItem(ref cvb);
+                        int arrayLength = GetArrayLength();
+                        if (itemIndex == arrayLength)
+                        {
+                            _parent.InsertAndDispose(_idx, _idx + _parent.GetDbSize(_idx, false), ref cvb);
+                        }
+                        else
+                        {
+                            _parent.GetArrayIndexElement(_idx, itemIndex, out IMutableJsonDocument elementParent, out int elementIdx);
+                            _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                        }
+
+                        _documentVersion = _parent.Version;
+                    }
+                    /// <summary>
+                    ///   Inserts an item into the array at the specified index.
+                    /// </summary>
+                    /// <param name="itemIndex">The zero-based index of the array element at which to insert.</param>
+                    /// <param name="value">The item value to insert.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="itemIndex"/> is negative or greater than the array length.
+                    /// </exception>
+                    /// <remarks>
+                    ///   <para>
+                    ///     This method allows inserting array elements or appending new elements
+                    ///     when <paramref name="itemIndex"/> equals the current array length.
+                    ///   </para>
+                    /// </remarks>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void InsertItem(int itemIndex, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Source value)
+                    {
+                        CheckValidInstance();
+
+                        if (value.IsUndefined)
+                        {
+                            return;
+                        }
+
+                        ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 30);
+                        value.AddAsItem(ref cvb);
+                        _parent.InsertAndDispose(_idx, _parent.GetArrayInsertionIndex(_idx, itemIndex), ref cvb);
+                        _documentVersion = _parent.Version;
+                    }
+                    /// <summary>
+                    ///   Adds an item to the end of the array.
+                    /// </summary>
+                    /// <param name="value">The item value to add.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void AddItem(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Source value)
+                    {
+                        InsertItem(GetArrayLength(), in value);
+                    }
+                    /// <summary>
+                    ///   Inserts multiple items into the array at the specified index,
+                    ///   using an <see cref="JsonElement.ArrayBuilder"/> delegate to build the items.
+                    /// </summary>
+                    /// <param name="itemIndex">The zero-based index at which to insert the items.</param>
+                    /// <param name="rangeBuilder">A delegate that adds items to an <see cref="JsonElement.ArrayBuilder"/>.</param>
+                    /// <param name="estimatedMemberCount">The estimated total number of elements for capacity optimization.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="itemIndex"/> is negative or greater than the array length.
+                    /// </exception>
+                    /// <remarks>
+                    ///   <para>
+                    ///     Only the items built by the delegate are inserted — no array wrapper is added.
+                    ///   </para>
+                    /// </remarks>
+                    public void InsertRange(int itemIndex, JsonElement.ArrayBuilder.Build rangeBuilder, int estimatedMemberCount = 30)
+                    {
+                        CheckValidInstance();
+                        ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, estimatedMemberCount);
+                        JsonElement.ArrayBuilder.BuildItems(rangeBuilder, ref cvb);
+                        _parent.InsertAndDispose(_idx, _parent.GetArrayInsertionIndex(_idx, itemIndex), ref cvb);
+                        _documentVersion = _parent.Version;
+                    }
+
+                    /// <summary>
+                    ///   Inserts multiple items into the array at the specified index,
+                    ///   using an <see cref="JsonElement.ArrayBuilder"/> delegate with a context parameter.
+                    /// </summary>
+                    /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+                    /// <param name="itemIndex">The zero-based index at which to insert the items.</param>
+                    /// <param name="context">The context to pass to the builder delegate.</param>
+                    /// <param name="rangeBuilder">A delegate that adds items to an <see cref="JsonElement.ArrayBuilder"/>.</param>
+                    /// <param name="estimatedMemberCount">The estimated total number of elements for capacity optimization.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="itemIndex"/> is negative or greater than the array length.
+                    /// </exception>
+                    /// <remarks>
+                    ///   <para>
+                    ///     Only the items built by the delegate are inserted — no array wrapper is added.
+                    ///   </para>
+                    /// </remarks>
+                    public void InsertRange<TContext>(int itemIndex, in TContext context, JsonElement.ArrayBuilder.Build<TContext> rangeBuilder, int estimatedMemberCount = 30)
+                    #if NET9_0_OR_GREATER
+                        where TContext : allows ref struct
+                    #endif
+                    {
+                        CheckValidInstance();
+                        ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, estimatedMemberCount);
+                        JsonElement.ArrayBuilder.BuildItems(context, rangeBuilder, ref cvb);
+                        _parent.InsertAndDispose(_idx, _parent.GetArrayInsertionIndex(_idx, itemIndex), ref cvb);
+                        _documentVersion = _parent.Version;
+                    }
+                    /// <summary>
+                    ///   Appends multiple items to the end of the array,
+                    ///   using an <see cref="JsonElement.ArrayBuilder"/> delegate to build the items.
+                    /// </summary>
+                    /// <param name="rangeBuilder">A delegate that adds items to an <see cref="JsonElement.ArrayBuilder"/>.</param>
+                    /// <param name="estimatedMemberCount">The estimated total number of elements for capacity optimization.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void AddRange(JsonElement.ArrayBuilder.Build rangeBuilder, int estimatedMemberCount = 30)
+                    {
+                        InsertRange(GetArrayLength(), rangeBuilder, estimatedMemberCount);
+                    }
+
+                    /// <summary>
+                    ///   Appends multiple items to the end of the array,
+                    ///   using an <see cref="JsonElement.ArrayBuilder"/> delegate with a context parameter.
+                    /// </summary>
+                    /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+                    /// <param name="context">The context to pass to the builder delegate.</param>
+                    /// <param name="rangeBuilder">A delegate that adds items to an <see cref="JsonElement.ArrayBuilder"/>.</param>
+                    /// <param name="estimatedMemberCount">The estimated total number of elements for capacity optimization.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void AddRange<TContext>(in TContext context, JsonElement.ArrayBuilder.Build<TContext> rangeBuilder, int estimatedMemberCount = 30)
+                    #if NET9_0_OR_GREATER
+                        where TContext : allows ref struct
+                    #endif
+                    {
+                        InsertRange(GetArrayLength(), context, rangeBuilder, estimatedMemberCount);
+                    }
+
+                    /// <summary>
+                    ///   Removes a range of items from the array starting at the specified index.
+                    /// </summary>
+                    /// <param name="startIndex">The zero-based index at which to begin removing items.</param>
+                    /// <param name="count">The number of items to remove.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="startIndex"/> is negative or greater than the current array length.
+                    /// </exception>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void RemoveRange(int startIndex, int count)
+                    {
+                        CheckValidInstance();
+                        JsonElementHelpers.RemoveRangeUnsafe(this, startIndex, count);
+                        _documentVersion = _parent.Version;
+                    }
+
+                    /// <summary>
+                    ///   Removes a single item from the array at the specified index.
+                    /// </summary>
+                    /// <param name="index">The zero-based index of the item to remove.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentOutOfRangeException">
+                    ///   <paramref name="index"/> is negative or greater than or equal to the current array length.
+                    /// </exception>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void RemoveAt(int index)
+                    {
+                        CheckValidInstance();
+                        JsonElementHelpers.RemoveRangeUnsafe(this, index, 1);
+                        _documentVersion = _parent.Version;
+                    }
+
+                    /// <summary>
+                    ///   Removes the first array element that equals the specified item.
+                    /// </summary>
+                    /// <param name="item">The item to find and remove.</param>
+                    /// <returns><see langword="true"/> if an element was found and removed; otherwise, <see langword="false"/>.</returns>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    public bool Remove(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult item)
+                    {
+                        CheckValidInstance();
+                        if (!JsonElementHelpers.RemoveFirstUnsafe<Mutable, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult>(this, in item))
+                        {
+                            return false;
+                        }
+
+                        _documentVersion = _parent.Version;
+                        return true;
+                    }
+
+                    /// <summary>
+                    ///   Removes all array elements that match the specified predicate.
+                    /// </summary>
+                    /// <param name="predicate">The predicate function that determines which elements to remove.</param>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    /// <exception cref="ArgumentNullException">
+                    ///   <paramref name="predicate"/> is <see langword="null"/>.
+                    /// </exception>
+                    /// <remarks>
+                    ///   <para>
+                    ///     This method efficiently removes elements in a single pass by iterating backwards
+                    ///     through the array and removing consecutive blocks of matching elements.
+                    ///   </para>
+                    ///   <para>
+                    ///     The predicate function is called for each element in the array. If the predicate
+                    ///     returns <see langword="true"/>, the element will be removed from the array.
+                    ///   </para>
+                    /// </remarks>
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public void RemoveWhere(JsonPredicate<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult> predicate)
+                    {
+                        CheckValidInstance();
+                        JsonElementHelpers.RemoveWhereUnsafe<Mutable, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult>(this, predicate);
+                        _documentVersion = _parent.Version;
+                    }
+
+                    /// <summary>
+                    ///   Replaces the first array element that equals the specified item with a new value.
+                    /// </summary>
+                    /// <param name="oldItem">The item to find.</param>
+                    /// <param name="newItem">The value to replace it with.</param>
+                    /// <returns><see langword="true"/> if an element was found and replaced; otherwise, <see langword="false"/>.</returns>
+                    /// <exception cref="InvalidOperationException">
+                    ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>,
+                    ///   or the element reference is stale due to document mutations.
+                    /// </exception>
+                    /// <exception cref="ObjectDisposedException">
+                    ///   The parent <see cref="JsonDocument"/> has been disposed.
+                    /// </exception>
+                    public bool Replace(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult oldItem, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Source newItem)
+                    {
+                        CheckValidInstance();
+
+                        if (newItem.IsUndefined)
+                        {
+                            return Remove(in oldItem);
+                        }
+
+                        var enumerator = EnumeratorCreator.CreateArrayEnumerator<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult>(_parent, _idx);
+
+                        while (enumerator.MoveNext())
+                        {
+                            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult current = enumerator.Current;
+                            if (JsonElementHelpers.DeepEquals(in current, in oldItem))
+                            {
+                                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 30);
+                                newItem.AddAsItem(ref cvb);
+
+                                int elementStart = ((IJsonElement)current).ParentDocumentIndex;
+                                int elementEnd = elementStart + ((IJsonElement)current).ParentDocument.GetDbSize(elementStart, true);
+                                _parent.OverwriteAndDispose(_idx, elementStart, elementEnd, 1, ref cvb);
+
+                                _documentVersion = _parent.Version;
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
 
                     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
                     IJsonDocument IJsonElement.ParentDocument => _parent;
@@ -462,19 +730,12 @@ public readonly partial struct SapphirusContractsCatalog
                     {
                         Unknown,
                         JsonElement,
-                        Tuple,
                         Builder,
                     }
 
                     private readonly Kind _kind;
                     private readonly JsonElement _jsonElement;
                     private readonly Builder.Build? _arrayBuilder;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source _tupleItem1;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source _tupleItem2;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source _tupleItem3;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source _tupleItem4;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source _tupleItem5;
-                    private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source _tupleItem6;
 
                     /// <summary>
                     /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -485,17 +746,6 @@ public readonly partial struct SapphirusContractsCatalog
                     {
                         _jsonElement = jsonElement;
                         _kind = jsonElement.ValueKind == JsonValueKind.Undefined ? Kind.Unknown : Kind.JsonElement;
-                    }
-
-                    internal Source(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6)
-                    {
-                        _tupleItem1 = item1;
-                        _tupleItem2 = item2;
-                        _tupleItem3 = item3;
-                        _tupleItem4 = item4;
-                        _tupleItem5 = item5;
-                        _tupleItem6 = item6;
-                        _kind = Kind.Tuple;
                     }
 
                     internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.Builder.Build value) {_arrayBuilder = value; _kind = Kind.Builder; }
@@ -514,13 +764,6 @@ public readonly partial struct SapphirusContractsCatalog
                             case Kind.Builder:
                                 valueBuilder.AddProperty(utf8Name, _arrayBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                                 break;
-                            case Kind.Tuple:
-                                {
-                                    ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                                    Builder.BuildTupleValue(_tupleItem1, _tupleItem2, _tupleItem3, _tupleItem4, _tupleItem5, _tupleItem6, ref valueBuilder);
-                                    valueBuilder.EndProperty(handle);
-                                    break;
-                                }
                             default:
                                 Debug.Fail("Unexpected Kind");
                                 break;
@@ -539,13 +782,6 @@ public readonly partial struct SapphirusContractsCatalog
                             case Kind.Builder:
                                 valueBuilder.AddPrebakedProperty(prebakedPropertyName, _arrayBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                                 break;
-                            case Kind.Tuple:
-                                {
-                                    ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                                    Builder.BuildTupleValue(_tupleItem1, _tupleItem2, _tupleItem3, _tupleItem4, _tupleItem5, _tupleItem6, ref valueBuilder);
-                                    valueBuilder.EndProperty(handle);
-                                    break;
-                                }
                             default:
                                 Debug.Fail("Unexpected Kind");
                                 break;
@@ -564,13 +800,6 @@ public readonly partial struct SapphirusContractsCatalog
                             case Kind.Builder:
                                 valueBuilder.AddProperty(name, _arrayBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                                 break;
-                            case Kind.Tuple:
-                                {
-                                    ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                                    Builder.BuildTupleValue(_tupleItem1, _tupleItem2, _tupleItem3, _tupleItem4, _tupleItem5, _tupleItem6, ref valueBuilder);
-                                    valueBuilder.EndProperty(handle);
-                                    break;
-                                }
                             default:
                                 Debug.Fail("Unexpected Kind");
                                 break;
@@ -589,13 +818,6 @@ public readonly partial struct SapphirusContractsCatalog
                             case Kind.Builder:
                                 valueBuilder.AddProperty(name, _arrayBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                                 break;
-                            case Kind.Tuple:
-                                {
-                                    ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                                    Builder.BuildTupleValue(_tupleItem1, _tupleItem2, _tupleItem3, _tupleItem4, _tupleItem5, _tupleItem6, ref valueBuilder);
-                                    valueBuilder.EndProperty(handle);
-                                    break;
-                                }
                             default:
                                 Debug.Fail("Unexpected Kind");
                                 break;
@@ -614,13 +836,6 @@ public readonly partial struct SapphirusContractsCatalog
                             case Kind.Builder:
                                 valueBuilder.AddItem(_arrayBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                                 break;
-                            case Kind.Tuple:
-                                {
-                                    ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                                    Builder.BuildTupleValue(_tupleItem1, _tupleItem2, _tupleItem3, _tupleItem4, _tupleItem5, _tupleItem6, ref valueBuilder);
-                                    valueBuilder.EndItem(handle);
-                                    break;
-                                }
                             default:
                                 Debug.Fail("Unexpected Kind");
                                 break;
@@ -766,34 +981,11 @@ public readonly partial struct SapphirusContractsCatalog
                     }
 
                     /// <summary>
-                    /// Builds the tuple value directly into the given complex value builder.
+                    /// Add an item to the array.
                     /// </summary>
-                    /// <param name="item1">The source for tuple item 1.</param>
-                    /// <param name="item2">The source for tuple item 2.</param>
-                    /// <param name="item3">The source for tuple item 3.</param>
-                    /// <param name="item4">The source for tuple item 4.</param>
-                    /// <param name="item5">The source for tuple item 5.</param>
-                    /// <param name="item6">The source for tuple item 6.</param>
-                    /// <param name="o">The complex value builder into which to write the tuple.</param>
-                    internal static void BuildTupleValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6, ref ComplexValueBuilder o)
+                    public void AddItem(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.Source value)
                     {
-                        o.StartArray();
-
-                        Builder b = new(o);
-                        b.CreateTuple(item1, item2, item3, item4, item5, item6);
-                        o = b._builder;
-
-                        o.EndArray();
-                    }
-
-                    public void CreateTuple(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6)
-                    {
-                        item1.AddAsItem(ref _builder);
-                        item2.AddAsItem(ref _builder);
-                        item3.AddAsItem(ref _builder);
-                        item4.AddAsItem(ref _builder);
-                        item5.AddAsItem(ref _builder);
-                        item6.AddAsItem(ref _builder);
+                        value.AddAsItem(ref _builder);
                     }
 
                     internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -850,21 +1042,6 @@ public readonly partial struct SapphirusContractsCatalog
                 }
 
                 /// <summary>
-                /// Build a tuple value directly from its positional item sources.
-                /// </summary>
-                /// <param name="item1">The source for tuple item 1.</param>
-                /// <param name="item2">The source for tuple item 2.</param>
-                /// <param name="item3">The source for tuple item 3.</param>
-                /// <param name="item4">The source for tuple item 4.</param>
-                /// <param name="item5">The source for tuple item 5.</param>
-                /// <param name="item6">The source for tuple item 6.</param>
-                /// <returns>The source from which to build the value.</returns>
-                public static Source Build(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6)
-                {
-                    return new Source(item1, item2, item3, item4, item5, item6);
-                }
-
-                /// <summary>
                 /// Creates and initializes a mutable document from a value.
                 /// </summary>
                 /// <param name="workspace">The JSON workspace.</param>
@@ -884,20 +1061,68 @@ public readonly partial struct SapphirusContractsCatalog
                 }
 
                 /// <summary>
-                /// Creates and initializes a mutable document from positional tuple item sources.
+                /// Creates an empty mutable document builder.
                 /// </summary>
                 /// <param name="workspace">The JSON workspace.</param>
-                /// <param name="item1">The source for tuple item 1.</param>
-                /// <param name="item2">The source for tuple item 2.</param>
-                /// <param name="item3">The source for tuple item 3.</param>
-                /// <param name="item4">The source for tuple item 4.</param>
-                /// <param name="item5">The source for tuple item 5.</param>
-                /// <param name="item6">The source for tuple item 6.</param>
                 /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-                /// <returns>An instance of a mutable document initialized with the given tuple values.</returns>
-                public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6, int initialCapacity = 30)
+                /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+                /// <returns>An empty mutable document builder.</returns>
+                public static JsonDocumentBuilder<Mutable> CreateBuilder(
+                    JsonWorkspace workspace, int initialCapacity = 30, int initialValueBufferSize = 8192)
                 {
-                    return CreateBuilder(workspace, Build(item1, item2, item3, item4, item5, item6), initialCapacity);
+                    JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    cvb.StartArray();
+                    cvb.EndArray();
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder;
+                }
+
+                /// <summary>
+                /// Creates and initializes a mutable document from a value.
+                /// </summary>
+                /// <param name="workspace">The JSON workspace.</param>
+                /// <param name="value">The value with which to initialize the builder.</param>
+                /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+                /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+                /// <returns>An instance of a mutable document initialized with the given value.</returns>
+                public static JsonDocumentBuilder<Mutable> CreateBuilder(
+                    JsonWorkspace workspace, scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                {
+                    // Create the document builder without a MetadataDb
+                    JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder;
+                }
+
+                /// <summary>
+                /// Creates and initializes a mutable document from a value.
+                /// </summary>
+                /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+                /// <param name="workspace">The JSON workspace.</param>
+                /// <param name="context">The context to pass to the builder.</param>
+                /// <param name="value">The value with which to initialize the builder.</param>
+                /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+                /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+                /// <returns>An instance of a mutable document initialized with the given value.</returns>
+                public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(
+                    JsonWorkspace workspace, scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                    #if NET9_0_OR_GREATER
+                    where TContext : allows ref struct
+                    #endif
+                {
+                    // Create the document builder without a MetadataDb
+                    JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder;
                 }
 
                 /// <summary>

@@ -297,6 +297,18 @@
     "reasonCode": "DUPLICATE_MEMBER"
   },
   {
+    "file": "invalid/bmad/duplicate-member-nested.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER"
+  },
+  {
+    "file": "invalid/bmad/duplicate-member-escaped.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER"
+  },
+  {
     "file": "invalid/bmad/unknown-profile.json",
     "schema": "bmad-builder-authoring.schema.json",
     "valid": false,
@@ -635,7 +647,7 @@
     "file": "invalid/bmad/agent-build.json",
     "schema": "bmad-builder-authoring.schema.json",
     "valid": false,
-    "reasonCode": "ONE_OF_MISMATCH"
+    "reasonCode": "BMAD_ACTION_UNSUPPORTED"
   },
   {
     "file": "invalid/bmad/convert.json",

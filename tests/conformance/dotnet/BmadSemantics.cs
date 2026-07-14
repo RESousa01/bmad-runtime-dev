@@ -272,6 +272,16 @@ public static class BmadSemantics
         foreach (JsonElement graph in graphs)
         {
             string kind = NullableString(graph, "graphKind");
+            string[] allowedLayerKinds = kind switch
+            {
+                "method_central_toml" =>
+                    ["installer_team", "installer_user", "custom_team", "custom_user"],
+                "skill_customization_toml" =>
+                    ["packaged_default", "team_override", "user_override"],
+                "compatibility_yaml" =>
+                    ["method_module_yaml", "builder_root_yaml", "builder_user_yaml"],
+                _ => [],
+            };
             JsonElement scope = graph.GetProperty("scope"u8);
             string? module = String(scope, "moduleCode");
             string? skill = String(scope, "skillName");
@@ -292,7 +302,10 @@ public static class BmadSemantics
                     NullableString(layer, "sourcePath"))))
                 || layers.Any(layer => !StringComparer.Ordinal.Equals(
                     String(layer, "graphKind"),
-                    kind)))
+                    kind)
+                    || !allowedLayerKinds.Contains(
+                        NullableString(layer, "layerKind"),
+                        StringComparer.Ordinal)))
             {
                 Add(errors, "BMAD_CONFIG_LAYER_INVALID");
             }
@@ -860,7 +873,17 @@ public static class BmadSemantics
         }
 
         if (value.TryGetProperty("authoringAction"u8, out JsonElement authoringAction)
-            && String(authoringAction, "builderKind") != kind)
+            && (String(authoringAction, "builderKind") != kind
+                || !((String(value, "objectKind"), kind) switch
+                {
+                    ("draft", "agent") => String(authoringAction, "action") == "create_rebuild",
+                    ("draft", "workflow") => String(authoringAction, "action") == "build",
+                    ("revision", "agent") => String(authoringAction, "action")
+                        is "create_rebuild" or "edit",
+                    ("revision", "workflow") => String(authoringAction, "action")
+                        is "build" or "edit",
+                    _ => false,
+                })))
         {
             Add(errors, "BMAD_ACTION_UNSUPPORTED");
         }

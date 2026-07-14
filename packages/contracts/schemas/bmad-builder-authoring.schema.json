@@ -32,7 +32,8 @@
               "enum": [
                 "create_rebuild",
                 "edit",
-                "analyze"
+                "analyze",
+                "build"
               ]
             }
           }
@@ -50,6 +51,7 @@
             },
             "action": {
               "enum": [
+                "create_rebuild",
                 "build",
                 "edit",
                 "analyze"
@@ -147,20 +149,7 @@
               "const": "BuilderAgentV2Stateless"
             },
             "authoringAction": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "builderKind",
-                "action"
-              ],
-              "properties": {
-                "builderKind": {
-                  "const": "agent"
-                },
-                "action": {
-                  "const": "create_rebuild"
-                }
-              }
+              "$ref": "#/$defs/BuilderAuthoringAction"
             },
             "sourceIdentityHash": {
               "$ref": "./common.schema.json#/$defs/Sha256"
@@ -220,20 +209,7 @@
               "const": "BuilderOutcomeSkillV2"
             },
             "authoringAction": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "builderKind",
-                "action"
-              ],
-              "properties": {
-                "builderKind": {
-                  "const": "workflow"
-                },
-                "action": {
-                  "const": "build"
-                }
-              }
+              "$ref": "#/$defs/BuilderAuthoringAction"
             },
             "sourceIdentityHash": {
               "$ref": "./common.schema.json#/$defs/Sha256"
@@ -294,23 +270,7 @@
               "const": "BuilderAgentV2Stateless"
             },
             "authoringAction": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "builderKind",
-                "action"
-              ],
-              "properties": {
-                "builderKind": {
-                  "const": "agent"
-                },
-                "action": {
-                  "enum": [
-                    "create_rebuild",
-                    "edit"
-                  ]
-                }
-              }
+              "$ref": "#/$defs/BuilderAuthoringAction"
             },
             "ordinal": {
               "type": "integer",
@@ -391,23 +351,7 @@
               "const": "BuilderOutcomeSkillV2"
             },
             "authoringAction": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "builderKind",
-                "action"
-              ],
-              "properties": {
-                "builderKind": {
-                  "const": "workflow"
-                },
-                "action": {
-                  "enum": [
-                    "build",
-                    "edit"
-                  ]
-                }
-              }
+              "$ref": "#/$defs/BuilderAuthoringAction"
             },
             "ordinal": {
               "type": "integer",
@@ -756,117 +700,9 @@
               "type": "array",
               "minItems": 6,
               "maxItems": 6,
-              "prefixItems": [
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "leanness"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "architecture"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "determinism"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "customization"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "enhancement"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "agent"
-                        },
-                        "lens": {
-                          "const": "agent-cohesion"
-                        }
-                      }
-                    }
-                  ]
-                }
-              ],
-              "items": false
+              "items": {
+                "$ref": "#/$defs/BuilderModelLensResult"
+              }
             },
             "evaluationClaim": {
               "const": "none"
@@ -1032,99 +868,9 @@
               "type": "array",
               "minItems": 5,
               "maxItems": 5,
-              "prefixItems": [
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "workflow"
-                        },
-                        "lens": {
-                          "const": "leanness"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "workflow"
-                        },
-                        "lens": {
-                          "const": "architecture"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "workflow"
-                        },
-                        "lens": {
-                          "const": "determinism"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "workflow"
-                        },
-                        "lens": {
-                          "const": "customization"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/$defs/BuilderModelLensResult"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "builderKind": {
-                          "const": "workflow"
-                        },
-                        "lens": {
-                          "const": "enhancement"
-                        }
-                      }
-                    }
-                  ]
-                }
-              ],
-              "items": false
+              "items": {
+                "$ref": "#/$defs/BuilderModelLensResult"
+              }
             },
             "evaluationClaim": {
               "const": "none"

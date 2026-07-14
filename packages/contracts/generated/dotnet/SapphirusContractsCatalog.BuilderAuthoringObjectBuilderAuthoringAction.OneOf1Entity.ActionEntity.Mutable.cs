@@ -26,7 +26,7 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Generated from JSON Schema.
     /// </summary>
-    public readonly partial struct BmadPackageDescriptorBmadConfigLayer
+    public readonly partial struct BuilderAuthoringObjectBuilderAuthoringAction
     {
         /// <summary>
         /// Generated from JSON Schema.
@@ -37,7 +37,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Generated from JSON Schema.
             /// </summary>
             [DebuggerDisplay("{DebuggerDisplay,nq}")]
-            public readonly partial struct LayerKindEntity
+            public readonly partial struct ActionEntity
             {
                 public partial struct Mutable
 #if NET8_0_OR_GREATER
@@ -145,7 +145,7 @@ public readonly partial struct SapphirusContractsCatalog
                     /// <param name="value">The instance of this type.</param>
                     /// <returns>A mutable instance.</returns>
                     /// <exception cref="FormatException">Thrown if the instance is not backed by a mutable document.</exception>
-                    public static explicit operator Mutable(LayerKindEntity instance)
+                    public static explicit operator Mutable(ActionEntity instance)
                     {
                         if (instance._parent is not IMutableJsonDocument doc)
                         {
@@ -160,9 +160,9 @@ public readonly partial struct SapphirusContractsCatalog
                     /// Converts to an immutable instance of the <see cref="Mutable"/> type.
                     /// </summary>
                     /// <param name="value">The <see cref="Mutable"/> instance.</param>
-                    /// <returns>An immutable instance of a <see cref="LayerKindEntity"/>, initialized from the <see cref="Mutable"/> value.</returns>
+                    /// <returns>An immutable instance of a <see cref="ActionEntity"/>, initialized from the <see cref="Mutable"/> value.</returns>
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    public static implicit operator LayerKindEntity(Mutable instance)
+                    public static implicit operator ActionEntity(Mutable instance)
                     {
                         return new(instance._parent, instance._idx);
                     }
@@ -195,7 +195,7 @@ public readonly partial struct SapphirusContractsCatalog
                     public override bool Equals(object? obj)
                     {
                         return
-                            (obj is IJsonElement value && Equals(new LayerKindEntity(value.ParentDocument, value.ParentDocumentIndex))) ||
+                            (obj is IJsonElement value && Equals(new ActionEntity(value.ParentDocument, value.ParentDocumentIndex))) ||
                             (obj is null && this.IsNull());
                     }
 
@@ -345,7 +345,7 @@ public readonly partial struct SapphirusContractsCatalog
 #endif
 
                     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-                    private string DebuggerDisplay => $"LayerKindEntity.Mutable: ValueKind = {ValueKind} : \"{ToString()}\"";
+                    private string DebuggerDisplay => $"ActionEntity.Mutable: ValueKind = {ValueKind} : \"{ToString()}\"";
 
                     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
                     IJsonDocument IJsonElement.ParentDocument => _parent;
@@ -360,11 +360,11 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonValueKind IJsonElement.ValueKind => ValueKind;
 
                     /// <summary>
-                    /// Gets a <see cref="LayerKindEntity"/> which can be safely stored beyond the lifetime of the
+                    /// Gets a <see cref="ActionEntity"/> which can be safely stored beyond the lifetime of the
                     /// original document.
                     /// </summary>
                     /// <returns>
-                    /// A <see cref="LayerKindEntity"/> which can be safely stored beyond the lifetime of the
+                    /// A <see cref="ActionEntity"/> which can be safely stored beyond the lifetime of the
                     /// original document.
                     /// </returns>
                     /// <remarks>
@@ -373,10 +373,10 @@ public readonly partial struct SapphirusContractsCatalog
                     /// document. The result is independent of the workspace.
                     /// </para>
                     /// </remarks>
-                    public readonly LayerKindEntity Clone()
+                    public readonly ActionEntity Clone()
                     {
                         CheckValidInstance();
-                        return _parent.CloneElement<LayerKindEntity>(_idx);
+                        return _parent.CloneElement<ActionEntity>(_idx);
                     }
 
                     /// <summary>
@@ -384,7 +384,7 @@ public readonly partial struct SapphirusContractsCatalog
                     /// document builder registered in the same workspace.
                     /// </summary>
                     /// <returns>
-                    /// An immutable <see cref="LayerKindEntity"/> that lives for the lifetime of its
+                    /// An immutable <see cref="ActionEntity"/> that lives for the lifetime of its
                     /// workspace and its associated documents.
                     /// </returns>
                     /// <remarks>
@@ -395,10 +395,10 @@ public readonly partial struct SapphirusContractsCatalog
                     /// immutable but is only valid for the lifetime of the workspace.
                     /// </para>
                     /// </remarks>
-                    public readonly LayerKindEntity Freeze()
+                    public readonly ActionEntity Freeze()
                     {
                         CheckValidInstance();
-                        return _parent.FreezeElement<LayerKindEntity>(_idx);
+                        return _parent.FreezeElement<ActionEntity>(_idx);
                     }
 
                     /// <summary>
@@ -407,30 +407,18 @@ public readonly partial struct SapphirusContractsCatalog
                     /// <typeparam name="TContext">The immutable context to pass in to the match function.</typeparam>
                     /// <typeparam name="TResult">The result of calling the match function.</typeparam>
                     /// <param name="context">The context to pass to the match function.</param>
-                    /// <param name="matchInstallerTeam">Match 1st item.</param>
-                    /// <param name="matchInstallerUser">Match 2nd item.</param>
-                    /// <param name="matchCustomTeam">Match 3rd item.</param>
-                    /// <param name="matchCustomUser">Match 4th item.</param>
-                    /// <param name="matchPackagedDefault">Match 5th item.</param>
-                    /// <param name="matchTeamOverride">Match 6th item.</param>
-                    /// <param name="matchUserOverride">Match 7th item.</param>
-                    /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                    /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                    /// <param name="matchBuilderUserYaml">Match 10th item.</param>
+                    /// <param name="matchCreateRebuild">Match 1st item.</param>
+                    /// <param name="matchBuild">Match 2nd item.</param>
+                    /// <param name="matchEdit">Match 3rd item.</param>
+                    /// <param name="matchAnalyze">Match 4th item.</param>
                     /// <param name="defaultMatch">Match any other value.</param>
                     /// <returns>An instance of the value returned by the match function.</returns>
                     public TResult Match<TContext, TResult>(
                         in TContext context,
-                        Func<TContext, TResult> matchInstallerTeam,
-                        Func<TContext, TResult> matchInstallerUser,
-                        Func<TContext, TResult> matchCustomTeam,
-                        Func<TContext, TResult> matchCustomUser,
-                        Func<TContext, TResult> matchPackagedDefault,
-                        Func<TContext, TResult> matchTeamOverride,
-                        Func<TContext, TResult> matchUserOverride,
-                        Func<TContext, TResult> matchMethodModuleYaml,
-                        Func<TContext, TResult> matchBuilderRootYaml,
-                        Func<TContext, TResult> matchBuilderUserYaml,
+                        Func<TContext, TResult> matchCreateRebuild,
+                        Func<TContext, TResult> matchBuild,
+                        Func<TContext, TResult> matchEdit,
+                        Func<TContext, TResult> matchAnalyze,
                         Func<TContext, TResult> defaultMatch)
 #if NET9_0_OR_GREATER
                     where TContext : allows ref struct
@@ -438,52 +426,22 @@ public readonly partial struct SapphirusContractsCatalog
                     {
                         if (this.ValueEquals(Constants.Enum1))
                         {
-                            return matchInstallerTeam(context);
+                            return matchCreateRebuild(context);
                         }
 
                         if (this.ValueEquals(Constants.Enum2))
                         {
-                            return matchInstallerUser(context);
+                            return matchBuild(context);
                         }
 
                         if (this.ValueEquals(Constants.Enum3))
                         {
-                            return matchCustomTeam(context);
+                            return matchEdit(context);
                         }
 
                         if (this.ValueEquals(Constants.Enum4))
                         {
-                            return matchCustomUser(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum5))
-                        {
-                            return matchPackagedDefault(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum6))
-                        {
-                            return matchTeamOverride(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum7))
-                        {
-                            return matchUserOverride(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum8))
-                        {
-                            return matchMethodModuleYaml(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum9))
-                        {
-                            return matchBuilderRootYaml(context);
-                        }
-
-                        if (this.ValueEquals(Constants.Enum10))
-                        {
-                            return matchBuilderUserYaml(context);
+                            return matchAnalyze(context);
                         }
 
                         return defaultMatch(context);
@@ -493,79 +451,37 @@ public readonly partial struct SapphirusContractsCatalog
                     /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
                     /// </summary>
                     /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-                    /// <param name="matchInstallerTeam">Match 1st item.</param>
-                    /// <param name="matchInstallerUser">Match 2nd item.</param>
-                    /// <param name="matchCustomTeam">Match 3rd item.</param>
-                    /// <param name="matchCustomUser">Match 4th item.</param>
-                    /// <param name="matchPackagedDefault">Match 5th item.</param>
-                    /// <param name="matchTeamOverride">Match 6th item.</param>
-                    /// <param name="matchUserOverride">Match 7th item.</param>
-                    /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                    /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                    /// <param name="matchBuilderUserYaml">Match 10th item.</param>
+                    /// <param name="matchCreateRebuild">Match 1st item.</param>
+                    /// <param name="matchBuild">Match 2nd item.</param>
+                    /// <param name="matchEdit">Match 3rd item.</param>
+                    /// <param name="matchAnalyze">Match 4th item.</param>
                     /// <param name="defaultMatch">Match any other value.</param>
                     /// <returns>An instance of the value returned by the match function.</returns>
                     public TResult Match<TResult>(
-                        Func<TResult> matchInstallerTeam,
-                        Func<TResult> matchInstallerUser,
-                        Func<TResult> matchCustomTeam,
-                        Func<TResult> matchCustomUser,
-                        Func<TResult> matchPackagedDefault,
-                        Func<TResult> matchTeamOverride,
-                        Func<TResult> matchUserOverride,
-                        Func<TResult> matchMethodModuleYaml,
-                        Func<TResult> matchBuilderRootYaml,
-                        Func<TResult> matchBuilderUserYaml,
+                        Func<TResult> matchCreateRebuild,
+                        Func<TResult> matchBuild,
+                        Func<TResult> matchEdit,
+                        Func<TResult> matchAnalyze,
                         Func<TResult> defaultMatch)
                     {
                         if (this.ValueEquals(Constants.Enum1))
                         {
-                            return matchInstallerTeam();
+                            return matchCreateRebuild();
                         }
 
                         if (this.ValueEquals(Constants.Enum2))
                         {
-                            return matchInstallerUser();
+                            return matchBuild();
                         }
 
                         if (this.ValueEquals(Constants.Enum3))
                         {
-                            return matchCustomTeam();
+                            return matchEdit();
                         }
 
                         if (this.ValueEquals(Constants.Enum4))
                         {
-                            return matchCustomUser();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum5))
-                        {
-                            return matchPackagedDefault();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum6))
-                        {
-                            return matchTeamOverride();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum7))
-                        {
-                            return matchUserOverride();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum8))
-                        {
-                            return matchMethodModuleYaml();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum9))
-                        {
-                            return matchBuilderRootYaml();
-                        }
-
-                        if (this.ValueEquals(Constants.Enum10))
-                        {
-                            return matchBuilderUserYaml();
+                            return matchAnalyze();
                         }
 
                         return defaultMatch();
@@ -618,7 +534,7 @@ public readonly partial struct SapphirusContractsCatalog
                         _kind = requiresUnescaping ? Kind.RawUtf8StringRequiresUnescaping : Kind.RawUtf8StringNotRequiresUnescaping;
                     }
 
-                    public static implicit operator Source(LayerKindEntity instance) => new(JsonElement.From(instance));
+                    public static implicit operator Source(ActionEntity instance) => new(JsonElement.From(instance));
 
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     public static implicit operator Source(ReadOnlySpan<byte> value) => new (value);
@@ -794,7 +710,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>An instance of a mutable document initialized with this instance.</returns>
                 public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
                 {
-                    return workspace.CreateBuilder<LayerKindEntity, Mutable>(this);
+                    return workspace.CreateBuilder<ActionEntity, Mutable>(this);
                 }
             }
         }

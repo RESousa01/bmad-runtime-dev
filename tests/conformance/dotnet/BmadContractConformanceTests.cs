@@ -1,4 +1,6 @@
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Corvus.Text.Json;
 using Sapphirus.Contracts.Generated;
 using Xunit;
@@ -24,7 +26,7 @@ public sealed class BmadContractConformanceTests
         FixtureEntry[] entries = catalog
             .Where(static entry => entry.File.Contains("/bmad/", StringComparison.Ordinal))
             .ToArray();
-        Assert.Equal(84, entries.Length);
+        Assert.Equal(86, entries.Length);
 
         foreach (FixtureEntry entry in entries)
         {
@@ -96,7 +98,91 @@ public sealed class BmadContractConformanceTests
                     vector.GetProperty("canonicalJson"u8).GetString(),
                     BmadCanonicalJson.Serialize(value, excludedField)),
                 name);
+
+            JsonObject excludedMutation = JsonNode.Parse(value.GetRawText())!.AsObject();
+            excludedMutation[excludedField] = $"sha256:{new string('f', 64)}";
+            using JsonDocument excludedDocument = JsonDocument.Parse(excludedMutation.ToJsonString());
+            Assert.Equal(
+                actual,
+                BmadCanonicalJson.HashWithoutField(
+                    purpose,
+                    schemaMajor,
+                    excludedDocument.RootElement,
+                    excludedField));
+
+            JsonObject includedMutation = JsonNode.Parse(value.GetRawText())!.AsObject();
+            includedMutation["schemaVersion"] = "transplanted.v1";
+            using JsonDocument includedDocument = JsonDocument.Parse(includedMutation.ToJsonString());
+            Assert.NotEqual(
+                actual,
+                BmadCanonicalJson.HashWithoutField(
+                    purpose,
+                    schemaMajor,
+                    includedDocument.RootElement,
+                    excludedField));
         }
+    }
+
+    [Fact]
+    public void EveryValidBmadRootRoundTripsThroughGeneratedDotnetTypes()
+    {
+        FixtureEntry[] entries = JsonSerializer.Deserialize<FixtureEntry[]>(
+            File.ReadAllText(FixturePath("catalog.json")),
+            JsonOptions) ?? throw new InvalidOperationException("Fixture catalog did not deserialize.");
+        foreach (FixtureEntry entry in entries.Where(static entry =>
+            entry.Valid && entry.File.Contains("/bmad/", StringComparison.Ordinal)))
+        {
+            byte[] source = File.ReadAllBytes(FixturePath(entry.File));
+            using JsonDocument original = StrictBmadJson.Parse(source);
+            byte[] serialized = RoundTripGenerated(entry.Schema!, source);
+            using JsonDocument roundTrip = StrictBmadJson.Parse(serialized);
+            Assert.True(
+                JsonElement.DeepEquals(original.RootElement, roundTrip.RootElement),
+                entry.File);
+        }
+    }
+
+    [Fact]
+    public void BmadStrictParserEnforcesExactByteAndDepthLimits()
+    {
+        byte[] exactLimit = Encoding.UTF8.GetBytes(
+            $"\"{new string('a', StrictBmadJson.MaximumBytes - 2)}\"");
+        Assert.Equal(StrictBmadJson.MaximumBytes, exactLimit.Length);
+        using JsonDocument exactDocument = StrictBmadJson.Parse(exactLimit);
+
+        byte[] multibyteOverLimit = Encoding.UTF8.GetBytes(
+            $"\"{new string('é', 1_048_576)}\"");
+        BmadStrictJsonException bytes = Assert.Throws<BmadStrictJsonException>(
+            () => StrictBmadJson.Parse(multibyteOverLimit));
+        Assert.Equal("MAX_BYTES_EXCEEDED", bytes.Code);
+
+        byte[] depthSixteen = Encoding.UTF8.GetBytes(
+            $"{new string('[', 16)}null{new string(']', 16)}");
+        using JsonDocument depthDocument = StrictBmadJson.Parse(depthSixteen);
+        byte[] depthSeventeen = Encoding.UTF8.GetBytes(
+            $"{new string('[', 17)}null{new string(']', 17)}");
+        BmadStrictJsonException depth = Assert.Throws<BmadStrictJsonException>(
+            () => StrictBmadJson.Parse(depthSeventeen));
+        Assert.Equal("MAX_DEPTH_EXCEEDED", depth.Code);
+    }
+
+    private static byte[] RoundTripGenerated(string schema, ReadOnlySpan<byte> source)
+    {
+        string serialized = schema switch
+        {
+            "bmad-package-descriptor.schema.json" =>
+                SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).ToString(),
+            "bmad-capability-catalog.schema.json" =>
+                SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).ToString(),
+            "bmad-method-session.schema.json" =>
+                SapphirusContractsCatalog.MethodSession.ParseValue(source).ToString(),
+            "bmad-builder-authoring.schema.json" =>
+                SapphirusContractsCatalog.BuilderAuthoringObject.ParseValue(source).ToString(),
+            "bmad-validation-report.schema.json" =>
+                SapphirusContractsCatalog.BmadValidationReport.ParseValue(source).ToString(),
+            _ => throw new InvalidOperationException($"Unsupported BMAD schema {schema}."),
+        };
+        return Encoding.UTF8.GetBytes(serialized);
     }
 
     private static string? ValidateGenerated(string schema, ReadOnlySpan<byte> source)

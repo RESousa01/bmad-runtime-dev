@@ -1220,6 +1220,16 @@ export function buildBmadFixtureSet() {
     '{"schemaVersion":"sapphirus.bmad-package-descriptor.v1","schemaVersion":"sapphirus.bmad-package-descriptor.v1"}\n',
   );
   addCatalog("invalid/bmad/duplicate-member.json", null, false, "DUPLICATE_MEMBER");
+  files.set(
+    "fixtures/invalid/bmad/duplicate-member-nested.json",
+    '{"schemaVersion":"sapphirus.bmad-package-descriptor.v1","sourceIdentity":{"packageName":"bmad-method","packageName":"transplant"}}\n',
+  );
+  addCatalog("invalid/bmad/duplicate-member-nested.json", null, false, "DUPLICATE_MEMBER");
+  files.set(
+    "fixtures/invalid/bmad/duplicate-member-escaped.json",
+    '{"schemaVersion":"sapphirus.bmad-package-descriptor.v1","sch\\u0065maVersion":"sapphirus.bmad-package-descriptor.v1"}\n',
+  );
+  addCatalog("invalid/bmad/duplicate-member-escaped.json", null, false, "DUPLICATE_MEMBER");
 
   const invalidCases = [
     ["unknown-profile", "bmad-builder-authoring.schema.json", agentDraft, (v) => { v.validationProfile = "FutureProfile"; }, "ONE_OF_MISMATCH"],
@@ -1272,7 +1282,7 @@ export function buildBmadFixtureSet() {
     ["decision-manifest-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].manifestHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
     ["decision-distribution-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].distributionProfile = "method_source_tree"; }, "BMAD_CONTEXT_DECISION_REUSED"],
     ["decision-model-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].modelBinding.modelProfileHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["agent-build", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.authoringAction.action = "build"; }, "ONE_OF_MISMATCH"],
+    ["agent-build", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.authoringAction.action = "build"; }, "BMAD_ACTION_UNSUPPORTED"],
     ["convert", "bmad-builder-authoring.schema.json", workflowRevision, (v) => { v.authoringAction.action = "convert"; }, "ONE_OF_MISMATCH"],
     ["analyze-as-evaluation", "bmad-builder-authoring.schema.json", agentModel, (v) => { v.evaluationClaim = "passed"; }, "ONE_OF_MISMATCH"],
     ["future-lifecycle-field", "bmad-builder-authoring.schema.json", agentDraft, (v) => { v.activationState = "active"; }, "ONE_OF_MISMATCH"],

@@ -10,7 +10,7 @@ use sapphirus_contracts_conformance::validate_bmad_semantics;
 use sapphirus_generator_qualification::{
     ParserLimits, QualificationValidator, ReasonCategory, RejectionStage,
 };
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 
 #[allow(dead_code, clippy::all, clippy::pedantic, clippy::unwrap_used)]
@@ -158,6 +158,19 @@ fn normalized_schema_reason(validator: &Validator, value: &Value) -> Option<&'st
     .find(|reason| reasons.contains(reason))
 }
 
+fn assert_generated_round_trip<T>(
+    source: &[u8],
+    expected: &Value,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: DeserializeOwned + Serialize,
+{
+    let typed: T = serde_json::from_slice(source)?;
+    let round_trip = serde_json::to_value(typed)?;
+    assert_eq!(&round_trip, expected);
+    Ok(())
+}
+
 #[test]
 fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn std::error::Error>>
 {
@@ -169,7 +182,7 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
         .into_iter()
         .filter(|entry| entry.file.contains("/bmad/"))
         .collect();
-    assert_eq!(entries.len(), 84);
+    assert_eq!(entries.len(), 86);
 
     for entry in entries {
         let source = fs::read(fixture_root.join(&entry.file))?;
@@ -254,6 +267,108 @@ fn rust_matches_all_six_bmad_golden_hash_vectors() -> Result<(), Box<dyn std::er
             "{}",
             vector.name
         );
+
+        let mut excluded_mutation = vector.value.clone();
+        excluded_mutation[field] = Value::String(format!("sha256:{}", "f".repeat(64)));
+        assert_eq!(
+            canonical_hash_without_field(
+                &vector.purpose,
+                schema_major,
+                &excluded_mutation,
+                field,
+            )?
+            .to_string(),
+            vector.expected_hash,
+            "{} excluded mutation",
+            vector.name,
+        );
+        let mut included_mutation = vector.value.clone();
+        included_mutation["schemaVersion"] = Value::String("transplanted.v1".to_owned());
+        assert_ne!(
+            canonical_hash_without_field(
+                &vector.purpose,
+                schema_major,
+                &included_mutation,
+                field,
+            )?
+            .to_string(),
+            vector.expected_hash,
+            "{} included mutation",
+            vector.name,
+        );
     }
+    Ok(())
+}
+
+#[test]
+fn every_valid_bmad_root_round_trips_through_generated_rust_types(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let fixture_root = contract_root().join("fixtures");
+    let entries: Vec<FixtureEntry> =
+        serde_json::from_slice(&fs::read(fixture_root.join("catalog.json"))?)?;
+    for entry in entries
+        .into_iter()
+        .filter(|entry| entry.valid && entry.file.contains("/bmad/"))
+    {
+        let source = fs::read(fixture_root.join(&entry.file))?;
+        let value: Value = serde_json::from_slice(&source)?;
+        let result = match entry.schema.as_deref().ok_or("missing schema")? {
+            "bmad-package-descriptor.schema.json" => assert_generated_round_trip::<
+                generated_contracts::BmadPackageDescriptor,
+            >(&source, &value),
+            "bmad-capability-catalog.schema.json" => assert_generated_round_trip::<
+                generated_contracts::BmadCapabilityCatalog,
+            >(&source, &value),
+            "bmad-method-session.schema.json" => {
+                assert_generated_round_trip::<generated_contracts::MethodSession>(&source, &value)
+            }
+            "bmad-builder-authoring.schema.json" => assert_generated_round_trip::<
+                generated_contracts::BuilderAuthoringObject,
+            >(&source, &value),
+            "bmad-validation-report.schema.json" => assert_generated_round_trip::<
+                generated_contracts::BmadValidationReport,
+            >(&source, &value),
+            schema => return Err(format!("unsupported BMAD schema {schema}").into()),
+        };
+        result.map_err(|error| format!("{}: {error}", entry.file))?;
+    }
+    Ok(())
+}
+
+#[test]
+fn bmad_strict_parser_enforces_exact_byte_and_depth_limits(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let schemas = load_schemas()?;
+    let validator = qualification_validator("bmad-package-descriptor.schema.json", &schemas)?;
+
+    let exact_limit = format!("\"{}\"", "a".repeat(2_097_150));
+    assert_eq!(exact_limit.len(), 2_097_152);
+    assert!(
+        validator
+            .validate_source(exact_limit.as_bytes())
+            .validator_invoked
+    );
+
+    let multibyte_over_limit = format!("\"{}\"", "é".repeat(1_048_576));
+    let bytes_result = validator.validate_source(multibyte_over_limit.as_bytes());
+    assert_eq!(
+        bytes_result.reason_category,
+        Some(ReasonCategory::MaxBytesExceeded)
+    );
+    assert!(!bytes_result.validator_invoked);
+
+    let depth_sixteen = format!("{}null{}", "[".repeat(16), "]".repeat(16));
+    assert!(
+        validator
+            .validate_source(depth_sixteen.as_bytes())
+            .validator_invoked
+    );
+    let depth_seventeen = format!("{}null{}", "[".repeat(17), "]".repeat(17));
+    let depth_result = validator.validate_source(depth_seventeen.as_bytes());
+    assert_eq!(
+        depth_result.reason_category,
+        Some(ReasonCategory::MaxDepthExceeded)
+    );
+    assert!(!depth_result.validator_invoked);
     Ok(())
 }
