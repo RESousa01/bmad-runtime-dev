@@ -1,0 +1,1419 @@
+{
+  "schemaVersion": "sapphirus.bmad.semantic-source-ledger/v1",
+  "sources": [
+    {
+      "id": "builder",
+      "packageName": "bmad-builder",
+      "packageVersion": "2.1.0",
+      "moduleVersion": "1.0.0",
+      "sourceFormatVersion": null,
+      "sourceFormatVersionEvidence": "not_declared",
+      "runtimeCompatibility": {
+        "node": ">=22.0.0"
+      },
+      "sourceDistributionProfile": "builder_source_tree",
+      "managedDistributionProfile": "sapphirus_package",
+      "managedInstallProfile": "SapphirusManagedV1",
+      "archiveArtifactLabel": "bmad-builder-main.zip",
+      "archiveSha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      "archiveEvidence": "reviewed_snapshot_only",
+      "gitIdentity": null,
+      "exception": null,
+      "promotionEligibility": "blocked_provenance",
+      "missingImmutableIdentity": [
+        "upstream commit or tag",
+        "release signature"
+      ]
+    },
+    {
+      "id": "method",
+      "packageName": "bmad-method",
+      "packageVersion": "6.10.0",
+      "moduleVersion": null,
+      "sourceFormatVersion": null,
+      "sourceFormatVersionEvidence": "not_declared",
+      "runtimeCompatibility": {
+        "node": ">=20.12.0"
+      },
+      "sourceDistributionProfile": "method_source_tree",
+      "managedDistributionProfile": "sapphirus_package",
+      "managedInstallProfile": "SapphirusManagedV1",
+      "archiveArtifactLabel": "BMAD-METHOD-main.zip",
+      "archiveSha256": "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+      "archiveEvidence": "reviewed_snapshot_only",
+      "gitIdentity": null,
+      "exception": null,
+      "promotionEligibility": "blocked_provenance",
+      "missingImmutableIdentity": [
+        "upstream commit or tag",
+        "release signature"
+      ]
+    }
+  ],
+  "identityEvidence": [
+    {
+      "sourceId": "builder",
+      "member": "package.json",
+      "sha256": "9072e665e63c05e5701387c4ff8d0ba1489518b59307a92a475686a019439ead"
+    },
+    {
+      "sourceId": "method",
+      "member": "package.json",
+      "sha256": "7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
+    }
+  ],
+  "legalEvidence": [
+    {
+      "sourceId": "builder",
+      "member": "LICENSE",
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    },
+    {
+      "sourceId": "builder",
+      "member": "TRADEMARK.md",
+      "sha256": "ce57ad749e43277c6021e5d5085980b33c9bf8f67a070bbbf07e041ccdddc58b"
+    },
+    {
+      "sourceId": "method",
+      "member": "LICENSE",
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    },
+    {
+      "sourceId": "method",
+      "member": "TRADEMARK.md",
+      "sha256": "ce57ad749e43277c6021e5d5085980b33c9bf8f67a070bbbf07e041ccdddc58b"
+    }
+  ],
+  "licenses": [
+    {
+      "sourceId": "builder",
+      "path": "licenses/BMAD-BUILDER-MIT.txt",
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    },
+    {
+      "sourceId": "method",
+      "path": "licenses/BMAD-METHOD-MIT.txt",
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    }
+  ],
+  "sourceMembers": [
+    {
+      "id": "method-001",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-help/SKILL.md",
+      "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve help intent and catalog semantics."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace resolver, artifact reads, and remote documentation with typed host inputs or explicit unavailable facts."
+        }
+      ]
+    },
+    {
+      "id": "method-002",
+      "sourceId": "method",
+      "member": "src/core-skills/module.yaml",
+      "sha256": "46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve core configuration field definitions as source evidence."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude source installation behavior."
+        }
+      ]
+    },
+    {
+      "id": "method-003",
+      "sourceId": "method",
+      "member": "src/core-skills/module-help.csv",
+      "sha256": "e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the exact 13-column catalog rows."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not fetch _meta URLs."
+        }
+      ]
+    },
+    {
+      "id": "method-004",
+      "sourceId": "method",
+      "member": "src/bmm-skills/module.yaml",
+      "sha256": "5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve module configuration and the six-record roster as separate source data."
+        }
+      ]
+    },
+    {
+      "id": "method-005",
+      "sourceId": "method",
+      "member": "src/bmm-skills/module-help.csv",
+      "sha256": "ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve catalog/help semantics and the bmad-architecture action identity."
+        }
+      ]
+    },
+    {
+      "id": "method-006",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
+      "sha256": "fca38a404e79508ebc39235d0162bcb475b02407a913e3e5bd8c5526b2b261a6",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Mary's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "id": "method-007",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-analyst/customize.toml",
+      "sha256": "7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Mary's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "id": "method-008",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md",
+      "sha256": "7544242ff68d0ddfd466274f40ae9f3b0ea06ee5f5f938f68f953e19b3598cd7",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Paige's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "id": "method-009",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+      "sha256": "bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Paige's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "id": "method-010",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md",
+      "sha256": "c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code WD to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "id": "method-011",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+      "sha256": "1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code MG to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "id": "method-012",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md",
+      "sha256": "3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code VD to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "id": "method-013",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md",
+      "sha256": "6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code EC to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "id": "method-014",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md",
+      "sha256": "e2ebea0bf6ee158fcb9e62731a185983f2ac59f664940f4f4320cf10e1bbdf92",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind John's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "id": "method-015",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-pm/customize.toml",
+      "sha256": "afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind John's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "id": "method-016",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+      "sha256": "d780ae59b9fb7e3a94c5ffe4ec75f90942d4a9a3944af4b36c2d279fdd7801db",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Sally's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "id": "method-017",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/customize.toml",
+      "sha256": "3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Sally's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "id": "method-018",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+      "sha256": "82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Winston persona and dispatch intent."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace scripts, globs, hooks, and menu dispatch with typed host facts and capability keys."
+        }
+      ]
+    },
+    {
+      "id": "method-019",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
+      "sha256": "d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe persona defaults and menu records."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent activation-hook declarations only as typed unavailable facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never execute activation hooks or file directives."
+        }
+      ]
+    },
+    {
+      "id": "method-020",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-agent-dev/SKILL.md",
+      "sha256": "54ab6d9d60d7ed7e84d6510cf325734b66feb1b419131436672559584b4bf508",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Amelia's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "id": "method-021",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-agent-dev/customize.toml",
+      "sha256": "01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Amelia's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "id": "method-022",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+      "sha256": "a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate architecture-create intent into the later capability-specific host state machine."
+        }
+      ]
+    },
+    {
+      "id": "method-023",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+      "sha256": "137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe architecture defaults."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent external sources and handoffs, hooks, skills, and file globs as typed unavailable facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no effect or execution to those directives."
+        }
+      ]
+    },
+    {
+      "id": "method-024",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+      "sha256": "ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate artifact-shape semantics into an independently authored closed app-local design."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy the source template bytes into runtime."
+        }
+      ]
+    },
+    {
+      "id": "method-025",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+      "sha256": "d32e32a3c1d59b5612b947004f3f6fef1117a13ce9f1ffa428d616e0b5d4db69",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic-check and model-review intent into typed host review ports."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not run source scripts or subagents."
+        }
+      ]
+    },
+    {
+      "id": "method-026",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+      "sha256": "4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain outcome and status semantics as non-runnable reference evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer headless execution."
+        }
+      ]
+    },
+    {
+      "id": "method-027",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
+      "sha256": "4b1673582dc8e0957b559cece14f048c0c995874b79ad255f033b36b2b789eb0",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Preserve the deprecated alias as a closed compatibility-shim identity."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never dispatch arbitrary forwarded text."
+        }
+      ]
+    },
+    {
+      "id": "method-028",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
+      "sha256": "618be49b0286f18dfb4b6bac3d96bf1cf062994fa5278cd327be9898e651b43c",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only the four legacy fields through the typed resolver."
+        }
+      ]
+    },
+    {
+      "id": "method-029",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+      "sha256": "040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Treat executable source content as evidence only; never bundle, run, or line-port it."
+        }
+      ]
+    },
+    {
+      "id": "builder-001",
+      "sourceId": "builder",
+      "member": "skills/module.yaml",
+      "sha256": "d9cb53ff118c5c45d393b5a0f3498cdfc20d7f47acf491970157d36a7e9f5462",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Builder configuration field identities and keep package and module version identities separate."
+        }
+      ]
+    },
+    {
+      "id": "builder-002",
+      "sourceId": "builder",
+      "member": "skills/module-help.csv",
+      "sha256": "fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve raw catalog rows as source evidence."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Convert, module, and setup actions from runnable projections."
+        }
+      ]
+    },
+    {
+      "id": "builder-003",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/SKILL.md",
+      "sha256": "806ea0a5c3bd9d4ef5dfa2e0beb37490b0fb3faef848ac493db2db0e99f32dda",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Create/Rebuild, Edit, and Analyze intent routing."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate source operations to inactive app-local revisions using create_rebuild, edit, and analyze."
+        }
+      ]
+    },
+    {
+      "id": "builder-004",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/customize.toml",
+      "sha256": "3f0858771d1b98944c6a706fc5dd75cf0a6d71cd8cca8525f8c8aa3246f37063",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe configuration and budget facts."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent hooks, files, skills, and evaluation requirements only as typed unavailable dependencies."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant those declarations no effect or authority."
+        }
+      ]
+    },
+    {
+      "id": "builder-005",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/build-process.md",
+      "sha256": "e5ba57c14b7185865f8247c760291167530765041ee4ccaff19d121094f4b875",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate only the stateless-agent Process loop to inactive revision authoring."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude scripts, evaluation, installation, memory, and autonomy."
+        }
+      ]
+    },
+    {
+      "id": "builder-006",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/edit-guidance.md",
+      "sha256": "b5eeeee71806562ed657e17c4619060136ab63ca77595fdf2074f4443ad0fe9f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve stateless edit semantics."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate direct file reads and edits into bounded host input plus an exact prior immutable revision and proposed new revision."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE editing until their governed runtime profiles exist."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude live-file or sanctum mutation and direct lint-script execution."
+        }
+      ]
+    },
+    {
+      "id": "builder-007",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/quality-analysis.md",
+      "sha256": "442d604b32cd9ccd70a0c7ad08e3ca5d0fbb86477e2cf3a2d2dee7362e6ceddb",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic facts and six stateless lens semantics into the host analysis boundary."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never run or copy the source prepass or report-rendering scripts."
+        }
+      ]
+    },
+    {
+      "id": "builder-008",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/agent-type-guidance.md",
+      "sha256": "66ea9b32aec446a877320bee98bb650a6ed24bb1bf372f3f7104825f7e82e240",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the stateless branch."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory and autonomous branches."
+        }
+      ]
+    },
+    {
+      "id": "builder-009",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/agent-quality-principles.md",
+      "sha256": "dea473012ef0e92071bead5ec1ad8881036fbe1dc679e32aae65716f2a3f0955",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve profile-aware static and model quality criteria."
+        }
+      ]
+    },
+    {
+      "id": "builder-010",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/standard-fields.md",
+      "sha256": "9a6eccf50c16c23b239eddfd2db738395a71086cf410f597accd90810e90eb09",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve only early stateless field identities."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory and autonomous field families."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hook, file, write, and command-effect fields from the early profile."
+        }
+      ]
+    },
+    {
+      "id": "builder-011",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/prompt-quality-canon.md",
+      "sha256": "a9c27fa16aa95a62503a9199397714a4a3b365e55235cab06143e73739d16acf",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve prompt-quality-canon semantics in an independently authored managed projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "id": "builder-012",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/lens-contract.md",
+      "sha256": "b06aeae1aaeaca58befa242419434019fa9601126385b443848a6b9ac1121199",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the lens contract into closed host result fields."
+        }
+      ]
+    },
+    {
+      "id": "builder-013",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/assets/SKILL-template.md",
+      "sha256": "a4682113f512dccb2aa092ece9b27eabf57ce1ce1db13d2e3406c5b1fcd4234d",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate stateless identity, activation, and capability-table shape into managed authoring guidance."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy template bytes or operational directives."
+        }
+      ]
+    },
+    {
+      "id": "builder-014",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/assets/customize-template.toml",
+      "sha256": "e14b5f3e579b3f6286e9255aa5c6f31ac747bd9512075d30586c7d84ca55938d",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only bounded stateless customization metadata."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hooks, files, skills, and executable activation directives."
+        }
+      ]
+    },
+    {
+      "id": "builder-015",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/assets/capability-authoring-template.md",
+      "sha256": "c26b1cacea3f6c05c70984d4a8a96f7e44e7828962e19a79b2e9ebe54ebd6b4a",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer evolvable and self-authored capabilities; early drafts cannot emit them."
+        }
+      ]
+    },
+    {
+      "id": "builder-016",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/assets/prompt-quality-canon.md",
+      "sha256": "a9c27fa16aa95a62503a9199397714a4a3b365e55235cab06143e73739d16acf",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate this separately identified same-byte asset into the independent managed canon."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "id": "builder-017",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/SKILL.md",
+      "sha256": "ed28d89b38b1821fce92e09845e94300a4b3d2ec94e8ce7e86e8fa6fe170a644",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Build, Edit, and Analyze intent routing."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate operations to inactive app-local workflow revisions using build, edit, and analyze."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Convert."
+        }
+      ]
+    },
+    {
+      "id": "builder-018",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/customize.toml",
+      "sha256": "7912e3bc03723e439ddcd49b3511d35c3b017afe2441efa678147b0e1a2b39fb",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe workflow configuration and token-budget facts."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent hooks, files, skills, and evaluations as typed unavailable dependencies."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no effect or authority."
+        }
+      ]
+    },
+    {
+      "id": "builder-019",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/build-process.md",
+      "sha256": "8fb21b628a1a5b9e63f4c55403c614cf2a7d2ab901bd6dc5ccb0aa2a602b91a1",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate only the simple inline Process loop."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude source scaffolding, scripts, and evaluation execution."
+        }
+      ]
+    },
+    {
+      "id": "builder-020",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-orchestration.md",
+      "sha256": "a9d05ab9916ba9519b5d27d8cdb8c2627d48df6febf37887b61995a5b69a3427",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic facts and five lens semantics into one bounded typed analysis run."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not execute prepass or render scripts, spawn source subagents, write reports or memlogs, or claim evaluation."
+        }
+      ]
+    },
+    {
+      "id": "builder-021",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/skill-quality-principles.md",
+      "sha256": "8284067f7b98a67e7025d7f02c6f095d01d4f4a941fd52b94021dfb86f156f6b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve profile-aware workflow static and model quality criteria."
+        }
+      ]
+    },
+    {
+      "id": "builder-022",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/standard-fields.md",
+      "sha256": "ef648182624aeed07483053c3837ee721209538da7000dca121138fbe6ce6364",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve only simple-inline field identities."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hook, command, and file-effect fields."
+        }
+      ]
+    },
+    {
+      "id": "builder-023",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/prompt-quality-canon.md",
+      "sha256": "a9c27fa16aa95a62503a9199397714a4a3b365e55235cab06143e73739d16acf",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve quality-canon semantics and this distinct member identity despite identical bytes."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "id": "builder-024",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/lens-contract.md",
+      "sha256": "0d3a8289cf90549f929e95f692f5682a5374cf40a3121318a5bb5f65a4c852dd",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the workflow lens contract into closed host result fields."
+        }
+      ]
+    },
+    {
+      "id": "builder-025",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/customize-toml-guide.md",
+      "sha256": "5aafd9f3d087b296b13ed7c30e5699c522a0947a92b4ff631bc8a21bf0c432e6",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe opt-in metadata only."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no hook or file effect."
+        }
+      ]
+    },
+    {
+      "id": "builder-026",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/assets/SKILL-template.md",
+      "sha256": "dbd9ec7eab8d66c3872f95623e12500c9d2c5498ed74cbaf4241fef8341f63b3",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Use source shape as evidence for an independently authored one-file workflow."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source template bytes or operational directives."
+        }
+      ]
+    },
+    {
+      "id": "builder-027",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-leanness.md",
+      "sha256": "3150279cddff4338f2e959dcbedd6c20338fcc4e2f87a5a8aa732d9cf7d37818",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless leanness lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-028",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-architecture.md",
+      "sha256": "6cdf0cfffb1f4ff715da576cb103c65e79443adf7ecba7f7f28519c614a55869",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless architecture lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-029",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-determinism.md",
+      "sha256": "9e3cd8d9daa05c7ad2dd726b8491d1b0683bb73dbbe5da0bccbb3838a4a275cd",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless determinism lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-030",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-customization.md",
+      "sha256": "e3d9da52e15fc5e3a08931169a25d7ec9f7bcd78dae3f3a9c0f9d9292ad0b110",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless customization lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-031",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-enhancement.md",
+      "sha256": "e5ee168b4db85fc2400d8a7a3da23d593eff9946c2a380785e78b6de26f80069",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless enhancement lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-032",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/scan-agent-cohesion.md",
+      "sha256": "b86675ef0fa1e20412b60b98daa4b100b8263c6ef2ece328c8443cef9bf27102",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless cohesion lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-033",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-leanness.md",
+      "sha256": "cce5dafcaa96edefce7e4eb96556bee53c0ccf80efff954ae181254b99ec373c",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow leanness lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-034",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-architecture.md",
+      "sha256": "e1007d412457e83dd4e2d942c3c45dd9c49aadc0131800c920e1f538e77ef409",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow architecture lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-035",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-determinism.md",
+      "sha256": "5c7892b2754ac6fac35884c4a7cd18627e2f6821a9dc38bc517f606930d3e7a1",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow determinism lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-036",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-customization.md",
+      "sha256": "ae4e4b9785445f63e6899c784fa16e71949e4e0c47ac362c910b12981b805c86",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow customization lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-037",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/scan-enhancement.md",
+      "sha256": "fe5b94646e06484828a13c29fc24f5ef964d3881c4c755b0ed8a5a33996beda9",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate simple-workflow enhancement criteria into the closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer source headless and working-state behaviors outside the early simple profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not execute memlog, file, or evaluation mechanics."
+        }
+      ]
+    },
+    {
+      "id": "builder-038",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/mission-writing-guidance.md",
+      "sha256": "d76986a343d146978f56f4038814ba09e5978c4ff62e67dfb138c87986277d37",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain bounded stateless species-mission criteria."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer the source memory-agent CREED-seeding branch."
+        }
+      ]
+    },
+    {
+      "id": "builder-039",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/template-substitution-rules.md",
+      "sha256": "db8cd6f4aede4bd06df2c0d1f062ea3f8359dff5e52e3fd4925fd13d4631ca67",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only bounded stateless substitution shape."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, PULSE, and evolvable branches."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude template processing, activation or wake, file-emission, and script directives."
+        }
+      ]
+    },
+    {
+      "id": "builder-040",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/script-opportunities-reference.md",
+      "sha256": "7d622cb1f9e9bc7dd2f3f79b08fa6b5eead415d401e31b44a31f71cc3f59d831",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic-versus-judgment guidance into static host facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude script generation and execution."
+        }
+      ]
+    },
+    {
+      "id": "builder-041",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/script-standards.md",
+      "sha256": "996dcb85271dd4422ff0cce1b1c98ad68240d4e78fd6f4f01fb21d9c09862a05",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate portable-script standards into independently implemented static criteria."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Python, uv, and script output or execution."
+        }
+      ]
+    },
+    {
+      "id": "builder-042",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/sample-capability-prompt.md",
+      "sha256": "1c8aa08ef7258336aa14bfda25f837bf69dccf917c4326b821ec557ea1a22c0f",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer the memory and sanctum sample outside the stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude raw prompt-body projection and file writes."
+        }
+      ]
+    },
+    {
+      "id": "builder-043",
+      "sourceId": "builder",
+      "member": "skills/bmad-agent-builder/references/sample-capability-authoring.md",
+      "sha256": "d887b8668828bb82b9f20130e825156d2b093e58e42b3ea750006a657381ed97",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer learned and self-evolving capability authoring."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude scripts, external installation, memory mutation, and source-body projection."
+        }
+      ]
+    },
+    {
+      "id": "builder-044",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/producing-workflow-patterns.md",
+      "sha256": "055fdfaa7571758f35ba1f84421ad008388d4366c1b6958af9f2595dacd2ca03",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the simple goal-driven producing-workflow pattern."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer source headless and persistent working-state branches."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude direct memlog, file, and subagent effects."
+        }
+      ]
+    },
+    {
+      "id": "builder-045",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/working-state-patterns.md",
+      "sha256": "2decabd1a09815622f1877f1bccd1e256e51f8ada0c13b3209d77a9450c2f018",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate working-state intent into immutable app-local revision semantics."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude direct memlog, file, and script authority."
+        }
+      ]
+    },
+    {
+      "id": "builder-046",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/script-opportunities-reference.md",
+      "sha256": "fbe7db533e8fca1af7314ac9bea60aecbe1f77578b427bbd6280c91faf3713d8",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate workflow deterministic-versus-judgment guidance into static host facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude script generation and execution."
+        }
+      ]
+    },
+    {
+      "id": "builder-047",
+      "sourceId": "builder",
+      "member": "skills/bmad-workflow-builder/references/script-standards.md",
+      "sha256": "c62de092f2d7a17e6ac1687b7247fec9460aab79c27e34ea3f16480434b198f9",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate workflow script standards into independently implemented static criteria."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Python, uv, and script output or execution."
+        }
+      ]
+    }
+  ],
+  "managedOutputs": [
+    {
+      "path": "NOTICE.md",
+      "byteLength": 904,
+      "sha256": "e5d7b1980f3ea91bad42f6ed9230f79dcb83e4b016261ad4933ba5e49bc73765"
+    },
+    {
+      "path": "adoption-ledger.json",
+      "byteLength": 39463,
+      "sha256": "7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d"
+    },
+    {
+      "path": "licenses/BMAD-BUILDER-MIT.txt",
+      "byteLength": 1572,
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    },
+    {
+      "path": "licenses/BMAD-METHOD-MIT.txt",
+      "byteLength": 1572,
+      "sha256": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "byteLength": 819,
+      "sha256": "63e59e670b63eb1ac63546a6efc799e6011b097715adbe205ec8b8c986e2cf81"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "byteLength": 917,
+      "sha256": "40e5c16f1bb4a3729db8900d87f0d1d600e2acc27b8b1d63e9c9a735845ed299"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-edit.instructions.md",
+      "byteLength": 803,
+      "sha256": "d4f5e06264e71a0caf4542f7eab97418a8dbe2f1476f8e6e92a7dde059d42cd0"
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "byteLength": 781,
+      "sha256": "70467d3715ee45b4336416d345179ab8d221b2c520311ec7c2f3007bffd1d666"
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+      "byteLength": 792,
+      "sha256": "6320a2e4665dd959803f0d542c18585227206631ddd67f05aa47087077a14b6c"
+    },
+    {
+      "path": "runtime/method/6.10.0/architect-persona.instructions.md",
+      "byteLength": 899,
+      "sha256": "6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4"
+    },
+    {
+      "path": "runtime/method/6.10.0/architecture-create.instructions.md",
+      "byteLength": 1011,
+      "sha256": "57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0"
+    },
+    {
+      "path": "runtime/method/6.10.0/bmad-help.instructions.md",
+      "byteLength": 1283,
+      "sha256": "d3d3c91d516d32546c446503d88957f6e499c504370b6749b5936f786643df66"
+    }
+  ]
+}

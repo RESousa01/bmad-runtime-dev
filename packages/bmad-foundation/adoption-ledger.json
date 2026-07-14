@@ -1,0 +1,1390 @@
+{
+  "schemaVersion": "sapphirus.bmad.adoption-ledger/v1",
+  "operationalAuthority": "none",
+  "promotionEligibility": "blocked_provenance",
+  "trademarkDecision": {
+    "status": "product_naming_not_approved",
+    "rationale": "BMAD marks are retained only for source attribution; Sapphirus product naming remains independent."
+  },
+  "licenseDecisions": [
+    {
+      "sourceId": "builder",
+      "spdx": "MIT",
+      "path": "licenses/BMAD-BUILDER-MIT.txt",
+      "decision": "retain_exact_text"
+    },
+    {
+      "sourceId": "method",
+      "spdx": "MIT",
+      "path": "licenses/BMAD-METHOD-MIT.txt",
+      "decision": "retain_exact_text"
+    }
+  ],
+  "methodRoster": [
+    {
+      "code": "bmad-agent-analyst",
+      "name": "Mary",
+      "title": "Business Analyst",
+      "sourceMemberIds": [
+        "method-004",
+        "method-006",
+        "method-007"
+      ],
+      "state": "display_only_unavailable"
+    },
+    {
+      "code": "bmad-agent-tech-writer",
+      "name": "Paige",
+      "title": "Technical Writer",
+      "sourceMemberIds": [
+        "method-004",
+        "method-008",
+        "method-009"
+      ],
+      "state": "display_only_unavailable"
+    },
+    {
+      "code": "bmad-agent-pm",
+      "name": "John",
+      "title": "Product Manager",
+      "sourceMemberIds": [
+        "method-004",
+        "method-014",
+        "method-015"
+      ],
+      "state": "display_only_unavailable"
+    },
+    {
+      "code": "bmad-agent-ux-designer",
+      "name": "Sally",
+      "title": "UX Designer",
+      "sourceMemberIds": [
+        "method-004",
+        "method-016",
+        "method-017"
+      ],
+      "state": "display_only_unavailable"
+    },
+    {
+      "code": "bmad-agent-architect",
+      "name": "Winston",
+      "title": "System Architect",
+      "sourceMemberIds": [
+        "method-004",
+        "method-018",
+        "method-019"
+      ],
+      "state": "managed_projection_inactive"
+    },
+    {
+      "code": "bmad-agent-dev",
+      "name": "Amelia",
+      "title": "Senior Software Engineer",
+      "sourceMemberIds": [
+        "method-004",
+        "method-020",
+        "method-021"
+      ],
+      "state": "display_only_unavailable"
+    }
+  ],
+  "promptReferenceBindings": [
+    {
+      "agentId": "bmad-agent-tech-writer",
+      "menuCode": "WD",
+      "sourceMemberId": "method-010",
+      "availability": "unavailable_reference_only"
+    },
+    {
+      "agentId": "bmad-agent-tech-writer",
+      "menuCode": "MG",
+      "sourceMemberId": "method-011",
+      "availability": "unavailable_reference_only"
+    },
+    {
+      "agentId": "bmad-agent-tech-writer",
+      "menuCode": "VD",
+      "sourceMemberId": "method-012",
+      "availability": "unavailable_reference_only"
+    },
+    {
+      "agentId": "bmad-agent-tech-writer",
+      "menuCode": "EC",
+      "sourceMemberId": "method-013",
+      "availability": "unavailable_reference_only"
+    }
+  ],
+  "sourceDecisions": [
+    {
+      "sourceMemberId": "method-001",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve help intent and catalog semantics."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace resolver, artifact reads, and remote documentation with typed host inputs or explicit unavailable facts."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-002",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve core configuration field definitions as source evidence."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude source installation behavior."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-003",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the exact 13-column catalog rows."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not fetch _meta URLs."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-004",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve module configuration and the six-record roster as separate source data."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-005",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve catalog/help semantics and the bmad-architecture action identity."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-006",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Mary's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-007",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Mary's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-008",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Paige's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-009",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Paige's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-010",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code WD to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-011",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code MG to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-012",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code VD to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-013",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind menu code EC to the exact prompt-reference member identity."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep the prompt-reference capability unavailable."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-014",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind John's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-015",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind John's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-016",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Sally's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-017",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Sally's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-018",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Winston persona and dispatch intent."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace scripts, globs, hooks, and menu dispatch with typed host facts and capability keys."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-019",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe persona defaults and menu records."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent activation-hook declarations only as typed unavailable facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never execute activation hooks or file directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-020",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Amelia's entrypoint as display/persona evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Keep that capability unavailable in this slice."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-021",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Bind Amelia's persona/menu graph as inert data."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Execute no hook, file, prompt, or skill directive."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-022",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate architecture-create intent into the later capability-specific host state machine."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-023",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe architecture defaults."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent external sources and handoffs, hooks, skills, and file globs as typed unavailable facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no effect or execution to those directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-024",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate artifact-shape semantics into an independently authored closed app-local design."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy the source template bytes into runtime."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-025",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic-check and model-review intent into typed host review ports."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not run source scripts or subagents."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-026",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain outcome and status semantics as non-runnable reference evidence."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer headless execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-027",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Preserve the deprecated alias as a closed compatibility-shim identity."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never dispatch arbitrary forwarded text."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-028",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only the four legacy fields through the typed resolver."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-029",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Treat executable source content as evidence only; never bundle, run, or line-port it."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-001",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Builder configuration field identities and keep package and module version identities separate."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-002",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve raw catalog rows as source evidence."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Convert, module, and setup actions from runnable projections."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-003",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Create/Rebuild, Edit, and Analyze intent routing."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate source operations to inactive app-local revisions using create_rebuild, edit, and analyze."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-004",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe configuration and budget facts."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent hooks, files, skills, and evaluation requirements only as typed unavailable dependencies."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant those declarations no effect or authority."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-005",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate only the stateless-agent Process loop to inactive revision authoring."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude scripts, evaluation, installation, memory, and autonomy."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-006",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve stateless edit semantics."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate direct file reads and edits into bounded host input plus an exact prior immutable revision and proposed new revision."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE editing until their governed runtime profiles exist."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude live-file or sanctum mutation and direct lint-script execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-007",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic facts and six stateless lens semantics into the host analysis boundary."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Never run or copy the source prepass or report-rendering scripts."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-008",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the stateless branch."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory and autonomous branches."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-009",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve profile-aware static and model quality criteria."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-010",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve only early stateless field identities."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory and autonomous field families."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hook, file, write, and command-effect fields from the early profile."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-011",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve prompt-quality-canon semantics in an independently authored managed projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-012",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the lens contract into closed host result fields."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-013",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate stateless identity, activation, and capability-table shape into managed authoring guidance."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy template bytes or operational directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-014",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only bounded stateless customization metadata."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hooks, files, skills, and executable activation directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-015",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer evolvable and self-authored capabilities; early drafts cannot emit them."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-016",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate this separately identified same-byte asset into the independent managed canon."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-017",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve Build, Edit, and Analyze intent routing."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Translate operations to inactive app-local workflow revisions using build, edit, and analyze."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Convert."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-018",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe workflow configuration and token-budget facts."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Represent hooks, files, skills, and evaluations as typed unavailable dependencies."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no effect or authority."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-019",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate only the simple inline Process loop."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude source scaffolding, scripts, and evaluation execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-020",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic facts and five lens semantics into one bounded typed analysis run."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not execute prepass or render scripts, spawn source subagents, write reports or memlogs, or claim evaluation."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-021",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve profile-aware workflow static and model quality criteria."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-022",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve only simple-inline field identities."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude hook, command, and file-effect fields."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-023",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve quality-canon semantics and this distinct member identity despite identical bytes."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source bytes."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-024",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the workflow lens contract into closed host result fields."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-025",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve safe opt-in metadata only."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Grant no hook or file effect."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-026",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Use source shape as evidence for an independently authored one-file workflow."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not copy source template bytes or operational directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-027",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless leanness lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-028",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless architecture lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-029",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless determinism lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-030",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless customization lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-031",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless enhancement lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-032",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the stateless cohesion lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, sanctum, and PULSE branches outside the early stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file loading, prepass, script, subagent, evaluation, or report mechanics or grant their effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-033",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow leanness lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-034",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow architecture lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-035",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow determinism lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-036",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate the simple-workflow customization lens criteria into an independently authored closed lens projection."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not perform source file, prepass, script, or evaluation mechanics or grant hook or file effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-037",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate simple-workflow enhancement criteria into the closed lens projection."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer source headless and working-state behaviors outside the early simple profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Do not execute memlog, file, or evaluation mechanics."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-038",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain bounded stateless species-mission criteria."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer the source memory-agent CREED-seeding branch."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-039",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain only bounded stateless substitution shape."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer memory, autonomous, PULSE, and evolvable branches."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude template processing, activation or wake, file-emission, and script directives."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-040",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate deterministic-versus-judgment guidance into static host facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude script generation and execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-041",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate portable-script standards into independently implemented static criteria."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Python, uv, and script output or execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-042",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer the memory and sanctum sample outside the stateless profile."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude raw prompt-body projection and file writes."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-043",
+      "treatments": [
+        {
+          "decision": "defer",
+          "rationale": "Defer learned and self-evolving capability authoring."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude scripts, external installation, memory mutation, and source-body projection."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-044",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the simple goal-driven producing-workflow pattern."
+        },
+        {
+          "decision": "defer",
+          "rationale": "Defer source headless and persistent working-state branches."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude direct memlog, file, and subagent effects."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-045",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate working-state intent into immutable app-local revision semantics."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude direct memlog, file, and script authority."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-046",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate workflow deterministic-versus-judgment guidance into static host facts."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude script generation and execution."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "builder-047",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Translate workflow script standards into independently implemented static criteria."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Exclude Python, uv, and script output or execution."
+        }
+      ]
+    }
+  ],
+  "runtimeProjections": [
+    {
+      "path": "runtime/method/6.10.0/bmad-help.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-help",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-001",
+        "method-002",
+        "method-003",
+        "method-004",
+        "method-005"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/architect-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-architect",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-018",
+        "method-019"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/architecture-create.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-architecture",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": "create",
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "step_jit",
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-018",
+        "method-019",
+        "method-022",
+        "method-023",
+        "method-024",
+        "method-025",
+        "method-026",
+        "method-027",
+        "method-028",
+        "method-029"
+      ]
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "classification": "builder_agent",
+      "sourceIdentity": {
+        "sourceId": "builder",
+        "skill": "bmad-agent-builder",
+        "profile": "BuilderAgentV2Stateless"
+      },
+      "state": "inactive_data",
+      "actions": [
+        "create_rebuild"
+      ],
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "BuilderAgentV2Stateless",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-005",
+        "builder-008",
+        "builder-009",
+        "builder-010",
+        "builder-011",
+        "builder-013",
+        "builder-014",
+        "builder-015",
+        "builder-016",
+        "builder-038",
+        "builder-039",
+        "builder-040",
+        "builder-041",
+        "builder-042",
+        "builder-043"
+      ]
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-edit.instructions.md",
+      "classification": "builder_agent",
+      "sourceIdentity": {
+        "sourceId": "builder",
+        "skill": "bmad-agent-builder",
+        "profile": "BuilderAgentV2Stateless"
+      },
+      "state": "inactive_data",
+      "actions": [
+        "edit"
+      ],
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "BuilderAgentV2Stateless",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-006",
+        "builder-008",
+        "builder-009",
+        "builder-010",
+        "builder-011",
+        "builder-013",
+        "builder-014",
+        "builder-016"
+      ]
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "classification": "builder_agent",
+      "sourceIdentity": {
+        "sourceId": "builder",
+        "skill": "bmad-agent-builder",
+        "profile": "BuilderAgentV2Stateless"
+      },
+      "state": "inactive_data",
+      "actions": [
+        "analyze"
+      ],
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "BuilderAgentV2Stateless",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-007",
+        "builder-009",
+        "builder-011",
+        "builder-012",
+        "builder-027",
+        "builder-028",
+        "builder-029",
+        "builder-030",
+        "builder-031",
+        "builder-032",
+        "builder-040",
+        "builder-041"
+      ]
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+      "classification": "builder_workflow",
+      "sourceIdentity": {
+        "sourceId": "builder",
+        "skill": "bmad-workflow-builder",
+        "profile": "BuilderOutcomeSkillV2"
+      },
+      "state": "inactive_data",
+      "actions": [
+        "build",
+        "edit"
+      ],
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "inline",
+      "validationProfile": "BuilderOutcomeSkillV2",
+      "sourceMemberIds": [
+        "builder-017",
+        "builder-018",
+        "builder-019",
+        "builder-021",
+        "builder-022",
+        "builder-023",
+        "builder-025",
+        "builder-026",
+        "builder-044",
+        "builder-045",
+        "builder-046"
+      ]
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "classification": "builder_workflow",
+      "sourceIdentity": {
+        "sourceId": "builder",
+        "skill": "bmad-workflow-builder",
+        "profile": "BuilderOutcomeSkillV2"
+      },
+      "state": "inactive_data",
+      "actions": [
+        "analyze"
+      ],
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "inline",
+      "validationProfile": "BuilderOutcomeSkillV2",
+      "sourceMemberIds": [
+        "builder-017",
+        "builder-018",
+        "builder-020",
+        "builder-021",
+        "builder-023",
+        "builder-024",
+        "builder-033",
+        "builder-034",
+        "builder-035",
+        "builder-036",
+        "builder-037",
+        "builder-046",
+        "builder-047"
+      ]
+    }
+  ]
+}
