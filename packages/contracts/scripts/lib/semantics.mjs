@@ -156,6 +156,22 @@ function verifySelfHash(document, errors) {
 export function validateSemantics(document, context = {}) {
   const errors = [];
 
+  if (
+    document?.envelope?.objectType === "bmad_method_session"
+    && document?.payload?.schemaVersion === "sapphirus.bmad-method-session.v1"
+  ) {
+    errors.push(...validateDurableObjectHash(document));
+    errors.push(...validateBmadSemantics(document.payload, {
+      ...context,
+      envelope: document.envelope,
+    }));
+    for (const checkpoint of document.payload.checkpoints ?? []) {
+      verifySelfHash(checkpoint, errors);
+    }
+    return errors.filter((error, index) =>
+      errors.findIndex((candidate) => candidate.code === error.code) === index);
+  }
+
   if (document.schemaVersion === "sapphirus.candidate-action.v1") {
     validateInstant(document.createdAt, "createdAt", errors);
     validateInstant(document.expiresAt, "expiresAt", errors);

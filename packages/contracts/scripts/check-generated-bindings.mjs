@@ -10,8 +10,12 @@ const repositoryRoot = path.resolve(packageRoot, "..", "..");
 const {
   dotnetFiles,
   dotnetFileSources,
+  hostClientSource,
+  ipcEnvelopeSource,
   lock,
+  lockSource,
   lockedGeneratedSources,
+  packageManifestSource,
   rustSource,
   schemaSources,
   toolLock,
@@ -130,6 +134,45 @@ for (const [schemaName, source] of schemaSources) {
     assert.ok(
       !source.includes(forbidden),
       `${schemaName} must not expose deferred BMAD vocabulary: ${forbidden}.`,
+    );
+  }
+}
+
+const publishedSurfaceSources = new Map([
+  ["packages/contracts/package.json", packageManifestSource],
+  ["packages/contracts/schema-lock.json", lockSource],
+  [
+    "crates/desktop-ipc/src/envelope.rs#production",
+    ipcEnvelopeSource.split("#[cfg(test)]", 1)[0],
+  ],
+  ["apps/desktop-ui/src/lib/hostClient.ts", hostClientSource],
+  ...[...lockedGeneratedSources.entries()].map(([file, source]) => [
+    `packages/contracts/${file}`,
+    source,
+  ]),
+]);
+for (const requiredSurface of [
+  "packages/contracts/generated/typescript/runtime.mjs",
+  "packages/contracts/generated/typescript/validators.mjs",
+  "packages/contracts/generated/typescript/validation.mjs",
+  "packages/contracts/generated/typescript/semantic-validation.mjs",
+  "packages/contracts/generated/rust/contracts.rs",
+  "crates/desktop-ipc/src/envelope.rs#production",
+  "apps/desktop-ui/src/lib/hostClient.ts",
+]) {
+  assert.ok(publishedSurfaceSources.has(requiredSurface), `${requiredSurface} is not scanned.`);
+}
+for (const [surface, source] of publishedSurfaceSources) {
+  for (const forbidden of deferredRunnerVocabulary) {
+    assert.ok(
+      !source.includes(forbidden),
+      `${surface} must not expose deferred runner vocabulary: ${forbidden}.`,
+    );
+  }
+  for (const forbidden of deferredBmadVocabulary) {
+    assert.ok(
+      !source.includes(forbidden),
+      `${surface} must not expose deferred BMAD vocabulary: ${forbidden}.`,
     );
   }
 }

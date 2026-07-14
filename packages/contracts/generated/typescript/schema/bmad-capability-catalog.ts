@@ -6,6 +6,7 @@ export interface SapphirusBmadCapabilityCatalogV1 {
   schemaVersion: "sapphirus.bmad-capability-catalog.v1";
   packageVersionId: string;
   descriptorHash: string;
+  packageSourceHash: string;
   /**
    * @maxItems 4096
    */

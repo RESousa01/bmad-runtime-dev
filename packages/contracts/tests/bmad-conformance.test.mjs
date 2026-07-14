@@ -5,7 +5,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { canonicalHash } from "../scripts/lib/canonical-json.mjs";
 import { isDiscriminatorRefinement } from "../scripts/lib/schema-validator.mjs";
-import { sealDocument } from "../scripts/lib/semantics.mjs";
+import {
+  sealDocument,
+  sealDurableObject,
+  validateSemantics,
+} from "../scripts/lib/semantics.mjs";
 import { parseStrictJson } from "../scripts/lib/strict-json.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -100,6 +104,10 @@ const family = Object.freeze([
 
 async function readSchema(file) {
   return parseStrictJson(await readFile(path.join(schemaRoot, file), "utf8"));
+}
+
+async function readFixture(file) {
+  return parseStrictJson(await readFile(path.join(fixtureRoot, file), "utf8"));
 }
 
 function visit(node, callback, pointer = "#") {
@@ -204,7 +212,9 @@ test("the closed BMAD v1 family has the exact canonical roots and named definiti
     if (schema.properties?.schemaVersion !== undefined) {
       assert.equal(schema.properties.schemaVersion.const, expected.title);
     } else {
-      const rootVersions = [...collectRootVersions(schema, schema)];
+      const versions = collectRootVersions(schema, schema);
+      collectRootVersions(schema, schema.properties?.payload, versions);
+      const rootVersions = [...versions];
       assert.ok(rootVersions.length > 0, `${expected.file} must discriminate root versions.`);
       assert.ok(rootVersions.includes(expected.title), `${expected.file} lacks its current root major.`);
     }
@@ -226,15 +236,117 @@ test("the closed BMAD v1 family has the exact canonical roots and named definiti
   }
 });
 
-test("Builder authoring keeps explicit Agent and Workflow action branches", async () => {
+test("Builder authoring keeps Agent and Workflow action vocabularies disjoint", async () => {
   const schema = await readSchema("bmad-builder-authoring.schema.json");
   const branches = schema.$defs.BuilderAuthoringAction.oneOf;
   assert.deepEqual(branches.map((branch) => branch.properties.builderKind.const), [
     "agent",
     "workflow",
   ]);
-  assert.deepEqual(branches[0].properties.action.enum, ["create_rebuild", "edit", "analyze", "build"]);
-  assert.deepEqual(branches[1].properties.action.enum, ["create_rebuild", "build", "edit", "analyze"]);
+  assert.deepEqual(branches[0].properties.action.enum, ["create_rebuild", "edit", "analyze"]);
+  assert.deepEqual(branches[1].properties.action.enum, ["build", "edit", "analyze"]);
+});
+
+test("config-layer vocabularies remain disjoint across the three source graphs", async () => {
+  const schema = await readSchema("bmad-package-descriptor.schema.json");
+  const branches = schema.$defs.BmadConfigLayer.oneOf;
+  assert.deepEqual(branches.map((branch) => branch.properties.layerKind.enum), [
+    ["installer_team", "installer_user", "custom_team", "custom_user"],
+    ["packaged_default", "team_override", "user_override"],
+    ["method_module_yaml", "builder_root_yaml", "builder_user_yaml"],
+  ]);
+});
+
+test("catalog and instruction projections reject resealed nested-hash substitution", async () => {
+  const descriptor = await readFixture("valid/bmad/package-descriptor.json");
+  const catalog = await readFixture("valid/bmad/capability-catalog.json");
+  const forgedHash = `sha256:${"f".repeat(64)}`;
+
+  for (const mutate of [
+    (value) => { value.agentRoster.agents[0].agentRecordHash = forgedHash; },
+    (value) => { value.agentRoster.agents[0].menuItems[0].sourceMenuItemHash = forgedHash; },
+  ]) {
+    const value = structuredClone(catalog);
+    mutate(value);
+    const reasons = validateSemantics(sealDocument(value), { descriptor })
+      .map((issue) => issue.code);
+    assert.deepEqual(reasons, ["BMAD_AGENT_ROSTER_BINDING_MISMATCH"]);
+  }
+
+  const managedSubstitution = structuredClone(descriptor);
+  const managed = managedSubstitution.instructionProjections[0].managedInstruction;
+  managed.contentHash = forgedHash;
+  managedSubstitution.resourceInventory.find((resource) => resource.path === managed.path)
+    .contentHash = forgedHash;
+  assert.deepEqual(
+    validateSemantics(sealDocument(managedSubstitution)).map((issue) => issue.code),
+    ["BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH"],
+  );
+
+  const projectionSubstitution = structuredClone(descriptor);
+  const projection = projectionSubstitution.instructionProjections[0];
+  const originalProjectionHash = projection.projectionHash;
+  projection.projectionHash = forgedHash;
+  projectionSubstitution.skills
+    .filter((skill) => skill.instructionProjectionHash === originalProjectionHash)
+    .forEach((skill) => { skill.instructionProjectionHash = forgedHash; });
+  assert.deepEqual(
+    validateSemantics(sealDocument(projectionSubstitution)).map((issue) => issue.code),
+    ["BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH"],
+  );
+});
+
+test("Method sessions bind the catalog's exact descriptor and package source", async () => {
+  const descriptor = await readFixture("valid/bmad/package-descriptor.json");
+  const catalog = await readFixture("valid/bmad/capability-catalog.json");
+  const session = await readFixture("valid/bmad/method-architect-iterative.json");
+  assert.equal(catalog.packageSourceHash, descriptor.sourceSnapshotHash);
+
+  const forgedHash = `sha256:${"f".repeat(64)}`;
+  const descriptorSubstitution = structuredClone(session);
+  descriptorSubstitution.payload.packageDescriptorHash = forgedHash;
+  descriptorSubstitution.payload.contextLedger.entries.forEach((entry) => {
+    entry.packageDescriptorHash = forgedHash;
+  });
+  descriptorSubstitution.payload.decisionConsumptions.forEach((consumption) => {
+    consumption.packageDescriptorHash = forgedHash;
+  });
+  assert.deepEqual(
+    validateSemantics(sealDurableObject(descriptorSubstitution), { catalog })
+      .map((issue) => issue.code),
+    ["BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+  );
+
+  const sourceSubstitution = structuredClone(session);
+  sourceSubstitution.payload.packageSourceHash = forgedHash;
+  sourceSubstitution.payload.decisionConsumptions.forEach((consumption) => {
+    consumption.packageSourceHash = forgedHash;
+  });
+  assert.deepEqual(
+    validateSemantics(sealDurableObject(sourceSubstitution), { catalog })
+      .map((issue) => issue.code),
+    ["BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+  );
+});
+
+test("Method durability uses the standard envelope and hashes only the payload", async () => {
+  const schema = await readSchema("bmad-method-session.schema.json");
+  assert.deepEqual(schema.required, ["envelope", "payload"]);
+  const session = await readFixture("valid/bmad/method-architect-iterative.json");
+  assert.equal(session.envelope.schemaVersion, "sapphirus.durable-object.v1");
+  assert.equal(session.envelope.objectType, "bmad_method_session");
+  assert.equal(session.envelope.objectId, session.payload.sessionId);
+  assert.equal(Object.hasOwn(session.payload, "contentHash"), false);
+  assert.equal(Object.hasOwn(session.payload, "authorityRef"), false);
+  assert.equal(
+    session.envelope.contentHash,
+    canonicalHash({
+      purpose: "contract-object",
+      schemaMajor: "v1",
+      value: session.payload,
+      excludedFields: [],
+    }).serializedHash,
+  );
 });
 
 test("every BMAD oneOf is explicitly discriminated or nullable", async () => {

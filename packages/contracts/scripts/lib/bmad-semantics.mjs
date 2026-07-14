@@ -1,3 +1,5 @@
+import { canonicalHash } from "./canonical-json.mjs";
+
 const BMAD_BUILDER_LIMIT_PROFILE = "sapphirus.bmad-builder-limits.v1";
 const BMAD_GRAPH_KINDS = Object.freeze([
   "compatibility_yaml",
@@ -31,12 +33,14 @@ const EXPECTED_BMM_MENUS = Object.freeze({
   "bmad-agent-tech-writer": [["DP", "bmad-document-project", null]],
   "bmad-agent-ux-designer": [["CU", "bmad-ux", null]],
 });
-const EXPECTED_PAIGE_PROMPTS = Object.freeze([
-  ["WD", "src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md", "sha256:c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f"],
-  ["MG", "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md", "sha256:1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d"],
-  ["VD", "src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md", "sha256:3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5"],
-  ["EC", "src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md", "sha256:6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9"],
-]);
+const EXPECTED_BMM_AGENT_RECORD_HASHES = Object.freeze({
+  "bmad-agent-analyst": "sha256:6b37055d48b0b5a8186d4bac5986aefc68f30ca168124f0d101b6539c21adce9",
+  "bmad-agent-architect": "sha256:4dc48526aac64c60d15a389f707189ac313cfdf3c69290860790b0272c5f1d20",
+  "bmad-agent-dev": "sha256:00b6cd96945f5563f446e09f8cb5e5dc1c3cb11a2059e42555044d47f308f54f",
+  "bmad-agent-pm": "sha256:ee14a413e53a6f4f52d9ca83e24babe32ba7f5cd8d2324ef921cddeb89c24869",
+  "bmad-agent-tech-writer": "sha256:dbd78337564afb6d7b142c2ea3188f3b1eec3250d9ba8b64281bc016325f74bf",
+  "bmad-agent-ux-designer": "sha256:bc39797efddbbf455b30c3de5e4b67f5df1bd9d0d4417567ab3cb109f98fcfd5",
+});
 const WINDOWS_RESERVED_SEGMENT = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 const BMAD_UTF8_ENCODER = new TextEncoder();
 
@@ -111,6 +115,38 @@ function bmadFindDescriptorResource(descriptor, path, hash) {
   return descriptor?.resourceInventory?.some(
     (resource) => resource.path === path && resource.contentHash === hash,
   ) === true;
+}
+
+function bmadAgentRecordHashIsExact(agent) {
+  const expected = EXPECTED_BMM_AGENT_RECORD_HASHES[agent.agentCode];
+  if (expected === undefined) return false;
+  const recordHash = canonicalHash({
+    purpose: "bmad-agent-record",
+    schemaMajor: "v1",
+    value: {
+      moduleCode: agent.moduleCode,
+      agentCode: agent.agentCode,
+      name: agent.name,
+      title: agent.title,
+      icon: agent.icon,
+      team: agent.team,
+      description: agent.description,
+      personaSourceHash: agent.personaSourceHash,
+      customizationSourceHash: agent.customizationSourceHash,
+      menuItems: agent.menuItems,
+    },
+    excludedFields: [],
+  }).serializedHash;
+  const menuGraphHash = canonicalHash({
+    purpose: "bmad-agent-menu-graph",
+    schemaMajor: "v1",
+    value: agent.menuItems,
+    excludedFields: [],
+  }).serializedHash;
+  return recordHash === expected
+    && agent.agentRecordHash === expected
+    && agent.menuGraphHash === menuGraphHash
+    && agent.personaCustomizationGraphHash === agent.customizationSourceHash;
 }
 
 function validateDescriptor(document, errors) {
@@ -213,6 +249,18 @@ function validateDescriptor(document, errors) {
   }
   const projectionHashes = new Set();
   for (const projection of document.instructionProjections) {
+    const expectedProjectionHash = canonicalHash({
+      purpose: "bmad-instruction-projection",
+      schemaMajor: "v1",
+      value: projection,
+      excludedFields: ["projectionHash"],
+    }).serializedHash;
+    if (projection.projectionHash !== expectedProjectionHash) {
+      errors.push(bmadIssue(
+        "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+        "instructionProjections.projectionHash",
+      ));
+    }
     if (
       projection.sourceIdentityHash !== document.sourceSnapshotHash
       || projectionHashes.has(projection.projectionHash)
@@ -275,6 +323,7 @@ function validateCatalog(document, errors, context) {
     if (
       document.packageVersionId !== context.descriptor.packageVersionId
       || document.descriptorHash !== context.descriptor.descriptorHash
+      || document.packageSourceHash !== context.descriptor.sourceSnapshotHash
     ) {
       errors.push(bmadIssue("BMAD_CATALOG_DESCRIPTOR_BINDING_MISMATCH", "descriptorHash"));
     }
@@ -380,8 +429,12 @@ function validateCatalog(document, errors, context) {
   ]);
   if (
     actualRoster.length !== EXPECTED_BMM_AGENTS.length
-    || actualRoster.some((record, index) =>
-      record.some((value, field) => value !== EXPECTED_BMM_AGENTS[index][field]))
+    || actualRoster.some((record) => {
+      const expected = EXPECTED_BMM_AGENTS.find(([agentCode]) => agentCode === record[0]);
+      return expected === undefined
+        || record.some((value, field) => value !== expected[field]);
+    })
+    || document.agentRoster.agents.some((agent) => !bmadAgentRecordHashIsExact(agent))
   ) {
     errors.push(bmadIssue("BMAD_AGENT_ROSTER_BINDING_MISMATCH", "agentRoster.agents"));
   }
@@ -430,7 +483,7 @@ function validateCatalog(document, errors, context) {
         errors.push(bmadIssue("BMAD_CUSTOMIZATION_HASH_MISMATCH", "agentRoster.agents.customizationSourceHash"));
       }
     }
-    const expectedMenu = EXPECTED_BMM_MENUS[agent.agentCode] ?? [];
+    const expectedMenu = EXPECTED_BMM_MENUS[agent.agentCode];
     const skillTargets = agent.menuItems
       .filter((item) => item.target.targetKind === "skill_target")
       .map((item) => [
@@ -439,52 +492,29 @@ function validateCatalog(document, errors, context) {
         item.target.capabilityKey.normalizedAction,
       ]);
     if (
-      skillTargets.length !== expectedMenu.length
-      || skillTargets.some((record, index) =>
-        record.some((value, field) => value !== expectedMenu[index][field]))
+      expectedMenu !== undefined
+      && (
+        skillTargets.length !== expectedMenu.length
+        || skillTargets.some((record, index) =>
+          record.some((value, field) => value !== expectedMenu[index][field]))
+      )
     ) {
       errors.push(bmadIssue("BMAD_AGENT_MENU_BINDING_MISMATCH", "agentRoster.agents.menuItems"));
-    }
-  }
-  const paige = document.agentRoster.agents.find((agent) =>
-    agent.agentCode === "bmad-agent-tech-writer");
-  if (paige !== undefined) {
-    const expectedCodes = ["DP", ...EXPECTED_PAIGE_PROMPTS.map(([code]) => code)];
-    if (!bmadSetEquals(paige.menuItems.map((item) => item.menuCode), expectedCodes)) {
-      errors.push(bmadIssue("BMAD_PAIGE_MENU_BINDING_MISMATCH", "agentRoster.agents.menuItems"));
-    } else {
-      const documentTarget = paige.menuItems[0].target;
-      if (
-        documentTarget.targetKind !== "skill_target"
-        || documentTarget.capabilityKey.skillName !== "bmad-document-project"
-        || documentTarget.capabilityKey.normalizedAction !== null
-      ) {
-        errors.push(bmadIssue("BMAD_PAIGE_MENU_BINDING_MISMATCH", "agentRoster.agents.menuItems"));
-      }
-      for (let index = 0; index < EXPECTED_PAIGE_PROMPTS.length; index += 1) {
-        const target = paige.menuItems[index + 1].target;
-        const [, expectedPath, expectedHash] = EXPECTED_PAIGE_PROMPTS[index];
-        if (
-          target.targetKind !== "prompt_reference"
-          || target.sourceLocalMemberLabel !== expectedPath
-          || target.sourceMemberHash !== expectedHash
-          || target.availability !== "unavailable_source_prompt"
-        ) {
-          errors.push(bmadIssue("BMAD_PAIGE_MENU_BINDING_MISMATCH", "agentRoster.agents.menuItems"));
-        }
-      }
     }
   }
 }
 
 function validateMethodSession(document, errors, context) {
-  const localAuthority = document.authorityRef.authorityKind === "desktop_local_store";
-  const managedAuthority = document.authorityRef.authorityKind === "azure_control_plane";
+  const envelope = context.envelope;
+  const localAuthority = envelope?.authorityRef?.authorityKind === "desktop_local_store";
+  const managedAuthority = envelope?.authorityRef?.authorityKind === "azure_control_plane";
   if (
-    (document.deliveryModel === "windows_local" && !localAuthority)
-    || (document.deliveryModel === "web_managed" && !managedAuthority)
+    envelope === undefined
+    || envelope.objectId !== document.sessionId
+    || (envelope.deliveryModel === "windows_local" && !localAuthority)
+    || (envelope.deliveryModel === "web_managed" && !managedAuthority)
   ) {
-    errors.push(bmadIssue("BMAD_AUTHORITY_DELIVERY_MISMATCH", "authorityRef"));
+    errors.push(bmadIssue("BMAD_METHOD_ENVELOPE_BINDING_MISMATCH", "envelope"));
   }
   if (
     document.executionProfile.profileHash !== document.executionProfileHash
@@ -528,6 +558,8 @@ function validateMethodSession(document, errors, context) {
       skill.capabilityKeys.some((key) => bmadSameCapability(key, document.capabilityKey)));
     if (
       catalog.packageVersionId !== document.packageVersionId
+      || catalog.descriptorHash !== document.packageDescriptorHash
+      || catalog.packageSourceHash !== document.packageSourceHash
       || catalog.catalogHash !== document.capabilityCatalogHash
       || installed === undefined
       || installed.instructionProjectionHash !== document.instructionProjectionHash
@@ -794,7 +826,8 @@ export function validateBmadSemantics(document, context = {}) {
   ) {
     validateBuilder(document, errors);
   }
-  return errors;
+  return errors.filter((error, index) =>
+    errors.findIndex((candidate) => candidate.code === error.code) === index);
 }
 
 export function bmadContextDecisionUniquenessKey(document) {

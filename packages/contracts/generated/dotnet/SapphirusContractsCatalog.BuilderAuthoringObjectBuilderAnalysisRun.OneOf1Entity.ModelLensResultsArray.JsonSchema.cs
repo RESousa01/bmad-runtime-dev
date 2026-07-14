@@ -42,7 +42,8 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 public static partial class JsonSchema
                 {
-                    private static readonly JsonSchemaPathProvider ItemsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/items/$ref"u8, buffer, out written);
+                    private static readonly JsonSchemaPathProvider PrefixItemsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("prefixItems"u8, buffer, out written);
+                    private static readonly JsonSchemaPathProvider ItemsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/items"u8, buffer, out written);
 
                     /// <summary>
                     /// Gets a provider for the schema location from which this type was generated.
@@ -82,6 +83,7 @@ public readonly partial struct SapphirusContractsCatalog
                             {
                                 return;
                             }
+                            context.IgnoredKeyword(JsonSchemaEvaluation.IgnoredNotTypeArray, "prefixItems"u8);
                             context.IgnoredKeyword(JsonSchemaEvaluation.IgnoredNotTypeArray, "items"u8);
                             context.IgnoredKeyword(JsonSchemaEvaluation.IgnoredNotTypeArray, "maxItems"u8);
                             context.IgnoredKeyword(JsonSchemaEvaluation.IgnoredNotTypeArray, "minItems"u8);
@@ -93,25 +95,187 @@ public readonly partial struct SapphirusContractsCatalog
                             while (arrayValidation_enumerator.MoveNext())
                             {
                                 int arrayValidation_currentIndex = arrayValidation_enumerator.CurrentIndex;
-                                JsonSchemaContext childContext = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.JsonSchema.PushChildContext(
-                                    parentDocument,
-                                    arrayValidation_currentIndex,
-                                    ref context,
-                                    itemIndex: arrayValidation_itemCount,
-                                    evaluationPath: ItemsSchemaEvaluationPath);
-                                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext);
-                                if (!childContext.IsMatch)
+                                switch (arrayValidation_itemCount)
                                 {
-                                    context.CommitChildContext(false, ref childContext);
-                                    if (!context.HasCollector)
+                                    case 0:
                                     {
-                                        return;
+                                        JsonSchemaContext childContext = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext);
+                                        if (!childContext.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
                                     }
-                                }
-                                else
-                                {
-                                    context.CommitChildContext(true, ref childContext);
-                                    context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+
+                                    case 1:
+                                    {
+                                        JsonSchemaContext childContext1 = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext1);
+                                        if (!childContext1.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext1);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext1);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
+                                    }
+
+                                    case 2:
+                                    {
+                                        JsonSchemaContext childContext2 = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext2);
+                                        if (!childContext2.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext2);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext2);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
+                                    }
+
+                                    case 3:
+                                    {
+                                        JsonSchemaContext childContext3 = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext3);
+                                        if (!childContext3.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext3);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext3);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
+                                    }
+
+                                    case 4:
+                                    {
+                                        JsonSchemaContext childContext4 = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext4);
+                                        if (!childContext4.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext4);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext4);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
+                                    }
+
+                                    case 5:
+                                    {
+                                        JsonSchemaContext childContext5 = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: PrefixItemsSchemaEvaluationPath);
+                                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext5);
+                                        if (!childContext5.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext5);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext5);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        JsonSchemaContext childContext6 = Corvus.Text.Json.JsonElementForBooleanFalseSchema.JsonSchema.PushChildContext(
+                                            parentDocument,
+                                            arrayValidation_currentIndex,
+                                            ref context,
+                                            itemIndex: arrayValidation_itemCount,
+                                            evaluationPath: ItemsSchemaEvaluationPath);
+                                        Corvus.Text.Json.JsonElementForBooleanFalseSchema.JsonSchema.Evaluate(parentDocument, arrayValidation_currentIndex, ref childContext6);
+                                        if (!childContext6.IsMatch)
+                                        {
+                                            context.CommitChildContext(false, ref childContext6);
+                                            if (!context.HasCollector)
+                                            {
+                                                return;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.CommitChildContext(true, ref childContext6);
+                                            context.AddLocalEvaluatedItem(arrayValidation_itemCount);
+                                        }
+                                        break;
+                                    }
                                 }
 
                                 arrayValidation_itemCount++;

@@ -2,246 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json",
   "title": "sapphirus.bmad-method-session.v1",
-  "oneOf": [
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "methodShape",
-        "sessionId",
-        "deliveryModel",
-        "authorityRef",
-        "ownerScopeRef",
-        "projectId",
-        "runId",
-        "packageVersionId",
-        "packageDescriptorHash",
-        "packageSourceHash",
-        "instructionProjectionHash",
-        "capabilityCatalogHash",
-        "agentRosterHash",
-        "capabilityKey",
-        "distributionProfile",
-        "installProfile",
-        "executionProfile",
-        "executionProfileHash",
-        "validationProfile",
-        "validationProfileHash",
-        "configGraphHash",
-        "configResolutionHash",
-        "customizationHash",
-        "resourceSetHash",
-        "contextDigest",
-        "modelBinding",
-        "methodSchemaHash",
-        "artifactExpectations",
-        "agentBinding",
-        "contextLedger",
-        "checkpoints",
-        "decisionConsumptions",
-        "createdAt",
-        "contentHash"
-      ],
-      "properties": {
-        "schemaVersion": { "const": "sapphirus.bmad-method-session.v1" },
-        "methodShape": { "const": "no_agent_direct" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "deliveryModel": { "const": "windows_local" },
-        "authorityRef": {
-          "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef"
-        },
-        "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "packageDescriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "packageSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "instructionProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "capabilityCatalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "agentRosterHash": { "type": "null" },
-        "capabilityKey": {
-          "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
-        },
-        "distributionProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadDistributionProfile"
-        },
-        "installProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadInstallProfile"
-        },
-        "executionProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/SkillExecutionProfile"
-        },
-        "executionProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "validationProfile": {
-          "$ref": "./bmad-validation-report.schema.json#/$defs/BmadValidationProfile"
-        },
-        "validationProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "configGraphHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "configResolutionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "customizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelBinding": { "$ref": "#/$defs/MethodModelBinding" },
-        "methodSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "artifactExpectations": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": { "$ref": "#/$defs/MethodArtifactExpectation" }
-        },
-        "agentBinding": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["bindingKind"],
-          "properties": {
-            "bindingKind": { "const": "no_agent" }
-          }
-        },
-        "contextLedger": { "$ref": "#/$defs/MethodContextLedger" },
-        "checkpoints": {
-          "type": "array",
-          "maxItems": 100000,
-          "items": { "$ref": "#/$defs/MethodCheckpoint" }
-        },
-        "decisionConsumptions": {
-          "type": "array",
-          "maxItems": 100000,
-          "items": { "$ref": "#/$defs/BmadContextDecisionConsumption" }
-        },
-        "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
-      }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "methodShape",
-        "sessionId",
-        "deliveryModel",
-        "authorityRef",
-        "ownerScopeRef",
-        "projectId",
-        "runId",
-        "packageVersionId",
-        "packageDescriptorHash",
-        "packageSourceHash",
-        "instructionProjectionHash",
-        "capabilityCatalogHash",
-        "agentRosterHash",
-        "capabilityKey",
-        "distributionProfile",
-        "installProfile",
-        "executionProfile",
-        "executionProfileHash",
-        "validationProfile",
-        "validationProfileHash",
-        "configGraphHash",
-        "configResolutionHash",
-        "customizationHash",
-        "resourceSetHash",
-        "contextDigest",
-        "modelBinding",
-        "methodSchemaHash",
-        "artifactExpectations",
-        "agentBinding",
-        "contextLedger",
-        "checkpoints",
-        "decisionConsumptions",
-        "architectureSpineDrafts",
-        "architectureReviewResults",
-        "createdAt",
-        "contentHash"
-      ],
-      "properties": {
-        "schemaVersion": { "const": "sapphirus.bmad-method-session.v1" },
-        "methodShape": { "const": "architect_iterative" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "deliveryModel": { "const": "windows_local" },
-        "authorityRef": {
-          "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef"
-        },
-        "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "projectId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "packageDescriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "packageSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "instructionProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "capabilityCatalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "agentRosterHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "capabilityKey": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "packageVersionId",
-            "moduleCode",
-            "skillName",
-            "normalizedAction"
-          ],
-          "properties": {
-            "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "moduleCode": { "const": "bmm" },
-            "skillName": { "const": "bmad-architecture" },
-            "normalizedAction": { "const": "create" }
-          }
-        },
-        "distributionProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadDistributionProfile"
-        },
-        "installProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadInstallProfile"
-        },
-        "executionProfile": {
-          "$ref": "./bmad-package-descriptor.schema.json#/$defs/SkillExecutionProfile"
-        },
-        "executionProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "validationProfile": {
-          "$ref": "./bmad-validation-report.schema.json#/$defs/BmadValidationProfile"
-        },
-        "validationProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "configGraphHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "configResolutionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "customizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelBinding": { "$ref": "#/$defs/MethodModelBinding" },
-        "methodSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "artifactExpectations": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": { "$ref": "#/$defs/MethodArtifactExpectation" }
-        },
-        "agentBinding": { "$ref": "#/$defs/MethodAgentBinding" },
-        "contextLedger": { "$ref": "#/$defs/MethodContextLedger" },
-        "checkpoints": {
-          "type": "array",
-          "maxItems": 100000,
-          "items": { "$ref": "#/$defs/MethodCheckpoint" }
-        },
-        "decisionConsumptions": {
-          "type": "array",
-          "maxItems": 100000,
-          "items": { "$ref": "#/$defs/BmadContextDecisionConsumption" }
-        },
-        "architectureSpineDrafts": {
-          "type": "array",
-          "maxItems": 10000,
-          "items": { "$ref": "#/$defs/ArchitectureSpineDraft" }
-        },
-        "architectureReviewResults": {
-          "type": "array",
-          "maxItems": 10000,
-          "items": { "$ref": "#/$defs/ArchitectureReviewResult" }
-        },
-        "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
-      }
-    }
-  ],
   "$defs": {
     "MethodInvocationBinding": {
       "type": "object",
@@ -265,29 +25,57 @@
         "bindingHash"
       ],
       "properties": {
-        "bindingKind": { "const": "method_invocation" },
-        "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "bindingKind": {
+          "const": "method_invocation"
+        },
+        "invocationId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "idempotencyKey": {
           "type": "string",
           "minLength": 16,
           "maxLength": 256,
           "pattern": "^[A-Za-z0-9._~-]+$"
         },
-        "contextDecisionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "contextDecisionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "capabilityKey": {
           "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
         },
-        "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "consentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelBinding": { "$ref": "#/$defs/MethodModelBinding" },
-        "executionProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "validationProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "methodSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "requestedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "bindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "manifestHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "consentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "contextDigest": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "resourceSetHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelBinding": {
+          "$ref": "#/$defs/MethodModelBinding"
+        },
+        "executionProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "validationProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "methodSchemaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "requestedAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        },
+        "bindingHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "MethodAgentBinding": {
@@ -311,19 +99,45 @@
         "agentBindingHash"
       ],
       "properties": {
-        "bindingKind": { "const": "agent" },
-        "rosterHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "moduleSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "moduleCode": { "const": "bmm" },
-        "agentRecordHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "agentCode": { "const": "bmad-agent-architect" },
-        "agentName": { "const": "Winston" },
-        "agentTitle": { "const": "System Architect" },
-        "personaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "customizationGraphHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "menuItemHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "menuCode": { "const": "CA" },
-        "menuTargetKind": { "const": "skill_target" },
+        "bindingKind": {
+          "const": "agent"
+        },
+        "rosterHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "moduleSourceHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "moduleCode": {
+          "const": "bmm"
+        },
+        "agentRecordHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "agentCode": {
+          "const": "bmad-agent-architect"
+        },
+        "agentName": {
+          "const": "Winston"
+        },
+        "agentTitle": {
+          "const": "System Architect"
+        },
+        "personaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "customizationGraphHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "menuItemHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "menuCode": {
+          "const": "CA"
+        },
+        "menuTargetKind": {
+          "const": "skill_target"
+        },
         "menuCapabilityKey": {
           "type": "object",
           "additionalProperties": false,
@@ -334,13 +148,23 @@
             "normalizedAction"
           ],
           "properties": {
-            "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "moduleCode": { "const": "bmm" },
-            "skillName": { "const": "bmad-architecture" },
-            "normalizedAction": { "const": "create" }
+            "packageVersionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "moduleCode": {
+              "const": "bmm"
+            },
+            "skillName": {
+              "const": "bmad-architecture"
+            },
+            "normalizedAction": {
+              "const": "create"
+            }
           }
         },
-        "agentBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "agentBindingHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "MethodModelBinding": {
@@ -360,7 +184,9 @@
         "bindingHash"
       ],
       "properties": {
-        "bindingKind": { "const": "method_model" },
+        "bindingKind": {
+          "const": "method_model"
+        },
         "providerId": {
           "type": "string",
           "minLength": 1,
@@ -377,13 +203,27 @@
           "minLength": 1,
           "maxLength": 256
         },
-        "modelProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelCapabilityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "contextWindowProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "egressProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "requestSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "bindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "modelProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelCapabilityHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "contextWindowProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "egressProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "requestSchemaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "responseSchemaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "bindingHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "MethodContextLedger": {
@@ -397,9 +237,15 @@
         "ledgerHash"
       ],
       "properties": {
-        "ledgerKind": { "const": "method_context_ledger" },
-        "ledgerId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "ledgerKind": {
+          "const": "method_context_ledger"
+        },
+        "ledgerId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "entries": {
           "type": "array",
           "maxItems": 100000,
@@ -426,31 +272,65 @@
               "entryHash"
             ],
             "properties": {
-              "entryKind": { "const": "accepted_context_review" },
+              "entryKind": {
+                "const": "accepted_context_review"
+              },
               "reviewOrdinal": {
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 9007199254740991
               },
-              "contextDecisionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-              "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "consentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "packageDescriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "instructionProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "configResolutionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "customizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "modelBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "methodSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "executionProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "validationProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "reviewedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-              "entryHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+              "contextDecisionId": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              },
+              "contextDigest": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "resourceSetHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "manifestHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "consentHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "packageDescriptorHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "instructionProjectionHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "configResolutionHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "customizationHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "modelBindingHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "methodSchemaHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "executionProfileHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "validationProfileHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "reviewedAt": {
+                "$ref": "./common.schema.json#/$defs/UtcInstant"
+              },
+              "entryHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              }
             }
           }
         },
-        "ledgerHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "ledgerHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "BmadContextDecisionConsumption": {
@@ -483,24 +363,48 @@
         "consumedAt"
       ],
       "properties": {
-        "recordKind": { "const": "context_decision_consumption" },
-        "consumptionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "decisionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "recordKind": {
+          "const": "context_decision_consumption"
+        },
+        "consumptionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "decisionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "invocationId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "idempotencyKey": {
           "type": "string",
           "minLength": 16,
           "maxLength": 256,
           "pattern": "^[A-Za-z0-9._~-]+$"
         },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "consentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "packageDescriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "packageSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "instructionProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "capabilityCatalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "manifestHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "consentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "contextDigest": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "packageDescriptorHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "packageSourceHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "instructionProjectionHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "capabilityCatalogHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "capabilityKey": {
           "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
         },
@@ -510,14 +414,30 @@
         "installProfile": {
           "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadInstallProfile"
         },
-        "executionProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "validationProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "configResolutionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "customizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "resourceSetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelBinding": { "$ref": "#/$defs/MethodModelBinding" },
-        "methodSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "consumedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+        "executionProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "validationProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "configResolutionHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "customizationHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "resourceSetHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelBinding": {
+          "$ref": "#/$defs/MethodModelBinding"
+        },
+        "methodSchemaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "consumedAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        }
       }
     },
     "MethodCheckpoint": {
@@ -540,9 +460,15 @@
         "checkpointHash"
       ],
       "properties": {
-        "schemaVersion": { "const": "sapphirus.bmad-method-checkpoint.v1" },
-        "checkpointId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "schemaVersion": {
+          "const": "sapphirus.bmad-method-checkpoint.v1"
+        },
+        "checkpointId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "turnOrdinal": {
           "type": "integer",
           "minimum": 0,
@@ -551,7 +477,9 @@
         "capabilityKey": {
           "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
         },
-        "capabilityStepTableHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "capabilityStepTableHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "currentStepKey": {
           "type": "string",
           "minLength": 1,
@@ -566,25 +494,41 @@
               "maxLength": 128,
               "pattern": "^[a-z][a-z0-9_]{0,127}$"
             },
-            { "type": "null" }
+            {
+              "type": "null"
+            }
           ]
         },
         "contextDecisionId": {
           "oneOf": [
-            { "$ref": "./common.schema.json#/$defs/ContractId" },
-            { "type": "null" }
+            {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        "contextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "modelBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "contextDigest": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelBindingHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "workingArtifacts": {
           "type": "array",
           "maxItems": 256,
           "uniqueItems": true,
-          "items": { "$ref": "./common.schema.json#/$defs/ArtifactRef" }
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ArtifactRef"
+          }
         },
-        "recordedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "checkpointHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "recordedAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        },
+        "checkpointHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "MethodArtifactExpectation": {
@@ -603,16 +547,24 @@
         "expectationHash"
       ],
       "properties": {
-        "expectationKind": { "const": "method_artifact" },
-        "expectationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "expectationKind": {
+          "const": "method_artifact"
+        },
+        "expectationId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "artifactKind": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
           "pattern": "^[a-z][a-z0-9_]{0,127}$"
         },
-        "required": { "type": "boolean" },
-        "storageScope": { "const": "app_local" },
+        "required": {
+          "type": "boolean"
+        },
+        "storageScope": {
+          "const": "app_local"
+        },
         "expectedMediaType": {
           "type": "string",
           "minLength": 1,
@@ -620,8 +572,12 @@
         },
         "expectedContentSchemaHash": {
           "oneOf": [
-            { "$ref": "./common.schema.json#/$defs/Sha256" },
-            { "type": "null" }
+            {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "sourceOutputHint": {
@@ -631,7 +587,9 @@
               "minLength": 1,
               "maxLength": 1024
             },
-            { "type": "null" }
+            {
+              "type": "null"
+            }
           ]
         },
         "completionEvidenceClass": {
@@ -643,7 +601,9 @@
             "unknown"
           ]
         },
-        "expectationHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "expectationHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "MethodAdvanceRequest": {
@@ -663,22 +623,44 @@
         "requestedAt"
       ],
       "properties": {
-        "requestKind": { "const": "method_advance" },
-        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "invocationBinding": { "$ref": "#/$defs/MethodInvocationBinding" },
-        "decisionConsumption": { "$ref": "#/$defs/BmadContextDecisionConsumption" },
-        "checkpointHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "instructionProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "boundedContextHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "requestKind": {
+          "const": "method_advance"
+        },
+        "requestId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "invocationBinding": {
+          "$ref": "#/$defs/MethodInvocationBinding"
+        },
+        "decisionConsumption": {
+          "$ref": "#/$defs/BmadContextDecisionConsumption"
+        },
+        "checkpointHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "instructionProjectionHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "boundedContextHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "artifactExpectations": {
           "type": "array",
           "maxItems": 64,
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/MethodArtifactExpectation" }
+          "items": {
+            "$ref": "#/$defs/MethodArtifactExpectation"
+          }
         },
-        "requestPayloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "requestedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+        "requestPayloadHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "requestedAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        }
       }
     },
     "MethodAdvanceResult": {
@@ -698,20 +680,38 @@
             "receivedAt"
           ],
           "properties": {
-            "resultKind": { "const": "conversation_turn" },
-            "resultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "responseContentRef": { "$ref": "./common.schema.json#/$defs/ContentRef" },
+            "resultKind": {
+              "const": "conversation_turn"
+            },
+            "resultId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "requestId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "invocationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "responseSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "responseContentRef": {
+              "$ref": "./common.schema.json#/$defs/ContentRef"
+            },
             "producedArtifacts": {
               "type": "array",
               "maxItems": 256,
               "uniqueItems": true,
-              "items": { "$ref": "./common.schema.json#/$defs/ArtifactRef" }
+              "items": {
+                "$ref": "./common.schema.json#/$defs/ArtifactRef"
+              }
             },
-            "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "receivedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "resultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "receivedAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         },
         {
@@ -730,25 +730,43 @@
             "receivedAt"
           ],
           "properties": {
-            "resultKind": { "const": "completion_candidate" },
-            "resultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "responseContentRef": { "$ref": "./common.schema.json#/$defs/ContentRef" },
+            "resultKind": {
+              "const": "completion_candidate"
+            },
+            "resultId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "requestId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "invocationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "responseSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "responseContentRef": {
+              "$ref": "./common.schema.json#/$defs/ContentRef"
+            },
             "producedArtifacts": {
               "type": "array",
               "maxItems": 256,
               "uniqueItems": true,
-              "items": { "$ref": "./common.schema.json#/$defs/ArtifactRef" }
+              "items": {
+                "$ref": "./common.schema.json#/$defs/ArtifactRef"
+              }
             },
             "unresolvedOpenItemCount": {
               "type": "integer",
               "minimum": 0,
               "maximum": 100000
             },
-            "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "receivedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "resultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "receivedAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         },
         {
@@ -766,11 +784,21 @@
             "receivedAt"
           ],
           "properties": {
-            "resultKind": { "const": "refusal" },
-            "resultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "resultKind": {
+              "const": "refusal"
+            },
+            "resultId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "requestId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "invocationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "responseSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
             "reasonCode": {
               "type": "string",
               "minLength": 1,
@@ -782,8 +810,12 @@
               "minLength": 1,
               "maxLength": 4096
             },
-            "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "receivedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "resultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "receivedAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         },
         {
@@ -801,11 +833,21 @@
             "receivedAt"
           ],
           "properties": {
-            "resultKind": { "const": "incomplete" },
-            "resultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+            "resultKind": {
+              "const": "incomplete"
+            },
+            "resultId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "requestId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "invocationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "responseSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
             "reasonCode": {
               "type": "string",
               "minLength": 1,
@@ -817,8 +859,12 @@
               "minLength": 1,
               "maxLength": 4096
             },
-            "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "receivedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "resultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "receivedAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         }
       ]
@@ -841,9 +887,15 @@
             "createdAt"
           ],
           "properties": {
-            "recommendationKind": { "const": "recommended_capability" },
-            "recommendationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+            "recommendationKind": {
+              "const": "recommended_capability"
+            },
+            "recommendationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "sessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
             "capabilityKey": {
               "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
             },
@@ -859,16 +911,24 @@
               "type": "array",
               "maxItems": 64,
               "uniqueItems": true,
-              "items": { "$ref": "./common.schema.json#/$defs/ArtifactRef" }
+              "items": {
+                "$ref": "./common.schema.json#/$defs/ArtifactRef"
+              }
             },
-            "guidanceRequired": { "type": "boolean" },
+            "guidanceRequired": {
+              "type": "boolean"
+            },
             "rationaleSummary": {
               "type": "string",
               "minLength": 1,
               "maxLength": 4096
             },
-            "recommendationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "recommendationHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         },
         {
@@ -884,10 +944,18 @@
             "createdAt"
           ],
           "properties": {
-            "recommendationKind": { "const": "no_recommendation" },
-            "recommendationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-            "evidenceClass": { "const": "unknown" },
+            "recommendationKind": {
+              "const": "no_recommendation"
+            },
+            "recommendationId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "sessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "evidenceClass": {
+              "const": "unknown"
+            },
             "reasonCode": {
               "enum": [
                 "catalog_evidence_absent",
@@ -895,8 +963,12 @@
                 "dependency_unavailable"
               ]
             },
-            "recommendationHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-            "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+            "recommendationHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            }
           }
         }
       ]
@@ -931,37 +1003,83 @@
         "spineHash"
       ],
       "properties": {
-        "artifactKind": { "const": "architecture_spine_draft" },
-        "spineDraftId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "artifactKind": {
+          "const": "architecture_spine_draft"
+        },
+        "spineDraftId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
         "revisionOrdinal": {
           "type": "integer",
           "minimum": 1,
           "maximum": 9007199254740991
         },
-        "workingMode": { "enum": ["coaching", "fast"] },
-        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
-        "purpose": {
-          "enum": ["build_substrate", "discussion", "report", "deck"]
+        "workingMode": {
+          "enum": [
+            "coaching",
+            "fast"
+          ]
         },
-        "altitude": { "enum": ["initiative", "feature", "epic"] },
-        "paradigm": { "type": "string", "minLength": 1, "maxLength": 256 },
-        "scope": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "purpose": {
+          "enum": [
+            "build_substrate",
+            "discussion",
+            "report",
+            "deck"
+          ]
+        },
+        "altitude": {
+          "enum": [
+            "initiative",
+            "feature",
+            "epic"
+          ]
+        },
+        "paradigm": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
         "binds": {
           "type": "array",
           "maxItems": 512,
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
         },
-        "sourceContextDigest": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "checkpointHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "sourceContextDigest": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "checkpointHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "inheritedInvariants": {
           "type": "array",
           "maxItems": 512,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["invariantId", "parentSpineHash", "bindsHere"],
+            "required": [
+              "invariantId",
+              "parentSpineHash",
+              "bindsHere"
+            ],
             "properties": {
               "invariantId": {
                 "type": "string",
@@ -969,8 +1087,14 @@
                 "maxLength": 64,
                 "pattern": "^(AD-[1-9][0-9]*|[a-z][a-z0-9_]{0,63})$"
               },
-              "parentSpineHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-              "bindsHere": { "type": "string", "minLength": 1, "maxLength": 4096 }
+              "parentSpineHash": {
+                "$ref": "./common.schema.json#/$defs/Sha256"
+              },
+              "bindsHere": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
             }
           }
         },
@@ -993,17 +1117,35 @@
                 "type": "string",
                 "pattern": "^AD-[1-9][0-9]*$"
               },
-              "title": { "type": "string", "minLength": 1, "maxLength": 256 },
-              "adopted": { "type": "boolean" },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "adopted": {
+                "type": "boolean"
+              },
               "binds": {
                 "type": "array",
                 "minItems": 1,
                 "maxItems": 512,
                 "uniqueItems": true,
-                "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               },
-              "prevents": { "type": "string", "minLength": 1, "maxLength": 4096 },
-              "rule": { "type": "string", "minLength": 1, "maxLength": 8192 }
+              "prevents": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "rule": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8192
+              }
             }
           }
         },
@@ -1013,10 +1155,21 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["concern", "convention"],
+            "required": [
+              "concern",
+              "convention"
+            ],
             "properties": {
-              "concern": { "type": "string", "minLength": 1, "maxLength": 256 },
-              "convention": { "type": "string", "minLength": 1, "maxLength": 4096 }
+              "concern": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "convention": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
             }
           }
         },
@@ -1026,29 +1179,58 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name", "version", "versionEvidence"],
+            "required": [
+              "name",
+              "version",
+              "versionEvidence"
+            ],
             "properties": {
-              "name": { "type": "string", "minLength": 1, "maxLength": 256 },
-              "version": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
               "versionEvidence": {
                 "oneOf": [
                   {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["evidenceKind", "contextItemId", "contentHash"],
+                    "required": [
+                      "evidenceKind",
+                      "contextItemId",
+                      "contentHash"
+                    ],
                     "properties": {
-                      "evidenceKind": { "const": "reviewed_context" },
-                      "contextItemId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-                      "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+                      "evidenceKind": {
+                        "const": "reviewed_context"
+                      },
+                      "contextItemId": {
+                        "$ref": "./common.schema.json#/$defs/ContractId"
+                      },
+                      "contentHash": {
+                        "$ref": "./common.schema.json#/$defs/Sha256"
+                      }
                     }
                   },
                   {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["evidenceKind", "openItemId"],
+                    "required": [
+                      "evidenceKind",
+                      "openItemId"
+                    ],
                     "properties": {
-                      "evidenceKind": { "const": "unverified" },
-                      "openItemId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+                      "evidenceKind": {
+                        "const": "unverified"
+                      },
+                      "openItemId": {
+                        "$ref": "./common.schema.json#/$defs/ContractId"
+                      }
                     }
                   }
                 ]
@@ -1062,11 +1244,27 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["seedKind", "title", "contentRef"],
+            "required": [
+              "seedKind",
+              "title",
+              "contentRef"
+            ],
             "properties": {
-              "seedKind": { "enum": ["mermaid", "text_tree", "structured_note"] },
-              "title": { "type": "string", "minLength": 1, "maxLength": 256 },
-              "contentRef": { "$ref": "./common.schema.json#/$defs/ContentRef" }
+              "seedKind": {
+                "enum": [
+                  "mermaid",
+                  "text_tree",
+                  "structured_note"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "contentRef": {
+                "$ref": "./common.schema.json#/$defs/ContentRef"
+              }
             }
           }
         },
@@ -1076,16 +1274,32 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["capabilityId", "livesIn", "governedBy"],
+            "required": [
+              "capabilityId",
+              "livesIn",
+              "governedBy"
+            ],
             "properties": {
-              "capabilityId": { "type": "string", "minLength": 1, "maxLength": 256 },
-              "livesIn": { "type": "string", "minLength": 1, "maxLength": 1024 },
+              "capabilityId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "livesIn": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
               "governedBy": {
                 "type": "array",
                 "minItems": 1,
                 "maxItems": 128,
                 "uniqueItems": true,
-                "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
               }
             }
           }
@@ -1096,12 +1310,31 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["deferredId", "subject", "reason", "revisitCondition"],
+            "required": [
+              "deferredId",
+              "subject",
+              "reason",
+              "revisitCondition"
+            ],
             "properties": {
-              "deferredId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-              "subject": { "type": "string", "minLength": 1, "maxLength": 1024 },
-              "reason": { "type": "string", "minLength": 1, "maxLength": 4096 },
-              "revisitCondition": { "type": "string", "minLength": 1, "maxLength": 4096 }
+              "deferredId": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "revisitCondition": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
             }
           }
         },
@@ -1111,23 +1344,50 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["openItemId", "itemKind", "summary", "binds"],
+            "required": [
+              "openItemId",
+              "itemKind",
+              "summary",
+              "binds"
+            ],
             "properties": {
-              "openItemId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-              "itemKind": { "enum": ["assumption", "question", "version_unverified"] },
-              "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
+              "openItemId": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              },
+              "itemKind": {
+                "enum": [
+                  "assumption",
+                  "question",
+                  "version_unverified"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
               "binds": {
                 "type": "array",
                 "maxItems": 512,
                 "uniqueItems": true,
-                "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               }
             }
           }
         },
-        "spineArtifactRef": { "$ref": "./common.schema.json#/$defs/ArtifactRef" },
-        "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "spineHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "spineArtifactRef": {
+          "$ref": "./common.schema.json#/$defs/ArtifactRef"
+        },
+        "createdAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        },
+        "spineHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
     },
     "ArchitectureReviewResult": {
@@ -1148,13 +1408,27 @@
         "reviewHash"
       ],
       "properties": {
-        "resultKind": { "const": "architecture_review" },
-        "reviewResultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "spineDraftId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-        "spineHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "checkpointHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-        "deterministicFactsHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "resultKind": {
+          "const": "architecture_review"
+        },
+        "reviewResultId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "spineDraftId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "spineHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "checkpointHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "deterministicFactsHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
         "deterministicFindings": {
           "type": "array",
           "maxItems": 512,
@@ -1170,7 +1444,9 @@
               "resolutionHash"
             ],
             "properties": {
-              "findingId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+              "findingId": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              },
               "ruleId": {
                 "enum": [
                   "placeholder_marker",
@@ -1180,13 +1456,34 @@
                   "stack_version_unpinned"
                 ]
               },
-              "severity": { "enum": ["critical", "high", "medium", "low"] },
-              "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
-              "disposition": { "enum": ["open", "resolved", "retained_open_question"] },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "disposition": {
+                "enum": [
+                  "open",
+                  "resolved",
+                  "retained_open_question"
+                ]
+              },
               "resolutionHash": {
                 "oneOf": [
-                  { "$ref": "./common.schema.json#/$defs/Sha256" },
-                  { "type": "null" }
+                  {
+                    "$ref": "./common.schema.json#/$defs/Sha256"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               }
             }
@@ -1207,12 +1504,24 @@
                 "lensResults"
               ],
               "properties": {
-                "modelReviewKind": { "const": "source_grounded" },
-                "decisionConsumptionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-                "modelBinding": { "$ref": "#/$defs/MethodModelBinding" },
-                "consentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-                "sourceProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-                "reviewSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+                "modelReviewKind": {
+                  "const": "source_grounded"
+                },
+                "decisionConsumptionId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "modelBinding": {
+                  "$ref": "#/$defs/MethodModelBinding"
+                },
+                "consentHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "sourceProjectionHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "reviewSchemaHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
                 "lensResults": {
                   "type": "array",
                   "minItems": 3,
@@ -1220,7 +1529,11 @@
                   "items": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["lens", "factsHash", "findings"],
+                    "required": [
+                      "lens",
+                      "factsHash",
+                      "findings"
+                    ],
                     "properties": {
                       "lens": {
                         "enum": [
@@ -1229,7 +1542,9 @@
                           "cross_unit_divergence"
                         ]
                       },
-                      "factsHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+                      "factsHash": {
+                        "$ref": "./common.schema.json#/$defs/Sha256"
+                      },
                       "findings": {
                         "type": "array",
                         "maxItems": 512,
@@ -1244,20 +1559,37 @@
                             "resolutionHash"
                           ],
                           "properties": {
-                            "findingId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-                            "severity": { "enum": ["critical", "high", "medium", "low"] },
+                            "findingId": {
+                              "$ref": "./common.schema.json#/$defs/ContractId"
+                            },
+                            "severity": {
+                              "enum": [
+                                "critical",
+                                "high",
+                                "medium",
+                                "low"
+                              ]
+                            },
                             "summary": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 4096
                             },
                             "disposition": {
-                              "enum": ["open", "resolved", "retained_open_question"]
+                              "enum": [
+                                "open",
+                                "resolved",
+                                "retained_open_question"
+                              ]
                             },
                             "resolutionHash": {
                               "oneOf": [
-                                { "$ref": "./common.schema.json#/$defs/Sha256" },
-                                { "type": "null" }
+                                {
+                                  "$ref": "./common.schema.json#/$defs/Sha256"
+                                },
+                                {
+                                  "type": "null"
+                                }
                               ]
                             }
                           }
@@ -1271,9 +1603,14 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["modelReviewKind", "reasonCode"],
+              "required": [
+                "modelReviewKind",
+                "reasonCode"
+              ],
               "properties": {
-                "modelReviewKind": { "const": "unavailable" },
+                "modelReviewKind": {
+                  "const": "unavailable"
+                },
                 "reasonCode": {
                   "enum": [
                     "consent_missing",
@@ -1289,11 +1626,394 @@
           ]
         },
         "reviewDisposition": {
-          "enum": ["no_findings", "findings_present", "model_review_unavailable"]
+          "enum": [
+            "no_findings",
+            "findings_present",
+            "model_review_unavailable"
+          ]
         },
-        "createdAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-        "reviewHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "createdAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        },
+        "reviewHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
       }
+    },
+    "MethodSessionPayload": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaVersion",
+            "methodShape",
+            "sessionId",
+            "packageVersionId",
+            "packageDescriptorHash",
+            "packageSourceHash",
+            "instructionProjectionHash",
+            "capabilityCatalogHash",
+            "agentRosterHash",
+            "capabilityKey",
+            "distributionProfile",
+            "installProfile",
+            "executionProfile",
+            "executionProfileHash",
+            "validationProfile",
+            "validationProfileHash",
+            "configGraphHash",
+            "configResolutionHash",
+            "customizationHash",
+            "resourceSetHash",
+            "contextDigest",
+            "modelBinding",
+            "methodSchemaHash",
+            "artifactExpectations",
+            "agentBinding",
+            "contextLedger",
+            "checkpoints",
+            "decisionConsumptions"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": "sapphirus.bmad-method-session.v1"
+            },
+            "methodShape": {
+              "const": "no_agent_direct"
+            },
+            "sessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "packageVersionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "packageDescriptorHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "packageSourceHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "capabilityCatalogHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "agentRosterHash": {
+              "type": "null"
+            },
+            "capabilityKey": {
+              "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
+            },
+            "distributionProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadDistributionProfile"
+            },
+            "installProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadInstallProfile"
+            },
+            "executionProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/SkillExecutionProfile"
+            },
+            "executionProfileHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "validationProfile": {
+              "$ref": "./bmad-validation-report.schema.json#/$defs/BmadValidationProfile"
+            },
+            "validationProfileHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "configGraphHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "configResolutionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "customizationHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "resourceSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "contextDigest": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "modelBinding": {
+              "$ref": "#/$defs/MethodModelBinding"
+            },
+            "methodSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "artifactExpectations": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/MethodArtifactExpectation"
+              }
+            },
+            "agentBinding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "bindingKind"
+              ],
+              "properties": {
+                "bindingKind": {
+                  "const": "no_agent"
+                }
+              }
+            },
+            "contextLedger": {
+              "$ref": "#/$defs/MethodContextLedger"
+            },
+            "checkpoints": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "$ref": "#/$defs/MethodCheckpoint"
+              }
+            },
+            "decisionConsumptions": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "$ref": "#/$defs/BmadContextDecisionConsumption"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaVersion",
+            "methodShape",
+            "sessionId",
+            "packageVersionId",
+            "packageDescriptorHash",
+            "packageSourceHash",
+            "instructionProjectionHash",
+            "capabilityCatalogHash",
+            "agentRosterHash",
+            "capabilityKey",
+            "distributionProfile",
+            "installProfile",
+            "executionProfile",
+            "executionProfileHash",
+            "validationProfile",
+            "validationProfileHash",
+            "configGraphHash",
+            "configResolutionHash",
+            "customizationHash",
+            "resourceSetHash",
+            "contextDigest",
+            "modelBinding",
+            "methodSchemaHash",
+            "artifactExpectations",
+            "agentBinding",
+            "contextLedger",
+            "checkpoints",
+            "decisionConsumptions",
+            "architectureSpineDrafts",
+            "architectureReviewResults"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": "sapphirus.bmad-method-session.v1"
+            },
+            "methodShape": {
+              "const": "architect_iterative"
+            },
+            "sessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "packageVersionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "packageDescriptorHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "packageSourceHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "capabilityCatalogHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "agentRosterHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "capabilityKey": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "packageVersionId",
+                "moduleCode",
+                "skillName",
+                "normalizedAction"
+              ],
+              "properties": {
+                "packageVersionId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "moduleCode": {
+                  "const": "bmm"
+                },
+                "skillName": {
+                  "const": "bmad-architecture"
+                },
+                "normalizedAction": {
+                  "const": "create"
+                }
+              }
+            },
+            "distributionProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadDistributionProfile"
+            },
+            "installProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/BmadInstallProfile"
+            },
+            "executionProfile": {
+              "$ref": "./bmad-package-descriptor.schema.json#/$defs/SkillExecutionProfile"
+            },
+            "executionProfileHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "validationProfile": {
+              "$ref": "./bmad-validation-report.schema.json#/$defs/BmadValidationProfile"
+            },
+            "validationProfileHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "configGraphHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "configResolutionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "customizationHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "resourceSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "contextDigest": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "modelBinding": {
+              "$ref": "#/$defs/MethodModelBinding"
+            },
+            "methodSchemaHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "artifactExpectations": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/MethodArtifactExpectation"
+              }
+            },
+            "agentBinding": {
+              "$ref": "#/$defs/MethodAgentBinding"
+            },
+            "contextLedger": {
+              "$ref": "#/$defs/MethodContextLedger"
+            },
+            "checkpoints": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "$ref": "#/$defs/MethodCheckpoint"
+              }
+            },
+            "decisionConsumptions": {
+              "type": "array",
+              "maxItems": 100000,
+              "items": {
+                "$ref": "#/$defs/BmadContextDecisionConsumption"
+              }
+            },
+            "architectureSpineDrafts": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "$ref": "#/$defs/ArchitectureSpineDraft"
+              }
+            },
+            "architectureReviewResults": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "$ref": "#/$defs/ArchitectureReviewResult"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "envelope",
+    "payload"
+  ],
+  "properties": {
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "objectType",
+        "objectId",
+        "deliveryModel",
+        "authorityRef",
+        "ownerScopeRef",
+        "projectId",
+        "runId",
+        "createdAt",
+        "contentHash"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "sapphirus.durable-object.v1"
+        },
+        "objectType": {
+          "const": "bmad_method_session"
+        },
+        "objectId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "deliveryModel": {
+          "const": "windows_local"
+        },
+        "authorityRef": {
+          "$ref": "./common.schema.json#/$defs/DesktopLocalStoreAuthorityRef"
+        },
+        "ownerScopeRef": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "projectId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "runId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "createdAt": {
+          "$ref": "./common.schema.json#/$defs/UtcInstant"
+        },
+        "contentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        }
+      }
+    },
+    "payload": {
+      "$ref": "#/$defs/MethodSessionPayload"
     }
   }
 }

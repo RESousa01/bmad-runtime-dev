@@ -13,17 +13,7 @@ export type BmadSourceTreatment = "adopt" | "adapt" | "defer" | "reject";
 export type BmadConfigLayer =
   | {
       graphKind: "method_central_toml";
-      layerKind:
-        | "installer_team"
-        | "installer_user"
-        | "custom_team"
-        | "custom_user"
-        | "packaged_default"
-        | "team_override"
-        | "user_override"
-        | "method_module_yaml"
-        | "builder_root_yaml"
-        | "builder_user_yaml";
+      layerKind: "installer_team" | "installer_user" | "custom_team" | "custom_user";
       ordinal: number;
       sourcePath: string;
       sourceHash: string;
@@ -43,17 +33,7 @@ export type BmadConfigLayer =
     }
   | {
       graphKind: "skill_customization_toml";
-      layerKind:
-        | "installer_team"
-        | "installer_user"
-        | "custom_team"
-        | "custom_user"
-        | "packaged_default"
-        | "team_override"
-        | "user_override"
-        | "method_module_yaml"
-        | "builder_root_yaml"
-        | "builder_user_yaml";
+      layerKind: "packaged_default" | "team_override" | "user_override";
       ordinal: number;
       sourcePath: string;
       sourceHash: string;
@@ -73,17 +53,7 @@ export type BmadConfigLayer =
     }
   | {
       graphKind: "compatibility_yaml";
-      layerKind:
-        | "installer_team"
-        | "installer_user"
-        | "custom_team"
-        | "custom_user"
-        | "packaged_default"
-        | "team_override"
-        | "user_override"
-        | "method_module_yaml"
-        | "builder_root_yaml"
-        | "builder_user_yaml";
+      layerKind: "method_module_yaml" | "builder_root_yaml" | "builder_user_yaml";
       ordinal: number;
       sourcePath: string;
       sourceHash: string;

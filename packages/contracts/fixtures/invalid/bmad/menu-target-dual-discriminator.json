@@ -2,6 +2,7 @@
   "schemaVersion": "sapphirus.bmad-capability-catalog.v1",
   "packageVersionId": "pkgver_01J00000000000000000000000",
   "descriptorHash": "sha256:06782e1c848726828a6e72055f634e2445f9400361b48149f109a6adb87d462a",
+  "packageSourceHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
   "installedSkills": [
     {
       "packageVersionId": "pkgver_01J00000000000000000000000",
@@ -863,5 +864,5 @@
     ],
     "rosterHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
   },
-  "catalogHash": "sha256:347ba48ee9bab62426ef089238cea9c28f097140c9163d9cef906a7ab6727312"
+  "catalogHash": "sha256:9878431fa67bf6eb41e1390229cbfb123b2c6d4366da9c5c711276b5c044d468"
 }

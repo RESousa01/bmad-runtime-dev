@@ -10,6 +10,11 @@ const generatedRoot = path.join(packageRoot, "generated", "typescript");
 const schemaTargets = [
   "approved-execution-spec",
   "authority-ref",
+  "bmad-builder-authoring",
+  "bmad-capability-catalog",
+  "bmad-method-session",
+  "bmad-package-descriptor",
+  "bmad-validation-report",
   "candidate-action",
   "contract-error",
   "durable-object",
@@ -21,11 +26,13 @@ const schemaTargets = [
   "spec-consumption",
 ];
 const expectedFiles = [
+  "canonical-json.mjs",
   "contracts.ts",
   "runtime.mjs",
   ...schemaTargets.map((target) => `schema/${target}.ts`),
   "semantic-validation.d.mts",
   "semantic-validation.mjs",
+  "sha256.mjs",
   "strict-json.mjs",
   "unicode.mjs",
   "validation.d.mts",
@@ -75,6 +82,11 @@ const typeSources = actualFiles
   .join("\n");
 for (const symbol of [
   "AuthorityRef",
+  "BmadPackageDescriptor",
+  "BmadCapabilityCatalog",
+  "MethodSession",
+  "BuilderAuthoringObject",
+  "BmadValidationReport",
   "CandidateAction",
   "ApprovedExecutionSpec",
   "SpecConsumptionRecord",
@@ -114,10 +126,46 @@ const deferredRunnerVocabulary = [
   "run_shell",
   "process_spawn",
 ];
+const deferredBmadVocabulary = [
+  "SkillPackageCandidate",
+  "SkillPackageVersion",
+  "PackageRegistration",
+  "PackagePublication",
+  "InstallRehearsalRun",
+  "InvocationRehearsalRun",
+  "EvaluationRun",
+  "PackagePromotionRequest",
+  "PackageActivation",
+  "PackageRollback",
+  "BuilderModule",
+  "BuilderRegistration",
+  "BuilderRehearsal",
+  "BuilderEvaluation",
+  "BuilderPublication",
+  "BuilderPromotion",
+  "BuilderActivation",
+  "BuilderRollback",
+  "BuilderMemoryAgent",
+  "BuilderAutonomousAgent",
+  "RegisterBuilder",
+  "RehearseBuilder",
+  "EvaluateBuilder",
+  "PublishBuilder",
+  "PromoteBuilder",
+  "ActivateBuilder",
+  "RollbackBuilder",
+];
+const allSources = [...sources.values()].join("\n");
 for (const forbidden of deferredRunnerVocabulary) {
   assert.ok(
-    !typeSources.includes(forbidden),
-    `TypeScript bindings must not expose deferred runner vocabulary: ${forbidden}.`,
+    !allSources.includes(forbidden),
+    `Published TypeScript must not expose deferred runner vocabulary: ${forbidden}.`,
+  );
+}
+for (const forbidden of deferredBmadVocabulary) {
+  assert.ok(
+    !allSources.includes(forbidden),
+    `Published TypeScript must not expose deferred BMAD vocabulary: ${forbidden}.`,
   );
 }
 

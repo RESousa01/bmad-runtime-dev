@@ -306,6 +306,7 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 #[doc = "    \"descriptorHash\","]
 #[doc = "    \"helpActionGraph\","]
 #[doc = "    \"installedSkills\","]
+#[doc = "    \"packageSourceHash\","]
 #[doc = "    \"packageVersionId\","]
 #[doc = "    \"schemaVersion\""]
 #[doc = "  ],"]
@@ -336,6 +337,9 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 #[doc = "      },"]
 #[doc = "      \"maxItems\": 4096"]
 #[doc = "    },"]
+#[doc = "    \"packageSourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
 #[doc = "    \"packageVersionId\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "    },"]
@@ -362,6 +366,8 @@ pub struct BmadCapabilityCatalog {
     pub help_action_graph: BmadCapabilityCatalogBmadHelpActionGraph,
     #[serde(rename = "installedSkills")]
     pub installed_skills: ::std::vec::Vec<BmadCapabilityCatalogInstalledSkillRecord>,
+    #[serde(rename = "packageSourceHash")]
+    pub package_source_hash: CommonSha256,
     #[serde(rename = "packageVersionId")]
     pub package_version_id: CommonContractId,
     #[serde(rename = "schemaVersion")]
@@ -23394,540 +23400,62 @@ impl ::std::convert::TryFrom<::std::string::String> for FilesystemCapabilitySnap
 #[doc = r" ```json"]
 #[doc = "{"]
 #[doc = "  \"title\": \"sapphirus.bmad-method-session.v1\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"envelope\","]
+#[doc = "    \"payload\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"envelope\": {"]
 #[doc = "      \"type\": \"object\","]
 #[doc = "      \"required\": ["]
-#[doc = "        \"agentBinding\","]
-#[doc = "        \"agentRosterHash\","]
-#[doc = "        \"artifactExpectations\","]
 #[doc = "        \"authorityRef\","]
-#[doc = "        \"capabilityCatalogHash\","]
-#[doc = "        \"capabilityKey\","]
-#[doc = "        \"checkpoints\","]
-#[doc = "        \"configGraphHash\","]
-#[doc = "        \"configResolutionHash\","]
 #[doc = "        \"contentHash\","]
-#[doc = "        \"contextDigest\","]
-#[doc = "        \"contextLedger\","]
 #[doc = "        \"createdAt\","]
-#[doc = "        \"customizationHash\","]
-#[doc = "        \"decisionConsumptions\","]
 #[doc = "        \"deliveryModel\","]
-#[doc = "        \"distributionProfile\","]
-#[doc = "        \"executionProfile\","]
-#[doc = "        \"executionProfileHash\","]
-#[doc = "        \"installProfile\","]
-#[doc = "        \"instructionProjectionHash\","]
-#[doc = "        \"methodSchemaHash\","]
-#[doc = "        \"methodShape\","]
-#[doc = "        \"modelBinding\","]
+#[doc = "        \"objectId\","]
+#[doc = "        \"objectType\","]
 #[doc = "        \"ownerScopeRef\","]
-#[doc = "        \"packageDescriptorHash\","]
-#[doc = "        \"packageSourceHash\","]
-#[doc = "        \"packageVersionId\","]
 #[doc = "        \"projectId\","]
-#[doc = "        \"resourceSetHash\","]
 #[doc = "        \"runId\","]
-#[doc = "        \"schemaVersion\","]
-#[doc = "        \"sessionId\","]
-#[doc = "        \"validationProfile\","]
-#[doc = "        \"validationProfileHash\""]
+#[doc = "        \"schemaVersion\""]
 #[doc = "      ],"]
 #[doc = "      \"properties\": {"]
-#[doc = "        \"agentBinding\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"bindingKind\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"bindingKind\": {"]
-#[doc = "              \"const\": \"no_agent\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
-#[doc = "        },"]
-#[doc = "        \"agentRosterHash\": {"]
-#[doc = "          \"type\": \"null\""]
-#[doc = "        },"]
-#[doc = "        \"artifactExpectations\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodArtifactExpectation\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 64,"]
-#[doc = "          \"uniqueItems\": true"]
-#[doc = "        },"]
 #[doc = "        \"authorityRef\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonDesktopLocalStoreAuthorityRef\""]
-#[doc = "        },"]
-#[doc = "        \"capabilityCatalogHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"capabilityKey\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadCapabilityCatalogBmadCapabilityKey\""]
-#[doc = "        },"]
-#[doc = "        \"checkpoints\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodCheckpoint\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 100000"]
-#[doc = "        },"]
-#[doc = "        \"configGraphHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"configResolutionHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "        },"]
 #[doc = "        \"contentHash\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "        },"]
-#[doc = "        \"contextDigest\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"contextLedger\": {"]
-#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodContextLedger\""]
-#[doc = "        },"]
 #[doc = "        \"createdAt\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonUtcInstant\""]
-#[doc = "        },"]
-#[doc = "        \"customizationHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"decisionConsumptions\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionBmadContextDecisionConsumption\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 100000"]
 #[doc = "        },"]
 #[doc = "        \"deliveryModel\": {"]
 #[doc = "          \"const\": \"windows_local\""]
 #[doc = "        },"]
-#[doc = "        \"distributionProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadDistributionProfile\""]
-#[doc = "        },"]
-#[doc = "        \"executionProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorSkillExecutionProfile\""]
-#[doc = "        },"]
-#[doc = "        \"executionProfileHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"installProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadInstallProfile\""]
-#[doc = "        },"]
-#[doc = "        \"instructionProjectionHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"methodSchemaHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"methodShape\": {"]
-#[doc = "          \"const\": \"no_agent_direct\""]
-#[doc = "        },"]
-#[doc = "        \"modelBinding\": {"]
-#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodModelBinding\""]
-#[doc = "        },"]
-#[doc = "        \"ownerScopeRef\": {"]
+#[doc = "        \"objectId\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "        },"]
-#[doc = "        \"packageDescriptorHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        \"objectType\": {"]
+#[doc = "          \"const\": \"bmad_method_session\""]
 #[doc = "        },"]
-#[doc = "        \"packageSourceHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"packageVersionId\": {"]
+#[doc = "        \"ownerScopeRef\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "        },"]
 #[doc = "        \"projectId\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "        },"]
-#[doc = "        \"resourceSetHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
 #[doc = "        \"runId\": {"]
 #[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "        },"]
 #[doc = "        \"schemaVersion\": {"]
-#[doc = "          \"const\": \"sapphirus.bmad-method-session.v1\""]
-#[doc = "        },"]
-#[doc = "        \"sessionId\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"validationProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadValidationReportBmadValidationProfile\""]
-#[doc = "        },"]
-#[doc = "        \"validationProfileHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "          \"const\": \"sapphirus.durable-object.v1\""]
 #[doc = "        }"]
 #[doc = "      },"]
 #[doc = "      \"additionalProperties\": false"]
 #[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"agentBinding\","]
-#[doc = "        \"agentRosterHash\","]
-#[doc = "        \"architectureReviewResults\","]
-#[doc = "        \"architectureSpineDrafts\","]
-#[doc = "        \"artifactExpectations\","]
-#[doc = "        \"authorityRef\","]
-#[doc = "        \"capabilityCatalogHash\","]
-#[doc = "        \"capabilityKey\","]
-#[doc = "        \"checkpoints\","]
-#[doc = "        \"configGraphHash\","]
-#[doc = "        \"configResolutionHash\","]
-#[doc = "        \"contentHash\","]
-#[doc = "        \"contextDigest\","]
-#[doc = "        \"contextLedger\","]
-#[doc = "        \"createdAt\","]
-#[doc = "        \"customizationHash\","]
-#[doc = "        \"decisionConsumptions\","]
-#[doc = "        \"deliveryModel\","]
-#[doc = "        \"distributionProfile\","]
-#[doc = "        \"executionProfile\","]
-#[doc = "        \"executionProfileHash\","]
-#[doc = "        \"installProfile\","]
-#[doc = "        \"instructionProjectionHash\","]
-#[doc = "        \"methodSchemaHash\","]
-#[doc = "        \"methodShape\","]
-#[doc = "        \"modelBinding\","]
-#[doc = "        \"ownerScopeRef\","]
-#[doc = "        \"packageDescriptorHash\","]
-#[doc = "        \"packageSourceHash\","]
-#[doc = "        \"packageVersionId\","]
-#[doc = "        \"projectId\","]
-#[doc = "        \"resourceSetHash\","]
-#[doc = "        \"runId\","]
-#[doc = "        \"schemaVersion\","]
-#[doc = "        \"sessionId\","]
-#[doc = "        \"validationProfile\","]
-#[doc = "        \"validationProfileHash\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"agentBinding\": {"]
-#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodAgentBinding\""]
-#[doc = "        },"]
-#[doc = "        \"agentRosterHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"architectureReviewResults\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionArchitectureReviewResult\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 10000"]
-#[doc = "        },"]
-#[doc = "        \"architectureSpineDrafts\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionArchitectureSpineDraft\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 10000"]
-#[doc = "        },"]
-#[doc = "        \"artifactExpectations\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodArtifactExpectation\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 64,"]
-#[doc = "          \"uniqueItems\": true"]
-#[doc = "        },"]
-#[doc = "        \"authorityRef\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonDesktopLocalStoreAuthorityRef\""]
-#[doc = "        },"]
-#[doc = "        \"capabilityCatalogHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"capabilityKey\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"moduleCode\","]
-#[doc = "            \"normalizedAction\","]
-#[doc = "            \"packageVersionId\","]
-#[doc = "            \"skillName\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"moduleCode\": {"]
-#[doc = "              \"const\": \"bmm\""]
-#[doc = "            },"]
-#[doc = "            \"normalizedAction\": {"]
-#[doc = "              \"const\": \"create\""]
-#[doc = "            },"]
-#[doc = "            \"packageVersionId\": {"]
-#[doc = "              \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "            },"]
-#[doc = "            \"skillName\": {"]
-#[doc = "              \"const\": \"bmad-architecture\""]
-#[doc = "            }"]
-#[doc = "          },"]
-#[doc = "          \"additionalProperties\": false"]
-#[doc = "        },"]
-#[doc = "        \"checkpoints\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodCheckpoint\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 100000"]
-#[doc = "        },"]
-#[doc = "        \"configGraphHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"configResolutionHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"contentHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"contextDigest\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"contextLedger\": {"]
-#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodContextLedger\""]
-#[doc = "        },"]
-#[doc = "        \"createdAt\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonUtcInstant\""]
-#[doc = "        },"]
-#[doc = "        \"customizationHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"decisionConsumptions\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": {"]
-#[doc = "            \"$ref\": \"#/$defs/MethodSessionBmadContextDecisionConsumption\""]
-#[doc = "          },"]
-#[doc = "          \"maxItems\": 100000"]
-#[doc = "        },"]
-#[doc = "        \"deliveryModel\": {"]
-#[doc = "          \"const\": \"windows_local\""]
-#[doc = "        },"]
-#[doc = "        \"distributionProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadDistributionProfile\""]
-#[doc = "        },"]
-#[doc = "        \"executionProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorSkillExecutionProfile\""]
-#[doc = "        },"]
-#[doc = "        \"executionProfileHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"installProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadInstallProfile\""]
-#[doc = "        },"]
-#[doc = "        \"instructionProjectionHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"methodSchemaHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"methodShape\": {"]
-#[doc = "          \"const\": \"architect_iterative\""]
-#[doc = "        },"]
-#[doc = "        \"modelBinding\": {"]
-#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodModelBinding\""]
-#[doc = "        },"]
-#[doc = "        \"ownerScopeRef\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"packageDescriptorHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"packageSourceHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"packageVersionId\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"projectId\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"resourceSetHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        },"]
-#[doc = "        \"runId\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"schemaVersion\": {"]
-#[doc = "          \"const\": \"sapphirus.bmad-method-session.v1\""]
-#[doc = "        },"]
-#[doc = "        \"sessionId\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
-#[doc = "        },"]
-#[doc = "        \"validationProfile\": {"]
-#[doc = "          \"$ref\": \"#/$defs/BmadValidationReportBmadValidationProfile\""]
-#[doc = "        },"]
-#[doc = "        \"validationProfileHash\": {"]
-#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(tag = "methodShape", deny_unknown_fields)]
-pub enum MethodSession {
-    #[serde(rename = "no_agent_direct")]
-    NoAgentDirect {
-        #[serde(rename = "agentBinding")]
-        agent_binding: MethodSessionAgentBinding,
-        #[serde(rename = "agentRosterHash")]
-        agent_roster_hash: (),
-        #[serde(rename = "artifactExpectations")]
-        artifact_expectations: Vec<MethodSessionMethodArtifactExpectation>,
-        #[serde(rename = "authorityRef")]
-        authority_ref: CommonDesktopLocalStoreAuthorityRef,
-        #[serde(rename = "capabilityCatalogHash")]
-        capability_catalog_hash: CommonSha256,
-        #[serde(rename = "capabilityKey")]
-        capability_key: BmadCapabilityCatalogBmadCapabilityKey,
-        checkpoints: ::std::vec::Vec<MethodSessionMethodCheckpoint>,
-        #[serde(rename = "configGraphHash")]
-        config_graph_hash: CommonSha256,
-        #[serde(rename = "configResolutionHash")]
-        config_resolution_hash: CommonSha256,
-        #[serde(rename = "contentHash")]
-        content_hash: CommonSha256,
-        #[serde(rename = "contextDigest")]
-        context_digest: CommonSha256,
-        #[serde(rename = "contextLedger")]
-        context_ledger: MethodSessionMethodContextLedger,
-        #[serde(rename = "createdAt")]
-        created_at: CommonUtcInstant,
-        #[serde(rename = "customizationHash")]
-        customization_hash: CommonSha256,
-        #[serde(rename = "decisionConsumptions")]
-        decision_consumptions: ::std::vec::Vec<MethodSessionBmadContextDecisionConsumption>,
-        #[serde(rename = "deliveryModel")]
-        delivery_model: ::serde_json::Value,
-        #[serde(rename = "distributionProfile")]
-        distribution_profile: BmadPackageDescriptorBmadDistributionProfile,
-        #[serde(rename = "executionProfile")]
-        execution_profile: BmadPackageDescriptorSkillExecutionProfile,
-        #[serde(rename = "executionProfileHash")]
-        execution_profile_hash: CommonSha256,
-        #[serde(rename = "installProfile")]
-        install_profile: BmadPackageDescriptorBmadInstallProfile,
-        #[serde(rename = "instructionProjectionHash")]
-        instruction_projection_hash: CommonSha256,
-        #[serde(rename = "methodSchemaHash")]
-        method_schema_hash: CommonSha256,
-        #[serde(rename = "modelBinding")]
-        model_binding: MethodSessionMethodModelBinding,
-        #[serde(rename = "ownerScopeRef")]
-        owner_scope_ref: CommonContractId,
-        #[serde(rename = "packageDescriptorHash")]
-        package_descriptor_hash: CommonSha256,
-        #[serde(rename = "packageSourceHash")]
-        package_source_hash: CommonSha256,
-        #[serde(rename = "packageVersionId")]
-        package_version_id: CommonContractId,
-        #[serde(rename = "projectId")]
-        project_id: CommonContractId,
-        #[serde(rename = "resourceSetHash")]
-        resource_set_hash: CommonSha256,
-        #[serde(rename = "runId")]
-        run_id: CommonContractId,
-        #[serde(rename = "schemaVersion")]
-        schema_version: ::serde_json::Value,
-        #[serde(rename = "sessionId")]
-        session_id: CommonContractId,
-        #[serde(rename = "validationProfile")]
-        validation_profile: BmadValidationReportBmadValidationProfile,
-        #[serde(rename = "validationProfileHash")]
-        validation_profile_hash: CommonSha256,
-    },
-    #[serde(rename = "architect_iterative")]
-    ArchitectIterative {
-        #[serde(rename = "agentBinding")]
-        agent_binding: MethodSessionMethodAgentBinding,
-        #[serde(rename = "agentRosterHash")]
-        agent_roster_hash: CommonSha256,
-        #[serde(rename = "architectureReviewResults")]
-        architecture_review_results: ::std::vec::Vec<MethodSessionArchitectureReviewResult>,
-        #[serde(rename = "architectureSpineDrafts")]
-        architecture_spine_drafts: ::std::vec::Vec<MethodSessionArchitectureSpineDraft>,
-        #[serde(rename = "artifactExpectations")]
-        artifact_expectations: Vec<MethodSessionMethodArtifactExpectation>,
-        #[serde(rename = "authorityRef")]
-        authority_ref: CommonDesktopLocalStoreAuthorityRef,
-        #[serde(rename = "capabilityCatalogHash")]
-        capability_catalog_hash: CommonSha256,
-        #[serde(rename = "capabilityKey")]
-        capability_key: MethodSessionCapabilityKey,
-        checkpoints: ::std::vec::Vec<MethodSessionMethodCheckpoint>,
-        #[serde(rename = "configGraphHash")]
-        config_graph_hash: CommonSha256,
-        #[serde(rename = "configResolutionHash")]
-        config_resolution_hash: CommonSha256,
-        #[serde(rename = "contentHash")]
-        content_hash: CommonSha256,
-        #[serde(rename = "contextDigest")]
-        context_digest: CommonSha256,
-        #[serde(rename = "contextLedger")]
-        context_ledger: MethodSessionMethodContextLedger,
-        #[serde(rename = "createdAt")]
-        created_at: CommonUtcInstant,
-        #[serde(rename = "customizationHash")]
-        customization_hash: CommonSha256,
-        #[serde(rename = "decisionConsumptions")]
-        decision_consumptions: ::std::vec::Vec<MethodSessionBmadContextDecisionConsumption>,
-        #[serde(rename = "deliveryModel")]
-        delivery_model: ::serde_json::Value,
-        #[serde(rename = "distributionProfile")]
-        distribution_profile: BmadPackageDescriptorBmadDistributionProfile,
-        #[serde(rename = "executionProfile")]
-        execution_profile: BmadPackageDescriptorSkillExecutionProfile,
-        #[serde(rename = "executionProfileHash")]
-        execution_profile_hash: CommonSha256,
-        #[serde(rename = "installProfile")]
-        install_profile: BmadPackageDescriptorBmadInstallProfile,
-        #[serde(rename = "instructionProjectionHash")]
-        instruction_projection_hash: CommonSha256,
-        #[serde(rename = "methodSchemaHash")]
-        method_schema_hash: CommonSha256,
-        #[serde(rename = "modelBinding")]
-        model_binding: MethodSessionMethodModelBinding,
-        #[serde(rename = "ownerScopeRef")]
-        owner_scope_ref: CommonContractId,
-        #[serde(rename = "packageDescriptorHash")]
-        package_descriptor_hash: CommonSha256,
-        #[serde(rename = "packageSourceHash")]
-        package_source_hash: CommonSha256,
-        #[serde(rename = "packageVersionId")]
-        package_version_id: CommonContractId,
-        #[serde(rename = "projectId")]
-        project_id: CommonContractId,
-        #[serde(rename = "resourceSetHash")]
-        resource_set_hash: CommonSha256,
-        #[serde(rename = "runId")]
-        run_id: CommonContractId,
-        #[serde(rename = "schemaVersion")]
-        schema_version: ::serde_json::Value,
-        #[serde(rename = "sessionId")]
-        session_id: CommonContractId,
-        #[serde(rename = "validationProfile")]
-        validation_profile: BmadValidationReportBmadValidationProfile,
-        #[serde(rename = "validationProfileHash")]
-        validation_profile_hash: CommonSha256,
-    },
-}
-#[doc = "`MethodSessionAgentBinding`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"bindingKind\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"bindingKind\": {"]
-#[doc = "      \"const\": \"no_agent\""]
+#[doc = "    \"payload\": {"]
+#[doc = "      \"$ref\": \"#/$defs/MethodSessionMethodSessionPayload\""]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -23936,12 +23464,12 @@ pub enum MethodSession {
 #[doc = r" </details>"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct MethodSessionAgentBinding {
-    #[serde(rename = "bindingKind")]
-    pub binding_kind: ::serde_json::Value,
+pub struct MethodSession {
+    pub envelope: MethodSessionEnvelope,
+    pub payload: MethodSessionMethodSessionPayload,
 }
-impl MethodSessionAgentBinding {
-    pub fn builder() -> builder::MethodSessionAgentBinding {
+impl MethodSession {
+    pub fn builder() -> builder::MethodSession {
         Default::default()
     }
 }
@@ -29062,7 +28590,7 @@ impl<'de> ::serde::Deserialize<'de> for MethodSessionBmadContextDecisionConsumpt
             })
     }
 }
-#[doc = "`MethodSessionCapabilityKey`"]
+#[doc = "`MethodSessionEnvelope`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
 #[doc = r""]
@@ -29070,23 +28598,47 @@ impl<'de> ::serde::Deserialize<'de> for MethodSessionBmadContextDecisionConsumpt
 #[doc = "{"]
 #[doc = "  \"type\": \"object\","]
 #[doc = "  \"required\": ["]
-#[doc = "    \"moduleCode\","]
-#[doc = "    \"normalizedAction\","]
-#[doc = "    \"packageVersionId\","]
-#[doc = "    \"skillName\""]
+#[doc = "    \"authorityRef\","]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"createdAt\","]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"objectId\","]
+#[doc = "    \"objectType\","]
+#[doc = "    \"ownerScopeRef\","]
+#[doc = "    \"projectId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"schemaVersion\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
-#[doc = "    \"moduleCode\": {"]
-#[doc = "      \"const\": \"bmm\""]
+#[doc = "    \"authorityRef\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonDesktopLocalStoreAuthorityRef\""]
 #[doc = "    },"]
-#[doc = "    \"normalizedAction\": {"]
-#[doc = "      \"const\": \"create\""]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "    },"]
-#[doc = "    \"packageVersionId\": {"]
+#[doc = "    \"createdAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"objectId\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "    },"]
-#[doc = "    \"skillName\": {"]
-#[doc = "      \"const\": \"bmad-architecture\""]
+#[doc = "    \"objectType\": {"]
+#[doc = "      \"const\": \"bmad_method_session\""]
+#[doc = "    },"]
+#[doc = "    \"ownerScopeRef\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"projectId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.durable-object.v1\""]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -29095,18 +28647,30 @@ impl<'de> ::serde::Deserialize<'de> for MethodSessionBmadContextDecisionConsumpt
 #[doc = r" </details>"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct MethodSessionCapabilityKey {
-    #[serde(rename = "moduleCode")]
-    pub module_code: ::serde_json::Value,
-    #[serde(rename = "normalizedAction")]
-    pub normalized_action: ::serde_json::Value,
-    #[serde(rename = "packageVersionId")]
-    pub package_version_id: CommonContractId,
-    #[serde(rename = "skillName")]
-    pub skill_name: ::serde_json::Value,
+pub struct MethodSessionEnvelope {
+    #[serde(rename = "authorityRef")]
+    pub authority_ref: CommonDesktopLocalStoreAuthorityRef,
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    #[serde(rename = "createdAt")]
+    pub created_at: CommonUtcInstant,
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    #[serde(rename = "objectId")]
+    pub object_id: CommonContractId,
+    #[serde(rename = "objectType")]
+    pub object_type: ::serde_json::Value,
+    #[serde(rename = "ownerScopeRef")]
+    pub owner_scope_ref: CommonContractId,
+    #[serde(rename = "projectId")]
+    pub project_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
 }
-impl MethodSessionCapabilityKey {
-    pub fn builder() -> builder::MethodSessionCapabilityKey {
+impl MethodSessionEnvelope {
+    pub fn builder() -> builder::MethodSessionEnvelope {
         Default::default()
     }
 }
@@ -31769,6 +31333,527 @@ impl<'de> ::serde::Deserialize<'de> for MethodSessionMethodModelBindingProviderI
             .map_err(|e: self::error::ConversionError| {
                 <D::Error as ::serde::de::Error>::custom(e.to_string())
             })
+    }
+}
+#[doc = "`MethodSessionMethodSessionPayload`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"agentBinding\","]
+#[doc = "        \"agentRosterHash\","]
+#[doc = "        \"artifactExpectations\","]
+#[doc = "        \"capabilityCatalogHash\","]
+#[doc = "        \"capabilityKey\","]
+#[doc = "        \"checkpoints\","]
+#[doc = "        \"configGraphHash\","]
+#[doc = "        \"configResolutionHash\","]
+#[doc = "        \"contextDigest\","]
+#[doc = "        \"contextLedger\","]
+#[doc = "        \"customizationHash\","]
+#[doc = "        \"decisionConsumptions\","]
+#[doc = "        \"distributionProfile\","]
+#[doc = "        \"executionProfile\","]
+#[doc = "        \"executionProfileHash\","]
+#[doc = "        \"installProfile\","]
+#[doc = "        \"instructionProjectionHash\","]
+#[doc = "        \"methodSchemaHash\","]
+#[doc = "        \"methodShape\","]
+#[doc = "        \"modelBinding\","]
+#[doc = "        \"packageDescriptorHash\","]
+#[doc = "        \"packageSourceHash\","]
+#[doc = "        \"packageVersionId\","]
+#[doc = "        \"resourceSetHash\","]
+#[doc = "        \"schemaVersion\","]
+#[doc = "        \"sessionId\","]
+#[doc = "        \"validationProfile\","]
+#[doc = "        \"validationProfileHash\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"agentBinding\": {"]
+#[doc = "          \"type\": \"object\","]
+#[doc = "          \"required\": ["]
+#[doc = "            \"bindingKind\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"bindingKind\": {"]
+#[doc = "              \"const\": \"no_agent\""]
+#[doc = "            }"]
+#[doc = "          },"]
+#[doc = "          \"additionalProperties\": false"]
+#[doc = "        },"]
+#[doc = "        \"agentRosterHash\": {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        },"]
+#[doc = "        \"artifactExpectations\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodArtifactExpectation\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 64,"]
+#[doc = "          \"uniqueItems\": true"]
+#[doc = "        },"]
+#[doc = "        \"capabilityCatalogHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"capabilityKey\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadCapabilityCatalogBmadCapabilityKey\""]
+#[doc = "        },"]
+#[doc = "        \"checkpoints\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodCheckpoint\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 100000"]
+#[doc = "        },"]
+#[doc = "        \"configGraphHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"configResolutionHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"contextDigest\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"contextLedger\": {"]
+#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodContextLedger\""]
+#[doc = "        },"]
+#[doc = "        \"customizationHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"decisionConsumptions\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionBmadContextDecisionConsumption\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 100000"]
+#[doc = "        },"]
+#[doc = "        \"distributionProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadDistributionProfile\""]
+#[doc = "        },"]
+#[doc = "        \"executionProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorSkillExecutionProfile\""]
+#[doc = "        },"]
+#[doc = "        \"executionProfileHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"installProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadInstallProfile\""]
+#[doc = "        },"]
+#[doc = "        \"instructionProjectionHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"methodSchemaHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"methodShape\": {"]
+#[doc = "          \"const\": \"no_agent_direct\""]
+#[doc = "        },"]
+#[doc = "        \"modelBinding\": {"]
+#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodModelBinding\""]
+#[doc = "        },"]
+#[doc = "        \"packageDescriptorHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"packageSourceHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"packageVersionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"resourceSetHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"schemaVersion\": {"]
+#[doc = "          \"const\": \"sapphirus.bmad-method-session.v1\""]
+#[doc = "        },"]
+#[doc = "        \"sessionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"validationProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadValidationReportBmadValidationProfile\""]
+#[doc = "        },"]
+#[doc = "        \"validationProfileHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"agentBinding\","]
+#[doc = "        \"agentRosterHash\","]
+#[doc = "        \"architectureReviewResults\","]
+#[doc = "        \"architectureSpineDrafts\","]
+#[doc = "        \"artifactExpectations\","]
+#[doc = "        \"capabilityCatalogHash\","]
+#[doc = "        \"capabilityKey\","]
+#[doc = "        \"checkpoints\","]
+#[doc = "        \"configGraphHash\","]
+#[doc = "        \"configResolutionHash\","]
+#[doc = "        \"contextDigest\","]
+#[doc = "        \"contextLedger\","]
+#[doc = "        \"customizationHash\","]
+#[doc = "        \"decisionConsumptions\","]
+#[doc = "        \"distributionProfile\","]
+#[doc = "        \"executionProfile\","]
+#[doc = "        \"executionProfileHash\","]
+#[doc = "        \"installProfile\","]
+#[doc = "        \"instructionProjectionHash\","]
+#[doc = "        \"methodSchemaHash\","]
+#[doc = "        \"methodShape\","]
+#[doc = "        \"modelBinding\","]
+#[doc = "        \"packageDescriptorHash\","]
+#[doc = "        \"packageSourceHash\","]
+#[doc = "        \"packageVersionId\","]
+#[doc = "        \"resourceSetHash\","]
+#[doc = "        \"schemaVersion\","]
+#[doc = "        \"sessionId\","]
+#[doc = "        \"validationProfile\","]
+#[doc = "        \"validationProfileHash\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"agentBinding\": {"]
+#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodAgentBinding\""]
+#[doc = "        },"]
+#[doc = "        \"agentRosterHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"architectureReviewResults\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionArchitectureReviewResult\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 10000"]
+#[doc = "        },"]
+#[doc = "        \"architectureSpineDrafts\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionArchitectureSpineDraft\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 10000"]
+#[doc = "        },"]
+#[doc = "        \"artifactExpectations\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodArtifactExpectation\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 64,"]
+#[doc = "          \"uniqueItems\": true"]
+#[doc = "        },"]
+#[doc = "        \"capabilityCatalogHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"capabilityKey\": {"]
+#[doc = "          \"type\": \"object\","]
+#[doc = "          \"required\": ["]
+#[doc = "            \"moduleCode\","]
+#[doc = "            \"normalizedAction\","]
+#[doc = "            \"packageVersionId\","]
+#[doc = "            \"skillName\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"moduleCode\": {"]
+#[doc = "              \"const\": \"bmm\""]
+#[doc = "            },"]
+#[doc = "            \"normalizedAction\": {"]
+#[doc = "              \"const\": \"create\""]
+#[doc = "            },"]
+#[doc = "            \"packageVersionId\": {"]
+#[doc = "              \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "            },"]
+#[doc = "            \"skillName\": {"]
+#[doc = "              \"const\": \"bmad-architecture\""]
+#[doc = "            }"]
+#[doc = "          },"]
+#[doc = "          \"additionalProperties\": false"]
+#[doc = "        },"]
+#[doc = "        \"checkpoints\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionMethodCheckpoint\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 100000"]
+#[doc = "        },"]
+#[doc = "        \"configGraphHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"configResolutionHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"contextDigest\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"contextLedger\": {"]
+#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodContextLedger\""]
+#[doc = "        },"]
+#[doc = "        \"customizationHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"decisionConsumptions\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/MethodSessionBmadContextDecisionConsumption\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 100000"]
+#[doc = "        },"]
+#[doc = "        \"distributionProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadDistributionProfile\""]
+#[doc = "        },"]
+#[doc = "        \"executionProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorSkillExecutionProfile\""]
+#[doc = "        },"]
+#[doc = "        \"executionProfileHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"installProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadPackageDescriptorBmadInstallProfile\""]
+#[doc = "        },"]
+#[doc = "        \"instructionProjectionHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"methodSchemaHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"methodShape\": {"]
+#[doc = "          \"const\": \"architect_iterative\""]
+#[doc = "        },"]
+#[doc = "        \"modelBinding\": {"]
+#[doc = "          \"$ref\": \"#/$defs/MethodSessionMethodModelBinding\""]
+#[doc = "        },"]
+#[doc = "        \"packageDescriptorHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"packageSourceHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"packageVersionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"resourceSetHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"schemaVersion\": {"]
+#[doc = "          \"const\": \"sapphirus.bmad-method-session.v1\""]
+#[doc = "        },"]
+#[doc = "        \"sessionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"validationProfile\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadValidationReportBmadValidationProfile\""]
+#[doc = "        },"]
+#[doc = "        \"validationProfileHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(tag = "methodShape", deny_unknown_fields)]
+pub enum MethodSessionMethodSessionPayload {
+    #[serde(rename = "no_agent_direct")]
+    NoAgentDirect {
+        #[serde(rename = "agentBinding")]
+        agent_binding: MethodSessionMethodSessionPayloadAgentBinding,
+        #[serde(rename = "agentRosterHash")]
+        agent_roster_hash: (),
+        #[serde(rename = "artifactExpectations")]
+        artifact_expectations: Vec<MethodSessionMethodArtifactExpectation>,
+        #[serde(rename = "capabilityCatalogHash")]
+        capability_catalog_hash: CommonSha256,
+        #[serde(rename = "capabilityKey")]
+        capability_key: BmadCapabilityCatalogBmadCapabilityKey,
+        checkpoints: ::std::vec::Vec<MethodSessionMethodCheckpoint>,
+        #[serde(rename = "configGraphHash")]
+        config_graph_hash: CommonSha256,
+        #[serde(rename = "configResolutionHash")]
+        config_resolution_hash: CommonSha256,
+        #[serde(rename = "contextDigest")]
+        context_digest: CommonSha256,
+        #[serde(rename = "contextLedger")]
+        context_ledger: MethodSessionMethodContextLedger,
+        #[serde(rename = "customizationHash")]
+        customization_hash: CommonSha256,
+        #[serde(rename = "decisionConsumptions")]
+        decision_consumptions: ::std::vec::Vec<MethodSessionBmadContextDecisionConsumption>,
+        #[serde(rename = "distributionProfile")]
+        distribution_profile: BmadPackageDescriptorBmadDistributionProfile,
+        #[serde(rename = "executionProfile")]
+        execution_profile: BmadPackageDescriptorSkillExecutionProfile,
+        #[serde(rename = "executionProfileHash")]
+        execution_profile_hash: CommonSha256,
+        #[serde(rename = "installProfile")]
+        install_profile: BmadPackageDescriptorBmadInstallProfile,
+        #[serde(rename = "instructionProjectionHash")]
+        instruction_projection_hash: CommonSha256,
+        #[serde(rename = "methodSchemaHash")]
+        method_schema_hash: CommonSha256,
+        #[serde(rename = "modelBinding")]
+        model_binding: MethodSessionMethodModelBinding,
+        #[serde(rename = "packageDescriptorHash")]
+        package_descriptor_hash: CommonSha256,
+        #[serde(rename = "packageSourceHash")]
+        package_source_hash: CommonSha256,
+        #[serde(rename = "packageVersionId")]
+        package_version_id: CommonContractId,
+        #[serde(rename = "resourceSetHash")]
+        resource_set_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        #[serde(rename = "sessionId")]
+        session_id: CommonContractId,
+        #[serde(rename = "validationProfile")]
+        validation_profile: BmadValidationReportBmadValidationProfile,
+        #[serde(rename = "validationProfileHash")]
+        validation_profile_hash: CommonSha256,
+    },
+    #[serde(rename = "architect_iterative")]
+    ArchitectIterative {
+        #[serde(rename = "agentBinding")]
+        agent_binding: MethodSessionMethodAgentBinding,
+        #[serde(rename = "agentRosterHash")]
+        agent_roster_hash: CommonSha256,
+        #[serde(rename = "architectureReviewResults")]
+        architecture_review_results: ::std::vec::Vec<MethodSessionArchitectureReviewResult>,
+        #[serde(rename = "architectureSpineDrafts")]
+        architecture_spine_drafts: ::std::vec::Vec<MethodSessionArchitectureSpineDraft>,
+        #[serde(rename = "artifactExpectations")]
+        artifact_expectations: Vec<MethodSessionMethodArtifactExpectation>,
+        #[serde(rename = "capabilityCatalogHash")]
+        capability_catalog_hash: CommonSha256,
+        #[serde(rename = "capabilityKey")]
+        capability_key: MethodSessionMethodSessionPayloadCapabilityKey,
+        checkpoints: ::std::vec::Vec<MethodSessionMethodCheckpoint>,
+        #[serde(rename = "configGraphHash")]
+        config_graph_hash: CommonSha256,
+        #[serde(rename = "configResolutionHash")]
+        config_resolution_hash: CommonSha256,
+        #[serde(rename = "contextDigest")]
+        context_digest: CommonSha256,
+        #[serde(rename = "contextLedger")]
+        context_ledger: MethodSessionMethodContextLedger,
+        #[serde(rename = "customizationHash")]
+        customization_hash: CommonSha256,
+        #[serde(rename = "decisionConsumptions")]
+        decision_consumptions: ::std::vec::Vec<MethodSessionBmadContextDecisionConsumption>,
+        #[serde(rename = "distributionProfile")]
+        distribution_profile: BmadPackageDescriptorBmadDistributionProfile,
+        #[serde(rename = "executionProfile")]
+        execution_profile: BmadPackageDescriptorSkillExecutionProfile,
+        #[serde(rename = "executionProfileHash")]
+        execution_profile_hash: CommonSha256,
+        #[serde(rename = "installProfile")]
+        install_profile: BmadPackageDescriptorBmadInstallProfile,
+        #[serde(rename = "instructionProjectionHash")]
+        instruction_projection_hash: CommonSha256,
+        #[serde(rename = "methodSchemaHash")]
+        method_schema_hash: CommonSha256,
+        #[serde(rename = "modelBinding")]
+        model_binding: MethodSessionMethodModelBinding,
+        #[serde(rename = "packageDescriptorHash")]
+        package_descriptor_hash: CommonSha256,
+        #[serde(rename = "packageSourceHash")]
+        package_source_hash: CommonSha256,
+        #[serde(rename = "packageVersionId")]
+        package_version_id: CommonContractId,
+        #[serde(rename = "resourceSetHash")]
+        resource_set_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        #[serde(rename = "sessionId")]
+        session_id: CommonContractId,
+        #[serde(rename = "validationProfile")]
+        validation_profile: BmadValidationReportBmadValidationProfile,
+        #[serde(rename = "validationProfileHash")]
+        validation_profile_hash: CommonSha256,
+    },
+}
+#[doc = "`MethodSessionMethodSessionPayloadAgentBinding`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"bindingKind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"bindingKind\": {"]
+#[doc = "      \"const\": \"no_agent\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct MethodSessionMethodSessionPayloadAgentBinding {
+    #[serde(rename = "bindingKind")]
+    pub binding_kind: ::serde_json::Value,
+}
+impl MethodSessionMethodSessionPayloadAgentBinding {
+    pub fn builder() -> builder::MethodSessionMethodSessionPayloadAgentBinding {
+        Default::default()
+    }
+}
+#[doc = "`MethodSessionMethodSessionPayloadCapabilityKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"moduleCode\","]
+#[doc = "    \"normalizedAction\","]
+#[doc = "    \"packageVersionId\","]
+#[doc = "    \"skillName\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"moduleCode\": {"]
+#[doc = "      \"const\": \"bmm\""]
+#[doc = "    },"]
+#[doc = "    \"normalizedAction\": {"]
+#[doc = "      \"const\": \"create\""]
+#[doc = "    },"]
+#[doc = "    \"packageVersionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"skillName\": {"]
+#[doc = "      \"const\": \"bmad-architecture\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct MethodSessionMethodSessionPayloadCapabilityKey {
+    #[serde(rename = "moduleCode")]
+    pub module_code: ::serde_json::Value,
+    #[serde(rename = "normalizedAction")]
+    pub normalized_action: ::serde_json::Value,
+    #[serde(rename = "packageVersionId")]
+    pub package_version_id: CommonContractId,
+    #[serde(rename = "skillName")]
+    pub skill_name: ::serde_json::Value,
+}
+impl MethodSessionMethodSessionPayloadCapabilityKey {
+    pub fn builder() -> builder::MethodSessionMethodSessionPayloadCapabilityKey {
+        Default::default()
     }
 }
 #[doc = "`PackageCompatibility`"]
@@ -35607,6 +35692,7 @@ pub mod builder {
             ::std::vec::Vec<super::BmadCapabilityCatalogInstalledSkillRecord>,
             ::std::string::String,
         >,
+        package_source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
         package_version_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
         schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
     }
@@ -35621,6 +35707,7 @@ pub mod builder {
                 descriptor_hash: Err("no value supplied for descriptor_hash".to_string()),
                 help_action_graph: Err("no value supplied for help_action_graph".to_string()),
                 installed_skills: Err("no value supplied for installed_skills".to_string()),
+                package_source_hash: Err("no value supplied for package_source_hash".to_string()),
                 package_version_id: Err("no value supplied for package_version_id".to_string()),
                 schema_version: Err("no value supplied for schema_version".to_string()),
             }
@@ -35691,6 +35778,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for installed_skills: {e}"));
             self
         }
+        pub fn package_source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_source_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for package_source_hash: {e}")
+            });
+            self
+        }
         pub fn package_version_id<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<super::CommonContractId>,
@@ -35724,6 +35821,7 @@ pub mod builder {
                 descriptor_hash: value.descriptor_hash?,
                 help_action_graph: value.help_action_graph?,
                 installed_skills: value.installed_skills?,
+                package_source_hash: value.package_source_hash?,
                 package_version_id: value.package_version_id?,
                 schema_version: value.schema_version?,
             })
@@ -35738,6 +35836,7 @@ pub mod builder {
                 descriptor_hash: Ok(value.descriptor_hash),
                 help_action_graph: Ok(value.help_action_graph),
                 installed_skills: Ok(value.installed_skills),
+                package_source_hash: Ok(value.package_source_hash),
                 package_version_id: Ok(value.package_version_id),
                 schema_version: Ok(value.schema_version),
             }
@@ -46196,42 +46295,57 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
-    pub struct MethodSessionAgentBinding {
-        binding_kind: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    pub struct MethodSession {
+        envelope: ::std::result::Result<super::MethodSessionEnvelope, ::std::string::String>,
+        payload:
+            ::std::result::Result<super::MethodSessionMethodSessionPayload, ::std::string::String>,
     }
-    impl ::std::default::Default for MethodSessionAgentBinding {
+    impl ::std::default::Default for MethodSession {
         fn default() -> Self {
             Self {
-                binding_kind: Err("no value supplied for binding_kind".to_string()),
+                envelope: Err("no value supplied for envelope".to_string()),
+                payload: Err("no value supplied for payload".to_string()),
             }
         }
     }
-    impl MethodSessionAgentBinding {
-        pub fn binding_kind<T>(mut self, value: T) -> Self
+    impl MethodSession {
+        pub fn envelope<T>(mut self, value: T) -> Self
         where
-            T: ::std::convert::TryInto<::serde_json::Value>,
+            T: ::std::convert::TryInto<super::MethodSessionEnvelope>,
             T::Error: ::std::fmt::Display,
         {
-            self.binding_kind = value
+            self.envelope = value
                 .try_into()
-                .map_err(|e| format!("error converting supplied value for binding_kind: {e}"));
+                .map_err(|e| format!("error converting supplied value for envelope: {e}"));
+            self
+        }
+        pub fn payload<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::MethodSessionMethodSessionPayload>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload: {e}"));
             self
         }
     }
-    impl ::std::convert::TryFrom<MethodSessionAgentBinding> for super::MethodSessionAgentBinding {
+    impl ::std::convert::TryFrom<MethodSession> for super::MethodSession {
         type Error = super::error::ConversionError;
         fn try_from(
-            value: MethodSessionAgentBinding,
+            value: MethodSession,
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
-                binding_kind: value.binding_kind?,
+                envelope: value.envelope?,
+                payload: value.payload?,
             })
         }
     }
-    impl ::std::convert::From<super::MethodSessionAgentBinding> for MethodSessionAgentBinding {
-        fn from(value: super::MethodSessionAgentBinding) -> Self {
+    impl ::std::convert::From<super::MethodSession> for MethodSession {
+        fn from(value: super::MethodSession) -> Self {
             Self {
-                binding_kind: Ok(value.binding_kind),
+                envelope: Ok(value.envelope),
+                payload: Ok(value.payload),
             }
         }
     }
@@ -48324,84 +48438,171 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
-    pub struct MethodSessionCapabilityKey {
-        module_code: ::std::result::Result<::serde_json::Value, ::std::string::String>,
-        normalized_action: ::std::result::Result<::serde_json::Value, ::std::string::String>,
-        package_version_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
-        skill_name: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    pub struct MethodSessionEnvelope {
+        authority_ref: ::std::result::Result<
+            super::CommonDesktopLocalStoreAuthorityRef,
+            ::std::string::String,
+        >,
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        created_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        object_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        object_type: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        owner_scope_ref: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        project_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
     }
-    impl ::std::default::Default for MethodSessionCapabilityKey {
+    impl ::std::default::Default for MethodSessionEnvelope {
         fn default() -> Self {
             Self {
-                module_code: Err("no value supplied for module_code".to_string()),
-                normalized_action: Err("no value supplied for normalized_action".to_string()),
-                package_version_id: Err("no value supplied for package_version_id".to_string()),
-                skill_name: Err("no value supplied for skill_name".to_string()),
+                authority_ref: Err("no value supplied for authority_ref".to_string()),
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                created_at: Err("no value supplied for created_at".to_string()),
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                object_id: Err("no value supplied for object_id".to_string()),
+                object_type: Err("no value supplied for object_type".to_string()),
+                owner_scope_ref: Err("no value supplied for owner_scope_ref".to_string()),
+                project_id: Err("no value supplied for project_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
             }
         }
     }
-    impl MethodSessionCapabilityKey {
-        pub fn module_code<T>(mut self, value: T) -> Self
+    impl MethodSessionEnvelope {
+        pub fn authority_ref<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonDesktopLocalStoreAuthorityRef>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.authority_ref = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for authority_ref: {e}"));
+            self
+        }
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn created_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.created_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for created_at: {e}"));
+            self
+        }
+        pub fn delivery_model<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::serde_json::Value>,
             T::Error: ::std::fmt::Display,
         {
-            self.module_code = value
+            self.delivery_model = value
                 .try_into()
-                .map_err(|e| format!("error converting supplied value for module_code: {e}"));
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
             self
         }
-        pub fn normalized_action<T>(mut self, value: T) -> Self
-        where
-            T: ::std::convert::TryInto<::serde_json::Value>,
-            T::Error: ::std::fmt::Display,
-        {
-            self.normalized_action = value
-                .try_into()
-                .map_err(|e| format!("error converting supplied value for normalized_action: {e}"));
-            self
-        }
-        pub fn package_version_id<T>(mut self, value: T) -> Self
+        pub fn object_id<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<super::CommonContractId>,
             T::Error: ::std::fmt::Display,
         {
-            self.package_version_id = value.try_into().map_err(|e| {
-                format!("error converting supplied value for package_version_id: {e}")
-            });
+            self.object_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for object_id: {e}"));
             self
         }
-        pub fn skill_name<T>(mut self, value: T) -> Self
+        pub fn object_type<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::serde_json::Value>,
             T::Error: ::std::fmt::Display,
         {
-            self.skill_name = value
+            self.object_type = value
                 .try_into()
-                .map_err(|e| format!("error converting supplied value for skill_name: {e}"));
+                .map_err(|e| format!("error converting supplied value for object_type: {e}"));
+            self
+        }
+        pub fn owner_scope_ref<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.owner_scope_ref = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for owner_scope_ref: {e}"));
+            self
+        }
+        pub fn project_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.project_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for project_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
             self
         }
     }
-    impl ::std::convert::TryFrom<MethodSessionCapabilityKey> for super::MethodSessionCapabilityKey {
+    impl ::std::convert::TryFrom<MethodSessionEnvelope> for super::MethodSessionEnvelope {
         type Error = super::error::ConversionError;
         fn try_from(
-            value: MethodSessionCapabilityKey,
+            value: MethodSessionEnvelope,
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
-                module_code: value.module_code?,
-                normalized_action: value.normalized_action?,
-                package_version_id: value.package_version_id?,
-                skill_name: value.skill_name?,
+                authority_ref: value.authority_ref?,
+                content_hash: value.content_hash?,
+                created_at: value.created_at?,
+                delivery_model: value.delivery_model?,
+                object_id: value.object_id?,
+                object_type: value.object_type?,
+                owner_scope_ref: value.owner_scope_ref?,
+                project_id: value.project_id?,
+                run_id: value.run_id?,
+                schema_version: value.schema_version?,
             })
         }
     }
-    impl ::std::convert::From<super::MethodSessionCapabilityKey> for MethodSessionCapabilityKey {
-        fn from(value: super::MethodSessionCapabilityKey) -> Self {
+    impl ::std::convert::From<super::MethodSessionEnvelope> for MethodSessionEnvelope {
+        fn from(value: super::MethodSessionEnvelope) -> Self {
             Self {
-                module_code: Ok(value.module_code),
-                normalized_action: Ok(value.normalized_action),
-                package_version_id: Ok(value.package_version_id),
-                skill_name: Ok(value.skill_name),
+                authority_ref: Ok(value.authority_ref),
+                content_hash: Ok(value.content_hash),
+                created_at: Ok(value.created_at),
+                delivery_model: Ok(value.delivery_model),
+                object_id: Ok(value.object_id),
+                object_type: Ok(value.object_type),
+                owner_scope_ref: Ok(value.owner_scope_ref),
+                project_id: Ok(value.project_id),
+                run_id: Ok(value.run_id),
+                schema_version: Ok(value.schema_version),
             }
         }
     }
@@ -50217,6 +50418,136 @@ pub mod builder {
                 provider_id: Ok(value.provider_id),
                 request_schema_hash: Ok(value.request_schema_hash),
                 response_schema_hash: Ok(value.response_schema_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct MethodSessionMethodSessionPayloadAgentBinding {
+        binding_kind: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for MethodSessionMethodSessionPayloadAgentBinding {
+        fn default() -> Self {
+            Self {
+                binding_kind: Err("no value supplied for binding_kind".to_string()),
+            }
+        }
+    }
+    impl MethodSessionMethodSessionPayloadAgentBinding {
+        pub fn binding_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.binding_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for binding_kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<MethodSessionMethodSessionPayloadAgentBinding>
+        for super::MethodSessionMethodSessionPayloadAgentBinding
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: MethodSessionMethodSessionPayloadAgentBinding,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                binding_kind: value.binding_kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::MethodSessionMethodSessionPayloadAgentBinding>
+        for MethodSessionMethodSessionPayloadAgentBinding
+    {
+        fn from(value: super::MethodSessionMethodSessionPayloadAgentBinding) -> Self {
+            Self {
+                binding_kind: Ok(value.binding_kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct MethodSessionMethodSessionPayloadCapabilityKey {
+        module_code: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        normalized_action: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        package_version_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        skill_name: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for MethodSessionMethodSessionPayloadCapabilityKey {
+        fn default() -> Self {
+            Self {
+                module_code: Err("no value supplied for module_code".to_string()),
+                normalized_action: Err("no value supplied for normalized_action".to_string()),
+                package_version_id: Err("no value supplied for package_version_id".to_string()),
+                skill_name: Err("no value supplied for skill_name".to_string()),
+            }
+        }
+    }
+    impl MethodSessionMethodSessionPayloadCapabilityKey {
+        pub fn module_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.module_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for module_code: {e}"));
+            self
+        }
+        pub fn normalized_action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.normalized_action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for normalized_action: {e}"));
+            self
+        }
+        pub fn package_version_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_version_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for package_version_id: {e}")
+            });
+            self
+        }
+        pub fn skill_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skill_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skill_name: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<MethodSessionMethodSessionPayloadCapabilityKey>
+        for super::MethodSessionMethodSessionPayloadCapabilityKey
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: MethodSessionMethodSessionPayloadCapabilityKey,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                module_code: value.module_code?,
+                normalized_action: value.normalized_action?,
+                package_version_id: value.package_version_id?,
+                skill_name: value.skill_name?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::MethodSessionMethodSessionPayloadCapabilityKey>
+        for MethodSessionMethodSessionPayloadCapabilityKey
+    {
+        fn from(value: super::MethodSessionMethodSessionPayloadCapabilityKey) -> Self {
+            Self {
+                module_code: Ok(value.module_code),
+                normalized_action: Ok(value.normalized_action),
+                package_version_id: Ok(value.package_version_id),
+                skill_name: Ok(value.skill_name),
             }
         }
     }

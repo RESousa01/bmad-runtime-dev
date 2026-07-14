@@ -243,11 +243,12 @@ export async function loadBindingCheckInputs({ packageRoot, repositoryRoot }) {
       `generated TypeScript schema ${name}`,
     )));
 
-  const lock = parseStrictJson(await readContainedUtf8File(
+  const lockSource = await readContainedUtf8File(
     packageRoot,
     path.join(packageRoot, "schema-lock.json"),
     "schema-lock.json",
-  ));
+  );
+  const lock = parseStrictJson(lockSource);
   const toolLock = parseStrictJson(await readContainedUtf8File(
     repositoryRoot,
     path.join(repositoryRoot, "tools", "contract-codegen", "tool-lock.json"),
@@ -277,12 +278,31 @@ export async function loadBindingCheckInputs({ packageRoot, repositoryRoot }) {
       ),
     ]),
   ));
+  const packageManifestSource = await readContainedUtf8File(
+    packageRoot,
+    path.join(packageRoot, "package.json"),
+    "contract package manifest",
+  );
+  const ipcEnvelopeSource = await readContainedUtf8File(
+    repositoryRoot,
+    path.join(repositoryRoot, "crates", "desktop-ipc", "src", "envelope.rs"),
+    "desktop IPC envelope source",
+  );
+  const hostClientSource = await readContainedUtf8File(
+    repositoryRoot,
+    path.join(repositoryRoot, "apps", "desktop-ui", "src", "lib", "hostClient.ts"),
+    "desktop UI IPC client source",
+  );
 
   return {
     dotnetFiles,
     dotnetFileSources,
     lock,
+    lockSource,
     lockedGeneratedSources,
+    packageManifestSource,
+    ipcEnvelopeSource,
+    hostClientSource,
     rustSource,
     schemaSources,
     toolLock,

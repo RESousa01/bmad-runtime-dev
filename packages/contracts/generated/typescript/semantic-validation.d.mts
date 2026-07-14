@@ -33,7 +33,7 @@ export interface BmadSemanticContext {
   readonly catalog?: BmadCapabilityCatalog;
 }
 export declare function validateBmadSemantics(
-  document: BmadPackageDescriptor | BmadCapabilityCatalog | MethodSession | BuilderAuthoringObject,
+  document: BmadPackageDescriptor | BmadCapabilityCatalog | MethodSession["payload"] | BuilderAuthoringObject,
   context?: BmadSemanticContext,
 ): readonly SemanticValidationIssue[];
 export declare function bmadContextDecisionUniquenessKey(

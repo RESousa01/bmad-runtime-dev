@@ -8,6 +8,7 @@
     "schemaVersion",
     "packageVersionId",
     "descriptorHash",
+    "packageSourceHash",
     "installedSkills",
     "helpActionGraph",
     "dependencyAvailability",
@@ -18,6 +19,7 @@
     "schemaVersion": { "const": "sapphirus.bmad-capability-catalog.v1" },
     "packageVersionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
     "descriptorHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "packageSourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
     "installedSkills": {
       "type": "array",
       "maxItems": 4096,

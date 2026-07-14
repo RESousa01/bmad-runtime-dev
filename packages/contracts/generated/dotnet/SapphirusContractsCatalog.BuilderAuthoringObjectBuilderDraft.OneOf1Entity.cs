@@ -72,11 +72,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
             /// </para>
             /// </remarks>
-            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction AuthoringAction
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf1Entity.AuthoringActionEntity AuthoringAction
             {
                 get
                 {
-                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction value))
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AuthoringActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf1Entity.AuthoringActionEntity value))
                     {
                         return value;
                     }

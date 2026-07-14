@@ -14,7 +14,10 @@ export type BuilderDraft =
       authoringSessionId: string;
       builderKind: "agent";
       validationProfile: "BuilderAgentV2Stateless";
-      authoringAction: BuilderAuthoringAction;
+      authoringAction: {
+        builderKind: "agent";
+        action: "create_rebuild";
+      };
       sourceIdentityHash: string;
       instructionProjectionSetHash: string;
       createdAt: string;
@@ -29,20 +32,14 @@ export type BuilderDraft =
       authoringSessionId: string;
       builderKind: "workflow";
       validationProfile: "BuilderOutcomeSkillV2";
-      authoringAction: BuilderAuthoringAction;
+      authoringAction: {
+        builderKind: "workflow";
+        action: "build";
+      };
       sourceIdentityHash: string;
       instructionProjectionSetHash: string;
       createdAt: string;
       draftEffect: "none";
-    };
-export type BuilderAuthoringAction =
-  | {
-      builderKind: "agent";
-      action: "create_rebuild" | "edit" | "analyze" | "build";
-    }
-  | {
-      builderKind: "workflow";
-      action: "create_rebuild" | "build" | "edit" | "analyze";
     };
 export type BuilderDraftRevision =
   | {
@@ -52,7 +49,10 @@ export type BuilderDraftRevision =
       draftId: string;
       builderKind: "agent";
       validationProfile: "BuilderAgentV2Stateless";
-      authoringAction: BuilderAuthoringAction;
+      authoringAction: {
+        builderKind: "agent";
+        action: "create_rebuild" | "edit";
+      };
       ordinal: number;
       parentRevisionHash: string | null;
       proposedFileSet: BuilderProposedFileSet;
@@ -70,7 +70,10 @@ export type BuilderDraftRevision =
       draftId: string;
       builderKind: "workflow";
       validationProfile: "BuilderOutcomeSkillV2";
-      authoringAction: BuilderAuthoringAction;
+      authoringAction: {
+        builderKind: "workflow";
+        action: "build" | "edit";
+      };
       ordinal: number;
       parentRevisionHash: string | null;
       proposedFileSet: BuilderProposedFileSet;
@@ -133,7 +136,7 @@ export type BuilderAnalysisRun =
        * @minItems 6
        * @maxItems 6
        */
-      modelLensResults: BuilderModelLensResult[];
+      modelLensResults: never[];
       evaluationClaim: "none";
       createdAt: string;
       analysisHash: string;
@@ -177,7 +180,7 @@ export type BuilderAnalysisRun =
        * @minItems 5
        * @maxItems 5
        */
-      modelLensResults: BuilderModelLensResult[];
+      modelLensResults: never[];
       evaluationClaim: "none";
       createdAt: string;
       analysisHash: string;
@@ -194,34 +197,4 @@ export interface BuilderProposedFileSet {
 export interface BuilderProposedFile {
   path: string;
   content: string;
-}
-export interface BuilderModelLensResult {
-  builderKind: "agent" | "workflow";
-  lens: "leanness" | "architecture" | "determinism" | "customization" | "enhancement" | "agent-cohesion";
-  revisionId: string;
-  revisionHash: string;
-  sourceMemberSetHash: string;
-  instructionProjectionSetHash: string;
-  deterministicFactsHash: string;
-  modelHash: string;
-  deploymentHash: string;
-  modelProfileHash: string;
-  schemaHash: string;
-  consentHash: string;
-  contextDecisionConsumptionHash: string;
-  verdict: "clear" | "findings_present";
-  evaluationClaim: "none";
-  /**
-   * @maxItems 512
-   */
-  findings: {
-    findingId: string;
-    severity: "critical" | "high" | "medium" | "low";
-    title: string;
-    location: string;
-    evidence: string;
-    recommendation: string;
-    proposedSmallest?: string;
-    predictedDelta?: string;
-  }[];
 }

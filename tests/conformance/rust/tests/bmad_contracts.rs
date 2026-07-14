@@ -24,6 +24,8 @@ struct FixtureEntry {
     schema: Option<String>,
     valid: bool,
     reason_code: Option<String>,
+    #[serde(default)]
+    reason_codes: Vec<String>,
     context_file: Option<String>,
 }
 
@@ -182,7 +184,7 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
         .into_iter()
         .filter(|entry| entry.file.contains("/bmad/"))
         .collect();
-    assert_eq!(entries.len(), 86);
+    assert_eq!(entries.len(), 100);
 
     for entry in entries {
         let source = fs::read(fixture_root.join(&entry.file))?;
@@ -194,6 +196,7 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
                 result.reason_category,
                 Some(ReasonCategory::DuplicateMember)
             );
+            assert_eq!(entry.reason_codes, ["DUPLICATE_MEMBER"]);
             assert_eq!(result.rejection_stage, RejectionStage::StrictParser);
             assert!(!result.validator_invoked);
             continue;
@@ -211,6 +214,12 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
             let reason =
                 normalized_schema_reason(&schema_validator(schema_name, &schemas)?, &value);
             assert_eq!(reason, entry.reason_code.as_deref(), "{}", entry.file);
+            assert_eq!(
+                reason.into_iter().collect::<Vec<_>>(),
+                entry.reason_codes,
+                "{}",
+                entry.file
+            );
             continue;
         }
 
@@ -223,15 +232,7 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
         if entry.valid {
             assert!(semantic.is_empty(), "{}: {semantic:?}", entry.file);
         } else {
-            let expected = entry
-                .reason_code
-                .as_deref()
-                .ok_or("invalid reason is required")?;
-            assert!(
-                semantic.iter().any(|reason| reason == expected),
-                "{} expected {expected}, got {semantic:?}",
-                entry.file
-            );
+            assert_eq!(semantic, entry.reason_codes, "{}", entry.file);
         }
     }
     Ok(())

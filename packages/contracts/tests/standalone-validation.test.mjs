@@ -58,6 +58,71 @@ test("standalone validation fails closed on unknown properties and contract kind
   );
 });
 
+test("the public parser fails closed on BMAD semantics and required cross-record context", async () => {
+  const descriptorSource = await fixture("valid/bmad/package-descriptor.json");
+  const descriptor = parseAndValidateContract(
+    descriptorSource,
+    "bmad-package-descriptor",
+  );
+  const catalogSource = await fixture("valid/bmad/capability-catalog.json");
+  assert.throws(
+    () => parseAndValidateContract(catalogSource, "bmad-capability-catalog"),
+    (error) => error instanceof ContractValidationError
+      && error.issues.some((issue) => issue.keyword === "BMAD_SEMANTIC_CONTEXT_REQUIRED"),
+  );
+  const catalog = parseAndValidateContract(
+    catalogSource,
+    "bmad-capability-catalog",
+    { descriptor },
+  );
+  const methodSource = await fixture("valid/bmad/method-architect-iterative.json");
+  assert.throws(
+    () => parseAndValidateContract(methodSource, "bmad-method-session"),
+    (error) => error instanceof ContractValidationError
+      && error.issues.some((issue) => issue.keyword === "BMAD_SEMANTIC_CONTEXT_REQUIRED"),
+  );
+  assert.equal(
+    parseAndValidateContract(methodSource, "bmad-method-session", { catalog })
+      .payload.methodShape,
+    "architect_iterative",
+  );
+
+  for (const [file, kind, context, reason] of [
+    [
+      "invalid/bmad/projection-hash-substitution.json",
+      "bmad-package-descriptor",
+      undefined,
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    ],
+    [
+      "invalid/bmad/agent-record-hash-substitution.json",
+      "bmad-capability-catalog",
+      { descriptor },
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    ],
+    [
+      "invalid/bmad/method-agent-record-transplant.json",
+      "bmad-method-session",
+      { catalog },
+      "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT",
+    ],
+    [
+      "invalid/bmad/builder-windows-reserved-path.json",
+      "bmad-builder-authoring",
+      undefined,
+      "BMAD_BUILDER_PATH_INVALID",
+    ],
+  ]) {
+    const source = await fixture(file);
+    assert.throws(
+      () => parseAndValidateContract(source, kind, context),
+      (error) => error instanceof ContractValidationError
+        && error.issues.some((issue) => issue.keyword === reason),
+      file,
+    );
+  }
+});
+
 test("standalone validators accept all four schema-first extension families", async () => {
   const cases = [
     ["valid/filesystem-capability.json", "filesystem-capability", validateFilesystemCapability],

@@ -625,13 +625,7 @@
                 "installer_team",
                 "installer_user",
                 "custom_team",
-                "custom_user",
-                "packaged_default",
-                "team_override",
-                "user_override",
-                "method_module_yaml",
-                "builder_root_yaml",
-                "builder_user_yaml"
+                "custom_user"
               ]
             },
             "ordinal": { "type": "integer", "minimum": 0, "maximum": 3 },
@@ -675,16 +669,9 @@
             "graphKind": { "const": "skill_customization_toml" },
             "layerKind": {
               "enum": [
-                "installer_team",
-                "installer_user",
-                "custom_team",
-                "custom_user",
                 "packaged_default",
                 "team_override",
-                "user_override",
-                "method_module_yaml",
-                "builder_root_yaml",
-                "builder_user_yaml"
+                "user_override"
               ]
             },
             "ordinal": { "type": "integer", "minimum": 0, "maximum": 2 },
@@ -728,13 +715,6 @@
             "graphKind": { "const": "compatibility_yaml" },
             "layerKind": {
               "enum": [
-                "installer_team",
-                "installer_user",
-                "custom_team",
-                "custom_user",
-                "packaged_default",
-                "team_override",
-                "user_override",
                 "method_module_yaml",
                 "builder_root_yaml",
                 "builder_user_yaml"

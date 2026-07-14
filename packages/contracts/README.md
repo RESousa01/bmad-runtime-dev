@@ -35,8 +35,11 @@ Generated files are never edited by hand.
 Import `@sapphirus/contracts/validation` to parse an untrusted serialized
 contract. `parseAndValidateContract` rejects duplicate keys, malformed Unicode,
 unsafe integers, oversized input, unknown contract families, and schema drift
-before returning a value. Domain authority and side effects remain handwritten
-host responsibilities after this structural boundary.
+before returning a value. For BMAD contracts it also verifies purpose-separated
+self hashes and repository-owned semantic invariants. Catalog parsing requires
+the matching descriptor in `semanticContext`; Method-session parsing requires
+the matching catalog. Domain authority and side effects remain handwritten host
+responsibilities after this validation boundary.
 
 The TypeScript 7 lane also generates structural types and standalone validators
 for filesystem capability snapshots, safe contract errors, signed package
@@ -60,10 +63,11 @@ opaque references such as `cas://`, `azure-blob://`, and `https://` remain
 valid; the reference is still non-authoritative and cannot expose filesystem
 access to the renderer.
 
-Call `parseAndValidateContract` first, then use the handwritten validators from
-`@sapphirus/contracts/semantics`. Semantic validators assume their input has
-already passed the matching closed schema; they do not grant authority or
-perform lifecycle transitions.
+Call `parseAndValidateContract` first. BMAD semantics run automatically and fail
+closed; the exported validators from `@sapphirus/contracts/semantics` remain
+available for explicit diagnostics and for the non-BMAD semantic families.
+Semantic validators assume their input has already passed the matching closed
+schema; they do not grant authority or perform lifecycle transitions.
 
 All sixteen public schema families and the shared `common` dependency are
 reachable from the same deterministic internal-`$defs` bundle in Rust and C#.

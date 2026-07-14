@@ -70,11 +70,6 @@ public readonly partial struct SapphirusContractsCatalog
                 public static ModelLensResultsArray DefaultInstance { get; }
 
                 /// <summary>
-                /// Gets the rank of the array.
-                /// </summary>
-                public static int Rank => 1;
-
-                /// <summary>
                 /// Gets the fixed length of the array at its current rank.
                 /// </summary>
                 public static int Dimension => 5;
@@ -96,12 +91,82 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <returns>The item at the given index.</returns>
                 /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
                 /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult this[int index]
+                public JsonElement this[int index]
                 {
                     get
                     {
                         CheckValidInstance();
-                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult>(_idx, index);
+                        return _parent.GetArrayIndexElement<JsonElement>(_idx, index);
+                    }
+                }
+
+                /// <summary>
+                /// Gets the tuple item.
+                /// </summary>
+                /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
+                /// <exception cref="InvalidOperationException">The value is not an array.</exception>
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems0Entity Item1
+                {
+                    get
+                    {
+                        CheckValidInstance();
+                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems0Entity>(_idx, 0);
+                    }
+                }
+
+                /// <summary>
+                /// Gets the tuple item.
+                /// </summary>
+                /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
+                /// <exception cref="InvalidOperationException">The value is not an array.</exception>
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems1Entity Item2
+                {
+                    get
+                    {
+                        CheckValidInstance();
+                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems1Entity>(_idx, 1);
+                    }
+                }
+
+                /// <summary>
+                /// Gets the tuple item.
+                /// </summary>
+                /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
+                /// <exception cref="InvalidOperationException">The value is not an array.</exception>
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems2Entity Item3
+                {
+                    get
+                    {
+                        CheckValidInstance();
+                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems2Entity>(_idx, 2);
+                    }
+                }
+
+                /// <summary>
+                /// Gets the tuple item.
+                /// </summary>
+                /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
+                /// <exception cref="InvalidOperationException">The value is not an array.</exception>
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems3Entity Item4
+                {
+                    get
+                    {
+                        CheckValidInstance();
+                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems3Entity>(_idx, 3);
+                    }
+                }
+
+                /// <summary>
+                /// Gets the tuple item.
+                /// </summary>
+                /// <exception cref="IndexOutOfRangeException">The index was outside the bounds of the array.</exception>
+                /// <exception cref="InvalidOperationException">The value is not an array.</exception>
+                public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems4Entity Item5
+                {
+                    get
+                    {
+                        CheckValidInstance();
+                        return _parent.GetArrayIndexElement<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.ModelLensResultsArray.PrefixItems4Entity>(_idx, 4);
                     }
                 }
 
@@ -119,10 +184,10 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Enumerates the array.
                 /// </summary>
                 /// <exception cref="InvalidOperationException">The value is not an array.</exception>
-                public ArrayEnumerator<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult> EnumerateArray()
+                public ArrayEnumerator<JsonElement> EnumerateArray()
                 {
                     CheckValidInstance();
-                    return EnumeratorCreator.CreateArrayEnumerator<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderModelLensResult>(_parent, _idx);
+                    return EnumeratorCreator.CreateArrayEnumerator<JsonElement>(_parent, _idx);
                 }
 
                 /// <inheritdoc/>

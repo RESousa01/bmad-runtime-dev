@@ -28,6 +28,24 @@ async function readFixture(relativePath) {
   return readFile(path.join(fixtureRoot, relativePath), "utf8");
 }
 
+const STRUCTURAL_REASON_PRIORITY = [
+  "ONE_OF_MISMATCH",
+  "ARRAY_TOO_SHORT",
+  "ARRAY_TOO_LONG",
+  "UNKNOWN_PROPERTY",
+  "REQUIRED_PROPERTY_MISSING",
+  "CONST_MISMATCH",
+  "ENUM_MISMATCH",
+  "PATTERN_MISMATCH",
+  "TYPE_MISMATCH",
+  "SCHEMA_INVALID",
+];
+
+function normalizedSchemaReason(errors) {
+  const codes = new Set(errors.map((error) => error.code));
+  return STRUCTURAL_REASON_PRIORITY.find((code) => codes.has(code)) ?? "SCHEMA_INVALID";
+}
+
 test("D3 fixtures contain no deferred runner or containment vocabulary", async () => {
   const forbidden = [
     "WindowsContainmentClaim",
@@ -80,15 +98,23 @@ test("valid and adversarial fixtures produce stable reason categories", async ()
                 ? { catalog: context }
                 : { descriptor: context };
             })());
-    const reasonCodes = [...schemaErrors, ...semanticErrors].map((error) => error.code);
+    const reasonCodes = schemaErrors.length > 0
+      ? entry.reasonCodes === undefined
+        ? schemaErrors.map((error) => error.code)
+        : [normalizedSchemaReason(schemaErrors)]
+      : semanticErrors.map((error) => error.code);
 
     if (entry.valid) {
       assert.deepEqual(reasonCodes, [], `${entry.file}: ${JSON.stringify(reasonCodes)}`);
     } else {
-      assert.ok(
-        reasonCodes.includes(entry.reasonCode),
-        `${entry.file}: expected ${entry.reasonCode}, got ${reasonCodes.join(", ")}`,
-      );
+      if (entry.reasonCodes !== undefined) {
+        assert.deepEqual(reasonCodes, entry.reasonCodes, entry.file);
+      } else {
+        assert.ok(
+          reasonCodes.includes(entry.reasonCode),
+          `${entry.file}: expected ${entry.reasonCode}, got ${reasonCodes.join(", ")}`,
+        );
+      }
     }
   }
 });
@@ -176,17 +202,17 @@ test("BMAD fixtures cover canonical catalog separation and single-use context de
     assert.equal(Object.hasOwn(item.target, "prompt"), false);
     assert.equal(Object.hasOwn(item.target, "capabilityKey"), false);
   }
-  assert.equal(session.checkpoints.length, 2);
-  assert.equal(session.decisionConsumptions.length, 2);
+  assert.equal(session.payload.checkpoints.length, 2);
+  assert.equal(session.payload.decisionConsumptions.length, 2);
   assert.equal(
-    new Set(session.decisionConsumptions.map(bmadContextDecisionUniquenessKey)).size,
+    new Set(session.payload.decisionConsumptions.map(bmadContextDecisionUniquenessKey)).size,
     2,
   );
-  const replay = structuredClone(session.decisionConsumptions[0]);
+  const replay = structuredClone(session.payload.decisionConsumptions[0]);
   replay.invocationId = "invoke_01J00000000000000000000009";
   assert.equal(
     bmadContextDecisionUniquenessKey(replay),
-    bmadContextDecisionUniquenessKey(session.decisionConsumptions[0]),
+    bmadContextDecisionUniquenessKey(session.payload.decisionConsumptions[0]),
     "the uniqueness key is decision-scoped, not invocation-scoped",
   );
 });

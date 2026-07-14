@@ -186,6 +186,27 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the <c>packageSourceHash</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 PackageSourceHash
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PackageSourceHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>packageVersionId</c> property.
         /// </summary>
         /// <remarks>
@@ -679,6 +700,11 @@ public readonly partial struct SapphirusContractsCatalog
             public const string InstalledSkills = "installedSkills";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="PackageSourceHash"/>.
+            /// </summary>
+            public const string PackageSourceHash = "packageSourceHash";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="PackageVersionId"/>.
             /// </summary>
             public const string PackageVersionId = "packageVersionId";
@@ -717,6 +743,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="InstalledSkills"/>.
             /// </summary>
             public static ReadOnlySpan<byte> InstalledSkillsUtf8 => "installedSkills"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="PackageSourceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> PackageSourceHashUtf8 => "packageSourceHash"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="PackageVersionId"/>.
@@ -765,6 +796,11 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> InstalledSkills => "installedSkills"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="PackageSourceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> PackageSourceHash => "packageSourceHash"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="PackageVersionId"/>.
             /// </summary>
             public static ReadOnlySpan<byte> PackageVersionId => "packageVersionId"u8;
@@ -810,6 +846,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the pre-baked property name blob for <see cref="InstalledSkills"/>.
             /// </summary>
             public static ReadOnlySpan<byte> InstalledSkills => [0x15, 0x01, 0x00, 0x00, 0x22, 0x69, 0x6E, 0x73, 0x74, 0x61, 0x6C, 0x6C, 0x65, 0x64, 0x53, 0x6B, 0x69, 0x6C, 0x6C, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="PackageSourceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> PackageSourceHash => [0x35, 0x01, 0x00, 0x00, 0x22, 0x70, 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x48, 0x61, 0x73, 0x68, 0x22];
 
             /// <summary>
             /// Gets the pre-baked property name blob for <see cref="PackageVersionId"/>.

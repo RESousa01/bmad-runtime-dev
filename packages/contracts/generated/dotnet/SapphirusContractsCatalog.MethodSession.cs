@@ -60,102 +60,45 @@ public readonly partial struct SapphirusContractsCatalog
         public static MethodSession DefaultInstance { get; }
 
         /// <summary>
-        /// Gets the value of the property with the given name.
+        /// Gets the <c>envelope</c> property.
         /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <returns>The value of the property with the given name.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public JsonElement this[ReadOnlySpan<byte> propertyName]
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity Envelope
         {
             get
             {
-                CheckValidInstance();
-                if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement value))
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EnvelopeUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity value))
                 {
-                    return default;
+                    return value;
                 }
 
-                return value;
+                return default;
             }
         }
 
         /// <summary>
-        /// Gets the value of the property with the given name.
+        /// Gets the <c>payload</c> property.
         /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <returns>The value of the property with the given name.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public JsonElement this[ReadOnlySpan<char> propertyName]
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload Payload
         {
             get
             {
-                CheckValidInstance();
-                if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement value))
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PayloadUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload value))
                 {
-                    return default;
+                    return value;
                 }
 
-                return value;
+                return default;
             }
-        }
-
-        /// <summary>
-        /// Gets the value of the property with the given name.
-        /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <returns>The value of the property with the given name.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public JsonElement this[string propertyName]
-        {
-            get
-            {
-                CheckValidInstance();
-                if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement value))
-                {
-                    return default;
-                }
-
-                return value;
-            }
-        }
-
-        /// <summary>
-        /// Tries to get the value of the property with the given name.
-        /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <param name="value">The value of the property, if present.</param>
-        /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public bool TryGetProperty(ReadOnlySpan<byte> propertyName, out JsonElement value)
-        {
-            CheckValidInstance();
-            return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
-        }
-
-        /// <summary>
-        /// Tries to get the value of the property with the given name.
-        /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <param name="value">The value of the property, if present.</param>
-        /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public bool TryGetProperty(ReadOnlySpan<char> propertyName, out JsonElement value)
-        {
-            CheckValidInstance();
-            return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
-        }
-
-        /// <summary>
-        /// Tries to get the value of the property with the given name.
-        /// </summary>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <param name="value">The value of the property, if present.</param>
-        /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public bool TryGetProperty(string propertyName, out JsonElement value)
-        {
-            CheckValidInstance();
-            return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
         }
 
         /// <summary>
@@ -168,57 +111,11 @@ public readonly partial struct SapphirusContractsCatalog
             return _parent.GetPropertyCount(_idx);
         }
 
-        /// <summary>
-        /// Enumerates the object.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-        public ObjectEnumerator<JsonElement> EnumerateObject()
-        {
-            CheckValidInstance();
-            return EnumeratorCreator.CreateObjectEnumerator<JsonElement>(_parent, _idx);
-        }
-
         /// <inheritdoc/>
         public JsonValueKind ValueKind => TokenType.ToValueKind();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private JsonTokenType TokenType => _parent?.GetJsonTokenType(_idx) ?? JsonTokenType.None;
-
-        /// <summary>
-        /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.
-        /// </summary>
-        /// <param name="value">The value from which to convert.</param>
-        public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity(MethodSession value)
-        {
-            return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.From(value);
-        }
-
-        /// <summary>
-        /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.
-        /// </summary>
-        /// <param name="value">The value from which to convert.</param>
-        public static implicit operator MethodSession(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity value)
-        {
-            return From(value);
-        }
-
-        /// <summary>
-        /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.
-        /// </summary>
-        /// <param name="value">The value from which to convert.</param>
-        public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity(MethodSession value)
-        {
-            return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.From(value);
-        }
-
-        /// <summary>
-        /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.
-        /// </summary>
-        /// <param name="value">The value from which to convert.</param>
-        public static implicit operator MethodSession(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity value)
-        {
-            return From(value);
-        }
 
         /// <summary>
         /// Operator ==.
@@ -621,95 +518,62 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
-        /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity" />.
+        /// Provides UTF8 and string versions of the JSON property names on the object.
         /// </summary>
-        /// <param name="result">The result of the conversions.</param>
-        /// <returns><see langword="true" /> if the conversion was valid.</returns>
-        public bool TryGetAsOneOf0Entity(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity result)
+        public static class JsonPropertyNames
         {
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.From(this);
-                return true;
-            }
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Envelope"/>.
+            /// </summary>
+            public const string Envelope = "envelope";
 
-            result = default;
-            return false;
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Payload"/>.
+            /// </summary>
+            public const string Payload = "payload";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Envelope"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EnvelopeUtf8 => "envelope"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Payload"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> PayloadUtf8 => "payload"u8;
         }
 
         /// <summary>
-        /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity" />.
+        /// Provides escaped UTF-8 versions of the JSON property names on the object.
         /// </summary>
-        /// <param name="result">The result of the conversions.</param>
-        /// <returns><see langword="true" /> if the conversion was valid.</returns>
-        public bool TryGetAsOneOf1Entity(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity result)
+        private static class JsonPropertyNamesEscaped
         {
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.From(this);
-                return true;
-            }
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Envelope"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Envelope => "envelope"u8;
 
-            result = default;
-            return false;
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Payload"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Payload => "payload"u8;
         }
 
         /// <summary>
-        /// Matches the value against the composed values, and returns the result of calling the provided match function for the first match found.
+        /// Provides pre-baked property name blobs for fast builder property storage.
+        /// Each blob contains the complete value-buffer entry: [4-byte header][quote][escaped UTF-8 name][quote].
         /// </summary>
-        /// <typeparam name="TContext">The type of the immutable context to pass in to the match function.</typeparam>
-        /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-        /// <param name="context">The context to pass to the match function.</param>
-        /// <param name="matchOneOf0Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.</param>
-        /// <param name="matchOneOf1Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.</param>
-        /// <param name="defaultMatch">Match any other value.</param>
-        /// <returns>An instance of the value returned by the match function.</returns>
-        public TResult Match<TContext, TResult>(
-            in TContext context,
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity, TContext, TResult> matchOneOf0Entity,
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity, TContext, TResult> matchOneOf1Entity,
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession, TContext, TResult> defaultMatch)
-#if NET9_0_OR_GREATER
-        where TContext : allows ref struct
-#endif
+        private static class JsonPropertyNamesPrebaked
         {
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                return matchOneOf0Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.From(this), context);
-            }
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Envelope"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Envelope => [0xA5, 0x00, 0x00, 0x00, 0x22, 0x65, 0x6E, 0x76, 0x65, 0x6C, 0x6F, 0x70, 0x65, 0x22];
 
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                return matchOneOf1Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.From(this), context);
-            }
-
-            return defaultMatch(this, context);
-        }
-
-        /// <summary>
-        /// Matches the value against the composed values, and returns the result of calling the provided match function for the first match found.
-        /// </summary>
-        /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-        /// <param name="matchOneOf0Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.</param>
-        /// <param name="matchOneOf1Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.</param>
-        /// <param name="defaultMatch">Match any other value.</param>
-        /// <returns>An instance of the value returned by the match function.</returns>
-        public TResult Match<TResult>(
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity, TResult> matchOneOf0Entity,
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity, TResult> matchOneOf1Entity,
-            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession, TResult> defaultMatch)
-        {
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                return matchOneOf0Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.From(this));
-            }
-
-            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-            {
-                return matchOneOf1Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.From(this));
-            }
-
-            return defaultMatch(this);
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Payload"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Payload => [0x95, 0x00, 0x00, 0x00, 0x22, 0x70, 0x61, 0x79, 0x6C, 0x6F, 0x61, 0x64, 0x22];
         }
     }
 }

@@ -27,26 +27,44 @@ public static class BmadSemantics
     public static IReadOnlyList<string> Validate(JsonElement value, JsonElement? descriptor = null)
     {
         var errors = new List<string>();
-        string? version = String(value, "schemaVersion");
+        JsonElement envelope = default;
+        JsonElement payload = default;
+        bool wrappedMethod = value.TryGetProperty("envelope"u8, out envelope)
+            && value.TryGetProperty("payload"u8, out payload)
+            && String(payload, "schemaVersion") == "sapphirus.bmad-method-session.v1";
+        JsonElement document = wrappedMethod ? payload : value;
+        if (wrappedMethod)
+        {
+            string expected = BmadCanonicalJson.Hash("contract-object", "v1", document);
+            if (!StringComparer.Ordinal.Equals(String(envelope, "contentHash"), expected))
+            {
+                Add(errors, "HASH_MISMATCH");
+            }
+        }
+
+        string? version = String(document, "schemaVersion");
         switch (version)
         {
             case "sapphirus.bmad-package-descriptor.v1":
-                ValidateDescriptor(value, errors);
+                ValidateDescriptor(document, errors);
                 break;
             case "sapphirus.bmad-capability-catalog.v1":
-                ValidateCatalog(value, descriptor, errors);
+                ValidateCatalog(document, descriptor, errors);
                 break;
             case "sapphirus.bmad-method-session.v1":
-                ValidateMethod(value, descriptor, errors);
+                ValidateMethod(document, descriptor, wrappedMethod ? envelope : null, errors);
                 break;
             case "sapphirus.bmad-builder-authoring.v1":
             case "sapphirus.bmad-builder-revision.v1":
             case "sapphirus.bmad-builder-analysis.v1":
-                ValidateBuilder(value, errors);
+                ValidateBuilder(document, errors);
                 break;
         }
 
-        VerifyHash(value, errors);
+        if (!wrappedMethod)
+        {
+            VerifyHash(document, errors);
+        }
         return errors;
     }
 
@@ -339,6 +357,18 @@ public static class BmadSemantics
         var projectionHashes = new HashSet<string>(StringComparer.Ordinal);
         foreach (JsonElement projection in projections)
         {
+            string expectedProjectionHash = BmadCanonicalJson.HashWithoutField(
+                "bmad-instruction-projection",
+                "v1",
+                projection,
+                "projectionHash");
+            if (!StringComparer.Ordinal.Equals(
+                String(projection, "projectionHash"),
+                expectedProjectionHash))
+            {
+                Add(errors, "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH");
+            }
+
             if (!StringComparer.Ordinal.Equals(
                     String(projection, "sourceIdentityHash"),
                     String(value, "sourceSnapshotHash"))
@@ -421,7 +451,10 @@ public static class BmadSemantics
                     String(sourceDescriptor, "packageVersionId"))
                 || !StringComparer.Ordinal.Equals(
                     String(value, "descriptorHash"),
-                    String(sourceDescriptor, "descriptorHash"))))
+                    String(sourceDescriptor, "descriptorHash"))
+                || !StringComparer.Ordinal.Equals(
+                    String(value, "packageSourceHash"),
+                    String(sourceDescriptor, "sourceSnapshotHash"))))
         {
             Add(errors, "BMAD_CATALOG_DESCRIPTOR_BINDING_MISMATCH");
         }
@@ -627,8 +660,19 @@ public static class BmadSemantics
     private static void ValidateMethod(
         JsonElement value,
         JsonElement? catalogContext,
+        JsonElement? envelopeContext,
         List<string> errors)
     {
+        if (envelopeContext is not JsonElement envelope
+            || String(envelope, "objectType") != "bmad_method_session"
+            || String(envelope, "objectId") != String(value, "sessionId")
+            || String(envelope, "deliveryModel") != "windows_local"
+            || String(envelope.GetProperty("authorityRef"u8), "authorityKind")
+                != "desktop_local_store")
+        {
+            Add(errors, "BMAD_METHOD_ENVELOPE_BINDING_MISMATCH");
+        }
+
         JsonElement profile = value.GetProperty("executionProfile"u8);
         JsonElement capability = value.GetProperty("capabilityKey"u8);
         if (String(profile, "profileHash") != String(value, "executionProfileHash")
@@ -681,6 +725,8 @@ public static class BmadSemantics
             JsonElement installed = Array(catalog, "installedSkills").FirstOrDefault(skill =>
                 Array(skill, "capabilityKeys").Any(key => SameCapability(key, capability)));
             if (String(catalog, "packageVersionId") != String(value, "packageVersionId")
+                || String(catalog, "descriptorHash") != String(value, "packageDescriptorHash")
+                || String(catalog, "packageSourceHash") != String(value, "packageSourceHash")
                 || String(catalog, "catalogHash") != String(value, "capabilityCatalogHash")
                 || installed.ValueKind == JsonValueKind.Undefined
                 || String(installed, "instructionProjectionHash")
@@ -730,10 +776,13 @@ public static class BmadSemantics
         for (int index = 0; index < checkpoints.Length; index++)
         {
             JsonElement checkpoint = checkpoints[index];
+            bool checkpointIdIsUnique = checkpointIds.Add(NullableString(checkpoint, "checkpointId"));
+            bool checkpointDecisionIsUnique = checkpointDecisions.Add(
+                NullableString(checkpoint, "contextDecisionId"));
             if (String(checkpoint, "sessionId") != String(value, "sessionId")
                 || checkpoint.GetProperty("turnOrdinal"u8).GetInt32() != index + 1
-                || !checkpointIds.Add(NullableString(checkpoint, "checkpointId"))
-                || !checkpointDecisions.Add(NullableString(checkpoint, "contextDecisionId"))
+                || !checkpointIdIsUnique
+                || !checkpointDecisionIsUnique
                 || !SameCapability(checkpoint.GetProperty("capabilityKey"u8), capability)
                 || String(checkpoint, "contextDigest") != String(value, "contextDigest")
                 || String(checkpoint, "modelBindingHash")

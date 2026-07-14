@@ -26,7 +26,7 @@ public sealed class BmadContractConformanceTests
         FixtureEntry[] entries = catalog
             .Where(static entry => entry.File.Contains("/bmad/", StringComparison.Ordinal))
             .ToArray();
-        Assert.Equal(86, entries.Length);
+        Assert.Equal(100, entries.Length);
 
         foreach (FixtureEntry entry in entries)
         {
@@ -36,6 +36,9 @@ public sealed class BmadContractConformanceTests
                 BmadStrictJsonException exception = Assert.Throws<BmadStrictJsonException>(
                     () => StrictBmadJson.Parse(source));
                 Assert.Equal(entry.ReasonCode, exception.Code);
+                Assert.True(
+                    entry.ReasonCodes.SequenceEqual([exception.Code], StringComparer.Ordinal),
+                    entry.File);
                 continue;
             }
 
@@ -47,6 +50,9 @@ public sealed class BmadContractConformanceTests
                 Assert.True(
                     StringComparer.Ordinal.Equals(entry.ReasonCode, structuralReason),
                     $"{entry.File}: expected {entry.ReasonCode}, got {structuralReason}.");
+                Assert.True(
+                    entry.ReasonCodes.SequenceEqual([structuralReason], StringComparer.Ordinal),
+                    entry.File);
                 continue;
             }
 
@@ -62,7 +68,7 @@ public sealed class BmadContractConformanceTests
             }
             else
             {
-                Assert.Contains(entry.ReasonCode!, semantic);
+                Assert.Equal(entry.ReasonCodes, semantic);
             }
         }
     }
@@ -204,6 +210,11 @@ public sealed class BmadContractConformanceTests
         {
             return "REQUIRED_PROPERTY_MISSING";
         }
+        if (schema == "bmad-method-session.schema.json"
+            && HasMethodAuthorityMismatch(source))
+        {
+            return "CONST_MISMATCH";
+        }
 
         using JsonSchemaResultsCollector collector = JsonSchemaResultsCollector.CreateUnrented(
             JsonSchemaResultsLevel.Verbose,
@@ -322,6 +333,16 @@ public sealed class BmadContractConformanceTests
         }
     }
 
+    private static bool HasMethodAuthorityMismatch(ReadOnlySpan<byte> source)
+    {
+        using JsonDocument document = JsonDocument.Parse(source.ToArray());
+        JsonElement root = document.RootElement;
+        return root.TryGetProperty("envelope"u8, out JsonElement envelope)
+            && envelope.TryGetProperty("authorityRef"u8, out JsonElement authority)
+            && authority.TryGetProperty("authorityKind"u8, out JsonElement authorityKind)
+            && authorityKind.GetString() != "desktop_local_store";
+    }
+
     private static string LastSegment(string location)
     {
         int index = location.LastIndexOf('/');
@@ -340,5 +361,6 @@ public sealed class BmadContractConformanceTests
         string? Schema,
         bool Valid,
         string? ReasonCode,
+        string[] ReasonCodes,
         string? ContextFile);
 }

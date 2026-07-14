@@ -120,7 +120,7 @@ public readonly partial struct SapphirusContractsCatalog
                     RequiredBitForDraftEffect | RequiredBitForDraftId | RequiredBitForInstructionProjectionSetHash | RequiredBitForObjectKind |
                     RequiredBitForOwnerScopeRef | RequiredBitForProjectId | RequiredBitForSchemaVersion | RequiredBitForSourceIdentityHash |
                     RequiredBitForValidationProfile;
-                private static readonly JsonSchemaPathProvider AuthoringActionSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/authoringAction/$ref"u8, buffer, out written);
+                private static readonly JsonSchemaPathProvider AuthoringActionSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/authoringAction"u8, buffer, out written);
                 private static readonly JsonSchemaPathProvider AuthoringSessionIdSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/authoringSessionId/$ref"u8, buffer, out written);
                 private static readonly JsonSchemaPathProvider BuilderKindSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/builderKind"u8, buffer, out written);
                 private static readonly JsonSchemaPathProvider CreatedAtSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/createdAt/$ref"u8, buffer, out written);
@@ -138,14 +138,14 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     context.AddLocalEvaluatedProperty(propertyCount);
                     JsonSchemaContext childContext =
-                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.JsonSchema.PushChildContextUnescaped(
+                        Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.AuthoringActionEntity.JsonSchema.PushChildContextUnescaped(
                             parentDocument,
                             parentDocumentIndex,
                             ref context,
                             JsonPropertyNames.AuthoringActionUtf8,
                             evaluationPath: AuthoringActionSchemaEvaluationPath);
 
-                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringAction.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext);
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.AuthoringActionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext);
                     context.CommitChildContext(childContext.IsMatch, ref childContext);
 
                     if (!context.HasCollector && !context.IsMatch)

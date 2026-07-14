@@ -1,5 +1,5 @@
 import { canonicalHash } from "./canonical-json.mjs";
-import { sealDocument } from "./semantics.mjs";
+import { sealDocument, sealDurableObject } from "./semantics.mjs";
 
 const NOW = "2026-07-14T10:00:00.000Z";
 const PACKAGE_VERSION_ID = id("pkgver");
@@ -812,6 +812,7 @@ function makeCatalog(descriptor) {
     schemaVersion: "sapphirus.bmad-capability-catalog.v1",
     packageVersionId: PACKAGE_VERSION_ID,
     descriptorHash: descriptor.descriptorHash,
+    packageSourceHash: descriptor.sourceSnapshotHash,
     installedSkills: [
       installedSkill(architectureSkill, [architectureCreate]),
       installedSkill(helpSkill, [help]),
@@ -931,17 +932,6 @@ function makeMethodSession(descriptor, catalog, architect) {
     schemaVersion: "sapphirus.bmad-method-session.v1",
     methodShape: architect ? "architect_iterative" : "no_agent_direct",
     sessionId: id("session", architect ? "2" : "1"),
-    deliveryModel: "windows_local",
-    authorityRef: {
-      authorityKind: "desktop_local_store",
-      authorityId: id("authority"),
-      installationId: id("install"),
-      localStoreId: id("store"),
-      authorityEpoch: 1,
-    },
-    ownerScopeRef: id("ownerscope"),
-    projectId: id("project"),
-    runId: id("run", architect ? "2" : "1"),
     packageVersionId: PACKAGE_VERSION_ID,
     packageDescriptorHash: descriptor.descriptorHash,
     packageSourceHash: descriptor.sourceSnapshotHash,
@@ -993,8 +983,6 @@ function makeMethodSession(descriptor, catalog, architect) {
     },
     checkpoints: [],
     decisionConsumptions: [],
-    createdAt: NOW,
-    contentHash: hash("9"),
   };
   const count = architect ? 2 : 1;
   session.checkpoints = Array.from({ length: count }, (_, index) =>
@@ -1007,7 +995,27 @@ function makeMethodSession(descriptor, catalog, architect) {
     session.architectureSpineDrafts = [];
     session.architectureReviewResults = [];
   }
-  return sealDocument(session);
+  return sealDurableObject({
+    envelope: {
+      schemaVersion: "sapphirus.durable-object.v1",
+      objectType: "bmad_method_session",
+      objectId: session.sessionId,
+      deliveryModel: "windows_local",
+      authorityRef: {
+        authorityKind: "desktop_local_store",
+        authorityId: id("authority"),
+        installationId: id("install"),
+        localStoreId: id("store"),
+        authorityEpoch: 1,
+      },
+      ownerScopeRef: id("ownerscope"),
+      projectId: id("project"),
+      runId: id("run", architect ? "2" : "1"),
+      createdAt: NOW,
+      contentHash: hash("9"),
+    },
+    payload: session,
+  });
 }
 
 function makeBuilderDraft(kind) {
@@ -1152,6 +1160,120 @@ function goldenVector(name, purpose, value, excludedFields) {
   };
 }
 
+const BMAD_EXACT_SEMANTIC_REASONS = Object.freeze({
+  "capability-key-collision": [
+    "BMAD_CAPABILITY_KEY_COLLISION",
+    "BMAD_HELP_ORPHAN",
+    "HASH_MISMATCH",
+  ],
+  "installed-skills-unsorted": ["BMAD_INSTALLED_SKILL_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "help-actions-unsorted": ["BMAD_HELP_ACTION_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "help-orphan": ["BMAD_HELP_ORPHAN", "HASH_MISMATCH"],
+  "dependency-availability-unsorted": ["BMAD_DEPENDENCY_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "agent-roster-unsorted": [
+    "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "HASH_MISMATCH",
+  ],
+  "agent-record-hash-substitution": ["BMAD_AGENT_ROSTER_BINDING_MISMATCH", "HASH_MISMATCH"],
+  "source-menu-item-hash-substitution": ["BMAD_AGENT_ROSTER_BINDING_MISMATCH", "HASH_MISMATCH"],
+  "roster-duplicate": [
+    "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "HASH_MISMATCH",
+  ],
+  "roster-orphan": [
+    "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "HASH_MISMATCH",
+  ],
+  "menu-target-mismatch": [
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "BMAD_MENU_TARGET_TRANSPLANT",
+    "HASH_MISMATCH",
+  ],
+  "prompt-member-transplant": [
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+    "HASH_MISMATCH",
+  ],
+  "prompt-label-transplant": [
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+    "HASH_MISMATCH",
+  ],
+  "persona-hash-substitution": [
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "BMAD_PERSONA_HASH_MISMATCH",
+    "HASH_MISMATCH",
+  ],
+  "same-scope-menu-ambiguity": [
+    "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "BMAD_MENU_SCOPE_AMBIGUOUS",
+    "HASH_MISMATCH",
+  ],
+  "modules-unsorted": ["BMAD_MODULE_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "skills-unsorted": ["BMAD_SKILL_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "resources-unsorted": ["BMAD_RESOURCE_SET_NOT_CANONICAL", "HASH_MISMATCH"],
+  "config-graphs-unsorted": ["BMAD_CONFIG_GRAPH_NOT_CANONICAL", "HASH_MISMATCH"],
+  "config-resolutions-unsorted": ["BMAD_CONFIG_RESOLUTION_NOT_CANONICAL", "HASH_MISMATCH"],
+  "projection-sources-unsorted": [
+    "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    "BMAD_INSTRUCTION_PROJECTION_SOURCE_NOT_CANONICAL",
+    "HASH_MISMATCH",
+  ],
+  "projection-source-transplant": [
+    "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    "BMAD_INSTRUCTION_PROJECTION_SOURCE_TRANSPLANT",
+    "HASH_MISMATCH",
+  ],
+  "managed-instruction-transplant": [
+    "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    "BMAD_MANAGED_INSTRUCTION_TRANSPLANT",
+    "HASH_MISMATCH",
+  ],
+  "projection-hash-stale": ["BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH", "HASH_MISMATCH"],
+  "projection-hash-substitution": ["BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH", "HASH_MISMATCH"],
+  "skill-projection-transplant": ["BMAD_SKILL_PROJECTION_TRANSPLANT", "HASH_MISMATCH"],
+  "method-source-version-transplant": ["BMAD_METHOD_SOURCE_IDENTITY_MISMATCH", "HASH_MISMATCH"],
+  "invalid-config-ownership": [
+    "BMAD_CONFIG_RESOLUTION_ORPHAN",
+    "BMAD_CONFIG_SCOPE_INVALID",
+    "HASH_MISMATCH",
+  ],
+  "non-monotonic-turn-ordinals": ["HASH_MISMATCH", "BMAD_TURN_ORDINAL_INVALID"],
+  "reused-context-decision": ["HASH_MISMATCH", "BMAD_CONTEXT_DECISION_REUSED"],
+  "reused-context-decision-identical-binding": ["HASH_MISMATCH", "BMAD_CONTEXT_DECISION_REUSED"],
+  "method-profile-mismatch": ["HASH_MISMATCH", "BMAD_HELP_BINDING_MISMATCH"],
+  "method-execution-profile-hash-transplant": [
+    "HASH_MISMATCH",
+    "BMAD_METHOD_PROFILE_BINDING_MISMATCH",
+    "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+    "BMAD_CONTEXT_LEDGER_BINDING_MISMATCH",
+    "BMAD_CONTEXT_DECISION_REUSED",
+  ],
+  "method-catalog-hash-transplant": [
+    "HASH_MISMATCH",
+    "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+    "BMAD_CONTEXT_DECISION_REUSED",
+  ],
+  "method-agent-record-transplant": ["HASH_MISMATCH", "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
+  "method-menu-item-transplant": ["HASH_MISMATCH", "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
+  "method-descriptor-binding-substitution": ["HASH_MISMATCH", "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+  "method-source-binding-substitution": ["HASH_MISMATCH", "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+  "decision-manifest-transplant": ["HASH_MISMATCH", "BMAD_CONTEXT_DECISION_REUSED"],
+  "decision-distribution-transplant": ["HASH_MISMATCH", "BMAD_CONTEXT_DECISION_REUSED"],
+  "decision-model-transplant": ["HASH_MISMATCH", "BMAD_CONTEXT_DECISION_REUSED"],
+  "model-lens-binding-substitution": ["BMAD_MODEL_LENS_BINDING_MISMATCH", "HASH_MISMATCH"],
+  "builder-aggregate-finding-limit": ["BMAD_BUILDER_FINDING_LIMIT_EXCEEDED", "HASH_MISMATCH"],
+  "builder-windows-reserved-path": [
+    "BMAD_BUILDER_PATH_INVALID",
+    "BMAD_BUILDER_INVENTORY_INVALID",
+    "HASH_MISMATCH",
+  ],
+  "builder-file-too-large": ["BMAD_BUILDER_FILE_TOO_LARGE", "HASH_MISMATCH"],
+  "hash-drift": ["BMAD_SOURCE_IDENTITY_MISMATCH", "HASH_MISMATCH"],
+});
+
 export function buildBmadFixtureSet() {
   const descriptor = makeDescriptor();
   const catalog = makeCatalog(descriptor);
@@ -1170,8 +1292,15 @@ export function buildBmadFixtureSet() {
   const catalogEntries = [];
 
   const add = (relativePath, value) => files.set(`fixtures/${relativePath}`, stableJson(value));
-  const addCatalog = (file, schema, valid, reasonCode = null, contextFile) => {
-    const entry = { file, schema, valid, reasonCode };
+  const addCatalog = (
+    file,
+    schema,
+    valid,
+    reasonCode = null,
+    contextFile,
+    reasonCodes = valid ? [] : [reasonCode],
+  ) => {
+    const entry = { file, schema, valid, reasonCode, reasonCodes };
     if (contextFile !== undefined) entry.contextFile = contextFile;
     catalogEntries.push(entry);
   };
@@ -1180,10 +1309,10 @@ export function buildBmadFixtureSet() {
     add(file, value);
     addCatalog(file, schema, true, null, contextFile);
   };
-  const addInvalid = (name, schema, value, reasonCode, contextFile) => {
+  const addInvalid = (name, schema, value, reasonCode, contextFile, reasonCodes) => {
     const file = `invalid/bmad/${name}.json`;
     add(file, value);
-    addCatalog(file, schema, false, reasonCode, contextFile);
+    addCatalog(file, schema, false, reasonCode, contextFile, reasonCodes);
   };
 
   addValid("package-descriptor", "bmad-package-descriptor.schema.json", descriptor);
@@ -1243,6 +1372,8 @@ export function buildBmadFixtureSet() {
     ["help-orphan", "bmad-capability-catalog.schema.json", catalog, (v) => { v.helpActionGraph.actions[0].capabilityKey = capability("missing-skill"); }, "BMAD_HELP_ORPHAN"],
     ["dependency-availability-unsorted", "bmad-capability-catalog.schema.json", catalog, (v) => { v.dependencyAvailability.reverse(); }, "BMAD_DEPENDENCY_SET_NOT_CANONICAL"],
     ["agent-roster-unsorted", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents.reverse(); }, "BMAD_AGENT_ROSTER_NOT_CANONICAL"],
+    ["agent-record-hash-substitution", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents[0].agentRecordHash = hash("f"); }, "BMAD_AGENT_ROSTER_BINDING_MISMATCH"],
+    ["source-menu-item-hash-substitution", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents[0].menuItems[0].sourceMenuItemHash = hash("f"); }, "BMAD_AGENT_ROSTER_BINDING_MISMATCH"],
     ["roster-duplicate", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents.splice(1, 0, clone(v.agentRoster.agents[0])); }, "BMAD_AGENT_ROSTER_NOT_CANONICAL"],
     ["roster-orphan", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents[0].agentCode = "bmad-agent-orphan"; }, "BMAD_AGENT_ROSTER_NOT_CANONICAL"],
     ["menu-target-mismatch", "bmad-capability-catalog.schema.json", catalog, (v) => { v.agentRoster.agents[4].menuItems[0].target.sourceCustomizationGraphHash = hash("f"); }, "BMAD_MENU_TARGET_TRANSPLANT"],
@@ -1265,24 +1396,36 @@ export function buildBmadFixtureSet() {
     ["projection-sources-unsorted", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.instructionProjections[0].sourceResources.reverse(); }, "BMAD_INSTRUCTION_PROJECTION_SOURCE_NOT_CANONICAL"],
     ["projection-source-transplant", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.instructionProjections[0].sourceResources[0].contentHash = hash("f"); }, "BMAD_INSTRUCTION_PROJECTION_SOURCE_TRANSPLANT"],
     ["managed-instruction-transplant", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.instructionProjections[0].managedInstruction.contentHash = hash("f"); }, "BMAD_MANAGED_INSTRUCTION_TRANSPLANT"],
+    ["projection-hash-stale", "bmad-package-descriptor.schema.json", descriptor, (v) => { const managed = v.instructionProjections[0].managedInstruction; managed.contentHash = hash("f"); v.resourceInventory.find((resource) => resource.path === managed.path).contentHash = hash("f"); }, "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH"],
+    ["projection-hash-substitution", "bmad-package-descriptor.schema.json", descriptor, (v) => { const previous = v.instructionProjections[0].projectionHash; v.instructionProjections[0].projectionHash = hash("f"); v.skills.filter((skill) => skill.instructionProjectionHash === previous).forEach((skill) => { skill.instructionProjectionHash = hash("f"); }); }, "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH"],
     ["skill-projection-transplant", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.skills[0].instructionProjectionHash = v.instructionProjections[0].projectionHash; }, "BMAD_SKILL_PROJECTION_TRANSPLANT"],
     ["method-source-version-transplant", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.packageVersion = "6.0.0"; v.sourceIdentity.packageVersion = "6.0.0"; }, "BMAD_METHOD_SOURCE_IDENTITY_MISMATCH"],
     ["invalid-config-ownership", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.configGraphs[1].scope.moduleCode = "bmm"; }, "BMAD_CONFIG_SCOPE_INVALID"],
+    ["config-layer-kind-crossover", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.configGraphs.find((graph) => graph.graphKind === "method_central_toml").layers[0].layerKind = "packaged_default"; }, "ONE_OF_MISMATCH"],
     ["generic-workflow-ast", "bmad-builder-authoring.schema.json", workflowRevision, (v) => { v.steps = []; }, "ONE_OF_MISMATCH"],
-    ["model-authored-step-key", "bmad-method-session.schema.json", architectSession, (v) => { v.checkpoints[0].currentStepKey = "ModelStep"; }, "ONE_OF_MISMATCH"],
-    ["non-monotonic-turn-ordinals", "bmad-method-session.schema.json", architectSession, (v) => { v.checkpoints[1].turnOrdinal = 1; }, "BMAD_TURN_ORDINAL_INVALID"],
-    ["reused-context-decision", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[1].decisionId = v.decisionConsumptions[0].decisionId; }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["reused-context-decision-identical-binding", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[1] = clone(v.decisionConsumptions[0]); v.decisionConsumptions[1].invocationId = "invoke_01J00000000000000000000009"; }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["method-authority-transplant", "bmad-method-session.schema.json", directSession, (v) => { v.authorityRef = { authorityKind: "azure_control_plane", authorityId: id("authority"), tenantId: id("tenant"), controlPlaneInstanceId: id("control"), authorityEpoch: 1, region: "westeurope" }; }, "ONE_OF_MISMATCH"],
-    ["method-profile-mismatch", "bmad-method-session.schema.json", directSession, (v) => { v.executionProfile.entrypointKind = "inline"; }, "BMAD_HELP_BINDING_MISMATCH"],
-    ["method-execution-profile-hash-transplant", "bmad-method-session.schema.json", directSession, (v) => { v.executionProfileHash = hash("f"); }, "BMAD_METHOD_PROFILE_BINDING_MISMATCH"],
-    ["method-catalog-hash-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.capabilityCatalogHash = hash("f"); }, "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
-    ["method-agent-record-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.agentBinding.agentRecordHash = hash("f"); }, "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
-    ["method-menu-item-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.agentBinding.menuItemHash = hash("f"); }, "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
-    ["decision-manifest-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].manifestHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["decision-distribution-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].distributionProfile = "method_source_tree"; }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["decision-model-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.decisionConsumptions[0].modelBinding.modelProfileHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
-    ["agent-build", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.authoringAction.action = "build"; }, "BMAD_ACTION_UNSUPPORTED"],
+    ["model-authored-step-key", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.checkpoints[0].currentStepKey = "ModelStep"; }, "ONE_OF_MISMATCH"],
+    ["non-monotonic-turn-ordinals", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.checkpoints[1].turnOrdinal = 1; }, "BMAD_TURN_ORDINAL_INVALID"],
+    ["reused-context-decision", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.decisionConsumptions[1].decisionId = v.payload.decisionConsumptions[0].decisionId; }, "BMAD_CONTEXT_DECISION_REUSED"],
+    ["reused-context-decision-identical-binding", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.decisionConsumptions[1] = clone(v.payload.decisionConsumptions[0]); v.payload.decisionConsumptions[1].invocationId = "invoke_01J00000000000000000000009"; }, "BMAD_CONTEXT_DECISION_REUSED"],
+    ["method-authority-transplant", "bmad-method-session.schema.json", directSession, (v) => { v.envelope.authorityRef.authorityKind = "azure_control_plane"; }, "CONST_MISMATCH"],
+    ["method-profile-mismatch", "bmad-method-session.schema.json", directSession, (v) => { v.payload.executionProfile.entrypointKind = "inline"; }, "BMAD_HELP_BINDING_MISMATCH"],
+    ["method-execution-profile-hash-transplant", "bmad-method-session.schema.json", directSession, (v) => { v.payload.executionProfileHash = hash("f"); }, "BMAD_METHOD_PROFILE_BINDING_MISMATCH"],
+    ["method-catalog-hash-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.capabilityCatalogHash = hash("f"); }, "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+    ["method-agent-record-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.agentBinding.agentRecordHash = hash("f"); }, "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
+    ["method-menu-item-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.agentBinding.menuItemHash = hash("f"); }, "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"],
+    ["method-agent-name-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.agentBinding.agentName = "Forged Architect"; }, "ONE_OF_MISMATCH"],
+    ["method-descriptor-binding-substitution", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.packageDescriptorHash = hash("f"); v.payload.contextLedger.entries.forEach((entry) => { entry.packageDescriptorHash = hash("f"); }); v.payload.decisionConsumptions.forEach((consumption) => { consumption.packageDescriptorHash = hash("f"); }); }, "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+    ["method-source-binding-substitution", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.packageSourceHash = hash("f"); v.payload.decisionConsumptions.forEach((consumption) => { consumption.packageSourceHash = hash("f"); }); }, "BMAD_METHOD_CATALOG_BINDING_MISMATCH"],
+    ["decision-manifest-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.decisionConsumptions[0].manifestHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
+    ["decision-distribution-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.decisionConsumptions[0].distributionProfile = "method_source_tree"; }, "BMAD_CONTEXT_DECISION_REUSED"],
+    ["decision-model-transplant", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.decisionConsumptions[0].modelBinding.modelProfileHash = hash("f"); }, "BMAD_CONTEXT_DECISION_REUSED"],
+    ["agent-build", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.authoringAction.action = "build"; }, "ONE_OF_MISMATCH"],
+    ["workflow-create-rebuild", "bmad-builder-authoring.schema.json", workflowRevision, (v) => { v.authoringAction.action = "create_rebuild"; }, "ONE_OF_MISMATCH"],
+    ["model-lens-order-substitution", "bmad-builder-authoring.schema.json", agentModel, (v) => { [v.modelLensResults[0], v.modelLensResults[1]] = [v.modelLensResults[1], v.modelLensResults[0]]; }, "ONE_OF_MISMATCH"],
+    ["model-lens-binding-substitution", "bmad-builder-authoring.schema.json", agentModel, (v) => { v.modelLensResults[0].revisionHash = hash("f"); }, "BMAD_MODEL_LENS_BINDING_MISMATCH"],
+    ["builder-aggregate-finding-limit", "bmad-builder-authoring.schema.json", agentModel, (v) => { v.deterministicFindings = Array.from({ length: 512 }, () => ({ findingId: id("finding"), ruleId: "fixture.rule", severity: "low", message: "fixture" })); v.modelLensResults[0].verdict = "findings_present"; v.modelLensResults[0].findings = [{ findingId: id("finding"), severity: "low", title: "fixture", location: "SKILL.md", evidence: "fixture", recommendation: "fixture" }]; }, "BMAD_BUILDER_FINDING_LIMIT_EXCEEDED"],
+    ["builder-windows-reserved-path", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.proposedFileSet.files[0].path = "CON.md"; }, "BMAD_BUILDER_PATH_INVALID"],
+    ["builder-file-too-large", "bmad-builder-authoring.schema.json", workflowRevision, (v) => { v.proposedFileSet.files[0].content = "é".repeat(131_073); }, "BMAD_BUILDER_FILE_TOO_LARGE"],
     ["convert", "bmad-builder-authoring.schema.json", workflowRevision, (v) => { v.authoringAction.action = "convert"; }, "ONE_OF_MISMATCH"],
     ["analyze-as-evaluation", "bmad-builder-authoring.schema.json", agentModel, (v) => { v.evaluationClaim = "passed"; }, "ONE_OF_MISMATCH"],
     ["future-lifecycle-field", "bmad-builder-authoring.schema.json", agentDraft, (v) => { v.activationState = "active"; }, "ONE_OF_MISMATCH"],
@@ -1296,7 +1439,7 @@ export function buildBmadFixtureSet() {
     ["hash-drift", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.packageName = "transplanted-package"; }, "HASH_MISMATCH"],
     ["package-descriptor-unknown-major", "bmad-package-descriptor.schema.json", descriptor, (v) => { v.schemaVersion = "sapphirus.bmad-package-descriptor.v2"; }, "CONST_MISMATCH"],
     ["capability-catalog-unknown-major", "bmad-capability-catalog.schema.json", catalog, (v) => { v.schemaVersion = "sapphirus.bmad-capability-catalog.v2"; }, "CONST_MISMATCH"],
-    ["method-session-unknown-major", "bmad-method-session.schema.json", architectSession, (v) => { v.schemaVersion = "sapphirus.bmad-method-session.v2"; }, "ONE_OF_MISMATCH"],
+    ["method-session-unknown-major", "bmad-method-session.schema.json", architectSession, (v) => { v.payload.schemaVersion = "sapphirus.bmad-method-session.v2"; }, "ONE_OF_MISMATCH"],
     ["builder-draft-unknown-major", "bmad-builder-authoring.schema.json", agentDraft, (v) => { v.schemaVersion = "sapphirus.bmad-builder-authoring.v2"; }, "ONE_OF_MISMATCH"],
     ["builder-revision-unknown-major", "bmad-builder-authoring.schema.json", agentRevision, (v) => { v.schemaVersion = "sapphirus.bmad-builder-revision.v2"; }, "ONE_OF_MISMATCH"],
     ["builder-analysis-unknown-major", "bmad-builder-authoring.schema.json", agentModel, (v) => { v.schemaVersion = "sapphirus.bmad-builder-analysis.v2"; }, "ONE_OF_MISMATCH"],
@@ -1312,7 +1455,14 @@ export function buildBmadFixtureSet() {
       : schema === "bmad-method-session.schema.json"
         ? "valid/bmad/capability-catalog.json"
         : undefined;
-    addInvalid(name, schema, value, reasonCode, contextFile);
+    addInvalid(
+      name,
+      schema,
+      value,
+      reasonCode,
+      contextFile,
+      BMAD_EXACT_SEMANTIC_REASONS[name] ?? [reasonCode],
+    );
   }
 
   const golden = {
@@ -1320,7 +1470,7 @@ export function buildBmadFixtureSet() {
     vectors: [
       goldenVector("package-descriptor", "bmad-package-descriptor", descriptor, ["descriptorHash"]),
       goldenVector("capability-catalog", "bmad-capability-catalog", catalog, ["catalogHash"]),
-      goldenVector("method-checkpoint", "bmad-method-checkpoint", architectSession.checkpoints[0], ["checkpointHash"]),
+      goldenVector("method-checkpoint", "bmad-method-checkpoint", architectSession.payload.checkpoints[0], ["checkpointHash"]),
       goldenVector("builder-revision", "bmad-builder-revision", agentRevision, ["revisionHash"]),
       goldenVector("builder-analysis", "bmad-builder-analysis", agentModel, ["analysisHash"]),
       goldenVector("validation-report", "bmad-validation-report", validationReport, ["reportHash"]),

@@ -68,27 +68,35 @@ public readonly partial struct SapphirusContractsCatalog
             private const int RequiredOffsetForInstalledSkills = 0;
             private const uint RequiredBitForInstalledSkills = 0b00000000000000000000000000100000;
 
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyPackageSourceHashPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("packageSourceHash"u8, buffer, out written);
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyPackageSourceHashNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("packageSourceHash"u8, buffer, out written);
+
+            private const int RequiredOffsetForPackageSourceHash = 0;
+            private const uint RequiredBitForPackageSourceHash = 0b00000000000000000000000001000000;
+
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyPackageVersionIdPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("packageVersionId"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyPackageVersionIdNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("packageVersionId"u8, buffer, out written);
 
             private const int RequiredOffsetForPackageVersionId = 0;
-            private const uint RequiredBitForPackageVersionId = 0b00000000000000000000000001000000;
+            private const uint RequiredBitForPackageVersionId = 0b00000000000000000000000010000000;
 
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySchemaVersionPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("schemaVersion"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySchemaVersionNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("schemaVersion"u8, buffer, out written);
 
             private const int RequiredOffsetForSchemaVersion = 0;
-            private const uint RequiredBitForSchemaVersion = 0b00000000000000000000000010000000;
+            private const uint RequiredBitForSchemaVersion = 0b00000000000000000000000100000000;
 
             private const uint RequiredBitMask0 =
                 RequiredBitForAgentRoster | RequiredBitForCatalogHash | RequiredBitForDependencyAvailability | RequiredBitForDescriptorHash |
-                RequiredBitForHelpActionGraph | RequiredBitForInstalledSkills | RequiredBitForPackageVersionId | RequiredBitForSchemaVersion;
+                RequiredBitForHelpActionGraph | RequiredBitForInstalledSkills | RequiredBitForPackageSourceHash | RequiredBitForPackageVersionId |
+                RequiredBitForSchemaVersion;
             private static readonly JsonSchemaPathProvider AgentRosterSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/agentRoster/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider CatalogHashSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/catalogHash/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider DependencyAvailabilitySchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/dependencyAvailability"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider DescriptorHashSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/descriptorHash/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider HelpActionGraphSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/helpActionGraph/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider InstalledSkillsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/installedSkills"u8, buffer, out written);
+            private static readonly JsonSchemaPathProvider PackageSourceHashSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/packageSourceHash/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider PackageVersionIdSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/packageVersionId/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider SchemaVersionSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/schemaVersion"u8, buffer, out written);
 
@@ -224,10 +232,32 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForInstalledSkills] |= RequiredBitForInstalledSkills;
             }
 
-            private static void MatchPackageVersionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchPackageSourceHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext6 =
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.JsonSchema.PushChildContextUnescaped(
+                        parentDocument,
+                        parentDocumentIndex,
+                        ref context,
+                        JsonPropertyNames.PackageSourceHashUtf8,
+                        evaluationPath: PackageSourceHashSchemaEvaluationPath);
+
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
+                context.CommitChildContext(childContext6.IsMatch, ref childContext6);
+
+                if (!context.HasCollector && !context.IsMatch)
+                {
+                    return;
+                }
+
+                requiredBitBuffer[RequiredOffsetForPackageSourceHash] |= RequiredBitForPackageSourceHash;
+            }
+
+            private static void MatchPackageVersionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            {
+                context.AddLocalEvaluatedProperty(propertyCount);
+                JsonSchemaContext childContext7 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -235,8 +265,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.PackageVersionIdUtf8,
                         evaluationPath: PackageVersionIdSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
-                context.CommitChildContext(childContext6.IsMatch, ref childContext6);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
+                context.CommitChildContext(childContext7.IsMatch, ref childContext7);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -249,7 +279,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchSchemaVersion(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext7 =
+                JsonSchemaContext childContext8 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.SchemaVersionEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -257,8 +287,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.SchemaVersionUtf8,
                         evaluationPath: SchemaVersionSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
-                context.CommitChildContext(childContext7.IsMatch, ref childContext7);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext8);
+                context.CommitChildContext(childContext8.IsMatch, ref childContext8);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -277,6 +307,7 @@ public readonly partial struct SapphirusContractsCatalog
                     (static () => JsonPropertyNames.DescriptorHashUtf8, MatchDescriptorHash),
                     (static () => JsonPropertyNames.HelpActionGraphUtf8, MatchHelpActionGraph),
                     (static () => JsonPropertyNames.InstalledSkillsUtf8, MatchInstalledSkills),
+                    (static () => JsonPropertyNames.PackageSourceHashUtf8, MatchPackageSourceHash),
                     (static () => JsonPropertyNames.PackageVersionIdUtf8, MatchPackageVersionId),
                     (static () => JsonPropertyNames.SchemaVersionUtf8, MatchSchemaVersion),
                 ]);
@@ -393,8 +424,9 @@ public readonly partial struct SapphirusContractsCatalog
                             context.EvaluatedKeywordForProperty(true, 3, RequiredPropertyDescriptorHashPresent, "descriptorHash"u8, "required"u8);
                             context.EvaluatedKeywordForProperty(true, 4, RequiredPropertyHelpActionGraphPresent, "helpActionGraph"u8, "required"u8);
                             context.EvaluatedKeywordForProperty(true, 5, RequiredPropertyInstalledSkillsPresent, "installedSkills"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 6, RequiredPropertyPackageVersionIdPresent, "packageVersionId"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 7, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 6, RequiredPropertyPackageSourceHashPresent, "packageSourceHash"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 7, RequiredPropertyPackageVersionIdPresent, "packageVersionId"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 8, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
                         }
                     }
                     else if (!context.HasCollector)
@@ -458,22 +490,31 @@ public readonly partial struct SapphirusContractsCatalog
                             context.EvaluatedKeywordForProperty(true, 5, RequiredPropertyInstalledSkillsPresent, "installedSkills"u8, "required"u8);
                         }
 
-                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForPackageVersionId] & RequiredBitForPackageVersionId) == 0)
+                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForPackageSourceHash] & RequiredBitForPackageSourceHash) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 6, RequiredPropertyPackageVersionIdNotPresent, "packageVersionId"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 6, RequiredPropertyPackageSourceHashNotPresent, "packageSourceHash"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 6, RequiredPropertyPackageVersionIdPresent, "packageVersionId"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 6, RequiredPropertyPackageSourceHashPresent, "packageSourceHash"u8, "required"u8);
+                        }
+
+                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForPackageVersionId] & RequiredBitForPackageVersionId) == 0)
+                        {
+                            context.EvaluatedKeywordForProperty(false, 7, RequiredPropertyPackageVersionIdNotPresent, "packageVersionId"u8, "required"u8);
+                        }
+                        else
+                        {
+                            context.EvaluatedKeywordForProperty(true, 7, RequiredPropertyPackageVersionIdPresent, "packageVersionId"u8, "required"u8);
                         }
 
                         if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForSchemaVersion] & RequiredBitForSchemaVersion) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 7, RequiredPropertySchemaVersionNotPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 8, RequiredPropertySchemaVersionNotPresent, "schemaVersion"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 7, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 8, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
                         }
                     }
                 }

@@ -64,42 +64,6 @@ public readonly partial struct SapphirusContractsCatalog
             private JsonTokenType TokenType => _parent?.GetJsonTokenType(_idx) ?? JsonTokenType.None;
 
             /// <summary>
-            /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.
-            /// </summary>
-            /// <param name="value">The value from which to convert.</param>
-            public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable(Mutable value)
-            {
-                return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable.From(value);
-            }
-
-            /// <summary>
-            /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.
-            /// </summary>
-            /// <param name="value">The value from which to convert.</param>
-            public static implicit operator Mutable(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable value)
-            {
-                return From(value);
-            }
-
-            /// <summary>
-            /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.
-            /// </summary>
-            /// <param name="value">The value from which to convert.</param>
-            public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable(Mutable value)
-            {
-                return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable.From(value);
-            }
-
-            /// <summary>
-            /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.
-            /// </summary>
-            /// <param name="value">The value from which to convert.</param>
-            public static implicit operator Mutable(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable value)
-            {
-                return From(value);
-            }
-
-            /// <summary>
             /// Operator ==.
             /// </summary>
             /// <param name="left">The lhs of the operator.</param>
@@ -203,102 +167,45 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
-            /// Gets the value of the property with the given name.
+            /// Gets the <c>envelope</c> property.
             /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <returns>The value of the property with the given name.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public JsonElement.Mutable this[ReadOnlySpan<byte> propertyName]
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Mutable Envelope
             {
                 get
                 {
-                    CheckValidInstance();
-                    if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement.Mutable value))
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EnvelopeUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Mutable value))
                     {
-                        return default;
+                        return value;
                     }
 
-                    return value;
+                    return default;
                 }
             }
 
             /// <summary>
-            /// Gets the value of the property with the given name.
+            /// Gets the <c>payload</c> property.
             /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <returns>The value of the property with the given name.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public JsonElement.Mutable this[ReadOnlySpan<char> propertyName]
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Mutable Payload
             {
                 get
                 {
-                    CheckValidInstance();
-                    if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement.Mutable value))
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PayloadUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Mutable value))
                     {
-                        return default;
+                        return value;
                     }
 
-                    return value;
+                    return default;
                 }
-            }
-
-            /// <summary>
-            /// Gets the value of the property with the given name.
-            /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <returns>The value of the property with the given name.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public JsonElement.Mutable this[string propertyName]
-            {
-                get
-                {
-                    CheckValidInstance();
-                    if (!_parent.TryGetNamedPropertyValue(_idx, propertyName, out JsonElement.Mutable value))
-                    {
-                        return default;
-                    }
-
-                    return value;
-                }
-            }
-
-            /// <summary>
-            /// Tries to get the value of the property with the given name.
-            /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <param name="value">The value of the property, if present.</param>
-            /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public bool TryGetProperty(ReadOnlySpan<byte> propertyName, out JsonElement.Mutable value)
-            {
-                CheckValidInstance();
-                return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
-            }
-
-            /// <summary>
-            /// Tries to get the value of the property with the given name.
-            /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <param name="value">The value of the property, if present.</param>
-            /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public bool TryGetProperty(ReadOnlySpan<char> propertyName, out JsonElement.Mutable value)
-            {
-                CheckValidInstance();
-                return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
-            }
-
-            /// <summary>
-            /// Tries to get the value of the property with the given name.
-            /// </summary>
-            /// <param name="propertyName">The name of the property.</param>
-            /// <param name="value">The value of the property, if present.</param>
-            /// <returns><see langword="true"/> if the property was found, otherwise <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public bool TryGetProperty(string propertyName, out JsonElement.Mutable value)
-            {
-                CheckValidInstance();
-                return _parent.TryGetNamedPropertyValue(_idx, propertyName, out value);
             }
 
             /// <summary>
@@ -309,16 +216,6 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 CheckValidInstance();
                 return _parent.GetPropertyCount(_idx);
-            }
-
-            /// <summary>
-            /// Enumerates the object.
-            /// </summary>
-            /// <exception cref="InvalidOperationException">The value is not an object.</exception>
-            public ObjectEnumerator<JsonElement.Mutable> EnumerateObject()
-            {
-                CheckValidInstance();
-                return EnumeratorCreator.CreateObjectEnumerator<JsonElement.Mutable>(_parent, _idx);
             }
 
             /// <inheritdoc/>
@@ -338,6 +235,136 @@ public readonly partial struct SapphirusContractsCatalog
                 where T : struct, IJsonElement
             {
                 return JsonElementHelpers.DeepEquals(this, other);
+            }
+
+            /// <summary>
+            /// Set the <c>envelope</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetEnvelope(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("envelope");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EnvelopeUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Envelope, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>envelope</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetEnvelope<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("envelope");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EnvelopeUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Envelope, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>payload</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetPayload(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("payload");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PayloadUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Payload, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>payload</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetPayload<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("payload");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PayloadUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Payload, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
             }
 
             /// <inheritdoc/>
@@ -426,182 +453,6 @@ public readonly partial struct SapphirusContractsCatalog
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             private string DebuggerDisplay => $"MethodSession.Mutable: ValueKind = {ValueKind} : \"{ToString()}\"";
 
-            /// <summary>
-            ///   Sets a property on this JSON object element.
-            /// </summary>
-            /// <param name="propertyName">The name of the property to set.</param>
-            /// <param name="value">The value of the property to set.</param>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            /// <remarks>
-            ///   <para>
-            ///     If the property already exists, its value will be replaced.
-            ///     If the property doesn't exist, it will be added to the object.
-            ///   </para>
-            /// </remarks>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void SetProperty(string propertyName, in JsonElement.Source value)
-            {
-                SetProperty(propertyName.AsSpan(), value);
-            }
-
-            /// <summary>
-            ///   Sets a property on this JSON object element.
-            /// </summary>
-            /// <param name="propertyName">The name of the property to set.</param>
-            /// <param name="value">The value of the property to set.</param>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            /// <remarks>
-            ///   <para>
-            ///     If the property already exists, its value will be replaced.
-            ///     If the property doesn't exist, it will be added to the object.
-            ///   </para>
-            /// </remarks>
-            public void SetProperty(ReadOnlySpan<char> propertyName, in JsonElement.Source value)
-            {
-                CheckValidInstance();
-
-                if (value.IsUndefined)
-                {
-                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, propertyName);
-                    _documentVersion = _parent.Version;
-                    return;
-                }
-
-                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
-                if (_parent.TryGetNamedPropertyValue(_idx, propertyName, out IJsonDocument? elementParent, out int elementIdx))
-                {
-                    // We are going to replace just the value
-                    value.AddAsItem(ref cvb);
-                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
-                }
-                else
-                {
-                    // We are going to insert the new value
-                    value.AddAsProperty(propertyName, ref cvb);
-                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
-                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
-                }
-
-                _documentVersion = _parent.Version;
-            }
-
-            /// <summary>
-            ///   Sets a property on this JSON object element.
-            /// </summary>
-            /// <param name="propertyName">The UTF-8 encoded name of the property to set.</param>
-            /// <param name="value">The value of the property to set.</param>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            /// <remarks>
-            ///   <para>
-            ///     If the property already exists, its value will be replaced.
-            ///     If the property doesn't exist, it will be added to the object.
-            ///   </para>
-            /// </remarks>
-            public void SetProperty(ReadOnlySpan<byte> propertyName, in JsonElement.Source value)
-            {
-                CheckValidInstance();
-
-                if (value.IsUndefined)
-                {
-                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, propertyName);
-                    _documentVersion = _parent.Version;
-                    return;
-                }
-
-                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
-                if (_parent.TryGetNamedPropertyValue(_idx, propertyName, out IJsonDocument? elementParent, out int elementIdx))
-                {
-                    // We are going to replace just the value
-                    value.AddAsItem(ref cvb);
-                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
-                }
-                else
-                {
-                    // We are going to insert the new value
-                    value.AddAsProperty(propertyName, ref cvb);
-                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
-                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
-                }
-
-                _documentVersion = _parent.Version;
-            }
-
-            /// <summary>
-            ///   Removes the property with the given name, if present.
-            /// </summary>
-            /// <param name="propertyName">The property name to remove.</param>
-            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool RemoveProperty(string propertyName)
-            {
-                return RemoveProperty(propertyName.AsSpan());
-            }
-
-            /// <summary>
-            ///   Removes the property with the given name, if present.
-            /// </summary>
-            /// <param name="propertyName">The property name to remove.</param>
-            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            public bool RemoveProperty(ReadOnlySpan<char> propertyName)
-            {
-                CheckValidInstance();
-                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, propertyName);
-                _documentVersion = _parent.Version;
-                return result;
-            }
-
-            /// <summary>
-            ///   Removes the property with the given name, if present.
-            /// </summary>
-            /// <param name="propertyName">The UTF-8 encoded property name to remove.</param>
-            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
-            /// <exception cref="InvalidOperationException">
-            ///   This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>,
-            ///   or the element reference is stale due to document mutations.
-            /// </exception>
-            /// <exception cref="ObjectDisposedException">
-            ///   The parent <see cref="JsonDocument"/> has been disposed.
-            /// </exception>
-            public bool RemoveProperty(ReadOnlySpan<byte> propertyName)
-            {
-                CheckValidInstance();
-                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, propertyName);
-                _documentVersion = _parent.Version;
-                return result;
-            }
-
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             IJsonDocument IJsonElement.ParentDocument => _parent;
 
@@ -655,98 +506,6 @@ public readonly partial struct SapphirusContractsCatalog
                 CheckValidInstance();
                 return _parent.FreezeElement<MethodSession>(_idx);
             }
-
-            /// <summary>
-            /// Matches the value against the composed values, and returns the result of calling the provided match function for the first match found.
-            /// </summary>
-            /// <typeparam name="TContext">The type of the immutable context to pass in to the match function.</typeparam>
-            /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-            /// <param name="context">The context to pass to the match function.</param>
-            /// <param name="matchOneOf0Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.</param>
-            /// <param name="matchOneOf1Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.</param>
-            /// <param name="defaultMatch">Match any other value.</param>
-            /// <returns>An instance of the value returned by the match function.</returns>
-            public TResult Match<TContext, TResult>(
-                in TContext context,
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity, TContext, TResult> matchOneOf0Entity,
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity, TContext, TResult> matchOneOf1Entity,
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Mutable, TContext, TResult> defaultMatch)
-#if NET9_0_OR_GREATER
-            where TContext : allows ref struct
-#endif
-            {
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    return matchOneOf0Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable.From(this), context);
-                }
-
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    return matchOneOf1Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable.From(this), context);
-                }
-
-                return defaultMatch(this, context);
-            }
-
-            /// <summary>
-            /// Matches the value against the composed values, and returns the result of calling the provided match function for the first match found.
-            /// </summary>
-            /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-            /// <param name="matchOneOf0Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity"/>.</param>
-            /// <param name="matchOneOf1Entity">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity"/>.</param>
-            /// <param name="defaultMatch">Match any other value.</param>
-            /// <returns>An instance of the value returned by the match function.</returns>
-            public TResult Match<TResult>(
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity, TResult> matchOneOf0Entity,
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity, TResult> matchOneOf1Entity,
-                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Mutable, TResult> defaultMatch)
-            {
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    return matchOneOf0Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable.From(this));
-                }
-
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    return matchOneOf1Entity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable.From(this));
-                }
-
-                return defaultMatch(this);
-            }
-
-            /// <summary>
-            /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable" />.
-            /// </summary>
-            /// <param name="result">The result of the conversions.</param>
-            /// <returns><see langword="true" /> if the conversion was valid.</returns>
-            public bool TryGetAsOneOf0Entity(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable result)
-            {
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Mutable.From(this);
-                    return true;
-                }
-
-                result = default;
-                return false;
-            }
-
-            /// <summary>
-            /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable" />.
-            /// </summary>
-            /// <param name="result">The result of the conversions.</param>
-            /// <returns><see langword="true" /> if the conversion was valid.</returns>
-            public bool TryGetAsOneOf1Entity(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable result)
-            {
-                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.JsonSchema.Evaluate(_parent, _idx))
-                {
-                    result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Mutable.From(this);
-                    return true;
-                }
-
-                result = default;
-                return false;
-            }
         }
 
         public ref struct Source
@@ -755,14 +514,12 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
-                OneOf0EntityBuilder,
-                OneOf1EntityBuilder,
+                Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build? _oneOf0EntityBuilderInstance;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build? _oneOf1EntityBuilderInstance;
+            private readonly Builder.Build? _objectBuilder;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -775,17 +532,9 @@ public readonly partial struct SapphirusContractsCatalog
                 _kind = jsonElement.ValueKind == JsonValueKind.Undefined ? Kind.Unknown : Kind.JsonElement;
             }
 
-            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build value) {_oneOf0EntityBuilderInstance = value; _kind = Kind.OneOf0EntityBuilder; }
-
-            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build value) {_oneOf1EntityBuilderInstance = value; _kind = Kind.OneOf1EntityBuilder; }
+            internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
 
             public static implicit operator Source(MethodSession instance) => new(JsonElement.From(instance));
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity instance) => new(JsonElement.From(instance));
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity instance) => new(JsonElement.From(instance));
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -796,11 +545,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.JsonElement:
                         valueBuilder.AddProperty(utf8Name, _jsonElement, escapeName, nameRequiresUnescaping);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(utf8Name, _oneOf0EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(utf8Name, _oneOf1EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -817,11 +563,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.JsonElement:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _jsonElement);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, _oneOf0EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, _oneOf1EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -838,11 +581,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.JsonElement:
                         valueBuilder.AddProperty(name, _jsonElement);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(name, _oneOf0EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(name, _oneOf1EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -859,11 +599,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.JsonElement:
                         valueBuilder.AddProperty(name, _jsonElement);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(name, _oneOf0EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(name, _oneOf1EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -880,11 +617,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.JsonElement:
                         valueBuilder.AddItem(_jsonElement);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddItem(_oneOf0EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddItem(_oneOf1EntityBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -902,15 +636,13 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 Source,
-                OneOf0EntityBuilder,
-                OneOf1EntityBuilder,
+                Builder,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build<TContext>? _oneOf0EntityBuilderInstance;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build<TContext>? _oneOf1EntityBuilderInstance;
+            private readonly Builder.Build<TContext>? _objectBuilder;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -921,9 +653,7 @@ public readonly partial struct SapphirusContractsCatalog
 
             public static implicit operator Source<TContext>(Source source) => new (source);
 
-            public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build<TContext> value) {_context = context; _oneOf0EntityBuilderInstance = value; _kind = Kind.OneOf0EntityBuilder; }
-
-            public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build<TContext> value) {_context = context; _oneOf1EntityBuilderInstance = value; _kind = Kind.OneOf1EntityBuilder; }
+            internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -934,11 +664,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Source:
                         _source.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _oneOf0EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _oneOf1EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -955,11 +682,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Source:
                         _source.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _oneOf0EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _oneOf1EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -976,11 +700,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Source:
                         _source.AddAsProperty(name, ref valueBuilder);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf0EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf1EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -997,11 +718,8 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Source:
                         _source.AddAsProperty(name, ref valueBuilder);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf0EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf1EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -1018,16 +736,105 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Source:
                         _source.AddAsItem(ref valueBuilder);
                         break;
-                    case Kind.OneOf0EntityBuilder:
-                        valueBuilder.AddItem(BuildWithContext.Create(_context, _oneOf0EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
-                        break;
-                    case Kind.OneOf1EntityBuilder:
-                        valueBuilder.AddItem(BuildWithContext.Create(_context, _oneOf1EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                    case Kind.Builder:
+                        valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
                 }
+            }
+        }
+
+        public ref struct Builder
+        {
+            public delegate void Build(ref Builder builder);
+
+#if NET9_0_OR_GREATER
+            public delegate void Build<TContext>(in TContext context, ref Builder builder)
+                where TContext : allows ref struct;
+#else
+            public delegate void Build<TContext>(in TContext context, ref Builder builder);
+#endif
+
+            internal ComplexValueBuilder _builder;
+
+            internal Builder(ComplexValueBuilder builder)
+            {
+                _builder = builder;
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="MethodSession"/>.
+            /// </summary>
+            internal static void Create(
+                ref ComplexValueBuilder builder,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source envelope,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source payload)
+            {
+                envelope.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Envelope, ref builder);
+                payload.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Payload, ref builder);
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="MethodSession"/>.
+            /// </summary>
+            public void Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source envelope, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source payload)
+            {
+                Create(ref _builder, envelope, payload);
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="MethodSession"/>.
+            /// </summary>
+            internal static void Create<TContext>(
+                in TContext context,
+                ref ComplexValueBuilder builder,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source<TContext> envelope,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source<TContext> payload)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+            {
+                envelope.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Envelope, ref builder);
+                payload.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Payload, ref builder);
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="MethodSession"/>.
+            /// </summary>
+            public void Create<TContext>(
+                in TContext context,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source<TContext> envelope,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source<TContext> payload)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+            {
+                Create(context, ref _builder, envelope, payload);
+            }
+
+            internal static void BuildValue(Build value, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+
+                Builder ovb = new(o);
+                value(ref ovb);
+                o = ovb._builder;
+                o.EndObject();
+            }
+
+            internal static void BuildValue<TContext>(in TContext context, Build<TContext> value, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+
+                Builder ovb = new(o);
+                value(context, ref ovb);
+                o = ovb._builder;
+                o.EndObject();
             }
         }
 
@@ -1037,10 +844,10 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="buildValue">The callback that builds the value.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source Build(
-            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build buildValue, int initialCapacity = 1)
+        public static Source Build(
+            scoped in Builder.Build buildValue, int initialCapacity = 1)
         {
-            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source(buildValue);
+            return new Source(buildValue);
         }
 
         /// <summary>
@@ -1051,42 +858,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="buildValue">The callback that builds the value.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source<TContext> Build<TContext>(
-            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build<TContext> buildValue, int initialCapacity = 1)
+        public static Source<TContext> Build<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> buildValue, int initialCapacity = 1)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
         {
-            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source<TContext>(context, buildValue);
-        }
-
-        /// <summary>
-        /// Build an instance of the value.
-        /// </summary>
-        /// <param name="buildValue">The callback that builds the value.</param>
-        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <returns>The source from which to build the value.</returns>
-        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source Build(
-            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build buildValue, int initialCapacity = 1)
-        {
-            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source(buildValue);
-        }
-
-        /// <summary>
-        /// Build an instance of the value.
-        /// </summary>
-        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
-        /// <param name="context">The context to pass to the builder.</param>
-        /// <param name="buildValue">The callback that builds the value.</param>
-        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <returns>The source from which to build the value.</returns>
-        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source<TContext> Build<TContext>(
-            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build<TContext> buildValue, int initialCapacity = 1)
-            #if NET9_0_OR_GREATER
-            where TContext : allows ref struct
-            #endif
-        {
-            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source<TContext>(context, buildValue);
+            return new Source<TContext>(context, buildValue);
         }
 
         /// <summary>
@@ -1109,113 +887,95 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
-        /// Creates an empty mutable document builder.
+        /// Creates and initializes a mutable document from a value.
         /// </summary>
         /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="value">The value with which to initialize the builder.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
-        /// <returns>An empty mutable document builder.</returns>
+        /// <returns>An instance of a mutable document initialized with the given value.</returns>
         public static JsonDocumentBuilder<Mutable> CreateBuilder(
-            JsonWorkspace workspace, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            JsonWorkspace workspace, scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
         {
+            // Create the document builder without a MetadataDb
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Source(value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder;
+        }
+
+        /// <summary>
+        /// Creates and initializes a mutable document from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the builder.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>An instance of a mutable document initialized with the given value.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(
+            JsonWorkspace workspace, scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            // Create the document builder without a MetadataDb
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Source<TContext>(context, value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder;
+        }
+
+        /// <summary>
+        /// Creates and initializes a mutable document from the given property values.
+        /// </summary>
+        /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="envelope">The value of the property.</param>
+        /// <param name="payload">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>An instance of a mutable document initialized with the given property values.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source envelope, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source payload, int initialCapacity = 30)
+        {
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
+            Builder ovb = new(cvb);
+            ovb.Create(envelope, payload);
+            cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
             return documentBuilder;
         }
 
         /// <summary>
-        /// Creates and initializes a mutable document from a value.
-        /// </summary>
-        /// <param name="workspace">The JSON workspace.</param>
-        /// <param name="value">The value with which to initialize the builder.</param>
-        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
-        /// <returns>An instance of a mutable document initialized with the given value.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(
-            JsonWorkspace workspace, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
-        {
-            // Create the document builder without a MetadataDb
-            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
-            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
-            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source(value);
-            source.AddAsItem(ref cvb);
-            Debug.Assert(cvb.MemberCount == 1);
-            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
-            return documentBuilder;
-        }
-
-        /// <summary>
-        /// Creates and initializes a mutable document from a value.
+        /// Creates and initializes a mutable document from the given property values.
         /// </summary>
         /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
         /// <param name="workspace">The JSON workspace.</param>
-        /// <param name="context">The context to pass to the builder.</param>
-        /// <param name="value">The value with which to initialize the builder.</param>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="envelope">The value of the property.</param>
+        /// <param name="payload">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
-        /// <returns>An instance of a mutable document initialized with the given value.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(
-            JsonWorkspace workspace, scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        /// <returns>An instance of a mutable document initialized with the given property values.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.EnvelopeEntity.Source<TContext> envelope, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.Source<TContext> payload, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
         {
-            // Create the document builder without a MetadataDb
-            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
-            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf0Entity.Source<TContext>(context, value);
-            source.AddAsItem(ref cvb);
-            Debug.Assert(cvb.MemberCount == 1);
-            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
-            return documentBuilder;
-        }
-
-        /// <summary>
-        /// Creates and initializes a mutable document from a value.
-        /// </summary>
-        /// <param name="workspace">The JSON workspace.</param>
-        /// <param name="value">The value with which to initialize the builder.</param>
-        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
-        /// <returns>An instance of a mutable document initialized with the given value.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(
-            JsonWorkspace workspace, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
-        {
-            // Create the document builder without a MetadataDb
-            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
-            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
-            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source(value);
-            source.AddAsItem(ref cvb);
-            Debug.Assert(cvb.MemberCount == 1);
-            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
-            return documentBuilder;
-        }
-
-        /// <summary>
-        /// Creates and initializes a mutable document from a value.
-        /// </summary>
-        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
-        /// <param name="workspace">The JSON workspace.</param>
-        /// <param name="context">The context to pass to the builder.</param>
-        /// <param name="value">The value with which to initialize the builder.</param>
-        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
-        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
-        /// <returns>An instance of a mutable document initialized with the given value.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(
-            JsonWorkspace workspace, scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
-            #if NET9_0_OR_GREATER
-            where TContext : allows ref struct
-            #endif
-        {
-            // Create the document builder without a MetadataDb
-            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
-            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
-            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.OneOf1Entity.Source<TContext>(context, value);
-            source.AddAsItem(ref cvb);
-            Debug.Assert(cvb.MemberCount == 1);
+            cvb.StartObject();
+            Builder ovb = new(cvb);
+            ovb.Create(context, envelope, payload);
+            cvb = ovb._builder;
+            cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
             return documentBuilder;
         }

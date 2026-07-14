@@ -97,7 +97,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "11a44af700bafaff1e28a61b7c79c6fcdd1f4a76d0b14098e9953d6a4a0f1bdc",
+    sha256: "34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22",
     status: "reviewed",
   },
   dotnetTools: {
@@ -1853,6 +1853,58 @@ export async function buildInternalBundle(lock, mode) {
   return { bundle, documents, source: stableJson(bundle) };
 }
 
+export function prepareRustCodegenBundle(bundle) {
+  const rustBundle = structuredClone(bundle);
+  const action = rustBundle.$defs?.BuilderAuthoringObjectBuilderAuthoringAction;
+  const configLayer = rustBundle.$defs?.BmadPackageDescriptorBmadConfigLayer;
+  if (!Array.isArray(action?.oneOf) || action.oneOf.length !== 2
+    || !Array.isArray(configLayer?.oneOf) || configLayer.oneOf.length !== 3) {
+    fail(FAILURE_CODES.parity, "Rust BMAD codegen relaxation targets changed shape.");
+  }
+
+  action.oneOf[0].properties.action.enum = ["create_rebuild", "edit", "analyze", "build"];
+  action.oneOf[1].properties.action.enum = ["create_rebuild", "build", "edit", "analyze"];
+  const allLayerKinds = [
+    "installer_team",
+    "installer_user",
+    "custom_team",
+    "custom_user",
+    "packaged_default",
+    "team_override",
+    "user_override",
+    "method_module_yaml",
+    "builder_root_yaml",
+    "builder_user_yaml",
+  ];
+  for (const branch of configLayer.oneOf) {
+    branch.properties.layerKind.enum = [...allLayerKinds];
+  }
+
+  const actionReference = "#/$defs/BuilderAuthoringObjectBuilderAuthoringAction";
+  const lensReference = "#/$defs/BuilderAuthoringObjectBuilderModelLensResult";
+  const visit = (value) => {
+    if (value === null || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    const authoringAction = value.properties?.authoringAction;
+    if (authoringAction?.type === "object"
+      && typeof authoringAction.properties?.builderKind?.const === "string") {
+      value.properties.authoringAction = { $ref: actionReference };
+    }
+    const modelLensResults = value.properties?.modelLensResults;
+    if (Array.isArray(modelLensResults?.prefixItems)) {
+      delete modelLensResults.prefixItems;
+      modelLensResults.items = { $ref: lensReference };
+    }
+    Object.values(value).forEach(visit);
+  };
+  visit(rustBundle);
+  assertInternalReferenceClosure(rustBundle);
+  return rustBundle;
+}
+
 function substitute(argumentsTemplate, replacements) {
   return argumentsTemplate.map((argument) => replacements[argument] ?? argument);
 }
@@ -1921,7 +1973,7 @@ function compareTrees(left, right, label) {
   }
 }
 
-async function runOneGeneration(preflight, mode, runName, bundleSource) {
+async function runOneGeneration(preflight, mode, runName, bundleSource, rustBundleSource) {
   const runRoot = await safeRepositoryDestination(
     assertContained(targetRoot, path.join(targetRoot, runName, mode)),
     `${mode} ${runName} staging root`,
@@ -1929,6 +1981,7 @@ async function runOneGeneration(preflight, mode, runName, bundleSource) {
   );
   await rm(runRoot, { recursive: true, force: true });
   const input = path.join(runRoot, "input", `${mode}.schema.json`);
+  const rustInput = path.join(runRoot, "input", `${mode}.rust.schema.json`);
   const rustRoot = path.join(runRoot, "rust");
   const dotnetRoot = path.join(runRoot, "dotnet");
   await mkdir(path.dirname(input), { recursive: true });
@@ -1936,13 +1989,14 @@ async function runOneGeneration(preflight, mode, runName, bundleSource) {
   await mkdir(dotnetRoot, { recursive: true });
   await physicalRepositoryPath(runRoot, `${mode} ${runName} staging root`, FAILURE_CODES.parity);
   await writeFile(input, bundleSource, "utf8");
+  await writeFile(rustInput, rustBundleSource, "utf8");
   const rustOutput = path.join(rustRoot, mode === "production" ? "contracts.rs" : "qualification.rs");
   const sourceSet = preflight.lock.sourceSet[mode];
   const namespace = preflight.lock.invocations[mode].dotnetNamespace;
   try {
     await Promise.all([
       runProcess(preflight.rustExecutable, substitute(expectedRustArguments, {
-        "{input}": input,
+        "{input}": rustInput,
         "{output}": rustOutput,
       }), {
         beforeSpawn: () => validateCargoExecutableIdentity(
@@ -1982,10 +2036,13 @@ export async function generateNativeTrees(mode) {
   const lock = await loadAndValidateToolLock();
   const preflight = await preflightNativeTools(lock);
   const bundle = await buildInternalBundle(lock, mode);
+  const rustBundleSource = mode === "production"
+    ? stableJson(prepareRustCodegenBundle(bundle.bundle))
+    : bundle.source;
   await mkdir(targetRoot, { recursive: true });
   const [runA, runB] = await Promise.all([
-    runOneGeneration(preflight, mode, "run-a", bundle.source),
-    runOneGeneration(preflight, mode, "run-b", bundle.source),
+    runOneGeneration(preflight, mode, "run-a", bundle.source, rustBundleSource),
+    runOneGeneration(preflight, mode, "run-b", bundle.source, rustBundleSource),
   ]);
   compareTrees(runA.rust, runB.rust, `${mode} Rust`);
   compareTrees(runA.dotnet, runB.dotnet, `${mode} C#`);

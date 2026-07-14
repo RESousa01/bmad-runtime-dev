@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 
 use desktop_runtime::{canonical_hash, canonical_hash_without_field};
 use serde_json::Value;
+use unicode_normalization::UnicodeNormalization;
 
 /// Exact early Builder limit-profile identifier shared by all runtimes.
 pub const BUILDER_LIMIT_PROFILE: &str = "sapphirus.bmad-builder-limits.v1";
@@ -310,6 +311,18 @@ fn validate_descriptor_projections(
     }
     let mut projection_hashes = HashSet::new();
     for projection in projections {
+        if canonical_hash_without_field(
+            "bmad-instruction-projection",
+            1,
+            projection,
+            "projectionHash",
+        )
+        .ok()
+        .is_none_or(|expected| {
+            string(projection, "projectionHash") != Some(expected.to_string().as_str())
+        }) {
+            push_once(errors, "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH");
+        }
         if string(projection, "sourceIdentityHash") != string(value, "sourceSnapshotHash")
             || !projection_hashes.insert(nullable_string(projection, "projectionHash"))
         {
@@ -714,6 +727,7 @@ fn validate_catalog(value: &Value, descriptor: Option<&Value>, errors: &mut Vec<
     if let Some(descriptor) = descriptor {
         if string(value, "packageVersionId") != string(descriptor, "packageVersionId")
             || string(value, "descriptorHash") != string(descriptor, "descriptorHash")
+            || string(value, "packageSourceHash") != string(descriptor, "sourceSnapshotHash")
         {
             push_once(errors, "BMAD_CATALOG_DESCRIPTOR_BINDING_MISMATCH");
         }
@@ -829,6 +843,8 @@ fn validate_method_catalog(
             })
         });
         if string(catalog, "packageVersionId") != string(value, "packageVersionId")
+            || string(catalog, "descriptorHash") != string(value, "packageDescriptorHash")
+            || string(catalog, "packageSourceHash") != string(value, "packageSourceHash")
             || string(catalog, "catalogHash") != string(value, "capabilityCatalogHash")
             || installed.is_none_or(|skill| {
                 string(skill, "instructionProjectionHash")
@@ -869,6 +885,10 @@ fn validate_method_catalog(
                         != binding.and_then(|binding| string(binding, "agentRecordHash"))
                         || string(agent, "moduleSourceHash")
                             != binding.and_then(|binding| string(binding, "moduleSourceHash"))
+                        || string(agent, "name")
+                            != binding.and_then(|binding| string(binding, "agentName"))
+                        || string(agent, "title")
+                            != binding.and_then(|binding| string(binding, "agentTitle"))
                         || string(agent, "personaCustomizationGraphHash")
                             != binding.and_then(|binding| string(binding, "customizationGraphHash"))
                 })
@@ -897,11 +917,14 @@ fn validate_method_checkpoints(
     let mut ids = HashSet::new();
     let mut checkpoint_decisions = HashSet::new();
     for (index, checkpoint) in checkpoints.iter().enumerate() {
+        let checkpoint_id_is_unique = ids.insert(nullable_string(checkpoint, "checkpointId"));
+        let checkpoint_decision_is_unique =
+            checkpoint_decisions.insert(nullable_string(checkpoint, "contextDecisionId"));
         if string(checkpoint, "sessionId") != string(value, "sessionId")
             || checkpoint.get("turnOrdinal").and_then(Value::as_u64)
                 != u64::try_from(index + 1).ok()
-            || !ids.insert(nullable_string(checkpoint, "checkpointId"))
-            || !checkpoint_decisions.insert(nullable_string(checkpoint, "contextDecisionId"))
+            || !checkpoint_id_is_unique
+            || !checkpoint_decision_is_unique
             || !same_capability(checkpoint.get("capabilityKey"), capability)
             || string(checkpoint, "contextDigest") != string(value, "contextDigest")
             || string(checkpoint, "modelBindingHash")
@@ -1001,7 +1024,23 @@ fn validate_method_context(
     }
 }
 
-fn validate_method(value: &Value, catalog: Option<&Value>, errors: &mut Vec<String>) {
+fn validate_method(
+    value: &Value,
+    catalog: Option<&Value>,
+    envelope: Option<&Value>,
+    errors: &mut Vec<String>,
+) {
+    if envelope.is_none_or(|envelope| {
+        string(envelope, "objectType") != Some("bmad_method_session")
+            || string(envelope, "objectId") != string(value, "sessionId")
+            || string(envelope, "deliveryModel") != Some("windows_local")
+            || envelope
+                .get("authorityRef")
+                .and_then(|authority| string(authority, "authorityKind"))
+                != Some("desktop_local_store")
+    }) {
+        push_once(errors, "BMAD_METHOD_ENVELOPE_BINDING_MISMATCH");
+    }
     let profile = value.get("executionProfile");
     let capability = value.get("capabilityKey");
     let is_help = string(value, "methodShape") == Some("no_agent_direct");
@@ -1045,6 +1084,50 @@ fn validate_builder_profile_and_action(value: &Value, kind: &str, errors: &mut V
     }
 }
 
+fn is_windows_reserved_segment(segment: &str) -> bool {
+    let stem = segment
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    matches!(stem.as_str(), "con" | "prn" | "aux" | "nul")
+        || stem
+            .strip_prefix("com")
+            .or_else(|| stem.strip_prefix("lpt"))
+            .is_some_and(|suffix| {
+                matches!(suffix, "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
+            })
+}
+
+fn builder_path_is_valid(path: &str) -> bool {
+    let segments: Vec<_> = path.split('/').collect();
+    path.nfc().eq(path.chars())
+        && path.len() <= 240
+        && segments.len() <= 16
+        && segments.iter().all(|segment| {
+            segment.len() <= 120
+                && !segment.ends_with('.')
+                && !segment.ends_with(' ')
+                && !is_windows_reserved_segment(segment)
+        })
+}
+
+fn is_capability_reference_path(path: &str) -> bool {
+    let Some(stem) = path
+        .strip_prefix("references/")
+        .and_then(|relative| relative.strip_suffix(".md"))
+    else {
+        return false;
+    };
+    let mut characters = stem.chars();
+    characters
+        .next()
+        .is_some_and(|first| first.is_ascii_lowercase())
+        && characters.all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+        })
+}
+
 fn validate_builder_revision(value: &Value, kind: &str, errors: &mut Vec<String>) {
     if string(value, "objectKind") == Some("revision") {
         let Some(file_set) = value.get("proposedFileSet") else {
@@ -1061,25 +1144,41 @@ fn validate_builder_revision(value: &Value, kind: &str, errors: &mut Vec<String>
         let mut total_bytes = 0usize;
         for file in files {
             let path = string(file, "path").unwrap_or_default();
+            if !builder_path_is_valid(path) {
+                push_once(errors, "BMAD_BUILDER_PATH_INVALID");
+            }
             if !folded.insert(path.to_lowercase()) {
                 push_once(errors, "BMAD_BUILDER_PATH_COLLISION");
             }
             paths.push(path);
-            total_bytes += string(file, "content").map_or(0, str::len);
+            let file_bytes = string(file, "content").map_or(0, str::len);
+            if file_bytes > 262_144 {
+                push_once(errors, "BMAD_BUILDER_FILE_TOO_LARGE");
+            }
+            total_bytes += file_bytes;
         }
         if total_bytes > 1_048_576 {
             push_once(errors, "BMAD_BUILDER_TOTAL_TOO_LARGE");
         }
         paths.sort_unstable();
-        if (kind == "workflow" && paths != ["SKILL.md"])
-            || (kind == "agent"
-                && ![
-                    "SKILL.md",
-                    "customize.toml",
-                    "references/prompt-quality-canon.md",
-                ]
+        let mandatory = [
+            "SKILL.md",
+            "customize.toml",
+            "references/prompt-quality-canon.md",
+        ];
+        let capability_reference_count = paths
+            .iter()
+            .filter(|path| {
+                path.starts_with("references/") && **path != "references/prompt-quality-canon.md"
+            })
+            .count();
+        let agent_inventory_invalid = !mandatory.iter().all(|required| paths.contains(required))
+            || paths
                 .iter()
-                .all(|required| paths.contains(required)))
+                .any(|path| !(mandatory.contains(path) || is_capability_reference_path(path)))
+            || capability_reference_count > 13;
+        if (kind == "workflow" && paths != ["SKILL.md"])
+            || (kind == "agent" && agent_inventory_invalid)
         {
             push_once(errors, "BMAD_BUILDER_INVENTORY_INVALID");
         }
@@ -1089,6 +1188,16 @@ fn validate_builder_revision(value: &Value, kind: &str, errors: &mut Vec<String>
 fn validate_builder_analysis(value: &Value, kind: &str, errors: &mut Vec<String>) {
     if string(value, "objectKind") != Some("analysis") {
         return;
+    }
+    let total_findings = array(value, "deterministicFindings").map_or(0, Vec::len)
+        + array(value, "modelLensResults").map_or(0, |results| {
+            results
+                .iter()
+                .map(|result| array(result, "findings").map_or(0, Vec::len))
+                .sum::<usize>()
+        });
+    if total_findings > 512 {
+        push_once(errors, "BMAD_BUILDER_FINDING_LIMIT_EXCEEDED");
     }
     if string(value, "analysisKind") == Some("model_lens") {
         let expected: &[&str] = if kind == "agent" {
@@ -1160,19 +1269,40 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
 #[must_use]
 pub fn validate_bmad_semantics(value: &Value, descriptor: Option<&Value>) -> Vec<String> {
     let mut errors = Vec::new();
-    match string(value, "schemaVersion") {
-        Some("sapphirus.bmad-package-descriptor.v1") => validate_descriptor(value, &mut errors),
-        Some("sapphirus.bmad-capability-catalog.v1") => {
-            validate_catalog(value, descriptor, &mut errors);
+    let envelope = value.get("envelope");
+    let document = value.get("payload").filter(|payload| {
+        string(payload, "schemaVersion") == Some("sapphirus.bmad-method-session.v1")
+    });
+    let document = document.unwrap_or(value);
+    if let Some(envelope) = envelope.filter(|_| !std::ptr::eq(document, value)) {
+        if canonical_hash("contract-object", 1, document)
+            .ok()
+            .is_none_or(|expected| {
+                string(envelope, "contentHash") != Some(expected.to_string().as_str())
+            })
+        {
+            push_once(&mut errors, "HASH_MISMATCH");
         }
-        Some("sapphirus.bmad-method-session.v1") => validate_method(value, descriptor, &mut errors),
+    }
+    match string(document, "schemaVersion") {
+        Some("sapphirus.bmad-package-descriptor.v1") => {
+            validate_descriptor(document, &mut errors);
+        }
+        Some("sapphirus.bmad-capability-catalog.v1") => {
+            validate_catalog(document, descriptor, &mut errors);
+        }
+        Some("sapphirus.bmad-method-session.v1") => {
+            validate_method(document, descriptor, envelope, &mut errors);
+        }
         Some(
             "sapphirus.bmad-builder-authoring.v1"
             | "sapphirus.bmad-builder-revision.v1"
             | "sapphirus.bmad-builder-analysis.v1",
-        ) => validate_builder(value, &mut errors),
+        ) => validate_builder(document, &mut errors),
         _ => {}
     }
-    verify_hash(value, &mut errors);
+    if std::ptr::eq(document, value) {
+        verify_hash(document, &mut errors);
+    }
     errors
 }

@@ -547,27 +547,13 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <typeparam name="TContext">The immutable context to pass in to the match function.</typeparam>
                 /// <typeparam name="TResult">The result of calling the match function.</typeparam>
                 /// <param name="context">The context to pass to the match function.</param>
-                /// <param name="matchInstallerTeam">Match 1st item.</param>
-                /// <param name="matchInstallerUser">Match 2nd item.</param>
-                /// <param name="matchCustomTeam">Match 3rd item.</param>
-                /// <param name="matchCustomUser">Match 4th item.</param>
-                /// <param name="matchPackagedDefault">Match 5th item.</param>
-                /// <param name="matchTeamOverride">Match 6th item.</param>
-                /// <param name="matchUserOverride">Match 7th item.</param>
-                /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                /// <param name="matchBuilderUserYaml">Match 10th item.</param>
+                /// <param name="matchMethodModuleYaml">Match 1st item.</param>
+                /// <param name="matchBuilderRootYaml">Match 2nd item.</param>
+                /// <param name="matchBuilderUserYaml">Match 3rd item.</param>
                 /// <param name="defaultMatch">Match any other value.</param>
                 /// <returns>An instance of the value returned by the match function.</returns>
                 public TResult Match<TContext, TResult>(
                     in TContext context,
-                    Func<TContext, TResult> matchInstallerTeam,
-                    Func<TContext, TResult> matchInstallerUser,
-                    Func<TContext, TResult> matchCustomTeam,
-                    Func<TContext, TResult> matchCustomUser,
-                    Func<TContext, TResult> matchPackagedDefault,
-                    Func<TContext, TResult> matchTeamOverride,
-                    Func<TContext, TResult> matchUserOverride,
                     Func<TContext, TResult> matchMethodModuleYaml,
                     Func<TContext, TResult> matchBuilderRootYaml,
                     Func<TContext, TResult> matchBuilderUserYaml,
@@ -578,50 +564,15 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     if (this.ValueEquals(Constants.Enum1))
                     {
-                        return matchInstallerTeam(context);
+                        return matchMethodModuleYaml(context);
                     }
 
                     if (this.ValueEquals(Constants.Enum2))
                     {
-                        return matchInstallerUser(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum3))
-                    {
-                        return matchCustomTeam(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum4))
-                    {
-                        return matchCustomUser(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum5))
-                    {
-                        return matchPackagedDefault(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum6))
-                    {
-                        return matchTeamOverride(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum7))
-                    {
-                        return matchUserOverride(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum8))
-                    {
-                        return matchMethodModuleYaml(context);
-                    }
-
-                    if (this.ValueEquals(Constants.Enum9))
-                    {
                         return matchBuilderRootYaml(context);
                     }
 
-                    if (this.ValueEquals(Constants.Enum10))
+                    if (this.ValueEquals(Constants.Enum3))
                     {
                         return matchBuilderUserYaml(context);
                     }
@@ -633,26 +584,12 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
                 /// </summary>
                 /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-                /// <param name="matchInstallerTeam">Match 1st item.</param>
-                /// <param name="matchInstallerUser">Match 2nd item.</param>
-                /// <param name="matchCustomTeam">Match 3rd item.</param>
-                /// <param name="matchCustomUser">Match 4th item.</param>
-                /// <param name="matchPackagedDefault">Match 5th item.</param>
-                /// <param name="matchTeamOverride">Match 6th item.</param>
-                /// <param name="matchUserOverride">Match 7th item.</param>
-                /// <param name="matchMethodModuleYaml">Match 8th item.</param>
-                /// <param name="matchBuilderRootYaml">Match 9th item.</param>
-                /// <param name="matchBuilderUserYaml">Match 10th item.</param>
+                /// <param name="matchMethodModuleYaml">Match 1st item.</param>
+                /// <param name="matchBuilderRootYaml">Match 2nd item.</param>
+                /// <param name="matchBuilderUserYaml">Match 3rd item.</param>
                 /// <param name="defaultMatch">Match any other value.</param>
                 /// <returns>An instance of the value returned by the match function.</returns>
                 public TResult Match<TResult>(
-                    Func<TResult> matchInstallerTeam,
-                    Func<TResult> matchInstallerUser,
-                    Func<TResult> matchCustomTeam,
-                    Func<TResult> matchCustomUser,
-                    Func<TResult> matchPackagedDefault,
-                    Func<TResult> matchTeamOverride,
-                    Func<TResult> matchUserOverride,
                     Func<TResult> matchMethodModuleYaml,
                     Func<TResult> matchBuilderRootYaml,
                     Func<TResult> matchBuilderUserYaml,
@@ -660,50 +597,15 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     if (this.ValueEquals(Constants.Enum1))
                     {
-                        return matchInstallerTeam();
+                        return matchMethodModuleYaml();
                     }
 
                     if (this.ValueEquals(Constants.Enum2))
                     {
-                        return matchInstallerUser();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum3))
-                    {
-                        return matchCustomTeam();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum4))
-                    {
-                        return matchCustomUser();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum5))
-                    {
-                        return matchPackagedDefault();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum6))
-                    {
-                        return matchTeamOverride();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum7))
-                    {
-                        return matchUserOverride();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum8))
-                    {
-                        return matchMethodModuleYaml();
-                    }
-
-                    if (this.ValueEquals(Constants.Enum9))
-                    {
                         return matchBuilderRootYaml();
                     }
 
-                    if (this.ValueEquals(Constants.Enum10))
+                    if (this.ValueEquals(Constants.Enum3))
                     {
                         return matchBuilderUserYaml();
                     }

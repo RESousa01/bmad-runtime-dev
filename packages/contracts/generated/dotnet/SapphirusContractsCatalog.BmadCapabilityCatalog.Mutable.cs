@@ -293,6 +293,27 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the <c>packageSourceHash</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Mutable PackageSourceHash
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PackageSourceHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the <c>packageVersionId</c> property.
             /// </summary>
             /// <remarks>
@@ -678,6 +699,37 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     // We are going to insert the new value
                     value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.InstalledSkills, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>packageSourceHash</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetPackageSourceHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("packageSourceHash");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.PackageSourceHashUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageSourceHash, ref cvb);
                     int endIndex = _idx + _parent.GetDbSize(_idx, false);
                     _parent.InsertAndDispose(_idx, endIndex, ref cvb);
                 }
@@ -1155,6 +1207,7 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source helpActionGraph,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source installedSkills,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId)
             {
                 agentRoster.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.AgentRoster, ref builder);
@@ -1163,6 +1216,7 @@ public readonly partial struct SapphirusContractsCatalog
                 descriptorHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DescriptorHash, ref builder);
                 helpActionGraph.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.HelpActionGraph, ref builder);
                 installedSkills.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.InstalledSkills, ref builder);
+                packageSourceHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageSourceHash, ref builder);
                 packageVersionId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageVersionId, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.SchemaVersionEntity.ConstInstance);
             }
@@ -1177,9 +1231,10 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source helpActionGraph,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source installedSkills,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId)
             {
-                Create(ref _builder, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageVersionId);
+                Create(ref _builder, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageSourceHash, packageVersionId);
             }
 
             /// <summary>
@@ -1194,6 +1249,7 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source<TContext> helpActionGraph,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source<TContext> installedSkills,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
@@ -1205,6 +1261,7 @@ public readonly partial struct SapphirusContractsCatalog
                 descriptorHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DescriptorHash, ref builder);
                 helpActionGraph.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.HelpActionGraph, ref builder);
                 installedSkills.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.InstalledSkills, ref builder);
+                packageSourceHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageSourceHash, ref builder);
                 packageVersionId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageVersionId, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.SchemaVersionEntity.ConstInstance);
             }
@@ -1220,12 +1277,13 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source<TContext> helpActionGraph,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source<TContext> installedSkills,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
             {
-                Create(context, ref _builder, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageVersionId);
+                Create(context, ref _builder, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageSourceHash, packageVersionId);
             }
 
             internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -1357,16 +1415,17 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="descriptorHash">The value of the property.</param>
         /// <param name="helpActionGraph">The value of the property.</param>
         /// <param name="installedSkills">The value of the property.</param>
+        /// <param name="packageSourceHash">The value of the property.</param>
         /// <param name="packageVersionId">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRoster.Source agentRoster, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source catalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.DependencyAvailabilityArray.Source dependencyAvailability, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source helpActionGraph, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source installedSkills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRoster.Source agentRoster, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source catalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.DependencyAvailabilityArray.Source dependencyAvailability, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source helpActionGraph, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source installedSkills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, int initialCapacity = 30)
         {
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageVersionId);
+            ovb.Create(agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageSourceHash, packageVersionId);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1385,10 +1444,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="descriptorHash">The value of the property.</param>
         /// <param name="helpActionGraph">The value of the property.</param>
         /// <param name="installedSkills">The value of the property.</param>
+        /// <param name="packageSourceHash">The value of the property.</param>
         /// <param name="packageVersionId">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRoster.Source<TContext> agentRoster, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source catalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.DependencyAvailabilityArray.Source<TContext> dependencyAvailability, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source<TContext> helpActionGraph, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source<TContext> installedSkills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRoster.Source<TContext> agentRoster, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source catalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.DependencyAvailabilityArray.Source<TContext> dependencyAvailability, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionGraph.Source<TContext> helpActionGraph, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.InstalledSkillsArray.Source<TContext> installedSkills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1397,7 +1457,7 @@ public readonly partial struct SapphirusContractsCatalog
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(context, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageVersionId);
+            ovb.Create(context, agentRoster, catalogHash, dependencyAvailability, descriptorHash, helpActionGraph, installedSkills, packageSourceHash, packageVersionId);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
