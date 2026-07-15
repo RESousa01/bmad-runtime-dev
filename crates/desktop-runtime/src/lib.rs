@@ -20,22 +20,24 @@ mod ids;
 // Typify emits crate/module-level inner attributes. Loading its output as a
 // real module keeps those tool-owned attributes valid; a nested `include!`
 // would reject them before the generated shapes could be compiled.
-#[cfg(test)]
 #[allow(dead_code, clippy::all, clippy::pedantic, clippy::unwrap_used)]
 #[path = "../../../packages/contracts/generated/rust/contracts.rs"]
-mod generated_contracts;
+pub(crate) mod generated_contracts;
 
 pub use bmad::{
-    BmadCapabilityKey, BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
-    BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
-    BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
-    BuilderAnalysisRun, BuilderAuthoringAction, BuilderAuthoringService, BuilderCapabilityFact,
-    BuilderDeterministicFinding, BuilderDraft, BuilderDraftRecord, BuilderDraftRepository,
-    BuilderDraftRevision, BuilderDraftScope, BuilderDraftState, BuilderError, BuilderErrorCode,
-    BuilderFindingSeverity, BuilderKind, BuilderLensVerdict, BuilderModelAnalysisDecisionInput,
-    BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
-    BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
-    BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
+    BmadCapabilityKey, BmadConfigGraph, BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution,
+    BmadConfigResolver, BmadConfigWarning, BmadEntrypointKind, BmadKernelError,
+    BmadKernelErrorCode, BmadLoadedPackage, BmadLoadedSkill, BmadLocationClass, BmadPackageLoader,
+    BmadResolvedConfig, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, BmadUtcInstant,
+    BuilderActionName, BuilderAnalysisContextDecision, BuilderAnalysisDecisionConsumption,
+    BuilderAnalysisDecisionInvalidation, BuilderAnalysisDecisionInvalidationReason,
+    BuilderAnalysisKind, BuilderAnalysisModelBinding, BuilderAnalysisRun, BuilderAuthoringAction,
+    BuilderAuthoringService, BuilderCapabilityFact, BuilderDeterministicFinding, BuilderDraft,
+    BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope,
+    BuilderDraftState, BuilderError, BuilderErrorCode, BuilderFindingSeverity, BuilderKind,
+    BuilderLensVerdict, BuilderModelAnalysisDecisionInput, BuilderModelFinding, BuilderModelLens,
+    BuilderModelLensResult, BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent,
+    BuilderProposedFile, BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
     BuilderValidationProfile, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
     MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
     MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
