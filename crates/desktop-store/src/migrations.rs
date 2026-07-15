@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 6;
+pub(crate) const LATEST_STORE_VERSION: u32 = 7;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -29,6 +29,22 @@ const V5_TABLES: [&str; 10] = [
 const V6_TABLES: [&str; 13] = [
     "aggregates",
     "bmad_builder_analyses",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "evidence_events",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V7_TABLES: [&str; 14] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
     "bmad_builder_drafts",
     "bmad_builder_revisions",
     "bmad_method_artifacts",
@@ -243,6 +259,57 @@ const V5_TO_V6_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 6;
  COMMIT;";
 
+const V6_TO_V7_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_builder_analysis_decisions (
+   decision_id TEXT PRIMARY KEY,
+   draft_id TEXT NOT NULL REFERENCES bmad_builder_drafts(draft_id),
+   revision_id TEXT NOT NULL,
+   revision_hash TEXT NOT NULL,
+   scope_hash TEXT NOT NULL,
+   invocation_id TEXT NOT NULL UNIQUE,
+   decision_hash TEXT NOT NULL UNIQUE,
+   disposition TEXT NOT NULL CHECK(disposition IN ('pending', 'consumed', 'invalidated')),
+   content_hash TEXT NOT NULL,
+   content_kind TEXT NOT NULL,
+   content_schema_version TEXT NOT NULL,
+   recorded_at TEXT NOT NULL,
+   consumed_analysis_id TEXT UNIQUE,
+   consumption_id TEXT UNIQUE,
+   consumption_hash TEXT UNIQUE,
+   consumed_at TEXT,
+   invalidation_reason TEXT,
+   invalidation_version INTEGER CHECK(invalidation_version IS NULL OR invalidation_version >= 1),
+   invalidation_hash TEXT UNIQUE,
+   invalidated_at TEXT,
+   FOREIGN KEY(draft_id, revision_id)
+     REFERENCES bmad_builder_revisions(draft_id, revision_id),
+   FOREIGN KEY(content_hash, content_kind, content_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version),
+   CHECK (
+     (disposition = 'pending'
+       AND consumed_analysis_id IS NULL AND consumption_id IS NULL
+       AND consumption_hash IS NULL AND consumed_at IS NULL
+       AND invalidation_reason IS NULL AND invalidation_version IS NULL
+       AND invalidation_hash IS NULL AND invalidated_at IS NULL)
+     OR
+     (disposition = 'consumed'
+       AND consumed_analysis_id IS NOT NULL AND consumption_id IS NOT NULL
+       AND consumption_hash IS NOT NULL AND consumed_at IS NOT NULL
+       AND invalidation_reason IS NULL AND invalidation_version IS NULL
+       AND invalidation_hash IS NULL AND invalidated_at IS NULL)
+     OR
+     (disposition = 'invalidated'
+       AND consumed_analysis_id IS NULL AND consumption_id IS NULL
+       AND consumption_hash IS NULL AND consumed_at IS NULL
+       AND invalidation_reason IS NOT NULL AND invalidation_version IS NOT NULL
+       AND invalidation_hash IS NOT NULL AND invalidated_at IS NOT NULL)
+   )
+ ) STRICT;
+ CREATE INDEX bmad_builder_analysis_decisions_draft
+   ON bmad_builder_analysis_decisions(draft_id, revision_id, decision_id);
+ PRAGMA user_version = 7;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -265,13 +332,32 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V5_TO_V6_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            6 => {
                 require_store_tables(connection, &V6_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                reject_untrusted_v6_model_analysis_history(connection)?;
+                connection.execute_batch(V6_TO_V7_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V7_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }
             _ => return Err(StoreError::UnsupportedStoreVersion),
         }
+    }
+}
+
+fn reject_untrusted_v6_model_analysis_history(connection: &Connection) -> Result<(), StoreError> {
+    let model_analysis_count: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM bmad_builder_analyses WHERE analysis_kind = 'model_lens'",
+        [],
+        |row| row.get(0),
+    )?;
+    if model_analysis_count == 0 {
+        Ok(())
+    } else {
+        Err(StoreError::Inconsistent)
     }
 }
 

@@ -1,9 +1,9 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    canonical_hash_without_field, sha256_bytes, BuilderAnalysisRun, BuilderAuthoringAction,
-    BuilderDraft, BuilderDraftRecord, BuilderDraftRevision, BuilderDraftState, BuilderErrorCode,
-    ContractId,
+    canonical_hash_without_field, sha256_bytes, AuthorityRef, BuilderAnalysisRun,
+    BuilderAuthoringAction, BuilderDraft, BuilderDraftRecord, BuilderDraftRevision,
+    BuilderDraftState, BuilderErrorCode, BuilderModelAnalysisDecisionInput, ContractId,
 };
 
 fn fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
@@ -20,6 +20,7 @@ fn inactive_builder_aggregate_versions_immutable_source_records() {
     let revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
     let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-deterministic.json");
     let mut draft = BuilderDraft::create(source).expect("draft");
+    draft.bind_authority(authority()).expect("authority");
     assert_eq!(draft.state(), BuilderDraftState::Drafting);
     assert_eq!(draft.version(), 1);
 
@@ -48,6 +49,7 @@ fn actions_are_kind_checked_and_convert_is_unrepresentable() {
     let mut revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
     revision.authoring_action = BuilderAuthoringAction::workflow_build();
     let mut draft = BuilderDraft::create(source).expect("draft");
+    draft.bind_authority(authority()).expect("authority");
     assert_eq!(
         draft
             .append_revision(1, revision)
@@ -137,12 +139,28 @@ fn model_lens_analysis_binds_one_exact_decision_and_never_becomes_evaluation() {
     let revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
     let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
     let mut draft = BuilderDraft::create(source).expect("draft");
+    draft.bind_authority(authority()).expect("authority");
     draft.append_revision(1, revision).expect("revision");
+    assert_eq!(
+        draft
+            .record_analysis(2, analysis.clone())
+            .expect_err("an unreviewed model result has no authority")
+            .code(),
+        BuilderErrorCode::BuilderContextDecisionMissing
+    );
+    let decision = draft
+        .issue_model_analysis_decision(2, decision_input(&analysis))
+        .expect("host-issued exact-revision decision");
     draft
-        .record_analysis(2, analysis.clone())
+        .record_analysis(3, analysis.clone())
         .expect("source-grounded analysis");
     assert_eq!(draft.state(), BuilderDraftState::Analyzed);
-    assert_eq!(analysis.evaluation_claim, "none");
+    assert_eq!(draft.analyses()[0].evaluation_claim, "none");
+    assert_eq!(draft.analysis_consumptions().len(), 1);
+    assert_eq!(
+        draft.analysis_consumptions()[0].decision_id,
+        decision.decision_id
+    );
 
     let mut replay = analysis;
     replay.analysis_id =
@@ -152,11 +170,90 @@ fn model_lens_analysis_binds_one_exact_decision_and_never_becomes_evaluation() {
             .expect("rehashed replay");
     assert_eq!(
         draft
-            .record_analysis(3, replay)
+            .record_analysis(4, replay)
             .expect_err("one context decision cannot authorize two analyses")
+            .code(),
+        BuilderErrorCode::BuilderContextDecisionMissing
+    );
+}
+
+#[test]
+fn model_lens_rejects_forged_and_revision_drifted_decisions() {
+    let source: BuilderDraftRecord = fixture("builder-agent-draft.json");
+    let revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    let mut draft = BuilderDraft::create(source).expect("draft");
+    draft.bind_authority(authority()).expect("authority");
+    draft
+        .append_revision(1, revision.clone())
+        .expect("revision");
+    draft
+        .issue_model_analysis_decision(2, decision_input(&analysis))
+        .expect("decision");
+
+    let mut forged = analysis.clone();
+    forged
+        .model_binding
+        .as_mut()
+        .expect("model binding")
+        .context_decision_id =
+        ContractId::new("decision_01J99999999999999999999999").expect("decision id");
+    assert_eq!(
+        draft
+            .record_analysis(3, forged)
+            .expect_err("fresh caller IDs cannot fabricate consent")
+            .code(),
+        BuilderErrorCode::BuilderContextDecisionInvalid
+    );
+    assert!(draft.pending_analysis_decision().is_some());
+
+    let mut edit = revision.clone();
+    edit.revision_id =
+        ContractId::new("agentrevision_01J99999999999999999999999").expect("revision id");
+    edit.authoring_action = BuilderAuthoringAction::edit(edit.builder_kind);
+    edit.ordinal = 2;
+    edit.parent_revision_hash = Some(revision.revision_hash);
+    edit.raw_result_hash = sha256_bytes(b"decision-invalidating edit");
+    edit.revision_hash =
+        canonical_hash_without_field("bmad-builder-revision", 1, &edit, "revisionHash")
+            .expect("revision hash");
+    draft.append_revision(3, edit).expect("new exact revision");
+    assert!(draft.pending_analysis_decision().is_none());
+    assert_eq!(
+        draft
+            .record_analysis(4, analysis)
+            .expect_err("a decision cannot cross a revision boundary")
             .code(),
         BuilderErrorCode::BuilderRevisionStale
     );
+}
+
+fn decision_input(analysis: &BuilderAnalysisRun) -> BuilderModelAnalysisDecisionInput {
+    let binding = analysis.model_binding.as_ref().expect("model binding");
+    BuilderModelAnalysisDecisionInput {
+        decision_id: binding.context_decision_id.clone(),
+        invocation_id: binding.invocation_id.clone(),
+        source_member_set_hash: analysis.source_member_set_hash,
+        deterministic_facts_hash: analysis.deterministic_facts_hash,
+        model_hash: binding.model_hash,
+        deployment_hash: binding.deployment_hash,
+        model_profile_hash: binding.model_profile_hash,
+        schema_hash: binding.schema_hash,
+        consent_hash: binding.consent_hash,
+        reviewed_at: analysis.created_at.clone(),
+    }
+}
+
+fn authority() -> AuthorityRef {
+    AuthorityRef {
+        authority_kind: "desktop_local_store".to_owned(),
+        authority_id: ContractId::new("authority_01J00000000000000000000000")
+            .expect("authority id"),
+        installation_id: ContractId::new("install_01J00000000000000000000000")
+            .expect("installation id"),
+        local_store_id: ContractId::new("store_01J00000000000000000000000").expect("store id"),
+        authority_epoch: 1,
+    }
 }
 
 #[test]

@@ -2,8 +2,8 @@
 
 use desktop_runtime::{
     canonical_hash_without_field, AuthorityRef, BuilderAnalysisRun, BuilderAuthoringService,
-    BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftState,
-    BuilderPersistenceEvent, ContractId,
+    BuilderDraft, BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision,
+    BuilderDraftState, BuilderModelAnalysisDecisionInput, BuilderPersistenceEvent, ContractId,
 };
 use desktop_store::{KeyProtector, LocalStore, StoreError};
 use sha2::{Digest, Sha256};
@@ -115,10 +115,16 @@ fn model_analysis_decision_consumption_is_single_use_and_atomic(
         fixture("builder-agent-revision.json"),
     )?;
     let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
-    let analyzed = service.record_analysis(
+    let issued = service.issue_model_analysis_decision(
         &scope,
         &created.record().draft_id,
         revised.version(),
+        decision_input(&analysis),
+    )?;
+    let analyzed = service.record_analysis(
+        &scope,
+        &created.record().draft_id,
+        issued.version(),
         analysis.clone(),
     )?;
     let mut replay = analysis;
@@ -148,8 +154,270 @@ fn model_analysis_decision_consumption_is_single_use_and_atomic(
         [],
         |row| Ok((row.get(0)?, row.get(1)?)),
     )?;
-    assert_eq!((events, outbox), (3, 3));
+    assert_eq!((events, outbox), (4, 4));
+    let (issued_count, consumed_count): (u64, u64) = connection.query_row(
+        "SELECT COUNT(*), COUNT(consumed_analysis_id)
+         FROM bmad_builder_analysis_decisions",
+        [],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )?;
+    assert_eq!((issued_count, consumed_count), (1, 1));
     Ok(())
+}
+
+#[test]
+fn forged_scope_cannot_consume_a_reviewed_decision() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let service = BuilderAuthoringService::new(store);
+    let first = service.create_draft(fixture("builder-agent-draft.json"), authority())?;
+    let first_scope = first.scope().expect("scope");
+    let first = service.append_revision(
+        &first_scope,
+        &first.record().draft_id,
+        1,
+        fixture("builder-agent-revision.json"),
+    )?;
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    let issued = service.issue_model_analysis_decision(
+        &first_scope,
+        &first.record().draft_id,
+        first.version(),
+        decision_input(&analysis),
+    )?;
+
+    let mut wrong_scope = first_scope.clone();
+    wrong_scope.owner_scope_ref = id("owner_01J999999999999999999999999");
+    assert!(service
+        .record_analysis(
+            &wrong_scope,
+            &first.record().draft_id,
+            issued.version(),
+            analysis.clone(),
+        )
+        .is_err());
+
+    let connection = rusqlite::Connection::open(service.repository().database_path())?;
+    let consumed: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM bmad_builder_analysis_decisions
+         WHERE consumed_analysis_id IS NOT NULL",
+        [],
+        |row| row.get(0),
+    )?;
+    assert_eq!(consumed, 0);
+    Ok(())
+}
+
+#[test]
+fn cross_draft_replay_and_failed_analysis_are_atomic() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let service = BuilderAuthoringService::new(store);
+    let first = service.create_draft(fixture("builder-agent-draft.json"), authority())?;
+    let first_scope = first.scope().expect("scope");
+    let first = service.append_revision(
+        &first_scope,
+        &first.record().draft_id,
+        1,
+        fixture("builder-agent-revision.json"),
+    )?;
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    let issued = service.issue_model_analysis_decision(
+        &first_scope,
+        &first.record().draft_id,
+        first.version(),
+        decision_input(&analysis),
+    )?;
+
+    let mut second_source: BuilderDraftRecord = fixture("builder-agent-draft.json");
+    second_source.draft_id = id("agentdraft_01J99999999999999999999999");
+    second_source.authoring_session_id = id("authorsession_01J99999999999999999999999");
+    let second = service.create_draft(second_source, authority())?;
+    let second_scope = second.scope().expect("second scope");
+    let mut second_revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
+    second_revision.draft_id = second.record().draft_id.clone();
+    second_revision.revision_id = id("agentrevision_01J99999999999999999999999");
+    second_revision.revision_hash =
+        canonical_hash_without_field("bmad-builder-revision", 1, &second_revision, "revisionHash")?;
+    let second = service.append_revision(
+        &second_scope,
+        &second.record().draft_id,
+        second.version(),
+        second_revision.clone(),
+    )?;
+    assert!(service
+        .issue_model_analysis_decision(
+            &second_scope,
+            &second.record().draft_id,
+            second.version(),
+            decision_input(&analysis),
+        )
+        .is_err());
+
+    let first_analyzed = service.record_analysis(
+        &first_scope,
+        &first.record().draft_id,
+        issued.version(),
+        analysis.clone(),
+    )?;
+
+    let mut second_analysis = analysis;
+    second_analysis.draft_id = second.record().draft_id.clone();
+    second_analysis.revision_id = second_revision.revision_id.clone();
+    second_analysis.revision_hash = second_revision.revision_hash;
+    for result in second_analysis
+        .model_lens_results
+        .as_mut()
+        .expect("model lens results")
+    {
+        result.revision_id = second_revision.revision_id.clone();
+        result.revision_hash = second_revision.revision_hash;
+    }
+    let second_binding = second_analysis
+        .model_binding
+        .as_mut()
+        .expect("model binding");
+    second_binding.context_decision_id = id("decision_01J77777777777777777777777");
+    second_binding.invocation_id = id("invoke_01J77777777777777777777777");
+    let second_issued = service.issue_model_analysis_decision(
+        &second_scope,
+        &second.record().draft_id,
+        second.version(),
+        decision_input(&second_analysis),
+    )?;
+    assert!(service
+        .record_analysis(
+            &second_scope,
+            &second.record().draft_id,
+            second_issued.version(),
+            second_analysis,
+        )
+        .is_err());
+    let retained_second = service
+        .repository()
+        .load_builder_draft(&second_scope, &second.record().draft_id)?
+        .expect("second retained");
+    assert_eq!(retained_second.version(), second_issued.version());
+    assert!(retained_second.analyses().is_empty());
+    assert!(retained_second.pending_analysis_decision().is_some());
+    let connection = rusqlite::Connection::open(service.repository().database_path())?;
+    let second_consumed: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM bmad_builder_analysis_decisions
+         WHERE draft_id = ?1 AND consumed_analysis_id IS NOT NULL",
+        [second.record().draft_id.as_str()],
+        |row| row.get(0),
+    )?;
+    assert_eq!(second_consumed, 0);
+    assert_eq!(first_analyzed.analyses().len(), 1);
+    Ok(())
+}
+
+#[test]
+fn pending_decision_invalidation_survives_every_edit_and_closure_restart(
+) -> Result<(), Box<dyn std::error::Error>> {
+    for transition in ["edit", "supersede", "accept", "block", "abandon"] {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let service = BuilderAuthoringService::new(store);
+        let issued = issued_builder(&service)?;
+        let scope = issued.scope().expect("scope");
+        let draft_id = issued.record().draft_id.clone();
+        let transitioned = match transition {
+            "edit" => service.append_revision(
+                &scope,
+                &draft_id,
+                issued.version(),
+                edited_revision(&issued)?,
+            )?,
+            "supersede" => service.supersede_revision(&scope, &draft_id, issued.version())?,
+            "accept" => service.accept_for_review(&scope, &draft_id, issued.version())?,
+            "block" => service.block(&scope, &draft_id, issued.version())?,
+            "abandon" => service.abandon(&scope, &draft_id, issued.version())?,
+            _ => unreachable!("closed test cases"),
+        };
+        assert!(transitioned.pending_analysis_decision().is_none());
+        drop(service);
+
+        let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+        let restored = reopened
+            .load_builder_draft(&scope, &draft_id)?
+            .expect("valid invalidation must survive restart");
+        assert_eq!(restored, transitioned, "transition: {transition}");
+        reopened.verify_integrity()?;
+    }
+    Ok(())
+}
+
+#[test]
+fn pending_decision_index_cannot_claim_a_fabricated_consumption(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let service = BuilderAuthoringService::new(store);
+    let _issued = issued_builder(&service)?;
+    let connection = rusqlite::Connection::open(service.repository().database_path())?;
+    connection.execute(
+        "UPDATE bmad_builder_analysis_decisions
+         SET disposition = 'consumed', consumed_analysis_id = 'analysis_forged',
+             consumption_id = 'consume_forged',
+             consumption_hash = 'sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+             consumed_at = '2026-07-14T12:00:00.000Z'",
+        [],
+    )?;
+    drop(connection);
+    assert!(service.repository().verify_integrity().is_err());
+    Ok(())
+}
+
+fn issued_builder(
+    service: &BuilderAuthoringService<LocalStore>,
+) -> Result<BuilderDraft, Box<dyn std::error::Error>> {
+    let created = service.create_draft(fixture("builder-agent-draft.json"), authority())?;
+    let scope = created.scope().expect("scope");
+    let revised = service.append_revision(
+        &scope,
+        &created.record().draft_id,
+        created.version(),
+        fixture("builder-agent-revision.json"),
+    )?;
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    Ok(service.issue_model_analysis_decision(
+        &scope,
+        &created.record().draft_id,
+        revised.version(),
+        decision_input(&analysis),
+    )?)
+}
+
+fn edited_revision(
+    draft: &BuilderDraft,
+) -> Result<BuilderDraftRevision, Box<dyn std::error::Error>> {
+    let parent = draft.current_revision().expect("current revision");
+    let mut edit = parent.clone();
+    edit.revision_id = id("agentrevision_01J99999999999999999999999");
+    edit.authoring_action = desktop_runtime::BuilderAuthoringAction::edit(edit.builder_kind);
+    edit.ordinal = 2;
+    edit.parent_revision_hash = Some(parent.revision_hash);
+    edit.raw_result_hash = desktop_runtime::sha256_bytes(b"persisted invalidating edit");
+    edit.revision_hash =
+        canonical_hash_without_field("bmad-builder-revision", 1, &edit, "revisionHash")?;
+    Ok(edit)
+}
+
+fn decision_input(analysis: &BuilderAnalysisRun) -> BuilderModelAnalysisDecisionInput {
+    let binding = analysis.model_binding.as_ref().expect("model binding");
+    BuilderModelAnalysisDecisionInput {
+        decision_id: binding.context_decision_id.clone(),
+        invocation_id: binding.invocation_id.clone(),
+        source_member_set_hash: analysis.source_member_set_hash,
+        deterministic_facts_hash: analysis.deterministic_facts_hash,
+        model_hash: binding.model_hash,
+        deployment_hash: binding.deployment_hash,
+        model_profile_hash: binding.model_profile_hash,
+        schema_hash: binding.schema_hash,
+        consent_hash: binding.consent_hash,
+        reviewed_at: analysis.created_at.clone(),
+    }
 }
 
 #[test]
@@ -198,12 +466,12 @@ fn builder_payload_tamper_enters_read_only_recovery() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn v5_upgrade_and_interrupted_v6_migration_match_fresh_schema(
+fn v5_upgrade_and_interrupted_v7_migration_match_fresh_schema(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 6);
+    assert_eq!(fresh.schema_version()?, 7);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -213,6 +481,7 @@ fn v5_upgrade_and_interrupted_v6_migration_match_fresh_schema(
         let connection = rusqlite::Connection::open(&database_path)?;
         connection.execute_batch(
             "PRAGMA foreign_keys = OFF;
+             DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
@@ -227,9 +496,45 @@ fn v5_upgrade_and_interrupted_v6_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 6);
+        assert_eq!(reopened.schema_version()?, 7);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
+    Ok(())
+}
+
+#[test]
+fn populated_v6_model_analysis_is_refused_without_inventing_consent_history(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let service = BuilderAuthoringService::new(store);
+    let issued = issued_builder(&service)?;
+    let scope = issued.scope().expect("scope");
+    let draft_id = issued.record().draft_id.clone();
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    let _ = service.record_analysis(&scope, &draft_id, issued.version(), analysis)?;
+    let database_path = service.repository().database_path();
+    drop(service);
+
+    let connection = rusqlite::Connection::open(&database_path)?;
+    connection.execute_batch(
+        "PRAGMA foreign_keys = OFF;
+         DROP TABLE bmad_builder_analysis_decisions;
+         PRAGMA user_version = 6;",
+    )?;
+    drop(connection);
+
+    assert!(LocalStore::open(directory.path(), &TestProtector).is_err());
+    let connection = rusqlite::Connection::open(&database_path)?;
+    let version: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    assert_eq!(version, 6);
+    let decision_table_count: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM sqlite_schema
+         WHERE type = 'table' AND name = 'bmad_builder_analysis_decisions'",
+        [],
+        |row| row.get(0),
+    )?;
+    assert_eq!(decision_table_count, 0);
     Ok(())
 }
 
@@ -267,7 +572,7 @@ fn concurrent_builder_revisions_use_optimistic_projection_version(
 }
 
 #[test]
-fn v6_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dyn std::error::Error>>
+fn v7_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dyn std::error::Error>>
 {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;

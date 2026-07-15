@@ -1830,7 +1830,8 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analyses;
+            "DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
              DROP TABLE bmad_method_artifacts;
@@ -1870,7 +1871,8 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analyses;
+            "DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
              DROP TABLE bmad_method_artifacts;
@@ -1898,7 +1900,7 @@ mod tests {
     }
 
     #[test]
-    fn populated_legacy_v4_history_survives_v5_hash_marker_upgrade(
+    fn populated_legacy_v4_history_survives_current_hash_marker_upgrade(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
@@ -1963,7 +1965,8 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analyses;
+            "DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
              DROP TABLE bmad_method_artifacts;
@@ -1975,7 +1978,7 @@ mod tests {
         drop(store);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 6);
+        assert_eq!(reopened.schema_version()?, 7);
         reopened.verify_integrity()?;
         Ok(())
     }

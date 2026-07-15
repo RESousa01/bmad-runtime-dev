@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    canonical_hash, canonical_hash_without_field, canonical_json_bytes, AuthorityRef, ContractId,
-    Sha256Digest,
+    canonical_hash, canonical_hash_without_field, canonical_json_bytes, sha256_bytes, AuthorityRef,
+    ContractId, Sha256Digest,
 };
 
 const BUILDER_DRAFT_SCHEMA: &str = "sapphirus.bmad-builder-authoring.v1";
@@ -378,6 +378,139 @@ pub struct BuilderAnalysisModelBinding {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BuilderModelAnalysisDecisionInput {
+    pub decision_id: ContractId,
+    pub invocation_id: ContractId,
+    pub source_member_set_hash: Sha256Digest,
+    pub deterministic_facts_hash: Sha256Digest,
+    pub model_hash: Sha256Digest,
+    pub deployment_hash: Sha256Digest,
+    pub model_profile_hash: Sha256Digest,
+    pub schema_hash: Sha256Digest,
+    pub consent_hash: Sha256Digest,
+    pub reviewed_at: BmadUtcInstant,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BuilderAnalysisContextDecision {
+    pub decision_id: ContractId,
+    pub invocation_id: ContractId,
+    pub draft_id: ContractId,
+    pub revision_id: ContractId,
+    pub revision_hash: Sha256Digest,
+    pub scope_hash: Sha256Digest,
+    pub source_member_set_hash: Sha256Digest,
+    pub instruction_projection_set_hash: Sha256Digest,
+    pub deterministic_facts_hash: Sha256Digest,
+    pub model_hash: Sha256Digest,
+    pub deployment_hash: Sha256Digest,
+    pub model_profile_hash: Sha256Digest,
+    pub schema_hash: Sha256Digest,
+    pub consent_hash: Sha256Digest,
+    pub reviewed_at: BmadUtcInstant,
+    pub decision_hash: Sha256Digest,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BuilderAnalysisDecisionConsumption {
+    pub consumption_id: ContractId,
+    pub decision_id: ContractId,
+    pub invocation_id: ContractId,
+    pub draft_id: ContractId,
+    pub revision_id: ContractId,
+    pub analysis_id: ContractId,
+    pub decision_hash: Sha256Digest,
+    pub consumed_at: BmadUtcInstant,
+    pub consumption_hash: Sha256Digest,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BuilderAnalysisDecisionInvalidationReason {
+    RevisionChanged,
+    RevisionSuperseded,
+    AcceptedForReview,
+    DraftBlocked,
+    DraftAbandoned,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BuilderAnalysisDecisionInvalidation {
+    pub decision_id: ContractId,
+    pub invocation_id: ContractId,
+    pub draft_id: ContractId,
+    pub revision_id: ContractId,
+    pub decision_hash: Sha256Digest,
+    pub reason: BuilderAnalysisDecisionInvalidationReason,
+    pub aggregate_version: u64,
+    pub invalidation_hash: Sha256Digest,
+}
+
+impl BuilderAnalysisContextDecision {
+    /// Verifies the immutable host decision self-hash and canonical review time.
+    ///
+    /// # Errors
+    ///
+    /// Returns `builder_payload_tampered` when retained decision evidence drifted.
+    pub fn validate_integrity(&self) -> Result<(), BuilderError> {
+        let actual = canonical_hash_without_field(
+            "bmad-builder-analysis-context-decision",
+            1,
+            self,
+            "decisionHash",
+        )?;
+        if !self.reviewed_at.valid() || actual != self.decision_hash {
+            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+        }
+        Ok(())
+    }
+}
+
+impl BuilderAnalysisDecisionConsumption {
+    /// Verifies the immutable host consumption receipt self-hash and canonical time.
+    ///
+    /// # Errors
+    ///
+    /// Returns `builder_payload_tampered` when retained consumption evidence drifted.
+    pub fn validate_integrity(&self) -> Result<(), BuilderError> {
+        let actual = canonical_hash_without_field(
+            "bmad-builder-analysis-decision-consumption",
+            1,
+            self,
+            "consumptionHash",
+        )?;
+        if !self.consumed_at.valid() || actual != self.consumption_hash {
+            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+        }
+        Ok(())
+    }
+}
+
+impl BuilderAnalysisDecisionInvalidation {
+    /// Verifies the immutable host invalidation receipt self-hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns `builder_payload_tampered` when retained invalidation evidence drifted.
+    pub fn validate_integrity(&self) -> Result<(), BuilderError> {
+        let actual = canonical_hash_without_field(
+            "bmad-builder-analysis-decision-invalidation",
+            1,
+            self,
+            "invalidationHash",
+        )?;
+        if self.aggregate_version == 0 || actual != self.invalidation_hash {
+            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct BuilderModelLensResult {
     pub builder_kind: BuilderKind,
     pub lens: BuilderModelLens,
@@ -611,6 +744,7 @@ pub enum BuilderDraftState {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BuilderPersistenceEvent {
     RevisionAppended,
+    AnalysisDecisionIssued,
     AnalysisRecorded,
     RevisionSuperseded,
     AcceptedForReview,
@@ -623,6 +757,7 @@ impl BuilderPersistenceEvent {
     pub const fn event_type(self) -> &'static str {
         match self {
             Self::RevisionAppended => "bmad.builder.revision_appended",
+            Self::AnalysisDecisionIssued => "bmad.builder.analysis_decision_issued",
             Self::AnalysisRecorded => "bmad.builder.analysis_recorded",
             Self::RevisionSuperseded => "bmad.builder.revision_superseded",
             Self::AcceptedForReview => "bmad.builder.accepted_for_review",
@@ -657,6 +792,12 @@ pub struct BuilderDraft {
     version: u64,
     revisions: Vec<BuilderDraftRevision>,
     analyses: Vec<BuilderAnalysisRun>,
+    #[serde(default)]
+    pending_analysis_decision: Option<BuilderAnalysisContextDecision>,
+    #[serde(default)]
+    analysis_consumptions: Vec<BuilderAnalysisDecisionConsumption>,
+    #[serde(default)]
+    analysis_decision_invalidations: Vec<BuilderAnalysisDecisionInvalidation>,
 }
 
 impl BuilderDraft {
@@ -674,6 +815,9 @@ impl BuilderDraft {
             version: 1,
             revisions: Vec::new(),
             analyses: Vec::new(),
+            pending_analysis_decision: None,
+            analysis_consumptions: Vec::new(),
+            analysis_decision_invalidations: Vec::new(),
         })
     }
 
@@ -737,6 +881,21 @@ impl BuilderDraft {
     }
 
     #[must_use]
+    pub const fn pending_analysis_decision(&self) -> Option<&BuilderAnalysisContextDecision> {
+        self.pending_analysis_decision.as_ref()
+    }
+
+    #[must_use]
+    pub fn analysis_consumptions(&self) -> &[BuilderAnalysisDecisionConsumption] {
+        &self.analysis_consumptions
+    }
+
+    #[must_use]
+    pub fn analysis_decision_invalidations(&self) -> &[BuilderAnalysisDecisionInvalidation] {
+        &self.analysis_decision_invalidations
+    }
+
+    #[must_use]
     pub fn renderer_projection(&self) -> BuilderRendererProjection {
         BuilderRendererProjection {
             draft_id: self.record.draft_id.clone(),
@@ -786,9 +945,81 @@ impl BuilderDraft {
         {
             return Err(BuilderError::new(BuilderErrorCode::BuilderRevisionStale));
         }
+        self.invalidate_pending_analysis_decision(
+            BuilderAnalysisDecisionInvalidationReason::RevisionChanged,
+        )?;
         self.revisions.push(revision);
         self.state = BuilderDraftState::DraftReady;
         self.advance_version()
+    }
+
+    /// Persists one host-reviewed model-analysis decision for the exact current revision.
+    /// The decision grants no evaluation, registration, or execution capability.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable decision error for missing authority, replay, or revision drift.
+    pub fn issue_model_analysis_decision(
+        &mut self,
+        expected_version: u64,
+        input: BuilderModelAnalysisDecisionInput,
+    ) -> Result<BuilderAnalysisContextDecision, BuilderError> {
+        self.require_state(
+            expected_version,
+            &[BuilderDraftState::DraftReady, BuilderDraftState::Analyzed],
+        )?;
+        if !input.reviewed_at.valid()
+            || self.pending_analysis_decision.is_some()
+            || self.analysis_consumptions.iter().any(|consumption| {
+                consumption.decision_id == input.decision_id
+                    || consumption.invocation_id == input.invocation_id
+            })
+            || self
+                .analysis_decision_invalidations
+                .iter()
+                .any(|invalidation| {
+                    invalidation.decision_id == input.decision_id
+                        || invalidation.invocation_id == input.invocation_id
+                })
+        {
+            return Err(BuilderError::new(
+                BuilderErrorCode::BuilderContextDecisionInvalid,
+            ));
+        }
+        let revision = self
+            .current_revision()
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderRevisionStale))?;
+        let scope = self
+            .scope()
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderContextDecisionInvalid))?;
+        let scope_hash = canonical_hash("bmad-builder-draft-scope", 1, &scope)?;
+        let mut decision = BuilderAnalysisContextDecision {
+            decision_id: input.decision_id,
+            invocation_id: input.invocation_id,
+            draft_id: self.record.draft_id.clone(),
+            revision_id: revision.revision_id.clone(),
+            revision_hash: revision.revision_hash,
+            scope_hash,
+            source_member_set_hash: input.source_member_set_hash,
+            instruction_projection_set_hash: self.record.instruction_projection_set_hash,
+            deterministic_facts_hash: input.deterministic_facts_hash,
+            model_hash: input.model_hash,
+            deployment_hash: input.deployment_hash,
+            model_profile_hash: input.model_profile_hash,
+            schema_hash: input.schema_hash,
+            consent_hash: input.consent_hash,
+            reviewed_at: input.reviewed_at,
+            decision_hash: sha256_bytes(b"pending-builder-analysis-decision"),
+        };
+        decision.decision_hash = canonical_hash_without_field(
+            "bmad-builder-analysis-context-decision",
+            1,
+            &decision,
+            "decisionHash",
+        )?;
+        self.pending_analysis_decision = Some(decision.clone());
+        self.advance_version()?;
+        Ok(decision)
     }
 
     /// Appends analysis evidence for the exact current revision without changing files.
@@ -799,13 +1030,12 @@ impl BuilderDraft {
     pub fn record_analysis(
         &mut self,
         expected_version: u64,
-        analysis: BuilderAnalysisRun,
+        mut analysis: BuilderAnalysisRun,
     ) -> Result<(), BuilderError> {
         self.require_state(
             expected_version,
             &[BuilderDraftState::DraftReady, BuilderDraftState::Analyzed],
         )?;
-        analysis.validate()?;
         let revision = self
             .current_revision()
             .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderRevisionStale))?;
@@ -820,22 +1050,102 @@ impl BuilderDraft {
                 .analyses
                 .iter()
                 .any(|existing| existing.analysis_id == analysis.analysis_id)
-            || analysis.model_binding().is_some_and(|binding| {
-                self.analyses.iter().any(|existing| {
-                    existing.model_binding().is_some_and(|prior| {
-                        prior.context_decision_id == binding.context_decision_id
-                            || prior.invocation_id == binding.invocation_id
-                            || prior.context_decision_consumption_hash
-                                == binding.context_decision_consumption_hash
-                    })
-                })
-            })
         {
             return Err(BuilderError::new(BuilderErrorCode::BuilderRevisionStale));
         }
+        let consumption = match analysis.analysis_kind {
+            BuilderAnalysisKind::DeterministicStatic => None,
+            BuilderAnalysisKind::ModelLens => Some(self.authorize_model_analysis(&mut analysis)?),
+        };
+        analysis.validate()?;
         self.analyses.push(analysis);
+        if let Some(consumption) = consumption {
+            self.pending_analysis_decision = None;
+            self.analysis_consumptions.push(consumption);
+        }
         self.state = BuilderDraftState::Analyzed;
         self.advance_version()
+    }
+
+    fn authorize_model_analysis(
+        &self,
+        analysis: &mut BuilderAnalysisRun,
+    ) -> Result<BuilderAnalysisDecisionConsumption, BuilderError> {
+        let decision = self
+            .pending_analysis_decision
+            .as_ref()
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderContextDecisionMissing))?;
+        let binding = analysis
+            .model_binding
+            .as_ref()
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderContextDecisionInvalid))?;
+        let scope = self
+            .scope()
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderContextDecisionInvalid))?;
+        if decision.scope_hash != canonical_hash("bmad-builder-draft-scope", 1, &scope)?
+            || decision.draft_id != analysis.draft_id
+            || decision.revision_id != analysis.revision_id
+            || decision.revision_hash != analysis.revision_hash
+            || decision.source_member_set_hash != analysis.source_member_set_hash
+            || decision.instruction_projection_set_hash != analysis.instruction_projection_set_hash
+            || decision.deterministic_facts_hash != analysis.deterministic_facts_hash
+            || decision.decision_id != binding.context_decision_id
+            || decision.invocation_id != binding.invocation_id
+            || decision.model_hash != binding.model_hash
+            || decision.deployment_hash != binding.deployment_hash
+            || decision.model_profile_hash != binding.model_profile_hash
+            || decision.schema_hash != binding.schema_hash
+            || decision.consent_hash != binding.consent_hash
+            || analysis.created_at.as_str() < decision.reviewed_at.as_str()
+        {
+            return Err(BuilderError::new(
+                BuilderErrorCode::BuilderContextDecisionInvalid,
+            ));
+        }
+        let consumption_seed = canonical_hash(
+            "bmad-builder-analysis-consumption-id",
+            1,
+            &(
+                &decision.decision_hash,
+                &decision.draft_id,
+                &decision.revision_id,
+                &analysis.analysis_id,
+                &decision.invocation_id,
+            ),
+        )?;
+        let consumption_id = ContractId::new(format!(
+            "consume_{}",
+            consumption_seed.to_string().trim_start_matches("sha256:")
+        ))
+        .map_err(|_| BuilderError::new(BuilderErrorCode::BuilderContextDecisionInvalid))?;
+        let mut consumption = BuilderAnalysisDecisionConsumption {
+            consumption_id,
+            decision_id: decision.decision_id.clone(),
+            invocation_id: decision.invocation_id.clone(),
+            draft_id: decision.draft_id.clone(),
+            revision_id: decision.revision_id.clone(),
+            analysis_id: analysis.analysis_id.clone(),
+            decision_hash: decision.decision_hash,
+            consumed_at: analysis.created_at.clone(),
+            consumption_hash: sha256_bytes(b"pending-builder-analysis-consumption"),
+        };
+        consumption.consumption_hash = canonical_hash_without_field(
+            "bmad-builder-analysis-decision-consumption",
+            1,
+            &consumption,
+            "consumptionHash",
+        )?;
+        if let Some(binding) = analysis.model_binding.as_mut() {
+            binding.context_decision_consumption_hash = consumption.consumption_hash;
+        }
+        if let Some(results) = analysis.model_lens_results.as_mut() {
+            for result in results {
+                result.context_decision_consumption_hash = consumption.consumption_hash;
+            }
+        }
+        analysis.analysis_hash =
+            canonical_hash_without_field("bmad-builder-analysis", 1, analysis, "analysisHash")?;
+        Ok(consumption)
     }
 
     /// Marks the current inactive revision as superseded while retaining history.
@@ -848,6 +1158,9 @@ impl BuilderDraft {
         if self.current_revision().is_none() {
             return Err(BuilderError::new(BuilderErrorCode::BuilderRevisionStale));
         }
+        self.invalidate_pending_analysis_decision(
+            BuilderAnalysisDecisionInvalidationReason::RevisionSuperseded,
+        )?;
         self.state = BuilderDraftState::Superseded;
         self.advance_version()
     }
@@ -862,6 +1175,9 @@ impl BuilderDraft {
             expected_version,
             &[BuilderDraftState::DraftReady, BuilderDraftState::Analyzed],
         )?;
+        self.invalidate_pending_analysis_decision(
+            BuilderAnalysisDecisionInvalidationReason::AcceptedForReview,
+        )?;
         self.state = BuilderDraftState::UserAccepted;
         self.advance_version()
     }
@@ -873,6 +1189,9 @@ impl BuilderDraft {
     /// Returns a terminal-state or optimistic-version error.
     pub fn block(&mut self, expected_version: u64) -> Result<(), BuilderError> {
         self.require_mutable(expected_version)?;
+        self.invalidate_pending_analysis_decision(
+            BuilderAnalysisDecisionInvalidationReason::DraftBlocked,
+        )?;
         self.state = BuilderDraftState::Blocked;
         self.advance_version()
     }
@@ -884,6 +1203,9 @@ impl BuilderDraft {
     /// Returns a terminal-state or optimistic-version error.
     pub fn abandon(&mut self, expected_version: u64) -> Result<(), BuilderError> {
         self.require_mutable(expected_version)?;
+        self.invalidate_pending_analysis_decision(
+            BuilderAnalysisDecisionInvalidationReason::DraftAbandoned,
+        )?;
         self.state = BuilderDraftState::Abandoned;
         self.advance_version()
     }
@@ -915,6 +1237,18 @@ impl BuilderDraft {
         if self.version == 0 {
             return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
         }
+        self.validate_restored_revisions()?;
+        let (mut decision_ids, mut invocation_ids) = self.validate_restored_analyses()?;
+        self.validate_restored_consumptions()?;
+        self.validate_restored_invalidations(&mut decision_ids, &mut invocation_ids)?;
+        self.validate_pending_analysis_decision(&decision_ids, &invocation_ids)?;
+        if !self.restored_state_shape_valid() {
+            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+        }
+        Ok(())
+    }
+
+    fn validate_restored_revisions(&self) -> Result<(), BuilderError> {
         let mut revision_ids = BTreeSet::new();
         let mut revision_hashes = BTreeSet::new();
         for (index, revision) in self.revisions.iter().enumerate() {
@@ -938,6 +1272,12 @@ impl BuilderDraft {
                 return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
             }
         }
+        Ok(())
+    }
+
+    fn validate_restored_analyses(
+        &self,
+    ) -> Result<(BTreeSet<String>, BTreeSet<String>), BuilderError> {
         let mut analysis_ids = BTreeSet::new();
         let mut decision_ids = BTreeSet::new();
         let mut invocation_ids = BTreeSet::new();
@@ -949,8 +1289,8 @@ impl BuilderDraft {
                     && revision.revision_hash == analysis.revision_hash
             });
             let unique_binding = analysis.model_binding().is_none_or(|binding| {
-                decision_ids.insert(&binding.context_decision_id)
-                    && invocation_ids.insert(&binding.invocation_id)
+                decision_ids.insert(binding.context_decision_id.to_string())
+                    && invocation_ids.insert(binding.invocation_id.to_string())
                     && consumption_hashes.insert(binding.context_decision_consumption_hash)
             });
             if analysis.draft_id != self.record.draft_id
@@ -961,7 +1301,125 @@ impl BuilderDraft {
                 return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
             }
         }
-        let valid_shape = match self.state {
+        Ok((decision_ids, invocation_ids))
+    }
+
+    fn validate_restored_consumptions(&self) -> Result<(), BuilderError> {
+        if self.analysis_consumptions.len()
+            != self
+                .analyses
+                .iter()
+                .filter(|analysis| analysis.analysis_kind == BuilderAnalysisKind::ModelLens)
+                .count()
+        {
+            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+        }
+        for consumption in &self.analysis_consumptions {
+            consumption.validate_integrity()?;
+            let analysis = self
+                .analyses
+                .iter()
+                .find(|analysis| analysis.analysis_id == consumption.analysis_id)
+                .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderPayloadTampered))?;
+            let binding = analysis
+                .model_binding()
+                .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderPayloadTampered))?;
+            if consumption.draft_id != self.record.draft_id
+                || consumption.revision_id != analysis.revision_id
+                || consumption.decision_id != binding.context_decision_id
+                || consumption.invocation_id != binding.invocation_id
+                || consumption.consumption_hash != binding.context_decision_consumption_hash
+            {
+                return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_pending_analysis_decision(
+        &self,
+        decision_ids: &BTreeSet<String>,
+        invocation_ids: &BTreeSet<String>,
+    ) -> Result<(), BuilderError> {
+        if let Some(decision) = &self.pending_analysis_decision {
+            decision.validate_integrity()?;
+            let revision = self
+                .current_revision()
+                .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderPayloadTampered))?;
+            let scope = self
+                .scope()
+                .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderPayloadTampered))?;
+            if decision.draft_id != self.record.draft_id
+                || decision.revision_id != revision.revision_id
+                || decision.revision_hash != revision.revision_hash
+                || decision.instruction_projection_set_hash
+                    != self.record.instruction_projection_set_hash
+                || decision.scope_hash != canonical_hash("bmad-builder-draft-scope", 1, &scope)?
+                || decision_ids.contains(decision.decision_id.as_str())
+                || invocation_ids.contains(decision.invocation_id.as_str())
+            {
+                return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_restored_invalidations(
+        &self,
+        decision_ids: &mut BTreeSet<String>,
+        invocation_ids: &mut BTreeSet<String>,
+    ) -> Result<(), BuilderError> {
+        for invalidation in &self.analysis_decision_invalidations {
+            invalidation.validate_integrity()?;
+            let revision_exists = self
+                .revisions
+                .iter()
+                .any(|revision| revision.revision_id == invalidation.revision_id);
+            if invalidation.draft_id != self.record.draft_id
+                || !revision_exists
+                || invalidation.aggregate_version > self.version
+                || !decision_ids.insert(invalidation.decision_id.to_string())
+                || !invocation_ids.insert(invalidation.invocation_id.to_string())
+            {
+                return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
+            }
+        }
+        Ok(())
+    }
+
+    fn invalidate_pending_analysis_decision(
+        &mut self,
+        reason: BuilderAnalysisDecisionInvalidationReason,
+    ) -> Result<(), BuilderError> {
+        let Some(decision) = self.pending_analysis_decision.take() else {
+            return Ok(());
+        };
+        let aggregate_version = self
+            .version
+            .checked_add(1)
+            .ok_or_else(|| BuilderError::new(BuilderErrorCode::BuilderRevisionStale))?;
+        let mut invalidation = BuilderAnalysisDecisionInvalidation {
+            decision_id: decision.decision_id,
+            invocation_id: decision.invocation_id,
+            draft_id: decision.draft_id,
+            revision_id: decision.revision_id,
+            decision_hash: decision.decision_hash,
+            reason,
+            aggregate_version,
+            invalidation_hash: sha256_bytes(b"pending-builder-analysis-invalidation"),
+        };
+        invalidation.invalidation_hash = canonical_hash_without_field(
+            "bmad-builder-analysis-decision-invalidation",
+            1,
+            &invalidation,
+            "invalidationHash",
+        )?;
+        self.analysis_decision_invalidations.push(invalidation);
+        Ok(())
+    }
+
+    fn restored_state_shape_valid(&self) -> bool {
+        match self.state {
             BuilderDraftState::Drafting => self.revisions.is_empty() && self.analyses.is_empty(),
             BuilderDraftState::DraftReady | BuilderDraftState::UserAccepted => {
                 !self.revisions.is_empty()
@@ -969,11 +1427,7 @@ impl BuilderDraft {
             BuilderDraftState::Analyzed => !self.revisions.is_empty() && !self.analyses.is_empty(),
             BuilderDraftState::Blocked | BuilderDraftState::Abandoned => true,
             BuilderDraftState::Superseded => !self.revisions.is_empty(),
-        };
-        if !valid_shape {
-            return Err(BuilderError::new(BuilderErrorCode::BuilderPayloadTampered));
         }
-        Ok(())
     }
 
     fn require_mutable(&self, expected_version: u64) -> Result<(), BuilderError> {
@@ -1024,6 +1478,8 @@ pub enum BuilderErrorCode {
     BuilderAnalysisNotEvaluation,
     BuilderFutureCapabilityForbidden,
     BuilderPayloadTampered,
+    BuilderContextDecisionMissing,
+    BuilderContextDecisionInvalid,
 }
 
 impl BuilderErrorCode {
@@ -1036,6 +1492,8 @@ impl BuilderErrorCode {
             Self::BuilderAnalysisNotEvaluation => "builder_analysis_not_evaluation",
             Self::BuilderFutureCapabilityForbidden => "builder_future_capability_forbidden",
             Self::BuilderPayloadTampered => "builder_payload_tampered",
+            Self::BuilderContextDecisionMissing => "builder_context_decision_missing",
+            Self::BuilderContextDecisionInvalid => "builder_context_decision_invalid",
         }
     }
 }

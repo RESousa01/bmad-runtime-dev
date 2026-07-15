@@ -13,13 +13,16 @@ pub use binding::{
     MethodResourcePolicy, MethodRuntimeRequirement,
 };
 pub use builder::{
-    BmadUtcInstant, BuilderActionName, BuilderAnalysisKind, BuilderAnalysisModelBinding,
+    BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
+    BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
+    BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
     BuilderAnalysisRun, BuilderAuthoringAction, BuilderCapabilityFact, BuilderDeterministicFinding,
     BuilderDraft, BuilderDraftRecord, BuilderDraftRevision, BuilderDraftScope, BuilderDraftState,
     BuilderError, BuilderErrorCode, BuilderFindingSeverity, BuilderKind, BuilderLensVerdict,
-    BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
-    BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
-    BuilderProposedFileSet, BuilderRendererProjection, BuilderValidationProfile,
+    BuilderModelAnalysisDecisionInput, BuilderModelFinding, BuilderModelLens,
+    BuilderModelLensResult, BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent,
+    BuilderProposedFile, BuilderProposedFileSet, BuilderRendererProjection,
+    BuilderValidationProfile,
 };
 pub use builder_ports::{BuilderAuthoringService, BuilderDraftRepository, BuilderServiceError};
 pub use error::{MethodError, MethodErrorCode};

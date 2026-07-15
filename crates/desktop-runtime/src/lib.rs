@@ -26,12 +26,14 @@ mod ids;
 mod generated_contracts;
 
 pub use bmad::{
-    BmadCapabilityKey, BmadUtcInstant, BuilderActionName, BuilderAnalysisKind,
-    BuilderAnalysisModelBinding, BuilderAnalysisRun, BuilderAuthoringAction,
-    BuilderAuthoringService, BuilderCapabilityFact, BuilderDeterministicFinding, BuilderDraft,
-    BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope,
-    BuilderDraftState, BuilderError, BuilderErrorCode, BuilderFindingSeverity, BuilderKind,
-    BuilderLensVerdict, BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
+    BmadCapabilityKey, BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
+    BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
+    BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
+    BuilderAnalysisRun, BuilderAuthoringAction, BuilderAuthoringService, BuilderCapabilityFact,
+    BuilderDeterministicFinding, BuilderDraft, BuilderDraftRecord, BuilderDraftRepository,
+    BuilderDraftRevision, BuilderDraftScope, BuilderDraftState, BuilderError, BuilderErrorCode,
+    BuilderFindingSeverity, BuilderKind, BuilderLensVerdict, BuilderModelAnalysisDecisionInput,
+    BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
     BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
     BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
     BuilderValidationProfile, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,

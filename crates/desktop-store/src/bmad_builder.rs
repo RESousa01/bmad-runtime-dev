@@ -1,9 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{
-    canonical_json_bytes, BuilderAnalysisKind, BuilderAnalysisRun, BuilderDraft,
-    BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope, BuilderDraftState,
-    BuilderPersistenceEvent, ContractId,
+    canonical_hash, canonical_json_bytes, BuilderAnalysisContextDecision,
+    BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
+    BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisRun,
+    BuilderDraft, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope,
+    BuilderDraftState, BuilderPersistenceEvent, ContractId,
 };
 use rusqlite::{params, OptionalExtension, TransactionBehavior};
 
@@ -18,6 +20,9 @@ const BUILDER_REVISION_KIND: &str = "bmad_builder_revision";
 const BUILDER_REVISION_SCHEMA: &str = "sapphirus.bmad-builder-revision.v1";
 const BUILDER_ANALYSIS_KIND: &str = "bmad_builder_analysis";
 const BUILDER_ANALYSIS_SCHEMA: &str = "sapphirus.bmad-builder-analysis.v1";
+const BUILDER_ANALYSIS_DECISION_KIND: &str = "bmad_builder_analysis_decision";
+const BUILDER_ANALYSIS_DECISION_SCHEMA: &str =
+    "sapphirus.bmad-builder-analysis-context-decision.v1";
 
 #[derive(Debug)]
 struct BuilderStateRef {
@@ -62,6 +67,27 @@ struct BuilderAnalysisIntegrityRow {
     payload: PayloadRef,
 }
 
+#[derive(Debug)]
+struct BuilderDecisionIntegrityRow {
+    draft_id: String,
+    decision_id: String,
+    revision_id: String,
+    revision_hash: String,
+    scope_hash: String,
+    invocation_id: String,
+    decision_hash: String,
+    disposition: String,
+    consumed_analysis_id: Option<String>,
+    consumption_id: Option<String>,
+    consumption_hash: Option<String>,
+    consumed_at: Option<String>,
+    invalidation_reason: Option<String>,
+    invalidation_version: Option<u64>,
+    invalidation_hash: Option<String>,
+    invalidated_at: Option<String>,
+    payload: PayloadRef,
+}
+
 impl BuilderDraftRepository for LocalStore {
     type Error = StoreError;
 
@@ -71,6 +97,9 @@ impl BuilderDraftRepository for LocalStore {
             || draft.state() != BuilderDraftState::Drafting
             || draft.current_revision().is_some()
             || !draft.analyses().is_empty()
+            || draft.pending_analysis_decision().is_some()
+            || !draft.analysis_consumptions().is_empty()
+            || !draft.analysis_decision_invalidations().is_empty()
         {
             return Err(StoreError::StateConflict);
         }
@@ -195,35 +224,12 @@ impl BuilderDraftRepository for LocalStore {
             BUILDER_STATE_SCHEMA,
             state_json.as_bytes(),
         )?;
-        let history_payload = match event_kind {
-            BuilderPersistenceEvent::RevisionAppended => {
-                let revision = draft.current_revision().ok_or(StoreError::Inconsistent)?;
-                Some((
-                    self.put_payload(
-                        BUILDER_REVISION_KIND,
-                        BUILDER_REVISION_SCHEMA,
-                        &canonical_json_bytes(revision).map_err(|_| StoreError::Inconsistent)?,
-                    )?,
-                    HistoryRecord::Revision(revision),
-                ))
-            }
-            BuilderPersistenceEvent::AnalysisRecorded => {
-                let analysis = draft.analyses().last().ok_or(StoreError::Inconsistent)?;
-                Some((
-                    self.put_payload(
-                        BUILDER_ANALYSIS_KIND,
-                        BUILDER_ANALYSIS_SCHEMA,
-                        &canonical_json_bytes(analysis).map_err(|_| StoreError::Inconsistent)?,
-                    )?,
-                    HistoryRecord::Analysis(analysis),
-                ))
-            }
-            _ => None,
-        };
+        let history_payload = prepare_history_payload(self, draft, event_kind)?;
         let occurred_at = canonical_now();
         let causation_id = match &history_payload {
             Some((_, HistoryRecord::Revision(value))) => Some(value.revision_id.to_string()),
             Some((_, HistoryRecord::Analysis(value))) => Some(value.analysis_id.to_string()),
+            Some((_, HistoryRecord::Decision(value))) => Some(value.decision_id.to_string()),
             None => None,
         };
         let event = builder_event(
@@ -261,6 +267,13 @@ impl BuilderDraftRepository for LocalStore {
         if updated != 1 {
             return Err(StoreError::StateConflict);
         }
+        if let Some(invalidation) = draft
+            .analysis_decision_invalidations()
+            .iter()
+            .find(|value| value.aggregate_version == draft.version())
+        {
+            invalidate_analysis_decision(&transaction, draft, invalidation, &occurred_at)?;
+        }
         if let Some((payload, history)) = history_payload {
             insert_history(&transaction, draft, &payload, history, &occurred_at)?;
         }
@@ -274,6 +287,47 @@ impl BuilderDraftRepository for LocalStore {
 enum HistoryRecord<'a> {
     Revision(&'a BuilderDraftRevision),
     Analysis(&'a BuilderAnalysisRun),
+    Decision(&'a BuilderAnalysisContextDecision),
+}
+
+fn prepare_history_payload<'a>(
+    store: &LocalStore,
+    draft: &'a BuilderDraft,
+    event: BuilderPersistenceEvent,
+) -> Result<Option<(PayloadRef, HistoryRecord<'a>)>, StoreError> {
+    let (kind, schema, bytes, history) = match event {
+        BuilderPersistenceEvent::RevisionAppended => {
+            let revision = draft.current_revision().ok_or(StoreError::Inconsistent)?;
+            (
+                BUILDER_REVISION_KIND,
+                BUILDER_REVISION_SCHEMA,
+                canonical_json_bytes(revision).map_err(|_| StoreError::Inconsistent)?,
+                HistoryRecord::Revision(revision),
+            )
+        }
+        BuilderPersistenceEvent::AnalysisRecorded => {
+            let analysis = draft.analyses().last().ok_or(StoreError::Inconsistent)?;
+            (
+                BUILDER_ANALYSIS_KIND,
+                BUILDER_ANALYSIS_SCHEMA,
+                canonical_json_bytes(analysis).map_err(|_| StoreError::Inconsistent)?,
+                HistoryRecord::Analysis(analysis),
+            )
+        }
+        BuilderPersistenceEvent::AnalysisDecisionIssued => {
+            let decision = draft
+                .pending_analysis_decision()
+                .ok_or(StoreError::Inconsistent)?;
+            (
+                BUILDER_ANALYSIS_DECISION_KIND,
+                BUILDER_ANALYSIS_DECISION_SCHEMA,
+                canonical_json_bytes(decision).map_err(|_| StoreError::Inconsistent)?,
+                HistoryRecord::Decision(decision),
+            )
+        }
+        _ => return Ok(None),
+    };
+    Ok(Some((store.put_payload(kind, schema, &bytes)?, history)))
 }
 
 fn insert_history(
@@ -304,7 +358,7 @@ fn insert_history(
         ),
         HistoryRecord::Analysis(analysis) => {
             let binding = analysis.model_binding();
-            transaction.execute(
+            let inserted = transaction.execute(
                 "INSERT INTO bmad_builder_analyses
                  (analysis_id, draft_id, revision_id, revision_hash, analysis_kind,
                   context_decision_id, invocation_id, decision_consumption_hash,
@@ -324,8 +378,48 @@ fn insert_history(
                     payload.schema_version,
                     occurred_at,
                 ],
-            )
+            );
+            match inserted {
+                Ok(1) => {
+                    if let Some(binding) = binding {
+                        let consumption = draft
+                            .analysis_consumptions()
+                            .iter()
+                            .find(|value| value.analysis_id == analysis.analysis_id)
+                            .ok_or(StoreError::Inconsistent)?;
+                        consume_analysis_decision(
+                            transaction,
+                            draft,
+                            analysis,
+                            binding.context_decision_id.as_str(),
+                            consumption,
+                        )?;
+                    }
+                    Ok(1)
+                }
+                other => other,
+            }
         }
+        HistoryRecord::Decision(decision) => transaction.execute(
+            "INSERT INTO bmad_builder_analysis_decisions
+             (decision_id, draft_id, revision_id, revision_hash, scope_hash,
+              invocation_id, decision_hash, disposition, content_hash, content_kind,
+              content_schema_version, recorded_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'pending', ?8, ?9, ?10, ?11)",
+            params![
+                decision.decision_id.as_str(),
+                draft.record().draft_id.as_str(),
+                decision.revision_id.as_str(),
+                decision.revision_hash.to_string(),
+                decision.scope_hash.to_string(),
+                decision.invocation_id.as_str(),
+                decision.decision_hash.to_string(),
+                payload.content_hash,
+                payload.kind,
+                payload.schema_version,
+                occurred_at,
+            ],
+        ),
     };
     match inserted {
         Ok(1) => Ok(()),
@@ -335,10 +429,83 @@ fn insert_history(
     }
 }
 
+fn consume_analysis_decision(
+    transaction: &rusqlite::Transaction<'_>,
+    draft: &BuilderDraft,
+    analysis: &BuilderAnalysisRun,
+    decision_id: &str,
+    consumption: &BuilderAnalysisDecisionConsumption,
+) -> Result<(), StoreError> {
+    consumption.validate_integrity()?;
+    let updated = transaction.execute(
+        "UPDATE bmad_builder_analysis_decisions
+         SET disposition = 'consumed', consumed_analysis_id = ?1,
+             consumption_id = ?2, consumption_hash = ?3,
+             consumed_at = ?4
+         WHERE decision_id = ?5 AND draft_id = ?6 AND revision_id = ?7
+           AND revision_hash = ?8 AND invocation_id = ?9 AND decision_hash = ?10
+           AND disposition = 'pending'
+           AND consumed_analysis_id IS NULL AND consumption_id IS NULL
+           AND consumption_hash IS NULL AND consumed_at IS NULL",
+        params![
+            analysis.analysis_id.as_str(),
+            consumption.consumption_id.as_str(),
+            consumption.consumption_hash.to_string(),
+            consumption.consumed_at.as_str(),
+            decision_id,
+            draft.record().draft_id.as_str(),
+            analysis.revision_id.as_str(),
+            analysis.revision_hash.to_string(),
+            consumption.invocation_id.as_str(),
+            consumption.decision_hash.to_string(),
+        ],
+    )?;
+    if updated == 1 {
+        Ok(())
+    } else {
+        Err(StoreError::StateConflict)
+    }
+}
+
+fn invalidate_analysis_decision(
+    transaction: &rusqlite::Transaction<'_>,
+    draft: &BuilderDraft,
+    invalidation: &BuilderAnalysisDecisionInvalidation,
+    occurred_at: &str,
+) -> Result<(), StoreError> {
+    invalidation.validate_integrity()?;
+    let updated = transaction.execute(
+        "UPDATE bmad_builder_analysis_decisions
+         SET disposition = 'invalidated', invalidation_reason = ?1,
+             invalidation_version = ?2, invalidation_hash = ?3, invalidated_at = ?4
+         WHERE decision_id = ?5 AND draft_id = ?6 AND revision_id = ?7
+           AND decision_hash = ?8 AND disposition = 'pending'
+           AND consumed_analysis_id IS NULL AND consumption_id IS NULL
+           AND consumption_hash IS NULL AND consumed_at IS NULL
+           AND invalidation_reason IS NULL AND invalidation_version IS NULL
+           AND invalidation_hash IS NULL AND invalidated_at IS NULL",
+        params![
+            invalidation_reason_name(invalidation.reason),
+            invalidation.aggregate_version,
+            invalidation.invalidation_hash.to_string(),
+            occurred_at,
+            invalidation.decision_id.as_str(),
+            draft.record().draft_id.as_str(),
+            invalidation.revision_id.as_str(),
+            invalidation.decision_hash.to_string(),
+        ],
+    )?;
+    if updated == 1 {
+        Ok(())
+    } else {
+        Err(StoreError::StateConflict)
+    }
+}
+
 impl LocalStore {
     fn verify_builder_history_for_draft(&self, draft: &BuilderDraft) -> Result<(), StoreError> {
         let draft_id = draft.record().draft_id.as_str();
-        let (revision_rows, analysis_rows) = {
+        let (revision_rows, analysis_rows, decision_rows) = {
             let connection = self.connection.lock();
             let revisions = load_revision_integrity_rows(&connection)?
                 .into_iter()
@@ -348,25 +515,32 @@ impl LocalStore {
                 .into_iter()
                 .filter(|row| row.draft_id == draft_id)
                 .collect();
-            (revisions, analyses)
+            let decisions = load_decision_integrity_rows(&connection)?
+                .into_iter()
+                .filter(|row| row.draft_id == draft_id)
+                .collect();
+            (revisions, analyses, decisions)
         };
         let drafts = BTreeMap::from([(draft_id.to_owned(), draft.clone())]);
         self.verify_builder_revisions(revision_rows, &drafts)?;
-        self.verify_builder_analyses(analysis_rows, &drafts)
+        self.verify_builder_analyses(analysis_rows, &drafts)?;
+        self.verify_builder_decisions(decision_rows, &drafts)
     }
 
     pub(crate) fn verify_builder_integrity(&self) -> Result<(), StoreError> {
-        let (draft_rows, revision_rows, analysis_rows) = {
+        let (draft_rows, revision_rows, analysis_rows, decision_rows) = {
             let connection = self.connection.lock();
             (
                 load_draft_integrity_rows(&connection)?,
                 load_revision_integrity_rows(&connection)?,
                 load_analysis_integrity_rows(&connection)?,
+                load_decision_integrity_rows(&connection)?,
             )
         };
         let drafts = self.verify_builder_drafts(draft_rows)?;
         self.verify_builder_revisions(revision_rows, &drafts)?;
-        self.verify_builder_analyses(analysis_rows, &drafts)
+        self.verify_builder_analyses(analysis_rows, &drafts)?;
+        self.verify_builder_decisions(decision_rows, &drafts)
     }
 
     fn verify_builder_drafts(
@@ -463,6 +637,96 @@ impl LocalStore {
             .sum::<usize>()
             != seen.len()
         {
+            return Err(StoreError::Inconsistent);
+        }
+        Ok(())
+    }
+
+    fn verify_builder_decisions(
+        &self,
+        rows: Vec<BuilderDecisionIntegrityRow>,
+        drafts: &BTreeMap<String, BuilderDraft>,
+    ) -> Result<(), StoreError> {
+        let mut seen = BTreeSet::new();
+        for row in rows {
+            let bytes = self.get_payload(&row.payload)?;
+            let decision: BuilderAnalysisContextDecision = serde_json::from_slice(&bytes)?;
+            decision.validate_integrity()?;
+            let draft = drafts.get(&row.draft_id).ok_or(StoreError::Inconsistent)?;
+            let pending_matches = row.disposition == "pending"
+                && row.consumed_analysis_id.is_none()
+                && row.consumption_id.is_none()
+                && row.consumption_hash.is_none()
+                && row.consumed_at.is_none()
+                && row.invalidation_reason.is_none()
+                && row.invalidation_version.is_none()
+                && row.invalidation_hash.is_none()
+                && row.invalidated_at.is_none()
+                && draft.pending_analysis_decision() == Some(&decision);
+            let consumption = draft
+                .analysis_consumptions()
+                .iter()
+                .find(|value| value.decision_id == decision.decision_id);
+            let consumed_matches = consumption.is_some_and(|value| {
+                row.disposition == "consumed"
+                    && row.consumed_analysis_id.as_deref() == Some(value.analysis_id.as_str())
+                    && row.consumption_id.as_deref() == Some(value.consumption_id.as_str())
+                    && row.consumption_hash.as_deref()
+                        == Some(value.consumption_hash.to_string().as_str())
+                    && row.consumed_at.as_deref() == Some(value.consumed_at.as_str())
+                    && row.invalidation_reason.is_none()
+                    && row.invalidation_version.is_none()
+                    && row.invalidation_hash.is_none()
+                    && row.invalidated_at.is_none()
+                    && value.decision_hash == decision.decision_hash
+            });
+            let invalidation = draft
+                .analysis_decision_invalidations()
+                .iter()
+                .find(|value| value.decision_id == decision.decision_id);
+            let invalidated_matches = invalidation.is_some_and(|value| {
+                row.disposition == "invalidated"
+                    && row.consumed_analysis_id.is_none()
+                    && row.consumption_id.is_none()
+                    && row.consumption_hash.is_none()
+                    && row.consumed_at.is_none()
+                    && row.invalidation_reason.as_deref()
+                        == Some(invalidation_reason_name(value.reason))
+                    && row.invalidation_version == Some(value.aggregate_version)
+                    && row.invalidation_hash.as_deref()
+                        == Some(value.invalidation_hash.to_string().as_str())
+                    && row
+                        .invalidated_at
+                        .as_deref()
+                        .is_some_and(|time| !time.is_empty())
+                    && value.decision_hash == decision.decision_hash
+            });
+            let scope = draft.scope().ok_or(StoreError::Inconsistent)?;
+            if canonical_json_bytes(&decision).map_err(|_| StoreError::Inconsistent)? != bytes
+                || decision.decision_id.as_str() != row.decision_id
+                || decision.revision_id.as_str() != row.revision_id
+                || decision.revision_hash.to_string() != row.revision_hash
+                || decision.scope_hash.to_string() != row.scope_hash
+                || decision.invocation_id.as_str() != row.invocation_id
+                || decision.decision_hash.to_string() != row.decision_hash
+                || decision.scope_hash
+                    != canonical_hash("bmad-builder-draft-scope", 1, &scope)
+                        .map_err(|_| StoreError::Inconsistent)?
+                || !(pending_matches || consumed_matches || invalidated_matches)
+                || !seen.insert((row.draft_id, row.decision_id))
+            {
+                return Err(StoreError::Inconsistent);
+            }
+        }
+        let expected = drafts
+            .values()
+            .map(|draft| {
+                draft.analysis_consumptions().len()
+                    + usize::from(draft.pending_analysis_decision().is_some())
+                    + draft.analysis_decision_invalidations().len()
+            })
+            .sum::<usize>();
+        if expected != seen.len() {
             return Err(StoreError::Inconsistent);
         }
         Ok(())
@@ -572,6 +836,53 @@ fn load_analysis_integrity_rows(
     Ok(rows)
 }
 
+fn load_decision_integrity_rows(
+    connection: &rusqlite::Connection,
+) -> Result<Vec<BuilderDecisionIntegrityRow>, StoreError> {
+    let mut statement = connection.prepare(
+        "SELECT d.draft_id, d.decision_id, d.revision_id, d.revision_hash,
+                d.scope_hash, d.invocation_id, d.decision_hash, d.disposition,
+                d.consumed_analysis_id, d.consumption_id, d.consumption_hash,
+                d.consumed_at, d.invalidation_reason, d.invalidation_version,
+                d.invalidation_hash, d.invalidated_at, d.content_hash, d.content_kind,
+                d.content_schema_version, p.byte_count, p.key_version
+         FROM bmad_builder_analysis_decisions d JOIN payloads p
+           ON p.content_hash = d.content_hash AND p.kind = d.content_kind
+          AND p.schema_version = d.content_schema_version
+         ORDER BY d.draft_id, d.decision_id",
+    )?;
+    let rows = statement
+        .query_map([], |row| {
+            Ok(BuilderDecisionIntegrityRow {
+                draft_id: row.get(0)?,
+                decision_id: row.get(1)?,
+                revision_id: row.get(2)?,
+                revision_hash: row.get(3)?,
+                scope_hash: row.get(4)?,
+                invocation_id: row.get(5)?,
+                decision_hash: row.get(6)?,
+                disposition: row.get(7)?,
+                consumed_analysis_id: row.get(8)?,
+                consumption_id: row.get(9)?,
+                consumption_hash: row.get(10)?,
+                consumed_at: row.get(11)?,
+                invalidation_reason: row.get(12)?,
+                invalidation_version: row.get(13)?,
+                invalidation_hash: row.get(14)?,
+                invalidated_at: row.get(15)?,
+                payload: PayloadRef {
+                    content_hash: row.get(16)?,
+                    kind: row.get(17)?,
+                    schema_version: row.get(18)?,
+                    byte_count: row.get(19)?,
+                    key_version: row.get(20)?,
+                },
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(rows)
+}
+
 fn builder_event(
     draft_id: &str,
     event_type: &str,
@@ -617,12 +928,25 @@ fn analysis_kind_name(kind: BuilderAnalysisKind) -> &'static str {
     }
 }
 
+fn invalidation_reason_name(reason: BuilderAnalysisDecisionInvalidationReason) -> &'static str {
+    match reason {
+        BuilderAnalysisDecisionInvalidationReason::RevisionChanged => "revision_changed",
+        BuilderAnalysisDecisionInvalidationReason::RevisionSuperseded => "revision_superseded",
+        BuilderAnalysisDecisionInvalidationReason::AcceptedForReview => "accepted_for_review",
+        BuilderAnalysisDecisionInvalidationReason::DraftBlocked => "draft_blocked",
+        BuilderAnalysisDecisionInvalidationReason::DraftAbandoned => "draft_abandoned",
+    }
+}
+
 fn builder_event_matches_state(event: BuilderPersistenceEvent, state: BuilderDraftState) -> bool {
     matches!(
         (event, state),
         (
             BuilderPersistenceEvent::RevisionAppended,
             BuilderDraftState::DraftReady
+        ) | (
+            BuilderPersistenceEvent::AnalysisDecisionIssued,
+            BuilderDraftState::DraftReady | BuilderDraftState::Analyzed
         ) | (
             BuilderPersistenceEvent::AnalysisRecorded,
             BuilderDraftState::Analyzed

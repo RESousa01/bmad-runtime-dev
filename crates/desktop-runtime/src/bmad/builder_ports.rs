@@ -3,8 +3,9 @@ use std::{error::Error, fmt};
 use crate::{AuthorityRef, ContractId};
 
 use super::{
-    BuilderAnalysisRun, BuilderDraft, BuilderDraftRecord, BuilderDraftRevision, BuilderDraftScope,
-    BuilderError, BuilderErrorCode, BuilderPersistenceEvent, BuilderRendererProjection,
+    BuilderAnalysisContextDecision, BuilderAnalysisRun, BuilderDraft, BuilderDraftRecord,
+    BuilderDraftRevision, BuilderDraftScope, BuilderError, BuilderErrorCode,
+    BuilderModelAnalysisDecisionInput, BuilderPersistenceEvent, BuilderRendererProjection,
 };
 
 /// Persistence boundary for the separate inactive Builder authoring lifecycle.
@@ -139,6 +140,31 @@ impl<R: BuilderDraftRepository> BuilderAuthoringService<R> {
             expected_version,
             |draft| draft.record_analysis(expected_version, analysis),
             BuilderPersistenceEvent::AnalysisRecorded,
+        )
+    }
+
+    /// Persists one host-reviewed, exact-revision model-analysis decision.
+    ///
+    /// # Errors
+    ///
+    /// Returns a scope, revision, replay, optimistic conflict, or repository error.
+    pub fn issue_model_analysis_decision(
+        &self,
+        scope: &BuilderDraftScope,
+        draft_id: &ContractId,
+        expected_version: u64,
+        input: BuilderModelAnalysisDecisionInput,
+    ) -> Result<BuilderDraft, BuilderServiceError<R::Error>> {
+        self.transition(
+            scope,
+            draft_id,
+            expected_version,
+            |draft| {
+                let _: BuilderAnalysisContextDecision =
+                    draft.issue_model_analysis_decision(expected_version, input)?;
+                Ok(())
+            },
+            BuilderPersistenceEvent::AnalysisDecisionIssued,
         )
     }
 
