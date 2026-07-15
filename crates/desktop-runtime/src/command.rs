@@ -12,6 +12,18 @@ pub enum ApprovalChoice {
     Discard,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BmadLibraryProjectionScope {
+    InstalledMethod,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BmadProjectionInvalidationScope {
+    Library,
+}
+
 /// Narrow desktop commands accepted by the local runtime.
 ///
 /// Notably absent: arbitrary paths, SQL, shell text, executable paths, provider
@@ -42,6 +54,10 @@ pub enum LocalCommand {
     },
     ScanBmad {
         workspace_id: ContractId,
+    },
+    BmadLibrarySnapshot {
+        scope: BmadLibraryProjectionScope,
+        cursor: Option<String>,
     },
     PreviewContext {
         workspace_id: ContractId,
@@ -87,6 +103,7 @@ impl LocalCommand {
             Self::ReadWorkspaceText { .. } => "workspace.read_text",
             Self::SearchWorkspace { .. } => "workspace.search",
             Self::ScanBmad { .. } => "bmad.scan",
+            Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
             Self::PreviewContext { .. } => "context.preview",
             Self::CreateSession { .. } => "session.create",
             Self::SubmitTask { .. } => "task.submit",
@@ -108,6 +125,7 @@ impl LocalCommand {
                 | Self::ReadWorkspaceText { .. }
                 | Self::SearchWorkspace { .. }
                 | Self::ScanBmad { .. }
+                | Self::BmadLibrarySnapshot { .. }
                 | Self::PreviewContext { .. }
         )
     }
@@ -184,6 +202,10 @@ pub enum ProjectionEventKind {
     UpdateStateChanged {
         state: String,
     },
+    #[serde(rename = "bmad.projection_changed")]
+    BmadProjectionChanged {
+        scope: BmadProjectionInvalidationScope,
+    },
 }
 
 #[async_trait]
@@ -208,7 +230,7 @@ pub trait RendererProjection: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApprovalChoice, LocalCommand};
+    use super::{ApprovalChoice, BmadLibraryProjectionScope, LocalCommand};
     use crate::{sha256_bytes, ContractId, RelativeWorkspacePath};
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
@@ -248,6 +270,10 @@ mod tests {
             },
             LocalCommand::ScanBmad {
                 workspace_id: workspace_id.clone(),
+            },
+            LocalCommand::BmadLibrarySnapshot {
+                scope: BmadLibraryProjectionScope::InstalledMethod,
+                cursor: None,
             },
             LocalCommand::PreviewContext {
                 workspace_id: workspace_id.clone(),

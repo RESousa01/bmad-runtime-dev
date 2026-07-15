@@ -6,7 +6,10 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::unique_json::UniqueJson;
+use crate::{
+    bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload},
+    unique_json::UniqueJson,
+};
 
 pub const MAX_COMMAND_BYTES: usize = 128 * 1024;
 const MAX_JSON_DEPTH: usize = 16;
@@ -175,6 +178,7 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.read_text"
             | "workspace.search"
             | "bmad.scan"
+            | "bmad.library.snapshot"
             | "context.preview"
     )
 }
@@ -305,9 +309,25 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 workspace_id: input.workspace_id,
             })
         }
+        "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
         "context.preview" => parse_context_preview(payload),
         _ => parse_later_phase_command(command, payload),
     }
+}
+
+fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadLibrarySnapshotPayload = parse_payload(payload)?;
+    if input
+        .cursor
+        .as_deref()
+        .is_some_and(|cursor| !valid_bmad_cursor(cursor))
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::BmadLibrarySnapshot {
+        scope: input.scope,
+        cursor: input.cursor,
+    })
 }
 
 fn parse_list_entries(payload: Value) -> Result<LocalCommand, IpcValidationError> {

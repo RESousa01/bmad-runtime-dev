@@ -54,8 +54,9 @@ pub use bmad::{
     MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
 };
 pub use command::{
-    ApprovalChoice, CommandReceipt, LocalCommand, LocalRuntimeCommandBus, ProjectionCursor,
-    ProjectionEvent, ProjectionEventKind, ProjectionScope, ProjectionSnapshot, RendererProjection,
+    ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,
+    LocalCommand, LocalRuntimeCommandBus, ProjectionCursor, ProjectionEvent, ProjectionEventKind,
+    ProjectionScope, ProjectionSnapshot, RendererProjection,
 };
 pub use domain::{
     ApprovalDecision, ApprovalDecisionDraft, ApprovalOutcome, ApprovedExecutionSpec,

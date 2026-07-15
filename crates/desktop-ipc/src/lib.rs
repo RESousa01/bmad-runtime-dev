@@ -4,6 +4,7 @@
 //! Validation binds a request to a Rust-issued renderer session and to the
 //! installation before a domain command is created.
 
+mod bmad;
 mod envelope;
 mod gate;
 mod unique_json;
@@ -31,3 +32,10 @@ where
         serde_json::from_slice(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
     serde_json::from_value(value).map_err(|_| IpcValidationError::InvalidJson)
 }
+pub use bmad::{
+    project_bmad_library, BmadAgentMenuProjection, BmadAgentMenuTargetProjection,
+    BmadAgentProjection, BmadHelpActionProjection, BmadInstalledSkillProjection,
+    BmadLibrarySnapshotProjection, BmadLibrarySourceKind, BmadLibrarySourceProjection,
+    BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
+    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+};
