@@ -14,12 +14,15 @@ deterministic-fake = []
 async-trait.workspace = true
 desktop-egress = { path = "../desktop-egress" }
 desktop-runtime = { path = "../desktop-runtime" }
+hex.workspace = true
 parking_lot.workspace = true
+rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
 time.workspace = true
+tokio.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]

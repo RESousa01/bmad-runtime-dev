@@ -7,14 +7,20 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+mod broker_protocol;
 mod identity;
 mod model;
+#[cfg(windows)]
+mod windows_broker;
 
+pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 pub use model::{
     verify_model_response, AuthorizedContextItem, AuthorizedModelRequest, CanonicalOutputValidator,
     ModelAccessReceipt, ModelReceiptStatus, RawModelOutput, ReceiptVerifier, VerifiedModelOutput,
 };
+#[cfg(windows)]
+pub use windows_broker::{WindowsBrokerConfig, WindowsIdentityBroker};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
