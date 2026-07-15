@@ -44,10 +44,12 @@ pub use bmad::{
     BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
     BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
     BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
-    BuilderValidationProfile, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
-    MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
-    MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
+    BuilderValidationProfile, CreateInertBmadHelpSession, CreateMethodSession,
+    InertBmadHelpSession, InertBmadHelpSessionCoordinator, InertBmadHelpSessionError,
+    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult,
+    MethodAgentBinding, MethodAgentBindingData, MethodArtifactExpectation,
+    MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision, MethodError,
+    MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
     MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
     MethodModelPort, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
     MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
@@ -61,10 +63,11 @@ pub use command::{
 pub use domain::{
     ApprovalDecision, ApprovalDecisionDraft, ApprovalOutcome, ApprovedExecutionSpec,
     ApprovedExecutionSpecDraft, AuthorityRef, CandidateCommon, DeclaredWrite,
-    DeclaredWriteOperation, DeliveryModel, DomainValidationError, ExecutionLimits, InputKind,
-    LocalPathPreimage, MutableInputBinding, NativePatchEngineAudience, PatchOperation, PatchSet,
-    RollbackClass, SpecConsumptionRecord, SpecConsumptionRecordDraft, WindowsPatchCandidate,
-    WindowsPatchCandidateDraft, WorkspaceTarget, HARD_MAX_CHANGED_BYTES, HARD_MAX_CHANGED_FILES,
+    DeclaredWriteOperation, DeliveryModel, DesktopLocalIdentity, DomainValidationError,
+    ExecutionLimits, InputKind, LocalPathPreimage, MutableInputBinding, NativePatchEngineAudience,
+    PatchOperation, PatchSet, RollbackClass, SpecConsumptionRecord, SpecConsumptionRecordDraft,
+    WindowsPatchCandidate, WindowsPatchCandidateDraft, WorkspaceTarget, HARD_MAX_CHANGED_BYTES,
+    HARD_MAX_CHANGED_FILES,
 };
 pub use error::{LocalError, LocalErrorCode, LocalResult};
 pub use hash::{

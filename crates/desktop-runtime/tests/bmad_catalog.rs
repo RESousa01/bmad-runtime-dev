@@ -626,7 +626,11 @@ fn help_advisor_reports_evidence_confidence_without_claiming_completion() {
         "bmm",
         &["BMad Method,bmad-architecture,Create Architecture,CA,Create a bounded architecture spine.,create,,3-solutioning,,,true,planning_artifacts,architecture"],
     );
-    let catalog = BmadCatalogBuilder::build(&package(), &[rows]).expect("catalog");
+    let optional = source(
+        "core",
+        &["Core,bmad-help,BMad Help,BH,Provide source-grounded guidance.,,,anytime,,,false,,"],
+    );
+    let catalog = BmadCatalogBuilder::build(&package(), &[rows, optional]).expect("catalog");
     let intent = BmadHelpIntent::new("we need an architecture spine").expect("intent");
     let action = catalog.help_actions[0].key.clone();
     let evidence = [BmadArtifactEvidence::heuristic(
@@ -643,9 +647,19 @@ fn help_advisor_reports_evidence_confidence_without_claiming_completion() {
         BmadCatalogAvailability::CapabilityDisabled
     );
     assert_eq!(recommendation.expected_outputs, ["architecture"]);
+    assert!(recommendation.required_guidance);
     assert_eq!(recommendation.source_refs.len(), 1);
     assert_eq!(recommendation.blocker_codes, ["bmad_capability_disabled"]);
     assert!(recommendation.alternatives.is_empty());
+
+    let optional_recommendation = BmadHelpAdvisor::recommend(
+        &catalog,
+        &BmadHelpIntent::new("provide source grounded guidance").expect("optional intent"),
+        &[],
+    )
+    .expect("optional recommendation");
+    assert!(!optional_recommendation.required_guidance);
+    assert!(!optional_recommendation.completion_claimed);
 
     let unrelated = BmadHelpIntent::new("completely unrelated bananas").expect("intent");
     assert_eq!(

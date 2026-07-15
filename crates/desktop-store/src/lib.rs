@@ -5,8 +5,8 @@ use aes_gcm::{Aes256Gcm, Nonce};
 use desktop_runtime::{
     canonical_hash, canonical_hash_without_field, canonical_json_bytes, legacy_canonical_hash,
     legacy_canonical_hash_without_field, BuilderDraft, BuilderDraftRepository, BuilderDraftScope,
-    BuilderError, ContractId, MethodError, MethodSession, MethodSessionRepository,
-    MethodSessionScope, SpecConsumptionRecord,
+    BuilderError, ContractId, DesktopLocalIdentity, MethodError, MethodSession,
+    MethodSessionRepository, MethodSessionScope, SpecConsumptionRecord,
 };
 use parking_lot::Mutex;
 use rand::RngCore;
@@ -27,6 +27,12 @@ const CAS_MAGIC: &[u8; 8] = b"SAPHCAS1";
 const CAS_FORMAT_VERSION: u16 = 1;
 const CAS_NONCE_BYTES: usize = 12;
 const STORE_KEY_BYTES: usize = 32;
+const LOCAL_IDENTITY_META_KEY: &str = "desktop_local_identity_ref";
+const LOCAL_IDENTITY_STATE_KEY: &str = "desktop_local_identity_state";
+const LOCAL_IDENTITY_STATE_SEALED: &str = "sealed";
+const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
+const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
+const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_builder;
 mod bmad_method;
 mod migrations;
@@ -245,14 +251,16 @@ impl LocalStore {
         configure_connection(&connection)?;
         migrate(&connection)?;
         let store_id = load_or_create_store_id(&connection)?;
-        Ok(Self {
+        let store = Self {
             root,
             cas_root,
             store_id,
             key_version: 1,
             key,
             connection: Mutex::new(connection),
-        })
+        };
+        store.load_or_create_local_identity()?;
+        Ok(store)
     }
 
     /// Opens existing authority data without migrating or writing it.
@@ -285,7 +293,7 @@ impl LocalStore {
             .optional()?
             .ok_or(StoreError::Inconsistent)?;
         validate_label(&store_id)?;
-        Ok(LocalStoreRecovery {
+        let recovery = LocalStoreRecovery {
             inner: Self {
                 root,
                 cas_root,
@@ -294,12 +302,24 @@ impl LocalStore {
                 key,
                 connection: Mutex::new(connection),
             },
-        })
+        };
+        recovery.inner.load_local_identity()?;
+        Ok(recovery)
     }
 
     #[must_use]
     pub fn store_id(&self) -> &str {
         &self.store_id
+    }
+
+    /// Loads and authenticates the store-owned desktop identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the sealed marker, pointer, encrypted record,
+    /// canonical representation, self-hash, or store binding is invalid.
+    pub fn local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        self.load_local_identity()
     }
 
     #[must_use]
@@ -604,6 +624,7 @@ impl LocalStore {
     /// Returns [`StoreError`] when any durable relationship, canonical hash,
     /// payload authentication, or database invariant fails.
     pub fn verify_integrity(&self) -> Result<(), StoreError> {
+        self.load_local_identity()?;
         let IntegritySnapshot {
             quick_check,
             outbox_link_errors,
@@ -659,6 +680,183 @@ impl LocalStore {
             || log_frames != checkpointed_frames
         {
             return Err(StoreError::Inconsistent);
+        }
+        Ok(())
+    }
+
+    fn load_or_create_local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        let (pointer, state) = load_local_identity_meta(&self.connection.lock())?;
+        match (pointer, state.as_deref()) {
+            (Some(pointer), Some(LOCAL_IDENTITY_STATE_SEALED)) => {
+                self.load_local_identity_at(&pointer)
+            }
+            (None, None) => {
+                let connection = self.connection.lock();
+                if local_identity_payload_count(&connection)? != 0
+                    || has_scoped_authority_history(&connection)?
+                {
+                    return Err(StoreError::Inconsistent);
+                }
+                drop(connection);
+                let identity = DesktopLocalIdentity::new(
+                    contract_id(format!("installation_{}", Ulid::new()))?,
+                    contract_id(format!("authority_{}", Ulid::new()))?,
+                    contract_id(format!("owner_scope_{}", Ulid::new()))?,
+                    contract_id(self.store_id.clone())?,
+                    1,
+                )
+                .map_err(|_| StoreError::Inconsistent)?;
+                self.persist_new_local_identity(&identity)
+            }
+            _ => Err(StoreError::Inconsistent),
+        }
+    }
+
+    fn load_local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        let (pointer, state) = load_local_identity_meta(&self.connection.lock())?;
+        if state.as_deref() != Some(LOCAL_IDENTITY_STATE_SEALED) {
+            return Err(StoreError::Inconsistent);
+        }
+        self.load_local_identity_at(pointer.as_deref().ok_or(StoreError::Inconsistent)?)
+    }
+
+    fn load_local_identity_at(&self, pointer: &str) -> Result<DesktopLocalIdentity, StoreError> {
+        let content_hash = local_identity_content_hash(pointer)?;
+        let reference = {
+            let connection = self.connection.lock();
+            if local_identity_payload_count(&connection)? != 1 {
+                return Err(StoreError::Inconsistent);
+            }
+            connection
+                .query_row(
+                    "SELECT byte_count, key_version FROM payloads
+                     WHERE content_hash = ?1 AND kind = ?2 AND schema_version = ?3",
+                    params![content_hash, LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA],
+                    |row| {
+                        Ok(PayloadRef {
+                            content_hash: content_hash.clone(),
+                            kind: LOCAL_IDENTITY_KIND.to_owned(),
+                            schema_version: LOCAL_IDENTITY_SCHEMA.to_owned(),
+                            byte_count: row.get(0)?,
+                            key_version: row.get(1)?,
+                        })
+                    },
+                )
+                .optional()?
+                .ok_or(StoreError::Inconsistent)?
+        };
+        if reference.byte_count == 0
+            || reference.byte_count > LOCAL_IDENTITY_MAX_BYTES
+            || reference.key_version != self.key_version
+        {
+            return Err(StoreError::Inconsistent);
+        }
+
+        let plaintext = self.get_payload(&reference)?;
+        if u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?
+            != reference.byte_count
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let value: serde_json::Value = serde_json::from_slice(&plaintext)?;
+        if canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)? != plaintext {
+            return Err(StoreError::Inconsistent);
+        }
+        let identity: DesktopLocalIdentity = serde_json::from_value(value)?;
+        let store_id = contract_id(self.store_id.clone())?;
+        identity
+            .verify_for_store(&store_id)
+            .map_err(|_| StoreError::Inconsistent)?;
+        Ok(identity)
+    }
+
+    fn persist_new_local_identity(
+        &self,
+        identity: &DesktopLocalIdentity,
+    ) -> Result<DesktopLocalIdentity, StoreError> {
+        let value = serde_json::to_value(identity)?;
+        let plaintext = canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)?;
+        let byte_count = u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?;
+        if byte_count == 0 || byte_count > LOCAL_IDENTITY_MAX_BYTES {
+            return Err(StoreError::Inconsistent);
+        }
+        let content_hash = format!("sha256:{}", hex::encode(Sha256::digest(&plaintext)));
+        let pointer = format!(
+            "cas://sha256/{}",
+            content_hash
+                .strip_prefix("sha256:")
+                .ok_or(StoreError::Inconsistent)?
+        );
+        self.persist_local_identity_ciphertext(&content_hash, &plaintext)?;
+
+        let selected_pointer = {
+            let mut connection = self.connection.lock();
+            let transaction =
+                connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            let (retained_pointer, retained_state) = load_local_identity_meta(&transaction)?;
+            let selected = match (retained_pointer, retained_state.as_deref()) {
+                (None, None) => {
+                    if local_identity_payload_count(&transaction)? != 0
+                        || has_scoped_authority_history(&transaction)?
+                    {
+                        return Err(StoreError::Inconsistent);
+                    }
+                    transaction.execute(
+                        "INSERT INTO payloads
+                         (content_hash, kind, schema_version, byte_count, key_version, created_at)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        params![
+                            content_hash,
+                            LOCAL_IDENTITY_KIND,
+                            LOCAL_IDENTITY_SCHEMA,
+                            byte_count,
+                            self.key_version,
+                            canonical_now()
+                        ],
+                    )?;
+                    transaction.execute(
+                        "INSERT INTO store_meta (key, value) VALUES (?1, ?2)",
+                        params![LOCAL_IDENTITY_META_KEY, pointer],
+                    )?;
+                    transaction.execute(
+                        "INSERT INTO store_meta (key, value) VALUES (?1, ?2)",
+                        params![LOCAL_IDENTITY_STATE_KEY, LOCAL_IDENTITY_STATE_SEALED],
+                    )?;
+                    pointer.clone()
+                }
+                (Some(retained_pointer), Some(LOCAL_IDENTITY_STATE_SEALED)) => retained_pointer,
+                _ => return Err(StoreError::Inconsistent),
+            };
+            transaction.commit()?;
+            selected
+        };
+        self.load_local_identity_at(&selected_pointer)
+    }
+
+    fn persist_local_identity_ciphertext(
+        &self,
+        content_hash: &str,
+        plaintext: &[u8],
+    ) -> Result<(), StoreError> {
+        let path = self.cas_path(LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA, content_hash)?;
+        if !path.exists() {
+            let encrypted = self.encrypt(
+                LOCAL_IDENTITY_KIND,
+                LOCAL_IDENTITY_SCHEMA,
+                content_hash,
+                plaintext,
+            )?;
+            Self::persist_cas(&path, &encrypted)?;
+        }
+        let retained = self.decrypt(
+            LOCAL_IDENTITY_KIND,
+            LOCAL_IDENTITY_SCHEMA,
+            content_hash,
+            self.key_version,
+            &fs::read(path)?,
+        )?;
+        if retained != plaintext {
+            return Err(StoreError::Authentication);
         }
         Ok(())
     }
@@ -774,6 +972,15 @@ impl LocalStoreRecovery {
     #[must_use]
     pub fn store_id(&self) -> &str {
         self.inner.store_id()
+    }
+
+    /// Loads and authenticates the retained store-owned desktop identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the sealed identity is unavailable or invalid.
+    pub fn local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        self.inner.load_local_identity()
     }
 
     /// Returns the retained schema version without attempting migration.
@@ -1061,6 +1268,77 @@ fn configure_connection(connection: &Connection) -> Result<(), StoreError> {
     Ok(())
 }
 
+fn load_local_identity_meta(
+    connection: &Connection,
+) -> Result<(Option<String>, Option<String>), StoreError> {
+    connection
+        .query_row(
+            "SELECT
+               (SELECT value FROM store_meta WHERE key = ?1),
+               (SELECT value FROM store_meta WHERE key = ?2)",
+            params![LOCAL_IDENTITY_META_KEY, LOCAL_IDENTITY_STATE_KEY],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .map_err(StoreError::from)
+}
+
+fn local_identity_payload_count(connection: &Connection) -> Result<u64, StoreError> {
+    connection
+        .query_row(
+            "SELECT COUNT(*) FROM payloads WHERE kind = ?1 AND schema_version = ?2",
+            params![LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA],
+            |row| row.get(0),
+        )
+        .map_err(StoreError::from)
+}
+
+fn has_scoped_authority_history(connection: &Connection) -> Result<bool, StoreError> {
+    let present = connection.query_row(
+        "SELECT
+           EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_builder_drafts) OR
+           EXISTS(SELECT 1 FROM spec_consumptions)",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?;
+    Ok(present != 0)
+}
+
+fn has_any_authority_data(connection: &Connection) -> Result<bool, StoreError> {
+    let present = connection.query_row(
+        "SELECT
+           EXISTS(SELECT 1 FROM store_meta) OR
+           EXISTS(SELECT 1 FROM payloads) OR
+           EXISTS(SELECT 1 FROM aggregates) OR
+           EXISTS(SELECT 1 FROM evidence_events) OR
+           EXISTS(SELECT 1 FROM outbox) OR
+           EXISTS(SELECT 1 FROM spec_consumptions) OR
+           EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_method_artifacts) OR
+           EXISTS(SELECT 1 FROM bmad_method_checkpoints) OR
+           EXISTS(SELECT 1 FROM bmad_method_decision_consumptions) OR
+           EXISTS(SELECT 1 FROM bmad_builder_drafts) OR
+           EXISTS(SELECT 1 FROM bmad_builder_revisions) OR
+           EXISTS(SELECT 1 FROM bmad_builder_analyses) OR
+           EXISTS(SELECT 1 FROM bmad_builder_analysis_decisions)",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?;
+    Ok(present != 0)
+}
+
+fn local_identity_content_hash(pointer: &str) -> Result<String, StoreError> {
+    validate_cas_reference(pointer)?;
+    let digest = pointer
+        .strip_prefix("cas://sha256/")
+        .ok_or(StoreError::Inconsistent)?;
+    Ok(format!("sha256:{digest}"))
+}
+
+fn contract_id(value: String) -> Result<ContractId, StoreError> {
+    ContractId::new(value).map_err(|_| StoreError::Inconsistent)
+}
+
 fn load_or_create_store_id(connection: &Connection) -> Result<String, StoreError> {
     if let Some(value) = connection
         .query_row(
@@ -1071,6 +1349,9 @@ fn load_or_create_store_id(connection: &Connection) -> Result<String, StoreError
         .optional()?
     {
         return Ok(value);
+    }
+    if has_any_authority_data(connection)? {
+        return Err(StoreError::Inconsistent);
     }
     let value = format!("store_{}", Ulid::new());
     connection.execute(

@@ -11,6 +11,7 @@ import type {
 import { BmadHelpCard } from "./BmadHelpCard";
 
 const recommendation: BmadHelpRecommendationProjection = {
+  schemaVersion: "bmad-help-recommendation.v1",
   displayName: "Architecture",
   moduleCode: "bmm",
   skillName: "bmad-architecture",
@@ -26,6 +27,7 @@ const recommendation: BmadHelpRecommendationProjection = {
   expectedArtifacts: ["architecture", "decision record"],
   availability: "dependency_unavailable",
   blockerCodes: ["bmad_dependency_unavailable"],
+  completionClaimed: false,
 };
 
 function readyState(

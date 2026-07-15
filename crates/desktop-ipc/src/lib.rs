@@ -5,6 +5,7 @@
 //! installation before a domain command is created.
 
 mod bmad;
+mod bmad_help;
 mod envelope;
 mod gate;
 mod unique_json;
@@ -38,4 +39,8 @@ pub use bmad::{
     BmadLibrarySnapshotProjection, BmadLibrarySourceKind, BmadLibrarySourceProjection,
     BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
     MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+};
+pub use bmad_help::{
+    project_bmad_help_recommendation, BmadHelpConfidenceProjection, BmadHelpProjectionError,
+    BmadHelpRecommendationProjection, MAX_BMAD_HELP_RECOMMENDATION_BYTES,
 };

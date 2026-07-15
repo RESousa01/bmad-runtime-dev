@@ -108,6 +108,7 @@ export type BmadLibraryUiState =
   };
 
 export interface BmadHelpRecommendationProjection {
+  readonly schemaVersion: "bmad-help-recommendation.v1";
   readonly displayName: string;
   readonly moduleCode: string;
   readonly skillName: string;
@@ -119,6 +120,7 @@ export interface BmadHelpRecommendationProjection {
   readonly expectedArtifacts: readonly string[];
   readonly availability: BmadAvailability;
   readonly blockerCodes: readonly BmadBlockerCode[];
+  readonly completionClaimed: false;
 }
 
 export type BmadHelpUiState =

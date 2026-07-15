@@ -70,6 +70,34 @@ pub struct WorkspaceAuthorityBinding {
     pub root_identity_hash: String,
 }
 
+/// A host-only, exact-epoch workspace scope authorization.
+///
+/// The guard intentionally exposes no selected-root path. Holding it prevents
+/// in-process broker mutation and revocation until the guard is dropped. A
+/// caller must not invoke another [`WorkspaceBroker`] method while holding this
+/// guard because those methods acquire the same task-fair barrier. Durable
+/// revocation must be ordered with guarded operations by the host.
+#[must_use = "workspace scope authority must remain held while the authorized operation runs"]
+pub struct WorkspaceScopeAuthorityGuard<'a> {
+    _revocation_barrier: RwLockReadGuard<'a, ()>,
+    projection: WorkspaceProjection,
+    authority_binding: WorkspaceAuthorityBinding,
+}
+
+impl WorkspaceScopeAuthorityGuard<'_> {
+    /// Returns a detached renderer-safe workspace projection.
+    #[must_use]
+    pub fn projection(&self) -> WorkspaceProjection {
+        self.projection.clone()
+    }
+
+    /// Returns a detached opaque authority binding without the selected root.
+    #[must_use]
+    pub fn authority_binding(&self) -> WorkspaceAuthorityBinding {
+        self.authority_binding.clone()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkspaceEntry {
@@ -697,13 +725,58 @@ impl WorkspaceBroker {
         workspace_id: &str,
     ) -> Result<WorkspaceAuthorityBinding, WorkspaceError> {
         let authority = self.revocation_barrier.read();
+        let guard = self.validated_scope_guard(authority, workspace_id, None)?;
+        Ok(guard.authority_binding())
+    }
+
+    /// Authorizes a workspace scope at an exact active grant epoch.
+    ///
+    /// The returned guard holds the broker's in-process revocation barrier for
+    /// its entire lifetime. Callers receive only cloned projection and opaque
+    /// binding facts; the selected absolute root remains broker-private. The
+    /// caller must not re-enter this broker while the guard is held and must
+    /// use a host-level ordering boundary for durable revocation.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError::GrantUnavailable`] when the grant is absent,
+    /// revoked, zero-epoch, stale, or does not match `expected_grant_epoch`.
+    /// Root identity drift and root revalidation failures remain fail-closed.
+    pub fn authorize_scope(
+        &self,
+        workspace_id: &str,
+        expected_grant_epoch: u64,
+    ) -> Result<WorkspaceScopeAuthorityGuard<'_>, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        self.validated_scope_guard(authority, workspace_id, Some(expected_grant_epoch))
+    }
+
+    fn validated_scope_guard<'a>(
+        &'a self,
+        authority: RwLockReadGuard<'a, ()>,
+        workspace_id: &str,
+        expected_grant_epoch: Option<u64>,
+    ) -> Result<WorkspaceScopeAuthorityGuard<'a>, WorkspaceError> {
         let grant = self.active_grant(&authority, workspace_id)?;
+        let grant_epoch = grant.projection.grant_epoch;
+        if grant_epoch == 0
+            || expected_grant_epoch.is_some_and(|expected| expected == 0 || expected != grant_epoch)
+        {
+            return Err(WorkspaceError::GrantUnavailable);
+        }
         revalidate_root(&grant)?;
         self.ensure_grant_current(&authority, &grant)?;
-        Ok(WorkspaceAuthorityBinding {
-            workspace_id: grant.projection.workspace_id,
-            grant_epoch: grant.projection.grant_epoch,
+
+        let projection = grant.projection;
+        let authority_binding = WorkspaceAuthorityBinding {
+            workspace_id: projection.workspace_id.clone(),
+            grant_epoch,
             root_identity_hash: grant.root_identity_hash,
+        };
+        Ok(WorkspaceScopeAuthorityGuard {
+            _revocation_barrier: authority,
+            projection,
+            authority_binding,
         })
     }
 
@@ -1496,6 +1569,144 @@ mod tests {
         assert!(matches!(
             broker.active_grant(&authority, "workspace_test"),
             Err(WorkspaceError::GrantUnavailable)
+        ));
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn scope_authority_guard_exposes_exact_cloned_scope_facts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let selected_root = tempfile::tempdir()?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", selected_root.path())?;
+        let expected_root_identity_hash = broker
+            .grants
+            .read()
+            .get(&projection.workspace_id)
+            .ok_or(WorkspaceError::GrantUnavailable)?
+            .root_identity_hash
+            .clone();
+
+        let guard = broker.authorize_scope(&projection.workspace_id, projection.grant_epoch)?;
+        assert_eq!(guard.projection(), projection);
+        assert_eq!(guard.projection().project_id, "project_test");
+        assert_eq!(
+            guard.authority_binding(),
+            WorkspaceAuthorityBinding {
+                workspace_id: projection.workspace_id.clone(),
+                grant_epoch: projection.grant_epoch,
+                root_identity_hash: expected_root_identity_hash,
+            }
+        );
+
+        let mut detached_projection = guard.projection();
+        detached_projection.project_id = "untrusted_change".to_owned();
+        let mut detached_binding = guard.authority_binding();
+        detached_binding.root_identity_hash = format!("sha256:{}", "f".repeat(64));
+        assert_eq!(guard.projection(), projection);
+        assert_ne!(
+            guard.authority_binding().root_identity_hash,
+            detached_binding.root_identity_hash
+        );
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn scope_authority_guard_rejects_zero_stale_and_mismatched_epochs(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let selected_root = tempfile::tempdir()?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", selected_root.path())?;
+        broker
+            .grants
+            .write()
+            .get_mut(&projection.workspace_id)
+            .ok_or(WorkspaceError::GrantUnavailable)?
+            .projection
+            .grant_epoch = 2;
+
+        for expected_epoch in [0, 1, 3] {
+            assert!(matches!(
+                broker.authorize_scope(&projection.workspace_id, expected_epoch),
+                Err(WorkspaceError::GrantUnavailable)
+            ));
+        }
+        assert!(broker.authorize_scope(&projection.workspace_id, 2).is_ok());
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn scope_authority_guard_blocks_revoke_until_dropped() -> Result<(), String> {
+        let selected_root = tempfile::tempdir().map_err(|error| error.to_string())?;
+        let broker = Arc::new(WorkspaceBroker::new());
+        let projection = broker
+            .grant("project_test", selected_root.path())
+            .map_err(|error| error.to_string())?;
+        let guard = broker
+            .authorize_scope(&projection.workspace_id, projection.grant_epoch)
+            .map_err(|error| error.to_string())?;
+
+        let (attempted_tx, attempted_rx) = mpsc::channel();
+        let (completed_tx, completed_rx) = mpsc::channel();
+        let worker_broker = Arc::clone(&broker);
+        let workspace_id = projection.workspace_id.clone();
+        let worker = thread::spawn(move || {
+            let _ = attempted_tx.send(());
+            let result = worker_broker.revoke(&workspace_id);
+            let _ = completed_tx.send(result);
+        });
+
+        attempted_rx
+            .recv_timeout(Duration::from_secs(2))
+            .map_err(|error| format!("revocation worker did not start: {error}"))?;
+        assert!(matches!(
+            completed_rx.recv_timeout(Duration::from_millis(100)),
+            Err(RecvTimeoutError::Timeout)
+        ));
+
+        drop(guard);
+        let revoked = completed_rx
+            .recv_timeout(Duration::from_secs(2))
+            .map_err(|error| format!("revocation did not complete after guard drop: {error}"))?
+            .map_err(|error| error.to_string())?;
+        worker
+            .join()
+            .map_err(|_| "revocation worker panicked".to_owned())?;
+        assert_eq!(revoked.grant_epoch, projection.grant_epoch + 1);
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn scope_authority_guard_fails_closed_after_revoke_or_root_drift(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let revoked_root = tempfile::tempdir()?;
+        let revoked_broker = WorkspaceBroker::new();
+        let revoked_projection = revoked_broker.grant("project_revoked", revoked_root.path())?;
+        let revoked = revoked_broker.revoke(&revoked_projection.workspace_id)?;
+        assert!(matches!(
+            revoked_broker.authorize_scope(&revoked.workspace_id, revoked.grant_epoch),
+            Err(WorkspaceError::GrantUnavailable)
+        ));
+
+        let drifted_root = tempfile::tempdir()?;
+        let drifted_broker = WorkspaceBroker::new();
+        let drifted_projection = drifted_broker.grant("project_drifted", drifted_root.path())?;
+        drifted_broker
+            .grants
+            .write()
+            .get_mut(&drifted_projection.workspace_id)
+            .ok_or(WorkspaceError::GrantUnavailable)?
+            .root_identity_hash = format!("sha256:{}", "0".repeat(64));
+        assert!(matches!(
+            drifted_broker.authorize_scope(
+                &drifted_projection.workspace_id,
+                drifted_projection.grant_epoch
+            ),
+            Err(WorkspaceError::RootIdentityChanged)
         ));
         Ok(())
     }
