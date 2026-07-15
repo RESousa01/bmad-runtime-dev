@@ -155,6 +155,13 @@ Do not edit `Cargo.lock` in this task.
 
 ## Task 1: Qualify standalone Help composition contracts
 
+**Completed:** commit `bae0d01a` (`feat(contracts): qualify sealed Help
+composition`). The exact Node/pnpm verifier passed once through the repository
+entry point and once as its exact seven-stage direct replay because pnpm's
+dependency-status preflight attempted an unnecessary workspace refresh. Rust
+Clippy/tests and .NET 10.0.302 conformance passed; the independent review found
+no Critical or Important issues.
+
 **Files:**
 
 - Add: `packages/contracts/schemas/bmad-method-advance-result.schema.json`
@@ -175,36 +182,46 @@ Do not edit `Cargo.lock` in this task.
 - Generate transactionally: schema lock, fixture/catalog/vector outputs,
   TypeScript/Rust/C# bindings, validators, declarations, and closure constants
 
-- [ ] Add RED tests for all three missing root validators and exported types;
+- [x] Add RED tests for all three missing root validators and exported types;
   proposal branch bounds/unknown and duplicate members/unsafe text; strict UTC
   host records; semantic self-hash mismatch; eight-vector agreement; closure
   drift/collision/domain separation; and Rust/C# dispatch.
-- [ ] Register the roots identically in the production-root lock, generator,
+- [x] Register the roots identically in the production-root lock, generator,
   TypeScript target inventory, public type barrel, Ajv declarations/map, and
   binding checker.
-- [ ] Implement fragment-aware transitive closure qualification. Emit
+- [x] Implement fragment-aware transitive closure qualification. Emit
   `SCHEMA_CLOSURES` in TypeScript, append generated Rust constants to
   `generated/rust/contracts.rs`, generate `BmadSchemaClosures.g.cs`, and retain
   full manifests in `schema-lock.json`.
-- [ ] Implement explicit semantic entry points:
+- [x] Implement explicit semantic entry points:
   `validateMethodHelpProposalSemantics`,
   `validateMethodHelpRecommendationSemantics`, and
   `validateMethodAdvanceResultSemantics`.
-- [ ] Use the same safe-text predicate in JavaScript, Rust, and C#: reject C0
+- [x] Use the same safe-text predicate in JavaScript, Rust, and C#: reject C0
   `U+0000..U+001F`, DEL, and bidi controls `U+061C`, `U+200E`, `U+200F`,
   `U+202A..U+202E`, `U+2066..U+2069`. Keep catalog membership, evidence-token
   resolution, guidance derivation, lineage, and CAS outside contract semantics.
-- [ ] Extend fixture generation and tests from six to exactly eight qualified
+- [x] Extend fixture generation and tests from six to exactly eight qualified
   BMAD self-hash vectors; do not add a proposal self-hash.
-- [ ] Run `pnpm contracts:generate:cross-language`, inspect every generated
+- [x] Run `pnpm contracts:generate:cross-language`, inspect every generated
   path, then run `pnpm contracts:verify:cross-language` twice.
-- [ ] Run locked Rust and exact .NET 10.0.302 conformance suites. The checkpoint
+- [x] Run locked Rust and exact .NET 10.0.302 conformance suites. The checkpoint
   remains RED/blocked if the qualified generator cannot use the exact SDK.
-- [ ] Obtain independent cross-language spec/quality review and commit only the
+- [x] Obtain independent cross-language spec/quality review and commit only the
   exact source plus deterministic generated outputs:
   `feat(contracts): qualify sealed Help composition`.
 
 ## Task 2: Retain the sealed installed Help source
+
+**Completed:** commit `24c401b5` (`feat(bmad): retain sealed Help source`).
+The package-owned wrapper retains the exact 1,283-byte managed instruction by
+shared `Arc`, validates the complete descriptor/inventory/projection/profile/
+config/module/ledger chain, and exposes no constructor or Serde/content-bearing
+debug surface. The desktop app shares the manifest-owned bytes without a second
+copy. The focused and full runtime/app suites, compile-fail privacy check,
+formatting, and strict all-target Clippy passed. Independent review findings on
+source-inventory cross-binding and byte duplication were fixed and the re-review
+found no remaining Critical or Important issue.
 
 **Files:**
 
@@ -216,37 +233,37 @@ Do not edit `Cargo.lock` in this task.
 - Add: `crates/desktop-runtime/tests/bmad_help_run.rs`
 - Modify: `crates/desktop-app/src/bmad_foundation.rs`
 
-- [ ] Add RED tests for a package-owned sealed wrapper, exact 1,283 managed
+- [x] Add RED tests for a package-owned sealed wrapper, exact 1,283 managed
   bytes/hash, redacted `Debug`, no Serde/arbitrary-byte construction, exact
   package/skill/profile/projection/config/module/ledger identities, and app
   manifest tamper rejection.
-- [ ] Make `BmadPackageLoader` build one `BmadLoadedMethodPackage` containing
+- [x] Make `BmadPackageLoader` build one `BmadLoadedMethodPackage` containing
   the existing display package and one opaque `BmadSealedHelpInvocation` while
   it still holds the generated descriptor, verified JSON, managed bytes, and
   manifest-verified ledgers. Keep `BmadLoadedSkill` unchanged.
-- [ ] Retain exact package, descriptor, source-snapshot, observed inventory,
+- [x] Retain exact package, descriptor, source-snapshot, observed inventory,
   source/projection/resource/profile/config/module/ledger, distribution,
   install, validation-profile-name, and native catalog-binding facts. Retain
   instruction bytes in a private `Arc<[u8]>`; expose read-only access only.
-- [ ] Independently recompute and compare every nested hash:
+- [x] Independently recompute and compare every nested hash:
   `bmad-execution-profile/v1` excluding `profileHash`;
   `bmad-skill-descriptor/v1` excluding `skillDescriptorHash`;
   `bmad-instruction-projection/v1` excluding `projectionHash`;
   `bmad-skill-resource-set/v1` over source entrypoint/resources/managed
   instruction; `bmad-config-graph/v1` excluding `graphHash`; and
   `bmad-config-resolution/v1` excluding `resolutionHash`.
-- [ ] Cross-bind exactly one `bmad-method/6.10.0`, `core/bmad-help` skill,
+- [x] Cross-bind exactly one `bmad-method/6.10.0`, `core/bmad-help` skill,
   projection, module, central graph/resolution, managed inventory entry, and
   five-member adoption closure (`method-001` through `method-005`). Validate
   source refs against descriptor inventory and pinned ledgers; validate only
   the managed instruction against observed snapshot bytes.
-- [ ] Require exact blocked intents `file_read` and `web`, their reviewed host
+- [x] Require exact blocked intents `file_read` and `web`, their reviewed host
   replacements, direct profile, empty action set, no declared tools/state,
   Node runtime, artifact completion evidence, 64 KiB Help-specific byte bound,
   sorted/unique source closure, and exact managed path/format.
-- [ ] Extend `BmadLoadedFoundation` to retain the wrapper and delegate
+- [x] Extend `BmadLoadedFoundation` to retain the wrapper and delegate
   `package()` / `help_invocation()` without parsing, I/O, or a second byte copy.
-- [ ] Run focused runtime kernel/Help/app tests, formatting, and strict Clippy.
+- [x] Run focused runtime kernel/Help/app tests, formatting, and strict Clippy.
   Obtain independent review and commit:
   `feat(bmad): retain sealed Help source`.
 
@@ -409,6 +426,7 @@ BMAD-06B complete unless the exact .NET 10.0.302 gate and all final gates pass.
 
 ## Next task
 
-Start Task 1: qualify the three standalone Help composition contract roots,
-freeze the exact source/generated diff, independently review it, and commit it
-before retaining runtime Help instruction bytes.
+Start Task 3: compile the sealed source into an exact non-runnable Help binding,
+retain the generated schema closures and fixed local commitments, prove every
+projection remains created/unbound, and commit it before canonicalizing any
+verified proposal.
