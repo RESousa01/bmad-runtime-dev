@@ -1,8 +1,10 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 mod bmad_snapshot;
+mod governed_io;
 
 pub use bmad_snapshot::{read_bmad_source_snapshot, BmadSnapshotError};
+pub use governed_io::{PreimageObservation, MAX_GOVERNED_FILE_BYTES};
 
 use ignore::WalkBuilder;
 use parking_lot::{RwLock, RwLockReadGuard};
@@ -201,6 +203,12 @@ pub enum WorkspaceError {
     UnsupportedText,
     #[error("the requested operation exceeded its configured limit")]
     LimitExceeded,
+    #[error("governed edits are not enabled for this workspace grant")]
+    EditsNotEnabled,
+    #[error("the observed file no longer matches the expected preimage")]
+    StalePreimage,
+    #[error("the target file already exists")]
+    AlreadyExists,
     #[error("workspace I/O failed")]
     Io(#[from] std::io::Error),
 }
@@ -228,12 +236,14 @@ impl WalkBudget {
     }
 }
 
-/// Read-only selected-workspace broker.
+/// Selected-workspace broker for bounded reads and governed durable edits.
 ///
-/// The path checks in this crate are defense in depth for D1 reads. They do not
-/// prove handle-relative selected-root containment across a check/use race and
-/// must not be reused as authorization for governed writes. The D3 write adapter
-/// remains blocked on a durable root-handle and file-identity design.
+/// The path checks in this crate are defense in depth for D1 reads. Governed
+/// writes live in the `governed_io` module: they additionally require an
+/// explicit `GovernedEdits` grant at an exact epoch and verify each preimage
+/// through an open handle that denies concurrent writers. Handle-relative
+/// selected-root containment across a check/use race remains a documented
+/// residual limitation until a pinned root-handle design lands.
 #[derive(Debug, Default)]
 pub struct WorkspaceBroker {
     /// Prevents a grant mutation or revocation from crossing a read operation.
@@ -1201,11 +1211,18 @@ fn is_sha256(value: &str) -> bool {
 #[cfg(windows)]
 fn root_identity(path: &Path, metadata: &fs::Metadata) -> Result<String, WorkspaceError> {
     let information = file_information(path, metadata.is_dir())?;
+    Ok(identity_hash_from_information(&information))
+}
+
+#[cfg(windows)]
+fn identity_hash_from_information(
+    information: &windows::Win32::Storage::FileSystem::BY_HANDLE_FILE_INFORMATION,
+) -> String {
     let identity = format!(
         "{}:{:08x}{:08x}",
         information.dwVolumeSerialNumber, information.nFileIndexHigh, information.nFileIndexLow
     );
-    Ok(hash_bytes(identity.as_bytes()))
+    hash_bytes(identity.as_bytes())
 }
 
 #[cfg(not(windows))]
@@ -1282,6 +1299,30 @@ fn file_information(
         options.custom_flags(FILE_FLAG_BACKUP_SEMANTICS.0);
     }
     let file = options.open(path)?;
+    let mut information = BY_HANDLE_FILE_INFORMATION::default();
+    // SAFETY: the handle is borrowed from `file`, which stays alive through the call, and the
+    // output pointer refers to an initialized, writable structure of the expected size.
+    unsafe {
+        GetFileInformationByHandle(HANDLE(file.as_raw_handle()), &raw mut information)
+            .map_err(|error| WorkspaceError::Io(std::io::Error::other(error)))?;
+    }
+    Ok(information)
+}
+
+#[cfg(windows)]
+#[expect(
+    unsafe_code,
+    reason = "GetFileInformationByHandle requires a Win32 FFI call using a live owned file handle and a writable output structure"
+)]
+fn handle_information(
+    file: &File,
+) -> Result<windows::Win32::Storage::FileSystem::BY_HANDLE_FILE_INFORMATION, WorkspaceError> {
+    use std::os::windows::io::AsRawHandle;
+    use windows::Win32::Foundation::HANDLE;
+    use windows::Win32::Storage::FileSystem::{
+        GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION,
+    };
+
     let mut information = BY_HANDLE_FILE_INFORMATION::default();
     // SAFETY: the handle is borrowed from `file`, which stays alive through the call, and the
     // output pointer refers to an initialized, writable structure of the expected size.
