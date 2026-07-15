@@ -124,6 +124,7 @@ struct RecordedRequest {
     url: String,
     body: Vec<u8>,
     bearer: String,
+    idempotency_key: String,
     safe_debug: String,
 }
 
@@ -140,6 +141,7 @@ impl HttpExecutor for RecordingExecutor {
             url: request.url().to_string(),
             body: request.body().to_vec(),
             bearer: request.with_bearer(str::to_owned),
+            idempotency_key: request.idempotency_key().to_owned(),
             safe_debug: format!("{request:?}"),
         });
         Ok(self.response.clone())
@@ -228,13 +230,14 @@ async fn authorized_request_uses_one_fixed_endpoint_and_secret_safe_boundary() {
     assert_eq!(recorded.len(), 1);
     assert_eq!(
         recorded[0].url,
-        "https://support.example.com/v1/model-access"
+        "https://support.example.com/desktop/v1/model-access/calls"
     );
     assert_eq!(
         recorded[0].body,
         serde_json::to_vec(&request).expect("request serialization")
     );
     assert_eq!(recorded[0].bearer, "transport-secret");
+    assert_eq!(recorded[0].idempotency_key, "request_001");
     assert!(!recorded[0].safe_debug.contains("transport-secret"));
     assert!(!recorded[0].safe_debug.contains("safe context"));
 }

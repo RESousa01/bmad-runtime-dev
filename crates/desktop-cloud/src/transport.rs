@@ -9,7 +9,7 @@ use crate::{
     AuthorizedModelRequest, CloudAccess, CloudError, CloudSession, IdentityBroker, RawModelOutput,
 };
 
-const MODEL_ACCESS_PATH: &str = "v1/model-access";
+const MODEL_ACCESS_PATH: &str = "desktop/v1/model-access/calls";
 const MAX_REQUEST_BYTES: usize = 4 * 1024 * 1024;
 const MAX_RESPONSE_BYTES: usize = 1024 * 1024;
 const MIN_HTTP_TIMEOUT: Duration = Duration::from_secs(1);
@@ -55,6 +55,7 @@ pub struct OutboundHttpRequest {
     url: Url,
     body: Vec<u8>,
     bearer: Zeroizing<String>,
+    idempotency_key: String,
 }
 
 impl OutboundHttpRequest {
@@ -71,6 +72,11 @@ impl OutboundHttpRequest {
     pub fn with_bearer<T>(&self, operation: impl FnOnce(&str) -> T) -> T {
         operation(self.bearer.as_str())
     }
+
+    #[must_use]
+    pub fn idempotency_key(&self) -> &str {
+        &self.idempotency_key
+    }
 }
 
 impl fmt::Debug for OutboundHttpRequest {
@@ -81,6 +87,7 @@ impl fmt::Debug for OutboundHttpRequest {
             .field("body", &"[REDACTED]")
             .field("body_bytes", &self.body.len())
             .field("bearer", &"[REDACTED]")
+            .field("idempotency_key", &self.idempotency_key)
             .finish()
     }
 }
@@ -181,6 +188,7 @@ where
                 url: self.origin.endpoint.clone(),
                 body,
                 bearer,
+                idempotency_key: request.request_id.to_string(),
             })
             .await?;
         if !session.is_current(access) {
@@ -225,13 +233,19 @@ impl ReqwestHttpExecutor {
 #[async_trait]
 impl HttpExecutor for ReqwestHttpExecutor {
     async fn execute(&self, request: OutboundHttpRequest) -> Result<HttpResponse, CloudError> {
-        let OutboundHttpRequest { url, body, bearer } = request;
+        let OutboundHttpRequest {
+            url,
+            body,
+            bearer,
+            idempotency_key,
+        } = request;
         let mut response = self
             .client
             .post(url)
             .bearer_auth(bearer.as_str())
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .header(reqwest::header::ACCEPT, "application/json")
+            .header("Idempotency-Key", idempotency_key)
             .body(body)
             .send()
             .await
