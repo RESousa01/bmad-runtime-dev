@@ -442,7 +442,7 @@ BMAD-06B complete unless the exact .NET 10.0.302 gate and all final gates pass.
 
 ## Next task
 
-Start Task 3: compile the sealed source into an exact non-runnable Help binding,
-retain the generated schema closures and fixed local commitments, prove every
-projection remains created/unbound, and commit it before canonicalizing any
-verified proposal.
+Start Task 4: accept only an opaque verified Help proposal boundary, strictly
+validate and resolve it against the compiled host facts, materialize distinct
+canonical recommendation and completion-candidate records, and extend exact
+Method result lineage without mutating the aggregate before verification.
