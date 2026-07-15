@@ -719,7 +719,7 @@ export function validateToolLock(lock) {
     versionExitCode: 1,
     versionOutput: "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
     generationArguments: [...expectedDotnetArguments],
-    sdk: "10.0.301",
+    sdk: "10.0.302",
     sdkExecutable: "C:/Program Files/dotnet/dotnet.exe",
     sdkAuthenticode: {
       status: "Valid",

@@ -106,7 +106,7 @@
       "versionOutput": "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
       "generationArguments": ["jsonschema", "{input}", "--engine", "V5", "--useSchema", "Draft202012", "--useUnixLineEndings", "true", "--optionalAsNullable", "None", "--assertFormat", "false", "--disableOptionalNamingHeuristics", "true", "--rootNamespace", "{namespace}", "--outputRootTypeName", "{rootType}", "--outputRootAccessibility", "Public", "--defaultAccessibility", "Public", "--outputPath", "{output}"],
       "restoreArguments": ["tool", "restore", "--tool-manifest", ".config/dotnet-tools.json"],
-      "sdk": "10.0.301",
+      "sdk": "10.0.302",
       "sdkExecutable": "C:/Program Files/dotnet/dotnet.exe",
       "sdkAuthenticode": {
         "status": "Valid",

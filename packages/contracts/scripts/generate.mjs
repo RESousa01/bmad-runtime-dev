@@ -1593,7 +1593,7 @@ if (!typescriptOnly) {
     rust: "1.97.0",
     cargoTypify: "0.6.1",
     rustJsonschema: "0.44.1",
-    dotnetSdk: "10.0.301",
+    dotnetSdk: "10.0.302",
     corvusJsonCli: "5.1.0",
     corvusTextJson: "5.1.0",
   },

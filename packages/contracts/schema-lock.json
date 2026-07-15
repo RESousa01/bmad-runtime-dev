@@ -24,8 +24,8 @@
     "dotnet": "Corvus.Json.Cli@5.1.0",
     "dotnetRuntime": "Corvus.Text.Json@5.1.0"
   },
-  "toolLockSha256": "sha256:a15f6585429545311d795c524e2dc50e51e42b03bae3e2a36c42f9236acb997e",
-  "generationConfigSha256": "sha256:7aac3913132ac72c16f6e8b0e9ca9024ee3e6592faf65cfd19d04b439d1d53db",
+  "toolLockSha256": "sha256:c3da210c45c6eec6350dfaec04ef05eddbb84a293f9283d93091af2a2411f5ed",
+  "generationConfigSha256": "sha256:f7e0cb375150549c4fbb8d78545a503c45c4994ddcd23ab80ca2aacd8d8f2b9e",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
@@ -45,7 +45,7 @@
     "rust": "1.97.0",
     "cargoTypify": "0.6.1",
     "rustJsonschema": "0.44.1",
-    "dotnetSdk": "10.0.301",
+    "dotnetSdk": "10.0.302",
     "corvusJsonCli": "5.1.0",
     "corvusTextJson": "5.1.0"
   },
@@ -10579,7 +10579,7 @@
     },
     {
       "file": "Cargo.lock",
-      "sha256": "sha256:34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22",
+      "sha256": "sha256:03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071",
       "status": "reviewed"
     },
     {
