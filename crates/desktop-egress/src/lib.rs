@@ -6,9 +6,15 @@
 #![deny(unsafe_code)]
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
+mod consent;
 mod manifest;
 mod preparation;
 
+pub use consent::{
+    ApproveDecisionInput, ConsentService, ConsumeDecisionInput, DecisionConsumption,
+    DecisionLedger, MemoryDecisionLedger, ModelInvocationBinding, ModelInvocationBindingDraft,
+    PendingContextDecision,
+};
 pub use manifest::{
     ContextClassification, ContextEgressManifest, ContextEgressManifestDraft, ContextExclusion,
     ContextReviewItem, ContextReviewProjection, EgressError, EgressLimits, PreparedContextItem,

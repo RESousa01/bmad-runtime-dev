@@ -159,6 +159,20 @@ pub enum EgressError {
     ContextBudgetExceeded,
     #[error("the context label is denied by egress policy")]
     DeniedContextLabel,
+    #[error("the model invocation binding is invalid")]
+    InvalidInvocationBinding,
+    #[error("the consent decision integrity hash is invalid")]
+    DecisionIntegrity,
+    #[error("the consent decision does not match the exact invocation binding")]
+    DecisionBindingMismatch,
+    #[error("the consent decision identifier already exists")]
+    DecisionAlreadyExists,
+    #[error("the consent decision is unknown")]
+    DecisionUnknown,
+    #[error("the consent decision has expired")]
+    DecisionExpired,
+    #[error("the consent decision was already consumed")]
+    DecisionAlreadyConsumed,
     #[error("canonical hashing failed")]
     CanonicalHash,
 }
