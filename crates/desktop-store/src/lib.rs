@@ -35,11 +35,18 @@ const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_builder;
 mod bmad_method;
+mod execution;
 mod migrations;
 
 pub use bmad_method::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
     BmadHelpRunReplayRequest, MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
+};
+pub use execution::{
+    EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,
+    ExecutionResultAppend, ExecutionResultRow, EXECUTION_CHECKPOINT_KIND,
+    EXECUTION_CHECKPOINT_SCHEMA, MAX_EXECUTION_CHECKPOINT_BYTES, MAX_EXECUTION_JOURNAL_BYTES,
+    MAX_EXECUTION_RESULT_BYTES,
 };
 
 #[cfg(test)]
@@ -661,6 +668,7 @@ impl LocalStore {
             verify_consumption_rows(&consumptions)?;
             self.verify_method_integrity()?;
             self.verify_builder_integrity()?;
+            self.verify_execution_integrity()?;
             Ok(())
         }
     }
@@ -2120,7 +2128,10 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_help_run_creations;
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
              DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
@@ -2162,7 +2173,10 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_help_run_creations;
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
              DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
@@ -2257,7 +2271,10 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_help_run_creations;
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
              DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
@@ -2271,7 +2288,7 @@ mod tests {
         drop(store);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 9);
+        assert_eq!(reopened.schema_version()?, LATEST_STORE_VERSION);
         reopened.verify_integrity()?;
         Ok(())
     }

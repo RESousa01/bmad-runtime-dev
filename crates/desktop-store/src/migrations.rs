@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 9;
+pub(crate) const LATEST_STORE_VERSION: u32 = 10;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -75,6 +75,26 @@ const V8_TABLES: [&str; 15] = [
     "store_meta",
 ];
 const V9_TABLES: [&str; 15] = V8_TABLES;
+const V10_TABLES: [&str; 18] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
 
 const V4_BASE_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
  CREATE TABLE IF NOT EXISTS store_meta (
@@ -444,6 +464,56 @@ const V8_TO_V9_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 9;
  COMMIT;";
 
+const V9_TO_V10_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE execution_checkpoints (
+   checkpoint_id TEXT PRIMARY KEY,
+   workspace_target_hash TEXT NOT NULL,
+   candidate_hash TEXT NOT NULL,
+   manifest_hash TEXT NOT NULL UNIQUE,
+   entry_count INTEGER NOT NULL CHECK(entry_count >= 0),
+   state_content_hash TEXT NOT NULL,
+   state_kind TEXT NOT NULL CHECK(state_kind = 'execution_checkpoint'),
+   state_schema_version TEXT NOT NULL
+     CHECK(state_schema_version = 'sapphirus.local-checkpoint.v1'),
+   recorded_at TEXT NOT NULL,
+   FOREIGN KEY(state_content_hash, state_kind, state_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE TABLE effect_journals (
+   journal_id TEXT PRIMARY KEY,
+   execution_id TEXT NOT NULL UNIQUE,
+   checkpoint_id TEXT NOT NULL REFERENCES execution_checkpoints(checkpoint_id),
+   candidate_hash TEXT NOT NULL,
+   spec_hash TEXT NOT NULL,
+   consumption_hash TEXT NOT NULL UNIQUE,
+   workspace_id TEXT NOT NULL,
+   workspace_grant_epoch INTEGER NOT NULL
+     CHECK(workspace_grant_epoch >= 1 AND workspace_grant_epoch <= 9007199254740991),
+   state TEXT NOT NULL CHECK(state IN (
+     'prepared', 'checkpoint_durable', 'preconditions_verified', 'applying',
+     'effects_applied', 'postimages_verified', 'result_recorded', 'completed',
+     'recovery_required', 'restoring', 'recovered', 'manual_review')),
+   journal_json TEXT NOT NULL,
+   created_at TEXT NOT NULL,
+   updated_at TEXT NOT NULL
+ ) STRICT;
+ CREATE INDEX effect_journals_open
+   ON effect_journals(state, created_at, journal_id);
+ CREATE TABLE execution_results (
+   execution_id TEXT PRIMARY KEY,
+   journal_id TEXT NOT NULL UNIQUE REFERENCES effect_journals(journal_id),
+   checkpoint_id TEXT NOT NULL REFERENCES execution_checkpoints(checkpoint_id),
+   candidate_hash TEXT NOT NULL,
+   spec_hash TEXT NOT NULL UNIQUE,
+   consumption_hash TEXT NOT NULL UNIQUE,
+   result_hash TEXT NOT NULL UNIQUE,
+   result_json TEXT NOT NULL,
+   file_count INTEGER NOT NULL CHECK(file_count >= 1),
+   completed_at TEXT NOT NULL
+ ) STRICT;
+ PRAGMA user_version = 10;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -482,8 +552,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V8_TO_V9_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            9 => {
                 require_store_tables(connection, &V9_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V9_TO_V10_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V10_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }
