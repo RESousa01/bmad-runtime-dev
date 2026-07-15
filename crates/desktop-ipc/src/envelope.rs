@@ -1,15 +1,12 @@
 use desktop_runtime::{
-    ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId, LocalCommand, LocalError,
-    ProjectionEvent, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId,
+    LocalCommand, LocalError, ProjectionEvent, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::{
-    bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload},
-    unique_json::UniqueJson,
-};
+use crate::bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload};
 
 pub const MAX_COMMAND_BYTES: usize = 128 * 1024;
 const MAX_JSON_DEPTH: usize = 16;
@@ -128,8 +125,8 @@ impl CommandEnvelopeValidator {
         if bytes.len() > MAX_COMMAND_BYTES {
             return Err(IpcValidationError::EnvelopeTooLarge);
         }
-        let UniqueJson(value) =
-            serde_json::from_slice(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
+        let value: Value =
+            deserialize_strict_json(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
         let mut nodes = 0;
         validate_structure(&value, 0, &mut nodes)?;
         let raw: RawCommandEnvelope =

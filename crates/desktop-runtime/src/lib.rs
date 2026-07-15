@@ -16,6 +16,7 @@ mod domain;
 mod error;
 mod hash;
 mod ids;
+mod strict_json;
 
 // Typify emits crate/module-level inner attributes. Loading its output as a
 // real module keeps those tool-owned attributes valid; a nested `include!`
@@ -26,18 +27,21 @@ pub(crate) mod generated_contracts;
 
 pub use bmad::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
-    BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadCapabilityKey, BmadCatalog,
-    BmadCatalogAvailability, BmadCatalogBuilder, BmadCompiledHelpInvocation, BmadConfigGraph,
-    BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution, BmadConfigResolver,
-    BmadConfigWarning, BmadEntrypointKind, BmadHelpAction, BmadHelpActionKey, BmadHelpAdvisor,
-    BmadHelpBindingCompiler, BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpIntent,
-    BmadHelpRecommendation, BmadHelpSourceRef, BmadHostInputReplacement, BmadInstalledSkillRecord,
+    BmadArtifactClassification, BmadArtifactEvidence, BmadArtifactEvidenceKind,
+    BmadArtifactReference, BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadCapabilityKey,
+    BmadCatalog, BmadCatalogAvailability, BmadCatalogBuilder, BmadCompiledHelpInvocation,
+    BmadConfigGraph, BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution,
+    BmadConfigResolver, BmadConfigWarning, BmadContentReference, BmadEntrypointKind,
+    BmadHelpAction, BmadHelpActionKey, BmadHelpAdvisor, BmadHelpBindingCompiler,
+    BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpEvidenceClass, BmadHelpEvidenceToken,
+    BmadHelpIntent, BmadHelpMaterializer, BmadHelpNoRecommendationReason, BmadHelpRecommendation,
+    BmadHelpRecordIds, BmadHelpSourceRef, BmadHostInputReplacement, BmadInstalledSkillRecord,
     BmadKernelError, BmadKernelErrorCode, BmadLoadedMethodPackage, BmadLoadedPackage,
-    BmadLoadedSkill, BmadLocationClass, BmadMenuTargetKind, BmadPackageLoader,
-    BmadQualifiedHelpSource, BmadResolvedConfig, BmadReviewedPromptReference,
+    BmadLoadedSkill, BmadLocationClass, BmadMenuTargetKind, BmadMethodHelpRecommendation,
+    BmadPackageLoader, BmadQualifiedHelpSource, BmadResolvedConfig, BmadReviewedPromptReference,
     BmadSealedHelpInvocation, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
     BmadTrustedHelpModelProfile, BmadTrustedHelpModelProfileData, BmadUnavailableDependency,
-    BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
+    BmadUtcInstant, BmadVerifiedHelpProposal, BuilderActionName, BuilderAnalysisContextDecision,
     BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
     BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
     BuilderAnalysisRun, BuilderAuthoringAction, BuilderAuthoringService, BuilderCapabilityFact,
@@ -51,13 +55,13 @@ pub use bmad::{
     InertBmadHelpSession, InertBmadHelpSessionCoordinator, InertBmadHelpSessionError,
     InertBmadHelpSessionPreparationError, MethodAdvanceDisposition, MethodAdvanceReceipt,
     MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
-    MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
-    MethodModelPort, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
-    MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
-    MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
-    MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
+    MethodArtifactExpectation, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
+    MethodCheckpoint, MethodContextDecision, MethodError, MethodErrorCode, MethodEvidenceClass,
+    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodModelBinding, MethodModelBindingData, MethodModelPort, MethodPersistenceEvent,
+    MethodRendererProjection, MethodResourcePolicy, MethodRuntimeRequirement, MethodServiceError,
+    MethodSession, MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState,
+    MethodStepTable, MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
 };
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,
@@ -79,3 +83,4 @@ pub use hash::{
     legacy_canonical_hash_without_field, sha256_bytes, CanonicalHashError, Sha256Digest,
 };
 pub use ids::{ContractId, IdentifierError, RelativeWorkspacePath, UnixMillis};
+pub use strict_json::{deserialize_strict_json, StrictJsonError};

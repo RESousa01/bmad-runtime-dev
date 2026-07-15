@@ -23,6 +23,8 @@ pub enum BmadKernelErrorCode {
     SealedHelpMismatch,
     #[error("the compiled BMAD Help binding does not match its sealed source and catalog")]
     SealedHelpBindingMismatch,
+    #[error("the verified BMAD Help proposal or its canonical lineage is invalid")]
+    HelpProposalInvalid,
     #[error("the observed final BMAD inventory does not match the descriptor")]
     FinalInventoryMismatch,
     #[error("a managed BMAD resource does not match the descriptor")]

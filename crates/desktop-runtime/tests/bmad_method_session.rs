@@ -218,6 +218,8 @@ fn verified_binding(
             ),
         )
         .expect("trusted-host receipt evidence hash"),
+        canonical_advance_result: None,
+        canonical_advance_result_hash: None,
     }
 }
 

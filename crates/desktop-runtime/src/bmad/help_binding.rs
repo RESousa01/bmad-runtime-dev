@@ -1,4 +1,4 @@
-use std::{fmt, sync::Arc};
+use std::{collections::BTreeMap, collections::BTreeSet, fmt, sync::Arc};
 
 use serde_json::json;
 
@@ -6,10 +6,10 @@ use crate::{canonical_hash, generated_contracts, Sha256Digest};
 
 use super::{
     BmadCapabilityKey, BmadCatalog, BmadCatalogAvailability, BmadEntrypointKind, BmadHelpAction,
-    BmadInstalledSkillRecord, BmadKernelError, BmadKernelErrorCode, BmadSealedHelpInvocation,
-    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodModelBinding, MethodModelBindingData, MethodResourcePolicy, MethodRuntimeRequirement,
-    MethodStepTable,
+    BmadHelpEvidenceToken, BmadInstalledSkillRecord, BmadKernelError, BmadKernelErrorCode,
+    BmadSealedHelpInvocation, MethodExactBinding, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
+    MethodResourcePolicy, MethodRuntimeRequirement, MethodStepTable,
 };
 
 const HELP_ACTION_GRAPH_HASH: &str =
@@ -18,6 +18,7 @@ const HELP_CUSTOMIZATION_HASH: &str =
     "sha256:41d2f0d68d0a47e8fb9eeccd89f0409f2ab08a72eb1a76500d87a0919ecb9c8a";
 const HELP_VALIDATION_PROFILE_HASH: &str =
     "sha256:ddd086622be73b637cdcb3562b4459ac3853f1aeae34a53c43775af66e4cbdf0";
+const MAX_HELP_EVIDENCE_TOKENS_PER_CAPABILITY: usize = 64;
 
 const ARCHITECTURE_ROW: [&str; 13] = [
     "BMad Method",
@@ -163,6 +164,7 @@ pub struct BmadCompiledHelpInvocation {
     result_schema_closure_hash: Sha256Digest,
     customization_hash: Sha256Digest,
     validation_profile_hash: Sha256Digest,
+    evidence_tokens: Arc<[BmadHelpEvidenceToken]>,
 }
 
 impl fmt::Debug for BmadCompiledHelpInvocation {
@@ -174,6 +176,7 @@ impl fmt::Debug for BmadCompiledHelpInvocation {
                 &format_args!("<redacted:{} bytes>", self.instruction_bytes.len()),
             )
             .field("catalog_candidates", &self.catalog_candidates.len())
+            .field("evidence_tokens", &self.evidence_tokens.len())
             .field("capability_key", &self.exact_binding.capability_key)
             .field("runnable", &false)
             .finish_non_exhaustive()
@@ -240,6 +243,55 @@ impl BmadCompiledHelpInvocation {
     pub const fn validation_profile_hash(&self) -> Sha256Digest {
         self.validation_profile_hash
     }
+
+    /// Returns an exact clone with a sorted host-owned evidence-token allowlist.
+    ///
+    /// # Errors
+    ///
+    /// Rejects duplicate token/artifact identities or tokens not bound to an
+    /// exact non-`_meta` candidate in this compiled catalog.
+    pub fn with_evidence_allowlist(
+        &self,
+        mut tokens: Vec<BmadHelpEvidenceToken>,
+    ) -> Result<Self, BmadKernelError> {
+        tokens.sort_by(|left, right| left.token_id().cmp(right.token_id()));
+        let mut token_ids = BTreeSet::new();
+        let mut artifact_refs = BTreeSet::new();
+        let mut tokens_per_capability = BTreeMap::new();
+        for token in &tokens {
+            let capability_count = tokens_per_capability
+                .entry(token.capability().clone())
+                .or_insert(0_usize);
+            *capability_count = capability_count.saturating_add(1);
+            if !token_ids.insert(token.token_id())
+                || !artifact_refs.insert(token.artifact_ref().ref_.as_str())
+                || *capability_count > MAX_HELP_EVIDENCE_TOKENS_PER_CAPABILITY
+                || !self
+                    .catalog_candidates
+                    .iter()
+                    .any(|action| action.skill_name != "_meta" && &action.key == token.capability())
+            {
+                return Err(binding_mismatch());
+            }
+        }
+        let mut compiled = self.clone();
+        compiled.evidence_tokens = Arc::from(tokens);
+        Ok(compiled)
+    }
+
+    pub(super) fn evidence_tokens(&self) -> &[BmadHelpEvidenceToken] {
+        &self.evidence_tokens
+    }
+}
+
+pub(super) fn help_canonical_schema_hashes() -> Result<(Sha256Digest, Sha256Digest), BmadKernelError>
+{
+    Ok((
+        generated_digest(
+            generated_contracts::BMAD_METHOD_HELP_RECOMMENDATION_SCHEMA_CLOSURE_SHA256,
+        )?,
+        generated_digest(generated_contracts::BMAD_METHOD_ADVANCE_RESULT_SCHEMA_CLOSURE_SHA256)?,
+    ))
 }
 
 pub struct BmadHelpBindingCompiler;
@@ -329,6 +381,7 @@ impl BmadHelpBindingCompiler {
             result_schema_closure_hash,
             customization_hash,
             validation_profile_hash,
+            evidence_tokens: Arc::from([]),
         })
     }
 }

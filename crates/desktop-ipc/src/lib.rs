@@ -9,7 +9,6 @@ mod bmad_help;
 mod bmad_run;
 mod envelope;
 mod gate;
-mod unique_json;
 
 pub use envelope::{
     CommandEnvelopeValidator, IpcReply, IpcValidationContext, IpcValidationError,
@@ -30,9 +29,7 @@ pub fn deserialize_strict<T>(bytes: &[u8]) -> Result<T, IpcValidationError>
 where
     T: DeserializeOwned,
 {
-    let unique_json::UniqueJson(value) =
-        serde_json::from_slice(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
-    serde_json::from_value(value).map_err(|_| IpcValidationError::InvalidJson)
+    desktop_runtime::deserialize_strict_json(bytes).map_err(|_| IpcValidationError::InvalidJson)
 }
 pub use bmad::{
     project_bmad_library, BmadAgentMenuProjection, BmadAgentMenuTargetProjection,

@@ -6,6 +6,7 @@ mod config;
 mod error;
 mod help;
 mod help_binding;
+mod help_materialization;
 mod help_run;
 mod help_session;
 mod kernel_error;
@@ -52,6 +53,12 @@ pub use help_binding::{
     BmadCompiledHelpInvocation, BmadHelpBindingCompiler, BmadTrustedHelpModelProfile,
     BmadTrustedHelpModelProfileData,
 };
+pub use help_materialization::{
+    BmadArtifactClassification, BmadArtifactReference, BmadCanonicalAdvanceResult,
+    BmadCanonicalHelpRecords, BmadContentReference, BmadHelpEvidenceClass, BmadHelpEvidenceToken,
+    BmadHelpMaterializer, BmadHelpNoRecommendationReason, BmadHelpRecordIds,
+    BmadMethodHelpRecommendation, BmadVerifiedHelpProposal,
+};
 pub use help_run::{
     BmadHostInputReplacement, BmadLoadedMethodPackage, BmadQualifiedHelpSource,
     BmadSealedHelpInvocation,
@@ -63,9 +70,10 @@ pub use help_session::{
 pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
 pub use method::{
     CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
-    MethodAdvanceResult, MethodArtifactProvenance, MethodCheckpoint, MethodPersistenceEvent,
-    MethodRendererProjection, MethodSession, MethodSessionScope, MethodState, MethodStepTable,
-    MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
+    MethodAdvanceResult, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
+    MethodCheckpoint, MethodPersistenceEvent, MethodRendererProjection, MethodSession,
+    MethodSessionScope, MethodState, MethodStepTable, MethodVerifiedAdvanceResult,
+    MethodVerifiedResultBindingData,
 };
 pub use package::{
     BmadEntrypointKind, BmadLoadedPackage, BmadLoadedSkill, BmadLocationClass, BmadPackageLoader,

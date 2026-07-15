@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{canonical_hash, AuthorityRef, ContractId, Sha256Digest, UnixMillis};
 
-use super::{MethodContextDecision, MethodError, MethodErrorCode, MethodExactBinding};
+use super::help_binding::help_canonical_schema_hashes;
+use super::{
+    BmadCanonicalAdvanceResult, BmadContentReference, MethodContextDecision, MethodError,
+    MethodErrorCode, MethodExactBinding,
+};
 
 const METHOD_SESSION_SCHEMA: &str = "sapphirus.bmad-method-session-state.v1";
 const METHOD_RUNTIME_CHECKPOINT_HASH_PURPOSE: &str = "bmad-method-runtime-checkpoint";
@@ -302,6 +306,23 @@ pub struct MethodVerifiedResultBindingData {
     pub model_response_payload_hash: Sha256Digest,
     pub accepted_method_result_hash: Sha256Digest,
     pub model_receipt_evidence_hash: Sha256Digest,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical_advance_result: Option<MethodCanonicalAdvanceResultData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical_advance_result_hash: Option<Sha256Digest>,
+}
+
+/// Exact data needed to reconstruct a host-canonical completion-candidate
+/// record after restart. The request and invocation identities are retained by
+/// [`MethodVerifiedResultBindingData`] itself.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct MethodCanonicalAdvanceResultData {
+    pub recommendation_schema_hash: Sha256Digest,
+    pub result_schema_hash: Sha256Digest,
+    pub result_id: ContractId,
+    pub recommendation_content_ref: BmadContentReference,
+    pub received_at: UnixMillis,
 }
 
 /// A BMAD result whose accepted projection and verified lineage are sealed.
@@ -330,7 +351,9 @@ impl MethodVerifiedAdvanceResult {
         result: MethodAdvanceResult,
         binding: MethodVerifiedResultBindingData,
     ) -> Result<Self, MethodError> {
-        if method_advance_result_hash(&result)? != binding.accepted_method_result_hash {
+        if method_advance_result_hash(&result)? != binding.accepted_method_result_hash
+            || !canonical_lineage_valid(&result, &binding, None, false)?
+        {
             return Err(MethodError::new(MethodErrorCode::MethodResultInvalid));
         }
         let verification_hash = verified_result_binding_hash(&binding)?;
@@ -358,6 +381,7 @@ impl MethodVerifiedAdvanceResult {
 
     pub(super) fn verify(&self) -> Result<(), MethodError> {
         if method_advance_result_hash(&self.result)? != self.binding.accepted_method_result_hash
+            || !canonical_lineage_valid(&self.result, &self.binding, None, false)?
             || verified_result_binding_hash(&self.binding)? != self.verification_hash
         {
             return Err(MethodError::new(MethodErrorCode::MethodResultInvalid));
@@ -393,6 +417,10 @@ pub struct MethodCheckpoint {
     pub model_response_payload_hash: Sha256Digest,
     pub accepted_method_result_hash: Sha256Digest,
     pub model_receipt_evidence_hash: Sha256Digest,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_advance_result: Option<MethodCanonicalAdvanceResultData>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_advance_result_hash: Option<Sha256Digest>,
     pub verified_result_binding_hash: Sha256Digest,
     pub working_artifact_refs: Vec<String>,
     pub recorded_at: UnixMillis,
@@ -426,6 +454,10 @@ struct CheckpointHashInput<'a> {
     model_response_payload_hash: &'a Sha256Digest,
     accepted_method_result_hash: &'a Sha256Digest,
     model_receipt_evidence_hash: &'a Sha256Digest,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    canonical_advance_result: Option<&'a MethodCanonicalAdvanceResultData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    canonical_advance_result_hash: Option<&'a Sha256Digest>,
     verified_result_binding_hash: &'a Sha256Digest,
     working_artifact_refs: &'a [String],
     recorded_at: UnixMillis,
@@ -458,6 +490,8 @@ impl MethodCheckpoint {
             model_response_payload_hash: &self.model_response_payload_hash,
             accepted_method_result_hash: &self.accepted_method_result_hash,
             model_receipt_evidence_hash: &self.model_receipt_evidence_hash,
+            canonical_advance_result: self.canonical_advance_result.as_ref(),
+            canonical_advance_result_hash: self.canonical_advance_result_hash.as_ref(),
             verified_result_binding_hash: &self.verified_result_binding_hash,
             working_artifact_refs: &self.working_artifact_refs,
             recorded_at: self.recorded_at,
@@ -970,6 +1004,22 @@ impl MethodSession {
         Ok(checkpoint)
     }
 
+    /// Verifies a sealed result against current Method authority without
+    /// mutating aggregate state.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same exact lineage, state, and step errors as
+    /// [`Self::accept_result`].
+    pub fn validate_result(
+        &self,
+        expected_version: u64,
+        verified_result: &MethodVerifiedAdvanceResult,
+    ) -> Result<(), MethodError> {
+        self.validate_advance_result(expected_version, verified_result)
+            .map(|_| ())
+    }
+
     fn validate_advance_result(
         &self,
         expected_version: u64,
@@ -1024,6 +1074,12 @@ impl MethodSession {
             || method_binding_hash != proof.method_binding_hash
             || binding.model_binding_hash != proof.model_binding_hash
             || binding.model_binding.data.response_schema_hash != proof.response_schema_hash
+            || !canonical_lineage_valid(
+                result,
+                proof,
+                Some(binding.method_schema_hash),
+                binding_requires_canonical_help_lineage(binding),
+            )?
             || receipt.aggregate_version != self.version
         {
             return Err(MethodError::new(MethodErrorCode::MethodResultInvalid));
@@ -1113,6 +1169,8 @@ impl MethodSession {
             model_response_payload_hash: &proof.model_response_payload_hash,
             accepted_method_result_hash: &proof.accepted_method_result_hash,
             model_receipt_evidence_hash: &proof.model_receipt_evidence_hash,
+            canonical_advance_result: proof.canonical_advance_result.as_ref(),
+            canonical_advance_result_hash: proof.canonical_advance_result_hash.as_ref(),
             verified_result_binding_hash: verified_result.verification_hash(),
             working_artifact_refs: &result.working_artifact_refs,
             recorded_at,
@@ -1143,6 +1201,8 @@ impl MethodSession {
             model_response_payload_hash: proof.model_response_payload_hash,
             accepted_method_result_hash: proof.accepted_method_result_hash,
             model_receipt_evidence_hash: proof.model_receipt_evidence_hash,
+            canonical_advance_result: proof.canonical_advance_result.clone(),
+            canonical_advance_result_hash: proof.canonical_advance_result_hash,
             verified_result_binding_hash: *verified_result.verification_hash(),
             working_artifact_refs: result.working_artifact_refs.clone(),
             recorded_at,
@@ -1430,6 +1490,47 @@ impl MethodSession {
         Ok(())
     }
 
+    fn restored_verified_binding(
+        checkpoint: &MethodCheckpoint,
+        revision: &MethodBindingRevision,
+    ) -> Result<MethodVerifiedResultBindingData, MethodError> {
+        let binding = MethodVerifiedResultBindingData {
+            invocation_id: checkpoint.invocation_id.clone(),
+            decision_id: checkpoint.context_decision_id.clone(),
+            decision_consumption_hash: checkpoint.decision_consumption_hash,
+            model_request_id: checkpoint.model_request_id.clone(),
+            model_request_hash: checkpoint.model_request_hash,
+            session_authority_hash: checkpoint.session_authority_hash,
+            d2_model_invocation_binding_hash: checkpoint.d2_model_invocation_binding_hash,
+            model_bridge_binding_hash: checkpoint.model_bridge_binding_hash,
+            method_binding_hash: checkpoint.method_binding_hash,
+            model_binding_hash: checkpoint.model_binding_hash,
+            response_schema_hash: checkpoint.response_schema_hash,
+            model_response_payload_hash: checkpoint.model_response_payload_hash,
+            accepted_method_result_hash: checkpoint.accepted_method_result_hash,
+            model_receipt_evidence_hash: checkpoint.model_receipt_evidence_hash,
+            canonical_advance_result: checkpoint.canonical_advance_result.clone(),
+            canonical_advance_result_hash: checkpoint.canonical_advance_result_hash,
+        };
+        let result = MethodAdvanceResult {
+            disposition: checkpoint.advance_disposition,
+            current_step_key: checkpoint.current_step_key.clone(),
+            next_step_key: checkpoint.next_step_key.clone(),
+            working_artifact_refs: checkpoint.working_artifact_refs.clone(),
+        };
+        if !canonical_lineage_valid(
+            &result,
+            &binding,
+            Some(revision.binding.method_schema_hash),
+            binding_requires_canonical_help_lineage(&revision.binding),
+        )
+        .map_err(|_| recovery_error())?
+        {
+            return Err(recovery_error());
+        }
+        Ok(binding)
+    }
+
     fn restored_checkpoint_expectations(
         &self,
         index: usize,
@@ -1487,22 +1588,7 @@ impl MethodSession {
             &response_schema_hash,
         )
         .map_err(|_| recovery_error())?;
-        let restored_verified_binding = MethodVerifiedResultBindingData {
-            invocation_id: checkpoint.invocation_id.clone(),
-            decision_id: checkpoint.context_decision_id.clone(),
-            decision_consumption_hash: checkpoint.decision_consumption_hash,
-            model_request_id: checkpoint.model_request_id.clone(),
-            model_request_hash: checkpoint.model_request_hash,
-            session_authority_hash: checkpoint.session_authority_hash,
-            d2_model_invocation_binding_hash: checkpoint.d2_model_invocation_binding_hash,
-            model_bridge_binding_hash: checkpoint.model_bridge_binding_hash,
-            method_binding_hash: checkpoint.method_binding_hash,
-            model_binding_hash: checkpoint.model_binding_hash,
-            response_schema_hash: checkpoint.response_schema_hash,
-            model_response_payload_hash: checkpoint.model_response_payload_hash,
-            accepted_method_result_hash: checkpoint.accepted_method_result_hash,
-            model_receipt_evidence_hash: checkpoint.model_receipt_evidence_hash,
-        };
+        let restored_verified_binding = Self::restored_verified_binding(checkpoint, revision)?;
         Ok(RestoredCheckpointExpectations {
             ordinal,
             consumption,
@@ -1872,6 +1958,57 @@ fn method_advance_result_hash(result: &MethodAdvanceResult) -> Result<Sha256Dige
     Ok(canonical_hash("bmad-method-advance-result", 1, result)?)
 }
 
+fn canonical_lineage_valid(
+    result: &MethodAdvanceResult,
+    binding: &MethodVerifiedResultBindingData,
+    expected_result_schema_hash: Option<Sha256Digest>,
+    required: bool,
+) -> Result<bool, MethodError> {
+    let (canonical, canonical_hash) = match (
+        binding.canonical_advance_result.as_ref(),
+        binding.canonical_advance_result_hash,
+    ) {
+        (None, None) => return Ok(!required),
+        (Some(canonical), Some(canonical_hash)) => (canonical, canonical_hash),
+        (None, Some(_)) | (Some(_), None) => return Ok(false),
+    };
+    let (expected_recommendation_schema_hash, canonical_result_schema_hash) =
+        help_canonical_schema_hashes()
+            .map_err(|_| MethodError::new(MethodErrorCode::MethodResultInvalid))?;
+    if canonical.recommendation_schema_hash != expected_recommendation_schema_hash
+        || canonical.result_schema_hash != canonical_result_schema_hash
+        || result.disposition != MethodAdvanceDisposition::Completed
+        || result.current_step_key != "recommend"
+        || result.next_step_key.is_some()
+        || !result.working_artifact_refs.is_empty()
+        || expected_result_schema_hash
+            .is_some_and(|expected| expected != canonical.result_schema_hash)
+    {
+        return Ok(false);
+    }
+    BmadCanonicalAdvanceResult {
+        result_kind: "completion_candidate".to_owned(),
+        result_id: canonical.result_id.clone(),
+        request_id: binding.model_request_id.clone(),
+        invocation_id: binding.invocation_id.clone(),
+        response_schema_hash: canonical.recommendation_schema_hash,
+        response_content_ref: canonical.recommendation_content_ref.clone(),
+        produced_artifacts: Vec::new(),
+        unresolved_open_item_count: 0,
+        result_hash: canonical_hash,
+        received_at: canonical.received_at,
+    }
+    .verify()
+    .map_err(|_| MethodError::new(MethodErrorCode::MethodResultInvalid))?;
+    Ok(true)
+}
+
+fn binding_requires_canonical_help_lineage(binding: &MethodExactBinding) -> bool {
+    binding.capability_key.module_code == "core"
+        && binding.capability_key.skill_name == "bmad-help"
+        && binding.capability_key.normalized_action.is_none()
+}
+
 fn verified_result_binding_hash(
     binding: &MethodVerifiedResultBindingData,
 ) -> Result<Sha256Digest, MethodError> {
@@ -2066,6 +2203,8 @@ mod verified_result_tests {
             model_response_payload_hash: crate::sha256_bytes(b"exact-raw-json-bytes"),
             accepted_method_result_hash: method_advance_result_hash(&result).expect("result hash"),
             model_receipt_evidence_hash: crate::sha256_bytes(b"receipt-evidence"),
+            canonical_advance_result: None,
+            canonical_advance_result_hash: None,
         };
         let verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(result, proof)
             .expect("verified result");

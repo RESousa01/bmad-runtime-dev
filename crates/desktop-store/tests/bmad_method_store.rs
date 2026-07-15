@@ -105,6 +105,8 @@ fn verified_result(
             ),
         )
         .expect("canonical verified receipt evidence hash"),
+        canonical_advance_result: None,
+        canonical_advance_result_hash: None,
     };
     MethodVerifiedAdvanceResult::from_trusted_host_evidence(result, verified_binding)
         .expect("trusted host result evidence seals")
