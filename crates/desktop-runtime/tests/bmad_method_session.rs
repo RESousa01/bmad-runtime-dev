@@ -318,6 +318,7 @@ fn authoritative_help_evidence_rejects_a_pre_rebind_invocation() {
         .expect("completed second capability");
 
     let action = BmadHelpActionKey {
+        package_version_id: id("pkgver_01J00000000000000000000000"),
         module_code: "bmm".to_owned(),
         skill_name: "bmad-architecture".to_owned(),
         action: Some("validate".to_owned()),

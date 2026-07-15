@@ -26,6 +26,7 @@ const methodRuntimePaths = Object.freeze(
 const normalizedPaths = Object.freeze([
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
@@ -1341,6 +1342,53 @@ async function verifyNormalizedArtifacts(resources) {
       !== canonicalDocumentHash("bmad-instruction-projection", projection, "projectionHash")
     ) {
       fail("foundation_hash_mismatch", projection.managedInstruction.path, "instruction projection hash drifted");
+    }
+  }
+
+  const helpGraph = parseJson(
+    await readRegularBytes("normalized/bmad-help-action-graph.json"),
+    "normalized/bmad-help-action-graph.json",
+  );
+  exactKeys(
+    helpGraph,
+    ["schemaVersion", "packageVersionId", "sources", "graphHash"],
+    "normalized/bmad-help-action-graph.json",
+  );
+  const expectedHelpSources = [
+    ["bmm", "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf", "bmad-architecture"],
+    ["core", "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d", "bmad-help"],
+  ];
+  if (
+    helpGraph.schemaVersion !== "sapphirus.bmad-foundation-help-action-graph.v1"
+    || helpGraph.packageVersionId !== descriptor.packageVersionId
+    || helpGraph.graphHash
+      !== canonicalDocumentHash(
+        "bmad-foundation-help-action-graph",
+        helpGraph,
+        "graphHash",
+      )
+    || !Array.isArray(helpGraph.sources)
+    || helpGraph.sources.length !== expectedHelpSources.length
+  ) {
+    fail("foundation_hash_mismatch", "normalized/bmad-help-action-graph.json", "help graph identity drifted");
+  }
+  for (const [index, expected] of expectedHelpSources.entries()) {
+    const source = helpGraph.sources[index];
+    exactKeys(
+      source,
+      ["moduleCode", "sourceMemberHash", "rows"],
+      `normalized/bmad-help-action-graph.json.sources[${index}]`,
+    );
+    if (
+      source.moduleCode !== expected[0]
+      || source.sourceMemberHash !== expected[1]
+      || !Array.isArray(source.rows)
+      || source.rows.length !== 1
+      || !Array.isArray(source.rows[0])
+      || source.rows[0].length !== 13
+      || source.rows[0][1] !== expected[2]
+    ) {
+      fail("foundation_hash_mismatch", `helpActionGraph.sources[${index}]`, "normalized help row drifted");
     }
   }
 

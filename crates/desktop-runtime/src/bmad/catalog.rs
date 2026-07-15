@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::{Map, Value};
 
-use crate::{canonical_hash, RelativeWorkspacePath, Sha256Digest};
+use crate::{canonical_hash, generated_contracts, ContractId, RelativeWorkspacePath, Sha256Digest};
 
 use super::{BmadEntrypointKind, BmadKernelError, BmadKernelErrorCode, BmadLoadedPackage};
 
@@ -39,6 +39,7 @@ pub enum BmadCatalogAvailability {
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BmadHelpActionKey {
+    pub package_version_id: ContractId,
     pub module_code: String,
     pub skill_name: String,
     pub action: Option<String>,
@@ -48,7 +49,15 @@ pub struct BmadHelpActionKey {
 pub struct BmadInstalledSkillRecord {
     pub module_code: String,
     pub skill_name: String,
+    pub display_name: String,
+    pub description: String,
     pub entrypoint_kind: BmadEntrypointKind,
+    pub actions: Vec<String>,
+    pub distribution_profile: String,
+    pub install_profile: String,
+    pub validation_profile: String,
+    #[serde(skip_serializing)]
+    pub execution_profile_hash: Sha256Digest,
     pub capability_enabled: bool,
     pub structurally_eligible: bool,
     pub hidden_from_help: bool,
@@ -127,6 +136,52 @@ impl BmadHelpCatalogSource {
             contents,
         })
     }
+
+    /// Creates a bounded catalog source from normalized raw 13-column rows.
+    ///
+    /// This is used by the sealed foundation adapter so production does not
+    /// need source-tree CSV bytes. The raw row values remain data; the same CSV
+    /// parser and semantic checks used for reviewed sources still run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`BmadKernelErrorCode::HelpCatalogInvalid`] when the row count,
+    /// column count, encoded size, or a field violates catalog limits.
+    pub fn from_rows(
+        module_code: impl Into<String>,
+        rows: &[Vec<String>],
+    ) -> Result<Self, BmadKernelError> {
+        if rows.len() > MAX_CATALOG_ROWS || rows.iter().any(|row| row.len() != HELP_HEADER.len()) {
+            return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+        }
+        let mut contents = HELP_HEADER.join(",");
+        contents.push('\n');
+        for row in rows {
+            for (index, field) in row.iter().enumerate() {
+                if index > 0 {
+                    contents.push(',');
+                }
+                encode_csv_field(field, &mut contents);
+            }
+            contents.push('\n');
+        }
+        Self::new(module_code, contents)
+    }
+}
+
+fn encode_csv_field(field: &str, output: &mut String) {
+    if field.contains([',', '"', '\r', '\n']) {
+        output.push('"');
+        for character in field.chars() {
+            if character == '"' {
+                output.push('"');
+            }
+            output.push(character);
+        }
+        output.push('"');
+    } else {
+        output.push_str(field);
+    }
 }
 
 pub struct BmadCatalogBuilder;
@@ -148,7 +203,14 @@ impl BmadCatalogBuilder {
             .map(|skill| BmadInstalledSkillRecord {
                 module_code: skill.module_code.clone(),
                 skill_name: skill.skill_name.clone(),
+                display_name: skill.display_name.clone(),
+                description: skill.description.clone(),
                 entrypoint_kind: skill.entrypoint_kind,
+                actions: skill.actions.clone(),
+                distribution_profile: skill.distribution_profile.clone(),
+                install_profile: skill.install_profile.clone(),
+                validation_profile: skill.validation_profile.clone(),
+                execution_profile_hash: skill.execution_profile_hash,
                 capability_enabled: skill.capability_enabled,
                 structurally_eligible: skill.structurally_eligible,
                 hidden_from_help: true,
@@ -172,7 +234,13 @@ impl BmadCatalogBuilder {
             {
                 let source_ordinal = u64::try_from(source_ordinal)
                     .map_err(|_| BmadKernelErrorCode::HelpCatalogInvalid)?;
-                let action = normalize_help_row(&source.module_code, source_ordinal, row)?;
+                let mut action = normalize_help_row(
+                    &package.package_version_id,
+                    &source.module_code,
+                    source_ordinal,
+                    row,
+                )?;
+                infer_single_action(&installed_skills, &mut action);
                 if !identities.insert(action.key.clone()) {
                     return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
                 }
@@ -200,6 +268,25 @@ impl BmadCatalogBuilder {
             help_actions,
         })
     }
+}
+
+fn infer_single_action(installed: &[BmadInstalledSkillRecord], action: &mut BmadHelpAction) {
+    if action.action.is_some() {
+        return;
+    }
+    let Some(installed_action) = installed
+        .iter()
+        .find(|skill| {
+            skill.module_code == action.module_code
+                && skill.skill_name == action.skill_name
+                && skill.actions.len() == 1
+        })
+        .and_then(|skill| skill.actions.first())
+    else {
+        return;
+    };
+    action.action = Some(installed_action.clone());
+    action.key.action = Some(installed_action.clone());
 }
 
 fn parse_help_catalog(contents: &str) -> Result<Vec<Vec<String>>, BmadKernelError> {
@@ -295,6 +382,7 @@ fn finish_csv_row(rows: &mut Vec<Vec<String>>, row: &mut Vec<String>, field: &mu
 }
 
 fn normalize_help_row(
+    package_version_id: &ContractId,
     module_code: &str,
     source_ordinal: u64,
     row: Vec<String>,
@@ -343,6 +431,7 @@ fn normalize_help_row(
     let expected_outputs = split_alternatives(&outputs);
     let action = nonempty(action);
     let key = BmadHelpActionKey {
+        package_version_id: package_version_id.clone(),
         module_code: module_code.to_owned(),
         skill_name: skill_name.clone(),
         action: action.clone(),
@@ -768,6 +857,246 @@ impl BmadAgentRoster {
     pub const fn roster_hash(&self) -> Sha256Digest {
         self.roster_hash
     }
+
+    /// Loads the sealed normalized roster into display-only native records.
+    ///
+    /// The generated contract closes the source shape. This adapter then
+    /// verifies the package binding and every roster/agent graph self-hash,
+    /// resolves availability exclusively from the native catalog, and drops
+    /// source-member labels and authority-only hashes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`BmadKernelErrorCode::AgentMenuTargetInvalid`] for a malformed,
+    /// transplanted, non-canonical, or self-hash-invalid roster.
+    pub fn load_normalized(
+        bytes: &[u8],
+        catalog: &BmadCatalog,
+        expected_package_version_id: &ContractId,
+    ) -> Result<Self, BmadKernelError> {
+        if bytes.len() > MAX_CATALOG_BYTES {
+            return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+        }
+        let generated = serde_json::from_slice::<
+            generated_contracts::BmadCapabilityCatalogBmadAgentRoster,
+        >(bytes)
+        .map_err(|_| BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+        drop(generated);
+        let value: Value = serde_json::from_slice(bytes)
+            .map_err(|_| BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+        let object = value
+            .as_object()
+            .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+        if map_string(object, "packageVersionId")? != expected_package_version_id.as_str() {
+            return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+        }
+        let values = object
+            .get("agents")
+            .and_then(Value::as_array)
+            .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+        let mut identities = BTreeSet::new();
+        let mut previous_identity: Option<(String, String)> = None;
+        let mut record_hashes = Vec::with_capacity(values.len());
+        let mut agents = Vec::with_capacity(values.len());
+        for value in values {
+            let agent = load_normalized_agent(value, catalog, expected_package_version_id)?;
+            let identity = (agent.module_code.clone(), agent.agent_code.clone());
+            if previous_identity
+                .as_ref()
+                .is_some_and(|previous| previous >= &identity)
+                || !identities.insert(identity.clone())
+            {
+                return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+            }
+            previous_identity = Some(identity);
+            record_hashes.push(agent.record_hash());
+            agents.push(agent);
+        }
+        let roster_hash = map_digest(object, "rosterHash")?;
+        let computed = canonical_hash("bmad-agent-roster", 1, &record_hashes)
+            .map_err(|_| BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+        if roster_hash != computed {
+            return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+        }
+        Ok(Self {
+            agents,
+            roster_hash,
+        })
+    }
+}
+
+fn load_normalized_agent(
+    value: &Value,
+    catalog: &BmadCatalog,
+    expected_package_version_id: &ContractId,
+) -> Result<BmadAgentRecord, BmadKernelError> {
+    let agent = value
+        .as_object()
+        .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    let menu_values = agent
+        .get("menuItems")
+        .and_then(Value::as_array)
+        .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    verify_normalized_agent_hashes(agent, menu_values)?;
+    let menus = load_normalized_menus(menu_values, catalog, expected_package_version_id)?;
+    let available = menus
+        .iter()
+        .any(|menu| menu.availability == BmadCatalogAvailability::Available);
+    Ok(BmadAgentRecord {
+        module_code: map_string(agent, "moduleCode")?.to_owned(),
+        agent_code: map_string(agent, "agentCode")?.to_owned(),
+        display_name: map_string(agent, "name")?.to_owned(),
+        title: map_string(agent, "title")?.to_owned(),
+        icon: map_string(agent, "icon")?.to_owned(),
+        team: map_string(agent, "team")?.to_owned(),
+        description: map_string(agent, "description")?.to_owned(),
+        available,
+        source_evidence_count: 0,
+        menus,
+        record_hash: map_digest(agent, "agentRecordHash")?,
+    })
+}
+
+fn load_normalized_menus(
+    values: &[Value],
+    catalog: &BmadCatalog,
+    expected_package_version_id: &ContractId,
+) -> Result<Vec<BmadAgentMenuRecord>, BmadKernelError> {
+    let mut menu_codes = BTreeSet::new();
+    values
+        .iter()
+        .map(|value| {
+            let menu = value
+                .as_object()
+                .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+            let code = map_string(menu, "menuCode")?.to_owned();
+            if !menu_codes.insert(code.clone()) {
+                return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+            }
+            let target = menu
+                .get("target")
+                .and_then(Value::as_object)
+                .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+            let (target_kind, availability) =
+                load_normalized_menu_target(target, catalog, expected_package_version_id)?;
+            Ok(BmadAgentMenuRecord {
+                code,
+                description: map_string(menu, "description")?.to_owned(),
+                target_kind,
+                display_label: map_string(menu, "displayName")?.to_owned(),
+                availability,
+            })
+        })
+        .collect()
+}
+
+fn load_normalized_menu_target(
+    target: &Map<String, Value>,
+    catalog: &BmadCatalog,
+    expected_package_version_id: &ContractId,
+) -> Result<(BmadMenuTargetKind, BmadCatalogAvailability), BmadKernelError> {
+    match map_string(target, "targetKind")? {
+        "skill_target" => Ok((
+            BmadMenuTargetKind::SkillTarget,
+            normalized_skill_availability(target, catalog, expected_package_version_id)?,
+        )),
+        "prompt_reference" => {
+            if map_string(target, "availability")? != "unavailable_source_prompt" {
+                return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+            }
+            Ok((
+                BmadMenuTargetKind::PromptReference,
+                BmadCatalogAvailability::SourcePromptUnavailable,
+            ))
+        }
+        _ => Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into()),
+    }
+}
+
+fn verify_normalized_agent_hashes(
+    agent: &Map<String, Value>,
+    menu_values: &[Value],
+) -> Result<(), BmadKernelError> {
+    let menu_hash = canonical_hash("bmad-agent-menu-graph", 1, &menu_values)
+        .map_err(|_| BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    if map_digest(agent, "menuGraphHash")? != menu_hash
+        || map_string(agent, "personaCustomizationGraphHash")?
+            != map_string(agent, "customizationSourceHash")?
+    {
+        return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+    }
+    let record = serde_json::json!({
+        "moduleCode": required_value(agent, "moduleCode")?,
+        "agentCode": required_value(agent, "agentCode")?,
+        "name": required_value(agent, "name")?,
+        "title": required_value(agent, "title")?,
+        "icon": required_value(agent, "icon")?,
+        "team": required_value(agent, "team")?,
+        "description": required_value(agent, "description")?,
+        "personaSourceHash": required_value(agent, "personaSourceHash")?,
+        "customizationSourceHash": required_value(agent, "customizationSourceHash")?,
+        "menuItems": menu_values,
+    });
+    let record_hash = canonical_hash("bmad-agent-record", 1, &record)
+        .map_err(|_| BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    if map_digest(agent, "agentRecordHash")? != record_hash {
+        return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+    }
+    Ok(())
+}
+
+fn normalized_skill_availability(
+    target: &Map<String, Value>,
+    catalog: &BmadCatalog,
+    expected_package_version_id: &ContractId,
+) -> Result<BmadCatalogAvailability, BmadKernelError> {
+    let key = target
+        .get("capabilityKey")
+        .and_then(Value::as_object)
+        .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    if map_string(key, "packageVersionId")? != expected_package_version_id.as_str() {
+        return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+    }
+    let module_code = map_string(key, "moduleCode")?;
+    let skill_name = map_string(key, "skillName")?;
+    let normalized_action = key
+        .get("normalizedAction")
+        .and_then(|value| {
+            if value.is_null() {
+                Some(None)
+            } else {
+                value.as_str().map(Some)
+            }
+        })
+        .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
+    let Some(skill) = catalog
+        .installed_skills
+        .iter()
+        .find(|skill| skill.module_code == module_code && skill.skill_name == skill_name)
+    else {
+        return Ok(BmadCatalogAvailability::DependencyUnavailable);
+    };
+    let action_known = normalized_action.map_or_else(
+        || skill.actions.is_empty(),
+        |action| skill.actions.iter().any(|candidate| candidate == action),
+    );
+    if !action_known {
+        return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
+    }
+    Ok(if skill.capability_enabled {
+        BmadCatalogAvailability::Available
+    } else {
+        BmadCatalogAvailability::CapabilityDisabled
+    })
+}
+
+fn required_value<'a>(
+    object: &'a Map<String, Value>,
+    field: &str,
+) -> Result<&'a Value, BmadKernelError> {
+    object
+        .get(field)
+        .ok_or_else(|| BmadKernelErrorCode::AgentMenuTargetInvalid.into())
 }
 
 #[derive(Clone, Debug)]

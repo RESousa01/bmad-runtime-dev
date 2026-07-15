@@ -5,7 +5,7 @@ use serde_json::Value;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    canonical_hash, canonical_hash_without_field, generated_contracts, sha256_bytes,
+    canonical_hash, canonical_hash_without_field, generated_contracts, sha256_bytes, ContractId,
     RelativeWorkspacePath, Sha256Digest,
 };
 
@@ -249,7 +249,14 @@ impl BmadEntrypointKind {
 pub struct BmadLoadedSkill {
     pub module_code: String,
     pub skill_name: String,
+    pub display_name: String,
+    pub description: String,
     pub entrypoint_kind: BmadEntrypointKind,
+    pub actions: Vec<String>,
+    pub distribution_profile: String,
+    pub install_profile: String,
+    pub validation_profile: String,
+    pub execution_profile_hash: Sha256Digest,
     pub capability_enabled: bool,
     pub structurally_eligible: bool,
 }
@@ -258,6 +265,7 @@ pub struct BmadLoadedSkill {
 pub struct BmadLoadedPackage {
     pub package_name: String,
     pub package_version: String,
+    pub package_version_id: ContractId,
     pub descriptor_hash: Sha256Digest,
     pub observed_inventory_hash: Sha256Digest,
     pub skills: Vec<BmadLoadedSkill>,
@@ -313,6 +321,9 @@ impl BmadPackageLoader {
 
         let package_name = value_string(&descriptor_value, "packageName")?.to_owned();
         let package_version = value_string(&descriptor_value, "packageVersion")?.to_owned();
+        let package_version_id =
+            ContractId::new(value_string(&descriptor_value, "packageVersionId")?)
+                .map_err(|_| BmadKernelErrorCode::DescriptorInvalid)?;
         let install_profile = value_string(&descriptor_value, "installProfile")?;
         if install_profile != "SapphirusManagedV1" {
             return Err(BmadKernelErrorCode::DescriptorInvalid.into());
@@ -324,6 +335,7 @@ impl BmadPackageLoader {
         Ok(BmadLoadedPackage {
             package_name,
             package_version,
+            package_version_id,
             descriptor_hash,
             observed_inventory_hash: snapshot.observed_inventory_hash,
             skills,
@@ -438,6 +450,8 @@ fn load_skills(
             .ok_or(BmadKernelErrorCode::DescriptorInvalid)?;
         let module_code = object_string(object, "moduleCode")?.to_owned();
         let skill_name = object_string(object, "skillName")?.to_owned();
+        let display_name = object_string(object, "displayName")?.to_owned();
+        let description = object_string(object, "description")?.to_owned();
         if !identities.insert((module_code.clone(), skill_name.clone())) {
             return Err(BmadKernelErrorCode::DescriptorInvalid.into());
         }
@@ -447,6 +461,26 @@ fn load_skills(
             .ok_or(BmadKernelErrorCode::DescriptorInvalid)?;
         let entrypoint_kind =
             BmadEntrypointKind::parse(object_string(execution, "entrypointKind")?)?;
+        let invocation_modes = execution
+            .get("invocationModes")
+            .and_then(Value::as_object)
+            .ok_or(BmadKernelErrorCode::DescriptorInvalid)?;
+        let actions = invocation_modes
+            .get("actions")
+            .and_then(Value::as_array)
+            .ok_or(BmadKernelErrorCode::DescriptorInvalid)?
+            .iter()
+            .map(|action| {
+                action
+                    .as_str()
+                    .map(str::to_owned)
+                    .ok_or(BmadKernelErrorCode::DescriptorInvalid)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let distribution_profile = object_string(object, "distributionProfile")?.to_owned();
+        let install_profile = object_string(object, "installProfile")?.to_owned();
+        let validation_profile = object_string(execution, "validationProfile")?.to_owned();
+        let execution_profile_hash = object_digest(execution, "profileHash")?;
         let structurally_eligible = sealed_foundation
             && module_code == "core"
             && skill_name == "bmad-help"
@@ -454,7 +488,14 @@ fn load_skills(
         skills.push(BmadLoadedSkill {
             module_code,
             skill_name,
+            display_name,
+            description,
             entrypoint_kind,
+            actions,
+            distribution_profile,
+            install_profile,
+            validation_profile,
+            execution_profile_hash,
             capability_enabled: false,
             structurally_eligible,
         });

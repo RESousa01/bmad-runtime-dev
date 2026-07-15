@@ -7,7 +7,7 @@ use desktop_runtime::{
     BmadCatalogAvailability, BmadCatalogBuilder, BmadEntrypointKind, BmadHelpAdvisor,
     BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpIntent, BmadKernelErrorCode,
     BmadLoadedPackage, BmadLoadedSkill, BmadMenuTargetKind, BmadReviewedPromptReference,
-    BmadUnavailableDependency,
+    BmadUnavailableDependency, ContractId,
 };
 use serde_json::json;
 
@@ -17,27 +17,52 @@ fn package() -> BmadLoadedPackage {
     BmadLoadedPackage {
         package_name: "bmad-method".to_owned(),
         package_version: "6.10.0".to_owned(),
+        package_version_id: ContractId::new(
+            "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+        )
+        .expect("package version id"),
         descriptor_hash: sha256_bytes(b"descriptor"),
         observed_inventory_hash: sha256_bytes(b"inventory"),
         skills: vec![
             BmadLoadedSkill {
                 module_code: "bmm".to_owned(),
                 skill_name: "bmad-architecture".to_owned(),
+                display_name: "Create Architecture".to_owned(),
+                description: "Create a bounded architecture spine.".to_owned(),
                 entrypoint_kind: BmadEntrypointKind::StepJit,
+                actions: vec!["create".to_owned()],
+                distribution_profile: "sapphirus_package".to_owned(),
+                install_profile: "SapphirusManagedV1".to_owned(),
+                validation_profile: "MethodStepWorkflowV6".to_owned(),
+                execution_profile_hash: sha256_bytes(b"architecture profile"),
                 capability_enabled: false,
                 structurally_eligible: false,
             },
             BmadLoadedSkill {
                 module_code: "core".to_owned(),
                 skill_name: "bmad-help".to_owned(),
+                display_name: "BMad Help".to_owned(),
+                description: "Provide source-grounded guidance.".to_owned(),
                 entrypoint_kind: BmadEntrypointKind::Direct,
+                actions: Vec::new(),
+                distribution_profile: "sapphirus_package".to_owned(),
+                install_profile: "SapphirusManagedV1".to_owned(),
+                validation_profile: "MethodOfficialSkillV6".to_owned(),
+                execution_profile_hash: sha256_bytes(b"help profile"),
                 capability_enabled: false,
                 structurally_eligible: true,
             },
             BmadLoadedSkill {
                 module_code: "core".to_owned(),
                 skill_name: "bmad-hidden".to_owned(),
+                display_name: "Hidden".to_owned(),
+                description: "Hidden capability.".to_owned(),
                 entrypoint_kind: BmadEntrypointKind::Direct,
+                actions: Vec::new(),
+                distribution_profile: "sapphirus_package".to_owned(),
+                install_profile: "SapphirusManagedV1".to_owned(),
+                validation_profile: "MethodOfficialSkillV6".to_owned(),
+                execution_profile_hash: sha256_bytes(b"hidden profile"),
                 capability_enabled: false,
                 structurally_eligible: false,
             },
@@ -50,41 +75,33 @@ fn source(module_code: &str, rows: &[&str]) -> BmadHelpCatalogSource {
         .expect("catalog source")
 }
 
-fn reviewed_method_source(relative: &str) -> String {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../bmad-runtime-lib/_source_review/BMAD-METHOD-main/BMAD-METHOD-main")
-        .join(relative);
-    std::fs::read_to_string(path).expect("reviewed Method source")
-}
-
 #[test]
-fn parser_accepts_the_complete_reviewed_method_help_catalogs() {
-    let sources = [
-        BmadHelpCatalogSource::new(
-            "core",
-            reviewed_method_source("src/core-skills/module-help.csv"),
-        )
-        .expect("core catalog"),
-        BmadHelpCatalogSource::new(
-            "bmm",
-            reviewed_method_source("src/bmm-skills/module-help.csv"),
-        )
-        .expect("bmm catalog"),
-    ];
+fn parser_accepts_the_sealed_normalized_help_action_graph_without_context_library_access() {
+    let graph: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../../../packages/bmad-foundation/normalized/bmad-help-action-graph.json"
+    ))
+    .expect("normalized graph");
+    let sources = graph["sources"]
+        .as_array()
+        .expect("sources")
+        .iter()
+        .map(|source| {
+            let rows: Vec<Vec<String>> =
+                serde_json::from_value(source["rows"].clone()).expect("raw rows");
+            BmadHelpCatalogSource::from_rows(
+                source["moduleCode"].as_str().expect("module code"),
+                &rows,
+            )
+            .expect("normalized catalog source")
+        })
+        .collect::<Vec<_>>();
     let catalog = BmadCatalogBuilder::build(&package(), &sources).expect("reviewed catalogs");
-    assert!(catalog.help_actions.len() > 40);
-    assert_eq!(
-        catalog
-            .help_actions
-            .iter()
-            .filter(|action| action.skill_name == "_meta")
-            .count(),
-        2
-    );
+    assert_eq!(catalog.help_actions.len(), 2);
     assert!(catalog.help_actions.iter().any(|action| {
         action.module_code == "bmm"
             && action.skill_name == "bmad-architecture"
             && action.menu_code.as_deref() == Some("CA")
+            && action.action.as_deref() == Some("create")
     }));
 }
 
@@ -191,6 +208,25 @@ fn menu_codes_are_scoped_but_ambiguous_within_one_module() {
             .code(),
         BmadKernelErrorCode::MenuCodeAmbiguous
     );
+}
+
+#[test]
+fn single_action_skills_infer_their_normalized_action_without_mutating_the_raw_row() {
+    let bmm = source(
+        "bmm",
+        &["BMad Method,bmad-architecture,Architecture,CA,Create architecture.,,,3-solutioning,,,true,planning_artifacts,architecture"],
+    );
+
+    let catalog = BmadCatalogBuilder::build(&package(), &[bmm]).expect("catalog");
+    let architecture = catalog.help_actions.first().expect("architecture action");
+
+    assert_eq!(architecture.action.as_deref(), Some("create"));
+    assert_eq!(architecture.key.action.as_deref(), Some("create"));
+    assert_eq!(
+        architecture.key.package_version_id,
+        package().package_version_id
+    );
+    assert_eq!(architecture.raw_source_row()[5], "");
 }
 
 #[test]
@@ -333,6 +369,56 @@ fn roster_parser_keeps_skill_and_prompt_targets_closed_and_unavailable() {
     assert!(!serde_json::to_string(&roster)
         .expect("safe roster projection")
         .contains("write-document.md"));
+}
+
+#[test]
+fn normalized_foundation_roster_loads_as_bounded_non_executable_records() {
+    let catalog = BmadCatalogBuilder::build(
+        &package(),
+        &[source(
+            "bmm",
+            &["BMad Method,bmad-architecture,Architecture,CA,Create architecture.,,,3-solutioning,,,true,planning_artifacts,architecture"],
+        )],
+    )
+    .expect("catalog");
+    let roster_bytes =
+        include_bytes!("../../../packages/bmad-foundation/normalized/bmm-agent-roster.json");
+
+    let roster = desktop_runtime::BmadAgentRoster::load_normalized(
+        roster_bytes,
+        &catalog,
+        &package().package_version_id,
+    )
+    .expect("sealed roster");
+
+    assert_eq!(roster.agents.len(), 6);
+    let winston = roster
+        .agents
+        .iter()
+        .find(|agent| agent.agent_code == "bmad-agent-architect")
+        .expect("Winston");
+    assert_eq!(winston.display_name, "Winston");
+    assert_eq!(winston.title, "System Architect");
+    assert!(winston.menus.iter().any(|menu| {
+        menu.code == "CA"
+            && menu.target_kind == BmadMenuTargetKind::SkillTarget
+            && menu.availability == BmadCatalogAvailability::CapabilityDisabled
+    }));
+
+    let paige = roster
+        .agents
+        .iter()
+        .find(|agent| agent.agent_code == "bmad-agent-tech-writer")
+        .expect("Paige");
+    assert!(paige.menus.iter().any(|menu| {
+        menu.code == "WD"
+            && menu.target_kind == BmadMenuTargetKind::PromptReference
+            && menu.availability == BmadCatalogAvailability::SourcePromptUnavailable
+    }));
+    let safe = serde_json::to_string(&roster).expect("safe roster projection");
+    assert!(!safe.contains("sourceLocalMemberLabel"));
+    assert!(!safe.contains("write-document.md"));
+    assert!(!safe.contains("sha256:"));
 }
 
 #[test]

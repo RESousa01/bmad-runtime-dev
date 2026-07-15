@@ -34,6 +34,7 @@ const runtimePaths = Object.freeze([
 const normalizedPaths = Object.freeze([
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",

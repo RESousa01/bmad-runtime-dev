@@ -5,9 +5,10 @@ use std::path::{Path, PathBuf};
 
 use desktop_ipc::deserialize_strict;
 use desktop_runtime::{
-    canonical_hash_without_field, sha256_bytes, BmadKernelError, BmadLoadedPackage,
-    BmadLocationClass, BmadPackageLoader, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
-    RelativeWorkspacePath, Sha256Digest,
+    canonical_hash_without_field, sha256_bytes, BmadAgentRoster, BmadCatalog, BmadCatalogBuilder,
+    BmadHelpCatalogSource, BmadKernelError, BmadLoadedPackage, BmadLocationClass,
+    BmadPackageLoader, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, RelativeWorkspacePath,
+    Sha256Digest,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -17,21 +18,23 @@ const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
     "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:81abbf71108d07f5b8ce2f54a04371b3a86e04cec49018dfe9cd1cfcb4f4c2e4";
+    "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
+const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const METHOD_RUNTIME_PATHS: [&str; 3] = [
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
     "runtime/method/6.10.0/bmad-help.instructions.md",
 ];
-const EXPECTED_RESOURCE_PATHS: [&str; 19] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 20] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
     "normalized/bmad-architect.package.json",
     "normalized/bmad-architecture.package.json",
+    "normalized/bmad-help-action-graph.json",
     "normalized/bmad-help.package.json",
     "normalized/bmm-agent-roster.json",
     "normalized/builder-agent.package.json",
@@ -66,9 +69,10 @@ pub enum BmadFoundationError {
 #[derive(Debug)]
 pub struct BmadLoadedFoundation {
     package: BmadLoadedPackage,
+    catalog: BmadCatalog,
+    roster: BmadAgentRoster,
     manifest_hash: Sha256Digest,
     semantic_ledger_hash: Sha256Digest,
-    roster_agent_count: usize,
     inactive_builder_package_count: usize,
 }
 
@@ -79,6 +83,16 @@ impl BmadLoadedFoundation {
     }
 
     #[must_use]
+    pub const fn catalog(&self) -> &BmadCatalog {
+        &self.catalog
+    }
+
+    #[must_use]
+    pub const fn roster(&self) -> &BmadAgentRoster {
+        &self.roster
+    }
+
+    #[must_use]
     pub const fn manifest_hash(&self) -> Sha256Digest {
         self.manifest_hash
     }
@@ -86,11 +100,6 @@ impl BmadLoadedFoundation {
     #[must_use]
     pub const fn semantic_ledger_hash(&self) -> Sha256Digest {
         self.semantic_ledger_hash
-    }
-
-    #[must_use]
-    pub const fn roster_agent_count(&self) -> usize {
-        self.roster_agent_count
     }
 
     #[must_use]
@@ -127,12 +136,21 @@ enum RuntimeContentKind {
     ProvenanceLedger,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct NormalizedRoster {
+struct FoundationHelpActionGraph {
+    schema_version: String,
     package_version_id: String,
-    agents: Vec<serde_json::Value>,
-    roster_hash: Sha256Digest,
+    sources: Vec<FoundationHelpActionSource>,
+    graph_hash: Sha256Digest,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct FoundationHelpActionSource {
+    module_code: String,
+    source_member_hash: Sha256Digest,
+    rows: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -184,14 +202,16 @@ pub fn load_bmad_foundation(
     let resources = read_manifest_resources(root, &manifest)?;
     let semantic_ledger_hash = validate_semantic_ledger(&manifest, &resources)?;
     let package = load_method_package(&resources, semantic_ledger_hash)?;
-    let roster_agent_count = validate_roster(&resources)?;
+    let catalog = load_help_catalog(&resources, &package)?;
+    let roster = load_roster(&resources, &package, &catalog)?;
     let inactive_builder_package_count = validate_builder_packages(&resources)?;
 
     Ok(BmadLoadedFoundation {
         package,
+        catalog,
+        roster,
         manifest_hash: manifest.manifest_hash,
         semantic_ledger_hash,
-        roster_agent_count,
         inactive_builder_package_count,
     })
 }
@@ -291,19 +311,68 @@ fn load_method_package(
     BmadPackageLoader::load(&snapshot, semantic_ledger_hash).map_err(Into::into)
 }
 
-fn validate_roster(resources: &BTreeMap<String, Vec<u8>>) -> Result<usize, BmadFoundationError> {
-    let roster: NormalizedRoster = deserialize_strict(required_bytes(
-        resources,
-        "normalized/bmm-agent-roster.json",
-    )?)
-    .map_err(|_| BmadFoundationError::ResourceMismatch)?;
-    if roster.package_version_id.is_empty()
-        || roster.agents.len() != 6
-        || roster.roster_hash.to_string().is_empty()
+fn load_help_catalog(
+    resources: &BTreeMap<String, Vec<u8>>,
+    package: &BmadLoadedPackage,
+) -> Result<BmadCatalog, BmadFoundationError> {
+    let graph: FoundationHelpActionGraph =
+        deserialize_strict(required_bytes(resources, HELP_ACTION_GRAPH_PATH)?)
+            .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+    let computed =
+        canonical_hash_without_field("bmad-foundation-help-action-graph", 1, &graph, "graphHash")
+            .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+    let expected_sources = [
+        (
+            "bmm",
+            "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+        ),
+        (
+            "core",
+            "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+        ),
+    ];
+    if graph.schema_version != "sapphirus.bmad-foundation-help-action-graph.v1"
+        || graph.package_version_id != package.package_version_id.as_str()
+        || graph.graph_hash != computed
+        || graph.sources.len() != expected_sources.len()
+        || graph
+            .sources
+            .iter()
+            .zip(expected_sources)
+            .any(|(source, (module_code, source_hash))| {
+                source.module_code != module_code
+                    || source.source_member_hash.to_string() != source_hash
+                    || source.rows.len() != 1
+            })
     {
         return Err(BmadFoundationError::ResourceMismatch);
     }
-    Ok(roster.agents.len())
+    let sources = graph
+        .sources
+        .iter()
+        .map(|source| BmadHelpCatalogSource::from_rows(&source.module_code, &source.rows))
+        .collect::<Result<Vec<_>, _>>()?;
+    let catalog = BmadCatalogBuilder::build(package, &sources)?;
+    if catalog.installed_skills.len() != package.skills.len() || catalog.help_actions.len() != 2 {
+        return Err(BmadFoundationError::ResourceMismatch);
+    }
+    Ok(catalog)
+}
+
+fn load_roster(
+    resources: &BTreeMap<String, Vec<u8>>,
+    package: &BmadLoadedPackage,
+    catalog: &BmadCatalog,
+) -> Result<BmadAgentRoster, BmadFoundationError> {
+    let roster = BmadAgentRoster::load_normalized(
+        required_bytes(resources, "normalized/bmm-agent-roster.json")?,
+        catalog,
+        &package.package_version_id,
+    )?;
+    if roster.agents.len() != 6 {
+        return Err(BmadFoundationError::ResourceMismatch);
+    }
+    Ok(roster)
 }
 
 fn validate_builder_packages(
@@ -445,7 +514,19 @@ mod tests {
         let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
         assert_eq!(foundation.package().package_name, "bmad-method");
         assert_eq!(foundation.package().skills.len(), 2);
-        assert_eq!(foundation.roster_agent_count(), 6);
+        assert_eq!(foundation.catalog().installed_skills.len(), 2);
+        assert_eq!(foundation.catalog().help_actions.len(), 2);
+        assert!(foundation.catalog().help_actions.iter().any(|action| {
+            action.module_code == "bmm"
+                && action.skill_name == "bmad-architecture"
+                && action.action.as_deref() == Some("create")
+        }));
+        assert_eq!(foundation.roster().agents.len(), 6);
+        assert!(foundation.roster().agents.iter().any(|agent| {
+            agent.agent_code == "bmad-agent-architect"
+                && agent.display_name == "Winston"
+                && agent.title == "System Architect"
+        }));
         assert_eq!(foundation.inactive_builder_package_count(), 2);
         assert!(foundation
             .package()
@@ -454,7 +535,7 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:81abbf71108d07f5b8ce2f54a04371b3a86e04cec49018dfe9cd1cfcb4f4c2e4"
+            "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1"
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),

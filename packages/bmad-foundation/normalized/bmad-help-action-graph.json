@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-help-action-graph.v1",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+  "sources": [
+    {
+      "moduleCode": "bmm",
+      "sourceMemberHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+      "rows": [
+        [
+          "BMad Method",
+          "bmad-architecture",
+          "Architecture",
+          "CA",
+          "Offer once requirements exist (a PRD or spec; plus UX if present) and the user is ready to move from what to how. Also offer any time independently-built parts risk diverging. Produces the architecture spine: the invariants that keep features epics and stories consistent. Comes before epics and stories and scales from a quick spine to a full architecture (brownfield: ratifies the existing codebase).",
+          "",
+          "",
+          "3-solutioning",
+          "",
+          "",
+          "true",
+          "planning_artifacts",
+          "architecture"
+        ]
+      ]
+    },
+    {
+      "moduleCode": "core",
+      "sourceMemberHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+      "rows": [
+        [
+          "Core",
+          "bmad-help",
+          "BMad Help",
+          "BH",
+          "",
+          "",
+          "",
+          "anytime",
+          "",
+          "",
+          "false",
+          "",
+          ""
+        ]
+      ]
+    }
+  ],
+  "graphHash": "sha256:bf744053f998e035b9a9013f158e2a89db26a6cb59b2d4b2574cdeb33bbc16aa"
+}

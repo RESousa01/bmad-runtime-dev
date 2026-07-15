@@ -40,6 +40,12 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-help-action-graph.json",
+      "contentHash": "sha256:fa5f77e78ae862b4f35dde71f6fe4f2af21a2407e11eb5bd7c7786a58f4bc8f2",
+      "byteLength": 1538,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-help.package.json",
       "contentHash": "sha256:436475afd864bf1f8a9c4ac2f5e080d6baaa5903700b544b3d8df59d3913cfb4",
       "byteLength": 29123,
@@ -118,5 +124,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:81abbf71108d07f5b8ce2f54a04371b3a86e04cec49018dfe9cd1cfcb4f4c2e4"
+  "manifestHash": "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1"
 }

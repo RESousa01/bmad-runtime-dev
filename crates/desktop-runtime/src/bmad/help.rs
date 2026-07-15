@@ -76,6 +76,7 @@ impl BmadArtifactEvidence {
             .current_binding()
             .map_err(|_| BmadKernelErrorCode::HelpEvidenceInsufficient)?;
         if session.state() != MethodState::Completed
+            || binding.capability_key.package_version_id != action.package_version_id
             || binding.capability_key.module_code != action.module_code
             || binding.capability_key.skill_name != action.skill_name
             || binding.capability_key.normalized_action != action.action
@@ -122,6 +123,7 @@ pub enum BmadHelpConfidence {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct BmadHelpSourceRef {
+    pub package_version_id: ContractId,
     pub module_code: String,
     pub skill_name: String,
     pub action: Option<String>,
@@ -178,6 +180,7 @@ impl BmadHelpAdvisor {
             availability: action.availability,
             expected_outputs: action.expected_outputs.clone(),
             source_refs: vec![BmadHelpSourceRef {
+                package_version_id: action.key.package_version_id.clone(),
                 module_code: action.module_code.clone(),
                 skill_name: action.skill_name.clone(),
                 action: action.action.clone(),
