@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
+  "foundationVersion": "0.1.0-beta.1",
+  "semanticLedgerHash": "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f",
+  "resources": [
+    {
+      "path": "NOTICE.md",
+      "contentHash": "sha256:e5d7b1980f3ea91bad42f6ed9230f79dcb83e4b016261ad4933ba5e49bc73765",
+      "byteLength": 904,
+      "contentKind": "legal_notice"
+    },
+    {
+      "path": "adoption-ledger.json",
+      "contentHash": "sha256:7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d",
+      "byteLength": 39463,
+      "contentKind": "provenance_ledger"
+    },
+    {
+      "path": "licenses/BMAD-BUILDER-MIT.txt",
+      "contentHash": "sha256:0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66",
+      "byteLength": 1572,
+      "contentKind": "legal_notice"
+    },
+    {
+      "path": "licenses/BMAD-METHOD-MIT.txt",
+      "contentHash": "sha256:0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66",
+      "byteLength": 1572,
+      "contentKind": "legal_notice"
+    },
+    {
+      "path": "normalized/bmad-architect.package.json",
+      "contentHash": "sha256:4b64e633409de268d5bd3eb9e5b24b1149d04b65e816c43a6fd4950ba694622e",
+      "byteLength": 1991,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-architecture.package.json",
+      "contentHash": "sha256:e30d1a8394d0ef222d6f704e1ee79dfc6c4726cecb864f8789db7076267dc6e7",
+      "byteLength": 4713,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-help.package.json",
+      "contentHash": "sha256:436475afd864bf1f8a9c4ac2f5e080d6baaa5903700b544b3d8df59d3913cfb4",
+      "byteLength": 29123,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmm-agent-roster.json",
+      "contentHash": "sha256:9caf21b2c7789368023dd0c6f6510b88d4578b70c36b969b0945e4fdba220bda",
+      "byteLength": 27773,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/builder-agent.package.json",
+      "contentHash": "sha256:9ee163d13df2020d4b351b376ee41fa615e6d770e67fb61af125a13353c46add",
+      "byteLength": 2437,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/builder-workflow.package.json",
+      "contentHash": "sha256:30cbe39a06007654663529740de2c7c77ea3278e968081a1e2758367566bc30b",
+      "byteLength": 1705,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "contentHash": "sha256:63e59e670b63eb1ac63546a6efc799e6011b097715adbe205ec8b8c986e2cf81",
+      "byteLength": 819,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "contentHash": "sha256:40e5c16f1bb4a3729db8900d87f0d1d600e2acc27b8b1d63e9c9a735845ed299",
+      "byteLength": 917,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-edit.instructions.md",
+      "contentHash": "sha256:d4f5e06264e71a0caf4542f7eab97418a8dbe2f1476f8e6e92a7dde059d42cd0",
+      "byteLength": 803,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "contentHash": "sha256:70467d3715ee45b4336416d345179ab8d221b2c520311ec7c2f3007bffd1d666",
+      "byteLength": 781,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+      "contentHash": "sha256:6320a2e4665dd959803f0d542c18585227206631ddd67f05aa47087077a14b6c",
+      "byteLength": 792,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/architect-persona.instructions.md",
+      "contentHash": "sha256:6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4",
+      "byteLength": 899,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/architecture-create.instructions.md",
+      "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
+      "byteLength": 1011,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/bmad-help.instructions.md",
+      "contentHash": "sha256:d3d3c91d516d32546c446503d88957f6e499c504370b6749b5936f786643df66",
+      "byteLength": 1283,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "semantic-source-ledger.json",
+      "contentHash": "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f",
+      "byteLength": 48709,
+      "contentKind": "provenance_ledger"
+    }
+  ],
+  "manifestHash": "sha256:81abbf71108d07f5b8ce2f54a04371b3a86e04cec49018dfe9cd1cfcb4f4c2e4"
+}

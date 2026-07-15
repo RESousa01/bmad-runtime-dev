@@ -20,6 +20,26 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
 ]);
+const methodRuntimePaths = Object.freeze(
+  runtimePaths.filter((relativePath) => relativePath.startsWith("runtime/method/")),
+);
+const normalizedPaths = Object.freeze([
+  "normalized/bmad-architect.package.json",
+  "normalized/bmad-architecture.package.json",
+  "normalized/bmad-help.package.json",
+  "normalized/bmm-agent-roster.json",
+  "normalized/builder-agent.package.json",
+  "normalized/builder-workflow.package.json",
+]);
+const runtimeResourcePaths = Object.freeze([
+  "NOTICE.md",
+  "adoption-ledger.json",
+  "licenses/BMAD-BUILDER-MIT.txt",
+  "licenses/BMAD-METHOD-MIT.txt",
+  ...normalizedPaths,
+  ...runtimePaths,
+  "semantic-source-ledger.json",
+].sort());
 const managedOutputPaths = Object.freeze([
   "NOTICE.md",
   "adoption-ledger.json",
@@ -33,14 +53,17 @@ const packageFiles = Object.freeze([
   "adoption-ledger.json",
   "licenses/BMAD-BUILDER-MIT.txt",
   "licenses/BMAD-METHOD-MIT.txt",
+  ...normalizedPaths,
   "package.json",
   ...runtimePaths,
+  "runtime-manifest.json",
   "scripts/verify.mjs",
   "semantic-source-ledger.json",
   "tests/foundation.test.mjs",
 ].sort());
 const packageDirectories = Object.freeze([
   "licenses",
+  "normalized",
   "runtime",
   "runtime/builder",
   "runtime/builder/2.1.0",
@@ -54,7 +77,9 @@ const packageDistributionFiles = Object.freeze([
   "semantic-source-ledger.json",
   "NOTICE.md",
   "licenses",
+  "normalized",
   "runtime",
+  "runtime-manifest.json",
   "scripts",
   "tests",
   "README.md",
@@ -64,6 +89,7 @@ const contextMarkers = Object.freeze([
   ["", "source", "review"].join("_"),
 ]);
 const sha256Pattern = /^[0-9a-f]{64}$/u;
+const placeholderDigestPattern = /sha256:([0-9a-f])\1{63}/u;
 const executableRuntimeName =
   /(?:\.(?:bat|cjs|cmd|dll|exe|js|mjs|ps1|py|ts)|(?:^|[-_.])(?:cleanup|eval|hook|install|render|setup|wake)(?:[-_.]|$))/iu;
 const executableRuntimeContent =
@@ -80,6 +106,35 @@ function fail(code, location, message) {
 
 function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+function canonicalize(value) {
+  if (value === null || typeof value === "boolean" || typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalize).join(",")}]`;
+  }
+  if (typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(",")}}`;
+  }
+  fail("foundation_hash_mismatch", "canonical-json", "non-JSON value in hash preimage");
+}
+
+function canonicalDocumentHash(purpose, value, excludedField) {
+  const projected = Object.fromEntries(
+    Object.entries(value).filter(([key]) => key !== excludedField),
+  );
+  return canonicalValueHash(purpose, projected);
+}
+
+function canonicalValueHash(purpose, value) {
+  const preimage = `sapphirus:${purpose}:v1\n${canonicalize(value)}`;
+  return `sha256:${sha256(preimage)}`;
 }
 
 function sameValues(actual, expected) {
@@ -441,6 +496,13 @@ async function verifyTree() {
       );
     }
     const source = decodeText(await readRegularBytes(relativePath), relativePath);
+    if (relativePath.startsWith("normalized/") && placeholderDigestPattern.test(source)) {
+      fail(
+        "foundation_hash_mismatch",
+        relativePath,
+        "placeholder digests are forbidden in normalized runtime data",
+      );
+    }
     if (relativePath.startsWith("runtime/") && executableRuntimeContent.test(source)) {
       fail(
         "foundation_executable_content",
@@ -1086,6 +1148,272 @@ async function verifyRuntime() {
   }
 }
 
+async function verifyRuntimeManifest(semanticBytes) {
+  const manifest = parseJson(
+    await readRegularBytes("runtime-manifest.json"),
+    "runtime-manifest.json",
+  );
+  exactKeys(
+    manifest,
+    ["schemaVersion", "foundationVersion", "semanticLedgerHash", "resources", "manifestHash"],
+    "runtime-manifest.json",
+  );
+  if (
+    manifest.schemaVersion !== "sapphirus.bmad-foundation-runtime-manifest.v1"
+    || manifest.foundationVersion !== "0.1.0-beta.1"
+    || manifest.semanticLedgerHash !== `sha256:${sha256(semanticBytes)}`
+    || manifest.manifestHash
+      !== canonicalDocumentHash(
+        "bmad-foundation-runtime-manifest",
+        manifest,
+        "manifestHash",
+      )
+  ) {
+    fail("foundation_hash_mismatch", "runtime-manifest.json", "runtime manifest identity or hash drifted");
+  }
+  if (!Array.isArray(manifest.resources)) {
+    fail("foundation_hash_mismatch", "runtime-manifest.json.resources", "resource inventory is required");
+  }
+  const resources = new Map();
+  let previousPath = "";
+  for (const [index, resource] of manifest.resources.entries()) {
+    const location = `runtime-manifest.json.resources[${index}]`;
+    exactKeys(resource, ["path", "contentHash", "byteLength", "contentKind"], location);
+    assertSafeRelativePath(resource.path, `${location}.path`);
+    if (
+      resource.path <= previousPath
+      || resources.has(resource.path)
+      || !resource.contentHash.startsWith("sha256:")
+      || !sha256Pattern.test(resource.contentHash.slice(7))
+      || !Number.isSafeInteger(resource.byteLength)
+      || resource.byteLength < 0
+      || ![
+        "legal_notice",
+        "managed_instruction",
+        "normalized_contract",
+        "provenance_ledger",
+      ].includes(resource.contentKind)
+    ) {
+      fail("foundation_hash_mismatch", location, "resource inventory is non-canonical");
+    }
+    previousPath = resource.path;
+    const bytes = await readRegularBytes(resource.path);
+    if (
+      bytes.byteLength !== resource.byteLength
+      || `sha256:${sha256(bytes)}` !== resource.contentHash
+    ) {
+      fail("foundation_hash_mismatch", resource.path, "runtime resource bytes drifted");
+    }
+    resources.set(resource.path, resource);
+  }
+  if (!sameValues([...resources.keys()], runtimeResourcePaths)) {
+    fail("foundation_hash_mismatch", "runtime-manifest.json.resources", "runtime resource allowlist drifted");
+  }
+  return resources;
+}
+
+function verifyProjectionEnvelope(envelope, resources, expectedPath, expectedSkill, expectedAction) {
+  exactKeys(
+    envelope,
+    [
+      "schemaVersion",
+      "packageVersionId",
+      "lifecycleState",
+      "capability",
+      "instructionProjection",
+      "projectionEnvelopeHash",
+    ],
+    expectedPath,
+  );
+  const projection = envelope.instructionProjection;
+  if (
+    envelope.schemaVersion !== "sapphirus.bmad-foundation-method-projection.v1"
+    || envelope.lifecycleState !== "sealed_read_only"
+    || envelope.capability?.moduleCode !== "bmm"
+    || envelope.capability?.skillName !== expectedSkill
+    || envelope.capability?.normalizedAction !== expectedAction
+    || projection?.managedInstruction?.path !== expectedPath
+    || projection.managedInstruction.contentHash !== resources.get(expectedPath)?.contentHash
+    || projection.projectionHash
+      !== canonicalDocumentHash("bmad-instruction-projection", projection, "projectionHash")
+    || envelope.projectionEnvelopeHash
+      !== canonicalDocumentHash(
+        "bmad-foundation-method-projection",
+        envelope,
+        "projectionEnvelopeHash",
+      )
+  ) {
+    fail("foundation_hash_mismatch", expectedPath, "Method projection envelope drifted");
+  }
+}
+
+function verifyBuilderPackage(value, resources, expectedKind, expectedProfile, expectedPaths) {
+  exactKeys(
+    value,
+    [
+      "schemaVersion",
+      "packageName",
+      "packageVersion",
+      "authoringKind",
+      "lifecycleState",
+      "activationAuthority",
+      "validationProfile",
+      "resources",
+      "packageHash",
+    ],
+    `normalized/${expectedKind}.package.json`,
+  );
+  if (
+    value.schemaVersion !== "sapphirus.bmad-foundation-builder-package.v1"
+    || value.packageName !== "bmad-builder"
+    || value.packageVersion !== "2.1.0"
+    || value.authoringKind !== expectedKind
+    || value.lifecycleState !== "inactive_data"
+    || value.activationAuthority !== "none"
+    || value.validationProfile !== expectedProfile
+    || value.packageHash
+      !== canonicalDocumentHash("bmad-foundation-builder-package", value, "packageHash")
+    || !Array.isArray(value.resources)
+    || !sameValues(value.resources.map((resource) => resource.path), expectedPaths)
+  ) {
+    fail("foundation_hash_mismatch", `normalized/${expectedKind}.package.json`, "Builder package drifted");
+  }
+  for (const resource of value.resources) {
+    if (
+      resource.contentHash !== resources.get(resource.path)?.contentHash
+      || resource.byteLength !== resources.get(resource.path)?.byteLength
+      || !Array.isArray(resource.actions)
+      || !Array.isArray(resource.sourceMemberIds)
+      || resource.sourceMemberIds.length === 0
+    ) {
+      fail("foundation_hash_mismatch", resource.path, "Builder resource binding drifted");
+    }
+  }
+}
+
+async function verifyNormalizedArtifacts(resources) {
+  const descriptor = parseJson(
+    await readRegularBytes("normalized/bmad-help.package.json"),
+    "normalized/bmad-help.package.json",
+  );
+  if (
+    descriptor.schemaVersion !== "sapphirus.bmad-package-descriptor.v1"
+    || descriptor.packageName !== "bmad-method"
+    || descriptor.packageVersion !== "6.10.0"
+    || descriptor.installProfile !== "SapphirusManagedV1"
+    || descriptor.descriptorHash
+      !== canonicalDocumentHash("bmad-package-descriptor", descriptor, "descriptorHash")
+  ) {
+    fail("foundation_hash_mismatch", "normalized/bmad-help.package.json", "Method descriptor drifted");
+  }
+  const managedInventory = descriptor.resourceInventory.filter(({ locationKind }) =>
+    locationKind === "managed_projection");
+  if (!sameValues(managedInventory.map(({ path: resourcePath }) => resourcePath), methodRuntimePaths)) {
+    fail("foundation_hash_mismatch", "normalized/bmad-help.package.json.resourceInventory", "managed resource set drifted");
+  }
+  for (const entry of managedInventory) {
+    if (
+      entry.contentHash !== resources.get(entry.path)?.contentHash
+      || entry.byteLength !== resources.get(entry.path)?.byteLength
+    ) {
+      fail("foundation_hash_mismatch", entry.path, "managed resource binding drifted");
+    }
+  }
+  const finalInventory = methodRuntimePaths.map((resourcePath) => ({
+    path: resourcePath,
+    locationKind: "managed_projection",
+    contentHash: resources.get(resourcePath).contentHash,
+    byteLength: resources.get(resourcePath).byteLength,
+  }));
+  if (
+    descriptor.finalCompositeInventoryHash
+    !== canonicalValueHash("bmad-final-composite-inventory", finalInventory)
+    || !sameValues(
+      descriptor.skills.map(({ moduleCode, skillName }) => `${moduleCode}:${skillName}`),
+      ["bmm:bmad-architecture", "core:bmad-help"],
+    )
+  ) {
+    fail("foundation_hash_mismatch", "normalized/bmad-help.package.json", "Method capability inventory drifted");
+  }
+  for (const projection of descriptor.instructionProjections) {
+    if (
+      projection.projectionHash
+      !== canonicalDocumentHash("bmad-instruction-projection", projection, "projectionHash")
+    ) {
+      fail("foundation_hash_mismatch", projection.managedInstruction.path, "instruction projection hash drifted");
+    }
+  }
+
+  const roster = parseJson(
+    await readRegularBytes("normalized/bmm-agent-roster.json"),
+    "normalized/bmm-agent-roster.json",
+  );
+  if (
+    !Array.isArray(roster.agents)
+    || !sameValues(
+      roster.agents.map(({ agentCode }) => agentCode),
+      [
+        "bmad-agent-analyst",
+        "bmad-agent-architect",
+        "bmad-agent-dev",
+        "bmad-agent-pm",
+        "bmad-agent-tech-writer",
+        "bmad-agent-ux-designer",
+      ],
+    )
+  ) {
+    fail("foundation_hash_mismatch", "normalized/bmm-agent-roster.json", "exact Method roster drifted");
+  }
+
+  verifyProjectionEnvelope(
+    parseJson(
+      await readRegularBytes("normalized/bmad-architect.package.json"),
+      "normalized/bmad-architect.package.json",
+    ),
+    resources,
+    "runtime/method/6.10.0/architect-persona.instructions.md",
+    "bmad-agent-architect",
+    null,
+  );
+  verifyProjectionEnvelope(
+    parseJson(
+      await readRegularBytes("normalized/bmad-architecture.package.json"),
+      "normalized/bmad-architecture.package.json",
+    ),
+    resources,
+    "runtime/method/6.10.0/architecture-create.instructions.md",
+    "bmad-architecture",
+    "create",
+  );
+  verifyBuilderPackage(
+    parseJson(
+      await readRegularBytes("normalized/builder-agent.package.json"),
+      "normalized/builder-agent.package.json",
+    ),
+    resources,
+    "stateless_agent",
+    "BuilderAgentV2Stateless",
+    [
+      "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "runtime/builder/2.1.0/agent-edit.instructions.md",
+    ],
+  );
+  verifyBuilderPackage(
+    parseJson(
+      await readRegularBytes("normalized/builder-workflow.package.json"),
+      "normalized/builder-workflow.package.json",
+    ),
+    resources,
+    "simple_inline_workflow",
+    "BuilderOutcomeSkillV2",
+    [
+      "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+    ],
+  );
+}
+
 export async function verifyFoundation() {
   await verifyTree();
   verifyManifest(parseJson(await readRegularBytes("package.json"), "package.json"));
@@ -1109,9 +1437,11 @@ export async function verifyFoundation() {
     "adoption-ledger.json",
   );
   preflightAdoptionRecovery(adoption);
+  const runtimeResources = await verifyRuntimeManifest(semanticBytes);
   await verifyManagedOutputs(semantic);
   verifyAdoption(adoption, semanticState);
   await verifyRuntime();
+  await verifyNormalizedArtifacts(runtimeResources);
   return {
     sourceMemberCount: semantic.sourceMembers.length,
     managedOutputCount: semantic.managedOutputs.length,

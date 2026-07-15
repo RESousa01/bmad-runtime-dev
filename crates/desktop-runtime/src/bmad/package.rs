@@ -11,7 +11,7 @@ use crate::{
 
 use super::{BmadKernelError, BmadKernelErrorCode};
 
-const DESCRIPTOR_PATH: &str = "normalized/bmad-method.package.json";
+const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const MAX_SOURCE_ENTRIES: usize = 4_096;
 const MAX_SOURCE_ENTRY_BYTES: usize = 1_048_576;

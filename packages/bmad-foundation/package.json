@@ -9,7 +9,9 @@
     "semantic-source-ledger.json",
     "NOTICE.md",
     "licenses",
+    "normalized",
     "runtime",
+    "runtime-manifest.json",
     "scripts",
     "tests",
     "README.md"

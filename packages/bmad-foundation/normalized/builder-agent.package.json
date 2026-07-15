@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-builder-package.v1",
+  "packageName": "bmad-builder",
+  "packageVersion": "2.1.0",
+  "authoringKind": "stateless_agent",
+  "lifecycleState": "inactive_data",
+  "activationAuthority": "none",
+  "validationProfile": "BuilderAgentV2Stateless",
+  "resources": [
+    {
+      "path": "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "contentHash": "sha256:63e59e670b63eb1ac63546a6efc799e6011b097715adbe205ec8b8c986e2cf81",
+      "byteLength": 819,
+      "contentKind": "managed_instruction",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-007",
+        "builder-009",
+        "builder-011",
+        "builder-012",
+        "builder-027",
+        "builder-028",
+        "builder-029",
+        "builder-030",
+        "builder-031",
+        "builder-032",
+        "builder-040",
+        "builder-041"
+      ],
+      "actions": [
+        "analyze"
+      ],
+      "entrypointKind": "direct"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "contentHash": "sha256:40e5c16f1bb4a3729db8900d87f0d1d600e2acc27b8b1d63e9c9a735845ed299",
+      "byteLength": 917,
+      "contentKind": "managed_instruction",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-005",
+        "builder-008",
+        "builder-009",
+        "builder-010",
+        "builder-011",
+        "builder-013",
+        "builder-014",
+        "builder-015",
+        "builder-016",
+        "builder-038",
+        "builder-039",
+        "builder-040",
+        "builder-041",
+        "builder-042",
+        "builder-043"
+      ],
+      "actions": [
+        "create_rebuild"
+      ],
+      "entrypointKind": "direct"
+    },
+    {
+      "path": "runtime/builder/2.1.0/agent-edit.instructions.md",
+      "contentHash": "sha256:d4f5e06264e71a0caf4542f7eab97418a8dbe2f1476f8e6e92a7dde059d42cd0",
+      "byteLength": 803,
+      "contentKind": "managed_instruction",
+      "sourceMemberIds": [
+        "builder-003",
+        "builder-004",
+        "builder-006",
+        "builder-008",
+        "builder-009",
+        "builder-010",
+        "builder-011",
+        "builder-013",
+        "builder-014",
+        "builder-016"
+      ],
+      "actions": [
+        "edit"
+      ],
+      "entrypointKind": "direct"
+    }
+  ],
+  "packageHash": "sha256:8a44bf73601aa9031e5d673e493746d43c7aca6d88435da91febc522b265304e"
+}

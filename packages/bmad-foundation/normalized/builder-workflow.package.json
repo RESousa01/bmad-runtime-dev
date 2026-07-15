@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-builder-package.v1",
+  "packageName": "bmad-builder",
+  "packageVersion": "2.1.0",
+  "authoringKind": "simple_inline_workflow",
+  "lifecycleState": "inactive_data",
+  "activationAuthority": "none",
+  "validationProfile": "BuilderOutcomeSkillV2",
+  "resources": [
+    {
+      "path": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "contentHash": "sha256:70467d3715ee45b4336416d345179ab8d221b2c520311ec7c2f3007bffd1d666",
+      "byteLength": 781,
+      "contentKind": "managed_instruction",
+      "sourceMemberIds": [
+        "builder-017",
+        "builder-018",
+        "builder-020",
+        "builder-021",
+        "builder-023",
+        "builder-024",
+        "builder-033",
+        "builder-034",
+        "builder-035",
+        "builder-036",
+        "builder-037",
+        "builder-046",
+        "builder-047"
+      ],
+      "actions": [
+        "analyze"
+      ],
+      "entrypointKind": "inline"
+    },
+    {
+      "path": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+      "contentHash": "sha256:6320a2e4665dd959803f0d542c18585227206631ddd67f05aa47087077a14b6c",
+      "byteLength": 792,
+      "contentKind": "managed_instruction",
+      "sourceMemberIds": [
+        "builder-017",
+        "builder-018",
+        "builder-019",
+        "builder-021",
+        "builder-022",
+        "builder-023",
+        "builder-025",
+        "builder-026",
+        "builder-044",
+        "builder-045",
+        "builder-046"
+      ],
+      "actions": [
+        "build",
+        "edit"
+      ],
+      "entrypointKind": "inline"
+    }
+  ],
+  "packageHash": "sha256:d66d4c7104bdeee1f4a31993a9d615c15e7df1189a135cf4efdc30b3e4b508b7"
+}

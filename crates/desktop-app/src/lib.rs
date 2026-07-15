@@ -1,5 +1,6 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
+pub mod bmad_foundation;
 mod commands;
 mod state;
 mod wire;
@@ -21,6 +22,16 @@ pub fn run() -> Result<(), StartupError> {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            let foundation_root = app
+                .path()
+                .resource_dir()
+                .map_err(|_| Box::new(StartupError) as Box<dyn std::error::Error>)?
+                .join("bmad-foundation");
+            let foundation = bmad_foundation::load_bmad_foundation(foundation_root)
+                .map_err(|_| Box::new(StartupError) as Box<dyn std::error::Error>)?;
+            if !app.manage(foundation) {
+                return Err(Box::new(StartupError) as Box<dyn std::error::Error>);
+            }
             let storage_root = app
                 .path()
                 .app_local_data_dir()

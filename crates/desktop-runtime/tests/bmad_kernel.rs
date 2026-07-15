@@ -34,26 +34,8 @@ fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest) {
             )
         })
         .collect::<Vec<_>>();
-    let observed = BmadSourceSnapshot::new(managed.clone())
-        .expect("managed snapshot")
-        .observed_inventory_hash();
-
-    let descriptor_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../packages/contracts/fixtures/valid/bmad/package-descriptor.json");
-    let mut descriptor: Value = serde_json::from_slice(
-        &std::fs::read(descriptor_path).expect("generated-contract descriptor fixture"),
-    )
-    .expect("descriptor json");
-    descriptor["finalCompositeInventoryHash"] = json!(observed.to_string());
-    descriptor["descriptorHash"] = json!(canonical_hash_without_field(
-        "bmad-package-descriptor",
-        1,
-        &descriptor,
-        "descriptorHash",
-    )
-    .expect("descriptor self hash")
-    .to_string());
-    let descriptor_bytes = serde_json::to_vec_pretty(&descriptor).expect("descriptor bytes");
+    let descriptor_bytes = std::fs::read(foundation_path("normalized/bmad-help.package.json"))
+        .expect("repository-owned normalized descriptor");
 
     let ledger = std::fs::read(foundation_path("semantic-source-ledger.json"))
         .expect("semantic source ledger");
@@ -65,7 +47,7 @@ fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest) {
         BmadLocationClass::ManagedMetadata,
     ));
     entries.push(source_entry(
-        "normalized/bmad-method.package.json",
+        "normalized/bmad-help.package.json",
         descriptor_bytes,
         BmadLocationClass::ManagedMetadata,
     ));
@@ -141,7 +123,7 @@ fn loader_rejects_ledger_drift_staging_substitution_and_managed_resource_tamper(
     let descriptor_entry = snapshot
         .entries()
         .iter()
-        .find(|entry| entry.path() == "normalized/bmad-method.package.json")
+        .find(|entry| entry.path() == "normalized/bmad-help.package.json")
         .expect("descriptor entry");
     let mut descriptor: Value =
         serde_json::from_slice(descriptor_entry.bytes()).expect("descriptor JSON");
@@ -157,7 +139,7 @@ fn loader_rejects_ledger_drift_staging_substitution_and_managed_resource_tamper(
     .to_string());
     let staging = replace_snapshot_entry(
         &snapshot,
-        "normalized/bmad-method.package.json",
+        "normalized/bmad-help.package.json",
         &serde_json::to_vec_pretty(&descriptor).expect("descriptor bytes"),
     );
     assert_eq!(

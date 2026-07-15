@@ -29,6 +29,15 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "resources": {
+      "../../packages/bmad-foundation/NOTICE.md": "bmad-foundation/NOTICE.md",
+      "../../packages/bmad-foundation/adoption-ledger.json": "bmad-foundation/adoption-ledger.json",
+      "../../packages/bmad-foundation/licenses": "bmad-foundation/licenses",
+      "../../packages/bmad-foundation/normalized": "bmad-foundation/normalized",
+      "../../packages/bmad-foundation/runtime": "bmad-foundation/runtime",
+      "../../packages/bmad-foundation/runtime-manifest.json": "bmad-foundation/runtime-manifest.json",
+      "../../packages/bmad-foundation/semantic-source-ledger.json": "bmad-foundation/semantic-source-ledger.json"
+    },
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
     "shortDescription": "Read-only AI workspace companion for internal organization use.",

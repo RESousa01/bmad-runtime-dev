@@ -31,6 +31,15 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/bmad-help.instructions.md",
 ]);
 
+const normalizedPaths = Object.freeze([
+  "normalized/bmad-architect.package.json",
+  "normalized/bmad-architecture.package.json",
+  "normalized/bmad-help.package.json",
+  "normalized/bmm-agent-roster.json",
+  "normalized/builder-agent.package.json",
+  "normalized/builder-workflow.package.json",
+]);
+
 const managedOutputPaths = Object.freeze([
   "NOTICE.md",
   "adoption-ledger.json",
@@ -41,8 +50,10 @@ const managedOutputPaths = Object.freeze([
 
 const requiredPackagePaths = Object.freeze([
   "README.md",
+  "runtime-manifest.json",
   "semantic-source-ledger.json",
   "scripts/verify.mjs",
+  ...normalizedPaths,
   ...managedOutputPaths,
 ].sort());
 
@@ -51,7 +62,9 @@ const packageDistributionFiles = Object.freeze([
   "semantic-source-ledger.json",
   "NOTICE.md",
   "licenses",
+  "normalized",
   "runtime",
+  "runtime-manifest.json",
   "scripts",
   "tests",
   "README.md",
@@ -373,7 +386,7 @@ test("the foundation declares every reviewed repository-owned output", async (t)
   }
 });
 
-test("the package topology is closed and contains no premature runtime manifest", async () => {
+test("the BMAD-04 package topology contains only reviewed normalized runtime data", async () => {
   const manifest = await readJson("package.json");
   assert.deepEqual(manifest.files, packageDistributionFiles);
   const rootEntries = await readdir(packageRoot, { withFileTypes: true });
@@ -384,16 +397,41 @@ test("the package topology is closed and contains no premature runtime manifest"
       "README.md",
       "adoption-ledger.json",
       "licenses",
+      "normalized",
       "package.json",
       "runtime",
+      "runtime-manifest.json",
       "scripts",
       "semantic-source-ledger.json",
       "tests",
     ],
   );
   assert.ok(rootEntries.every((entry) => !entry.isSymbolicLink()));
+  assert.deepEqual(
+    await readdir(path.join(packageRoot, "normalized")),
+    normalizedPaths.map((relativePath) => path.posix.basename(relativePath)),
+  );
   assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), ["verify.mjs"]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), ["foundation.test.mjs"]);
+});
+
+test("the runtime manifest binds every bundled byte and excludes development-only files", async () => {
+  const manifest = await readJson("runtime-manifest.json");
+  assert.equal(manifest.schemaVersion, "sapphirus.bmad-foundation-runtime-manifest.v1");
+  assert.equal(manifest.foundationVersion, "0.1.0-beta.1");
+  assert.deepEqual(
+    manifest.resources.map(({ path: resourcePath }) => resourcePath),
+    [...manifest.resources.map(({ path: resourcePath }) => resourcePath)].sort(),
+  );
+  assert.ok(manifest.resources.every(({ path: resourcePath }) =>
+    !resourcePath.startsWith("scripts/")
+    && !resourcePath.startsWith("tests/")
+    && !resourcePath.includes(["bmad", "runtime", "lib"].join("-"))));
+  for (const resource of manifest.resources) {
+    const bytes = await readFile(path.join(packageRoot, ...resource.path.split("/")));
+    assert.equal(bytes.byteLength, resource.byteLength, resource.path);
+    assert.equal(`sha256:${createHash("sha256").update(bytes).digest("hex")}`, resource.contentHash, resource.path);
+  }
 });
 
 test("the semantic ledger locks source identity, licenses, and managed bytes", async () => {
