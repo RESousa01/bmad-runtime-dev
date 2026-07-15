@@ -7,6 +7,7 @@ use crate::{canonical_hash, AuthorityRef, ContractId, Sha256Digest, UnixMillis};
 use super::{MethodContextDecision, MethodError, MethodErrorCode, MethodExactBinding};
 
 const METHOD_SESSION_SCHEMA: &str = "sapphirus.bmad-method-session-state.v1";
+const METHOD_RUNTIME_CHECKPOINT_HASH_PURPOSE: &str = "bmad-method-runtime-checkpoint";
 const MAX_IDEMPOTENCY_BYTES: usize = 128;
 const MAX_STEP_KEY_BYTES: usize = 128;
 const MAX_WORKING_ARTIFACT_REFS: usize = 128;
@@ -172,6 +173,7 @@ struct DecisionConsumptionIdInput<'a> {
     session_authority_hash: &'a Sha256Digest,
     d2_model_invocation_binding_hash: &'a Sha256Digest,
     model_bridge_binding_hash: &'a Sha256Digest,
+    aggregate_version: u64,
 }
 
 #[derive(Serialize)]
@@ -180,6 +182,20 @@ struct MethodSessionAuthorityHashInput<'a> {
     session_id: &'a ContractId,
     scope: &'a MethodSessionScope,
     method_binding_hash: &'a Sha256Digest,
+    binding_ordinal: u64,
+    capability_step_table_hash: &'a Sha256Digest,
+    turn_ordinal: u64,
+    current_step_key: Option<&'a str>,
+    prior_checkpoint_hash: Option<&'a Sha256Digest>,
+}
+
+struct MethodSessionAuthorityContext<'a> {
+    method_binding_hash: &'a Sha256Digest,
+    binding_ordinal: u64,
+    capability_step_table_hash: &'a Sha256Digest,
+    turn_ordinal: u64,
+    current_step_key: Option<&'a str>,
+    prior_checkpoint_hash: Option<&'a Sha256Digest>,
 }
 
 #[derive(Serialize)]
@@ -357,6 +373,8 @@ pub struct MethodCheckpoint {
     pub turn_ordinal: u64,
     pub binding_ordinal: u64,
     pub invocation_id: ContractId,
+    pub advance_aggregate_version: u64,
+    pub prior_checkpoint_hash: Option<Sha256Digest>,
     pub method_binding_hash: Sha256Digest,
     pub capability_step_table_hash: Sha256Digest,
     pub advance_disposition: MethodAdvanceDisposition,
@@ -388,6 +406,8 @@ struct CheckpointHashInput<'a> {
     turn_ordinal: u64,
     binding_ordinal: u64,
     invocation_id: &'a ContractId,
+    advance_aggregate_version: u64,
+    prior_checkpoint_hash: &'a Option<Sha256Digest>,
     method_binding_hash: &'a Sha256Digest,
     capability_step_table_hash: &'a Sha256Digest,
     advance_disposition: MethodAdvanceDisposition,
@@ -418,6 +438,8 @@ impl MethodCheckpoint {
             turn_ordinal: self.turn_ordinal,
             binding_ordinal: self.binding_ordinal,
             invocation_id: &self.invocation_id,
+            advance_aggregate_version: self.advance_aggregate_version,
+            prior_checkpoint_hash: &self.prior_checkpoint_hash,
             method_binding_hash: &self.method_binding_hash,
             capability_step_table_hash: &self.capability_step_table_hash,
             advance_disposition: self.advance_disposition,
@@ -460,6 +482,29 @@ struct MethodBindingRevision {
     ordinal: u64,
     binding: MethodExactBinding,
     step_table: MethodStepTable,
+}
+
+#[derive(Default)]
+struct RestoredCheckpointHistory {
+    prior_checkpoint_index: Option<usize>,
+    prior_advance_version: Option<u64>,
+    decisions: BTreeSet<ContractId>,
+    invocations: BTreeSet<ContractId>,
+}
+
+struct RestoredCheckpointExpectations {
+    ordinal: u64,
+    consumption: MethodDecisionConsumption,
+    method_hash: Sha256Digest,
+    model_hash: Sha256Digest,
+    response_schema_hash: Sha256Digest,
+    step_table_hash: Sha256Digest,
+    initial_step_key: String,
+    prior_checkpoint_hash: Option<Sha256Digest>,
+    session_authority_hash: Sha256Digest,
+    model_bridge_binding_hash: Sha256Digest,
+    verified_binding_hash: Sha256Digest,
+    checkpoint_id: ContractId,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -570,8 +615,24 @@ impl MethodSession {
     /// Returns `method_binding_stale` before capability binding or when the
     /// exact Method binding cannot be hashed.
     pub fn session_authority_hash(&self) -> Result<Sha256Digest, MethodError> {
-        let method_binding_hash = self.current_binding()?.binding_hash()?;
-        method_session_authority_hash(&self.session_id, &self.scope, &method_binding_hash)
+        let binding = self.current_binding()?;
+        let step_table = self
+            .step_table
+            .as_ref()
+            .ok_or_else(|| MethodError::new(MethodErrorCode::MethodBindingStale))?;
+        let method_binding_hash = binding.binding_hash()?;
+        method_session_authority_hash(
+            &self.session_id,
+            &self.scope,
+            &MethodSessionAuthorityContext {
+                method_binding_hash: &method_binding_hash,
+                binding_ordinal: self.binding_ordinal,
+                capability_step_table_hash: step_table.table_hash(),
+                turn_ordinal: self.turn_ordinal,
+                current_step_key: self.current_step_key.as_deref(),
+                prior_checkpoint_hash: self.checkpoints.last().map(|value| &value.checkpoint_hash),
+            },
+        )
     }
 
     /// Binds one opaque D2 model-invocation binding to current Method authority.
@@ -586,8 +647,7 @@ impl MethodSession {
     ) -> Result<Sha256Digest, MethodError> {
         let binding = self.current_binding()?;
         let method_binding_hash = binding.binding_hash()?;
-        let session_authority_hash =
-            method_session_authority_hash(&self.session_id, &self.scope, &method_binding_hash)?;
+        let session_authority_hash = self.session_authority_hash()?;
         method_model_bridge_binding_hash(
             &session_authority_hash,
             d2_model_invocation_binding_hash,
@@ -842,6 +902,7 @@ impl MethodSession {
             session_authority_hash: &request.session_authority_hash,
             d2_model_invocation_binding_hash: &request.d2_model_invocation_binding_hash,
             model_bridge_binding_hash: &request.model_bridge_binding_hash,
+            aggregate_version: next_version,
         })?;
         let consumed_decision = review.clone();
         let receipt = MethodAdvanceReceipt {
@@ -920,8 +981,22 @@ impl MethodSession {
             .as_ref()
             .ok_or_else(|| MethodError::new(MethodErrorCode::MethodBindingStale))?;
         let method_binding_hash = binding.binding_hash()?;
-        let expected_session_authority_hash =
-            method_session_authority_hash(&self.session_id, &self.scope, &method_binding_hash)?;
+        let step_table = self
+            .step_table
+            .as_ref()
+            .ok_or_else(|| MethodError::new(MethodErrorCode::MethodResultInvalid))?;
+        let expected_session_authority_hash = method_session_authority_hash(
+            &self.session_id,
+            &self.scope,
+            &MethodSessionAuthorityContext {
+                method_binding_hash: &method_binding_hash,
+                binding_ordinal: self.binding_ordinal,
+                capability_step_table_hash: step_table.table_hash(),
+                turn_ordinal: self.turn_ordinal,
+                current_step_key: self.current_step_key.as_deref(),
+                prior_checkpoint_hash: self.checkpoints.last().map(|value| &value.checkpoint_hash),
+            },
+        )?;
         let expected_model_bridge_binding_hash = method_model_bridge_binding_hash(
             &expected_session_authority_hash,
             &proof.d2_model_invocation_binding_hash,
@@ -942,13 +1017,10 @@ impl MethodSession {
             || method_binding_hash != proof.method_binding_hash
             || binding.model_binding_hash != proof.model_binding_hash
             || binding.model_binding.data.response_schema_hash != proof.response_schema_hash
+            || receipt.aggregate_version != self.version
         {
             return Err(MethodError::new(MethodErrorCode::MethodResultInvalid));
         }
-        let step_table = self
-            .step_table
-            .as_ref()
-            .ok_or_else(|| MethodError::new(MethodErrorCode::MethodResultInvalid))?;
         let current = self
             .current_step_key
             .as_deref()
@@ -1001,18 +1073,9 @@ impl MethodSession {
             .turn_ordinal
             .checked_add(1)
             .ok_or_else(|| MethodError::new(MethodErrorCode::MethodStateConflict))?;
-        let checkpoint_id_digest = canonical_hash(
-            "bmad-method-checkpoint-id",
-            1,
-            &(&self.session_id, next_turn, &receipt.invocation_id),
-        )?;
-        let checkpoint_id = ContractId::new(format!(
-            "checkpoint_{}",
-            checkpoint_id_digest
-                .to_string()
-                .trim_start_matches("sha256:")
-        ))
-        .map_err(|_| MethodError::new(MethodErrorCode::MethodResultInvalid))?;
+        let checkpoint_id =
+            method_checkpoint_id(&self.session_id, next_turn, &receipt.invocation_id)?;
+        let prior_checkpoint_hash = self.checkpoints.last().map(|value| value.checkpoint_hash);
         let consumption = self
             .consumed_decisions
             .get(&receipt.decision_id)
@@ -1023,6 +1086,8 @@ impl MethodSession {
             turn_ordinal: next_turn,
             binding_ordinal: self.binding_ordinal,
             invocation_id: &receipt.invocation_id,
+            advance_aggregate_version: receipt.aggregate_version,
+            prior_checkpoint_hash: &prior_checkpoint_hash,
             method_binding_hash: &proof.method_binding_hash,
             capability_step_table_hash: step_table.table_hash(),
             advance_disposition: result.disposition,
@@ -1051,6 +1116,8 @@ impl MethodSession {
             turn_ordinal: next_turn,
             binding_ordinal: self.binding_ordinal,
             invocation_id: receipt.invocation_id.clone(),
+            advance_aggregate_version: receipt.aggregate_version,
+            prior_checkpoint_hash,
             method_binding_hash: proof.method_binding_hash,
             capability_step_table_hash: *step_table.table_hash(),
             advance_disposition: result.disposition,
@@ -1235,37 +1302,78 @@ impl MethodSession {
                 session_authority_hash: &receipt.session_authority_hash,
                 d2_model_invocation_binding_hash: &receipt.d2_model_invocation_binding_hash,
                 model_bridge_binding_hash: &receipt.model_bridge_binding_hash,
+                aggregate_version: receipt.aggregate_version,
             })
             .map_err(|_| recovery_error())?;
-            let mut matching_binding = None;
-            for revision in &self.binding_history {
-                if revision
-                    .binding
-                    .binding_hash()
-                    .map_err(|_| recovery_error())?
-                    == consumption.decision.binding_hash
-                {
-                    matching_binding = Some(&revision.binding);
-                    break;
-                }
+            let mut checkpoint_matches = self
+                .checkpoints
+                .iter()
+                .enumerate()
+                .filter(|(_, checkpoint)| checkpoint.context_decision_id == *decision);
+            let checkpoint_match = checkpoint_matches.next();
+            if checkpoint_matches.next().is_some() {
+                return Err(recovery_error());
             }
-            let binding = matching_binding.ok_or_else(recovery_error)?;
+            let (revision, authority_turn, authority_step, prior_checkpoint_hash) =
+                if let Some((checkpoint_index, checkpoint)) = checkpoint_match {
+                    let revision = self
+                        .binding_history
+                        .get(
+                            usize::try_from(checkpoint.binding_ordinal.saturating_sub(1))
+                                .map_err(|_| recovery_error())?,
+                        )
+                        .ok_or_else(recovery_error)?;
+                    let authority_turn = checkpoint
+                        .turn_ordinal
+                        .checked_sub(1)
+                        .ok_or_else(recovery_error)?;
+                    let authority_step = Some(checkpoint.current_step_key.clone());
+                    let prior_checkpoint_hash = checkpoint_index
+                        .checked_sub(1)
+                        .map(|index| self.checkpoints[index].checkpoint_hash);
+                    (
+                        revision,
+                        authority_turn,
+                        authority_step,
+                        prior_checkpoint_hash,
+                    )
+                } else {
+                    let revision = self.binding_history.last().ok_or_else(recovery_error)?;
+                    (
+                        revision,
+                        self.turn_ordinal,
+                        self.current_step_key.clone(),
+                        self.checkpoints.last().map(|value| value.checkpoint_hash),
+                    )
+                };
+            let expected_method_binding_hash = revision
+                .binding
+                .binding_hash()
+                .map_err(|_| recovery_error())?;
             let expected_session_authority_hash = method_session_authority_hash(
                 &self.session_id,
                 &self.scope,
-                &consumption.decision.binding_hash,
+                &MethodSessionAuthorityContext {
+                    method_binding_hash: &expected_method_binding_hash,
+                    binding_ordinal: revision.ordinal,
+                    capability_step_table_hash: revision.step_table.table_hash(),
+                    turn_ordinal: authority_turn,
+                    current_step_key: authority_step.as_deref(),
+                    prior_checkpoint_hash: prior_checkpoint_hash.as_ref(),
+                },
             )
             .map_err(|_| recovery_error())?;
             let expected_model_bridge_binding_hash = method_model_bridge_binding_hash(
                 &expected_session_authority_hash,
                 &receipt.d2_model_invocation_binding_hash,
-                &consumption.decision.binding_hash,
-                &binding.model_binding_hash,
-                &binding.model_binding.data.response_schema_hash,
+                &expected_method_binding_hash,
+                &revision.binding.model_binding_hash,
+                &revision.binding.model_binding.data.response_schema_hash,
             )
             .map_err(|_| recovery_error())?;
             if decision != &consumption.decision.decision_id
                 || decision != &receipt.decision_id
+                || consumption.decision.binding_hash != expected_method_binding_hash
                 || receipt.consumption_id != expected_consumption_id
                 || receipt.session_authority_hash != expected_session_authority_hash
                 || receipt.model_bridge_binding_hash != expected_model_bridge_binding_hash
@@ -1315,88 +1423,269 @@ impl MethodSession {
         Ok(())
     }
 
-    fn validate_restored_checkpoints(&self) -> Result<(), MethodError> {
-        for (index, checkpoint) in self.checkpoints.iter().enumerate() {
-            let expected_ordinal = u64::try_from(index)
-                .map_err(|_| recovery_error())?
-                .checked_add(1)
-                .ok_or_else(recovery_error)?;
-            let consumption = self
-                .consumed_decisions
-                .get(&checkpoint.context_decision_id)
-                .ok_or_else(recovery_error)?;
-            let revision = self
-                .binding_history
-                .get(
-                    usize::try_from(checkpoint.binding_ordinal.saturating_sub(1))
-                        .map_err(|_| recovery_error())?,
-                )
-                .ok_or_else(recovery_error)?;
-            let expected_method_hash = revision
-                .binding
-                .binding_hash()
-                .map_err(|_| recovery_error())?;
-            let expected_model_hash = &revision.binding.model_binding_hash;
-            let expected_response_schema_hash =
-                &revision.binding.model_binding.data.response_schema_hash;
-            let expected_table_hash = revision.step_table.table_hash();
-            Self::validate_restored_checkpoint_result(checkpoint, revision)?;
-            let expected_session_authority_hash =
-                method_session_authority_hash(&self.session_id, &self.scope, &expected_method_hash)
-                    .map_err(|_| recovery_error())?;
-            let expected_model_bridge_binding_hash = method_model_bridge_binding_hash(
-                &expected_session_authority_hash,
-                &checkpoint.d2_model_invocation_binding_hash,
-                &expected_method_hash,
-                expected_model_hash,
-                expected_response_schema_hash,
+    fn restored_checkpoint_expectations(
+        &self,
+        index: usize,
+        checkpoint: &MethodCheckpoint,
+        prior_checkpoint_index: Option<usize>,
+    ) -> Result<RestoredCheckpointExpectations, MethodError> {
+        let ordinal = u64::try_from(index)
+            .map_err(|_| recovery_error())?
+            .checked_add(1)
+            .ok_or_else(recovery_error)?;
+        let consumption = self
+            .consumed_decisions
+            .get(&checkpoint.context_decision_id)
+            .ok_or_else(recovery_error)?
+            .clone();
+        let revision = self
+            .binding_history
+            .get(
+                usize::try_from(checkpoint.binding_ordinal.saturating_sub(1))
+                    .map_err(|_| recovery_error())?,
             )
+            .ok_or_else(recovery_error)?;
+        let method_hash = revision
+            .binding
+            .binding_hash()
             .map_err(|_| recovery_error())?;
-            let restored_verified_binding = MethodVerifiedResultBindingData {
-                invocation_id: checkpoint.invocation_id.clone(),
-                decision_id: checkpoint.context_decision_id.clone(),
-                decision_consumption_hash: checkpoint.decision_consumption_hash,
-                model_request_id: checkpoint.model_request_id.clone(),
-                model_request_hash: checkpoint.model_request_hash,
-                session_authority_hash: checkpoint.session_authority_hash,
-                d2_model_invocation_binding_hash: checkpoint.d2_model_invocation_binding_hash,
-                model_bridge_binding_hash: checkpoint.model_bridge_binding_hash,
-                method_binding_hash: checkpoint.method_binding_hash,
-                model_binding_hash: checkpoint.model_binding_hash,
-                response_schema_hash: checkpoint.response_schema_hash,
-                model_response_payload_hash: checkpoint.model_response_payload_hash,
-                accepted_method_result_hash: checkpoint.accepted_method_result_hash,
-                model_receipt_evidence_hash: checkpoint.model_receipt_evidence_hash,
+        let model_hash = revision.binding.model_binding_hash;
+        let response_schema_hash = revision.binding.model_binding.data.response_schema_hash;
+        let step_table_hash = *revision.step_table.table_hash();
+        Self::validate_restored_checkpoint_result(checkpoint, revision)?;
+        let authority_turn = checkpoint
+            .turn_ordinal
+            .checked_sub(1)
+            .ok_or_else(recovery_error)?;
+        let prior_checkpoint_hash =
+            prior_checkpoint_index.map(|prior| self.checkpoints[prior].checkpoint_hash);
+        let session_authority_hash = method_session_authority_hash(
+            &self.session_id,
+            &self.scope,
+            &MethodSessionAuthorityContext {
+                method_binding_hash: &method_hash,
+                binding_ordinal: checkpoint.binding_ordinal,
+                capability_step_table_hash: &step_table_hash,
+                turn_ordinal: authority_turn,
+                current_step_key: Some(&checkpoint.current_step_key),
+                prior_checkpoint_hash: prior_checkpoint_hash.as_ref(),
+            },
+        )
+        .map_err(|_| recovery_error())?;
+        let model_bridge_binding_hash = method_model_bridge_binding_hash(
+            &session_authority_hash,
+            &checkpoint.d2_model_invocation_binding_hash,
+            &method_hash,
+            &model_hash,
+            &response_schema_hash,
+        )
+        .map_err(|_| recovery_error())?;
+        let restored_verified_binding = MethodVerifiedResultBindingData {
+            invocation_id: checkpoint.invocation_id.clone(),
+            decision_id: checkpoint.context_decision_id.clone(),
+            decision_consumption_hash: checkpoint.decision_consumption_hash,
+            model_request_id: checkpoint.model_request_id.clone(),
+            model_request_hash: checkpoint.model_request_hash,
+            session_authority_hash: checkpoint.session_authority_hash,
+            d2_model_invocation_binding_hash: checkpoint.d2_model_invocation_binding_hash,
+            model_bridge_binding_hash: checkpoint.model_bridge_binding_hash,
+            method_binding_hash: checkpoint.method_binding_hash,
+            model_binding_hash: checkpoint.model_binding_hash,
+            response_schema_hash: checkpoint.response_schema_hash,
+            model_response_payload_hash: checkpoint.model_response_payload_hash,
+            accepted_method_result_hash: checkpoint.accepted_method_result_hash,
+            model_receipt_evidence_hash: checkpoint.model_receipt_evidence_hash,
+        };
+        Ok(RestoredCheckpointExpectations {
+            ordinal,
+            consumption,
+            method_hash,
+            model_hash,
+            response_schema_hash,
+            step_table_hash,
+            initial_step_key: revision.step_table.initial_step_key.clone(),
+            prior_checkpoint_hash,
+            session_authority_hash,
+            model_bridge_binding_hash,
+            verified_binding_hash: verified_result_binding_hash(&restored_verified_binding)
+                .map_err(|_| recovery_error())?,
+            checkpoint_id: method_checkpoint_id(
+                &self.session_id,
+                checkpoint.turn_ordinal,
+                &checkpoint.invocation_id,
+            )
+            .map_err(|_| recovery_error())?,
+        })
+    }
+
+    fn validate_restored_checkpoints(&self) -> Result<(), MethodError> {
+        let mut history = RestoredCheckpointHistory::default();
+        for (index, checkpoint) in self.checkpoints.iter().enumerate() {
+            let expected = self.restored_checkpoint_expectations(
+                index,
+                checkpoint,
+                history.prior_checkpoint_index,
+            )?;
+            let prior_checkpoint = history
+                .prior_checkpoint_index
+                .map(|prior| &self.checkpoints[prior]);
+            let invalid_history_edge = if let Some(prior) = prior_checkpoint {
+                checkpoint.binding_ordinal < prior.binding_ordinal
+                    || prior.advance_disposition == MethodAdvanceDisposition::Completed
+                    || if checkpoint.binding_ordinal == prior.binding_ordinal {
+                        prior.next_step_key.as_deref() != Some(checkpoint.current_step_key.as_str())
+                    } else {
+                        checkpoint.current_step_key != expected.initial_step_key
+                    }
+            } else {
+                checkpoint.current_step_key != expected.initial_step_key
             };
-            let expected_verified_binding_hash =
-                verified_result_binding_hash(&restored_verified_binding)
-                    .map_err(|_| recovery_error())?;
-            if checkpoint.turn_ordinal != expected_ordinal
+            let invalid_advance_version = history
+                .prior_advance_version
+                .is_some_and(|prior| checkpoint.advance_aggregate_version <= prior)
+                || checkpoint.advance_aggregate_version >= self.version;
+            if checkpoint.turn_ordinal != expected.ordinal
                 || checkpoint.binding_ordinal == 0
                 || checkpoint.binding_ordinal > self.binding_ordinal
-                || checkpoint.context_digest != consumption.decision.context_digest
-                || consumption.decision.binding_hash != expected_method_hash
-                || checkpoint.invocation_id != consumption.receipt.invocation_id
+                || checkpoint.checkpoint_id != expected.checkpoint_id
+                || checkpoint.advance_aggregate_version
+                    != expected.consumption.receipt.aggregate_version
+                || checkpoint.prior_checkpoint_hash != expected.prior_checkpoint_hash
+                || history.decisions.contains(&checkpoint.context_decision_id)
+                || history.invocations.contains(&checkpoint.invocation_id)
+                || invalid_history_edge
+                || invalid_advance_version
+                || (checkpoint.advance_disposition == MethodAdvanceDisposition::Completed
+                    && index + 1 != self.checkpoints.len())
+                || checkpoint.context_digest != expected.consumption.decision.context_digest
+                || expected.consumption.decision.binding_hash != expected.method_hash
+                || checkpoint.invocation_id != expected.consumption.receipt.invocation_id
                 || checkpoint.decision_consumption_hash
-                    != consumption.receipt.decision_consumption_hash
-                || checkpoint.model_request_id != consumption.receipt.model_request_id
-                || checkpoint.model_request_hash != consumption.receipt.model_request_hash
-                || checkpoint.session_authority_hash != consumption.receipt.session_authority_hash
+                    != expected.consumption.receipt.decision_consumption_hash
+                || checkpoint.model_request_id != expected.consumption.receipt.model_request_id
+                || checkpoint.model_request_hash != expected.consumption.receipt.model_request_hash
+                || checkpoint.session_authority_hash
+                    != expected.consumption.receipt.session_authority_hash
                 || checkpoint.d2_model_invocation_binding_hash
-                    != consumption.receipt.d2_model_invocation_binding_hash
+                    != expected
+                        .consumption
+                        .receipt
+                        .d2_model_invocation_binding_hash
                 || checkpoint.model_bridge_binding_hash
-                    != consumption.receipt.model_bridge_binding_hash
-                || checkpoint_hash(&checkpoint.hash_input())? != checkpoint.checkpoint_hash
-                || checkpoint.method_binding_hash != expected_method_hash
-                || checkpoint.session_authority_hash != expected_session_authority_hash
-                || checkpoint.model_bridge_binding_hash != expected_model_bridge_binding_hash
-                || &checkpoint.model_binding_hash != expected_model_hash
-                || &checkpoint.response_schema_hash != expected_response_schema_hash
-                || checkpoint.verified_result_binding_hash != expected_verified_binding_hash
-                || &checkpoint.capability_step_table_hash != expected_table_hash
+                    != expected.consumption.receipt.model_bridge_binding_hash
+                || checkpoint_hash(&checkpoint.hash_input()).map_err(|_| recovery_error())?
+                    != checkpoint.checkpoint_hash
+                || checkpoint.method_binding_hash != expected.method_hash
+                || checkpoint.session_authority_hash != expected.session_authority_hash
+                || checkpoint.model_bridge_binding_hash != expected.model_bridge_binding_hash
+                || checkpoint.model_binding_hash != expected.model_hash
+                || checkpoint.response_schema_hash != expected.response_schema_hash
+                || checkpoint.verified_result_binding_hash != expected.verified_binding_hash
+                || checkpoint.capability_step_table_hash != expected.step_table_hash
             {
                 return Err(recovery_error());
             }
+            history
+                .decisions
+                .insert(checkpoint.context_decision_id.clone());
+            history.invocations.insert(checkpoint.invocation_id.clone());
+            history.prior_advance_version = Some(checkpoint.advance_aggregate_version);
+            history.prior_checkpoint_index = Some(index);
+        }
+        self.validate_restored_consumption_history(
+            &history.decisions,
+            history.prior_advance_version,
+        )?;
+        self.validate_restored_checkpoint_terminal()
+    }
+
+    fn validate_restored_checkpoint_terminal(&self) -> Result<(), MethodError> {
+        if let Some(last) = self.checkpoints.last() {
+            match self.state {
+                MethodState::Completed
+                    if last.advance_disposition != MethodAdvanceDisposition::Completed
+                        || last.advance_aggregate_version.checked_add(1) != Some(self.version) =>
+                {
+                    return Err(recovery_error());
+                }
+                MethodState::AwaitingUser
+                    if last.advance_disposition != MethodAdvanceDisposition::AwaitingUser
+                        || last.advance_aggregate_version.checked_add(1) != Some(self.version) =>
+                {
+                    return Err(recovery_error());
+                }
+                MethodState::ContextReviewRequired => {
+                    let direct_review = last.advance_disposition
+                        == MethodAdvanceDisposition::ContextReviewRequired
+                        && last.advance_aggregate_version.checked_add(1) == Some(self.version);
+                    let review_after_user = last.advance_disposition
+                        == MethodAdvanceDisposition::AwaitingUser
+                        && last.advance_aggregate_version.checked_add(2) == Some(self.version);
+                    if !direct_review && !review_after_user {
+                        return Err(recovery_error());
+                    }
+                }
+                _ if last.advance_disposition == MethodAdvanceDisposition::Completed
+                    && self.state != MethodState::Completed =>
+                {
+                    return Err(recovery_error());
+                }
+                _ => {}
+            }
+        } else if self.state == MethodState::Completed {
+            return Err(recovery_error());
+        }
+        Ok(())
+    }
+
+    fn validate_restored_consumption_history(
+        &self,
+        checkpoint_decisions: &BTreeSet<ContractId>,
+        prior_advance_version: Option<u64>,
+    ) -> Result<(), MethodError> {
+        let unmatched = self
+            .consumed_decisions
+            .iter()
+            .filter(|(decision_id, _)| !checkpoint_decisions.contains(*decision_id))
+            .collect::<Vec<_>>();
+        if unmatched.iter().any(|(_, consumption)| {
+            prior_advance_version
+                .is_some_and(|version| consumption.receipt.aggregate_version <= version)
+        }) || unmatched
+            .windows(2)
+            .any(|pair| pair[0].1.receipt.aggregate_version == pair[1].1.receipt.aggregate_version)
+        {
+            return Err(recovery_error());
+        }
+        match self.state {
+            MethodState::Advancing => {
+                let active = self.active_invocation.as_ref().ok_or_else(recovery_error)?;
+                if unmatched.len() != 1
+                    || unmatched[0].0 != &active.decision_id
+                    || unmatched[0].1.receipt != *active
+                    || active.aggregate_version != self.version
+                {
+                    return Err(recovery_error());
+                }
+            }
+            MethodState::Refused | MethodState::Incomplete => {
+                if unmatched.len() != 1
+                    || unmatched[0].1.receipt.aggregate_version.checked_add(1) != Some(self.version)
+                {
+                    return Err(recovery_error());
+                }
+            }
+            MethodState::Cancelled => {
+                if unmatched.len() > 1
+                    || unmatched.first().is_some_and(|(_, consumption)| {
+                        consumption.receipt.aggregate_version.checked_add(1) != Some(self.version)
+                    })
+                {
+                    return Err(recovery_error());
+                }
+            }
+            _ if !unmatched.is_empty() => return Err(recovery_error()),
+            _ => {}
         }
         Ok(())
     }
@@ -1422,6 +1711,20 @@ impl MethodSession {
             {
                 return Err(recovery_error());
             }
+        } else if let Some(step_table) = &self.step_table {
+            if !matches!(self.state, MethodState::Completed)
+                && self.current_step_key.as_deref() != Some(step_table.initial_step_key.as_str())
+            {
+                return Err(recovery_error());
+            }
+        }
+        if let (Some(last), Some(step_table)) = (self.checkpoints.last(), &self.step_table) {
+            if last.binding_ordinal < self.binding_ordinal
+                && !matches!(self.state, MethodState::Completed)
+                && self.current_step_key.as_deref() != Some(step_table.initial_step_key.as_str())
+            {
+                return Err(recovery_error());
+            }
         }
         if matches!(self.state, MethodState::Advancing) != self.active_invocation.is_some()
             || matches!(self.state, MethodState::Ready) != self.pending_review.is_some()
@@ -1431,6 +1734,7 @@ impl MethodSession {
         if let Some(active) = &self.active_invocation {
             if self.idempotent_advances.get(&active.idempotency_key) != Some(active)
                 || !self.consumed_decisions.contains_key(&active.decision_id)
+                || active.aggregate_version != self.version
             {
                 return Err(recovery_error());
             }
@@ -1481,7 +1785,28 @@ fn validate_acyclic(
 }
 
 fn checkpoint_hash(value: &CheckpointHashInput<'_>) -> Result<Sha256Digest, MethodError> {
-    Ok(canonical_hash("bmad-method-checkpoint", 1, value)?)
+    Ok(canonical_hash(
+        METHOD_RUNTIME_CHECKPOINT_HASH_PURPOSE,
+        1,
+        value,
+    )?)
+}
+
+fn method_checkpoint_id(
+    session_id: &ContractId,
+    turn_ordinal: u64,
+    invocation_id: &ContractId,
+) -> Result<ContractId, MethodError> {
+    let digest = canonical_hash(
+        "bmad-method-checkpoint-id",
+        1,
+        &(session_id, turn_ordinal, invocation_id),
+    )?;
+    ContractId::new(format!(
+        "checkpoint_{}",
+        digest.to_string().trim_start_matches("sha256:")
+    ))
+    .map_err(|_| MethodError::new(MethodErrorCode::MethodResultInvalid))
 }
 
 fn decision_consumption_id(
@@ -1498,7 +1823,7 @@ fn decision_consumption_id(
 fn method_session_authority_hash(
     session_id: &ContractId,
     scope: &MethodSessionScope,
-    method_binding_hash: &Sha256Digest,
+    context: &MethodSessionAuthorityContext<'_>,
 ) -> Result<Sha256Digest, MethodError> {
     Ok(canonical_hash(
         "bmad-method-session-authority",
@@ -1506,7 +1831,12 @@ fn method_session_authority_hash(
         &MethodSessionAuthorityHashInput {
             session_id,
             scope,
-            method_binding_hash,
+            method_binding_hash: context.method_binding_hash,
+            binding_ordinal: context.binding_ordinal,
+            capability_step_table_hash: context.capability_step_table_hash,
+            turn_ordinal: context.turn_ordinal,
+            current_step_key: context.current_step_key,
+            prior_checkpoint_hash: context.prior_checkpoint_hash,
         },
     )?)
 }
@@ -1578,6 +1908,178 @@ fn valid_artifact_ref(value: &str) -> bool {
 #[allow(clippy::expect_used)]
 mod verified_result_tests {
     use super::*;
+    use crate::{
+        BmadCapabilityKey, MethodExecutionProfile, MethodExecutionProfileData,
+        MethodInvocationModes, MethodModelBinding, MethodModelBindingData, MethodResourcePolicy,
+    };
+
+    fn id(value: &str) -> ContractId {
+        ContractId::new(value).expect("test identifier")
+    }
+
+    fn exact_binding() -> MethodExactBinding {
+        let digest = |label: &str| crate::sha256_bytes(label.as_bytes());
+        let execution_profile = MethodExecutionProfile::from_source(
+            MethodExecutionProfileData {
+                entrypoint_kind: "step_jit".to_owned(),
+                invocation_modes: MethodInvocationModes {
+                    interactive: true,
+                    headless: false,
+                    actions: vec!["create".to_owned()],
+                },
+                required_runtimes: Vec::new(),
+                resource_policy: MethodResourcePolicy {
+                    entrypoint_timing: "invocation_start".to_owned(),
+                    resource_timing: "current_step_only".to_owned(),
+                    declared_resource_paths: Vec::new(),
+                },
+                declared_tool_intents: Vec::new(),
+                state_hints: vec!["artifact_workspace".to_owned()],
+                completion_evidence: vec!["artifact".to_owned()],
+                customization_profile: "method_agent_toml".to_owned(),
+                validation_profile: "MethodStepWorkflowV6".to_owned(),
+            },
+            digest("execution"),
+        )
+        .expect("execution profile");
+        let model_binding = MethodModelBinding::from_source(
+            MethodModelBindingData {
+                binding_kind: "method_model".to_owned(),
+                provider_id: "test-provider".to_owned(),
+                model_id: "test-model".to_owned(),
+                deployment_id: "test-deployment".to_owned(),
+                model_profile_hash: digest("model-profile"),
+                model_capability_hash: digest("model-capability"),
+                context_window_profile_hash: digest("context-window"),
+                egress_profile_hash: digest("egress"),
+                request_schema_hash: digest("request-schema"),
+                response_schema_hash: digest("response-schema"),
+            },
+            digest("model"),
+        )
+        .expect("model binding");
+        MethodExactBinding {
+            capability_key: BmadCapabilityKey {
+                package_version_id: id("pkgver_01J00000000000000000000000"),
+                module_code: "bmm".to_owned(),
+                skill_name: "bmad-architecture".to_owned(),
+                normalized_action: Some("create".to_owned()),
+            },
+            package_descriptor_hash: digest("descriptor"),
+            package_source_hash: digest("source"),
+            instruction_projection_hash: digest("instructions"),
+            capability_catalog_hash: digest("catalog"),
+            agent_roster_hash: None,
+            agent_binding_hash: None,
+            agent_binding: None,
+            distribution_profile: "sapphirus_package".to_owned(),
+            install_profile: "SapphirusManagedV1".to_owned(),
+            entrypoint_kind: "step_jit".to_owned(),
+            execution_profile_hash: execution_profile.profile_hash,
+            execution_profile,
+            validation_profile: "MethodStepWorkflowV6".to_owned(),
+            validation_profile_hash: digest("validation"),
+            config_graph_hash: digest("config-graph"),
+            config_resolution_hash: digest("config"),
+            customization_hash: digest("customization"),
+            resource_set_hash: digest("resources"),
+            model_binding_hash: model_binding.binding_hash,
+            model_binding,
+            method_schema_hash: digest("schema"),
+            egress_profile_hash: digest("egress"),
+            artifact_expectations: Vec::new(),
+        }
+    }
+
+    fn advancing_aggregate() -> (MethodSession, MethodVerifiedAdvanceResult) {
+        let mut session = MethodSession::create(CreateMethodSession {
+            session_id: id("session_01J00000000000000000000000"),
+            owner_scope_ref: id("ownerscope_01J00000000000000000000000"),
+            project_id: id("project_01J00000000000000000000000"),
+            run_id: id("run_01J00000000000000000000000"),
+            authority_ref: AuthorityRef {
+                authority_kind: "desktop_local_store".to_owned(),
+                authority_id: id("authority_01J00000000000000000000000"),
+                installation_id: id("install_01J00000000000000000000000"),
+                local_store_id: id("store_01J00000000000000000000000"),
+                authority_epoch: 1,
+            },
+            created_at: UnixMillis(1_000),
+        })
+        .expect("session");
+        let exact = exact_binding();
+        session
+            .bind_capability(
+                1,
+                exact.clone(),
+                MethodStepTable::new("respond", [("respond", None)]).expect("step table"),
+            )
+            .expect("bind");
+        session.request_context_review(2).expect("request review");
+        let decision = MethodContextDecision {
+            decision_id: id("decision_01J00000000000000000000000"),
+            manifest_hash: crate::sha256_bytes(b"manifest"),
+            consent_hash: crate::sha256_bytes(b"consent"),
+            context_digest: crate::sha256_bytes(b"context"),
+            binding_hash: exact.binding_hash().expect("binding hash"),
+            reviewed_at: UnixMillis(1_000),
+        };
+        session
+            .record_context_review(3, decision.clone())
+            .expect("review");
+        let d2_binding = crate::sha256_bytes(b"d2-binding");
+        let request = MethodAdvanceRequest {
+            invocation_id: id("invoke_01J00000000000000000000000"),
+            idempotency_key: "private-tamper".to_owned(),
+            decision_id: decision.decision_id,
+            decision_consumption_hash: crate::sha256_bytes(b"consumption"),
+            model_request_id: id("modelreq_01J00000000000000000000000"),
+            model_request_hash: crate::sha256_bytes(b"request"),
+            session_authority_hash: session.session_authority_hash().expect("session authority"),
+            d2_model_invocation_binding_hash: d2_binding,
+            model_bridge_binding_hash: session
+                .model_bridge_binding_hash(&d2_binding)
+                .expect("bridge binding"),
+            expected_version: 4,
+        };
+        let receipt = session.begin_advance(request).expect("advance");
+        let result = result();
+        let proof = MethodVerifiedResultBindingData {
+            invocation_id: receipt.invocation_id.clone(),
+            decision_id: receipt.decision_id.clone(),
+            decision_consumption_hash: receipt.decision_consumption_hash,
+            model_request_id: receipt.model_request_id.clone(),
+            model_request_hash: receipt.model_request_hash,
+            session_authority_hash: receipt.session_authority_hash,
+            d2_model_invocation_binding_hash: receipt.d2_model_invocation_binding_hash,
+            model_bridge_binding_hash: receipt.model_bridge_binding_hash,
+            method_binding_hash: exact.binding_hash().expect("binding hash"),
+            model_binding_hash: exact.model_binding_hash,
+            response_schema_hash: exact.model_binding.data.response_schema_hash,
+            model_response_payload_hash: crate::sha256_bytes(b"exact-raw-json-bytes"),
+            accepted_method_result_hash: method_advance_result_hash(&result).expect("result hash"),
+            model_receipt_evidence_hash: crate::sha256_bytes(b"receipt-evidence"),
+        };
+        let verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(result, proof)
+            .expect("verified result");
+        (session, verified)
+    }
+
+    fn assert_tampered_result_does_not_mutate(
+        mutate: impl FnOnce(&mut MethodVerifiedAdvanceResult),
+    ) {
+        let (mut session, mut verified) = advancing_aggregate();
+        let baseline = session.clone();
+        mutate(&mut verified);
+        assert_eq!(
+            session
+                .accept_result(5, verified, UnixMillis(2_000))
+                .expect_err("private result tampering must fail before aggregate mutation")
+                .code(),
+            MethodErrorCode::MethodResultInvalid
+        );
+        assert_eq!(session, baseline);
+    }
 
     fn result() -> MethodAdvanceResult {
         MethodAdvanceResult {
@@ -1588,104 +2090,48 @@ mod verified_result_tests {
         }
     }
 
-    fn binding(result: &MethodAdvanceResult) -> MethodVerifiedResultBindingData {
-        MethodVerifiedResultBindingData {
-            invocation_id: ContractId::new("invoke_01J00000000000000000000000")
-                .expect("invocation id"),
-            decision_id: ContractId::new("decision_01J00000000000000000000000")
-                .expect("decision id"),
-            decision_consumption_hash: crate::sha256_bytes(b"consumption"),
-            model_request_id: ContractId::new("modelreq_01J00000000000000000000000")
-                .expect("model request id"),
-            model_request_hash: crate::sha256_bytes(b"request"),
-            session_authority_hash: crate::sha256_bytes(b"session-authority"),
-            d2_model_invocation_binding_hash: crate::sha256_bytes(b"d2-invocation-binding"),
-            model_bridge_binding_hash: crate::sha256_bytes(b"model-bridge-binding"),
-            method_binding_hash: crate::sha256_bytes(b"method-binding"),
-            model_binding_hash: crate::sha256_bytes(b"model-binding"),
-            response_schema_hash: crate::sha256_bytes(b"response-schema"),
-            model_response_payload_hash: crate::sha256_bytes(b"exact-raw-json-bytes"),
-            accepted_method_result_hash: canonical_hash("bmad-method-advance-result", 1, result)
-                .expect("accepted result hash"),
-            model_receipt_evidence_hash: crate::sha256_bytes(b"trusted-host-receipt-evidence"),
-        }
-    }
-
     #[test]
     fn sealed_result_rejects_inner_result_tampering() {
-        let result = result();
-        let mut verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(
-            result.clone(),
-            binding(&result),
-        )
-        .expect("verified result");
-        verified.result.current_step_key = "tampered".to_owned();
-
-        assert_eq!(
-            verified
-                .verify()
-                .expect_err("accepted projection hash must be recomputed")
-                .code(),
-            MethodErrorCode::MethodResultInvalid
-        );
+        assert_tampered_result_does_not_mutate(|verified| {
+            verified.result.current_step_key = "tampered".to_owned();
+        });
     }
 
     #[test]
     fn sealed_result_rejects_verification_hash_tampering() {
-        let result = result();
-        let mut verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(
-            result.clone(),
-            binding(&result),
-        )
-        .expect("verified result");
-        verified.verification_hash = crate::sha256_bytes(b"tampered-binding-hash");
-
-        assert_eq!(
-            verified
-                .verify()
-                .expect_err("sealed binding hash must be recomputed")
-                .code(),
-            MethodErrorCode::MethodResultInvalid
-        );
+        assert_tampered_result_does_not_mutate(|verified| {
+            verified.verification_hash = crate::sha256_bytes(b"tampered-binding-hash");
+        });
     }
 
     #[test]
     fn sealed_result_rejects_receipt_evidence_hash_tampering() {
-        let result = result();
-        let mut verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(
-            result.clone(),
-            binding(&result),
-        )
-        .expect("verified result");
-        verified.binding.model_receipt_evidence_hash =
-            crate::sha256_bytes(b"different-d2-receipt-evidence");
-
-        assert_eq!(
-            verified
-                .verify()
-                .expect_err("trusted-host receipt evidence is part of the sealed binding")
-                .code(),
-            MethodErrorCode::MethodResultInvalid
-        );
+        assert_tampered_result_does_not_mutate(|verified| {
+            verified.binding.model_receipt_evidence_hash =
+                crate::sha256_bytes(b"different-d2-receipt-evidence");
+        });
     }
 
     #[test]
     fn sealed_result_rejects_raw_payload_hash_tampering() {
-        let result = result();
-        let mut verified = MethodVerifiedAdvanceResult::from_trusted_host_evidence(
-            result.clone(),
-            binding(&result),
-        )
-        .expect("verified result");
-        verified.binding.model_response_payload_hash =
-            crate::sha256_bytes(b"different-raw-response-bytes");
+        assert_tampered_result_does_not_mutate(|verified| {
+            verified.binding.model_response_payload_hash =
+                crate::sha256_bytes(b"different-raw-response-bytes");
+        });
+    }
 
-        assert_eq!(
-            verified
-                .verify()
-                .expect_err("the raw-response hash is part of the sealed binding")
-                .code(),
-            MethodErrorCode::MethodResultInvalid
+    #[test]
+    fn private_runtime_checkpoint_hash_domain_cannot_collide_with_canonical_contract_v1() {
+        let same_preimage = ("checkpoint_01J00000000000000000000000", 1_u64);
+        assert_ne!(
+            METHOD_RUNTIME_CHECKPOINT_HASH_PURPOSE,
+            "bmad-method-checkpoint"
+        );
+        assert_ne!(
+            canonical_hash(METHOD_RUNTIME_CHECKPOINT_HASH_PURPOSE, 1, &same_preimage)
+                .expect("private runtime digest"),
+            canonical_hash("bmad-method-checkpoint", 1, &same_preimage)
+                .expect("canonical contract digest")
         );
     }
 }

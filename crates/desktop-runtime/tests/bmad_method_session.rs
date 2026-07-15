@@ -231,6 +231,134 @@ fn verified_result(
         .expect("sealed trusted-host result evidence")
 }
 
+fn rehash_runtime_checkpoint(checkpoint: &mut serde_json::Value) {
+    let mut hash_input = checkpoint.clone();
+    hash_input
+        .as_object_mut()
+        .expect("checkpoint object")
+        .remove("checkpointHash");
+    checkpoint["checkpointHash"] = serde_json::to_value(
+        canonical_hash("bmad-method-runtime-checkpoint", 1, &hash_input)
+            .expect("runtime checkpoint hash"),
+    )
+    .expect("runtime checkpoint digest json");
+}
+
+fn reseal_persisted_checkpoint(session: &mut serde_json::Value, index: usize) {
+    let prior_checkpoint_hash = index
+        .checked_sub(1)
+        .map_or(serde_json::Value::Null, |prior| {
+            session["checkpoints"][prior]["checkpointHash"].clone()
+        });
+    session["checkpoints"][index]["priorCheckpointHash"] = prior_checkpoint_hash.clone();
+    let checkpoint = session["checkpoints"][index].clone();
+    let authority = canonical_hash(
+        "bmad-method-session-authority",
+        1,
+        &serde_json::json!({
+            "sessionId": session["sessionId"].clone(),
+            "scope": session["scope"].clone(),
+            "methodBindingHash": checkpoint["methodBindingHash"].clone(),
+            "bindingOrdinal": checkpoint["bindingOrdinal"].clone(),
+            "capabilityStepTableHash": checkpoint["capabilityStepTableHash"].clone(),
+            "turnOrdinal": checkpoint["turnOrdinal"].as_u64().expect("turn ordinal") - 1,
+            "currentStepKey": checkpoint["currentStepKey"].clone(),
+            "priorCheckpointHash": prior_checkpoint_hash,
+        }),
+    )
+    .expect("historical session authority hash");
+    let bridge = canonical_hash(
+        "bmad-method-d2-bridge-binding",
+        1,
+        &serde_json::json!({
+            "sessionAuthorityHash": authority,
+            "d2ModelInvocationBindingHash": checkpoint["d2ModelInvocationBindingHash"].clone(),
+            "methodBindingHash": checkpoint["methodBindingHash"].clone(),
+            "modelBindingHash": checkpoint["modelBindingHash"].clone(),
+            "responseSchemaHash": checkpoint["responseSchemaHash"].clone(),
+        }),
+    )
+    .expect("historical bridge binding hash");
+    session["checkpoints"][index]["sessionAuthorityHash"] =
+        serde_json::to_value(authority).expect("authority digest json");
+    session["checkpoints"][index]["modelBridgeBindingHash"] =
+        serde_json::to_value(bridge).expect("bridge digest json");
+
+    let decision_id = session["checkpoints"][index]["contextDecisionId"]
+        .as_str()
+        .expect("decision id")
+        .to_owned();
+    let mut receipt = session["consumedDecisions"][&decision_id]["receipt"].clone();
+    receipt["sessionAuthorityHash"] = serde_json::to_value(authority).expect("authority json");
+    receipt["modelBridgeBindingHash"] = serde_json::to_value(bridge).expect("bridge json");
+    let consumption_digest = canonical_hash(
+        "bmad-context-decision-consumption-id",
+        1,
+        &serde_json::json!({
+            "sessionId": session["sessionId"].clone(),
+            "decisionId": receipt["decisionId"].clone(),
+            "invocationId": receipt["invocationId"].clone(),
+            "idempotencyKey": receipt["idempotencyKey"].clone(),
+            "decisionConsumptionHash": receipt["decisionConsumptionHash"].clone(),
+            "modelRequestId": receipt["modelRequestId"].clone(),
+            "modelRequestHash": receipt["modelRequestHash"].clone(),
+            "sessionAuthorityHash": receipt["sessionAuthorityHash"].clone(),
+            "d2ModelInvocationBindingHash": receipt["d2ModelInvocationBindingHash"].clone(),
+            "modelBridgeBindingHash": receipt["modelBridgeBindingHash"].clone(),
+            "aggregateVersion": receipt["aggregateVersion"].clone(),
+        }),
+    )
+    .expect("consumption id digest");
+    receipt["consumptionId"] = serde_json::json!(format!(
+        "consume_{}",
+        consumption_digest.to_string().trim_start_matches("sha256:")
+    ));
+    let idempotency_key = receipt["idempotencyKey"]
+        .as_str()
+        .expect("idempotency key")
+        .to_owned();
+    session["consumedDecisions"][&decision_id]["receipt"] = receipt.clone();
+    session["idempotentAdvances"][&idempotency_key] = receipt;
+
+    let accepted_result = serde_json::json!({
+        "disposition": session["checkpoints"][index]["advanceDisposition"].clone(),
+        "currentStepKey": session["checkpoints"][index]["currentStepKey"].clone(),
+        "nextStepKey": session["checkpoints"][index]["nextStepKey"].clone(),
+        "workingArtifactRefs": session["checkpoints"][index]["workingArtifactRefs"].clone(),
+    });
+    session["checkpoints"][index]["acceptedMethodResultHash"] = serde_json::to_value(
+        canonical_hash("bmad-method-advance-result", 1, &accepted_result)
+            .expect("accepted result hash"),
+    )
+    .expect("accepted result digest json");
+    rehash_verified_result_binding(&mut session["checkpoints"][index]);
+    rehash_runtime_checkpoint(&mut session["checkpoints"][index]);
+}
+
+fn rehash_verified_result_binding(checkpoint: &mut serde_json::Value) {
+    let binding = serde_json::json!({
+        "invocationId": checkpoint["invocationId"].clone(),
+        "decisionId": checkpoint["contextDecisionId"].clone(),
+        "decisionConsumptionHash": checkpoint["decisionConsumptionHash"].clone(),
+        "modelRequestId": checkpoint["modelRequestId"].clone(),
+        "modelRequestHash": checkpoint["modelRequestHash"].clone(),
+        "sessionAuthorityHash": checkpoint["sessionAuthorityHash"].clone(),
+        "d2ModelInvocationBindingHash": checkpoint["d2ModelInvocationBindingHash"].clone(),
+        "modelBridgeBindingHash": checkpoint["modelBridgeBindingHash"].clone(),
+        "methodBindingHash": checkpoint["methodBindingHash"].clone(),
+        "modelBindingHash": checkpoint["modelBindingHash"].clone(),
+        "responseSchemaHash": checkpoint["responseSchemaHash"].clone(),
+        "modelResponsePayloadHash": checkpoint["modelResponsePayloadHash"].clone(),
+        "acceptedMethodResultHash": checkpoint["acceptedMethodResultHash"].clone(),
+        "modelReceiptEvidenceHash": checkpoint["modelReceiptEvidenceHash"].clone(),
+    });
+    checkpoint["verifiedResultBindingHash"] = serde_json::to_value(
+        canonical_hash("bmad-method-verified-result-binding", 1, &binding)
+            .expect("verified result binding hash"),
+    )
+    .expect("verified result binding digest json");
+}
+
 fn advancing_session() -> (
     MethodSession,
     MethodExactBinding,
@@ -252,6 +380,123 @@ fn advancing_session() -> (
         Some("decide"),
     );
     (session, exact, receipt, result)
+}
+
+fn completed_two_turn_session() -> MethodSession {
+    let (mut session, exact, first_decision) = ready_session();
+    let first_request = advance_request(
+        &session,
+        "invoke_01J70000000000000000000000",
+        "history-turn-one",
+        first_decision.decision_id,
+        4,
+    );
+    let first_receipt = session.begin_advance(first_request).expect("first advance");
+    session
+        .accept_result(
+            5,
+            verified_result(
+                &exact,
+                &first_receipt,
+                accepted_result(
+                    MethodAdvanceDisposition::AwaitingUser,
+                    "discover",
+                    Some("decide"),
+                ),
+            ),
+            UnixMillis(2_000),
+        )
+        .expect("first checkpoint");
+    session.record_user_turn(6).expect("user turn");
+    let second_decision = decision(&exact, "decision_01J70000000000000000000001");
+    session
+        .record_context_review(7, second_decision.clone())
+        .expect("second review");
+    let second_request = advance_request(
+        &session,
+        "invoke_01J70000000000000000000001",
+        "history-turn-two",
+        second_decision.decision_id,
+        8,
+    );
+    let second_receipt = session
+        .begin_advance(second_request)
+        .expect("second advance");
+    session
+        .accept_result(
+            9,
+            verified_result(
+                &exact,
+                &second_receipt,
+                accepted_result(MethodAdvanceDisposition::Completed, "decide", None),
+            ),
+            UnixMillis(3_000),
+        )
+        .expect("terminal checkpoint");
+    session
+}
+
+fn repeated_binding_revision_session() -> MethodSession {
+    let (mut session, exact, first_decision) = ready_session();
+    let table = MethodStepTable::new("discover", [("discover", Some("decide")), ("decide", None)])
+        .expect("step table");
+    let first_request = advance_request(
+        &session,
+        "invoke_01J80000000000000000000000",
+        "revision-one",
+        first_decision.decision_id,
+        4,
+    );
+    let first_receipt = session.begin_advance(first_request).expect("first advance");
+    session
+        .accept_result(
+            5,
+            verified_result(
+                &exact,
+                &first_receipt,
+                accepted_result(
+                    MethodAdvanceDisposition::ContextReviewRequired,
+                    "discover",
+                    Some("decide"),
+                ),
+            ),
+            UnixMillis(2_000),
+        )
+        .expect("first revision checkpoint");
+    session
+        .rebind_capability(6, exact.clone(), table)
+        .expect("identical exact binding revision");
+    session.request_context_review(7).expect("rebound review");
+    let second_decision = decision(&exact, "decision_01J80000000000000000000001");
+    session
+        .record_context_review(8, second_decision.clone())
+        .expect("second revision review");
+    let second_request = advance_request(
+        &session,
+        "invoke_01J80000000000000000000001",
+        "revision-two",
+        second_decision.decision_id,
+        9,
+    );
+    let second_receipt = session
+        .begin_advance(second_request)
+        .expect("second revision advance");
+    session
+        .accept_result(
+            10,
+            verified_result(
+                &exact,
+                &second_receipt,
+                accepted_result(
+                    MethodAdvanceDisposition::ContextReviewRequired,
+                    "discover",
+                    Some("decide"),
+                ),
+            ),
+            UnixMillis(3_000),
+        )
+        .expect("second revision checkpoint");
+    session
 }
 
 #[test]
@@ -486,6 +731,11 @@ fn valid_verified_result_writes_and_restores_every_exact_lineage_field() {
         proof.model_receipt_evidence_hash
     );
     assert_eq!(checkpoint.verified_result_binding_hash, verification_hash);
+    assert_eq!(
+        checkpoint.advance_aggregate_version,
+        receipt.aggregate_version
+    );
+    assert_eq!(checkpoint.prior_checkpoint_hash, None);
 
     let persisted = session.to_persisted_json().expect("persisted state");
     let restored = MethodSession::from_persisted_json(&persisted).expect("proof-bound restart");
@@ -509,21 +759,246 @@ fn valid_verified_result_writes_and_restores_every_exact_lineage_field() {
         serde_json::from_str(&persisted).expect("persisted semantic tamper source");
     semantic_tamper["checkpoints"][0]["advanceDisposition"] =
         serde_json::Value::String("awaiting_user".to_owned());
-    let mut checkpoint_hash_input = semantic_tamper["checkpoints"][0].clone();
-    checkpoint_hash_input
-        .as_object_mut()
-        .expect("checkpoint object")
-        .remove("checkpointHash");
-    semantic_tamper["checkpoints"][0]["checkpointHash"] = serde_json::to_value(
-        canonical_hash("bmad-method-checkpoint", 1, &checkpoint_hash_input)
-            .expect("recomputed public checkpoint hash"),
-    )
-    .expect("recomputed checkpoint digest json");
+    rehash_runtime_checkpoint(&mut semantic_tamper["checkpoints"][0]);
     assert_eq!(
         MethodSession::from_persisted_json(
             &serde_json::to_string(&semantic_tamper).expect("semantic tamper json")
         )
         .expect_err("restore must recompute accepted projection semantics")
+        .code(),
+        MethodErrorCode::MethodStoreRecoveryRequired
+    );
+}
+
+#[test]
+fn restored_active_receipt_rejects_synchronized_aggregate_version_tampering() {
+    let (session, _exact, receipt, _result) = advancing_session();
+    let mut persisted: serde_json::Value = serde_json::from_str(
+        &session
+            .to_persisted_json()
+            .expect("advancing session state"),
+    )
+    .expect("advancing session json");
+    let tampered_version = serde_json::json!(999_u64);
+    persisted["activeInvocation"]["aggregateVersion"] = tampered_version.clone();
+    persisted["consumedDecisions"][receipt.decision_id.as_str()]["receipt"]["aggregateVersion"] =
+        tampered_version.clone();
+    persisted["idempotentAdvances"][receipt.idempotency_key.as_str()]["aggregateVersion"] =
+        tampered_version;
+
+    assert_eq!(
+        MethodSession::from_persisted_json(
+            &serde_json::to_string(&persisted).expect("tampered advancing state")
+        )
+        .expect_err("receipt aggregate version is part of durable consumption authority")
+        .code(),
+        MethodErrorCode::MethodStoreRecoveryRequired
+    );
+}
+
+#[test]
+fn restored_terminal_receipt_rejects_a_fully_rehashed_nonmonotonic_version() {
+    let (mut session, _exact, review) = ready_session();
+    let request = advance_request(
+        &session,
+        "invoke_01J65000000000000000000000",
+        "terminal-version",
+        review.decision_id,
+        4,
+    );
+    let receipt = session.begin_advance(request).expect("terminal advance");
+    session.record_refusal(5).expect("terminal refusal");
+    MethodSession::from_persisted_json(&session.to_persisted_json().expect("terminal state"))
+        .expect("valid terminal version restores");
+
+    let mut persisted: serde_json::Value =
+        serde_json::from_str(&session.to_persisted_json().expect("terminal state"))
+            .expect("terminal json");
+    let mut drifted =
+        persisted["consumedDecisions"][receipt.decision_id.as_str()]["receipt"].clone();
+    drifted["aggregateVersion"] = serde_json::json!(4_u64);
+    let digest = canonical_hash(
+        "bmad-context-decision-consumption-id",
+        1,
+        &serde_json::json!({
+            "sessionId": persisted["sessionId"].clone(),
+            "decisionId": drifted["decisionId"].clone(),
+            "invocationId": drifted["invocationId"].clone(),
+            "idempotencyKey": drifted["idempotencyKey"].clone(),
+            "decisionConsumptionHash": drifted["decisionConsumptionHash"].clone(),
+            "modelRequestId": drifted["modelRequestId"].clone(),
+            "modelRequestHash": drifted["modelRequestHash"].clone(),
+            "sessionAuthorityHash": drifted["sessionAuthorityHash"].clone(),
+            "d2ModelInvocationBindingHash": drifted["d2ModelInvocationBindingHash"].clone(),
+            "modelBridgeBindingHash": drifted["modelBridgeBindingHash"].clone(),
+            "aggregateVersion": drifted["aggregateVersion"].clone(),
+        }),
+    )
+    .expect("rehashed drifted consumption id");
+    drifted["consumptionId"] = serde_json::json!(format!(
+        "consume_{}",
+        digest.to_string().trim_start_matches("sha256:")
+    ));
+    persisted["consumedDecisions"][receipt.decision_id.as_str()]["receipt"] = drifted.clone();
+    persisted["idempotentAdvances"][receipt.idempotency_key.as_str()] = drifted;
+
+    assert_eq!(
+        MethodSession::from_persisted_json(
+            &serde_json::to_string(&persisted).expect("rehashed terminal tamper")
+        )
+        .expect_err("terminal transition must be the exact successor of its advance receipt")
+        .code(),
+        MethodErrorCode::MethodStoreRecoveryRequired
+    );
+}
+
+#[test]
+fn restored_checkpoint_recomputes_its_deterministic_identifier() {
+    let (mut session, exact, receipt, result) = advancing_session();
+    session
+        .accept_result(
+            5,
+            verified_result(&exact, &receipt, result),
+            UnixMillis(2_000),
+        )
+        .expect("accepted checkpoint");
+    let mut persisted: serde_json::Value =
+        serde_json::from_str(&session.to_persisted_json().expect("persisted session"))
+            .expect("persisted json");
+    persisted["checkpoints"][0]["checkpointId"] =
+        serde_json::json!("checkpoint_01J99999999999999999999999");
+    rehash_runtime_checkpoint(&mut persisted["checkpoints"][0]);
+
+    assert_eq!(
+        MethodSession::from_persisted_json(
+            &serde_json::to_string(&persisted).expect("rehashed checkpoint-id tamper")
+        )
+        .expect_err("checkpoint ids are deterministic authority, not caller metadata")
+        .code(),
+        MethodErrorCode::MethodStoreRecoveryRequired
+    );
+}
+
+#[test]
+fn same_binding_rebind_invalidates_prepared_authority_before_and_after_restart() {
+    let (mut session, exact, review) = ready_session();
+    let mut prepared = advance_request(
+        &session,
+        "invoke_01J66666666666666666666666",
+        "prepared-before-rebind",
+        review.decision_id.clone(),
+        4,
+    );
+    session
+        .rebind_capability(
+            4,
+            exact.clone(),
+            MethodStepTable::new("respond", [("respond", None)]).expect("rebound steps"),
+        )
+        .expect("same exact binding can be rebound to revised handwritten authority");
+    session
+        .request_context_review(5)
+        .expect("fresh review request");
+    session
+        .record_context_review(6, review)
+        .expect("same exact binding still requires a fresh review transition");
+    prepared.expected_version = 7;
+
+    let baseline = session.clone();
+    let mut before_restart = session.clone();
+    assert_eq!(
+        before_restart
+            .begin_advance(prepared.clone())
+            .expect_err("pre-rebind authority cannot authorize a different revision/table")
+            .code(),
+        MethodErrorCode::MethodBindingStale
+    );
+    assert_eq!(before_restart, baseline);
+
+    let mut restored = MethodSession::from_persisted_json(
+        &session.to_persisted_json().expect("same-binding history"),
+    )
+    .expect("repeated identical binding hashes retain exact revision authority");
+    let restored_baseline = restored.clone();
+    assert_eq!(
+        restored
+            .begin_advance(prepared)
+            .expect_err("restart cannot revive pre-rebind authority")
+            .code(),
+        MethodErrorCode::MethodBindingStale
+    );
+    assert_eq!(restored, restored_baseline);
+}
+
+#[test]
+fn multi_turn_and_repeated_binding_revisions_restore_exact_history() {
+    let completed = completed_two_turn_session();
+    let completed_restored = MethodSession::from_persisted_json(
+        &completed.to_persisted_json().expect("completed history"),
+    )
+    .expect("multi-turn completed history restores");
+    assert_eq!(completed_restored, completed);
+    assert_eq!(completed_restored.state(), MethodState::Completed);
+
+    let rebound = repeated_binding_revision_session();
+    let rebound_restored = MethodSession::from_persisted_json(
+        &rebound
+            .to_persisted_json()
+            .expect("repeated binding history"),
+    )
+    .expect("identical binding bytes remain distinguishable by exact revision");
+    assert_eq!(rebound_restored, rebound);
+    let checkpoints = rebound_restored.checkpoints();
+    assert_eq!(checkpoints[0].binding_ordinal, 1);
+    assert_eq!(checkpoints[1].binding_ordinal, 2);
+    assert_eq!(
+        checkpoints[1].prior_checkpoint_hash,
+        Some(checkpoints[0].checkpoint_hash)
+    );
+    assert!(checkpoints[0].advance_aggregate_version < checkpoints[1].advance_aggregate_version);
+}
+
+#[test]
+fn restored_history_rejects_a_fully_resealed_impossible_step_sequence() {
+    let session = completed_two_turn_session();
+    let mut persisted: serde_json::Value =
+        serde_json::from_str(&session.to_persisted_json().expect("completed history"))
+            .expect("completed history json");
+    persisted["checkpoints"][0]["advanceDisposition"] = serde_json::json!("completed");
+    persisted["checkpoints"][0]["currentStepKey"] = serde_json::json!("decide");
+    persisted["checkpoints"][0]["nextStepKey"] = serde_json::Value::Null;
+    reseal_persisted_checkpoint(&mut persisted, 0);
+    reseal_persisted_checkpoint(&mut persisted, 1);
+
+    assert_eq!(
+        MethodSession::from_persisted_json(
+            &serde_json::to_string(&persisted).expect("fully resealed impossible history")
+        )
+        .expect_err("individually valid terminal edges cannot form an impossible live history")
+        .code(),
+        MethodErrorCode::MethodStoreRecoveryRequired
+    );
+}
+
+#[test]
+fn restored_history_rejects_fully_resealed_binding_ordinal_inversion() {
+    let session = repeated_binding_revision_session();
+    let mut persisted: serde_json::Value = serde_json::from_str(
+        &session
+            .to_persisted_json()
+            .expect("repeated binding history"),
+    )
+    .expect("repeated binding history json");
+    persisted["checkpoints"][0]["bindingOrdinal"] = serde_json::json!(2_u64);
+    persisted["checkpoints"][1]["bindingOrdinal"] = serde_json::json!(1_u64);
+    reseal_persisted_checkpoint(&mut persisted, 0);
+    reseal_persisted_checkpoint(&mut persisted, 1);
+
+    assert_eq!(
+        MethodSession::from_persisted_json(
+            &serde_json::to_string(&persisted).expect("resealed ordinal inversion")
+        )
+        .expect_err("binding authority cannot move backward through checkpoint history")
         .code(),
         MethodErrorCode::MethodStoreRecoveryRequired
     );

@@ -61,7 +61,9 @@ Add helpers that construct a valid request and a verified result from the fixtur
 3. Acceptance rejects, one field at a time, mismatched invocation ID, decision ID, decision-consumption hash, model request ID/hash, session authority, D2 invocation binding, D2/Method bridge binding, exact Method binding, model binding, response schema, accepted-result hash, and verification hash.
 4. Every rejection leaves a cloned pre-call session exactly unchanged.
 5. A valid proof advances according to the handwritten step table and writes every lineage field to the returned checkpoint.
-6. `to_persisted_json` / `from_persisted_json` preserves and revalidates the proof-bound checkpoint.
+6. `to_persisted_json` / `from_persisted_json` preserves and revalidates the proof-bound checkpoint, including its advance aggregate version and prior-checkpoint hash chain.
+7. Restore rejects a synchronized aggregate-version tamper across active/consumed/idempotent receipt copies, a changed and rehashed deterministic checkpoint ID, a fully resealed but impossible step sequence, and a fully resealed binding-ordinal inversion.
+8. A positive multi-turn/rebind restart, including repeated identical binding bytes, selects the exact historical revision and restores successfully.
 
 `model_response_payload_hash` is D2's exact raw JSON byte hash. `accepted_method_result_hash` is BMAD's canonical parsed projection hash; they are intentionally distinct. `model_receipt_evidence_hash` is post-call trusted-host evidence defined for later D2 composition as `canonical_hash("model-access-receipt-evidence", 1, &complete_verified_receipt)`, so BMAD cannot compare it to a pre-call expected value in this isolated crate. Bind all three into the sealed verification hash and durable checkpoint, then prove post-acceptance tampering fails restore. For tampering tests, serialize the accepted session to JSON, mutate one stored checkpoint lineage field without recomputing its checkpoint hash, and assert restore returns `MethodStoreRecoveryRequired`. Test private verification-hash tampering in a module test if integration visibility cannot represent the invalid sealed value.
 
@@ -84,7 +86,7 @@ Add the six exact pre-call lineage fields to both request and receipt. Include t
 - the active receipt persisted in `consumed_decisions` and `idempotent_advances`;
 - restored consumption validation.
 
-At `begin_advance`, compute `session_authority_hash = canonical_hash("bmad-method-session-authority", 1, &{ sessionId, scope, methodBindingHash })` using an explicitly named camelCase projection and reject a different request value. Compute `model_bridge_binding_hash = canonical_hash("bmad-method-d2-bridge-binding", 1, &{ sessionAuthorityHash, d2ModelInvocationBindingHash, methodBindingHash, modelBindingHash, responseSchemaHash })` with the same named-projection discipline and reject a different request value. An idempotency-key replay is valid only when invocation, decision, decision-consumption, request ID/hash, session authority, D2 invocation binding, bridge binding, and expected aggregate version all match. Any drift returns the existing stable conflict/stale error without mutation.
+At `begin_advance`, compute `session_authority_hash = canonical_hash("bmad-method-session-authority", 1, &{ sessionId, scope, methodBindingHash, bindingOrdinal, capabilityStepTableHash, turnOrdinal, currentStepKey, priorCheckpointHash })` using an explicitly named camelCase projection and reject a different request value. This prevents an authorization prepared for one binding revision, handwritten step table, turn, step, or checkpoint head from becoming authority after a same-byte binding rebind. Compute `model_bridge_binding_hash = canonical_hash("bmad-method-d2-bridge-binding", 1, &{ sessionAuthorityHash, d2ModelInvocationBindingHash, methodBindingHash, modelBindingHash, responseSchemaHash })` with the same named-projection discipline and reject a different request value. An idempotency-key replay is valid only when invocation, decision, decision-consumption, request ID/hash, session authority, D2 invocation binding, bridge binding, and expected aggregate version all match. Include the post-consumption aggregate version in `bmad-context-decision-consumption-id`; any drift returns the existing stable conflict/stale error without mutation.
 
 - [ ] **Step 4: Implement the sealed verified-result boundary**
 
@@ -143,6 +145,7 @@ In `MethodSession::accept_result`, verify before any mutation that:
 
 Extend `MethodCheckpoint` and `CheckpointHashInput` with:
 
+- `advance_aggregate_version` and `prior_checkpoint_hash`;
 - `method_binding_hash`;
 - `session_authority_hash`, `d2_model_invocation_binding_hash`, and `model_bridge_binding_hash`;
 - `decision_consumption_hash`;
@@ -155,7 +158,9 @@ Extend `MethodCheckpoint` and `CheckpointHashInput` with:
 
 Also retain `advance_disposition` in the checkpoint/hash. On restore, reconstruct the exact `MethodAdvanceResult` from disposition, current/next step, and working-artifact refs, then require its canonical hash to equal `accepted_method_result_hash`; the hash must not be treated as self-authenticating metadata.
 
-Include every field in `bmad-method-checkpoint` hashing and checkpoint construction. On restore, resolve the checkpoint's binding revision and consumed decision, then revalidate every checkpoint field against the matching revision/receipt plus its canonical checkpoint hash. Preserve exact historical binding semantics after capability rebinds.
+Hash this private aggregate checkpoint with the distinct purpose `bmad-method-runtime-checkpoint`, version `1`; never reuse the qualified cross-language `bmad-method-checkpoint/v1` purpose for the incompatible internal preimage. Include every field in runtime checkpoint hashing and checkpoint construction. On restore, recompute the deterministic checkpoint ID, resolve the exact binding revision from the checkpoint ordinal rather than the first equal binding hash, and derive the historical session-authority projection from that revision, its step table, the pre-call turn/current step, and the prior checkpoint hash. Revalidate every checkpoint field against the matching revision/receipt plus its runtime checkpoint hash.
+
+Validate the checkpoints as one state-machine history, not as independent rows: binding ordinals never decrease; the first checkpoint in a revision starts at that revision's initial handwritten step; later checkpoints in the same revision continue from the prior `next_step_key`; a rebind resets to the new revision's initial step; a completed edge is final; advance aggregate versions increase and match their receipts; active receipt version equals aggregate version; and completed/refused/incomplete terminal versions are the exact post-transition successor. Repeated identical binding hashes remain distinguishable by ordinal and step-table authority.
 
 - [ ] **Step 6: Update the model/service ports, exports, and existing runtime fixtures**
 
