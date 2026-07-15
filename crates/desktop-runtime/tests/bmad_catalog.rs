@@ -3,13 +3,13 @@
 use std::collections::BTreeMap;
 
 use desktop_runtime::{
-    sha256_bytes, BmadAgentRosterBuilder, BmadAgentSource, BmadArtifactEvidence,
+    canonical_hash, sha256_bytes, BmadAgentRosterBuilder, BmadAgentSource, BmadArtifactEvidence,
     BmadCatalogAvailability, BmadCatalogBuilder, BmadEntrypointKind, BmadHelpAdvisor,
     BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpIntent, BmadKernelErrorCode,
     BmadLoadedPackage, BmadLoadedSkill, BmadMenuTargetKind, BmadReviewedPromptReference,
     BmadUnavailableDependency, ContractId,
 };
-use serde_json::json;
+use serde_json::{json, Value};
 
 const HEADER: &str = "module,skill,display-name,menu-code,description,action,args,phase,preceded-by,followed-by,required,output-location,outputs";
 
@@ -230,6 +230,46 @@ fn single_action_skills_infer_their_normalized_action_without_mutating_the_raw_r
 }
 
 #[test]
+fn catalog_identity_binds_the_descriptor_and_trusted_source_graph() {
+    let rows = vec![vec![
+        "BMad Method".to_owned(),
+        "bmad-architecture".to_owned(),
+        "Architecture".to_owned(),
+        "CA".to_owned(),
+        "Create architecture.".to_owned(),
+        String::new(),
+        String::new(),
+        "3-solutioning".to_owned(),
+        String::new(),
+        String::new(),
+        "true".to_owned(),
+        "planning_artifacts".to_owned(),
+        "architecture".to_owned(),
+    ]];
+    let first_source = BmadHelpCatalogSource::from_rows("bmm", &rows).expect("first source graph");
+    let second_source =
+        BmadHelpCatalogSource::from_rows("bmm", &rows).expect("second source graph");
+    let first = BmadCatalogBuilder::build_bound(
+        &package(),
+        &[first_source],
+        sha256_bytes(b"trusted source graph one"),
+    )
+    .expect("first catalog");
+    let second = BmadCatalogBuilder::build_bound(
+        &package(),
+        &[second_source],
+        sha256_bytes(b"trusted source graph two"),
+    )
+    .expect("second catalog");
+
+    assert_ne!(
+        first.capability_catalog_hash(),
+        second.capability_catalog_hash()
+    );
+    assert_ne!(first.help_actions[0].key, second.help_actions[0].key);
+}
+
+#[test]
 fn csv_parser_rejects_shape_controls_and_untrusted_authority_fields() {
     let wrong_header =
         BmadHelpCatalogSource::new("bmm", "module,skill\na,b\n").expect("bounded source");
@@ -388,6 +428,7 @@ fn normalized_foundation_roster_loads_as_bounded_non_executable_records() {
         roster_bytes,
         &catalog,
         &package().package_version_id,
+        sha256_bytes(roster_bytes),
     )
     .expect("sealed roster");
 
@@ -419,6 +460,103 @@ fn normalized_foundation_roster_loads_as_bounded_non_executable_records() {
     assert!(!safe.contains("sourceLocalMemberLabel"));
     assert!(!safe.contains("write-document.md"));
     assert!(!safe.contains("sha256:"));
+}
+
+#[test]
+fn normalized_roster_rejects_rehashed_source_binding_transplants() {
+    let catalog = BmadCatalogBuilder::build(&package(), &[]).expect("catalog");
+    let roster_bytes =
+        include_bytes!("../../../packages/bmad-foundation/normalized/bmm-agent-roster.json");
+    let trusted_content_hash = sha256_bytes(roster_bytes);
+    let original: Value = serde_json::from_slice(roster_bytes).expect("normalized roster");
+
+    for mutation in 0..7 {
+        let mut transplanted = original.clone();
+        mutate_normalized_roster_binding(&mut transplanted, mutation);
+        rehash_normalized_roster(&mut transplanted);
+        let bytes = serde_json::to_vec(&transplanted).expect("transplanted roster bytes");
+
+        assert_ne!(sha256_bytes(&bytes), trusted_content_hash);
+        assert_eq!(
+            desktop_runtime::BmadAgentRoster::load_normalized(
+                &bytes,
+                &catalog,
+                &package().package_version_id,
+                trusted_content_hash,
+            )
+            .expect_err("self-authenticated source transplant must fail")
+            .code(),
+            BmadKernelErrorCode::AgentMenuTargetInvalid
+        );
+    }
+}
+
+fn mutate_normalized_roster_binding(roster: &mut Value, mutation: usize) {
+    let paige = roster["agents"]
+        .as_array_mut()
+        .expect("agents")
+        .iter_mut()
+        .find(|agent| agent["agentCode"] == "bmad-agent-tech-writer")
+        .expect("Paige");
+    let transplanted_hash = Value::String(sha256_bytes(b"transplanted source").to_string());
+    match mutation {
+        0 => paige["moduleSourceHash"] = transplanted_hash,
+        1 => paige["personaSourceHash"] = transplanted_hash,
+        2 => normalized_write_document_menu(paige)["sourceMenuItemHash"] = transplanted_hash,
+        3 => normalized_write_document_menu(paige)["sourceOrdinal"] = json!(99),
+        4 => {
+            normalized_write_document_menu(paige)["target"]["sourceCustomizationGraphHash"] =
+                transplanted_hash;
+        }
+        5 => {
+            normalized_write_document_menu(paige)["target"]["sourceMemberHash"] = transplanted_hash;
+        }
+        6 => {
+            normalized_write_document_menu(paige)["target"]["sourceLocalMemberLabel"] =
+                json!("transplanted-prompt.md");
+        }
+        _ => unreachable!("closed mutation table"),
+    }
+}
+
+fn normalized_write_document_menu(agent: &mut Value) -> &mut Value {
+    agent["menuItems"]
+        .as_array_mut()
+        .expect("menu items")
+        .iter_mut()
+        .find(|menu| menu["menuCode"] == "WD")
+        .expect("write document menu")
+}
+
+fn rehash_normalized_roster(roster: &mut Value) {
+    let agents = roster["agents"].as_array_mut().expect("agents");
+    let mut record_hashes = Vec::with_capacity(agents.len());
+    for value in agents.iter_mut() {
+        let agent = value.as_object_mut().expect("agent");
+        let menus = agent.get("menuItems").expect("menu items").clone();
+        let menu_hash = canonical_hash("bmad-agent-menu-graph", 1, &menus).expect("menu hash");
+        agent.insert("menuGraphHash".to_owned(), json!(menu_hash));
+        let record = json!({
+            "moduleCode": agent.get("moduleCode").expect("module code"),
+            "agentCode": agent.get("agentCode").expect("agent code"),
+            "name": agent.get("name").expect("name"),
+            "title": agent.get("title").expect("title"),
+            "icon": agent.get("icon").expect("icon"),
+            "team": agent.get("team").expect("team"),
+            "description": agent.get("description").expect("description"),
+            "personaSourceHash": agent.get("personaSourceHash").expect("persona hash"),
+            "customizationSourceHash": agent
+                .get("customizationSourceHash")
+                .expect("customization hash"),
+            "menuItems": menus,
+        });
+        let record_hash =
+            canonical_hash("bmad-agent-record", 1, &record).expect("agent record hash");
+        agent.insert("agentRecordHash".to_owned(), json!(record_hash));
+        record_hashes.push(record_hash);
+    }
+    let roster_hash = canonical_hash("bmad-agent-roster", 1, &record_hashes).expect("roster hash");
+    roster["rosterHash"] = json!(roster_hash);
 }
 
 #[test]

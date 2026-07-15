@@ -3,7 +3,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Serialize;
 use serde_json::{Map, Value};
 
-use crate::{canonical_hash, generated_contracts, ContractId, RelativeWorkspacePath, Sha256Digest};
+use crate::{
+    canonical_hash, generated_contracts, sha256_bytes, ContractId, RelativeWorkspacePath,
+    Sha256Digest,
+};
 
 use super::{BmadEntrypointKind, BmadKernelError, BmadKernelErrorCode, BmadLoadedPackage};
 
@@ -39,6 +42,7 @@ pub enum BmadCatalogAvailability {
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BmadHelpActionKey {
+    pub capability_catalog_hash: Sha256Digest,
     pub package_version_id: ContractId,
     pub module_code: String,
     pub skill_name: String,
@@ -103,6 +107,15 @@ impl BmadHelpAction {
 pub struct BmadCatalog {
     pub installed_skills: Vec<BmadInstalledSkillRecord>,
     pub help_actions: Vec<BmadHelpAction>,
+    #[serde(skip_serializing)]
+    capability_catalog_hash: Sha256Digest,
+}
+
+impl BmadCatalog {
+    #[must_use]
+    pub const fn capability_catalog_hash(&self) -> Sha256Digest {
+        self.capability_catalog_hash
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -197,6 +210,45 @@ impl BmadCatalogBuilder {
         package: &BmadLoadedPackage,
         sources: &[BmadHelpCatalogSource],
     ) -> Result<BmadCatalog, BmadKernelError> {
+        let source_graph = sources
+            .iter()
+            .map(|source| {
+                (
+                    source.module_code.as_str(),
+                    sha256_bytes(source.contents.as_bytes()),
+                )
+            })
+            .collect::<Vec<_>>();
+        let help_graph_hash = canonical_hash("bmad-help-catalog-source-graph", 1, &source_graph)
+            .map_err(|_| BmadKernelErrorCode::HelpCatalogInvalid)?;
+        Self::build_bound(package, sources, help_graph_hash)
+    }
+
+    /// Builds a catalog whose identity is anchored to a trusted help graph.
+    ///
+    /// Callers must first validate the graph through a manifest or equivalent
+    /// authority record. The resulting identity also binds the exact package
+    /// descriptor and observed inventory.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same closed catalog errors as [`Self::build`].
+    pub fn build_bound(
+        package: &BmadLoadedPackage,
+        sources: &[BmadHelpCatalogSource],
+        help_graph_hash: Sha256Digest,
+    ) -> Result<BmadCatalog, BmadKernelError> {
+        let capability_catalog_hash = canonical_hash(
+            "bmad-capability-catalog-binding",
+            1,
+            &(
+                &package.package_version_id,
+                package.descriptor_hash,
+                package.observed_inventory_hash,
+                help_graph_hash,
+            ),
+        )
+        .map_err(|_| BmadKernelErrorCode::HelpCatalogInvalid)?;
         let mut installed_skills = package
             .skills
             .iter()
@@ -235,6 +287,7 @@ impl BmadCatalogBuilder {
                 let source_ordinal = u64::try_from(source_ordinal)
                     .map_err(|_| BmadKernelErrorCode::HelpCatalogInvalid)?;
                 let mut action = normalize_help_row(
+                    capability_catalog_hash,
                     &package.package_version_id,
                     &source.module_code,
                     source_ordinal,
@@ -266,6 +319,7 @@ impl BmadCatalogBuilder {
         Ok(BmadCatalog {
             installed_skills,
             help_actions,
+            capability_catalog_hash,
         })
     }
 }
@@ -382,6 +436,7 @@ fn finish_csv_row(rows: &mut Vec<Vec<String>>, row: &mut Vec<String>, field: &mu
 }
 
 fn normalize_help_row(
+    capability_catalog_hash: Sha256Digest,
     package_version_id: &ContractId,
     module_code: &str,
     source_ordinal: u64,
@@ -431,6 +486,7 @@ fn normalize_help_row(
     let expected_outputs = split_alternatives(&outputs);
     let action = nonempty(action);
     let key = BmadHelpActionKey {
+        capability_catalog_hash,
         package_version_id: package_version_id.clone(),
         module_code: module_code.to_owned(),
         skill_name: skill_name.clone(),
@@ -850,12 +906,19 @@ pub struct BmadAgentRoster {
     pub agents: Vec<BmadAgentRecord>,
     #[serde(skip_serializing)]
     roster_hash: Sha256Digest,
+    #[serde(skip_serializing)]
+    capability_catalog_hash: Sha256Digest,
 }
 
 impl BmadAgentRoster {
     #[must_use]
     pub const fn roster_hash(&self) -> Sha256Digest {
         self.roster_hash
+    }
+
+    #[must_use]
+    pub const fn capability_catalog_hash(&self) -> Sha256Digest {
+        self.capability_catalog_hash
     }
 
     /// Loads the sealed normalized roster into display-only native records.
@@ -873,8 +936,9 @@ impl BmadAgentRoster {
         bytes: &[u8],
         catalog: &BmadCatalog,
         expected_package_version_id: &ContractId,
+        expected_content_hash: Sha256Digest,
     ) -> Result<Self, BmadKernelError> {
-        if bytes.len() > MAX_CATALOG_BYTES {
+        if bytes.len() > MAX_CATALOG_BYTES || sha256_bytes(bytes) != expected_content_hash {
             return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
         }
         let generated = serde_json::from_slice::<
@@ -921,6 +985,7 @@ impl BmadAgentRoster {
         Ok(Self {
             agents,
             roster_hash,
+            capability_catalog_hash: catalog.capability_catalog_hash(),
         })
     }
 }
@@ -1237,6 +1302,7 @@ impl BmadAgentRosterBuilder {
         Ok(BmadAgentRoster {
             agents,
             roster_hash,
+            capability_catalog_hash: catalog.capability_catalog_hash(),
         })
     }
 }

@@ -65,7 +65,7 @@ fn binding(seed: u8) -> MethodExactBinding {
         package_descriptor_hash: digest("descriptor"),
         package_source_hash: digest("source"),
         instruction_projection_hash: digest("instructions"),
-        capability_catalog_hash: digest("catalog"),
+        capability_catalog_hash: sha256_bytes(b"2:catalog"),
         agent_roster_hash: None,
         agent_binding_hash: None,
         agent_binding: None,
@@ -318,17 +318,32 @@ fn authoritative_help_evidence_rejects_a_pre_rebind_invocation() {
         .expect("completed second capability");
 
     let action = BmadHelpActionKey {
+        capability_catalog_hash: sha256_bytes(b"2:catalog"),
         package_version_id: id("pkgver_01J00000000000000000000000"),
         module_code: "bmm".to_owned(),
         skill_name: "bmad-architecture".to_owned(),
         action: Some("validate".to_owned()),
     };
     assert_eq!(
-        BmadArtifactEvidence::from_completed_session(action, &session, &first_invocation)
+        BmadArtifactEvidence::from_completed_session(action.clone(), &session, &first_invocation)
             .expect_err("old invocation cannot evidence the rebound capability")
             .code(),
         BmadKernelErrorCode::HelpEvidenceInsufficient
     );
+    let mut stale_catalog_action = action.clone();
+    stale_catalog_action.capability_catalog_hash = sha256_bytes(b"stale-catalog");
+    assert_eq!(
+        BmadArtifactEvidence::from_completed_session(
+            stale_catalog_action,
+            &session,
+            &second_invocation,
+        )
+        .expect_err("same capability from a stale catalog cannot become authoritative evidence")
+        .code(),
+        BmadKernelErrorCode::HelpEvidenceInsufficient
+    );
+    BmadArtifactEvidence::from_completed_session(action, &session, &second_invocation)
+        .expect("exact catalog-bound invocation can become authoritative evidence");
 }
 
 #[test]

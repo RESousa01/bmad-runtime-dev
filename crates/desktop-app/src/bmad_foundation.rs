@@ -199,11 +199,17 @@ pub fn load_bmad_foundation(
     let manifest: RuntimeManifest =
         deserialize_strict(&manifest_bytes).map_err(|_| BmadFoundationError::ManifestInvalid)?;
     validate_manifest_identity(&manifest)?;
+    let roster_content_hash = manifest
+        .resources
+        .iter()
+        .find(|resource| resource.path == "normalized/bmm-agent-roster.json")
+        .map(|resource| resource.content_hash)
+        .ok_or(BmadFoundationError::ResourceMismatch)?;
     let resources = read_manifest_resources(root, &manifest)?;
     let semantic_ledger_hash = validate_semantic_ledger(&manifest, &resources)?;
     let package = load_method_package(&resources, semantic_ledger_hash)?;
     let catalog = load_help_catalog(&resources, &package)?;
-    let roster = load_roster(&resources, &package, &catalog)?;
+    let roster = load_roster(&resources, &package, &catalog, roster_content_hash)?;
     let inactive_builder_package_count = validate_builder_packages(&resources)?;
 
     Ok(BmadLoadedFoundation {
@@ -352,7 +358,7 @@ fn load_help_catalog(
         .iter()
         .map(|source| BmadHelpCatalogSource::from_rows(&source.module_code, &source.rows))
         .collect::<Result<Vec<_>, _>>()?;
-    let catalog = BmadCatalogBuilder::build(package, &sources)?;
+    let catalog = BmadCatalogBuilder::build_bound(package, &sources, graph.graph_hash)?;
     if catalog.installed_skills.len() != package.skills.len() || catalog.help_actions.len() != 2 {
         return Err(BmadFoundationError::ResourceMismatch);
     }
@@ -363,11 +369,13 @@ fn load_roster(
     resources: &BTreeMap<String, Vec<u8>>,
     package: &BmadLoadedPackage,
     catalog: &BmadCatalog,
+    trusted_content_hash: Sha256Digest,
 ) -> Result<BmadAgentRoster, BmadFoundationError> {
     let roster = BmadAgentRoster::load_normalized(
         required_bytes(resources, "normalized/bmm-agent-roster.json")?,
         catalog,
         &package.package_version_id,
+        trusted_content_hash,
     )?;
     if roster.agents.len() != 6 {
         return Err(BmadFoundationError::ResourceMismatch);
