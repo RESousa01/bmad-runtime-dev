@@ -334,36 +334,36 @@ review found no P0-P3 issue.
 - Modify: `crates/desktop-runtime/tests/bmad_help_run.rs`
 - Modify: `crates/desktop-runtime/tests/bmad_method_session.rs`
 
-- [ ] Add RED tests for byte limit, duplicate-key strict parsing, standalone
+- [x] Add RED tests for byte limit, duplicate-key strict parsing, standalone
   schema/semantic validation, safe Unicode, exact non-`_meta` catalog member,
   unique known evidence tokens, evidence downgrade/no-upgrade, catalog-derived
   guidance, provable no-recommendation reasons, and aggregate non-mutation.
-- [ ] Accept only an opaque verified-output/receipt boundary containing exact
+- [x] Accept only an opaque verified-output/receipt boundary containing exact
   raw proposal bytes and pre-call D2/Method lineage. Until D2 composition lands,
   keep its trusted host constructor crate-private/test-only or behind the same
   explicit inert boundary used in BMAD-06A; do not claim cryptographic proof.
-- [ ] Strict-parse and validate the proposal, preserve exact bytes and raw-byte
+- [x] Strict-parse and validate the proposal, preserve exact bytes and raw-byte
   hash, resolve tokens from the compiled host allowlist, and derive evidence
   class/guidance/no-recommendation truth exclusively from trusted catalog and
   token facts.
-- [ ] Create a canonical `MethodHelpRecommendation` using host-owned ID,
+- [x] Create a canonical `MethodHelpRecommendation` using host-owned ID,
   session ID, UTC time, resolved `ArtifactRef`s, derived evidence, and
   `bmad-method-help-recommendation/v1` self-hash. Registerable canonical bytes
   must be distinct from raw proposal bytes.
-- [ ] Create a canonical completion-candidate `MethodAdvanceResult` using
+- [x] Create a canonical completion-candidate `MethodAdvanceResult` using
   host-owned ID/time, exact request/invocation/schema lineage, a local
   `ContentRef` for canonical recommendation bytes, no produced artifacts, zero
   unresolved items, and `bmad-method-canonical-advance-result/v1` self-hash.
   The fixed transition remains Completed / recommend / no next step / empty
   working artifacts; no proposal field chooses it.
-- [ ] Extend `MethodVerifiedResultBindingData`, checkpoints, private verification
+- [x] Extend `MethodVerifiedResultBindingData`, checkpoints, private verification
   hash, persistence validation, and restart recomputation with
   `canonical_advance_result_hash` plus the exact canonical data required to
   recompute it. Reuse the aggregate's non-mutating verified-result validator.
-- [ ] Preserve Created/unbound v1 compatibility and reject synchronized nested
+- [x] Preserve Created/unbound v1 compatibility and reject synchronized nested
   tampering, raw/canonical content substitution, invented absence, `_meta`,
   unknown token, evidence upgrade, hash/domain collision, and replay drift.
-- [ ] Run focused Help/Method tests, full runtime tests, formatting, and strict
+- [x] Run focused Help/Method tests, full runtime tests, formatting, and strict
   Clippy. Obtain independent review and commit:
   `feat(bmad): canonicalize verified Help proposals`.
 
@@ -383,26 +383,26 @@ The active workspace currently contains unrelated unstaged store changes. Do
 not overwrite, stage, or silently combine them. Freeze their owner/base first;
 implement this task in an isolated worktree if overlap remains.
 
-- [ ] Add RED tests proving distinct raw proposal and canonical recommendation
+- [x] Add RED tests proving distinct raw proposal and canonical recommendation
   records, canonical content registration, exact content refs, aggregate and
   checkpoint persistence, evidence/outbox linkage, restart recomputation, CAS
   conflict behavior, relational rollback, and Created/unbound v1 restore.
-- [ ] Add one store-owned finalization operation. It may stage encrypted
+- [x] Add one store-owned finalization operation. It may stage encrypted
   content-addressed payloads, but only its SQLite transaction may link canonical
   recommendation content, aggregate projection, checkpoint index, evidence,
   and outbox as authoritative.
-- [ ] Before commit, call the same non-mutating aggregate validator used by the
+- [x] Before commit, call the same non-mutating aggregate validator used by the
   live transition (or validate an exact clone), including
   `canonical_advance_result_hash`, schema closures, raw proposal hash,
   recommendation content ref/hash, D2/Method bridge, receipt evidence, and
   checkpoint chain.
-- [ ] Prove every semantic/hash/CAS/transaction failure leaves all authoritative
+- [x] Prove every semantic/hash/CAS/transaction failure leaves all authoritative
   rows and the in-memory aggregate unchanged. Document only the already honest
   possibility of an unreferenced append-only CAS orphan.
-- [ ] Add no migration unless a failing compatibility test proves persisted
+- [x] Add no migration unless a failing compatibility test proves persisted
   shape cannot remain nested JSON/backward compatible. If a migration is
   required, make it independently restart/idempotency reviewed.
-- [ ] Run focused and full store tests, full workspace formatting/strict Clippy,
+- [x] Run focused and full store tests, full workspace formatting/strict Clippy,
   and independent persistence review. Commit:
   `feat(bmad): persist canonical Help lineage`.
 
@@ -440,9 +440,33 @@ integrity, cross-language agreement, restart/atomicity, and unintended
 activation. Record exact commits and gate counts in BigBrain. Do not claim
 BMAD-06B complete unless the exact .NET 10.0.302 gate and all final gates pass.
 
+## Completion record (2026-07-15)
+
+- Implementation checkpoints: `bae0d01a`, `24c401b5`, `510a7fb8`,
+  `4afa8eae`, and `ad3efd64`.
+- Exact tools: Node 24.18.0, pnpm 11.12.0, Rust 1.97.0, and .NET SDK
+  10.0.302 with roll-forward disabled.
+- Cross-language verification passed twice with 97 tests passing, one
+  environment-limited file-link test skipped, and zero failures per run.
+- TypeScript qualification passed with the same 97/1 result; BMAD foundation
+  qualification passed 59/59; the workspace package suites passed foundation
+  59, fixtures 76, contracts 97 with one environment skip, and UI 181/181.
+- Production UI build, architecture boundaries, workspace formatting, strict
+  all-target/all-feature Clippy, and whole-tree `git diff --check` passed.
+- The locked all-feature Rust workspace passed 288 tests plus four compile-fail
+  doctests. Exact .NET 10.0.302 conformance passed 5/5.
+- Task 5's final independent review passed after RED regressions closed a
+  reserved-evidence cardinality bypass and the stale-error contract. The final
+  whole-slice review found no technical P0-P3 issue: spec, trust boundary,
+  cross-language agreement, restart/atomicity, and quality all passed, and
+  activation remains inert. Its only P3 was this stale plan status, now closed.
+- The model path remains intentionally inert. BMAD-06B qualifies sealed Help
+  composition and durable lineage; it does not claim that production D2
+  consent or receipt verification has run.
+
 ## Next task
 
-Start Task 4: accept only an opaque verified Help proposal boundary, strictly
-validate and resolve it against the compiled host facts, materialize distinct
-canonical recommendation and completion-candidate records, and extend exact
-Method result lineage without mutating the aggregate before verification.
+Implement the production D2 consent/model/receipt bridge that can create the
+opaque verified Help proposal without weakening the now-qualified inert
+boundary. Keep activation disabled until exact identity, single-use consent,
+managed model access, receipt verification, and desktop composition all pass.
