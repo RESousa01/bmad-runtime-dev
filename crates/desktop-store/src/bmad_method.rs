@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{
-    canonical_hash, canonical_json_bytes, ContractId, DesktopLocalIdentity,
-    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodError, MethodErrorCode,
-    MethodEvidenceClass, MethodExactBinding, MethodPersistenceEvent, MethodSession,
-    MethodSessionRepository, MethodSessionScope, Sha256Digest, UnixMillis,
+    canonical_hash, canonical_hash_without_field, canonical_json_bytes, BmadCanonicalHelpRecords,
+    ContractId, DesktopLocalIdentity, MethodAdvanceDisposition, MethodAdvanceReceipt,
+    MethodAdvanceRequest, MethodArtifactExpectation, MethodArtifactProvenance, MethodError,
+    MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodPersistenceEvent,
+    MethodSession, MethodSessionRepository, MethodSessionScope, Sha256Digest, UnixMillis,
 };
 use rusqlite::{params, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,13 @@ const METHOD_STATE_KIND: &str = "bmad_method_session";
 const METHOD_STATE_SCHEMA: &str = "sapphirus.bmad-method-session-state.v1";
 const METHOD_ARTIFACT_KIND: &str = "bmad_method_artifact";
 const METHOD_ARTIFACT_SCHEMA: &str = "sapphirus.bmad-method-artifact.v1";
+const HELP_RAW_PROPOSAL_KIND: &str = "bmad_help_raw_proposal";
+const HELP_RAW_PROPOSAL_SCHEMA: &str = "sapphirus.bmad-method-help-proposal.v1";
+const HELP_CANONICAL_RECOMMENDATION_KIND: &str = "bmad_help_canonical_recommendation";
+const HELP_CANONICAL_RECOMMENDATION_SCHEMA: &str = "sapphirus.bmad-method-help-recommendation.v1";
+const HELP_RAW_PROPOSAL_EVENT: &str = "bmad.help.proposal.retained";
+const HELP_CANONICAL_RECOMMENDATION_EVENT: &str = "bmad.help.recommendation.retained";
+const METHOD_RESULT_ACCEPTED_EVENT: &str = "bmad.method.result_accepted";
 const HELP_RUN_RENDERER_PROJECTION_KIND: &str = "bmad_help_run_renderer_projection";
 const HELP_RUN_RENDERER_PROJECTION_SCHEMA: &str = "sapphirus.bmad-help-run-renderer-projection.v1";
 const HELP_RUN_RENDERER_PROJECTION_RETAINED: &str = "retained";
@@ -81,12 +88,34 @@ struct HelpRunEvidenceIntegrityRow {
 }
 
 #[derive(Debug)]
+struct HelpFinalizationEvidenceIntegrityRow {
+    event_type: String,
+    stream_id: String,
+    payload: Option<PayloadRef>,
+    payload_ref: Option<String>,
+    correlation_id: String,
+    causation_id: Option<String>,
+    outbox_count: u64,
+}
+
+#[derive(Debug)]
+struct ExpectedHelpFinalization {
+    checkpoint_id: String,
+    raw_proposal_hash: Sha256Digest,
+    recommendation_ref: desktop_runtime::BmadContentReference,
+    completed_state_payload: PayloadRef,
+}
+
+type ExpectedHelpFinalizations = BTreeMap<(String, String), ExpectedHelpFinalization>;
+
+#[derive(Debug)]
 struct MethodIntegritySnapshot {
     sessions: Vec<MethodIntegrityRow>,
     checkpoints: Vec<CheckpointIntegrityRow>,
     receipts: Vec<ReceiptIntegrityRow>,
     help_run_creations: Vec<StoredHelpRunCreation>,
     help_run_events: Vec<HelpRunEvidenceIntegrityRow>,
+    help_finalization_events: Vec<HelpFinalizationEvidenceIntegrityRow>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -532,6 +561,187 @@ impl LocalStore {
             renderer_projection,
         }))
     }
+
+    /// Atomically finalizes one verified BMAD Help proposal into canonical Method lineage.
+    ///
+    /// Exact proposal and canonical recommendation bytes may be staged in the encrypted
+    /// append-only CAS before the transaction. Only this operation registers those payloads
+    /// and links them to the completed aggregate, checkpoint, evidence, and outbox rows.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError::StateConflict`] for stale aggregate authority and an integrity
+    /// error when the sealed records do not exactly match their hashes, content reference,
+    /// or the authoritative advancing session loaded by the store.
+    pub fn finalize_bmad_help(
+        &self,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+        expected_version: u64,
+        records: &BmadCanonicalHelpRecords,
+        recorded_at: UnixMillis,
+    ) -> Result<MethodSession, StoreError> {
+        validate_help_finalization_records(records)?;
+        let authoritative = self
+            .load_method_session(scope, session_id)?
+            .ok_or(StoreError::Inconsistent)?;
+        authoritative
+            .validate_result(expected_version, records.verified_result())
+            .map_err(method_validation_store_error)?;
+
+        let mut accepted = authoritative.clone();
+        let checkpoint = accepted.accept_result(
+            expected_version,
+            records.verified_result().clone(),
+            recorded_at,
+        )?;
+        let provenance = accepted.artifact_provenance_for(&checkpoint.invocation_id)?;
+        self.validate_method_artifact_refs(
+            &provenance,
+            accepted.current_binding()?,
+            MethodAdvanceDisposition::Completed,
+            &checkpoint.working_artifact_refs,
+        )?;
+
+        let state_json = accepted.to_persisted_json()?;
+        let raw_proposal = self.prepare_payload(
+            HELP_RAW_PROPOSAL_KIND,
+            HELP_RAW_PROPOSAL_SCHEMA,
+            records.raw_proposal_bytes(),
+        )?;
+        let recommendation = self.prepare_payload(
+            HELP_CANONICAL_RECOMMENDATION_KIND,
+            HELP_CANONICAL_RECOMMENDATION_SCHEMA,
+            records.recommendation_bytes(),
+        )?;
+        let state = self.prepare_payload(
+            METHOD_STATE_KIND,
+            METHOD_STATE_SCHEMA,
+            state_json.as_bytes(),
+        )?;
+        let raw_payload_ref = payload_uri(&raw_proposal)?;
+        let recommendation_payload_ref = payload_uri(&recommendation)?;
+        let state_payload_ref = payload_uri(&state)?;
+        let stream_id = format!("bmad-method:{}", session_id.as_str());
+        let correlation_id = checkpoint.invocation_id.to_string();
+        let causation_id = Some(checkpoint.checkpoint_id.to_string());
+        let occurred_at = canonical_now();
+
+        let mut connection = self.connection.lock();
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        register_payload_in_transaction(&transaction, &raw_proposal, &occurred_at)?;
+        register_payload_in_transaction(&transaction, &recommendation, &occurred_at)?;
+        register_payload_in_transaction(&transaction, &state, &occurred_at)?;
+        update_method_projection(
+            &transaction,
+            &accepted,
+            scope,
+            &state,
+            &occurred_at,
+            expected_version,
+        )?;
+        insert_method_checkpoint(&transaction, &accepted, &state, &occurred_at)?;
+        for event in [
+            EvidenceAppend {
+                stream_id: stream_id.clone(),
+                event_type: HELP_RAW_PROPOSAL_EVENT.to_owned(),
+                payload_hash: raw_proposal.content_hash.clone(),
+                payload_ref: Some(raw_payload_ref),
+                correlation_id: correlation_id.clone(),
+                causation_id: causation_id.clone(),
+                redaction_level: "summary".to_owned(),
+                retention_class: "authority".to_owned(),
+            },
+            EvidenceAppend {
+                stream_id: stream_id.clone(),
+                event_type: HELP_CANONICAL_RECOMMENDATION_EVENT.to_owned(),
+                payload_hash: recommendation.content_hash.clone(),
+                payload_ref: Some(recommendation_payload_ref),
+                correlation_id: correlation_id.clone(),
+                causation_id: causation_id.clone(),
+                redaction_level: "summary".to_owned(),
+                retention_class: "authority".to_owned(),
+            },
+            EvidenceAppend {
+                stream_id,
+                event_type: MethodPersistenceEvent::ResultAccepted
+                    .event_type()
+                    .to_owned(),
+                payload_hash: state.content_hash.clone(),
+                payload_ref: Some(state_payload_ref),
+                correlation_id,
+                causation_id,
+                redaction_level: "summary".to_owned(),
+                retention_class: "authority".to_owned(),
+            },
+        ] {
+            let _ = append_evidence_in_transaction(&transaction, &event, &occurred_at)?;
+        }
+        transaction.commit()?;
+        Ok(accepted)
+    }
+}
+
+fn validate_help_finalization_records(
+    records: &BmadCanonicalHelpRecords,
+) -> Result<(), StoreError> {
+    let raw_hash = desktop_runtime::sha256_bytes(records.raw_proposal_bytes());
+    let recommendation_hash = desktop_runtime::sha256_bytes(records.recommendation_bytes());
+    let recommendation_ref = records.recommendation_content_ref();
+    let binding = records.verified_result().binding();
+    let canonical = records.canonical_result();
+    let canonical_data = binding
+        .canonical_advance_result
+        .as_ref()
+        .ok_or(StoreError::Inconsistent)?;
+    let recommendation_value =
+        serde_json::to_value(records.recommendation()).map_err(|_| StoreError::Inconsistent)?;
+    let recommendation_self_hash = canonical_hash_without_field(
+        "bmad-method-help-recommendation",
+        1,
+        &recommendation_value,
+        "recommendationHash",
+    )
+    .map_err(|_| StoreError::Inconsistent)?;
+    let canonical_bytes = canonical_json_bytes(canonical).map_err(|_| StoreError::Inconsistent)?;
+    if records.raw_proposal_bytes().is_empty()
+        || records.raw_proposal_bytes() == records.recommendation_bytes()
+        || raw_hash == recommendation_hash
+        || raw_hash != records.model_response_payload_hash()
+        || raw_hash != binding.model_response_payload_hash
+        || canonical_json_bytes(&recommendation_value).map_err(|_| StoreError::Inconsistent)?
+            != records.recommendation_bytes()
+        || recommendation_self_hash != records.recommendation().recommendation_hash()
+        || recommendation_ref.content_hash != recommendation_hash
+        || recommendation_ref.byte_length
+            != u64::try_from(records.recommendation_bytes().len())
+                .map_err(|_| StoreError::Inconsistent)?
+        || recommendation_ref.media_type != "application/json"
+        || recommendation_ref.ref_ != format!("cas://sha256/{}", recommendation_hash.hex_value())
+        || canonical_bytes != records.canonical_result_bytes()
+        || canonical.response_content_ref != *recommendation_ref
+        || canonical.request_id != binding.model_request_id
+        || canonical.invocation_id != binding.invocation_id
+        || canonical.result_hash
+            != binding
+                .canonical_advance_result_hash
+                .ok_or(StoreError::Inconsistent)?
+        || canonical_data.recommendation_schema_hash != canonical.response_schema_hash
+        || canonical_data.result_id != canonical.result_id
+        || canonical_data.recommendation_content_ref != *recommendation_ref
+        || canonical_data.received_at != canonical.received_at
+    {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
+}
+
+fn method_validation_store_error(error: MethodError) -> StoreError {
+    if error.code() == MethodErrorCode::MethodStateConflict {
+        StoreError::StateConflict
+    } else {
+        StoreError::Method(error)
+    }
 }
 
 impl MethodSessionRepository for LocalStore {
@@ -701,6 +911,14 @@ impl MethodSessionRepository for LocalStore {
     ) -> Result<(), Self::Error> {
         if session.version() != expected_previous_version.saturating_add(1)
             || !event_matches_state(event_kind, session)
+        {
+            return Err(StoreError::StateConflict);
+        }
+        if event_kind == MethodPersistenceEvent::ResultAccepted
+            && session.resume().is_some_and(|checkpoint| {
+                checkpoint.canonical_advance_result.is_some()
+                    || checkpoint.canonical_advance_result_hash.is_some()
+            })
         {
             return Err(StoreError::StateConflict);
         }
@@ -1650,9 +1868,14 @@ impl LocalStore {
             let connection = self.connection.lock();
             load_method_integrity_snapshot(&connection)?
         };
-        let (expected_checkpoints, verified_sessions) =
+        let (expected_checkpoints, expected_help_finalizations, verified_sessions) =
             self.verify_method_session_rows(snapshot.sessions)?;
         self.verify_method_checkpoint_rows(snapshot.checkpoints, &expected_checkpoints)?;
+        verify_help_finalization_rows(
+            self,
+            snapshot.help_finalization_events,
+            &expected_help_finalizations,
+        )?;
         verify_method_receipt_rows(snapshot.receipts)?;
         let identity = self.load_local_identity()?;
         verify_help_run_creation_rows(
@@ -1734,8 +1957,16 @@ impl LocalStore {
     fn verify_method_session_rows(
         &self,
         rows: Vec<MethodIntegrityRow>,
-    ) -> Result<(ExpectedCheckpoints, VerifiedMethodSessions), StoreError> {
+    ) -> Result<
+        (
+            ExpectedCheckpoints,
+            ExpectedHelpFinalizations,
+            VerifiedMethodSessions,
+        ),
+        StoreError,
+    > {
         let mut expected_checkpoints = BTreeMap::new();
+        let mut expected_help_finalizations = BTreeMap::new();
         let mut verified_sessions = BTreeMap::new();
         for row in rows {
             if row.payload.kind != METHOD_STATE_KIND
@@ -1771,9 +2002,30 @@ impl LocalStore {
                         checkpoint.checkpoint_hash.to_string(),
                     ),
                 );
+                if let Some(canonical) = checkpoint.canonical_advance_result.as_ref() {
+                    let key = (row.session_id.clone(), checkpoint.invocation_id.to_string());
+                    if expected_help_finalizations
+                        .insert(
+                            key,
+                            ExpectedHelpFinalization {
+                                checkpoint_id: checkpoint.checkpoint_id.to_string(),
+                                raw_proposal_hash: checkpoint.model_response_payload_hash,
+                                recommendation_ref: canonical.recommendation_content_ref.clone(),
+                                completed_state_payload: row.payload.clone(),
+                            },
+                        )
+                        .is_some()
+                    {
+                        return Err(StoreError::Inconsistent);
+                    }
+                }
             }
         }
-        Ok((expected_checkpoints, verified_sessions))
+        Ok((
+            expected_checkpoints,
+            expected_help_finalizations,
+            verified_sessions,
+        ))
     }
 
     fn verify_method_checkpoint_rows(
@@ -1867,6 +2119,7 @@ fn load_method_integrity_snapshot(
         receipts: load_method_receipt_rows(connection)?,
         help_run_creations: load_help_run_creation_rows(connection)?,
         help_run_events: load_help_run_evidence_rows(connection)?,
+        help_finalization_events: load_help_finalization_evidence_rows(connection)?,
     })
 }
 
@@ -1979,6 +2232,144 @@ fn load_help_run_creation_rows(
         .query_map([], stored_help_run_creation_from_row)?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(rows)
+}
+
+fn load_help_finalization_evidence_rows(
+    connection: &rusqlite::Connection,
+) -> Result<Vec<HelpFinalizationEvidenceIntegrityRow>, StoreError> {
+    let mut statement = connection.prepare(
+        "SELECT e.event_type, e.stream_id, e.payload_hash, p.kind, p.schema_version,
+                p.byte_count, p.key_version, e.payload_ref, e.correlation_id,
+                e.causation_id,
+                (SELECT COUNT(*) FROM outbox o WHERE o.event_id = e.event_id)
+         FROM evidence_events e
+         LEFT JOIN payloads p ON p.content_hash = e.payload_hash
+         WHERE e.event_type IN (?1, ?2, ?3)
+         ORDER BY e.stream_id, e.sequence, p.kind, p.schema_version",
+    )?;
+    let rows = statement
+        .query_map(
+            params![
+                HELP_RAW_PROPOSAL_EVENT,
+                HELP_CANONICAL_RECOMMENDATION_EVENT,
+                METHOD_RESULT_ACCEPTED_EVENT,
+            ],
+            |row| {
+                let kind = row.get::<_, Option<String>>(3)?;
+                let schema_version = row.get::<_, Option<String>>(4)?;
+                let byte_count = row.get::<_, Option<u64>>(5)?;
+                let key_version = row.get::<_, Option<u32>>(6)?;
+                let payload = match (kind, schema_version, byte_count, key_version) {
+                    (Some(kind), Some(schema_version), Some(byte_count), Some(key_version)) => {
+                        Some(PayloadRef {
+                            content_hash: row.get(2)?,
+                            kind,
+                            schema_version,
+                            byte_count,
+                            key_version,
+                        })
+                    }
+                    (None, None, None, None) => None,
+                    _ => return Err(rusqlite::Error::InvalidQuery),
+                };
+                Ok(HelpFinalizationEvidenceIntegrityRow {
+                    event_type: row.get(0)?,
+                    stream_id: row.get(1)?,
+                    payload,
+                    payload_ref: row.get(7)?,
+                    correlation_id: row.get(8)?,
+                    causation_id: row.get(9)?,
+                    outbox_count: row.get(10)?,
+                })
+            },
+        )?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(rows)
+}
+
+fn verify_help_finalization_rows(
+    store: &LocalStore,
+    rows: Vec<HelpFinalizationEvidenceIntegrityRow>,
+    expected: &ExpectedHelpFinalizations,
+) -> Result<(), StoreError> {
+    let mut matched = BTreeSet::new();
+    for row in rows {
+        let session_id = row
+            .stream_id
+            .strip_prefix("bmad-method:")
+            .ok_or(StoreError::Inconsistent)?;
+        let key = (session_id.to_owned(), row.correlation_id.clone());
+        let Some(lineage) = expected.get(&key) else {
+            if row.event_type == METHOD_RESULT_ACCEPTED_EVENT {
+                continue;
+            }
+            return Err(StoreError::Inconsistent);
+        };
+        let payload = row.payload.as_ref().ok_or(StoreError::Inconsistent)?;
+        let expected_payload_ref = payload_uri(payload)?;
+        if row.stream_id != format!("bmad-method:{session_id}")
+            || row.causation_id.as_deref() != Some(lineage.checkpoint_id.as_str())
+            || row.payload_ref.as_deref() != Some(expected_payload_ref.as_str())
+            || row.outbox_count != 1
+            || !matched.insert((key, row.event_type.clone()))
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let bytes = store.get_payload(payload)?;
+        match row.event_type.as_str() {
+            HELP_RAW_PROPOSAL_EVENT => {
+                if payload.kind != HELP_RAW_PROPOSAL_KIND
+                    || payload.schema_version != HELP_RAW_PROPOSAL_SCHEMA
+                    || payload.content_hash != lineage.raw_proposal_hash.to_string()
+                    || desktop_runtime::sha256_bytes(&bytes) != lineage.raw_proposal_hash
+                {
+                    return Err(StoreError::Inconsistent);
+                }
+            }
+            HELP_CANONICAL_RECOMMENDATION_EVENT => {
+                let recommendation_hash = desktop_runtime::sha256_bytes(&bytes);
+                let value: serde_json::Value = serde_json::from_slice(&bytes)?;
+                let declared_hash = value
+                    .get("recommendationHash")
+                    .and_then(serde_json::Value::as_str)
+                    .map(Sha256Digest::parse)
+                    .transpose()
+                    .map_err(|_| StoreError::Inconsistent)?
+                    .ok_or(StoreError::Inconsistent)?;
+                let expected_self_hash = canonical_hash_without_field(
+                    "bmad-method-help-recommendation",
+                    1,
+                    &value,
+                    "recommendationHash",
+                )
+                .map_err(|_| StoreError::Inconsistent)?;
+                if payload.kind != HELP_CANONICAL_RECOMMENDATION_KIND
+                    || payload.schema_version != HELP_CANONICAL_RECOMMENDATION_SCHEMA
+                    || recommendation_hash != lineage.recommendation_ref.content_hash
+                    || payload.content_hash != recommendation_hash.to_string()
+                    || payload.byte_count != lineage.recommendation_ref.byte_length
+                    || lineage.recommendation_ref.media_type != "application/json"
+                    || lineage.recommendation_ref.ref_ != expected_payload_ref
+                    || canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)? != bytes
+                    || value.get("sessionId").and_then(serde_json::Value::as_str)
+                        != Some(session_id)
+                    || declared_hash != expected_self_hash
+                {
+                    return Err(StoreError::Inconsistent);
+                }
+            }
+            METHOD_RESULT_ACCEPTED_EVENT => {
+                if payload != &lineage.completed_state_payload {
+                    return Err(StoreError::Inconsistent);
+                }
+            }
+            _ => return Err(StoreError::Inconsistent),
+        }
+    }
+    if matched.len() != expected.len().saturating_mul(3) {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
 }
 
 fn load_help_run_evidence_rows(

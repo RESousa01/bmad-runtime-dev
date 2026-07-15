@@ -1,15 +1,21 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    canonical_hash, sha256_bytes, AuthorityRef, BmadCapabilityKey, ContractId, CreateMethodSession,
+    canonical_hash, sha256_bytes, AuthorityRef, BmadArtifactClassification, BmadArtifactReference,
+    BmadCanonicalHelpRecords, BmadCapabilityKey, BmadCatalogBuilder, BmadHelpBindingCompiler,
+    BmadHelpCatalogSource, BmadHelpEvidenceClass, BmadHelpEvidenceToken, BmadHelpMaterializer,
+    BmadHelpRecordIds, BmadLoadedMethodPackage, BmadLocationClass, BmadPackageLoader,
+    BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, BmadTrustedHelpModelProfile,
+    BmadTrustedHelpModelProfileData, BmadVerifiedHelpProposal, ContractId, CreateMethodSession,
     MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult,
     MethodArtifactExpectation, MethodCheckpoint, MethodContextDecision, MethodEvidenceClass,
     MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
     MethodModelBinding, MethodModelBindingData, MethodPersistenceEvent, MethodResourcePolicy,
-    MethodSession, MethodSessionRepository, MethodSessionService, MethodStepTable,
+    MethodSession, MethodSessionRepository, MethodSessionService, MethodState, MethodStepTable,
     MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData, Sha256Digest, UnixMillis,
 };
-use desktop_store::{KeyProtector, LocalStore, StoreError};
+use desktop_store::{EvidenceAppend, KeyProtector, LocalStore, PayloadRef, StoreError};
+use serde_json::{json, Value};
 use std::sync::{Arc, Barrier};
 
 #[derive(Debug)]
@@ -166,6 +172,83 @@ fn assert_no_result_residue(
         )?,
         0
     );
+    Ok(())
+}
+
+fn assert_no_help_finalization_residue(
+    store: &LocalStore,
+    session_id: &ContractId,
+) -> Result<(), Box<dyn std::error::Error>> {
+    assert_no_result_residue(&store.database_path(), session_id)?;
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    assert_eq!(
+        connection.query_row(
+            "SELECT COUNT(*) FROM payloads
+             WHERE kind IN ('bmad_help_raw_proposal',
+                            'bmad_help_canonical_recommendation')",
+            [],
+            |row| row.get::<_, u64>(0),
+        )?,
+        0
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM evidence_events
+             WHERE stream_id = 'bmad-method:' || ?1
+               AND event_type IN ('bmad.help.proposal.retained',
+                                  'bmad.help.recommendation.retained')",
+            session_id,
+        )?,
+        0
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM outbox o
+             JOIN evidence_events e ON e.event_id = o.event_id
+             WHERE e.stream_id = 'bmad-method:' || ?1
+               AND e.event_type IN ('bmad.help.proposal.retained',
+                                    'bmad.help.recommendation.retained',
+                                    'bmad.method.result_accepted')",
+            session_id,
+        )?,
+        0
+    );
+    Ok(())
+}
+
+fn append_decoy_reserved_help_event(
+    store: &LocalStore,
+    session_id: &ContractId,
+    correlation_id: &ContractId,
+    causation_id: &ContractId,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let decoy = store.put_payload(
+        "bmad_help_decoy",
+        "sapphirus.bmad-help-decoy.v1",
+        br#"{"decoy":true}"#,
+    )?;
+    let digest = decoy
+        .content_hash
+        .strip_prefix("sha256:")
+        .expect("sha256 content hash");
+    store.append_transition(
+        "test_probe",
+        "reserved_help_event_probe",
+        1,
+        r#"{"state":"injected"}"#,
+        &EvidenceAppend {
+            stream_id: format!("bmad-method:{}", session_id.as_str()),
+            event_type: "bmad.help.proposal.retained".to_owned(),
+            payload_hash: decoy.content_hash.clone(),
+            payload_ref: Some(format!("cas://sha256/{digest}")),
+            correlation_id: correlation_id.to_string(),
+            causation_id: Some(causation_id.to_string()),
+            redaction_level: "summary".to_owned(),
+            retention_class: "authority".to_owned(),
+        },
+    )?;
     Ok(())
 }
 
@@ -455,6 +538,622 @@ fn persist_completed_session(
         UnixMillis(6_000),
     )?;
     Ok((service, completed))
+}
+
+const HELP_DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
+const HELP_SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
+const HELP_ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
+const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
+
+fn help_foundation_path(relative: &str) -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../packages/bmad-foundation")
+        .join(relative)
+}
+
+fn help_source_entry(path: &str, location: BmadLocationClass) -> BmadSourceEntry {
+    BmadSourceEntry::new(
+        path,
+        std::fs::read(help_foundation_path(path)).expect("foundation resource"),
+        BmadSourceKind::SealedFoundation,
+        location,
+    )
+    .expect("valid source entry")
+}
+
+fn loaded_help_method() -> BmadLoadedMethodPackage {
+    let semantic = help_source_entry(
+        HELP_SEMANTIC_LEDGER_PATH,
+        BmadLocationClass::ManagedMetadata,
+    );
+    let adoption = help_source_entry(
+        HELP_ADOPTION_LEDGER_PATH,
+        BmadLocationClass::ManagedMetadata,
+    );
+    let semantic_hash = semantic.content_hash();
+    let adoption_hash = adoption.content_hash();
+    let snapshot = BmadSourceSnapshot::new(vec![
+        semantic,
+        adoption,
+        help_source_entry(HELP_DESCRIPTOR_PATH, BmadLocationClass::ManagedMetadata),
+        help_source_entry(
+            "runtime/method/6.10.0/architect-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/architecture-create.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(HELP_INSTRUCTION_PATH, BmadLocationClass::ManagedProjection),
+    ])
+    .expect("sealed Help snapshot");
+    BmadPackageLoader::load(&snapshot, semantic_hash, adoption_hash).expect("qualified Method")
+}
+
+fn compiled_help() -> desktop_runtime::BmadCompiledHelpInvocation {
+    let loaded = loaded_help_method();
+    let graph: Value = serde_json::from_slice(
+        &std::fs::read(help_foundation_path(
+            "normalized/bmad-help-action-graph.json",
+        ))
+        .expect("Help action graph"),
+    )
+    .expect("Help action graph JSON");
+    let sources = graph["sources"]
+        .as_array()
+        .expect("catalog sources")
+        .iter()
+        .map(|source| {
+            let rows: Vec<Vec<String>> =
+                serde_json::from_value(source["rows"].clone()).expect("normalized rows");
+            BmadHelpCatalogSource::from_rows(
+                source["moduleCode"].as_str().expect("module code"),
+                &rows,
+            )
+            .expect("catalog source")
+        })
+        .collect::<Vec<_>>();
+    let graph_hash = Sha256Digest::parse(graph["graphHash"].as_str().expect("graph hash"))
+        .expect("qualified graph hash");
+    let catalog = BmadCatalogBuilder::build_bound(loaded.package(), &sources, graph_hash)
+        .expect("bound Help catalog");
+    let model = BmadTrustedHelpModelProfile::from_host_assertion(BmadTrustedHelpModelProfileData {
+        provider_id: "azure-openai-managed".to_owned(),
+        model_id: "gpt-5.2".to_owned(),
+        deployment_id: "sapphirus-help".to_owned(),
+        model_profile_hash: sha256_bytes(b"qualified model profile"),
+        model_capability_hash: sha256_bytes(b"qualified model capability"),
+        context_window_profile_hash: sha256_bytes(b"qualified context window"),
+        egress_profile_hash: sha256_bytes(b"qualified egress profile"),
+        request_schema_hash: sha256_bytes(b"qualified D2 request schema"),
+    })
+    .expect("trusted inert model profile");
+    BmadHelpBindingCompiler::compile(loaded.help_invocation(), &catalog, &model)
+        .expect("compiled Help")
+}
+
+fn help_evidence_token(
+    compiled: &desktop_runtime::BmadCompiledHelpInvocation,
+) -> BmadHelpEvidenceToken {
+    let content_hash = sha256_bytes(b"Help store evidence artifact");
+    let artifact = BmadArtifactReference::new(
+        id("artifact_01J77777777777777777777777"),
+        format!("cas://sha256/{}", content_hash.hex_value()),
+        content_hash,
+        64,
+        "application/json",
+        BmadArtifactClassification::Internal,
+    )
+    .expect("artifact reference");
+    BmadHelpEvidenceToken::from_host_fact(
+        id("evidence_01J77777777777777777777777"),
+        compiled.catalog_candidates()[0].key.clone(),
+        BmadHelpEvidenceClass::Authoritative,
+        artifact,
+    )
+    .expect("host evidence token")
+}
+
+fn advancing_help_records(
+    store: &LocalStore,
+) -> Result<(MethodSession, BmadCanonicalHelpRecords), Box<dyn std::error::Error>> {
+    let base = compiled_help();
+    let token = help_evidence_token(&base);
+    let compiled = base.with_evidence_allowlist(vec![token.clone()])?;
+    let mut session = MethodSession::create(CreateMethodSession {
+        session_id: id("session_01J77777777777777777777777"),
+        owner_scope_ref: id("ownerscope_01J77777777777777777777777"),
+        project_id: id("project_01J77777777777777777777777"),
+        run_id: id("run_01J77777777777777777777777"),
+        authority_ref: AuthorityRef {
+            authority_kind: "desktop_local_store".to_owned(),
+            authority_id: id("authority_01J77777777777777777777777"),
+            installation_id: id("install_01J77777777777777777777777"),
+            local_store_id: id("store_01J77777777777777777777777"),
+            authority_epoch: 1,
+        },
+        created_at: UnixMillis(1_000),
+    })?;
+    store.create_method_session(&session)?;
+    session.bind_capability(
+        1,
+        compiled.exact_binding().clone(),
+        compiled.step_table().clone(),
+    )?;
+    store.persist_method_transition(&session, 1, MethodPersistenceEvent::CapabilityBound)?;
+    session.request_context_review(2)?;
+    store.persist_method_transition(&session, 2, MethodPersistenceEvent::ContextReviewRequested)?;
+    let decision = MethodContextDecision {
+        decision_id: id("decision_01J77777777777777777777777"),
+        manifest_hash: sha256_bytes(b"Help manifest"),
+        consent_hash: sha256_bytes(b"Help consent"),
+        context_digest: sha256_bytes(b"Help context"),
+        binding_hash: compiled.exact_binding().binding_hash()?,
+        reviewed_at: UnixMillis(2_000),
+    };
+    session.record_context_review(3, decision.clone())?;
+    store.persist_method_transition(&session, 3, MethodPersistenceEvent::ContextReviewAccepted)?;
+    let request = advance_request(
+        &session,
+        "invoke_01J77777777777777777777777",
+        "Help-store-finalization",
+        decision.decision_id,
+        4,
+    );
+    let receipt = store.begin_method_advance(
+        &session.scope(),
+        &session.session_id(),
+        compiled.exact_binding(),
+        request,
+    )?;
+    let advancing = store
+        .load_method_session(&session.scope(), &session.session_id())?
+        .expect("authoritative advancing Help session");
+    let key = &compiled.catalog_candidates()[0].key;
+    let raw = serde_json::to_vec(&json!({
+        "proposalKind": "recommended_capability",
+        "capabilityKey": {
+            "packageVersionId": key.package_version_id,
+            "moduleCode": key.module_code,
+            "skillName": key.skill_name,
+            "normalizedAction": key.action
+        },
+        "evidenceTokenIds": [token.token_id()],
+        "rationaleSummary": "Use the exact catalog capability supported by local evidence."
+    }))?;
+    let verified = BmadVerifiedHelpProposal::from_trusted_host_evidence(
+        raw,
+        receipt,
+        canonical_hash(
+            "model-access-receipt-evidence",
+            1,
+            &json!({"verified": true, "providerReceipt": "store-fixture"}),
+        )?,
+    )?;
+    let records = BmadHelpMaterializer::materialize(
+        &compiled,
+        &advancing,
+        &verified,
+        BmadHelpRecordIds {
+            recommendation_id: id("recommendation_01J77777777777777777777777"),
+            result_id: id("result_01J77777777777777777777777"),
+        },
+        UnixMillis(1_784_024_000_000),
+    )?;
+    Ok((advancing, records))
+}
+
+#[test]
+fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lineage(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (session, records) = advancing_help_records(&store)?;
+    let raw = records.raw_proposal_bytes().to_vec();
+    let recommendation = records.recommendation_bytes().to_vec();
+
+    let completed = store.finalize_bmad_help(
+        &session.scope(),
+        &session.session_id(),
+        session.version(),
+        &records,
+        UnixMillis(6_000),
+    )?;
+
+    assert_eq!(completed.state(), MethodState::Completed);
+    assert_eq!(completed.version(), session.version() + 1);
+    let checkpoint = completed.resume().expect("canonical Help checkpoint");
+    assert_eq!(checkpoint.model_response_payload_hash, sha256_bytes(&raw));
+    assert_eq!(
+        checkpoint
+            .canonical_advance_result
+            .as_ref()
+            .expect("canonical result lineage")
+            .recommendation_content_ref,
+        *records.recommendation_content_ref()
+    );
+    assert_ne!(raw, recommendation);
+
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    let payload_rows = {
+        let mut statement = connection.prepare(
+            "SELECT content_hash, kind, schema_version, byte_count, key_version
+             FROM payloads WHERE kind IN (?1, ?2) ORDER BY kind",
+        )?;
+        let rows = statement
+            .query_map(
+                [
+                    "bmad_help_raw_proposal",
+                    "bmad_help_canonical_recommendation",
+                ],
+                |row| {
+                    Ok(PayloadRef {
+                        content_hash: row.get(0)?,
+                        kind: row.get(1)?,
+                        schema_version: row.get(2)?,
+                        byte_count: row.get(3)?,
+                        key_version: row.get(4)?,
+                    })
+                },
+            )?
+            .collect::<Result<Vec<_>, _>>()?;
+        rows
+    };
+    assert_eq!(payload_rows.len(), 2);
+    let retained = payload_rows
+        .iter()
+        .map(|payload| Ok((payload.kind.clone(), store.get_payload(payload)?)))
+        .collect::<Result<std::collections::BTreeMap<_, _>, StoreError>>()?;
+    assert_eq!(retained["bmad_help_raw_proposal"], raw);
+    assert_eq!(
+        retained["bmad_help_canonical_recommendation"],
+        recommendation
+    );
+    assert_eq!(
+        payload_rows
+            .iter()
+            .find(|payload| payload.kind == "bmad_help_raw_proposal")
+            .expect("raw proposal payload")
+            .schema_version,
+        "sapphirus.bmad-method-help-proposal.v1"
+    );
+    assert_eq!(
+        payload_rows
+            .iter()
+            .find(|payload| payload.kind == "bmad_help_canonical_recommendation")
+            .expect("canonical recommendation payload")
+            .schema_version,
+        "sapphirus.bmad-method-help-recommendation.v1"
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM evidence_events
+             WHERE stream_id = 'bmad-method:' || ?1
+               AND event_type IN ('bmad.help.proposal.retained',
+                                  'bmad.help.recommendation.retained',
+                                  'bmad.method.result_accepted')",
+            &session.session_id(),
+        )?,
+        3
+    );
+    drop(connection);
+    drop(store);
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    reopened.verify_integrity()?;
+    let restored = reopened
+        .load_method_session(&session.scope(), &session.session_id())?
+        .expect("restored completed Help session");
+    assert_eq!(restored, completed);
+
+    Ok(())
+}
+
+#[test]
+fn generic_method_persistence_cannot_bypass_help_finalization(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (advancing, records) = advancing_help_records(&store)?;
+    let mut caller_copy = advancing.clone();
+    caller_copy.accept_result(
+        advancing.version(),
+        records.verified_result().clone(),
+        UnixMillis(6_000),
+    )?;
+
+    assert!(matches!(
+        store.persist_method_transition(
+            &caller_copy,
+            advancing.version(),
+            MethodPersistenceEvent::ResultAccepted,
+        ),
+        Err(StoreError::StateConflict)
+    ));
+    let retained = store
+        .load_method_session(&advancing.scope(), &advancing.session_id())?
+        .expect("original authoritative Help session");
+    assert_eq!(retained, advancing);
+    assert_no_result_residue(&store.database_path(), &advancing.session_id())?;
+
+    Ok(())
+}
+
+#[test]
+fn stale_help_finalization_leaves_no_authoritative_residue(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (advancing, records) = advancing_help_records(&store)?;
+
+    assert!(matches!(
+        store.finalize_bmad_help(
+            &advancing.scope(),
+            &advancing.session_id(),
+            advancing.version() + 1,
+            &records,
+            UnixMillis(6_000),
+        ),
+        Err(StoreError::StateConflict)
+    ));
+    let retained = store
+        .load_method_session(&advancing.scope(), &advancing.session_id())?
+        .expect("original authoritative Help session");
+    assert_eq!(retained, advancing);
+    assert_no_help_finalization_residue(&store, &advancing.session_id())?;
+    store.verify_integrity()?;
+
+    Ok(())
+}
+
+#[test]
+fn conflicting_registered_help_payload_metadata_leaves_finalization_unadvanced(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (advancing, records) = advancing_help_records(&store)?;
+    let preexisting = store.put_payload(
+        "bmad_help_raw_proposal",
+        "sapphirus.bmad-method-help-proposal.v1",
+        records.raw_proposal_bytes(),
+    )?;
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    connection.execute(
+        "UPDATE payloads SET byte_count = byte_count + 1
+         WHERE content_hash = ?1 AND kind = ?2 AND schema_version = ?3",
+        rusqlite::params![
+            preexisting.content_hash,
+            preexisting.kind,
+            preexisting.schema_version
+        ],
+    )?;
+    drop(connection);
+
+    assert!(matches!(
+        store.finalize_bmad_help(
+            &advancing.scope(),
+            &advancing.session_id(),
+            advancing.version(),
+            &records,
+            UnixMillis(6_000),
+        ),
+        Err(StoreError::Inconsistent)
+    ));
+    let retained = store
+        .load_method_session(&advancing.scope(), &advancing.session_id())?
+        .expect("original authoritative Help session");
+    assert_eq!(retained, advancing);
+    assert_no_result_residue(&store.database_path(), &advancing.session_id())?;
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    assert_eq!(
+        connection.query_row(
+            "SELECT COUNT(*) FROM payloads
+             WHERE kind IN ('bmad_help_raw_proposal',
+                            'bmad_help_canonical_recommendation')",
+            [],
+            |row| row.get::<_, u64>(0),
+        )?,
+        1,
+        "only the deliberately pre-existing conflicting row may remain registered"
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM evidence_events
+             WHERE stream_id = 'bmad-method:' || ?1
+               AND event_type IN ('bmad.help.proposal.retained',
+                                  'bmad.help.recommendation.retained')",
+            &advancing.session_id(),
+        )?,
+        0
+    );
+
+    Ok(())
+}
+
+#[test]
+fn relational_help_finalization_failure_rolls_back_all_authoritative_rows(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (advancing, records) = advancing_help_records(&store)?;
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    connection.execute_batch(
+        "CREATE TRIGGER reject_help_recommendation_evidence
+         BEFORE INSERT ON evidence_events
+         WHEN NEW.event_type = 'bmad.help.recommendation.retained'
+         BEGIN SELECT RAISE(ABORT, 'injected Help recommendation evidence failure'); END;",
+    )?;
+    drop(connection);
+
+    assert!(matches!(
+        store.finalize_bmad_help(
+            &advancing.scope(),
+            &advancing.session_id(),
+            advancing.version(),
+            &records,
+            UnixMillis(6_000),
+        ),
+        Err(StoreError::Sqlite(_))
+    ));
+    let retained = store
+        .load_method_session(&advancing.scope(), &advancing.session_id())?
+        .expect("original authoritative Help session");
+    assert_eq!(retained, advancing);
+    assert_no_help_finalization_residue(&store, &advancing.session_id())?;
+    let connection = rusqlite::Connection::open(store.database_path())?;
+    connection.execute_batch("DROP TRIGGER reject_help_recommendation_evidence;")?;
+    drop(connection);
+    store.verify_integrity()?;
+
+    Ok(())
+}
+
+#[test]
+fn restart_integrity_rejects_missing_swapped_and_metadata_drifted_help_records(
+) -> Result<(), Box<dyn std::error::Error>> {
+    for tamper in ["missing", "missing_result", "swapped", "metadata"] {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let (advancing, records) = advancing_help_records(&store)?;
+        store.finalize_bmad_help(
+            &advancing.scope(),
+            &advancing.session_id(),
+            advancing.version(),
+            &records,
+            UnixMillis(6_000),
+        )?;
+        let database_path = store.database_path();
+        drop(store);
+        let connection = rusqlite::Connection::open(&database_path)?;
+        match tamper {
+            "missing" => {
+                connection.execute(
+                    "DELETE FROM outbox WHERE event_id IN
+                     (SELECT event_id FROM evidence_events
+                      WHERE event_type = 'bmad.help.proposal.retained')",
+                    [],
+                )?;
+                connection.execute(
+                    "DELETE FROM evidence_events
+                     WHERE event_type = 'bmad.help.proposal.retained'",
+                    [],
+                )?;
+            }
+            "missing_result" => {
+                connection.execute(
+                    "DELETE FROM outbox WHERE event_id IN
+                     (SELECT event_id FROM evidence_events
+                      WHERE event_type = 'bmad.method.result_accepted')",
+                    [],
+                )?;
+                connection.execute(
+                    "DELETE FROM evidence_events
+                     WHERE event_type = 'bmad.method.result_accepted'",
+                    [],
+                )?;
+            }
+            "swapped" => {
+                let (proposal_hash, proposal_ref, recommendation_hash, recommendation_ref) =
+                    connection.query_row(
+                        "SELECT
+                           MAX(CASE WHEN event_type = 'bmad.help.proposal.retained'
+                               THEN payload_hash END),
+                           MAX(CASE WHEN event_type = 'bmad.help.proposal.retained'
+                               THEN payload_ref END),
+                           MAX(CASE WHEN event_type = 'bmad.help.recommendation.retained'
+                               THEN payload_hash END),
+                           MAX(CASE WHEN event_type = 'bmad.help.recommendation.retained'
+                               THEN payload_ref END)
+                         FROM evidence_events",
+                        [],
+                        |row| {
+                            Ok((
+                                row.get::<_, String>(0)?,
+                                row.get::<_, String>(1)?,
+                                row.get::<_, String>(2)?,
+                                row.get::<_, String>(3)?,
+                            ))
+                        },
+                    )?;
+                connection.execute(
+                    "UPDATE evidence_events SET payload_hash = ?1, payload_ref = ?2
+                     WHERE event_type = 'bmad.help.proposal.retained'",
+                    rusqlite::params![recommendation_hash, recommendation_ref],
+                )?;
+                connection.execute(
+                    "UPDATE evidence_events SET payload_hash = ?1, payload_ref = ?2
+                     WHERE event_type = 'bmad.help.recommendation.retained'",
+                    rusqlite::params![proposal_hash, proposal_ref],
+                )?;
+            }
+            "metadata" => {
+                connection.execute(
+                    "UPDATE payloads SET byte_count = byte_count + 1
+                     WHERE kind = 'bmad_help_canonical_recommendation'",
+                    [],
+                )?;
+            }
+            _ => unreachable!(),
+        }
+        drop(connection);
+        let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+        assert!(
+            reopened.verify_integrity().is_err(),
+            "{tamper} Help retention tamper must fail closed"
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+fn restart_integrity_rejects_reserved_help_events_with_wrong_payload_metadata(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (advancing, records) = advancing_help_records(&store)?;
+    let completed = store.finalize_bmad_help(
+        &advancing.scope(),
+        &advancing.session_id(),
+        advancing.version(),
+        &records,
+        UnixMillis(6_000),
+    )?;
+    let checkpoint = completed.resume().expect("canonical Help checkpoint");
+    append_decoy_reserved_help_event(
+        &store,
+        &completed.session_id(),
+        &checkpoint.invocation_id,
+        &checkpoint.checkpoint_id,
+    )?;
+
+    assert!(matches!(
+        store.verify_integrity(),
+        Err(StoreError::Inconsistent)
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn restart_integrity_rejects_reserved_help_events_without_a_finalization(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    append_decoy_reserved_help_event(
+        &store,
+        &id("session_01J88888888888888888888888"),
+        &id("invoke_01J88888888888888888888888"),
+        &id("checkpoint_01J88888888888888888888888"),
+    )?;
+
+    assert!(matches!(
+        store.verify_integrity(),
+        Err(StoreError::Inconsistent)
+    ));
+
+    Ok(())
 }
 
 #[test]
