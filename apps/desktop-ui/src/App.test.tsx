@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "./test/setup";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
@@ -12,6 +12,7 @@ import {
   type HostRuntime,
   type TauriInvoke,
 } from "./lib/hostClient";
+import type { BmadHelpRunCreatedProjection } from "./lib/bmadProjection";
 import type { ReadonlyWorkspaceSource } from "./lib/workspaceReadSource";
 
 const digestA = `sha256:${"a".repeat(64)}`;
@@ -408,6 +409,210 @@ async function bmadLibraryRuntime({
     releaseInvalidation: () => { invalidationReleased = true; },
     releaseOldProjection: () => releaseHeldProjection(),
   };
+}
+
+function bmadHelpRun(
+  workspaceId: string,
+  label = "BMad Help",
+  suffix = "01K0Q6H3",
+): BmadHelpRunCreatedProjection {
+  return {
+    schemaVersion: "bmad-help-run.v1",
+    runKind: "bmad_help",
+    lifecycle: "created_unbound",
+    workspaceId,
+    runId: `run_${suffix}`,
+    sessionId: `session_${suffix}`,
+    runnable: false,
+    completionClaimed: false,
+    recommendation: {
+      schemaVersion: "bmad-help-recommendation.v1",
+      displayName: label,
+      moduleCode: "core",
+      skillName: "bmad-help",
+      action: null,
+      confidence: "unknown",
+      source: {
+        sourceKind: "sealed_foundation",
+        packageName: "bmad-method",
+        packageVersion: "6.10.0",
+      },
+      reason: "The current intent most closely matches the catalog entry BMad Help.",
+      requiredGuidance: true,
+      expectedArtifacts: [],
+      availability: "capability_disabled",
+      blockerCodes: ["bmad_capability_disabled"],
+      completionClaimed: false,
+    },
+  };
+}
+
+type BmadHelpLatestFixture =
+  | BmadHelpRunCreatedProjection
+  | "projection_unavailable"
+  | null;
+
+async function bmadHelpRuntime({
+  createOutcome = "success",
+  createRun,
+  holdCreate = false,
+  holdLatestWorkspaceId = null,
+  latestRuns = {},
+  workspaces = recoveryBootstrap.workspaces,
+}: {
+  createOutcome?: "success" | "failure" | "recovery" | "renderer_expired";
+  createRun?: BmadHelpRunCreatedProjection;
+  holdCreate?: boolean;
+  holdLatestWorkspaceId?: string | null;
+  latestRuns?: Readonly<Record<string, BmadHelpLatestFixture>>;
+  workspaces?: BootstrapReply["workspaces"];
+} = {}): Promise<{
+  runtime: HostRuntime;
+  invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
+  createStarted: Promise<void>;
+  releaseCreate: () => void;
+  releaseLatest: () => void;
+}> {
+  const bootstrap: BootstrapReply = {
+    ...recoveryBootstrap,
+    bootMode: "ready",
+    supportedCommands: [
+      "app.get_boot_state",
+      "workspace.select_folder",
+      "workspace.list",
+      "workspace.revoke",
+      "workspace.list_entries",
+      "workspace.read_text",
+      "workspace.search",
+      "bmad.scan",
+      "bmad.library.snapshot",
+      "bmad.help.latest",
+      "run.create",
+      "context.preview",
+    ],
+    workspaces,
+  };
+  let request = 0;
+  let resolveCreateStarted!: () => void;
+  let resolveCreate!: () => void;
+  let resolveLatest!: () => void;
+  const createStarted = new Promise<void>((resolve) => { resolveCreateStarted = resolve; });
+  const heldCreate = new Promise<void>((resolve) => { resolveCreate = resolve; });
+  const heldLatest = new Promise<void>((resolve) => { resolveLatest = resolve; });
+  const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+    if (command === "host_bootstrap") {
+      return bootstrap;
+    }
+    if (command === "host_projection_events") {
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: bootstrap.rendererSessionId,
+        status: "events",
+        events: [],
+      };
+    }
+    const envelope = JSON.parse(String(args?.body)) as {
+      command: string;
+      payload: {
+        currentIntent?: string;
+        workspaceGrantEpoch?: number;
+        workspaceId?: string;
+      };
+      requestId: string;
+    };
+    if (envelope.command === "bmad.help.latest") {
+      const workspaceId = envelope.payload.workspaceId!;
+      if (workspaceId === holdLatestWorkspaceId) {
+        await heldLatest;
+      }
+      const retained = latestRuns[workspaceId] ?? null;
+      return successfulReply(
+        envelope.requestId,
+        retained === "projection_unavailable"
+          ? { kind: "bmad_help_projection_unavailable" }
+          : retained === null
+          ? { kind: "no_bmad_help_run" }
+          : { kind: "bmad_help_run_created", value: retained },
+      );
+    }
+    if (envelope.command === "run.create") {
+      resolveCreateStarted();
+      if (holdCreate) {
+        await heldCreate;
+      }
+      if (createOutcome !== "success") {
+        return {
+          schemaVersion: "desktop-dispatch-reply.v1",
+          requestId: envelope.requestId,
+          sequence: 19,
+          status: "error",
+          error: {
+            code: createOutcome === "recovery"
+              ? "integrity_failure"
+              : createOutcome === "renderer_expired"
+                ? "renderer_session_expired"
+                : "temporarily_unavailable",
+            safeMessage: createOutcome === "recovery"
+              ? "Workspace authority needs recovery."
+              : createOutcome === "renderer_expired"
+                ? "The renderer session expired. Method guidance was not created."
+                : "Method guidance could not be created. Nothing was changed.",
+            retryable: createOutcome === "failure" || createOutcome === "renderer_expired",
+            correlationId: envelope.requestId,
+          },
+        };
+      }
+      const projection = createRun
+        ?? bmadHelpRun(envelope.payload.workspaceId!, "BMad Help", "01K0Q6H4");
+      const reply = successfulReply(envelope.requestId, {
+        kind: "bmad_help_run_created",
+        value: projection,
+      }, 19);
+      return {
+        ...reply,
+        receipt: { ...reply.receipt, operationId: projection.runId },
+      };
+    }
+    if (envelope.command === "bmad.library.snapshot") {
+      return successfulReply(envelope.requestId, {
+        kind: "bmad_library_snapshot",
+        value: {
+          schemaVersion: "bmad-library-snapshot.v1",
+          scope: "installed_method",
+          source: {
+            sourceKind: "sealed_foundation",
+            packageName: "bmad-method",
+            packageVersion: "6.10.0",
+          },
+          installedSkills: [],
+          helpActions: [],
+          methodAgents: [],
+          nextCursor: null,
+        },
+      }, 19);
+    }
+    throw new Error(`Unexpected command ${envelope.command}`);
+  });
+  const client = new DesktopHostClient({
+    invoke,
+    requestId: () => `request_help_ui_${request += 1}`,
+  });
+  await client.bootstrap();
+  return {
+    runtime: { kind: "ready", client, bootstrap },
+    invoke,
+    createStarted,
+    releaseCreate: resolveCreate,
+    releaseLatest: resolveLatest,
+  };
+}
+
+async function readyMethodGuidanceComposer(): Promise<HTMLTextAreaElement> {
+  const composer = await screen.findByLabelText<HTMLTextAreaElement>(
+    "Describe what you want Method guidance for",
+  );
+  await waitFor(() => expect(composer).toHaveProperty("disabled", false));
+  return composer;
 }
 
 describe("Sapphirus desktop workbench", () => {
@@ -900,6 +1105,361 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.getByRole("heading", { name: "No evidence yet" })).toBeTruthy();
   });
 
+  it("restores the latest retained Help run for the exact active workspace grant", async () => {
+    const workspace = recoveryBootstrap.workspaces[0]!;
+    const retained = bmadHelpRun(workspace.workspaceId, "Restored Method guidance");
+    const { runtime, invoke } = await bmadHelpRuntime({
+      latestRuns: { [workspace.workspaceId]: retained },
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
+      expect(latestCalls).toHaveLength(1);
+    });
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+
+    expect(await screen.findByText("Restored Method guidance")).toBeTruthy();
+    expect(screen.getByText("Created")).toBeTruthy();
+    expect(screen.getByText("Unbound")).toBeTruthy();
+    expect(screen.getByText("No model request")).toBeTruthy();
+    const latestCall = invoke.mock.calls.find(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest")!;
+    expect(JSON.parse(String(latestCall[1]?.body))).toMatchObject({
+      command: "bmad.help.latest",
+      payload: {
+        workspaceId: workspace.workspaceId,
+        workspaceGrantEpoch: workspace.grantEpoch,
+      },
+    });
+  });
+
+  it("blocks Help creation until the retained run lookup finishes", async () => {
+    const workspace = recoveryBootstrap.workspaces[0]!;
+    const { runtime, releaseLatest } = await bmadHelpRuntime({
+      holdLatestWorkspaceId: workspace.workspaceId,
+    });
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    const composer = await screen.findByLabelText(
+      "Describe what you want Method guidance for",
+    );
+    expect(composer).toHaveProperty("disabled", true);
+    expect(
+      screen.getByRole("button", { name: "Request Method guidance" }),
+    ).toHaveProperty("disabled", true);
+
+    releaseLatest();
+    await waitFor(() => expect(composer).toHaveProperty("disabled", false));
+  });
+
+  it("warns about an unrestorable legacy projection but permits a fresh retained run", async () => {
+    const workspace = recoveryBootstrap.workspaces[0]!;
+    const { runtime, invoke } = await bmadHelpRuntime({
+      latestRuns: { [workspace.workspaceId]: "projection_unavailable" },
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
+      expect(latestCalls).toHaveLength(1);
+    });
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+
+    const legacyWarning = await screen.findByRole("alert");
+    expect(legacyWarning).toHaveProperty(
+      "textContent",
+      expect.stringContaining("retained Method session"),
+    );
+    expect(legacyWarning).toHaveProperty(
+      "textContent",
+      expect.stringContaining("You can create a new local Method session"),
+    );
+    const composer = screen.getByLabelText("Describe what you want Method guidance for");
+    expect(composer).toHaveProperty("disabled", false);
+    expect(screen.queryByText(/^Created$/)).toBeNull();
+
+    await user.type(composer, "Create a newly retained Method session");
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+
+    expect(await screen.findByText("Created · Unbound")).toBeTruthy();
+    expect(invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create"))
+      .toHaveLength(1);
+  });
+
+  it("creates one truthful unbound Help run from the exact submitted intent", async () => {
+    const workspace = recoveryBootstrap.workspaces[0]!;
+    const created = bmadHelpRun(workspace.workspaceId, "Source-grounded Help", "01K0Q6H4");
+    const { runtime, invoke } = await bmadHelpRuntime({ createRun: created });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    const composer = await readyMethodGuidanceComposer();
+    await user.type(composer, "  Choose the next safe architecture step.  ");
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+
+    expect(await screen.findByText("Source-grounded Help")).toBeTruthy();
+    expect(screen.getAllByText("Created").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Unbound").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("No model request").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Demo response")).toBeNull();
+    expect(screen.queryByText("Ready for review")).toBeNull();
+    const createCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
+    expect(createCalls).toHaveLength(1);
+    const createEnvelope = JSON.parse(String(createCalls[0]![1]?.body)) as {
+      command: string;
+      payload: unknown;
+    };
+    expect(createEnvelope.command).toBe("run.create");
+    expect(createEnvelope.payload).toEqual({
+      workspaceId: workspace.workspaceId,
+      workspaceGrantEpoch: workspace.grantEpoch,
+      runKind: "bmad_help",
+      currentIntent: "Choose the next safe architecture step.",
+    });
+  });
+
+  it("suppresses duplicate Help creation while the first native request is pending", async () => {
+    const { runtime, invoke, createStarted, releaseCreate } = await bmadHelpRuntime({
+      holdCreate: true,
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Recommend one safe Method step",
+    );
+    const submit = screen.getByRole("button", { name: "Request Method guidance" });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+    await createStarted;
+
+    const createCalls = () => invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
+    expect(createCalls()).toHaveLength(1);
+    expect(submit).toHaveProperty("disabled", true);
+
+    releaseCreate();
+    expect(await screen.findByText("Created · Unbound")).toBeTruthy();
+    expect(createCalls()).toHaveLength(1);
+  });
+
+  it("never claims creation when the native Help command fails", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ createOutcome: "failure" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Recommend a safe next step",
+    );
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await waitFor(() => {
+      const createCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
+      expect(createCalls).toHaveLength(1);
+    });
+    await user.click(screen.getByRole("button", { name: "Method library" }));
+
+    expect(await screen.findByRole("alert")).toHaveProperty(
+      "textContent",
+      expect.stringContaining("Method guidance could not be created. Nothing was changed."),
+    );
+    expect(screen.queryByText("Created · Unbound")).toBeNull();
+    expect(screen.queryByText(/^Created$/)).toBeNull();
+    expect(screen.queryByText("Demo response")).toBeNull();
+    expect(
+      screen.getByLabelText("Describe what you want Method guidance for"),
+    ).toHaveProperty("disabled", true);
+    const createCalls = () => invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
+    fireEvent.submit(document.querySelector<HTMLFormElement>(".composer")!);
+    expect(createCalls()).toHaveLength(1);
+  });
+
+  it("does not rebind or retry a Help mutation after renderer-session expiry", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({
+      createOutcome: "renderer_expired",
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Recommend a safe next step",
+    );
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText("Describe what you want Method guidance for"),
+      ).toHaveProperty("disabled", true);
+    });
+
+    const dispatches = invoke.mock.calls
+      .filter(([command]) => command === "host_dispatch")
+      .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
+    expect(dispatches.filter((command) => command === "run.create")).toHaveLength(1);
+    expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap")).toHaveLength(1);
+    expect(screen.queryByText("Created · Unbound")).toBeNull();
+  });
+
+  it("rejects a stale Help creation result after the native host binding changes", async () => {
+    const oldHost = await bmadHelpRuntime({ holdCreate: true });
+    const currentHost = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    const view = render(
+      <App
+        hostRuntimeLoader={async () => oldHost.runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Recommend a safe next step",
+    );
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await oldHost.createStarted;
+
+    view.rerender(
+      <App
+        hostRuntimeLoader={async () => currentHost.runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await waitFor(() => {
+      const latestCalls = currentHost.invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
+      expect(latestCalls).toHaveLength(1);
+    });
+
+    await act(async () => {
+      oldHost.releaseCreate();
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("Creating · Local only")).toBeNull();
+    });
+    expect(screen.queryByText("Created · Unbound")).toBeNull();
+    expect(screen.queryByText(/^Created$/)).toBeNull();
+    expect(screen.queryByText("Demo response")).toBeNull();
+    expect(
+      screen.getByLabelText("Describe what you want Method guidance for"),
+    ).toHaveProperty("disabled", false);
+  });
+
+  it("enters read-only recovery when Help creation reports an integrity failure", async () => {
+    const { runtime } = await bmadHelpRuntime({ createOutcome: "recovery" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Recommend a safe next step",
+    );
+    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+
+    expect((await screen.findAllByText("Read-only recovery")).length).toBeGreaterThan(0);
+    expect(
+      screen.getByLabelText("Describe what you want Method guidance for"),
+    ).toHaveProperty("disabled", true);
+    expect(screen.queryByText("Created · Unbound")).toBeNull();
+  });
+
+  it("drops a retained Help result that arrives after the active workspace changes", async () => {
+    const primary = {
+      ...recoveryBootstrap.workspaces[0]!,
+      displayName: "primary-workspace",
+    };
+    const secondary = {
+      workspaceId: "workspace_01K0Q6H4",
+      projectId: "project_01K0Q6H4",
+      displayName: "secondary-workspace",
+      grantEpoch: 11,
+      permissions: "read_only" as const,
+    };
+    const primaryRun = bmadHelpRun(primary.workspaceId, "Stale primary guidance", "01K0Q6H5");
+    const secondaryRun = bmadHelpRun(secondary.workspaceId, "Current secondary guidance", "01K0Q6H6");
+    const { runtime, releaseLatest } = await bmadHelpRuntime({
+      holdLatestWorkspaceId: primary.workspaceId,
+      latestRuns: {
+        [primary.workspaceId]: primaryRun,
+        [secondary.workspaceId]: secondaryRun,
+      },
+      workspaces: [primary, secondary],
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await screen.findAllByText("primary-workspace");
+    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", {
+      name: "Switch to workspace secondary-workspace",
+    }));
+    await user.click(screen.getByRole("button", { name: "Close workspaces" }));
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    expect(await screen.findByText("Current secondary guidance")).toBeTruthy();
+
+    await act(async () => {
+      releaseLatest();
+      await Promise.resolve();
+    });
+    expect(screen.getByText("Current secondary guidance")).toBeTruthy();
+    expect(screen.queryByText("Stale primary guidance")).toBeNull();
+  });
+
   it("loads the native Method library once from the Agent workbench", async () => {
     const { runtime, invoke } = await bmadLibraryRuntime();
     const user = userEvent.setup();
@@ -948,6 +1508,7 @@ describe("Sapphirus desktop workbench", () => {
     await screen.findAllByText("Browser preview");
     expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
     expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
     browser.unmount();
 
     const runtime = await recoveryRuntime();
@@ -955,6 +1516,7 @@ describe("Sapphirus desktop workbench", () => {
     await screen.findAllByText("Read-only recovery");
     expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
     expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
   });
 
   it("replaces a requested Method library after native projection invalidation", async () => {

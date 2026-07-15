@@ -21,8 +21,14 @@ const METHOD_STATE_KIND: &str = "bmad_method_session";
 const METHOD_STATE_SCHEMA: &str = "sapphirus.bmad-method-session-state.v1";
 const METHOD_ARTIFACT_KIND: &str = "bmad_method_artifact";
 const METHOD_ARTIFACT_SCHEMA: &str = "sapphirus.bmad-method-artifact.v1";
+const HELP_RUN_RENDERER_PROJECTION_KIND: &str = "bmad_help_run_renderer_projection";
+const HELP_RUN_RENDERER_PROJECTION_SCHEMA: &str = "sapphirus.bmad-help-run-renderer-projection.v1";
+const HELP_RUN_RENDERER_PROJECTION_RETAINED: &str = "retained";
+const HELP_RUN_RENDERER_PROJECTION_LEGACY_UNRETAINED: &str = "legacy_unretained";
 const HELP_RUN_CREATE_PURPOSE: &str = "bmad-help-run-create-request";
+const HELP_RUN_PROJECTION_BINDING_PURPOSE: &str = "bmad-help-run-projection-binding";
 const MAX_SAFE_JSON_INTEGER: u64 = 9_007_199_254_740_991;
+pub const MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES: usize = 66_560;
 type CheckpointKey = (String, u64);
 type CheckpointIdentity = (String, String);
 type ExpectedCheckpoints = BTreeMap<CheckpointKey, CheckpointIdentity>;
@@ -94,6 +100,7 @@ pub struct BmadHelpRunCreateRequest {
     pub capability_catalog_hash: Sha256Digest,
     pub foundation_binding_hash: Sha256Digest,
     pub intent_hash: Sha256Digest,
+    pub renderer_projection: Vec<u8>,
     pub accepted_at: UnixMillis,
 }
 
@@ -115,6 +122,14 @@ pub struct BmadHelpRunCreationReceipt {
     pub run_id: ContractId,
     pub accepted_at: UnixMillis,
     pub replayed: bool,
+    pub renderer_projection: Vec<u8>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BmadHelpRunLatest {
+    None,
+    LegacyProjectionUnavailable,
+    Retained(BmadHelpRunCreationReceipt),
 }
 
 #[derive(Serialize)]
@@ -130,6 +145,19 @@ struct BmadHelpRunCreateFingerprint<'a> {
     capability_catalog_hash: Sha256Digest,
     foundation_binding_hash: Sha256Digest,
     intent_hash: Sha256Digest,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BmadHelpRunProjectionBinding<'a> {
+    schema_version: &'static str,
+    request_fingerprint: Sha256Digest,
+    session_id: &'a ContractId,
+    run_id: &'a ContractId,
+    workspace_catalog_version: u64,
+    creation_ordinal: u64,
+    accepted_at: u64,
+    renderer_projection_hash: Sha256Digest,
 }
 
 #[derive(Clone, Debug)]
@@ -151,7 +179,25 @@ struct StoredHelpRunCreation {
     capability_catalog_hash: String,
     foundation_binding_hash: String,
     intent_hash: String,
+    renderer_projection_state: String,
+    renderer_projection_content_hash: Option<String>,
+    renderer_projection_kind: Option<String>,
+    renderer_projection_schema_version: Option<String>,
+    renderer_projection_byte_count: Option<u64>,
+    renderer_projection_key_version: Option<u32>,
+    renderer_projection_binding_hash: Option<String>,
+    creation_ordinal: u64,
     accepted_at: u64,
+}
+
+struct NewHelpRunCreationRow<'a> {
+    session: &'a MethodSession,
+    request: &'a BmadHelpRunCreateRequest,
+    identity: &'a DesktopLocalIdentity,
+    request_fingerprint: &'a Sha256Digest,
+    renderer_projection: &'a PayloadRef,
+    renderer_projection_binding_hash: &'a Sha256Digest,
+    creation_ordinal: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -254,6 +300,49 @@ impl LocalStore {
             .map(Some)
     }
 
+    /// Loads the newest authenticated BMAD Help run for one currently authorized workspace.
+    ///
+    /// The workspace-catalog version check and latest-row selection share one
+    /// read transaction. A second process that has already committed a catalog
+    /// transition therefore makes a stale caller fail closed instead of
+    /// receiving a projection selected after that transition.
+    /// Released v8 rows remain authenticated authority history but did not
+    /// retain renderer bytes; they return
+    /// [`BmadHelpRunLatest::LegacyProjectionUnavailable`] rather than being
+    /// misreported as no run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError::WorkspaceAuthorityStale`] when the caller's exact
+    /// catalog version is no longer current, or an integrity/authentication
+    /// error when the retained run cannot be reconstructed exactly.
+    pub fn latest_bmad_help_run(
+        &self,
+        workspace_id: &ContractId,
+        expected_workspace_catalog_version: u64,
+    ) -> Result<BmadHelpRunLatest, StoreError> {
+        validate_workspace_catalog_version(expected_workspace_catalog_version)?;
+        let identity = self.load_local_identity()?;
+        let stored = {
+            let mut connection = self.connection.lock();
+            let transaction =
+                connection.transaction_with_behavior(TransactionBehavior::Deferred)?;
+            verify_workspace_catalog_version(&transaction, expected_workspace_catalog_version)?;
+            let stored = query_latest_help_run_creation(
+                &transaction,
+                identity.owner_scope_ref().as_str(),
+                identity.installation_id().as_str(),
+                workspace_id.as_str(),
+            )?;
+            transaction.commit()?;
+            stored
+        };
+        match stored {
+            Some(row) => self.authenticate_latest_help_run(&identity, &row),
+            None => Ok(BmadHelpRunLatest::None),
+        }
+    }
+
     /// Atomically accepts one store-owned, non-runnable BMAD Help run creation.
     ///
     /// The idempotency key is the exact local owner scope, installation, and
@@ -294,9 +383,29 @@ impl LocalStore {
         verify_workspace_catalog_version(&transaction, request.workspace_catalog_version)?;
 
         let state_json = validate_new_help_run_candidate(candidate, request, &identity)?;
-        let payload = self.prepare_method_state_payload(state_json.as_bytes())?;
+        let payload = self.prepare_payload(
+            METHOD_STATE_KIND,
+            METHOD_STATE_SCHEMA,
+            state_json.as_bytes(),
+        )?;
+        let renderer_projection = self.prepare_payload(
+            HELP_RUN_RENDERER_PROJECTION_KIND,
+            HELP_RUN_RENDERER_PROJECTION_SCHEMA,
+            &request.renderer_projection,
+        )?;
+        let creation_ordinal = next_help_run_creation_ordinal(&transaction)?;
+        let projection_binding_hash = help_run_projection_binding_hash(
+            request_fingerprint,
+            &candidate.session_id(),
+            &candidate.scope().run_id,
+            request.workspace_catalog_version,
+            creation_ordinal,
+            request.accepted_at,
+            desktop_runtime::sha256_bytes(&request.renderer_projection),
+        )?;
         let occurred_at = canonical_now();
         register_payload_in_transaction(&transaction, &payload, &occurred_at)?;
+        register_payload_in_transaction(&transaction, &renderer_projection, &occurred_at)?;
         insert_created_method_session(&transaction, candidate, &payload, &occurred_at)?;
         let payload_uri = payload_uri(&payload)?;
         let event = EvidenceAppend {
@@ -312,10 +421,15 @@ impl LocalStore {
         let _ = append_evidence_in_transaction(&transaction, &event, &occurred_at)?;
         insert_help_run_creation(
             &transaction,
-            candidate,
-            request,
-            &identity,
-            &request_fingerprint,
+            &NewHelpRunCreationRow {
+                session: candidate,
+                request,
+                identity: &identity,
+                request_fingerprint: &request_fingerprint,
+                renderer_projection: &renderer_projection,
+                renderer_projection_binding_hash: &projection_binding_hash,
+                creation_ordinal,
+            },
         )?;
         transaction.commit()?;
 
@@ -325,24 +439,25 @@ impl LocalStore {
             run_id: candidate.scope().run_id,
             accepted_at: request.accepted_at,
             replayed: false,
+            renderer_projection: request.renderer_projection.clone(),
         })
     }
 
-    fn prepare_method_state_payload(&self, plaintext: &[u8]) -> Result<PayloadRef, StoreError> {
+    fn prepare_payload(
+        &self,
+        kind: &str,
+        schema_version: &str,
+        plaintext: &[u8],
+    ) -> Result<PayloadRef, StoreError> {
         let content_hash = format!("sha256:{}", hex::encode(Sha256::digest(plaintext)));
-        let path = self.cas_path(METHOD_STATE_KIND, METHOD_STATE_SCHEMA, &content_hash)?;
+        let path = self.cas_path(kind, schema_version, &content_hash)?;
         if !path.exists() {
-            let encrypted = self.encrypt(
-                METHOD_STATE_KIND,
-                METHOD_STATE_SCHEMA,
-                &content_hash,
-                plaintext,
-            )?;
+            let encrypted = self.encrypt(kind, schema_version, &content_hash, plaintext)?;
             Self::persist_cas(&path, &encrypted)?;
         }
         let retained = self.decrypt(
-            METHOD_STATE_KIND,
-            METHOD_STATE_SCHEMA,
+            kind,
+            schema_version,
             &content_hash,
             self.key_version,
             &fs::read(path)?,
@@ -352,8 +467,8 @@ impl LocalStore {
         }
         Ok(PayloadRef {
             content_hash,
-            kind: METHOD_STATE_KIND.to_owned(),
-            schema_version: METHOD_STATE_SCHEMA.to_owned(),
+            kind: kind.to_owned(),
+            schema_version: schema_version.to_owned(),
             byte_count: u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?,
             key_version: self.key_version,
         })
@@ -365,6 +480,28 @@ impl LocalStore {
         stored: &StoredHelpRunCreation,
         replayed: bool,
     ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
+        match self.authenticate_help_run(identity, stored, replayed)? {
+            BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+            BmadHelpRunLatest::None | BmadHelpRunLatest::LegacyProjectionUnavailable => {
+                Err(StoreError::Inconsistent)
+            }
+        }
+    }
+
+    fn authenticate_latest_help_run(
+        &self,
+        identity: &DesktopLocalIdentity,
+        stored: &StoredHelpRunCreation,
+    ) -> Result<BmadHelpRunLatest, StoreError> {
+        self.authenticate_help_run(identity, stored, true)
+    }
+
+    fn authenticate_help_run(
+        &self,
+        identity: &DesktopLocalIdentity,
+        stored: &StoredHelpRunCreation,
+        replayed: bool,
+    ) -> Result<BmadHelpRunLatest, StoreError> {
         let scope = MethodSessionScope {
             owner_scope_ref: parse_contract_id(&stored.owner_scope_ref)?,
             project_id: parse_contract_id(&stored.project_id)?,
@@ -377,15 +514,23 @@ impl LocalStore {
         let session = self
             .load_method_session(&scope, &session_id)?
             .ok_or(StoreError::Inconsistent)?;
+        let renderer_projection = stored_help_run_renderer_projection(stored)?
+            .as_ref()
+            .map(|reference| self.get_payload(reference))
+            .transpose()?;
         let verified = verified_method_session(&session)?;
-        verify_help_run_creation(stored, &verified, identity)?;
-        Ok(BmadHelpRunCreationReceipt {
+        verify_help_run_creation(stored, &verified, identity, renderer_projection.as_deref())?;
+        let Some(renderer_projection) = renderer_projection else {
+            return Ok(BmadHelpRunLatest::LegacyProjectionUnavailable);
+        };
+        Ok(BmadHelpRunLatest::Retained(BmadHelpRunCreationReceipt {
             request_id: parse_contract_id(&stored.request_id)?,
             session_id,
             run_id: scope.run_id,
             accepted_at: UnixMillis(stored.accepted_at),
             replayed,
-        })
+            renderer_projection,
+        }))
     }
 }
 
@@ -679,13 +824,22 @@ impl MethodSessionRepository for LocalStore {
 fn validate_help_run_request(request: &BmadHelpRunCreateRequest) -> Result<(), StoreError> {
     if request.workspace_grant_epoch == 0
         || request.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER
-        || request.workspace_catalog_version == 0
-        || request.workspace_catalog_version > MAX_SAFE_JSON_INTEGER
+        || validate_workspace_catalog_version(request.workspace_catalog_version).is_err()
+        || request.renderer_projection.is_empty()
+        || request.renderer_projection.len() > MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES
         || request.accepted_at.0 > MAX_SAFE_JSON_INTEGER
     {
         return Err(StoreError::StateConflict);
     }
     Ok(())
+}
+
+fn validate_workspace_catalog_version(version: u64) -> Result<(), StoreError> {
+    if version == 0 || version > MAX_SAFE_JSON_INTEGER {
+        Err(StoreError::StateConflict)
+    } else {
+        Ok(())
+    }
 }
 
 fn validate_replay_request(request: &BmadHelpRunReplayRequest) -> Result<(), StoreError> {
@@ -714,6 +868,21 @@ fn verify_workspace_catalog_version(
     }
 }
 
+fn next_help_run_creation_ordinal(
+    transaction: &rusqlite::Transaction<'_>,
+) -> Result<u64, StoreError> {
+    let current = transaction.query_row(
+        "SELECT MAX(creation_ordinal) FROM bmad_help_run_creations",
+        [],
+        |row| row.get::<_, Option<u64>>(0),
+    )?;
+    current
+        .unwrap_or(0)
+        .checked_add(1)
+        .filter(|ordinal| *ordinal <= MAX_SAFE_JSON_INTEGER)
+        .ok_or(StoreError::Inconsistent)
+}
+
 fn help_run_request_fingerprint(
     request: &BmadHelpRunCreateRequest,
 ) -> Result<Sha256Digest, StoreError> {
@@ -731,6 +900,32 @@ fn help_run_request_fingerprint(
             capability_catalog_hash: request.capability_catalog_hash,
             foundation_binding_hash: request.foundation_binding_hash,
             intent_hash: request.intent_hash,
+        },
+    )
+    .map_err(|_| StoreError::Inconsistent)
+}
+
+fn help_run_projection_binding_hash(
+    request_fingerprint: Sha256Digest,
+    session_id: &ContractId,
+    run_id: &ContractId,
+    workspace_catalog_version: u64,
+    creation_ordinal: u64,
+    accepted_at: UnixMillis,
+    renderer_projection_hash: Sha256Digest,
+) -> Result<Sha256Digest, StoreError> {
+    canonical_hash(
+        HELP_RUN_PROJECTION_BINDING_PURPOSE,
+        1,
+        &BmadHelpRunProjectionBinding {
+            schema_version: "sapphirus.bmad-help-run-projection-binding.v1",
+            request_fingerprint,
+            session_id,
+            run_id,
+            workspace_catalog_version,
+            creation_ordinal,
+            accepted_at: accepted_at.0,
+            renderer_projection_hash,
         },
     )
     .map_err(|_| StoreError::Inconsistent)
@@ -834,39 +1029,49 @@ fn insert_created_method_session(
 
 fn insert_help_run_creation(
     transaction: &rusqlite::Transaction<'_>,
-    session: &MethodSession,
-    request: &BmadHelpRunCreateRequest,
-    identity: &DesktopLocalIdentity,
-    request_fingerprint: &Sha256Digest,
+    row: &NewHelpRunCreationRow<'_>,
 ) -> Result<(), StoreError> {
-    let scope = session.scope();
+    let scope = row.session.scope();
     let inserted = transaction.execute(
         "INSERT INTO bmad_help_run_creations
          (owner_scope_ref, installation_id, request_id, request_fingerprint,
           session_id, project_id, run_id, authority_id, authority_epoch,
           local_store_id, workspace_id, workspace_grant_epoch,
           workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
-          foundation_binding_hash, intent_hash, accepted_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+          foundation_binding_hash, intent_hash, renderer_projection_state,
+          renderer_projection_content_hash,
+          renderer_projection_kind, renderer_projection_schema_version,
+          renderer_projection_byte_count, renderer_projection_key_version,
+          renderer_projection_binding_hash, creation_ordinal, accepted_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16,
+                 ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26)",
         params![
-            identity.owner_scope_ref().as_str(),
-            identity.installation_id().as_str(),
-            request.request_id.as_str(),
-            request_fingerprint.to_string(),
-            session.session_id().as_str(),
+            row.identity.owner_scope_ref().as_str(),
+            row.identity.installation_id().as_str(),
+            row.request.request_id.as_str(),
+            row.request_fingerprint.to_string(),
+            row.session.session_id().as_str(),
             scope.project_id.as_str(),
             scope.run_id.as_str(),
-            identity.authority_id().as_str(),
-            identity.authority_epoch(),
-            identity.local_store_id().as_str(),
-            request.workspace_id.as_str(),
-            request.workspace_grant_epoch,
-            request.workspace_catalog_version,
-            request.workspace_root_identity_hash.to_string(),
-            request.capability_catalog_hash.to_string(),
-            request.foundation_binding_hash.to_string(),
-            request.intent_hash.to_string(),
-            request.accepted_at.0,
+            row.identity.authority_id().as_str(),
+            row.identity.authority_epoch(),
+            row.identity.local_store_id().as_str(),
+            row.request.workspace_id.as_str(),
+            row.request.workspace_grant_epoch,
+            row.request.workspace_catalog_version,
+            row.request.workspace_root_identity_hash.to_string(),
+            row.request.capability_catalog_hash.to_string(),
+            row.request.foundation_binding_hash.to_string(),
+            row.request.intent_hash.to_string(),
+            HELP_RUN_RENDERER_PROJECTION_RETAINED,
+            row.renderer_projection.content_hash,
+            row.renderer_projection.kind,
+            row.renderer_projection.schema_version,
+            row.renderer_projection.byte_count,
+            row.renderer_projection.key_version,
+            row.renderer_projection_binding_hash.to_string(),
+            row.creation_ordinal,
+            row.request.accepted_at.0,
         ],
     );
     match inserted {
@@ -889,10 +1094,42 @@ fn query_help_run_creation(
                     session_id, project_id, run_id, authority_id, authority_epoch,
                     local_store_id, workspace_id, workspace_grant_epoch,
                     workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
-                    foundation_binding_hash, intent_hash, accepted_at
+                    foundation_binding_hash, intent_hash, renderer_projection_state,
+                    renderer_projection_content_hash,
+                    renderer_projection_kind, renderer_projection_schema_version,
+                    renderer_projection_byte_count, renderer_projection_key_version,
+                    renderer_projection_binding_hash, creation_ordinal, accepted_at
              FROM bmad_help_run_creations
              WHERE owner_scope_ref = ?1 AND installation_id = ?2 AND request_id = ?3",
             params![owner_scope_ref, installation_id, request_id],
+            stored_help_run_creation_from_row,
+        )
+        .optional()
+        .map_err(StoreError::from)
+}
+
+fn query_latest_help_run_creation(
+    connection: &rusqlite::Connection,
+    owner_scope_ref: &str,
+    installation_id: &str,
+    workspace_id: &str,
+) -> Result<Option<StoredHelpRunCreation>, StoreError> {
+    connection
+        .query_row(
+            "SELECT owner_scope_ref, installation_id, request_id, request_fingerprint,
+                    session_id, project_id, run_id, authority_id, authority_epoch,
+                    local_store_id, workspace_id, workspace_grant_epoch,
+                    workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
+                    foundation_binding_hash, intent_hash, renderer_projection_state,
+                    renderer_projection_content_hash,
+                    renderer_projection_kind, renderer_projection_schema_version,
+                    renderer_projection_byte_count, renderer_projection_key_version,
+                    renderer_projection_binding_hash, creation_ordinal, accepted_at
+             FROM bmad_help_run_creations
+             WHERE owner_scope_ref = ?1 AND installation_id = ?2 AND workspace_id = ?3
+             ORDER BY creation_ordinal DESC
+             LIMIT 1",
+            params![owner_scope_ref, installation_id, workspace_id],
             stored_help_run_creation_from_row,
         )
         .optional()
@@ -920,8 +1157,50 @@ fn stored_help_run_creation_from_row(
         capability_catalog_hash: row.get(14)?,
         foundation_binding_hash: row.get(15)?,
         intent_hash: row.get(16)?,
-        accepted_at: row.get(17)?,
+        renderer_projection_state: row.get(17)?,
+        renderer_projection_content_hash: row.get(18)?,
+        renderer_projection_kind: row.get(19)?,
+        renderer_projection_schema_version: row.get(20)?,
+        renderer_projection_byte_count: row.get(21)?,
+        renderer_projection_key_version: row.get(22)?,
+        renderer_projection_binding_hash: row.get(23)?,
+        creation_ordinal: row.get(24)?,
+        accepted_at: row.get(25)?,
     })
+}
+
+fn stored_help_run_renderer_projection(
+    stored: &StoredHelpRunCreation,
+) -> Result<Option<PayloadRef>, StoreError> {
+    match (
+        stored.renderer_projection_state.as_str(),
+        stored.renderer_projection_content_hash.as_ref(),
+        stored.renderer_projection_kind.as_ref(),
+        stored.renderer_projection_schema_version.as_ref(),
+        stored.renderer_projection_byte_count,
+        stored.renderer_projection_key_version,
+        stored.renderer_projection_binding_hash.as_ref(),
+    ) {
+        (HELP_RUN_RENDERER_PROJECTION_LEGACY_UNRETAINED, None, None, None, None, None, None) => {
+            Ok(None)
+        }
+        (
+            HELP_RUN_RENDERER_PROJECTION_RETAINED,
+            Some(content_hash),
+            Some(kind),
+            Some(schema_version),
+            Some(byte_count),
+            Some(key_version),
+            Some(_),
+        ) => Ok(Some(PayloadRef {
+            content_hash: content_hash.clone(),
+            kind: kind.clone(),
+            schema_version: schema_version.clone(),
+            byte_count,
+            key_version,
+        })),
+        _ => Err(StoreError::Inconsistent),
+    }
 }
 
 fn verified_method_session(session: &MethodSession) -> Result<VerifiedMethodSession, StoreError> {
@@ -953,16 +1232,27 @@ fn verify_help_run_creation(
     stored: &StoredHelpRunCreation,
     session: &VerifiedMethodSession,
     identity: &DesktopLocalIdentity,
+    renderer_projection: Option<&[u8]>,
 ) -> Result<(), StoreError> {
-    let request = stored_help_run_request(stored)?;
-    let _session_id = parse_contract_id(&stored.session_id)?;
-    let _run_id = parse_contract_id(&stored.run_id)?;
+    let request =
+        stored_help_run_request(stored, renderer_projection.unwrap_or_default().to_vec())?;
+    let session_id = parse_contract_id(&stored.session_id)?;
+    let run_id = parse_contract_id(&stored.run_id)?;
     let request_fingerprint =
         Sha256Digest::parse(&stored.request_fingerprint).map_err(|_| StoreError::Inconsistent)?;
+    verify_help_run_projection(
+        stored,
+        request_fingerprint,
+        &session_id,
+        &run_id,
+        renderer_projection,
+    )?;
     if stored.workspace_grant_epoch == 0
         || stored.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER
         || stored.workspace_catalog_version == 0
         || stored.workspace_catalog_version > MAX_SAFE_JSON_INTEGER
+        || stored.creation_ordinal == 0
+        || stored.creation_ordinal > MAX_SAFE_JSON_INTEGER
         || stored.accepted_at > MAX_SAFE_JSON_INTEGER
         || stored.owner_scope_ref != identity.owner_scope_ref().as_str()
         || stored.installation_id != identity.installation_id().as_str()
@@ -988,8 +1278,60 @@ fn verify_help_run_creation(
     Ok(())
 }
 
+fn verify_help_run_projection(
+    stored: &StoredHelpRunCreation,
+    request_fingerprint: Sha256Digest,
+    session_id: &ContractId,
+    run_id: &ContractId,
+    renderer_projection: Option<&[u8]>,
+) -> Result<(), StoreError> {
+    let retained = stored_help_run_renderer_projection(stored)?;
+    let (Some(reference), Some(renderer_projection)) = (retained.as_ref(), renderer_projection)
+    else {
+        return if retained.is_none() && renderer_projection.is_none() {
+            Ok(())
+        } else {
+            Err(StoreError::Inconsistent)
+        };
+    };
+    let renderer_projection_hash = desktop_runtime::sha256_bytes(renderer_projection);
+    let retained_projection_binding_hash = Sha256Digest::parse(
+        stored
+            .renderer_projection_binding_hash
+            .as_deref()
+            .ok_or(StoreError::Inconsistent)?,
+    )
+    .map_err(|_| StoreError::Inconsistent)?;
+    let expected_projection_binding_hash = help_run_projection_binding_hash(
+        request_fingerprint,
+        session_id,
+        run_id,
+        stored.workspace_catalog_version,
+        stored.creation_ordinal,
+        UnixMillis(stored.accepted_at),
+        renderer_projection_hash,
+    )?;
+    let max_bytes = u64::try_from(MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES)
+        .map_err(|_| StoreError::Inconsistent)?;
+    let actual_bytes =
+        u64::try_from(renderer_projection.len()).map_err(|_| StoreError::Inconsistent)?;
+    if reference.kind != HELP_RUN_RENDERER_PROJECTION_KIND
+        || reference.schema_version != HELP_RUN_RENDERER_PROJECTION_SCHEMA
+        || reference.byte_count == 0
+        || reference.byte_count > max_bytes
+        || reference.byte_count != actual_bytes
+        || reference.content_hash != renderer_projection_hash.to_string()
+        || retained_projection_binding_hash != expected_projection_binding_hash
+    {
+        Err(StoreError::Inconsistent)
+    } else {
+        Ok(())
+    }
+}
+
 fn stored_help_run_request(
     stored: &StoredHelpRunCreation,
+    renderer_projection: Vec<u8>,
 ) -> Result<BmadHelpRunCreateRequest, StoreError> {
     Ok(BmadHelpRunCreateRequest {
         request_id: parse_contract_id(&stored.request_id)?,
@@ -1005,6 +1347,7 @@ fn stored_help_run_request(
             .map_err(|_| StoreError::Inconsistent)?,
         intent_hash: Sha256Digest::parse(&stored.intent_hash)
             .map_err(|_| StoreError::Inconsistent)?,
+        renderer_projection,
         accepted_at: UnixMillis(stored.accepted_at),
     })
 }
@@ -1624,7 +1967,11 @@ fn load_help_run_creation_rows(
                 session_id, project_id, run_id, authority_id, authority_epoch,
                 local_store_id, workspace_id, workspace_grant_epoch,
                 workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
-                foundation_binding_hash, intent_hash, accepted_at
+                foundation_binding_hash, intent_hash, renderer_projection_state,
+                renderer_projection_content_hash,
+                renderer_projection_kind, renderer_projection_schema_version,
+                renderer_projection_byte_count, renderer_projection_key_version,
+                renderer_projection_binding_hash, creation_ordinal, accepted_at
          FROM bmad_help_run_creations
          ORDER BY owner_scope_ref, installation_id, request_id",
     )?;
@@ -1683,7 +2030,11 @@ fn verify_help_run_creation_rows(
         let session = sessions
             .get(&row.session_id)
             .ok_or(StoreError::Inconsistent)?;
-        verify_help_run_creation(row, session, identity)?;
+        let renderer_projection = stored_help_run_renderer_projection(row)?
+            .as_ref()
+            .map(|reference| store.get_payload(reference))
+            .transpose()?;
+        verify_help_run_creation(row, session, identity, renderer_projection.as_deref())?;
         if receipts.insert(row.session_id.as_str(), row).is_some() {
             return Err(StoreError::Inconsistent);
         }
@@ -1706,7 +2057,7 @@ fn verify_help_run_creation_rows(
         let bytes = store.get_payload(&event.payload)?;
         let source = std::str::from_utf8(&bytes).map_err(|_| StoreError::Inconsistent)?;
         let initial = MethodSession::from_persisted_json(source)?;
-        let request = stored_help_run_request(receipt)?;
+        let request = stored_help_run_request(receipt, Vec::new())?;
         if initial.session_id().as_str() != receipt.session_id
             || initial.scope().run_id.as_str() != receipt.run_id
             || validate_new_help_run_candidate(&initial, &request, identity)? != source

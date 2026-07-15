@@ -20,6 +20,7 @@ import {
   getDefaultHostRuntime,
   getSafeHostMessage,
   type DesktopHostClient,
+  HostCapabilityError,
   HostCommandError,
   type ContextPreviewProjection,
   type HostRuntime,
@@ -50,6 +51,9 @@ const browserDemoWorkspace: WorkspaceProjection = {
   grantEpoch: 0,
   permissions: "read_only",
 };
+
+const retainedHelpProjectionUnavailableMessage =
+  "A retained Method session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local Method session for this workspace grant.";
 
 type HostUiRuntime = HostRuntime | { kind: "loading" };
 
@@ -93,6 +97,8 @@ export function App({
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
   const [contextProvenance, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
+  const [bmadHelpState, setBmadHelpState] = useState<BmadHelpUiState>({ kind: "no_evidence" });
+  const [methodGuidanceBusy, setMethodGuidanceBusy] = useState(false);
   const inspectorIsOverlay = useMediaQuery("(max-width: 1050px)");
   const sessionsIsOverlay = useMediaQuery("(max-width: 820px)");
   const workspaceActionBusyRef = useRef(false);
@@ -101,6 +107,8 @@ export function App({
   const hostBindingGenerationRef = useRef(0);
   const bmadProjectionGenerationRef = useRef(0);
   const bmadLibraryRequestedRef = useRef(false);
+  const bmadHelpGenerationRef = useRef(0);
+  const bmadHelpCreationRef = useRef<Promise<void> | null>(null);
 
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId) ?? fallbackSession,
@@ -136,7 +144,20 @@ export function App({
     ? hostRuntime.client
     : null;
   const methodLibraryAvailable = methodLibraryClient !== null;
-  const bmadHelpState: BmadHelpUiState = { kind: "no_evidence" };
+  const methodGuidanceClient = hostRuntime.kind === "ready"
+    && activeWorkspace !== null
+    && activeWorkspace.grantEpoch >= 1
+    && (["bmad.library.snapshot", "bmad.help.latest", "run.create"] as const).every(
+      (command) => hostRuntime.bootstrap.supportedCommands.includes(command),
+    )
+    ? hostRuntime.client
+    : null;
+  const methodGuidanceAvailable = methodGuidanceClient !== null
+    && bmadHelpState.kind !== "unavailable";
+  const methodGuidanceBindingKey = hostRuntime.kind === "ready"
+    || hostRuntime.kind === "read_only_recovery"
+    ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
+    : hostRuntime.kind;
   const workspaceSource = useMemo(() => {
     if (hostRuntime.kind === "browser_demo") {
       return browserDemoWorkspaceSource;
@@ -256,11 +277,19 @@ export function App({
     setBmadLibraryState({ kind: "idle" });
   }, []);
 
+  const clearBmadHelpProjection = useCallback(() => {
+    bmadHelpGenerationRef.current += 1;
+    bmadHelpCreationRef.current = null;
+    setMethodGuidanceBusy(false);
+    setBmadHelpState({ kind: "no_evidence" });
+  }, []);
+
   function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
     hostBindingGenerationRef.current += 1;
     setContextPreview(null);
     setContextProvenance(null);
     clearMethodLibraryProjection();
+    clearBmadHelpProjection();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -291,6 +320,7 @@ export function App({
     setContextPreview(null);
     setContextProvenance(null);
     clearMethodLibraryProjection();
+    clearBmadHelpProjection();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -378,6 +408,66 @@ export function App({
       setInspectorTab((current) => current === "method" ? "changes" : current);
     }
   }, [activeWorkspaceId, clearMethodLibraryProjection, methodLibraryClient]);
+
+  useEffect(() => {
+    const generation = ++bmadHelpGenerationRef.current;
+    bmadHelpCreationRef.current = null;
+    setBmadHelpState({ kind: "no_evidence" });
+    if (!methodGuidanceClient || !activeWorkspace) {
+      setMethodGuidanceBusy(false);
+      return;
+    }
+
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    const projectionSequence = hostRuntime.kind === "ready"
+      ? hostRuntime.bootstrap.projectionSequence
+      : 0;
+    setMethodGuidanceBusy(true);
+    setBmadHelpState({ kind: "loading" });
+    void client.latestBmadHelpRun(workspace.workspaceId, workspace.grantEpoch)
+      .then((result) => {
+        if (generation !== bmadHelpGenerationRef.current) {
+          return;
+        }
+        if (result.kind === "no_run") {
+          setBmadHelpState({ kind: "no_evidence" });
+          return;
+        }
+        if (result.kind === "retained") {
+          setBmadHelpState({ kind: "ready", run: result.run });
+          return;
+        }
+        setBmadHelpState({
+          kind: "legacy_projection_unavailable",
+          message: retainedHelpProjectionUnavailableMessage,
+        });
+      })
+      .catch((error: unknown) => {
+        if (generation !== bmadHelpGenerationRef.current) {
+          return;
+        }
+        if (
+          error instanceof HostCommandError
+          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+        ) {
+          markReadOnlyRecovery(client, projectionSequence);
+          return;
+        }
+        setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
+      })
+      .finally(() => {
+        if (generation === bmadHelpGenerationRef.current) {
+          setMethodGuidanceBusy(false);
+        }
+      });
+
+    return () => {
+      if (generation === bmadHelpGenerationRef.current) {
+        bmadHelpGenerationRef.current += 1;
+      }
+    };
+  }, [methodGuidanceBindingKey, methodGuidanceClient]);
 
   useEffect(() => {
     if (hostRuntime.kind !== "ready" && hostRuntime.kind !== "read_only_recovery") {
@@ -547,8 +637,67 @@ export function App({
     }
   }
 
-  function submitTask() {
-    // Connected task submission is intentionally absent from this internal desktop build.
+  function submitTask(currentIntent: string): Promise<void> {
+    if (bmadHelpCreationRef.current) {
+      return bmadHelpCreationRef.current;
+    }
+    if (
+      !methodGuidanceAvailable
+      || methodGuidanceBusy
+      || !methodGuidanceClient
+      || !activeWorkspace
+    ) {
+      return Promise.reject(
+        new HostCapabilityError("Method guidance is unavailable for the active workspace grant."),
+      );
+    }
+
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    const projectionSequence = hostRuntime.kind === "ready"
+      ? hostRuntime.bootstrap.projectionSequence
+      : 0;
+    const generation = ++bmadHelpGenerationRef.current;
+    setMethodGuidanceBusy(true);
+    setBmadHelpState({ kind: "loading" });
+
+    const creation = client.createBmadHelpRun(
+      workspace.workspaceId,
+      workspace.grantEpoch,
+      currentIntent,
+    ).then((run) => {
+      if (generation !== bmadHelpGenerationRef.current) {
+        throw new HostCapabilityError(
+          "The Method guidance result no longer belongs to the active workspace grant.",
+        );
+      }
+      setBmadHelpState({ kind: "ready", run });
+      setInspectorTab("method");
+      setSessionRailOpen(false);
+      setInspectorOpen(true);
+      if (!bmadLibraryRequestedRef.current) {
+        void loadMethodLibrary(client);
+      }
+    }).catch((error: unknown) => {
+      if (generation === bmadHelpGenerationRef.current) {
+        if (
+          error instanceof HostCommandError
+          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+        ) {
+          markReadOnlyRecovery(client, projectionSequence);
+        } else {
+          setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
+        }
+      }
+      throw error;
+    }).finally(() => {
+      if (bmadHelpCreationRef.current === creation) {
+        bmadHelpCreationRef.current = null;
+        setMethodGuidanceBusy(false);
+      }
+    });
+    bmadHelpCreationRef.current = creation;
+    return creation;
   }
 
   async function selectWorkspace() {
@@ -699,7 +848,9 @@ export function App({
               isInert={workbenchIsInert}
               isNewSession={isNewSession}
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
-              key={selectedSessionId}
+              key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
+              methodGuidanceAvailable={methodGuidanceAvailable}
+              methodGuidanceBusy={methodGuidanceBusy}
               methodLibraryAvailable={methodLibraryAvailable}
               onOpenMethodLibrary={openMethodLibrary}
               onOpenInspector={() => {

@@ -29,6 +29,8 @@ const d1ReadyCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  "bmad.help.latest",
+  "run.create",
   "context.preview",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];

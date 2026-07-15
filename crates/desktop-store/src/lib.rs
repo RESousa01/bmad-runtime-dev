@@ -38,7 +38,8 @@ mod bmad_method;
 mod migrations;
 
 pub use bmad_method::{
-    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunReplayRequest,
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    BmadHelpRunReplayRequest, MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
 };
 
 #[cfg(test)]
@@ -2270,7 +2271,7 @@ mod tests {
         drop(store);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 8);
+        assert_eq!(reopened.schema_version()?, 9);
         reopened.verify_integrity()?;
         Ok(())
     }

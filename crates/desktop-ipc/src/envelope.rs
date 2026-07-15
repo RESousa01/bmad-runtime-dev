@@ -180,6 +180,7 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.search"
             | "bmad.scan"
             | "bmad.library.snapshot"
+            | "bmad.help.latest"
             | "run.create"
             | "context.preview"
     )
@@ -297,6 +298,13 @@ struct CreateBmadRunPayload {
     current_intent: String,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LatestBmadHelpRunPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+}
+
 fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
     match command {
         "app.get_boot_state" => {
@@ -327,10 +335,22 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             })
         }
         "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
+        "bmad.help.latest" => parse_bmad_help_latest(payload),
         "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
         _ => parse_later_phase_command(command, payload),
     }
+}
+
+fn parse_bmad_help_latest(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: LatestBmadHelpRunPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::LatestBmadHelpRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+    })
 }
 
 fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {

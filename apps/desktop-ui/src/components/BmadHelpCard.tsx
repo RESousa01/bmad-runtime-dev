@@ -3,6 +3,7 @@ import type {
   BmadAvailability,
   BmadHelpConfidence,
   BmadHelpRecommendationProjection,
+  BmadHelpRunCreatedProjection,
   BmadHelpUiState,
 } from "../lib/bmadProjection";
 
@@ -108,6 +109,24 @@ function ReadyRecommendation({
   );
 }
 
+function ReadyHelpRun({ run }: { readonly run: BmadHelpRunCreatedProjection }) {
+  return (
+    <div className="bmad-help-card__run">
+      <div className="bmad-help-card__run-status" role="status">
+        <strong>Created</strong>
+        <span>Unbound</span>
+        <span>No model request</span>
+        <span>Execution unavailable</span>
+      </div>
+      <p>
+        This local Method session is source-grounded but has no model or execution
+        binding. It cannot change the workspace or claim completion.
+      </p>
+      <ReadyRecommendation recommendation={run.recommendation} />
+    </div>
+  );
+}
+
 function HelpBody({ state }: BmadHelpCardProps) {
   switch (state.kind) {
     case "no_evidence":
@@ -123,10 +142,11 @@ function HelpBody({ state }: BmadHelpCardProps) {
           Finding a source-grounded recommendation…
         </p>
       );
+    case "legacy_projection_unavailable":
     case "unavailable":
       return <p role="alert">{state.message}</p>;
     case "ready":
-      return <ReadyRecommendation recommendation={state.recommendation} />;
+      return <ReadyHelpRun run={state.run} />;
   }
 }
 

@@ -123,11 +123,27 @@ export interface BmadHelpRecommendationProjection {
   readonly completionClaimed: false;
 }
 
+export interface BmadHelpRunCreatedProjection {
+  readonly schemaVersion: "bmad-help-run.v1";
+  readonly runKind: "bmad_help";
+  readonly lifecycle: "created_unbound";
+  readonly workspaceId: string;
+  readonly runId: string;
+  readonly sessionId: string;
+  readonly runnable: false;
+  readonly completionClaimed: false;
+  readonly recommendation: BmadHelpRecommendationProjection;
+}
+
 export type BmadHelpUiState =
   | { readonly kind: "no_evidence" }
   | { readonly kind: "loading" }
   | {
+    readonly kind: "legacy_projection_unavailable";
+    readonly message: string;
+  }
+  | {
     readonly kind: "ready";
-    readonly recommendation: BmadHelpRecommendationProjection;
+    readonly run: BmadHelpRunCreatedProjection;
   }
   | { readonly kind: "unavailable"; readonly message: string };

@@ -46,5 +46,6 @@ pub use bmad_help::{
     BmadHelpRecommendationProjection, MAX_BMAD_HELP_RECOMMENDATION_BYTES,
 };
 pub use bmad_run::{
-    project_created_bmad_help_run, BmadHelpRunCreatedProjection, MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
+    decode_retained_bmad_help_run, project_created_bmad_help_run, BmadHelpRunCreatedProjection,
+    MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
 };

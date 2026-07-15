@@ -105,6 +105,8 @@ pub enum HostCommandData {
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
     BmadHelpRunCreated(BmadHelpRunCreatedProjection),
+    NoBmadHelpRun,
+    BmadHelpProjectionUnavailable,
     ContextPreview(ContextPreviewProjection),
 }
 

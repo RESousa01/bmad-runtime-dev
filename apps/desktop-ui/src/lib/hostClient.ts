@@ -4,6 +4,9 @@ import type {
   BmadBlockerCode,
   BmadEntrypointKind,
   BmadHelpActionProjection,
+  BmadHelpConfidence,
+  BmadHelpRecommendationProjection,
+  BmadHelpRunCreatedProjection,
   BmadInstalledSkillProjection,
   BmadLibrarySnapshot,
   BmadMenuTargetKind,
@@ -17,6 +20,8 @@ const DISPATCH_REPLY_SCHEMA = "desktop-dispatch-reply.v1" as const;
 const PROJECTION_REQUEST_SCHEMA = "desktop-projection-request.v1" as const;
 const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
 const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
+const BMAD_HELP_RECOMMENDATION_SCHEMA = "bmad-help-recommendation.v1" as const;
+const BMAD_HELP_RUN_SCHEMA = "bmad-help-run.v1" as const;
 
 const bmadProjectionLimits = {
   responseBytes: 256 * 1024,
@@ -30,6 +35,9 @@ const bmadProjectionLimits = {
   descriptionBytes: 2_048,
   iconBytes: 64,
   cursorBytes: 256,
+  helpIntentBytes: 4_096,
+  helpReasonBytes: 4_096,
+  helpRunResponseBytes: (64 * 1_024) + 1_024,
 } as const;
 
 const bmadAvailabilities = new Set<BmadAvailability>([
@@ -58,6 +66,13 @@ const bmadMenuTargetKinds = new Set<BmadMenuTargetKind>([
   "skill_target",
   "prompt_reference",
 ]);
+const bmadHelpConfidences = new Set<BmadHelpConfidence>([
+  "authoritative",
+  "user_asserted",
+  "heuristic",
+  "contextual",
+  "unknown",
+]);
 
 export const desktopHostCommands = [
   "app.get_boot_state",
@@ -69,6 +84,8 @@ export const desktopHostCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  "bmad.help.latest",
+  "run.create",
   "context.preview",
 ] as const;
 
@@ -235,6 +252,14 @@ export interface ContextPreviewProjection {
   modelTarget: null;
 }
 
+export type LatestBmadHelpRunResult =
+  | { readonly kind: "no_run" }
+  | { readonly kind: "projection_unavailable" }
+  | {
+    readonly kind: "retained";
+    readonly run: BmadHelpRunCreatedProjection;
+  };
+
 export interface HostBinding {
   rendererSessionId: string;
   installationId: string;
@@ -250,7 +275,9 @@ type RendererDispatchCommand =
   | "workspace.search"
   | "bmad.scan"
   | "bmad.library.snapshot"
-  | "context.preview";
+  | "bmad.help.latest"
+  | "context.preview"
+  | "run.create";
 
 export interface CommandEnvelope<
   TCommand extends RendererDispatchCommand,
@@ -415,6 +442,27 @@ function asBmadSafeText(value: unknown, maximumBytes: number): string {
   return value;
 }
 
+function asBmadNonemptySafeText(value: unknown, maximumBytes: number): string {
+  const text = asBmadSafeText(value, maximumBytes);
+  if (text.trim().length === 0) {
+    return fail();
+  }
+  return text;
+}
+
+function asBmadHelpIntent(value: unknown): string {
+  if (
+    typeof value !== "string"
+    || value.trim().length === 0
+    || utf8Length(value) > bmadProjectionLimits.helpIntentBytes
+    || hasUnpairedSurrogate(value)
+    || /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
 function asBmadAvailability(value: unknown): BmadAvailability {
   const availability = asBmadIdentifier(value) as BmadAvailability;
   if (!bmadAvailabilities.has(availability)) {
@@ -437,6 +485,14 @@ function asBmadMenuTargetKind(value: unknown): BmadMenuTargetKind {
     return fail();
   }
   return targetKind;
+}
+
+function asBmadHelpConfidence(value: unknown): BmadHelpConfidence {
+  const confidence = asBmadIdentifier(value) as BmadHelpConfidence;
+  if (!bmadHelpConfidences.has(confidence)) {
+    return fail();
+  }
+  return confidence;
 }
 
 function asBmadBlockerCode(value: unknown): BmadBlockerCode {
@@ -733,7 +789,11 @@ function parseLocalHostError(value: unknown): LocalHostError {
 function parseDispatchReply(
   value: unknown,
   requestId: string,
-): { data: Record<string, unknown>; sequence: number } {
+): {
+  data: Record<string, unknown>;
+  sequence: number;
+  receipt: { acceptedAt: number; operationId: string | null };
+} {
   const reply = asRecord(value);
   if (reply.schemaVersion !== DISPATCH_REPLY_SCHEMA) {
     return fail();
@@ -763,12 +823,13 @@ function parseDispatchReply(
   if (receipt.requestId !== requestId) {
     return fail();
   }
-  asUnsignedInteger(receipt.acceptedAt);
-  asNullableContractId(receipt.operationId);
+  const acceptedAt = asUnsignedInteger(receipt.acceptedAt);
+  const operationId = asNullableContractId(receipt.operationId);
 
   return {
     data: asRecord(reply.data),
     sequence: asUnsignedInteger(reply.sequence),
+    receipt: { acceptedAt, operationId },
   };
 }
 
@@ -1058,9 +1119,132 @@ function parseBmadProjectionSource(value: unknown): BmadProjectionSource {
   }
   return {
     sourceKind: source.sourceKind,
-    packageName: asBmadSafeText(source.packageName, bmadProjectionLimits.identifierBytes),
-    packageVersion: asBmadSafeText(source.packageVersion, bmadProjectionLimits.identifierBytes),
+    packageName: asBmadNonemptySafeText(source.packageName, bmadProjectionLimits.identifierBytes),
+    packageVersion: asBmadNonemptySafeText(
+      source.packageVersion,
+      bmadProjectionLimits.identifierBytes,
+    ),
   };
+}
+
+function assertBmadAvailabilityBlockers(
+  availability: BmadAvailability,
+  blockerCodes: readonly BmadBlockerCode[],
+): void {
+  const expected = availability === "available"
+    ? []
+    : [({
+      capability_disabled: "bmad_capability_disabled",
+      dependency_unavailable: "bmad_dependency_unavailable",
+      orphan_skill: "bmad_help_catalog_orphan",
+      network_unavailable: "bmad_network_reference_unavailable",
+      source_prompt_unavailable: "bmad_source_prompt_unavailable",
+    } as const)[availability]];
+  if (
+    blockerCodes.length !== expected.length
+    || blockerCodes.some((code, index) => code !== expected[index])
+  ) {
+    fail();
+  }
+}
+
+function parseBmadHelpRecommendation(value: unknown): BmadHelpRecommendationProjection {
+  const recommendation = asRecord(value);
+  assertExactKeys(recommendation, [
+    "schemaVersion",
+    "displayName",
+    "moduleCode",
+    "skillName",
+    "action",
+    "confidence",
+    "source",
+    "reason",
+    "requiredGuidance",
+    "expectedArtifacts",
+    "availability",
+    "blockerCodes",
+    "completionClaimed",
+  ]);
+  if (
+    recommendation.schemaVersion !== BMAD_HELP_RECOMMENDATION_SCHEMA
+    || recommendation.completionClaimed !== false
+    || !Array.isArray(recommendation.expectedArtifacts)
+    || recommendation.expectedArtifacts.length > bmadProjectionLimits.expectedArtifacts
+  ) {
+    return fail();
+  }
+  const availability = asBmadAvailability(recommendation.availability);
+  const blockerCodes = parseBmadBlockerCodes(recommendation.blockerCodes);
+  assertBmadAvailabilityBlockers(availability, blockerCodes);
+  return {
+    schemaVersion: BMAD_HELP_RECOMMENDATION_SCHEMA,
+    displayName: asBmadNonemptySafeText(
+      recommendation.displayName,
+      bmadProjectionLimits.identifierBytes,
+    ),
+    moduleCode: asBmadIdentifier(recommendation.moduleCode),
+    skillName: asBmadIdentifier(recommendation.skillName),
+    action: asNullableBmadIdentifier(recommendation.action),
+    confidence: asBmadHelpConfidence(recommendation.confidence),
+    source: parseBmadProjectionSource(recommendation.source),
+    reason: asBmadNonemptySafeText(
+      recommendation.reason,
+      bmadProjectionLimits.helpReasonBytes,
+    ),
+    requiredGuidance: asBoolean(recommendation.requiredGuidance),
+    expectedArtifacts: recommendation.expectedArtifacts.map((artifact) =>
+      asBmadNonemptySafeText(artifact, bmadProjectionLimits.identifierBytes)
+    ),
+    availability,
+    blockerCodes,
+    completionClaimed: false,
+  };
+}
+
+function parseBmadHelpRunCreated(
+  value: unknown,
+  expectedWorkspaceId: string,
+): BmadHelpRunCreatedProjection {
+  const run = asRecord(value);
+  assertExactKeys(run, [
+    "schemaVersion",
+    "runKind",
+    "lifecycle",
+    "workspaceId",
+    "runId",
+    "sessionId",
+    "runnable",
+    "completionClaimed",
+    "recommendation",
+  ]);
+  if (
+    run.schemaVersion !== BMAD_HELP_RUN_SCHEMA
+    || run.runKind !== "bmad_help"
+    || run.lifecycle !== "created_unbound"
+    || run.runnable !== false
+    || run.completionClaimed !== false
+  ) {
+    return fail();
+  }
+  const workspaceId = asContractId(run.workspaceId);
+  if (workspaceId !== expectedWorkspaceId) {
+    return fail();
+  }
+  const projection: BmadHelpRunCreatedProjection = {
+    schemaVersion: BMAD_HELP_RUN_SCHEMA,
+    runKind: "bmad_help",
+    lifecycle: "created_unbound",
+    workspaceId,
+    runId: asContractId(run.runId),
+    sessionId: asContractId(run.sessionId),
+    runnable: false,
+    completionClaimed: false,
+    recommendation: parseBmadHelpRecommendation(run.recommendation),
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.helpRunResponseBytes) {
+    return fail();
+  }
+  return projection;
 }
 
 function parseBmadInstalledSkill(value: unknown): BmadInstalledSkillProjection {
@@ -1252,6 +1436,58 @@ function parseBmadLibrarySnapshotReply(
   }
   return {
     projection: parseBmadLibrarySnapshot(data.value),
+    sequence: parsed.sequence,
+  };
+}
+
+function parseBmadHelpRunCreatedReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { projection: BmadHelpRunCreatedProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_help_run_created") {
+    return fail();
+  }
+  const projection = parseBmadHelpRunCreated(data.value, workspaceId);
+  if (parsed.receipt.operationId !== projection.runId) {
+    return fail();
+  }
+  return { projection, sequence: parsed.sequence };
+}
+
+function parseLatestBmadHelpRunReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { result: LatestBmadHelpRunResult; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) {
+    return fail();
+  }
+  const data = parsed.data;
+  if (data.kind === "no_bmad_help_run") {
+    assertExactKeys(data, ["kind"]);
+    return { result: { kind: "no_run" }, sequence: parsed.sequence };
+  }
+  if (data.kind === "bmad_help_projection_unavailable") {
+    assertExactKeys(data, ["kind"]);
+    return {
+      result: { kind: "projection_unavailable" },
+      sequence: parsed.sequence,
+    };
+  }
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_help_run_created") {
+    return fail();
+  }
+  return {
+    result: {
+      kind: "retained",
+      run: parseBmadHelpRunCreated(data.value, workspaceId),
+    },
     sequence: parsed.sequence,
   };
 }
@@ -1503,9 +1739,68 @@ function buildWorkspaceRevocationEnvelope(
   };
 }
 
+function buildBmadHelpRunEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  currentIntent: string,
+): CommandEnvelope<"run.create", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  runKind: "bmad_help";
+  currentIntent: string;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "run.create",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+      runKind: "bmad_help",
+      currentIntent,
+    },
+  };
+}
+
+function buildLatestBmadHelpRunEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+): CommandEnvelope<"bmad.help.latest", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.help.latest",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+    },
+  };
+}
+
 function buildReadOnlyEnvelope<TCommand extends Exclude<
   RendererDispatchCommand,
-  "workspace.select_folder" | "workspace.list" | "workspace.revoke"
+  | "workspace.select_folder"
+  | "workspace.list"
+  | "workspace.revoke"
+  | "bmad.help.latest"
+  | "run.create"
 >>(
   binding: HostBinding,
   requestId: string,
@@ -1896,6 +2191,67 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async createBmadHelpRun(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    currentIntentValue: string,
+  ): Promise<BmadHelpRunCreatedProjection> {
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "run.create",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const currentIntent = asBmadHelpIntent(currentIntentValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadHelpRunEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      currentIntent,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpRunCreatedReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, "run.create");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async latestBmadHelpRun(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): Promise<LatestBmadHelpRunResult> {
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "bmad.help.latest",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildLatestBmadHelpRunEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseLatestBmadHelpRunReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(
+      workspaceId,
+      workspaceGrantEpoch,
+      "bmad.help.latest",
+    );
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.result;
+  }
+
   async previewContext(
     workspaceId: string,
     relativePathValues: readonly string[],
@@ -2011,6 +2367,29 @@ export class DesktopHostClient {
       || !bootstrap.supportedCommands.includes("bmad.library.snapshot")
     ) {
       throw new HostCapabilityError("The Method library is unavailable in the current host mode.");
+    }
+    return bootstrap;
+  }
+
+  private requireBmadHelpWorkspaceCommand(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    command: "bmad.help.latest" | "run.create",
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      !Number.isSafeInteger(workspaceGrantEpoch)
+      || workspaceGrantEpoch < 1
+      || bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes(command)
+      || !bootstrap.workspaces.some((workspace) =>
+        workspace.workspaceId === workspaceId
+        && workspace.grantEpoch === workspaceGrantEpoch
+        && workspace.permissions === "read_only"
+      )
+    ) {
+      throw new HostCapabilityError("Method guidance is unavailable for that workspace grant.");
     }
     return bootstrap;
   }

@@ -1,15 +1,16 @@
 use desktop_ipc::{
-    deserialize_strict, project_bmad_library, project_created_bmad_help_run, Admission,
-    BmadHelpProjectionError, BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext,
-    IpcValidationError,
+    decode_retained_bmad_help_run, deserialize_strict, project_bmad_library,
+    project_created_bmad_help_run, Admission, BmadHelpProjectionError, BmadProjectionError,
+    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
 };
 use desktop_runtime::{
-    canonical_hash, BmadHelpAdvisor, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt,
-    ContractId, CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand,
-    LocalError, LocalErrorCode, ProjectionEventKind, Sha256Digest, UnixMillis,
+    canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
+    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
+    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use desktop_store::{
-    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunReplayRequest, StoreError,
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    BmadHelpRunReplayRequest, StoreError,
 };
 use desktop_workspace::{EntryKind, WorkspaceError};
 use serde::Serialize;
@@ -31,7 +32,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 11] = [
+const READY_COMMANDS: [&str; 12] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -41,6 +42,7 @@ const READY_COMMANDS: [&str; 11] = [
     "workspace.search",
     "bmad.scan",
     "bmad.library.snapshot",
+    "bmad.help.latest",
     "run.create",
     "context.preview",
 ];
@@ -302,8 +304,6 @@ fn execute_command(
     accepted_at: UnixMillis,
     command: LocalCommand,
 ) -> Result<CommandExecution, LocalError> {
-    let mut receipt_accepted_at = accepted_at;
-    let mut operation_id = None;
     let data = match command {
         LocalCommand::GetBootState => Ok(HostCommandData::BootState(boot_state(state))),
         LocalCommand::SelectWorkspace => select_workspace(app, state, request_id),
@@ -320,18 +320,7 @@ fn execute_command(
             workspace_id,
             relative_path,
             max_bytes,
-        } => {
-            let _authority = state.ready_authority()?;
-            state
-                .workspace
-                .read_text(
-                    workspace_id.as_str(),
-                    relative_path.as_str(),
-                    u64::from(max_bytes),
-                )
-                .map(HostCommandData::WorkspaceText)
-                .map_err(|error| map_workspace_error(&error))
-        }
+        } => read_workspace_text(state, &workspace_id, &relative_path, max_bytes),
         LocalCommand::SearchWorkspace {
             workspace_id,
             query,
@@ -361,7 +350,7 @@ fn execute_command(
             workspace_grant_epoch,
             current_intent,
         } => {
-            let created = create_bmad_help_run(
+            return create_bmad_help_run(
                 state,
                 foundation,
                 request_id,
@@ -369,11 +358,17 @@ fn execute_command(
                 workspace_grant_epoch,
                 current_intent,
                 accepted_at,
-            )?;
-            receipt_accepted_at = created.accepted_at;
-            operation_id = Some(created.operation_id);
-            Ok(created.data)
+            )
+            .map(|created| CommandExecution {
+                data: created.data,
+                accepted_at: created.accepted_at,
+                operation_id: Some(created.operation_id),
+            });
         }
+        LocalCommand::LatestBmadHelpRun {
+            workspace_id,
+            workspace_grant_epoch,
+        } => latest_bmad_help_run(state, &workspace_id, workspace_grant_epoch),
         LocalCommand::PreviewContext {
             workspace_id,
             relative_paths,
@@ -397,9 +392,27 @@ fn execute_command(
     }?;
     Ok(CommandExecution {
         data,
-        accepted_at: receipt_accepted_at,
-        operation_id,
+        accepted_at,
+        operation_id: None,
     })
+}
+
+fn read_workspace_text(
+    state: &HostState,
+    workspace_id: &ContractId,
+    relative_path: &RelativeWorkspacePath,
+    max_bytes: u32,
+) -> Result<HostCommandData, LocalError> {
+    let _authority = state.ready_authority()?;
+    state
+        .workspace
+        .read_text(
+            workspace_id.as_str(),
+            relative_path.as_str(),
+            u64::from(max_bytes),
+        )
+        .map(HostCommandData::WorkspaceText)
+        .map_err(|error| map_workspace_error(&error))
 }
 
 fn bmad_library_snapshot(
@@ -451,42 +464,42 @@ fn create_bmad_help_run(
             return Err(recovery_error());
         }
     };
-    if let Some(receipt) = replay {
-        let recommendation = BmadHelpAdvisor::recommend(foundation.catalog(), &current_intent, &[])
-            .map_err(|_| bmad_help_unavailable())?;
-        let result =
-            project_bmad_help_run_execution(foundation, workspace_id, &receipt, &recommendation);
-        drop(authority);
-        return result;
-    }
+    let Some(receipt) = replay else {
+        return match create_new_bmad_help_run(
+            state,
+            authority.authority(),
+            foundation,
+            NewBmadHelpRunInput {
+                request_id,
+                workspace_id,
+                workspace_grant_epoch,
+                workspace_catalog_version,
+                current_intent,
+                accepted_at,
+                fingerprint,
+            },
+        ) {
+            Ok(result) => {
+                drop(authority);
+                Ok(result)
+            }
+            Err(NewBmadHelpRunError::Local(error)) => {
+                drop(authority);
+                Err(error)
+            }
+            Err(NewBmadHelpRunError::Recovery) => {
+                authority.enter_recovery();
+                Err(recovery_error())
+            }
+        };
+    };
 
-    match create_new_bmad_help_run(
-        state,
-        authority.authority(),
-        foundation,
-        NewBmadHelpRunInput {
-            request_id,
-            workspace_id,
-            workspace_grant_epoch,
-            workspace_catalog_version,
-            current_intent,
-            accepted_at,
-            fingerprint,
-        },
-    ) {
-        Ok(result) => {
-            drop(authority);
-            Ok(result)
-        }
-        Err(NewBmadHelpRunError::Local(error)) => {
-            drop(authority);
-            Err(error)
-        }
-        Err(NewBmadHelpRunError::Recovery) => {
-            authority.enter_recovery();
-            Err(recovery_error())
-        }
-    }
+    let Ok(result) = bmad_help_run_execution_from_receipt(&workspace_id, &receipt) else {
+        authority.enter_recovery();
+        return Err(recovery_error());
+    };
+    drop(authority);
+    Ok(result)
 }
 
 fn bmad_help_run_fingerprint(
@@ -568,14 +581,16 @@ fn create_new_bmad_help_run(
     .map_err(|_| NewBmadHelpRunError::Local(bmad_help_unavailable()))?;
 
     // Prove the complete renderer projection is safe before committing authority.
-    project_created_bmad_help_run(
+    let projection = project_created_bmad_help_run(
         foundation.package(),
         &prepared.recommendation,
         workspace_id.clone(),
-        run_id,
-        session_id,
+        run_id.clone(),
+        session_id.clone(),
     )
     .map_err(|error| NewBmadHelpRunError::Local(map_bmad_help_projection_error(error)))?;
+    let renderer_projection =
+        serde_json::to_vec(&projection).map_err(|_| NewBmadHelpRunError::Recovery)?;
 
     let create_request = BmadHelpRunCreateRequest {
         request_id: request_id.clone(),
@@ -587,6 +602,7 @@ fn create_new_bmad_help_run(
         capability_catalog_hash: fingerprint.catalog,
         foundation_binding_hash: fingerprint.foundation,
         intent_hash: fingerprint.intent,
+        renderer_projection,
         accepted_at,
     };
     let receipt = match state.create_bmad_help_run(authority, &prepared.session, &create_request) {
@@ -604,36 +620,69 @@ fn create_new_bmad_help_run(
             state: "created_unbound".to_owned(),
         });
     }
-    let result = project_bmad_help_run_execution(
-        foundation,
-        workspace_id,
-        &receipt,
-        &prepared.recommendation,
-    )
-    .map_err(NewBmadHelpRunError::Local);
+    let result = bmad_help_run_execution_from_receipt(&workspace_id, &receipt)
+        .map_err(|_| NewBmadHelpRunError::Recovery);
     drop(workspace_authority);
     result
 }
 
-fn project_bmad_help_run_execution(
-    foundation: &BmadLoadedFoundation,
-    workspace_id: ContractId,
+fn bmad_help_run_execution_from_receipt(
+    workspace_id: &ContractId,
     receipt: &BmadHelpRunCreationReceipt,
-    recommendation: &desktop_runtime::BmadHelpRecommendation,
-) -> Result<BmadHelpRunExecution, LocalError> {
-    let projection = project_created_bmad_help_run(
-        foundation.package(),
-        recommendation,
+) -> Result<BmadHelpRunExecution, BmadHelpProjectionError> {
+    let projection = decode_retained_bmad_help_run(
+        &receipt.renderer_projection,
         workspace_id,
-        receipt.run_id.clone(),
-        receipt.session_id.clone(),
-    )
-    .map_err(map_bmad_help_projection_error)?;
+        &receipt.run_id,
+        &receipt.session_id,
+    )?;
     Ok(BmadHelpRunExecution {
         data: HostCommandData::BmadHelpRunCreated(projection),
         accepted_at: receipt.accepted_at,
         operation_id: receipt.run_id.clone(),
     })
+}
+
+fn latest_bmad_help_run(
+    state: &HostState,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let Ok(receipt) = state.latest_bmad_help_run(
+        authority.authority(),
+        workspace_id,
+        authority.workspace_catalog_version(),
+    ) else {
+        drop(workspace_authority);
+        authority.enter_recovery();
+        return Err(recovery_error());
+    };
+    let receipt = match receipt {
+        BmadHelpRunLatest::None => {
+            drop(workspace_authority);
+            drop(authority);
+            return Ok(HostCommandData::NoBmadHelpRun);
+        }
+        BmadHelpRunLatest::LegacyProjectionUnavailable => {
+            drop(workspace_authority);
+            drop(authority);
+            return Ok(HostCommandData::BmadHelpProjectionUnavailable);
+        }
+        BmadHelpRunLatest::Retained(receipt) => receipt,
+    };
+    let Ok(execution) = bmad_help_run_execution_from_receipt(workspace_id, &receipt) else {
+        drop(workspace_authority);
+        authority.enter_recovery();
+        return Err(recovery_error());
+    };
+    drop(workspace_authority);
+    drop(authority);
+    Ok(execution.data)
 }
 
 fn new_host_id(prefix: &str) -> Result<ContractId, LocalError> {
@@ -1039,7 +1088,9 @@ mod tests {
         BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalErrorCode, UnixMillis,
     };
 
-    use super::{bmad_library_snapshot, create_bmad_help_run, revoke_workspace};
+    use super::{
+        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run, revoke_workspace,
+    };
     use crate::{bmad_foundation::load_bmad_foundation, state::HostState, wire::HostCommandData};
 
     fn foundation_path() -> std::path::PathBuf {
@@ -1214,6 +1265,47 @@ mod tests {
     }
 
     #[test]
+    fn latest_help_run_recovers_the_exact_safe_projection_after_host_restart() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, storage, _workspace, workspace_id) = ready_workspace_state();
+        let first = create_bmad_help_run(
+            &state,
+            &foundation,
+            &id("request_01J00000000000000000000007"),
+            id(&workspace_id),
+            1,
+            BmadHelpIntent::new("BMad Help").expect("bounded intent"),
+            UnixMillis(1_000),
+        )
+        .expect("created Help run");
+        drop(state);
+
+        let restarted = HostState::initialize(Some(storage.path().join("authority")))
+            .expect("restarted host state");
+        let latest = latest_bmad_help_run(&restarted, &id(&workspace_id), 1)
+            .expect("latest retained Help run");
+
+        assert_eq!(
+            serde_json::to_value(latest).expect("latest projection"),
+            serde_json::to_value(first.data).expect("created projection")
+        );
+    }
+
+    #[test]
+    fn latest_help_run_has_an_exact_empty_result_before_any_run_exists() {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+
+        let latest = latest_bmad_help_run(&state, &id(&workspace_id), 1)
+            .expect("bounded empty latest result");
+
+        assert!(matches!(latest, HostCommandData::NoBmadHelpRun));
+        assert_eq!(
+            serde_json::to_value(latest).expect("empty latest projection"),
+            serde_json::json!({ "kind": "no_bmad_help_run" })
+        );
+    }
+
+    #[test]
     fn stale_second_host_cannot_create_after_durable_workspace_revocation() {
         let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
         let (revoking_state, storage, _workspace, workspace_id) = ready_workspace_state();
@@ -1236,6 +1328,28 @@ mod tests {
             UnixMillis(2_000),
         )
         .expect_err("stale host must not create after revocation");
+
+        assert_eq!(error.code, LocalErrorCode::RecoveryRequired);
+        assert_eq!(
+            stale_state.boot_mode(),
+            crate::wire::BootMode::ReadOnlyRecovery
+        );
+    }
+
+    #[test]
+    fn stale_second_host_cannot_read_latest_after_durable_workspace_revocation() {
+        let (revoking_state, storage, _workspace, workspace_id) = ready_workspace_state();
+        let stale_state = HostState::initialize(Some(storage.path().join("authority")))
+            .expect("second host loaded the original grant");
+
+        revoke_workspace(
+            &revoking_state,
+            &id("request_01J00000000000000000000008"),
+            id(&workspace_id),
+        )
+        .expect("first host durably revoked the workspace");
+        let error = latest_bmad_help_run(&stale_state, &id(&workspace_id), 1)
+            .expect_err("stale host must not read after revocation");
 
         assert_eq!(error.code, LocalErrorCode::RecoveryRequired);
         assert_eq!(

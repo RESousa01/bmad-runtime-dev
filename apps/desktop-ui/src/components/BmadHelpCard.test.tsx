@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type {
   BmadHelpConfidence,
   BmadHelpRecommendationProjection,
+  BmadHelpRunCreatedProjection,
   BmadHelpUiState,
 } from "../lib/bmadProjection";
 import { BmadHelpCard } from "./BmadHelpCard";
@@ -30,12 +31,27 @@ const recommendation: BmadHelpRecommendationProjection = {
   completionClaimed: false,
 };
 
+const run: BmadHelpRunCreatedProjection = {
+  schemaVersion: "bmad-help-run.v1",
+  runKind: "bmad_help",
+  lifecycle: "created_unbound",
+  workspaceId: "workspace-internal-id",
+  runId: "run-internal-id",
+  sessionId: "session-internal-id",
+  runnable: false,
+  completionClaimed: false,
+  recommendation,
+};
+
 function readyState(
   overrides: Partial<BmadHelpRecommendationProjection> = {},
 ): BmadHelpUiState {
   return {
     kind: "ready",
-    recommendation: { ...recommendation, ...overrides },
+    run: {
+      ...run,
+      recommendation: { ...recommendation, ...overrides },
+    },
   };
 }
 
@@ -67,6 +83,18 @@ describe("BmadHelpCard", () => {
     expect(screen.getByText("This guidance does not grant platform permission.")).toBeTruthy();
     expect(screen.getByText("Dependency unavailable")).toBeTruthy();
     expect(screen.getByText("bmad_dependency_unavailable")).toBeTruthy();
+  });
+
+  it("labels the local run as created, unbound, and unable to execute", () => {
+    render(<BmadHelpCard state={readyState()} />);
+
+    expect(screen.getByText("Created")).toBeTruthy();
+    expect(screen.getByText("Unbound")).toBeTruthy();
+    expect(screen.getByText("No model request")).toBeTruthy();
+    expect(screen.getByText("Execution unavailable")).toBeTruthy();
+    expect(document.body.textContent).not.toContain(run.workspaceId);
+    expect(document.body.textContent).not.toContain(run.runId);
+    expect(document.body.textContent).not.toContain(run.sessionId);
   });
 
   it("renders an honest no-evidence state", () => {

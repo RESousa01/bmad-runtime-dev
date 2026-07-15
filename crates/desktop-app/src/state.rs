@@ -12,8 +12,9 @@ use desktop_runtime::{
     ProjectionEvent, ProjectionEventKind, ProjectionSnapshot, UnixMillis,
 };
 use desktop_store::{
-    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunReplayRequest, EvidenceAppend,
-    LocalStore, PayloadRef, StoreError, UserDpapiProtector,
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    BmadHelpRunReplayRequest, EvidenceAppend, LocalStore, PayloadRef, StoreError,
+    UserDpapiProtector,
 };
 use desktop_workspace::{WorkspaceBroker, WorkspaceProjection};
 use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
@@ -276,6 +277,18 @@ impl HostState {
             .as_ref()
             .ok_or(StoreError::Inconsistent)?
             .create_bmad_help_run(candidate, request)
+    }
+
+    pub fn latest_bmad_help_run(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+        workspace_id: &ContractId,
+        expected_workspace_catalog_version: u64,
+    ) -> Result<BmadHelpRunLatest, StoreError> {
+        self.store
+            .as_ref()
+            .ok_or(StoreError::Inconsistent)?
+            .latest_bmad_help_run(workspace_id, expected_workspace_catalog_version)
     }
 
     /// Enters recovery once and publishes the corresponding projection before

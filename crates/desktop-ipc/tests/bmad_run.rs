@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use desktop_ipc::{
-    project_created_bmad_help_run, CommandEnvelopeValidator, IpcValidationContext,
-    IpcValidationError, MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
+    decode_retained_bmad_help_run, project_created_bmad_help_run, CommandEnvelopeValidator,
+    IpcValidationContext, IpcValidationError, MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
 };
 use desktop_runtime::{
     sha256_bytes, BmadCatalogAvailability, BmadEntrypointKind, BmadHelpActionKey,
@@ -29,11 +29,11 @@ fn context(allowed_commands: &[&str]) -> IpcValidationContext {
     }
 }
 
-fn envelope(payload: &Value) -> Vec<u8> {
+fn named_envelope(command: &str, payload: &Value) -> Vec<u8> {
     serde_json::to_vec(&json!({
         "schemaVersion": "desktop-ipc-command.v1",
         "requestId": "request_1",
-        "command": "run.create",
+        "command": command,
         "windowLabel": "main",
         "rendererSessionId": "renderer_session_1",
         "installationId": "installation_1",
@@ -41,6 +41,10 @@ fn envelope(payload: &Value) -> Vec<u8> {
         "payload": payload,
     }))
     .expect("command JSON")
+}
+
+fn envelope(payload: &Value) -> Vec<u8> {
+    named_envelope("run.create", payload)
 }
 
 fn valid_payload() -> Value {
@@ -110,6 +114,22 @@ fn package() -> BmadLoadedPackage {
             structurally_eligible: true,
         }],
     }
+}
+
+fn created_projection() -> desktop_ipc::BmadHelpRunCreatedProjection {
+    project_created_bmad_help_run(
+        &package(),
+        &recommendation(),
+        id("workspace_1"),
+        id("run_1"),
+        id("session_1"),
+    )
+    .expect("safe inert run projection")
+}
+
+fn decode_created_projection(bytes: &[u8]) -> desktop_ipc::BmadHelpRunCreatedProjection {
+    decode_retained_bmad_help_run(bytes, &id("workspace_1"), &id("run_1"), &id("session_1"))
+        .expect("valid retained Help run projection")
 }
 
 #[test]
@@ -244,6 +264,94 @@ fn run_create_rejects_every_renderer_supplied_authority_or_execution_field() {
 }
 
 #[test]
+fn latest_help_run_is_a_read_only_exact_workspace_scoped_command() {
+    let payload = json!({
+        "workspaceId": "workspace_1",
+        "workspaceGrantEpoch": 7,
+    });
+    let bytes = named_envelope("bmad.help.latest", &payload);
+    assert!(matches!(
+        CommandEnvelopeValidator::parse(&bytes, &context(&[])),
+        Err(IpcValidationError::CapabilityUnavailable)
+    ));
+
+    let validated = CommandEnvelopeValidator::parse(&bytes, &context(&["bmad.help.latest"]))
+        .expect("advertised bmad.help.latest");
+    assert!(matches!(
+        validated.command(),
+        LocalCommand::LatestBmadHelpRun { .. }
+    ));
+    if let LocalCommand::LatestBmadHelpRun {
+        workspace_id,
+        workspace_grant_epoch,
+    } = validated.command()
+    {
+        assert_eq!(workspace_id.as_str(), "workspace_1");
+        assert_eq!(*workspace_grant_epoch, 7);
+    }
+    assert_eq!(validated.command().name(), "bmad.help.latest");
+    assert!(!validated.command().is_mutating());
+}
+
+#[test]
+fn latest_help_run_rejects_unknown_extra_missing_duplicate_and_unsafe_payloads() {
+    let valid = json!({
+        "workspaceId": "workspace_1",
+        "workspaceGrantEpoch": 7,
+    });
+    assert!(matches!(
+        CommandEnvelopeValidator::parse(
+            &named_envelope("bmad.help.latest.unknown", &valid),
+            &context(&["bmad.help.latest.unknown"]),
+        ),
+        Err(IpcValidationError::UnknownCommand)
+    ));
+
+    for payload in [
+        json!({
+            "workspaceId": "workspace_1",
+            "workspaceGrantEpoch": 0,
+        }),
+        json!({
+            "workspaceId": "workspace_1",
+            "workspaceGrantEpoch": MAX_SAFE_JSON_INTEGER + 1,
+        }),
+        json!({
+            "workspaceGrantEpoch": 7,
+        }),
+        json!({
+            "workspaceId": "workspace_1",
+        }),
+        json!({
+            "workspaceId": "workspace_1",
+            "workspaceGrantEpoch": 7,
+            "runId": "renderer_supplied",
+        }),
+    ] {
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(
+                &named_envelope("bmad.help.latest", &payload),
+                &context(&["bmad.help.latest"]),
+            ),
+            Err(IpcValidationError::InvalidPayload)
+        ));
+    }
+
+    let text = String::from_utf8(named_envelope("bmad.help.latest", &valid))
+        .expect("command envelope UTF-8");
+    let duplicate = text.replacen(
+        "\"workspaceId\":\"workspace_1\"",
+        "\"workspaceId\":\"workspace_1\",\"workspaceId\":\"workspace_1\"",
+        1,
+    );
+    assert_ne!(duplicate, text, "duplicate-key fixture must be effective");
+    assert!(matches!(
+        CommandEnvelopeValidator::parse(duplicate.as_bytes(), &context(&["bmad.help.latest"]),),
+        Err(IpcValidationError::InvalidJson)
+    ));
+}
+
+#[test]
 fn created_help_run_projection_is_exact_inert_and_disclosure_safe() {
     let internal = recommendation();
     let hidden_hashes = [
@@ -341,6 +449,122 @@ fn created_help_run_projection_rejects_completion_or_unsafe_recommendations() {
         id("workspace_1"),
         id("run_1"),
         id("session_1"),
+    )
+    .is_err());
+}
+
+#[test]
+fn retained_help_run_projection_round_trips_through_the_strict_decoder() {
+    let projection = created_projection();
+    let bytes = serde_json::to_vec(&projection).expect("projection JSON");
+
+    assert_eq!(decode_created_projection(&bytes), projection);
+}
+
+#[test]
+fn retained_help_run_projection_rejects_mismatched_expected_identities() {
+    let bytes = serde_json::to_vec(&created_projection()).expect("projection JSON");
+
+    for (workspace_id, run_id, session_id) in [
+        ("workspace_other", "run_1", "session_1"),
+        ("workspace_1", "run_other", "session_1"),
+        ("workspace_1", "run_1", "session_other"),
+    ] {
+        assert!(decode_retained_bmad_help_run(
+            &bytes,
+            &id(workspace_id),
+            &id(run_id),
+            &id(session_id),
+        )
+        .is_err());
+    }
+}
+
+#[test]
+fn retained_help_run_projection_rejects_wrong_closed_literals_and_true_flags() {
+    let value = serde_json::to_value(created_projection()).expect("projection value");
+    for (pointer, replacement) in [
+        ("/schemaVersion", json!("bmad-help-run.v2")),
+        ("/runKind", json!("bmad_architect")),
+        ("/lifecycle", json!("running")),
+        ("/runnable", json!(true)),
+        ("/completionClaimed", json!(true)),
+        (
+            "/recommendation/schemaVersion",
+            json!("bmad-help-recommendation.v2"),
+        ),
+        ("/recommendation/completionClaimed", json!(true)),
+        ("/recommendation/source/sourceKind", json!("workspace")),
+        ("/recommendation/confidence", json!("certain")),
+        ("/recommendation/availability", json!("enabled")),
+    ] {
+        let mut hostile = value.clone();
+        *hostile.pointer_mut(pointer).expect("fixture pointer") = replacement;
+        let bytes = serde_json::to_vec(&hostile).expect("hostile projection JSON");
+        assert!(
+            decode_retained_bmad_help_run(
+                &bytes,
+                &id("workspace_1"),
+                &id("run_1"),
+                &id("session_1"),
+            )
+            .is_err(),
+            "accepted hostile value at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn retained_help_run_projection_rejects_unknown_fields_at_every_object_boundary() {
+    let value = serde_json::to_value(created_projection()).expect("projection value");
+    for pointer in ["", "/recommendation", "/recommendation/source"] {
+        let mut hostile = value.clone();
+        hostile
+            .pointer_mut(pointer)
+            .expect("fixture pointer")
+            .as_object_mut()
+            .expect("fixture object")
+            .insert("authorityRef".to_owned(), json!("forged_authority"));
+        let bytes = serde_json::to_vec(&hostile).expect("hostile projection JSON");
+        assert!(
+            decode_retained_bmad_help_run(
+                &bytes,
+                &id("workspace_1"),
+                &id("run_1"),
+                &id("session_1"),
+            )
+            .is_err(),
+            "accepted an unknown field at {pointer}"
+        );
+    }
+}
+
+#[test]
+fn retained_help_run_projection_rejects_duplicate_keys_and_oversize_bytes() {
+    let projection = created_projection();
+    let bytes = serde_json::to_vec(&projection).expect("projection JSON");
+    let text = String::from_utf8(bytes.clone()).expect("projection UTF-8");
+    let duplicate = text.replacen(
+        "\"schemaVersion\":\"bmad-help-run.v1\"",
+        "\"schemaVersion\":\"bmad-help-run.v1\",\"schemaVersion\":\"bmad-help-run.v1\"",
+        1,
+    );
+    assert_ne!(duplicate, text, "duplicate-key fixture must be effective");
+    assert!(decode_retained_bmad_help_run(
+        duplicate.as_bytes(),
+        &id("workspace_1"),
+        &id("run_1"),
+        &id("session_1"),
+    )
+    .is_err());
+
+    let mut oversized = bytes;
+    oversized.resize(MAX_BMAD_HELP_RUN_PROJECTION_BYTES + 1, b' ');
+    assert!(decode_retained_bmad_help_run(
+        &oversized,
+        &id("workspace_1"),
+        &id("run_1"),
+        &id("session_1"),
     )
     .is_err());
 }
