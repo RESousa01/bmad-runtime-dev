@@ -54,6 +54,7 @@ pub use bmad::{
     MethodModelPort, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
     MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
     MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
+    MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
 };
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,

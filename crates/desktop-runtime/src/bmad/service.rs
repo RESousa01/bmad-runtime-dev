@@ -3,9 +3,9 @@ use std::{error::Error, fmt};
 use crate::{ContractId, UnixMillis};
 
 use super::{
-    MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult, MethodContextDecision,
-    MethodError, MethodErrorCode, MethodExactBinding, MethodPersistenceEvent, MethodSession,
-    MethodSessionRepository, MethodSessionScope, MethodStepTable,
+    MethodAdvanceReceipt, MethodAdvanceRequest, MethodContextDecision, MethodError,
+    MethodErrorCode, MethodExactBinding, MethodPersistenceEvent, MethodSession,
+    MethodSessionRepository, MethodSessionScope, MethodStepTable, MethodVerifiedAdvanceResult,
 };
 
 #[derive(Debug)]
@@ -179,7 +179,7 @@ where
         Ok((session, receipt))
     }
 
-    /// Validates model content and persists its immutable checkpoint.
+    /// Validates trusted-host result evidence and persists its immutable checkpoint.
     ///
     /// # Errors
     ///
@@ -189,21 +189,22 @@ where
         scope: &MethodSessionScope,
         session_id: &ContractId,
         expected_version: u64,
-        invocation_id: &ContractId,
-        result: MethodAdvanceResult,
+        verified_result: MethodVerifiedAdvanceResult,
         recorded_at: UnixMillis,
     ) -> Result<MethodSession, MethodServiceError<R::Error>> {
         let mut session = self.load_required(scope, session_id)?;
-        let provenance = session.artifact_provenance_for(invocation_id)?;
+        verified_result.verify()?;
+        let provenance =
+            session.artifact_provenance_for(&verified_result.binding().invocation_id)?;
         self.repository
             .validate_method_artifact_refs(
                 &provenance,
                 session.current_binding()?,
-                result.disposition,
-                &result.working_artifact_refs,
+                verified_result.result().disposition,
+                &verified_result.result().working_artifact_refs,
             )
             .map_err(MethodServiceError::Repository)?;
-        let _ = session.accept_result(expected_version, invocation_id, result, recorded_at)?;
+        let _ = session.accept_result(expected_version, verified_result, recorded_at)?;
         self.persist(
             &session,
             expected_version,
