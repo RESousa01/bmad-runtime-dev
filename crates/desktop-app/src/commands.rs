@@ -1,10 +1,10 @@
 use desktop_ipc::{
-    deserialize_strict, Admission, CommandEnvelopeValidator, IpcValidationContext,
-    IpcValidationError,
+    deserialize_strict, project_bmad_library, Admission, BmadProjectionError,
+    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
 };
 use desktop_runtime::{
-    canonical_hash, CommandReceipt, ContractId, LocalCommand, LocalError, LocalErrorCode,
-    ProjectionEventKind,
+    canonical_hash, BmadLibraryProjectionScope, CommandReceipt, ContractId, LocalCommand,
+    LocalError, LocalErrorCode, ProjectionEventKind,
 };
 use desktop_workspace::{EntryKind, WorkspaceError};
 use serde::Serialize;
@@ -12,6 +12,7 @@ use tauri::WebviewWindow;
 use tauri_plugin_dialog::DialogExt as _;
 use ulid::Ulid;
 
+use crate::bmad_foundation::BmadLoadedFoundation;
 use crate::state::{
     conflict_error, invalid_request, not_found_error, now, recovery_error, resource_limit_error,
     temporarily_unavailable, unauthorized_error, DirectoryCursor, HostState, RendererSessionGuard,
@@ -24,7 +25,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 9] = [
+const READY_COMMANDS: [&str; 10] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -33,6 +34,7 @@ const READY_COMMANDS: [&str; 9] = [
     "workspace.read_text",
     "workspace.search",
     "bmad.scan",
+    "bmad.library.snapshot",
     "context.preview",
 ];
 const RECOVERY_COMMANDS: [&str; 2] = ["app.get_boot_state", "workspace.list"];
@@ -93,10 +95,11 @@ pub(crate) fn host_dispatch(
     app: tauri::AppHandle,
     window: WebviewWindow,
     state: tauri::State<'_, HostState>,
+    foundation: tauri::State<'_, BmadLoadedFoundation>,
     body: String,
 ) -> HostDispatchReply {
     let Some(renderer_authority) = state.renderer_session_authority(window.label()) else {
-        return HostDispatchReply::error(None, state.sequence(), unauthorized_error());
+        return HostDispatchReply::error(None, state.sequence(), renderer_session_expired());
     };
     let renderer_session_id = renderer_authority.session_id().clone();
     let accepted_at = now();
@@ -137,6 +140,7 @@ pub(crate) fn host_dispatch(
     let result = execute_command(
         &app,
         &state,
+        &foundation,
         &context.renderer_session_id,
         &request_id,
         command,
@@ -225,6 +229,7 @@ pub(crate) fn host_projection_events(
 fn execute_command(
     app: &tauri::AppHandle,
     state: &HostState,
+    foundation: &BmadLoadedFoundation,
     renderer_session_id: &ContractId,
     request_id: &ContractId,
     command: LocalCommand,
@@ -277,6 +282,10 @@ fn execute_command(
                 .map(HostCommandData::BmadScan)
                 .map_err(|error| map_workspace_error(&error))
         }
+        LocalCommand::BmadLibrarySnapshot { scope, cursor } => {
+            let _authority = state.ready_authority()?;
+            bmad_library_snapshot(foundation, scope, cursor.as_deref())
+        }
         LocalCommand::PreviewContext {
             workspace_id,
             relative_paths,
@@ -298,6 +307,45 @@ fn execute_command(
             temporarily_unavailable("Evidence export is not available in this build."),
         ),
     }
+}
+
+fn bmad_library_snapshot(
+    foundation: &BmadLoadedFoundation,
+    scope: BmadLibraryProjectionScope,
+    cursor: Option<&str>,
+) -> Result<HostCommandData, LocalError> {
+    project_bmad_library(
+        foundation.package(),
+        foundation.catalog(),
+        foundation.roster(),
+        scope,
+        cursor,
+    )
+    .map(HostCommandData::BmadLibrarySnapshot)
+    .map_err(map_bmad_projection_error)
+}
+
+fn map_bmad_projection_error(error: BmadProjectionError) -> LocalError {
+    match error {
+        BmadProjectionError::Unavailable => LocalError::new(
+            LocalErrorCode::BmadProjectionUnavailable,
+            "The Method library is temporarily unavailable. Reload it to retry.",
+            true,
+        ),
+        BmadProjectionError::Gap => LocalError::new(
+            LocalErrorCode::BmadProjectionGap,
+            "The Method library changed. Request a fresh snapshot.",
+            true,
+        ),
+    }
+}
+
+fn renderer_session_expired() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::RendererSessionExpired,
+        "The desktop renderer session expired. Reconnect before retrying.",
+        true,
+    )
 }
 
 fn select_workspace(
@@ -650,5 +698,61 @@ fn map_workspace_error(error: &WorkspaceError) -> LocalError {
         WorkspaceError::Io(_) => temporarily_unavailable(
             "The local workspace could not be read. Check access and retry.",
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use desktop_runtime::{BmadLibraryProjectionScope, LocalErrorCode};
+
+    use super::bmad_library_snapshot;
+    use crate::{bmad_foundation::load_bmad_foundation, wire::HostCommandData};
+
+    fn foundation_path() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation")
+    }
+
+    #[test]
+    fn host_projects_the_sealed_method_library_without_authority_bytes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let data = bmad_library_snapshot(
+            &foundation,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+        )
+        .expect("library snapshot");
+        let HostCommandData::BmadLibrarySnapshot(projection) = &data else {
+            return Err("expected BMAD library projection".into());
+        };
+        assert_eq!(projection.installed_skills.len(), 2);
+        assert_eq!(projection.help_actions.len(), 2);
+        assert_eq!(projection.method_agents.len(), 6);
+        let serialized = serde_json::to_string(&data).expect("wire projection");
+        for forbidden in [
+            "sha256:",
+            "sourceLocalMemberLabel",
+            "packageVersionId",
+            "outputLocations",
+            ".md",
+        ] {
+            assert!(!serialized.contains(forbidden), "leaked {forbidden}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn host_maps_a_stale_library_cursor_to_the_stable_gap_error() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let error = bmad_library_snapshot(
+            &foundation,
+            BmadLibraryProjectionScope::InstalledMethod,
+            Some("stale"),
+        )
+        .expect_err("stale cursor");
+        assert_eq!(error.code, LocalErrorCode::BmadProjectionGap);
+        assert!(error.retryable);
     }
 }
