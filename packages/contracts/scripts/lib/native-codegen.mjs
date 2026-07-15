@@ -97,7 +97,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22",
+    sha256: "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071",
     status: "reviewed",
   },
   dotnetTools: {

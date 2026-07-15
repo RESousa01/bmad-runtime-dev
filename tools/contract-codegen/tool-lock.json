@@ -3,7 +3,7 @@
   "lockStatus": "reviewed_bootstrap",
   "bootstrapLocks": {
     "pnpm": { "file": "pnpm-lock.yaml", "sha256": "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12", "status": "reviewed" },
-    "cargo": { "file": "Cargo.lock", "sha256": "34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22", "status": "reviewed" },
+    "cargo": { "file": "Cargo.lock", "sha256": "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071", "status": "reviewed" },
     "dotnetTools": { "file": ".config/dotnet-tools.json", "sha256": "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20", "status": "reviewed" },
     "dotnetPackages": { "file": "tests/generator-qualification/dotnet/packages.lock.json", "sha256": "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872", "status": "reviewed" }
   },
