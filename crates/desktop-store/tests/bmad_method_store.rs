@@ -536,18 +536,21 @@ fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart
 }
 
 #[test]
-fn fresh_store_reaches_compiled_v9_schema() -> Result<(), Box<dyn std::error::Error>> {
+fn fresh_store_reaches_compiled_v10_schema() -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(store.schema_version()?, 9);
+    assert_eq!(store.schema_version()?, 10);
     let tables = store.schema_table_names()?;
     assert!(tables.contains(&"bmad_method_decision_consumptions".to_owned()));
     assert!(tables.contains(&"bmad_method_sessions".to_owned()));
+    assert!(tables.contains(&"execution_checkpoints".to_owned()));
+    assert!(tables.contains(&"effect_journals".to_owned()));
+    assert!(tables.contains(&"execution_results".to_owned()));
     Ok(())
 }
 
 #[test]
-fn fresh_and_v4_upgraded_stores_have_identical_v9_catalogs(
+fn fresh_and_v4_upgraded_stores_have_identical_v10_catalogs(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
@@ -559,7 +562,10 @@ fn fresh_and_v4_upgraded_stores_have_identical_v9_catalogs(
     drop(upgraded);
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE bmad_help_run_creations;
+        "DROP TABLE execution_results;
+         DROP TABLE effect_journals;
+         DROP TABLE execution_checkpoints;
+         DROP TABLE bmad_help_run_creations;
          DROP TABLE bmad_builder_analysis_decisions;
          DROP TABLE bmad_builder_analyses;
          DROP TABLE bmad_builder_revisions;
@@ -573,7 +579,7 @@ fn fresh_and_v4_upgraded_stores_have_identical_v9_catalogs(
     drop(connection);
 
     let reopened = LocalStore::open(upgraded_directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 9);
+    assert_eq!(reopened.schema_version()?, 10);
     assert_eq!(reopened.schema_catalog()?, expected);
     Ok(())
 }
@@ -1031,7 +1037,7 @@ fn frozen_pre_lineage_created_v1_session_restores_without_a_schema_migration(
     drop(store);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 9);
+    assert_eq!(reopened.schema_version()?, 10);
     let restored = reopened
         .load_method_session(&frozen.scope(), &frozen.session_id())?
         .expect("frozen Created/unbound session");
@@ -1042,7 +1048,7 @@ fn frozen_pre_lineage_created_v1_session_restores_without_a_schema_migration(
 }
 
 #[test]
-fn migration_interruptions_roll_back_and_reopen_to_complete_v9(
+fn migration_interruptions_roll_back_and_reopen_to_complete_v10(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
@@ -1052,6 +1058,9 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v9(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE execution_results;
+         DROP TABLE effect_journals;
+         DROP TABLE execution_checkpoints;
          DROP TABLE bmad_help_run_creations;
          DROP TABLE bmad_builder_analysis_decisions;
          DROP TABLE bmad_builder_analyses;
@@ -1081,6 +1090,9 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v9(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE execution_results;
+         DROP TABLE effect_journals;
+         DROP TABLE execution_checkpoints;
          DROP TABLE bmad_help_run_creations;
          DROP TABLE bmad_builder_analysis_decisions;
          DROP TABLE bmad_builder_analyses;
@@ -1116,7 +1128,7 @@ fn migration_failure_can_open_retained_method_history_read_only(
     assert!(LocalStore::open(directory.path(), &TestProtector).is_err());
 
     let recovery = LocalStore::open_read_only_recovery(directory.path(), &TestProtector)?;
-    assert_eq!(recovery.schema_version()?, 9);
+    assert_eq!(recovery.schema_version()?, 10);
     assert!(!recovery
         .schema_table_names()?
         .contains(&"bmad_method_checkpoints".to_owned()));
