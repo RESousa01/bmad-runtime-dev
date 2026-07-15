@@ -12,6 +12,7 @@ deterministic-fake = []
 
 [dependencies]
 async-trait.workspace = true
+desktop-egress = { path = "../desktop-egress" }
 desktop-runtime = { path = "../desktop-runtime" }
 parking_lot.workspace = true
 serde.workspace = true

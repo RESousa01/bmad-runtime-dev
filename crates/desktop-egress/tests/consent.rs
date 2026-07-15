@@ -215,3 +215,20 @@ fn duplicate_decision_identifier_is_rejected() {
         Err(EgressError::DecisionAlreadyExists)
     );
 }
+
+#[test]
+fn consumption_tamper_is_detected() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+    let decision = service
+        .approve(fixture_approval(&manifest, &binding))
+        .expect("decision");
+    let mut consumption = service
+        .consume(fixture_consumption(&decision, &binding))
+        .expect("consumption");
+    consumption.invocation_id = id("tampered_invocation");
+
+    assert_eq!(consumption.verify(), Err(EgressError::DecisionIntegrity));
+}

@@ -242,6 +242,40 @@ impl DecisionConsumption {
             consumption_hash,
         })
     }
+
+    fn draft(&self) -> DecisionConsumptionDraft {
+        DecisionConsumptionDraft {
+            schema_version: self.schema_version.clone(),
+            decision_id: self.decision_id.clone(),
+            decision_hash: self.decision_hash,
+            invocation_id: self.invocation_id.clone(),
+            manifest_hash: self.manifest_hash,
+            binding_hash: self.binding_hash,
+            consent_disclosure_hash: self.consent_disclosure_hash,
+            policy_hash: self.policy_hash,
+            installation_id: self.installation_id.clone(),
+            session_authority_hash: self.session_authority_hash,
+            consumed_at: self.consumed_at,
+        }
+    }
+
+    /// Revalidates the immutable decision-consumption record.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EgressError::DecisionIntegrity`] when the schema or canonical
+    /// content hash no longer matches.
+    pub fn verify(&self) -> Result<(), EgressError> {
+        if self.schema_version != CONSUMPTION_SCHEMA {
+            return Err(EgressError::DecisionIntegrity);
+        }
+        let actual = canonical_hash("decision-consumption", 1, &self.draft())
+            .map_err(|_| EgressError::CanonicalHash)?;
+        if actual != self.consumption_hash {
+            return Err(EgressError::DecisionIntegrity);
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug)]

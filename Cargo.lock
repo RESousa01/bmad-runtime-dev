@@ -711,6 +711,7 @@ name = "desktop-cloud"
 version = "0.1.0-beta.1"
 dependencies = [
  "async-trait",
+ "desktop-egress",
  "desktop-runtime",
  "parking_lot",
  "serde",

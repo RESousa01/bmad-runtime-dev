@@ -8,8 +8,13 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 mod identity;
+mod model;
 
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
+pub use model::{
+    verify_model_response, AuthorizedContextItem, AuthorizedModelRequest, CanonicalOutputValidator,
+    ModelAccessReceipt, ModelReceiptStatus, RawModelOutput, ReceiptVerifier, VerifiedModelOutput,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -113,6 +118,12 @@ pub enum CloudError {
     TenantMismatch,
     #[error("the cloud session was invalidated")]
     SessionInvalidated,
+    #[error("the consumed context decision does not match the model request")]
+    ConsentBindingMismatch,
+    #[error("the model response does not match the authorized request")]
+    ResponseBindingMismatch,
+    #[error("the model access receipt is invalid")]
+    ReceiptInvalid,
 }
 
 #[async_trait]
