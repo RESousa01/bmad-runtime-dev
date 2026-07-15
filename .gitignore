@@ -1,4 +1,5 @@
 .agents/
+.worktrees/
 .idea/
 .vscode/
 node_modules/
