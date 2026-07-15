@@ -269,9 +269,25 @@ found no remaining Critical or Important issue.
 
 ## Task 3: Compile an exact non-runnable Help binding
 
+**Completed:** commit `510a7fb8` (`feat(bmad): compile inert Help binding`).
+The closed compiler consumes only the Task 2 sealed Help source, its exact
+package-bound native catalog, and an opaque inert host model/profile assertion.
+It derives the no-agent/direct binding, one-step `recommend` table, generated
+schema identities, domain-separated empty-customization commitment, and fixed
+validation-profile commitment. The aggregate shares the exact 1,283 instruction
+bytes, retains both reviewed catalog candidates, implements neither Serde trait,
+redacts debug output, and cannot become runnable or claim completion. Catalog
+projection mutation and coordinated graph substitution fail closed. Focused and
+full runtime/IPC/app suites, four compile-fail privacy tests, formatting,
+CI-equivalent strict Clippy, and architecture boundaries passed. Independent
+review found no P0-P3 issue.
+
 **Files:**
 
+- Add: `crates/desktop-runtime/src/bmad/help_binding.rs`
+- Modify: `crates/desktop-runtime/src/bmad/catalog.rs`
 - Modify: `crates/desktop-runtime/src/bmad/help_run.rs`
+- Modify: `crates/desktop-runtime/src/bmad/kernel_error.rs`
 - Modify: `crates/desktop-runtime/src/bmad/mod.rs`
 - Modify: `crates/desktop-runtime/src/lib.rs`
 - Modify: `crates/desktop-runtime/tests/bmad_help_run.rs`
@@ -279,31 +295,31 @@ found no remaining Critical or Important issue.
   `crates/desktop-ipc/src/bmad_run.rs`,
   `crates/desktop-app/src/commands.rs`, and their focused tests
 
-- [ ] Add RED tests for exact no-agent/direct binding, exact instruction and
+- [x] Add RED tests for exact no-agent/direct binding, exact instruction and
   native catalog retention, generated request/proposal/recommendation/result
   schema closures, fixed validation rules, domain-separated empty Help
   customization, model/request/egress facts, redaction, and non-runnability.
-- [ ] Define a closed compiler consuming only `&BmadSealedHelpInvocation`, the
+- [x] Define a closed compiler consuming only `&BmadSealedHelpInvocation`, the
   package-bound native catalog, and an opaque trusted D2 model/profile record.
   The D2 record is a host assertion needed to compile an inert plan; it is not
   evidence that consent, egress, or a model call occurred.
-- [ ] Derive the no-agent binding and exact direct Help step table locally.
+- [x] Derive the no-agent binding and exact direct Help step table locally.
   Derive an explicit domain-separated empty customization commitment from the
   capability identity and empty customization-layer set. Retain the core
   module metadata hash under its honest source name; do not alias it as a
   resolved customization graph.
-- [ ] Derive a fixed Help validation-profile commitment from a reviewed local
+- [x] Derive a fixed Help validation-profile commitment from a reviewed local
   canonical descriptor of the proposal/catalog/token/guidance/lineage rules.
   Add golden literal tests. Do not synthesize it from the profile name or reuse
   an execution/config/module hash.
-- [ ] Use generated closure constants directly. Reject coordinated descriptor,
+- [x] Use generated closure constants directly. Reject coordinated descriptor,
   instruction, catalog, schema, customization, validation, model, request, or
   egress substitution. Keep exact managed bytes and facts behind sealed,
   redacted, non-Serde types.
-- [ ] Prove runtime, IPC, and app projections remain `created_unbound`,
+- [x] Prove runtime, IPC, and app projections remain `created_unbound`,
   `runnable: false`, and `completion_claimed: false`; do not add an activation
   command.
-- [ ] Run focused runtime/IPC/app tests, formatting, strict Clippy, and
+- [x] Run focused runtime/IPC/app tests, formatting, strict Clippy, and
   architecture boundaries. Obtain independent review and commit:
   `feat(bmad): compile inert Help binding`.
 
