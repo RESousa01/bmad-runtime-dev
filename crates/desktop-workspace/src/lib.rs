@@ -1,5 +1,9 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
+mod bmad_snapshot;
+
+pub use bmad_snapshot::{read_bmad_source_snapshot, BmadSnapshotError};
+
 use ignore::WalkBuilder;
 use parking_lot::{RwLock, RwLockReadGuard};
 use serde::{Deserialize, Serialize};

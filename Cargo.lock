@@ -785,6 +785,7 @@ dependencies = [
 name = "desktop-workspace"
 version = "0.1.0-beta.1"
 dependencies = [
+ "desktop-runtime",
  "ignore",
  "parking_lot",
  "serde",
