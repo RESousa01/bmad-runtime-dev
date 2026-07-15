@@ -8,6 +8,7 @@ use zeroize::Zeroizing;
 use crate::{
     AuthorizedModelRequest, CloudAccess, CloudError, CloudSession, IdentityBroker, RawModelOutput,
 };
+use desktop_runtime::UnixMillis;
 
 const MODEL_ACCESS_PATH: &str = "desktop/v1/model-access/calls";
 const MAX_REQUEST_BYTES: usize = 4 * 1024 * 1024;
@@ -166,12 +167,16 @@ where
         session: &CloudSession<B>,
         access: &CloudAccess,
         request: &AuthorizedModelRequest,
+        now: UnixMillis,
     ) -> Result<RawModelOutput, CloudError>
     where
         B: IdentityBroker,
     {
         if !session.is_current(access) {
             return Err(CloudError::SessionInvalidated);
+        }
+        if !session.is_current_at(access, now) {
+            return Err(CloudError::ReauthenticationRequired);
         }
         request.verify()?;
         let body = serde_json::to_vec(request).map_err(|_| CloudError::TransportFailed)?;

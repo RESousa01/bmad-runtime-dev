@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 mod broker_protocol;
+mod entitlement;
 mod identity;
 mod model;
 mod transport;
@@ -12,6 +13,7 @@ mod transport;
 mod windows_broker;
 
 pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
+pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 pub use model::{
     verify_model_response, AuthorizedContextItem, AuthorizedModelRequest, CanonicalOutputValidator,
@@ -43,17 +45,21 @@ pub enum AuthStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct EntitlementLease {
+    pub schema_version: String,
     pub lease_id: String,
     pub registration_id: String,
     pub subject_hash: String,
+    pub delivery_model: String,
     pub issued_at: String,
+    pub not_before: String,
     pub expires_at: String,
     pub offline_grace_ends_at: String,
     pub features: Vec<String>,
     pub tenant_policy_hash: String,
     pub minimum_client_version: String,
+    pub key_id: String,
     pub signature: String,
 }
 

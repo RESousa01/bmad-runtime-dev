@@ -220,6 +220,16 @@ where
             && state.account_ref.as_ref() == Some(&access.account_ref)
     }
 
+    #[must_use]
+    pub fn is_current_at(&self, access: &CloudAccess, now: UnixMillis) -> bool {
+        let state = self.state.lock();
+        state.status == AuthStatus::SignedIn
+            && state.epoch == access.epoch
+            && state.tenant_ref.as_ref() == Some(&access.tenant_ref)
+            && state.account_ref.as_ref() == Some(&access.account_ref)
+            && access.expires_at > now
+    }
+
     /// Invalidates local authority before requesting broker cleanup.
     ///
     /// # Errors

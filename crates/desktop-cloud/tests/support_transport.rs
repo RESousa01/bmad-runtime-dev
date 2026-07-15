@@ -222,7 +222,7 @@ async fn authorized_request_uses_one_fixed_endpoint_and_secret_safe_boundary() {
         .expect("access");
 
     let response: RawModelOutput = transport
-        .send(&session, &access, &request)
+        .send(&session, &access, &request, UnixMillis(1_000))
         .await
         .expect("transport response");
     assert_eq!(response.request_id, request.request_id);
@@ -262,12 +262,16 @@ async fn stale_access_status_and_untrusted_body_fail_before_projection() {
         .await
         .expect("access");
     assert!(matches!(
-        transport.send(&session, &access, &request).await,
+        transport
+            .send(&session, &access, &request, UnixMillis(1_000))
+            .await,
         Err(CloudError::TransportFailed)
     ));
     session.sign_out().await.expect("sign out");
     assert!(matches!(
-        transport.send(&session, &access, &request).await,
+        transport
+            .send(&session, &access, &request, UnixMillis(1_000))
+            .await,
         Err(CloudError::SessionInvalidated)
     ));
     assert_eq!(requests.lock().len(), 1);
@@ -306,6 +310,38 @@ async fn oversized_or_non_json_responses_fail_closed() {
             SupportApiOrigin::new("https://support.example.com").expect("origin"),
             executor(response),
         );
-        assert!(transport.send(&session, &access, &request).await.is_err());
+        assert!(transport
+            .send(&session, &access, &request, UnixMillis(1_000))
+            .await
+            .is_err());
     }
+}
+
+#[tokio::test]
+async fn expired_access_is_rejected_before_any_context_leaves_the_process() {
+    let request = authorized_fixture();
+    let executor = executor(HttpResponse::new(
+        200,
+        Some("application/json".to_owned()),
+        Some(2),
+        b"{}".to_vec(),
+    ));
+    let requests = Arc::clone(&executor.requests);
+    let transport = SupportApiTransport::new(
+        SupportApiOrigin::new("https://support.example.com").expect("origin"),
+        executor,
+    );
+    let session = CloudSession::new(StaticBroker, id("tenant_ref"));
+    let access = session
+        .acquire_access(UnixMillis(1_000))
+        .await
+        .expect("access");
+
+    assert!(matches!(
+        transport
+            .send(&session, &access, &request, UnixMillis(60_000))
+            .await,
+        Err(CloudError::ReauthenticationRequired)
+    ));
+    assert!(requests.lock().is_empty());
 }
