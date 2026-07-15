@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+mod identity;
+
+pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Connectivity {
@@ -87,7 +91,7 @@ pub struct TypedModelOutput {
     pub model_profile_hash: String,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Eq, Error, PartialEq)]
 pub enum CloudError {
     #[error("the desktop support plane is offline")]
     Offline,
@@ -101,6 +105,14 @@ pub enum CloudError {
     InvalidModelOutput,
     #[error("the requested connected capability is disabled")]
     FeatureDisabled,
+    #[error("the identity broker is unavailable")]
+    IdentityUnavailable,
+    #[error("reauthentication is required")]
+    ReauthenticationRequired,
+    #[error("the authenticated tenant does not match the configured tenant")]
+    TenantMismatch,
+    #[error("the cloud session was invalidated")]
+    SessionInvalidated,
 }
 
 #[async_trait]
