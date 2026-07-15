@@ -5,6 +5,7 @@ mod catalog;
 mod config;
 mod error;
 mod help;
+mod help_binding;
 mod help_run;
 mod help_session;
 mod kernel_error;
@@ -46,6 +47,10 @@ pub use error::{MethodError, MethodErrorCode};
 pub use help::{
     BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpConfidence,
     BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
+};
+pub use help_binding::{
+    BmadCompiledHelpInvocation, BmadHelpBindingCompiler, BmadTrustedHelpModelProfile,
+    BmadTrustedHelpModelProfileData,
 };
 pub use help_run::{
     BmadHostInputReplacement, BmadLoadedMethodPackage, BmadQualifiedHelpSource,

@@ -253,6 +253,10 @@ impl BmadSealedHelpInvocation {
         &self.instruction_bytes
     }
 
+    pub(super) fn instruction_arc(&self) -> Arc<[u8]> {
+        Arc::clone(&self.instruction_bytes)
+    }
+
     #[must_use]
     pub fn blocked_tool_intents(&self) -> &[String] {
         &self.blocked_tool_intents

@@ -21,6 +21,8 @@ pub enum BmadKernelErrorCode {
     AdoptionLedgerMismatch,
     #[error("the installed BMAD Help invocation does not match its sealed identity chain")]
     SealedHelpMismatch,
+    #[error("the compiled BMAD Help binding does not match its sealed source and catalog")]
+    SealedHelpBindingMismatch,
     #[error("the observed final BMAD inventory does not match the descriptor")]
     FinalInventoryMismatch,
     #[error("a managed BMAD resource does not match the descriptor")]

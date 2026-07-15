@@ -1,9 +1,11 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    canonical_hash_without_field, BmadKernelErrorCode, BmadLoadedPackage, BmadLocationClass,
-    BmadPackageLoader, BmadQualifiedHelpSource, BmadSealedHelpInvocation, BmadSourceEntry,
-    BmadSourceKind, BmadSourceSnapshot, Sha256Digest,
+    canonical_hash_without_field, BmadCatalog, BmadCatalogBuilder, BmadHelpBindingCompiler,
+    BmadHelpCatalogSource, BmadKernelErrorCode, BmadLoadedMethodPackage, BmadLoadedPackage,
+    BmadLocationClass, BmadPackageLoader, BmadQualifiedHelpSource, BmadSealedHelpInvocation,
+    BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, BmadTrustedHelpModelProfile,
+    BmadTrustedHelpModelProfileData, Sha256Digest,
 };
 use serde_json::{json, Value};
 
@@ -56,6 +58,55 @@ fn sealed_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
 
 fn digest(value: &str) -> Sha256Digest {
     Sha256Digest::parse(value).expect("qualified digest")
+}
+
+fn loaded_method_and_catalog() -> (BmadLoadedMethodPackage, BmadCatalog) {
+    let (snapshot, semantic_hash, adoption_hash) = sealed_snapshot();
+    let loaded = BmadPackageLoader::load(&snapshot, semantic_hash, adoption_hash)
+        .expect("qualified Method package");
+    let (sources, graph_hash) = help_catalog_sources();
+    let catalog = BmadCatalogBuilder::build_bound(loaded.package(), &sources, graph_hash)
+        .expect("bound catalog");
+    (loaded, catalog)
+}
+
+fn help_catalog_sources() -> (Vec<BmadHelpCatalogSource>, Sha256Digest) {
+    let graph: Value = serde_json::from_slice(
+        &std::fs::read(foundation_path("normalized/bmad-help-action-graph.json"))
+            .expect("Help action graph"),
+    )
+    .expect("Help action graph JSON");
+    let sources = graph["sources"]
+        .as_array()
+        .expect("catalog sources")
+        .iter()
+        .map(|source| {
+            let rows: Vec<Vec<String>> =
+                serde_json::from_value(source["rows"].clone()).expect("normalized rows");
+            BmadHelpCatalogSource::from_rows(
+                source["moduleCode"].as_str().expect("module code"),
+                &rows,
+            )
+            .expect("catalog source")
+        })
+        .collect::<Vec<_>>();
+    let graph_hash = Sha256Digest::parse(graph["graphHash"].as_str().expect("graph hash"))
+        .expect("qualified graph hash");
+    (sources, graph_hash)
+}
+
+fn trusted_model_profile() -> BmadTrustedHelpModelProfile {
+    BmadTrustedHelpModelProfile::from_host_assertion(BmadTrustedHelpModelProfileData {
+        provider_id: "azure-openai-managed".to_owned(),
+        model_id: "gpt-5.2".to_owned(),
+        deployment_id: "sapphirus-help".to_owned(),
+        model_profile_hash: desktop_runtime::sha256_bytes(b"qualified model profile"),
+        model_capability_hash: desktop_runtime::sha256_bytes(b"qualified model capability"),
+        context_window_profile_hash: desktop_runtime::sha256_bytes(b"qualified context window"),
+        egress_profile_hash: desktop_runtime::sha256_bytes(b"qualified egress profile"),
+        request_schema_hash: desktop_runtime::sha256_bytes(b"qualified D2 request schema"),
+    })
+    .expect("trusted inert model profile")
 }
 
 #[test]
@@ -343,6 +394,155 @@ fn loader_rejects_adoption_ledger_substitution() {
             .code(),
         BmadKernelErrorCode::AdoptionLedgerMismatch
     );
+}
+
+#[test]
+fn compiler_derives_the_exact_non_runnable_no_agent_help_binding() {
+    let (loaded, catalog) = loaded_method_and_catalog();
+    let model = trusted_model_profile();
+    let compiled = BmadHelpBindingCompiler::compile(loaded.help_invocation(), &catalog, &model)
+        .expect("exact inert Help binding");
+
+    assert!(!compiled.runnable());
+    assert!(!compiled.completion_claimed());
+    assert_eq!(
+        compiled.instruction_bytes().as_ptr(),
+        loaded.help_invocation().instruction_bytes().as_ptr()
+    );
+    assert_eq!(compiled.catalog_candidates(), catalog.help_actions);
+    let binding = compiled.exact_binding();
+    assert_eq!(binding.capability_key.module_code, "core");
+    assert_eq!(binding.capability_key.skill_name, "bmad-help");
+    assert_eq!(binding.capability_key.normalized_action, None);
+    assert_eq!(binding.agent_roster_hash, None);
+    assert_eq!(binding.agent_binding_hash, None);
+    assert_eq!(binding.agent_binding, None);
+    assert_eq!(binding.entrypoint_kind, "direct");
+    assert!(binding
+        .execution_profile
+        .data
+        .invocation_modes
+        .actions
+        .is_empty());
+    assert!(binding
+        .execution_profile
+        .data
+        .declared_tool_intents
+        .is_empty());
+    assert_eq!(
+        binding.execution_profile.data.completion_evidence,
+        ["artifact"]
+    );
+    assert_eq!(binding.model_binding_hash, model.model_binding_hash());
+    assert_eq!(binding.egress_profile_hash, model.egress_profile_hash());
+    binding.binding_hash().expect("canonical exact binding");
+
+    assert_eq!(
+        compiled.customization_hash(),
+        digest("sha256:41d2f0d68d0a47e8fb9eeccd89f0409f2ab08a72eb1a76500d87a0919ecb9c8a")
+    );
+    assert_eq!(
+        compiled.validation_profile_hash(),
+        digest("sha256:ddd086622be73b637cdcb3562b4459ac3853f1aeae34a53c43775af66e4cbdf0")
+    );
+    assert_eq!(
+        serde_json::to_value(compiled.step_table()).expect("step table JSON"),
+        json!({
+            "initialStepKey": "recommend",
+            "steps": {"recommend": null},
+            "tableHash": compiled.step_table().table_hash()
+        })
+    );
+}
+
+#[test]
+fn compiler_uses_generated_schema_identities_and_the_trusted_request_schema() {
+    let (loaded, catalog) = loaded_method_and_catalog();
+    let model = trusted_model_profile();
+    let compiled = BmadHelpBindingCompiler::compile(loaded.help_invocation(), &catalog, &model)
+        .expect("exact inert Help binding");
+
+    assert_eq!(compiled.request_schema_hash(), model.request_schema_hash());
+    assert_eq!(
+        compiled.proposal_schema_closure_hash(),
+        digest("sha256:b86f154fd9ba6a7575171b849645e44a1753d191b4e3480e985b6042159af965")
+    );
+    assert_eq!(
+        compiled.recommendation_schema_closure_hash(),
+        digest("sha256:5cff85e4f40af521df317763fa86f405c11e410005c7a8901d5ed72a25320242")
+    );
+    assert_eq!(
+        compiled.result_schema_closure_hash(),
+        digest("sha256:600432affbca9baec428903211df9c4c2a1fc6ba595959013236e1a0f16bc746")
+    );
+    assert_eq!(
+        compiled
+            .exact_binding()
+            .model_binding
+            .data
+            .response_schema_hash,
+        compiled.proposal_schema_closure_hash()
+    );
+    assert_eq!(
+        compiled.exact_binding().method_schema_hash,
+        compiled.result_schema_closure_hash()
+    );
+}
+
+#[test]
+fn compiler_rejects_catalog_mutation_after_native_binding() {
+    let (loaded, mut catalog) = loaded_method_and_catalog();
+    catalog.help_actions[0].display_name = "substituted display".to_owned();
+    assert_eq!(
+        BmadHelpBindingCompiler::compile(
+            loaded.help_invocation(),
+            &catalog,
+            &trusted_model_profile(),
+        )
+        .expect_err("catalog projection substitution")
+        .code(),
+        BmadKernelErrorCode::SealedHelpBindingMismatch
+    );
+}
+
+#[test]
+fn compiler_rejects_a_coordinated_catalog_graph_substitution() {
+    let (snapshot, semantic_hash, adoption_hash) = sealed_snapshot();
+    let loaded = BmadPackageLoader::load(&snapshot, semantic_hash, adoption_hash)
+        .expect("qualified Method package");
+    let (sources, expected_graph_hash) = help_catalog_sources();
+    let substituted_graph_hash = desktop_runtime::sha256_bytes(b"substituted Help action graph");
+    assert_ne!(substituted_graph_hash, expected_graph_hash);
+    let substituted_catalog =
+        BmadCatalogBuilder::build_bound(loaded.package(), &sources, substituted_graph_hash)
+            .expect("internally consistent substituted catalog");
+
+    assert_eq!(
+        BmadHelpBindingCompiler::compile(
+            loaded.help_invocation(),
+            &substituted_catalog,
+            &trusted_model_profile(),
+        )
+        .expect_err("the reviewed graph identity is fixed")
+        .code(),
+        BmadKernelErrorCode::SealedHelpBindingMismatch
+    );
+}
+
+#[test]
+fn compiler_and_trusted_model_debug_output_are_redacted() {
+    let (loaded, catalog) = loaded_method_and_catalog();
+    let model = trusted_model_profile();
+    let compiled = BmadHelpBindingCompiler::compile(loaded.help_invocation(), &catalog, &model)
+        .expect("exact inert Help binding");
+
+    let compiled_debug = format!("{compiled:?}");
+    let model_debug = format!("{model:?}");
+    assert!(compiled_debug.contains("<redacted:1283 bytes>"));
+    assert!(!compiled_debug.contains("Managed Method help guidance"));
+    assert!(!model_debug.contains("azure-openai-managed"));
+    assert!(!model_debug.contains("gpt-5.2"));
+    assert!(!model_debug.contains("sapphirus-help"));
 }
 
 fn descriptor_value(snapshot: &BmadSourceSnapshot) -> Value {
