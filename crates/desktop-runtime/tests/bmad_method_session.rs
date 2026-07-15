@@ -1,12 +1,13 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    sha256_bytes, AuthorityRef, BmadCapabilityKey, ContractId, CreateMethodSession,
-    MethodAdvanceDisposition, MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding,
-    MethodArtifactExpectation, MethodContextDecision, MethodErrorCode, MethodEvidenceClass,
-    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodModelBinding, MethodModelBindingData, MethodResourcePolicy, MethodSession, MethodState,
-    MethodStepTable, UnixMillis,
+    sha256_bytes, AuthorityRef, BmadArtifactEvidence, BmadCapabilityKey, BmadHelpActionKey,
+    BmadKernelErrorCode, ContractId, CreateMethodSession, MethodAdvanceDisposition,
+    MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodArtifactExpectation,
+    MethodContextDecision, MethodErrorCode, MethodEvidenceClass, MethodExactBinding,
+    MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding,
+    MethodModelBindingData, MethodResourcePolicy, MethodSession, MethodState, MethodStepTable,
+    UnixMillis,
 };
 
 fn id(value: &str) -> ContractId {
@@ -237,6 +238,96 @@ fn drifted_binding_invalidates_review_and_resume_is_read_only() {
         .cancel(original_version)
         .expect("cancel ready session");
     assert_eq!(session.state(), MethodState::Cancelled);
+}
+
+#[test]
+fn authoritative_help_evidence_rejects_a_pre_rebind_invocation() {
+    let mut session = create_session();
+    let first_binding = binding(1);
+    session
+        .bind_capability(
+            1,
+            first_binding.clone(),
+            MethodStepTable::new("discover", [("discover", Some("decide")), ("decide", None)])
+                .expect("first step table"),
+        )
+        .expect("first capability");
+    session.request_context_review(2).expect("first review");
+    let first_decision = decision(&first_binding, "decision_01J11111111111111111111111");
+    session
+        .record_context_review(3, first_decision.clone())
+        .expect("first decision");
+    let first_invocation = id("invoke_01J11111111111111111111111");
+    session
+        .begin_advance(MethodAdvanceRequest {
+            invocation_id: first_invocation.clone(),
+            idempotency_key: "pre-rebind".to_owned(),
+            decision_id: first_decision.decision_id,
+            expected_version: 4,
+        })
+        .expect("first invocation");
+    session
+        .accept_result(
+            5,
+            &first_invocation,
+            MethodAdvanceResult {
+                disposition: MethodAdvanceDisposition::AwaitingUser,
+                current_step_key: "discover".to_owned(),
+                next_step_key: Some("decide".to_owned()),
+                working_artifact_refs: Vec::new(),
+            },
+            UnixMillis(2_000),
+        )
+        .expect("first checkpoint");
+
+    let mut second_binding = binding(2);
+    second_binding.capability_key.normalized_action = Some("validate".to_owned());
+    session
+        .rebind_capability(
+            6,
+            second_binding.clone(),
+            MethodStepTable::new("only", [("only", None)]).expect("second step table"),
+        )
+        .expect("second capability");
+    session.request_context_review(7).expect("second review");
+    let second_decision = decision(&second_binding, "decision_01J22222222222222222222222");
+    session
+        .record_context_review(8, second_decision.clone())
+        .expect("second decision");
+    let second_invocation = id("invoke_01J22222222222222222222222");
+    session
+        .begin_advance(MethodAdvanceRequest {
+            invocation_id: second_invocation.clone(),
+            idempotency_key: "post-rebind".to_owned(),
+            decision_id: second_decision.decision_id,
+            expected_version: 9,
+        })
+        .expect("second invocation");
+    session
+        .accept_result(
+            10,
+            &second_invocation,
+            MethodAdvanceResult {
+                disposition: MethodAdvanceDisposition::Completed,
+                current_step_key: "only".to_owned(),
+                next_step_key: None,
+                working_artifact_refs: Vec::new(),
+            },
+            UnixMillis(3_000),
+        )
+        .expect("completed second capability");
+
+    let action = BmadHelpActionKey {
+        module_code: "bmm".to_owned(),
+        skill_name: "bmad-architecture".to_owned(),
+        action: Some("validate".to_owned()),
+    };
+    assert_eq!(
+        BmadArtifactEvidence::from_completed_session(action, &session, &first_invocation)
+            .expect_err("old invocation cannot evidence the rebound capability")
+            .code(),
+        BmadKernelErrorCode::HelpEvidenceInsufficient
+    );
 }
 
 #[test]

@@ -27,6 +27,14 @@ pub enum BmadKernelErrorCode {
     ConfigMergeConflict,
     #[error("BMAD config attempted to grant host policy or authority")]
     ConfigPolicyForbidden,
+    #[error("the BMAD help catalog is invalid")]
+    HelpCatalogInvalid,
+    #[error("a BMAD menu code is ambiguous in its module scope")]
+    MenuCodeAmbiguous,
+    #[error("a BMAD agent menu target is invalid")]
+    AgentMenuTargetInvalid,
+    #[error("the BMAD help advisor has insufficient catalog evidence")]
+    HelpEvidenceInsufficient,
 }
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
