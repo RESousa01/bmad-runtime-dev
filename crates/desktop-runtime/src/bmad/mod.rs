@@ -48,7 +48,7 @@ pub use help::{
 };
 pub use help_session::{
     CreateInertBmadHelpSession, InertBmadHelpSession, InertBmadHelpSessionCoordinator,
-    InertBmadHelpSessionError,
+    InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
 };
 pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
 pub use method::{

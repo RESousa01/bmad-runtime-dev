@@ -2,8 +2,8 @@ use thiserror::Error;
 
 use super::{
     BmadCatalog, BmadHelpAdvisor, BmadHelpIntent, BmadHelpRecommendation, BmadKernelError,
-    BmadKernelErrorCode, CreateMethodSession, MethodErrorCode, MethodServiceError, MethodSession,
-    MethodSessionRepository, MethodSessionService,
+    BmadKernelErrorCode, CreateMethodSession, MethodError, MethodErrorCode, MethodSession,
+    MethodSessionRepository,
 };
 use crate::{ContractId, DesktopLocalIdentity, DomainValidationError, UnixMillis};
 
@@ -27,16 +27,16 @@ pub struct InertBmadHelpSession {
 }
 
 #[derive(Debug, Error)]
-pub enum InertBmadHelpSessionError<E> {
+pub enum InertBmadHelpSessionPreparationError {
     #[error(transparent)]
     Identity(#[from] DomainValidationError),
     #[error(transparent)]
     Advisor(#[from] BmadKernelError),
     #[error(transparent)]
-    Session(#[from] MethodServiceError<E>),
+    Session(#[from] MethodError),
 }
 
-impl<E> InertBmadHelpSessionError<E> {
+impl InertBmadHelpSessionPreparationError {
     #[must_use]
     pub const fn advisor_code(&self) -> Option<BmadKernelErrorCode> {
         match self {
@@ -48,10 +48,34 @@ impl<E> InertBmadHelpSessionError<E> {
     #[must_use]
     pub const fn method_code(&self) -> Option<MethodErrorCode> {
         match self {
-            Self::Session(MethodServiceError::Domain(error)) => Some(error.code()),
-            Self::Identity(_)
-            | Self::Advisor(_)
-            | Self::Session(MethodServiceError::Repository(_)) => None,
+            Self::Session(error) => Some(error.code()),
+            Self::Identity(_) | Self::Advisor(_) => None,
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum InertBmadHelpSessionError<E> {
+    #[error(transparent)]
+    Preparation(#[from] InertBmadHelpSessionPreparationError),
+    #[error("the inert BMAD Help session could not be persisted")]
+    Repository(E),
+}
+
+impl<E> InertBmadHelpSessionError<E> {
+    #[must_use]
+    pub const fn advisor_code(&self) -> Option<BmadKernelErrorCode> {
+        match self {
+            Self::Preparation(error) => error.advisor_code(),
+            Self::Repository(_) => None,
+        }
+    }
+
+    #[must_use]
+    pub const fn method_code(&self) -> Option<MethodErrorCode> {
+        match self {
+            Self::Preparation(error) => error.method_code(),
+            Self::Repository(_) => None,
         }
     }
 }
@@ -61,6 +85,34 @@ impl<E> InertBmadHelpSessionError<E> {
 pub struct InertBmadHelpSessionCoordinator;
 
 impl InertBmadHelpSessionCoordinator {
+    /// Grounds the intent and builds one non-runnable Method session without
+    /// performing persistence. The host uses this form when a stronger store
+    /// transaction must couple session creation to a durable idempotency receipt.
+    ///
+    /// # Errors
+    ///
+    /// Returns an advisor error when the catalog cannot ground the intent, an
+    /// identity error for an invalid local identity, or a Method domain error.
+    pub fn prepare(
+        catalog: &BmadCatalog,
+        input: CreateInertBmadHelpSession,
+    ) -> Result<InertBmadHelpSession, InertBmadHelpSessionPreparationError> {
+        let recommendation = BmadHelpAdvisor::recommend(catalog, &input.intent, &[])?;
+        let authority_ref = input.local_identity.authority_ref()?;
+        let session = MethodSession::create(CreateMethodSession {
+            session_id: input.session_id,
+            owner_scope_ref: input.local_identity.owner_scope_ref().clone(),
+            project_id: input.project_id,
+            run_id: input.run_id,
+            authority_ref,
+            created_at: input.created_at,
+        })?;
+        Ok(InertBmadHelpSession {
+            session,
+            recommendation,
+        })
+    }
+
     /// Grounds the intent first, then persists one non-runnable Method session.
     ///
     /// # Errors
@@ -76,19 +128,10 @@ impl InertBmadHelpSessionCoordinator {
     where
         R: MethodSessionRepository,
     {
-        let recommendation = BmadHelpAdvisor::recommend(catalog, &input.intent, &[])?;
-        let authority_ref = input.local_identity.authority_ref()?;
-        let session = MethodSessionService::new(repository).create(CreateMethodSession {
-            session_id: input.session_id,
-            owner_scope_ref: input.local_identity.owner_scope_ref().clone(),
-            project_id: input.project_id,
-            run_id: input.run_id,
-            authority_ref,
-            created_at: input.created_at,
-        })?;
-        Ok(InertBmadHelpSession {
-            session,
-            recommendation,
-        })
+        let prepared = Self::prepare(catalog, input)?;
+        repository
+            .create_method_session(&prepared.session)
+            .map_err(InertBmadHelpSessionError::Repository)?;
+        Ok(prepared)
     }
 }

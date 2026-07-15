@@ -1,6 +1,6 @@
 use desktop_runtime::{
-    ApprovalChoice, CommandReceipt, ContractId, LocalCommand, LocalError, ProjectionEvent,
-    RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId, LocalCommand, LocalError,
+    ProjectionEvent, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
@@ -24,6 +24,7 @@ const MAX_LIST_ENTRIES: u16 = 500;
 const MAX_SEARCH_RESULTS: u16 = 200;
 const MAX_REQUEST_AGE_MS: u64 = 5 * 60 * 1000;
 const MAX_FUTURE_SKEW_MS: u64 = 30 * 1000;
+const MAX_SAFE_JSON_INTEGER: u64 = 9_007_199_254_740_991;
 
 #[derive(Clone, Debug)]
 pub struct IpcValidationContext {
@@ -179,6 +180,7 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.search"
             | "bmad.scan"
             | "bmad.library.snapshot"
+            | "run.create"
             | "context.preview"
     )
 }
@@ -280,6 +282,21 @@ struct BundleIdPayload {
     bundle_id: ContractId,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum BmadRunKindPayload {
+    BmadHelp,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct CreateBmadRunPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    run_kind: BmadRunKindPayload,
+    current_intent: String,
+}
+
 fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
     match command {
         "app.get_boot_state" => {
@@ -310,9 +327,25 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             })
         }
         "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
+        "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
         _ => parse_later_phase_command(command, payload),
     }
+}
+
+fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: CreateBmadRunPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    let BmadRunKindPayload::BmadHelp = input.run_kind;
+    let current_intent = BmadHelpIntent::new(input.current_intent)
+        .map_err(|_| IpcValidationError::InvalidPayload)?;
+    Ok(LocalCommand::CreateBmadHelpRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        current_intent,
+    })
 }
 
 fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValidationError> {

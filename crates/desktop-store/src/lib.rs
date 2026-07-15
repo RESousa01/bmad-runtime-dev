@@ -37,6 +37,10 @@ mod bmad_builder;
 mod bmad_method;
 mod migrations;
 
+pub use bmad_method::{
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunReplayRequest,
+};
+
 #[cfg(test)]
 use migrations::LATEST_STORE_VERSION;
 use migrations::{migrate, require_outbox_event_uniqueness, schema_version, store_table_names};
@@ -57,6 +61,8 @@ pub enum StoreError {
     AlreadyConsumed,
     #[error("the aggregate version did not advance by exactly one")]
     StateConflict,
+    #[error("the durable workspace authority changed")]
+    WorkspaceAuthorityStale,
     #[error(transparent)]
     Method(#[from] MethodError),
     #[error(transparent)]
@@ -1296,6 +1302,7 @@ fn has_scoped_authority_history(connection: &Connection) -> Result<bool, StoreEr
     let present = connection.query_row(
         "SELECT
            EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_help_run_creations) OR
            EXISTS(SELECT 1 FROM bmad_builder_drafts) OR
            EXISTS(SELECT 1 FROM spec_consumptions)",
         [],
@@ -1314,6 +1321,7 @@ fn has_any_authority_data(connection: &Connection) -> Result<bool, StoreError> {
            EXISTS(SELECT 1 FROM outbox) OR
            EXISTS(SELECT 1 FROM spec_consumptions) OR
            EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_help_run_creations) OR
            EXISTS(SELECT 1 FROM bmad_method_artifacts) OR
            EXISTS(SELECT 1 FROM bmad_method_checkpoints) OR
            EXISTS(SELECT 1 FROM bmad_method_decision_consumptions) OR
@@ -2111,7 +2119,8 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analysis_decisions;
+            "DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
@@ -2152,7 +2161,8 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analysis_decisions;
+            "DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
@@ -2246,7 +2256,8 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_builder_analysis_decisions;
+            "DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
@@ -2259,7 +2270,7 @@ mod tests {
         drop(store);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 7);
+        assert_eq!(reopened.schema_version()?, 8);
         reopened.verify_integrity()?;
         Ok(())
     }

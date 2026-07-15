@@ -6,9 +6,9 @@ use desktop_runtime::{
     sha256_bytes, BmadCatalogBuilder, BmadEntrypointKind, BmadHelpCatalogSource,
     BmadHelpConfidence, BmadHelpIntent, BmadKernelErrorCode, BmadLoadedPackage, BmadLoadedSkill,
     ContractId, CreateInertBmadHelpSession, DesktopLocalIdentity, InertBmadHelpSessionCoordinator,
-    InertBmadHelpSessionError, MethodAdvanceDisposition, MethodAdvanceReceipt,
-    MethodAdvanceRequest, MethodArtifactProvenance, MethodErrorCode, MethodExactBinding,
-    MethodPersistenceEvent, MethodServiceError, MethodSession, MethodSessionRepository,
+    InertBmadHelpSessionError, InertBmadHelpSessionPreparationError, MethodAdvanceDisposition,
+    MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactProvenance, MethodErrorCode,
+    MethodExactBinding, MethodPersistenceEvent, MethodSession, MethodSessionRepository,
     MethodSessionScope, MethodState, UnixMillis,
 };
 
@@ -184,6 +184,42 @@ fn coordinator_persists_only_an_explicitly_unbound_non_executable_session() {
 }
 
 #[test]
+fn preparation_is_pure_and_produces_the_same_inert_domain_result() {
+    let repository = MockRepository::default();
+    let prepared = InertBmadHelpSessionCoordinator::prepare(
+        &catalog(),
+        create_input("we need an architecture spine"),
+    )
+    .expect("prepared inert Help session");
+
+    assert!(repository.sessions().is_empty());
+    assert_eq!(prepared.session.state(), MethodState::Created);
+    assert_eq!(prepared.session.version(), 1);
+    assert!(prepared.session.resume().is_none());
+    assert!(!prepared.recommendation.completion_claimed);
+
+    let persisted = InertBmadHelpSessionCoordinator::create(
+        &repository,
+        &catalog(),
+        create_input("we need an architecture spine"),
+    )
+    .expect("persisted inert Help session");
+    assert_eq!(prepared.session, persisted.session);
+    assert_eq!(
+        prepared.recommendation.action,
+        persisted.recommendation.action
+    );
+    assert_eq!(
+        prepared.recommendation.display_name,
+        persisted.recommendation.display_name
+    );
+    assert_eq!(
+        prepared.recommendation.reason,
+        persisted.recommendation.reason
+    );
+}
+
+#[test]
 fn coordinator_does_not_write_when_catalog_evidence_cannot_ground_the_intent() {
     let repository = MockRepository::default();
     let error = InertBmadHelpSessionCoordinator::create(
@@ -210,7 +246,10 @@ fn coordinator_rejects_a_tampered_local_identity_before_repository_persistence()
 
     let error = InertBmadHelpSessionCoordinator::create(&repository, &catalog(), input)
         .expect_err("tampered authority");
-    assert!(matches!(error, InertBmadHelpSessionError::Identity(_)));
+    assert!(matches!(
+        error,
+        InertBmadHelpSessionError::Preparation(InertBmadHelpSessionPreparationError::Identity(_))
+    ));
     assert!(repository.sessions().is_empty());
 }
 
@@ -226,9 +265,6 @@ fn coordinator_propagates_repository_failure_without_partial_success() {
         create_input("architecture"),
     )
     .expect_err("repository failure");
-    assert!(matches!(
-        error,
-        InertBmadHelpSessionError::Session(MethodServiceError::Repository(_))
-    ));
+    assert!(matches!(error, InertBmadHelpSessionError::Repository(_)));
     assert!(repository.sessions().is_empty());
 }

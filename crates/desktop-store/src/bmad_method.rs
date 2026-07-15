@@ -1,14 +1,16 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{
-    canonical_hash, canonical_json_bytes, ContractId, MethodAdvanceDisposition,
-    MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactExpectation,
-    MethodArtifactProvenance, MethodError, MethodErrorCode, MethodEvidenceClass,
-    MethodExactBinding, MethodPersistenceEvent, MethodSession, MethodSessionRepository,
-    MethodSessionScope,
+    canonical_hash, canonical_json_bytes, ContractId, DesktopLocalIdentity,
+    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
+    MethodArtifactExpectation, MethodArtifactProvenance, MethodError, MethodErrorCode,
+    MethodEvidenceClass, MethodExactBinding, MethodPersistenceEvent, MethodSession,
+    MethodSessionRepository, MethodSessionScope, Sha256Digest, UnixMillis,
 };
 use rusqlite::{params, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::fs;
 
 use super::{
     append_evidence_in_transaction, canonical_now, is_unique_violation, EvidenceAppend, LocalStore,
@@ -19,6 +21,8 @@ const METHOD_STATE_KIND: &str = "bmad_method_session";
 const METHOD_STATE_SCHEMA: &str = "sapphirus.bmad-method-session-state.v1";
 const METHOD_ARTIFACT_KIND: &str = "bmad_method_artifact";
 const METHOD_ARTIFACT_SCHEMA: &str = "sapphirus.bmad-method-artifact.v1";
+const HELP_RUN_CREATE_PURPOSE: &str = "bmad-help-run-create-request";
+const MAX_SAFE_JSON_INTEGER: u64 = 9_007_199_254_740_991;
 type CheckpointKey = (String, u64);
 type CheckpointIdentity = (String, String);
 type ExpectedCheckpoints = BTreeMap<CheckpointKey, CheckpointIdentity>;
@@ -62,11 +66,108 @@ struct ReceiptIntegrityRow {
 }
 
 #[derive(Debug)]
+struct HelpRunEvidenceIntegrityRow {
+    stream_id: String,
+    sequence: u64,
+    payload: PayloadRef,
+    payload_ref: String,
+    correlation_id: String,
+}
+
+#[derive(Debug)]
 struct MethodIntegritySnapshot {
     sessions: Vec<MethodIntegrityRow>,
     checkpoints: Vec<CheckpointIntegrityRow>,
     receipts: Vec<ReceiptIntegrityRow>,
+    help_run_creations: Vec<StoredHelpRunCreation>,
+    help_run_events: Vec<HelpRunEvidenceIntegrityRow>,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadHelpRunCreateRequest {
+    pub request_id: ContractId,
+    pub project_id: ContractId,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub workspace_catalog_version: u64,
+    pub workspace_root_identity_hash: Sha256Digest,
+    pub capability_catalog_hash: Sha256Digest,
+    pub foundation_binding_hash: Sha256Digest,
+    pub intent_hash: Sha256Digest,
+    pub accepted_at: UnixMillis,
+}
+
+/// Renderer-reproducible facts used only to recover an already committed Help run.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadHelpRunReplayRequest {
+    pub request_id: ContractId,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub capability_catalog_hash: Sha256Digest,
+    pub foundation_binding_hash: Sha256Digest,
+    pub intent_hash: Sha256Digest,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadHelpRunCreationReceipt {
+    pub request_id: ContractId,
+    pub session_id: ContractId,
+    pub run_id: ContractId,
+    pub accepted_at: UnixMillis,
+    pub replayed: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BmadHelpRunCreateFingerprint<'a> {
+    schema_version: &'static str,
+    run_kind: &'static str,
+    request_id: &'a ContractId,
+    project_id: &'a ContractId,
+    workspace_id: &'a ContractId,
+    workspace_grant_epoch: u64,
+    workspace_root_identity_hash: Sha256Digest,
+    capability_catalog_hash: Sha256Digest,
+    foundation_binding_hash: Sha256Digest,
+    intent_hash: Sha256Digest,
+}
+
+#[derive(Clone, Debug)]
+struct StoredHelpRunCreation {
+    owner_scope_ref: String,
+    installation_id: String,
+    request_id: String,
+    request_fingerprint: String,
+    session_id: String,
+    project_id: String,
+    run_id: String,
+    authority_id: String,
+    authority_epoch: u64,
+    local_store_id: String,
+    workspace_id: String,
+    workspace_grant_epoch: u64,
+    workspace_catalog_version: u64,
+    workspace_root_identity_hash: String,
+    capability_catalog_hash: String,
+    foundation_binding_hash: String,
+    intent_hash: String,
+    accepted_at: u64,
+}
+
+#[derive(Clone, Debug)]
+struct VerifiedMethodSession {
+    owner_scope_ref: String,
+    project_id: String,
+    run_id: String,
+    authority_kind: String,
+    authority_id: String,
+    installation_id: String,
+    local_store_id: String,
+    authority_epoch: u64,
+    created_at: u64,
+}
+
+type VerifiedMethodSessions = BTreeMap<String, VerifiedMethodSession>;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -110,6 +211,181 @@ impl StoredMethodArtifactIndex {
             && self.binding_hash == provenance.binding_hash.to_string()
             && self.decision_id == provenance.decision_id.as_str()
             && self.invocation_id == provenance.invocation_id.as_str()
+    }
+}
+
+impl LocalStore {
+    /// Recovers an authenticated prior BMAD Help run without creating authority.
+    ///
+    /// This lookup deliberately requires no current workspace authorization so
+    /// a committed reply remains replayable after grant revocation. Every
+    /// renderer-reproducible request fact must match the retained receipt; the
+    /// hidden project/root binding is still authenticated from durable state.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError::StateConflict`] when the exact request key exists
+    /// with different submitted facts, and an integrity/authentication error
+    /// when retained authority cannot be reconstructed exactly.
+    pub fn replay_bmad_help_run(
+        &self,
+        request: &BmadHelpRunReplayRequest,
+    ) -> Result<Option<BmadHelpRunCreationReceipt>, StoreError> {
+        validate_replay_request(request)?;
+        let identity = self.load_local_identity()?;
+        let stored = query_help_run_creation(
+            &self.connection.lock(),
+            identity.owner_scope_ref().as_str(),
+            identity.installation_id().as_str(),
+            request.request_id.as_str(),
+        )?;
+        let Some(stored) = stored else {
+            return Ok(None);
+        };
+        if stored.workspace_id != request.workspace_id.as_str()
+            || stored.workspace_grant_epoch != request.workspace_grant_epoch
+            || stored.capability_catalog_hash != request.capability_catalog_hash.to_string()
+            || stored.foundation_binding_hash != request.foundation_binding_hash.to_string()
+            || stored.intent_hash != request.intent_hash.to_string()
+        {
+            return Err(StoreError::StateConflict);
+        }
+        self.authenticate_help_run_creation(&identity, &stored, true)
+            .map(Some)
+    }
+
+    /// Atomically accepts one store-owned, non-runnable BMAD Help run creation.
+    ///
+    /// The idempotency key is the exact local owner scope, installation, and
+    /// request identifier. Replays return the originally committed session,
+    /// run, and acceptance time; candidate identifiers and timestamps never
+    /// replace committed authority.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError::StateConflict`] when an existing request key has a
+    /// different fingerprint or the candidate is not an exact Created/unbound
+    /// session for the current sealed local identity and request scope.
+    pub fn create_bmad_help_run(
+        &self,
+        candidate: &MethodSession,
+        request: &BmadHelpRunCreateRequest,
+    ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
+        validate_help_run_request(request)?;
+        let identity = self.load_local_identity()?;
+        let request_fingerprint = help_run_request_fingerprint(request)?;
+        let mut connection = self.connection.lock();
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+
+        if let Some(stored) = query_help_run_creation(
+            &transaction,
+            identity.owner_scope_ref().as_str(),
+            identity.installation_id().as_str(),
+            request.request_id.as_str(),
+        )? {
+            if stored.request_fingerprint != request_fingerprint.to_string() {
+                return Err(StoreError::StateConflict);
+            }
+            drop(transaction);
+            drop(connection);
+            return self.authenticate_help_run_creation(&identity, &stored, true);
+        }
+
+        verify_workspace_catalog_version(&transaction, request.workspace_catalog_version)?;
+
+        let state_json = validate_new_help_run_candidate(candidate, request, &identity)?;
+        let payload = self.prepare_method_state_payload(state_json.as_bytes())?;
+        let occurred_at = canonical_now();
+        register_payload_in_transaction(&transaction, &payload, &occurred_at)?;
+        insert_created_method_session(&transaction, candidate, &payload, &occurred_at)?;
+        let payload_uri = payload_uri(&payload)?;
+        let event = EvidenceAppend {
+            stream_id: format!("bmad-method:{}", candidate.session_id().as_str()),
+            event_type: "bmad.help.run.created".to_owned(),
+            payload_hash: payload.content_hash.clone(),
+            payload_ref: Some(payload_uri),
+            correlation_id: request.request_id.to_string(),
+            causation_id: None,
+            redaction_level: "summary".to_owned(),
+            retention_class: "authority".to_owned(),
+        };
+        let _ = append_evidence_in_transaction(&transaction, &event, &occurred_at)?;
+        insert_help_run_creation(
+            &transaction,
+            candidate,
+            request,
+            &identity,
+            &request_fingerprint,
+        )?;
+        transaction.commit()?;
+
+        Ok(BmadHelpRunCreationReceipt {
+            request_id: request.request_id.clone(),
+            session_id: candidate.session_id(),
+            run_id: candidate.scope().run_id,
+            accepted_at: request.accepted_at,
+            replayed: false,
+        })
+    }
+
+    fn prepare_method_state_payload(&self, plaintext: &[u8]) -> Result<PayloadRef, StoreError> {
+        let content_hash = format!("sha256:{}", hex::encode(Sha256::digest(plaintext)));
+        let path = self.cas_path(METHOD_STATE_KIND, METHOD_STATE_SCHEMA, &content_hash)?;
+        if !path.exists() {
+            let encrypted = self.encrypt(
+                METHOD_STATE_KIND,
+                METHOD_STATE_SCHEMA,
+                &content_hash,
+                plaintext,
+            )?;
+            Self::persist_cas(&path, &encrypted)?;
+        }
+        let retained = self.decrypt(
+            METHOD_STATE_KIND,
+            METHOD_STATE_SCHEMA,
+            &content_hash,
+            self.key_version,
+            &fs::read(path)?,
+        )?;
+        if retained != plaintext {
+            return Err(StoreError::Authentication);
+        }
+        Ok(PayloadRef {
+            content_hash,
+            kind: METHOD_STATE_KIND.to_owned(),
+            schema_version: METHOD_STATE_SCHEMA.to_owned(),
+            byte_count: u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?,
+            key_version: self.key_version,
+        })
+    }
+
+    fn authenticate_help_run_creation(
+        &self,
+        identity: &DesktopLocalIdentity,
+        stored: &StoredHelpRunCreation,
+        replayed: bool,
+    ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
+        let scope = MethodSessionScope {
+            owner_scope_ref: parse_contract_id(&stored.owner_scope_ref)?,
+            project_id: parse_contract_id(&stored.project_id)?,
+            run_id: parse_contract_id(&stored.run_id)?,
+            authority_ref: identity
+                .authority_ref()
+                .map_err(|_| StoreError::Inconsistent)?,
+        };
+        let session_id = parse_contract_id(&stored.session_id)?;
+        let session = self
+            .load_method_session(&scope, &session_id)?
+            .ok_or(StoreError::Inconsistent)?;
+        let verified = verified_method_session(&session)?;
+        verify_help_run_creation(stored, &verified, identity)?;
+        Ok(BmadHelpRunCreationReceipt {
+            request_id: parse_contract_id(&stored.request_id)?,
+            session_id,
+            run_id: scope.run_id,
+            accepted_at: UnixMillis(stored.accepted_at),
+            replayed,
+        })
     }
 }
 
@@ -398,6 +674,343 @@ impl MethodSessionRepository for LocalStore {
         }
         Ok(())
     }
+}
+
+fn validate_help_run_request(request: &BmadHelpRunCreateRequest) -> Result<(), StoreError> {
+    if request.workspace_grant_epoch == 0
+        || request.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER
+        || request.workspace_catalog_version == 0
+        || request.workspace_catalog_version > MAX_SAFE_JSON_INTEGER
+        || request.accepted_at.0 > MAX_SAFE_JSON_INTEGER
+    {
+        return Err(StoreError::StateConflict);
+    }
+    Ok(())
+}
+
+fn validate_replay_request(request: &BmadHelpRunReplayRequest) -> Result<(), StoreError> {
+    if request.workspace_grant_epoch == 0 || request.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(StoreError::StateConflict);
+    }
+    Ok(())
+}
+
+fn verify_workspace_catalog_version(
+    transaction: &rusqlite::Transaction<'_>,
+    expected_version: u64,
+) -> Result<(), StoreError> {
+    let retained = transaction
+        .query_row(
+            "SELECT version FROM aggregates
+             WHERE aggregate_type = 'workspace_catalog' AND aggregate_id = 'local'",
+            [],
+            |row| row.get::<_, u64>(0),
+        )
+        .optional()?;
+    if retained == Some(expected_version) {
+        Ok(())
+    } else {
+        Err(StoreError::WorkspaceAuthorityStale)
+    }
+}
+
+fn help_run_request_fingerprint(
+    request: &BmadHelpRunCreateRequest,
+) -> Result<Sha256Digest, StoreError> {
+    canonical_hash(
+        HELP_RUN_CREATE_PURPOSE,
+        1,
+        &BmadHelpRunCreateFingerprint {
+            schema_version: "sapphirus.bmad-help-run-create-request.v1",
+            run_kind: "bmad_help",
+            request_id: &request.request_id,
+            project_id: &request.project_id,
+            workspace_id: &request.workspace_id,
+            workspace_grant_epoch: request.workspace_grant_epoch,
+            workspace_root_identity_hash: request.workspace_root_identity_hash,
+            capability_catalog_hash: request.capability_catalog_hash,
+            foundation_binding_hash: request.foundation_binding_hash,
+            intent_hash: request.intent_hash,
+        },
+    )
+    .map_err(|_| StoreError::Inconsistent)
+}
+
+fn validate_new_help_run_candidate(
+    candidate: &MethodSession,
+    request: &BmadHelpRunCreateRequest,
+    identity: &DesktopLocalIdentity,
+) -> Result<String, StoreError> {
+    let scope = candidate.scope();
+    if candidate.version() != 1
+        || candidate.state() != desktop_runtime::MethodState::Created
+        || candidate.resume().is_some()
+        || candidate.current_binding().is_ok()
+        || scope.project_id != request.project_id
+        || scope.owner_scope_ref != *identity.owner_scope_ref()
+        || scope.authority_ref
+            != identity
+                .authority_ref()
+                .map_err(|_| StoreError::Inconsistent)?
+    {
+        return Err(StoreError::StateConflict);
+    }
+    let state_json = candidate.to_persisted_json()?;
+    if method_created_at(&state_json)? != request.accepted_at.0 {
+        return Err(StoreError::StateConflict);
+    }
+    Ok(state_json)
+}
+
+fn register_payload_in_transaction(
+    transaction: &rusqlite::Transaction<'_>,
+    payload: &PayloadRef,
+    occurred_at: &str,
+) -> Result<(), StoreError> {
+    transaction.execute(
+        "INSERT OR IGNORE INTO payloads
+         (content_hash, kind, schema_version, byte_count, key_version, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            payload.content_hash,
+            payload.kind,
+            payload.schema_version,
+            payload.byte_count,
+            payload.key_version,
+            occurred_at,
+        ],
+    )?;
+    let retained = transaction
+        .query_row(
+            "SELECT byte_count, key_version FROM payloads
+             WHERE content_hash = ?1 AND kind = ?2 AND schema_version = ?3",
+            params![payload.content_hash, payload.kind, payload.schema_version],
+            |row| Ok((row.get::<_, u64>(0)?, row.get::<_, u32>(1)?)),
+        )
+        .optional()?;
+    if retained == Some((payload.byte_count, payload.key_version)) {
+        Ok(())
+    } else {
+        Err(StoreError::Inconsistent)
+    }
+}
+
+fn insert_created_method_session(
+    transaction: &rusqlite::Transaction<'_>,
+    session: &MethodSession,
+    payload: &PayloadRef,
+    occurred_at: &str,
+) -> Result<(), StoreError> {
+    let scope = session.scope();
+    let inserted = transaction.execute(
+        "INSERT INTO bmad_method_sessions
+         (session_id, owner_scope_ref, project_id, run_id, authority_id, version, state,
+          state_content_hash, state_kind, state_schema_version, state_byte_count,
+          state_key_version, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+        params![
+            session.session_id().as_str(),
+            scope.owner_scope_ref.as_str(),
+            scope.project_id.as_str(),
+            scope.run_id.as_str(),
+            scope.authority_ref.authority_id.as_str(),
+            session.version(),
+            state_name(session),
+            payload.content_hash,
+            payload.kind,
+            payload.schema_version,
+            payload.byte_count,
+            payload.key_version,
+            occurred_at,
+        ],
+    );
+    match inserted {
+        Ok(1) => Ok(()),
+        Ok(_) => Err(StoreError::Inconsistent),
+        Err(error) if is_unique_violation(&error) => Err(StoreError::StateConflict),
+        Err(error) => Err(StoreError::Sqlite(error)),
+    }
+}
+
+fn insert_help_run_creation(
+    transaction: &rusqlite::Transaction<'_>,
+    session: &MethodSession,
+    request: &BmadHelpRunCreateRequest,
+    identity: &DesktopLocalIdentity,
+    request_fingerprint: &Sha256Digest,
+) -> Result<(), StoreError> {
+    let scope = session.scope();
+    let inserted = transaction.execute(
+        "INSERT INTO bmad_help_run_creations
+         (owner_scope_ref, installation_id, request_id, request_fingerprint,
+          session_id, project_id, run_id, authority_id, authority_epoch,
+          local_store_id, workspace_id, workspace_grant_epoch,
+          workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
+          foundation_binding_hash, intent_hash, accepted_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+        params![
+            identity.owner_scope_ref().as_str(),
+            identity.installation_id().as_str(),
+            request.request_id.as_str(),
+            request_fingerprint.to_string(),
+            session.session_id().as_str(),
+            scope.project_id.as_str(),
+            scope.run_id.as_str(),
+            identity.authority_id().as_str(),
+            identity.authority_epoch(),
+            identity.local_store_id().as_str(),
+            request.workspace_id.as_str(),
+            request.workspace_grant_epoch,
+            request.workspace_catalog_version,
+            request.workspace_root_identity_hash.to_string(),
+            request.capability_catalog_hash.to_string(),
+            request.foundation_binding_hash.to_string(),
+            request.intent_hash.to_string(),
+            request.accepted_at.0,
+        ],
+    );
+    match inserted {
+        Ok(1) => Ok(()),
+        Ok(_) => Err(StoreError::Inconsistent),
+        Err(error) if is_unique_violation(&error) => Err(StoreError::StateConflict),
+        Err(error) => Err(StoreError::Sqlite(error)),
+    }
+}
+
+fn query_help_run_creation(
+    connection: &rusqlite::Connection,
+    owner_scope_ref: &str,
+    installation_id: &str,
+    request_id: &str,
+) -> Result<Option<StoredHelpRunCreation>, StoreError> {
+    connection
+        .query_row(
+            "SELECT owner_scope_ref, installation_id, request_id, request_fingerprint,
+                    session_id, project_id, run_id, authority_id, authority_epoch,
+                    local_store_id, workspace_id, workspace_grant_epoch,
+                    workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
+                    foundation_binding_hash, intent_hash, accepted_at
+             FROM bmad_help_run_creations
+             WHERE owner_scope_ref = ?1 AND installation_id = ?2 AND request_id = ?3",
+            params![owner_scope_ref, installation_id, request_id],
+            stored_help_run_creation_from_row,
+        )
+        .optional()
+        .map_err(StoreError::from)
+}
+
+fn stored_help_run_creation_from_row(
+    row: &rusqlite::Row<'_>,
+) -> Result<StoredHelpRunCreation, rusqlite::Error> {
+    Ok(StoredHelpRunCreation {
+        owner_scope_ref: row.get(0)?,
+        installation_id: row.get(1)?,
+        request_id: row.get(2)?,
+        request_fingerprint: row.get(3)?,
+        session_id: row.get(4)?,
+        project_id: row.get(5)?,
+        run_id: row.get(6)?,
+        authority_id: row.get(7)?,
+        authority_epoch: row.get(8)?,
+        local_store_id: row.get(9)?,
+        workspace_id: row.get(10)?,
+        workspace_grant_epoch: row.get(11)?,
+        workspace_catalog_version: row.get(12)?,
+        workspace_root_identity_hash: row.get(13)?,
+        capability_catalog_hash: row.get(14)?,
+        foundation_binding_hash: row.get(15)?,
+        intent_hash: row.get(16)?,
+        accepted_at: row.get(17)?,
+    })
+}
+
+fn verified_method_session(session: &MethodSession) -> Result<VerifiedMethodSession, StoreError> {
+    let scope = session.scope();
+    let source = session.to_persisted_json()?;
+    Ok(VerifiedMethodSession {
+        owner_scope_ref: scope.owner_scope_ref.to_string(),
+        project_id: scope.project_id.to_string(),
+        run_id: scope.run_id.to_string(),
+        authority_kind: scope.authority_ref.authority_kind,
+        authority_id: scope.authority_ref.authority_id.to_string(),
+        installation_id: scope.authority_ref.installation_id.to_string(),
+        local_store_id: scope.authority_ref.local_store_id.to_string(),
+        authority_epoch: scope.authority_ref.authority_epoch,
+        created_at: method_created_at(&source)?,
+    })
+}
+
+fn method_created_at(source: &str) -> Result<u64, StoreError> {
+    serde_json::from_str::<serde_json::Value>(source)?
+        .as_object()
+        .and_then(|value| value.get("createdAt"))
+        .and_then(serde_json::Value::as_u64)
+        .filter(|value| *value <= MAX_SAFE_JSON_INTEGER)
+        .ok_or(StoreError::Inconsistent)
+}
+
+fn verify_help_run_creation(
+    stored: &StoredHelpRunCreation,
+    session: &VerifiedMethodSession,
+    identity: &DesktopLocalIdentity,
+) -> Result<(), StoreError> {
+    let request = stored_help_run_request(stored)?;
+    let _session_id = parse_contract_id(&stored.session_id)?;
+    let _run_id = parse_contract_id(&stored.run_id)?;
+    let request_fingerprint =
+        Sha256Digest::parse(&stored.request_fingerprint).map_err(|_| StoreError::Inconsistent)?;
+    if stored.workspace_grant_epoch == 0
+        || stored.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER
+        || stored.workspace_catalog_version == 0
+        || stored.workspace_catalog_version > MAX_SAFE_JSON_INTEGER
+        || stored.accepted_at > MAX_SAFE_JSON_INTEGER
+        || stored.owner_scope_ref != identity.owner_scope_ref().as_str()
+        || stored.installation_id != identity.installation_id().as_str()
+        || stored.authority_id != identity.authority_id().as_str()
+        || stored.authority_epoch != identity.authority_epoch()
+        || stored.local_store_id != identity.local_store_id().as_str()
+        || stored.owner_scope_ref != session.owner_scope_ref
+        || stored.project_id != session.project_id
+        || stored.run_id != session.run_id
+        || session.authority_kind != "desktop_local_store"
+        || stored.authority_id != session.authority_id
+        || stored.installation_id != session.installation_id
+        || stored.local_store_id != session.local_store_id
+        || stored.authority_epoch != session.authority_epoch
+        || stored.accepted_at != session.created_at
+    {
+        return Err(StoreError::Inconsistent);
+    }
+    let recomputed = help_run_request_fingerprint(&request)?;
+    if recomputed != request_fingerprint {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
+}
+
+fn stored_help_run_request(
+    stored: &StoredHelpRunCreation,
+) -> Result<BmadHelpRunCreateRequest, StoreError> {
+    Ok(BmadHelpRunCreateRequest {
+        request_id: parse_contract_id(&stored.request_id)?,
+        project_id: parse_contract_id(&stored.project_id)?,
+        workspace_id: parse_contract_id(&stored.workspace_id)?,
+        workspace_grant_epoch: stored.workspace_grant_epoch,
+        workspace_catalog_version: stored.workspace_catalog_version,
+        workspace_root_identity_hash: Sha256Digest::parse(&stored.workspace_root_identity_hash)
+            .map_err(|_| StoreError::Inconsistent)?,
+        capability_catalog_hash: Sha256Digest::parse(&stored.capability_catalog_hash)
+            .map_err(|_| StoreError::Inconsistent)?,
+        foundation_binding_hash: Sha256Digest::parse(&stored.foundation_binding_hash)
+            .map_err(|_| StoreError::Inconsistent)?,
+        intent_hash: Sha256Digest::parse(&stored.intent_hash)
+            .map_err(|_| StoreError::Inconsistent)?,
+        accepted_at: UnixMillis(stored.accepted_at),
+    })
+}
+
+fn parse_contract_id(value: &str) -> Result<ContractId, StoreError> {
+    ContractId::new(value.to_owned()).map_err(|_| StoreError::Inconsistent)
 }
 
 fn insert_method_consumption(
@@ -694,9 +1307,18 @@ impl LocalStore {
             let connection = self.connection.lock();
             load_method_integrity_snapshot(&connection)?
         };
-        let expected = self.verify_method_session_rows(snapshot.sessions)?;
-        self.verify_method_checkpoint_rows(snapshot.checkpoints, &expected)?;
-        verify_method_receipt_rows(snapshot.receipts)
+        let (expected_checkpoints, verified_sessions) =
+            self.verify_method_session_rows(snapshot.sessions)?;
+        self.verify_method_checkpoint_rows(snapshot.checkpoints, &expected_checkpoints)?;
+        verify_method_receipt_rows(snapshot.receipts)?;
+        let identity = self.load_local_identity()?;
+        verify_help_run_creation_rows(
+            self,
+            &snapshot.help_run_creations,
+            snapshot.help_run_events,
+            &verified_sessions,
+            &identity,
+        )
     }
 
     fn verify_method_artifacts(&self) -> Result<(), StoreError> {
@@ -769,8 +1391,9 @@ impl LocalStore {
     fn verify_method_session_rows(
         &self,
         rows: Vec<MethodIntegrityRow>,
-    ) -> Result<ExpectedCheckpoints, StoreError> {
+    ) -> Result<(ExpectedCheckpoints, VerifiedMethodSessions), StoreError> {
         let mut expected_checkpoints = BTreeMap::new();
+        let mut verified_sessions = BTreeMap::new();
         for row in rows {
             if row.payload.kind != METHOD_STATE_KIND
                 || row.payload.schema_version != METHOD_STATE_SCHEMA
@@ -791,6 +1414,12 @@ impl LocalStore {
             {
                 return Err(StoreError::Inconsistent);
             }
+            if verified_sessions
+                .insert(row.session_id.clone(), verified_method_session(&session)?)
+                .is_some()
+            {
+                return Err(StoreError::Inconsistent);
+            }
             for checkpoint in session.checkpoints() {
                 expected_checkpoints.insert(
                     (row.session_id.clone(), checkpoint.turn_ordinal),
@@ -801,7 +1430,7 @@ impl LocalStore {
                 );
             }
         }
-        Ok(expected_checkpoints)
+        Ok((expected_checkpoints, verified_sessions))
     }
 
     fn verify_method_checkpoint_rows(
@@ -893,6 +1522,8 @@ fn load_method_integrity_snapshot(
         sessions: load_method_session_rows(connection)?,
         checkpoints: load_method_checkpoint_rows(connection)?,
         receipts: load_method_receipt_rows(connection)?,
+        help_run_creations: load_help_run_creation_rows(connection)?,
+        help_run_events: load_help_run_evidence_rows(connection)?,
     })
 }
 
@@ -983,6 +1614,110 @@ fn load_method_receipt_rows(
         })?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(rows)
+}
+
+fn load_help_run_creation_rows(
+    connection: &rusqlite::Connection,
+) -> Result<Vec<StoredHelpRunCreation>, StoreError> {
+    let mut statement = connection.prepare(
+        "SELECT owner_scope_ref, installation_id, request_id, request_fingerprint,
+                session_id, project_id, run_id, authority_id, authority_epoch,
+                local_store_id, workspace_id, workspace_grant_epoch,
+                workspace_catalog_version, workspace_root_identity_hash, capability_catalog_hash,
+                foundation_binding_hash, intent_hash, accepted_at
+         FROM bmad_help_run_creations
+         ORDER BY owner_scope_ref, installation_id, request_id",
+    )?;
+    let rows = statement
+        .query_map([], stored_help_run_creation_from_row)?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(rows)
+}
+
+fn load_help_run_evidence_rows(
+    connection: &rusqlite::Connection,
+) -> Result<Vec<HelpRunEvidenceIntegrityRow>, StoreError> {
+    let mut statement = connection.prepare(
+        "SELECT e.stream_id, e.sequence, e.payload_hash, e.payload_ref,
+                p.byte_count, p.key_version, e.correlation_id
+         FROM evidence_events e
+         JOIN payloads p
+           ON p.content_hash = e.payload_hash
+          AND p.kind = ?1
+          AND p.schema_version = ?2
+         WHERE e.event_type = 'bmad.help.run.created'
+         ORDER BY e.stream_id, e.sequence",
+    )?;
+    let rows = statement
+        .query_map(params![METHOD_STATE_KIND, METHOD_STATE_SCHEMA], |row| {
+            Ok(HelpRunEvidenceIntegrityRow {
+                stream_id: row.get(0)?,
+                sequence: row.get(1)?,
+                payload: PayloadRef {
+                    content_hash: row.get(2)?,
+                    kind: METHOD_STATE_KIND.to_owned(),
+                    schema_version: METHOD_STATE_SCHEMA.to_owned(),
+                    byte_count: row.get(4)?,
+                    key_version: row.get(5)?,
+                },
+                payload_ref: row.get(3)?,
+                correlation_id: row.get(6)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(rows)
+}
+
+fn verify_help_run_creation_rows(
+    store: &LocalStore,
+    rows: &[StoredHelpRunCreation],
+    events: Vec<HelpRunEvidenceIntegrityRow>,
+    sessions: &VerifiedMethodSessions,
+    identity: &DesktopLocalIdentity,
+) -> Result<(), StoreError> {
+    if rows.len() != events.len() {
+        return Err(StoreError::Inconsistent);
+    }
+    let mut receipts = BTreeMap::new();
+    for row in rows {
+        let session = sessions
+            .get(&row.session_id)
+            .ok_or(StoreError::Inconsistent)?;
+        verify_help_run_creation(row, session, identity)?;
+        if receipts.insert(row.session_id.as_str(), row).is_some() {
+            return Err(StoreError::Inconsistent);
+        }
+    }
+    let mut matched = BTreeSet::new();
+    for event in events {
+        let session_id = event
+            .stream_id
+            .strip_prefix("bmad-method:")
+            .ok_or(StoreError::Inconsistent)?;
+        let receipt = receipts.get(session_id).ok_or(StoreError::Inconsistent)?;
+        if event.sequence != 1
+            || event.stream_id != format!("bmad-method:{}", receipt.session_id)
+            || event.correlation_id != receipt.request_id
+            || event.payload_ref != payload_uri(&event.payload)?
+            || !matched.insert(session_id.to_owned())
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let bytes = store.get_payload(&event.payload)?;
+        let source = std::str::from_utf8(&bytes).map_err(|_| StoreError::Inconsistent)?;
+        let initial = MethodSession::from_persisted_json(source)?;
+        let request = stored_help_run_request(receipt)?;
+        if initial.session_id().as_str() != receipt.session_id
+            || initial.scope().run_id.as_str() != receipt.run_id
+            || validate_new_help_run_candidate(&initial, &request, identity)? != source
+        {
+            return Err(StoreError::Inconsistent);
+        }
+    }
+    if matched.len() != rows.len() {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
 }
 
 fn verify_method_receipt_rows(rows: Vec<ReceiptIntegrityRow>) -> Result<(), StoreError> {

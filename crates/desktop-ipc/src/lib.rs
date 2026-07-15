@@ -6,6 +6,7 @@
 
 mod bmad;
 mod bmad_help;
+mod bmad_run;
 mod envelope;
 mod gate;
 mod unique_json;
@@ -43,4 +44,7 @@ pub use bmad::{
 pub use bmad_help::{
     project_bmad_help_recommendation, BmadHelpConfidenceProjection, BmadHelpProjectionError,
     BmadHelpRecommendationProjection, MAX_BMAD_HELP_RECOMMENDATION_BYTES,
+};
+pub use bmad_run::{
+    project_created_bmad_help_run, BmadHelpRunCreatedProjection, MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
 };

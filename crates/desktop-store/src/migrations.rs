@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 7;
+pub(crate) const LATEST_STORE_VERSION: u32 = 8;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -47,6 +47,23 @@ const V7_TABLES: [&str; 14] = [
     "bmad_builder_analysis_decisions",
     "bmad_builder_drafts",
     "bmad_builder_revisions",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "evidence_events",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V8_TABLES: [&str; 15] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_help_run_creations",
     "bmad_method_artifacts",
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
@@ -310,6 +327,37 @@ const V6_TO_V7_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 7;
  COMMIT;";
 
+const V7_TO_V8_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_help_run_creations (
+   owner_scope_ref TEXT NOT NULL,
+   installation_id TEXT NOT NULL,
+   request_id TEXT NOT NULL,
+   request_fingerprint TEXT NOT NULL,
+   session_id TEXT NOT NULL UNIQUE REFERENCES bmad_method_sessions(session_id),
+   project_id TEXT NOT NULL,
+   run_id TEXT NOT NULL,
+   authority_id TEXT NOT NULL,
+   authority_epoch INTEGER NOT NULL
+     CHECK(authority_epoch >= 1 AND authority_epoch <= 9007199254740991),
+   local_store_id TEXT NOT NULL,
+   workspace_id TEXT NOT NULL,
+   workspace_grant_epoch INTEGER NOT NULL
+     CHECK(workspace_grant_epoch >= 1 AND workspace_grant_epoch <= 9007199254740991),
+   workspace_catalog_version INTEGER NOT NULL
+     CHECK(workspace_catalog_version >= 1 AND workspace_catalog_version <= 9007199254740991),
+   workspace_root_identity_hash TEXT NOT NULL,
+   capability_catalog_hash TEXT NOT NULL,
+   foundation_binding_hash TEXT NOT NULL,
+   intent_hash TEXT NOT NULL,
+   accepted_at INTEGER NOT NULL
+     CHECK(accepted_at >= 0 AND accepted_at <= 9007199254740991),
+   PRIMARY KEY(owner_scope_ref, installation_id, request_id)
+ ) STRICT;
+ CREATE INDEX bmad_help_run_creations_scope
+   ON bmad_help_run_creations(owner_scope_ref, project_id, run_id, session_id);
+ PRAGMA user_version = 8;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -338,8 +386,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 reject_untrusted_v6_model_analysis_history(connection)?;
                 connection.execute_batch(V6_TO_V7_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            7 => {
                 require_store_tables(connection, &V7_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V7_TO_V8_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V8_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

@@ -1,4 +1,4 @@
-use desktop_ipc::BmadLibrarySnapshotProjection;
+use desktop_ipc::{BmadHelpRunCreatedProjection, BmadLibrarySnapshotProjection};
 use desktop_runtime::{
     CommandReceipt, ContractId, LocalError, ProjectionEvent, ProjectionSnapshot,
 };
@@ -104,6 +104,7 @@ pub enum HostCommandData {
     SearchResults(Vec<SearchMatch>),
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
+    BmadHelpRunCreated(BmadHelpRunCreatedProjection),
     ContextPreview(ContextPreviewProjection),
 }
 
