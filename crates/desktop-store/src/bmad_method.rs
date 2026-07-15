@@ -2131,6 +2131,12 @@ fn same_receipt_or_conflict(
 ) -> Result<MethodAdvanceReceipt, StoreError> {
     if receipt.invocation_id == request.invocation_id
         && receipt.decision_id == request.decision_id
+        && receipt.decision_consumption_hash == request.decision_consumption_hash
+        && receipt.model_request_id == request.model_request_id
+        && receipt.model_request_hash == request.model_request_hash
+        && receipt.session_authority_hash == request.session_authority_hash
+        && receipt.d2_model_invocation_binding_hash == request.d2_model_invocation_binding_hash
+        && receipt.model_bridge_binding_hash == request.model_bridge_binding_hash
         && receipt.idempotency_key == request.idempotency_key
         && request
             .expected_version

@@ -1,12 +1,13 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    sha256_bytes, AuthorityRef, BmadCapabilityKey, ContractId, CreateMethodSession,
-    MethodAdvanceDisposition, MethodAdvanceRequest, MethodAdvanceResult, MethodArtifactExpectation,
-    MethodContextDecision, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
-    MethodPersistenceEvent, MethodResourcePolicy, MethodSession, MethodSessionRepository,
-    MethodSessionService, MethodStepTable, UnixMillis,
+    canonical_hash, sha256_bytes, AuthorityRef, BmadCapabilityKey, ContractId, CreateMethodSession,
+    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult,
+    MethodArtifactExpectation, MethodCheckpoint, MethodContextDecision, MethodEvidenceClass,
+    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodModelBinding, MethodModelBindingData, MethodPersistenceEvent, MethodResourcePolicy,
+    MethodSession, MethodSessionRepository, MethodSessionService, MethodStepTable,
+    MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData, Sha256Digest, UnixMillis,
 };
 use desktop_store::{KeyProtector, LocalStore, StoreError};
 use std::sync::{Arc, Barrier};
@@ -26,6 +27,273 @@ impl KeyProtector for TestProtector {
 
 fn id(value: &str) -> ContractId {
     ContractId::new(value).expect("valid id")
+}
+
+fn advance_request(
+    session: &MethodSession,
+    invocation_value: &str,
+    idempotency_key: &str,
+    decision_id: ContractId,
+    expected_version: u64,
+) -> MethodAdvanceRequest {
+    let invocation_id = id(invocation_value);
+    let session_authority_hash = session
+        .session_authority_hash()
+        .expect("session authority hash");
+    let d2_model_invocation_binding_hash =
+        sha256_bytes(format!("{}:d2-model-invocation-binding", invocation_id.as_str()).as_bytes());
+    let model_bridge_binding_hash = session
+        .model_bridge_binding_hash(&d2_model_invocation_binding_hash)
+        .expect("Method/D2 bridge binding hash");
+    MethodAdvanceRequest {
+        invocation_id: invocation_id.clone(),
+        idempotency_key: idempotency_key.to_owned(),
+        decision_id,
+        decision_consumption_hash: sha256_bytes(
+            format!("{}:decision-consumption", invocation_id.as_str()).as_bytes(),
+        ),
+        model_request_id: id(&invocation_id.as_str().replacen("invoke_", "modelreq_", 1)),
+        model_request_hash: sha256_bytes(
+            format!("{}:model-request", invocation_id.as_str()).as_bytes(),
+        ),
+        session_authority_hash,
+        d2_model_invocation_binding_hash,
+        model_bridge_binding_hash,
+        expected_version,
+    }
+}
+
+fn completed_result(working_artifact_refs: Vec<String>) -> MethodAdvanceResult {
+    MethodAdvanceResult {
+        disposition: MethodAdvanceDisposition::Completed,
+        current_step_key: "respond".to_owned(),
+        next_step_key: None,
+        working_artifact_refs,
+    }
+}
+
+fn verified_result(
+    binding: &MethodExactBinding,
+    receipt: &MethodAdvanceReceipt,
+    result: MethodAdvanceResult,
+    evidence_label: &str,
+) -> MethodVerifiedAdvanceResult {
+    let verified_binding = MethodVerifiedResultBindingData {
+        invocation_id: receipt.invocation_id.clone(),
+        decision_id: receipt.decision_id.clone(),
+        decision_consumption_hash: receipt.decision_consumption_hash,
+        model_request_id: receipt.model_request_id.clone(),
+        model_request_hash: receipt.model_request_hash,
+        session_authority_hash: receipt.session_authority_hash,
+        d2_model_invocation_binding_hash: receipt.d2_model_invocation_binding_hash,
+        model_bridge_binding_hash: receipt.model_bridge_binding_hash,
+        method_binding_hash: binding.binding_hash().expect("exact Method binding hash"),
+        model_binding_hash: binding.model_binding_hash,
+        response_schema_hash: binding.model_binding.data.response_schema_hash,
+        model_response_payload_hash: sha256_bytes(
+            format!("{evidence_label}:exact-raw-response-json").as_bytes(),
+        ),
+        accepted_method_result_hash: canonical_hash("bmad-method-advance-result", 1, &result)
+            .expect("canonical accepted Method result hash"),
+        model_receipt_evidence_hash: canonical_hash(
+            "model-access-receipt-evidence",
+            1,
+            &(
+                receipt.model_request_id.as_str(),
+                receipt.model_request_hash,
+                evidence_label,
+            ),
+        )
+        .expect("canonical verified receipt evidence hash"),
+    };
+    MethodVerifiedAdvanceResult::from_trusted_host_evidence(result, verified_binding)
+        .expect("trusted host result evidence seals")
+}
+
+fn assert_active_invocation(
+    session: &MethodSession,
+    expected: &ContractId,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let value: serde_json::Value = serde_json::from_str(&session.to_persisted_json()?)?;
+    assert_eq!(
+        value["activeInvocation"]["invocationId"].as_str(),
+        Some(expected.as_str())
+    );
+    Ok(())
+}
+
+fn relation_count(
+    connection: &rusqlite::Connection,
+    statement: &str,
+    session_id: &ContractId,
+) -> Result<u64, rusqlite::Error> {
+    connection.query_row(statement, [session_id.as_str()], |row| row.get(0))
+}
+
+fn assert_no_result_residue(
+    database_path: &std::path::Path,
+    session_id: &ContractId,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let connection = rusqlite::Connection::open(database_path)?;
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM bmad_method_checkpoints WHERE session_id = ?1",
+            session_id,
+        )?,
+        0
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM evidence_events
+             WHERE stream_id = 'bmad-method:' || ?1
+               AND event_type = 'bmad.method.result_accepted'",
+            session_id,
+        )?,
+        0
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM outbox o
+             JOIN evidence_events e ON e.event_id = o.event_id
+             WHERE e.stream_id = 'bmad-method:' || ?1
+               AND e.event_type = 'bmad.method.result_accepted'",
+            session_id,
+        )?,
+        0
+    );
+    Ok(())
+}
+
+fn assert_replay_lineage_drift_conflicts(
+    store: &LocalStore,
+    session: &MethodSession,
+    binding: &MethodExactBinding,
+    request: &MethodAdvanceRequest,
+) {
+    let assert_conflict = |request| {
+        assert!(matches!(
+            store.begin_method_advance(&session.scope(), &session.session_id(), binding, request,),
+            Err(StoreError::StateConflict)
+        ));
+    };
+
+    let mut drifted = request.clone();
+    drifted.decision_consumption_hash = sha256_bytes(b"drifted decision consumption");
+    assert_conflict(drifted);
+    let mut drifted = request.clone();
+    drifted.model_request_id = id("modelreq_01J99999999999999999999999");
+    assert_conflict(drifted);
+    let mut drifted = request.clone();
+    drifted.model_request_hash = sha256_bytes(b"drifted model request");
+    assert_conflict(drifted);
+    let mut drifted = request.clone();
+    drifted.session_authority_hash = sha256_bytes(b"drifted session authority");
+    assert_conflict(drifted);
+    let mut drifted = request.clone();
+    drifted.d2_model_invocation_binding_hash = sha256_bytes(b"drifted D2 binding");
+    assert_conflict(drifted);
+    let mut drifted = request.clone();
+    drifted.model_bridge_binding_hash = sha256_bytes(b"drifted bridge binding");
+    assert_conflict(drifted);
+}
+
+fn assert_checkpoint_lineage(
+    checkpoint: &MethodCheckpoint,
+    receipt: &MethodAdvanceReceipt,
+    expected: &MethodVerifiedResultBindingData,
+    verified_hash: &Sha256Digest,
+) {
+    assert_eq!(checkpoint.invocation_id, receipt.invocation_id);
+    assert_eq!(
+        checkpoint.advance_aggregate_version,
+        receipt.aggregate_version
+    );
+    assert_eq!(checkpoint.context_decision_id, receipt.decision_id);
+    assert_eq!(
+        checkpoint.decision_consumption_hash,
+        expected.decision_consumption_hash
+    );
+    assert_eq!(checkpoint.model_request_id, expected.model_request_id);
+    assert_eq!(checkpoint.model_request_hash, expected.model_request_hash);
+    assert_eq!(
+        checkpoint.session_authority_hash,
+        expected.session_authority_hash
+    );
+    assert_eq!(
+        checkpoint.d2_model_invocation_binding_hash,
+        expected.d2_model_invocation_binding_hash
+    );
+    assert_eq!(
+        checkpoint.model_bridge_binding_hash,
+        expected.model_bridge_binding_hash
+    );
+    assert_eq!(checkpoint.method_binding_hash, expected.method_binding_hash);
+    assert_eq!(checkpoint.model_binding_hash, expected.model_binding_hash);
+    assert_eq!(
+        checkpoint.response_schema_hash,
+        expected.response_schema_hash
+    );
+    assert_eq!(
+        checkpoint.model_response_payload_hash,
+        expected.model_response_payload_hash
+    );
+    assert_eq!(
+        checkpoint.accepted_method_result_hash,
+        expected.accepted_method_result_hash
+    );
+    assert_eq!(
+        checkpoint.model_receipt_evidence_hash,
+        expected.model_receipt_evidence_hash
+    );
+    assert_eq!(&checkpoint.verified_result_binding_hash, verified_hash);
+    assert_ne!(
+        checkpoint.model_response_payload_hash,
+        checkpoint.accepted_method_result_hash
+    );
+    assert_ne!(
+        checkpoint.accepted_method_result_hash,
+        checkpoint.model_receipt_evidence_hash
+    );
+}
+
+fn assert_result_relational_counts(
+    database_path: &std::path::Path,
+    session_id: &ContractId,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let connection = rusqlite::Connection::open(database_path)?;
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM bmad_method_checkpoints WHERE session_id = ?1",
+            session_id,
+        )?,
+        1
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM evidence_events
+             WHERE stream_id = 'bmad-method:' || ?1
+               AND event_type = 'bmad.method.result_accepted'",
+            session_id,
+        )?,
+        1
+    );
+    assert_eq!(
+        relation_count(
+            &connection,
+            "SELECT COUNT(*) FROM outbox o
+             JOIN evidence_events e ON e.event_id = o.event_id
+             WHERE e.stream_id = 'bmad-method:' || ?1
+               AND e.event_type = 'bmad.method.result_accepted'",
+            session_id,
+        )?,
+        1
+    );
+    Ok(())
 }
 
 fn method_binding(
@@ -157,6 +425,36 @@ fn ready_session_with_expectations(
     Ok((session, binding, review))
 }
 
+fn persist_completed_session(
+    store: LocalStore,
+    evidence_label: &str,
+) -> Result<(MethodSessionService<LocalStore>, MethodSession), Box<dyn std::error::Error>> {
+    let (session, binding, review) = ready_session(&store)?;
+    let request = advance_request(
+        &session,
+        "invoke_01J55555555555555555555555",
+        evidence_label,
+        review.decision_id,
+        4,
+    );
+    let receipt =
+        store.begin_method_advance(&session.scope(), &session.session_id(), &binding, request)?;
+    let service = MethodSessionService::new(store);
+    let completed = service.accept_result(
+        &session.scope(),
+        &session.session_id(),
+        5,
+        verified_result(
+            &binding,
+            &receipt,
+            completed_result(Vec::new()),
+            evidence_label,
+        ),
+        UnixMillis(6_000),
+    )?;
+    Ok((service, completed))
+}
+
 #[test]
 fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart(
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -164,18 +462,29 @@ fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart
     let store = LocalStore::open(directory.path(), &TestProtector)?;
     let (session, binding, review) = ready_session(&store)?;
 
-    let request = MethodAdvanceRequest {
-        invocation_id: id("invoke_01J00000000000000000000000"),
-        idempotency_key: "method-advance-1".to_owned(),
-        decision_id: review.decision_id.clone(),
-        expected_version: session.version(),
-    };
+    let request = advance_request(
+        &session,
+        "invoke_01J00000000000000000000000",
+        "method-advance-1",
+        review.decision_id.clone(),
+        session.version(),
+    );
     let receipt = store.begin_method_advance(
         &session.scope(),
         &session.session_id(),
         &binding,
         request.clone(),
     )?;
+    assert_eq!(
+        store.begin_method_advance(
+            &session.scope(),
+            &session.session_id(),
+            &binding,
+            request.clone(),
+        )?,
+        receipt
+    );
+    assert_replay_lineage_drift_conflicts(&store, &session, &binding, &request);
     assert_eq!(
         store.begin_method_advance(
             &session.scope(),
@@ -206,12 +515,13 @@ fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart
         &session.scope(),
         &session.session_id(),
         &binding,
-        MethodAdvanceRequest {
-            invocation_id: id("invoke_01J11111111111111111111111"),
-            idempotency_key: "method-advance-2".to_owned(),
-            decision_id: review.decision_id,
-            expected_version: receipt.aggregate_version,
-        },
+        advance_request(
+            &session,
+            "invoke_01J11111111111111111111111",
+            "method-advance-2",
+            review.decision_id,
+            receipt.aggregate_version,
+        ),
     );
     assert!(second.is_err());
     drop(store);
@@ -274,31 +584,41 @@ fn accepted_result_persists_checkpoint_state_evidence_and_outbox_atomically(
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
     let (session, binding, review) = ready_session(&store)?;
-    let request = MethodAdvanceRequest {
-        invocation_id: id("invoke_01J00000000000000000000000"),
-        idempotency_key: "checkpoint".to_owned(),
-        decision_id: review.decision_id,
-        expected_version: 4,
-    };
+    let request = advance_request(
+        &session,
+        "invoke_01J00000000000000000000000",
+        "checkpoint",
+        review.decision_id,
+        4,
+    );
     let receipt =
         store.begin_method_advance(&session.scope(), &session.session_id(), &binding, request)?;
-    let mut advancing = store
-        .load_method_session(&session.scope(), &session.session_id())?
-        .expect("advancing session");
-    advancing.accept_result(
+    let result = verified_result(
+        &binding,
+        &receipt,
+        completed_result(Vec::new()),
+        "atomic-success",
+    );
+    let expected_binding = result.binding().clone();
+    let expected_verified_hash = *result.verification_hash();
+    let service = MethodSessionService::new(store);
+    let completed = service.accept_result(
+        &session.scope(),
+        &session.session_id(),
         5,
-        &receipt.invocation_id,
-        desktop_runtime::MethodAdvanceResult {
-            disposition: desktop_runtime::MethodAdvanceDisposition::Completed,
-            current_step_key: "respond".to_owned(),
-            next_step_key: None,
-            working_artifact_refs: Vec::new(),
-        },
+        result,
         UnixMillis(3_000),
     )?;
-    store.persist_method_transition(&advancing, 5, MethodPersistenceEvent::ResultAccepted)?;
-    store.verify_integrity()?;
-    drop(store);
+    assert_eq!(completed.state(), desktop_runtime::MethodState::Completed);
+    assert_checkpoint_lineage(
+        completed.resume().expect("completed checkpoint"),
+        &receipt,
+        &expected_binding,
+        &expected_verified_hash,
+    );
+    assert_result_relational_counts(&service.repository().database_path(), &session.session_id())?;
+    service.repository().verify_integrity()?;
+    drop(service);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
     let restored = reopened
@@ -306,6 +626,12 @@ fn accepted_result_persists_checkpoint_state_evidence_and_outbox_atomically(
         .expect("completed session");
     assert_eq!(restored.state(), desktop_runtime::MethodState::Completed);
     assert_eq!(restored.resume().map(|value| value.turn_ordinal), Some(1));
+    assert_checkpoint_lineage(
+        restored.resume().expect("restored checkpoint"),
+        &receipt,
+        &expected_binding,
+        &expected_verified_hash,
+    );
     Ok(())
 }
 
@@ -323,25 +649,21 @@ fn concurrent_distinct_invocations_cannot_share_one_decision(
         let barrier = Arc::clone(&barrier);
         let scope = session.scope();
         let session_id = session.session_id();
-        let decision_id = review.decision_id.clone();
         let binding = binding.clone();
+        let request = advance_request(
+            &session,
+            if ordinal == 0 {
+                "invoke_01J00000000000000000000000"
+            } else {
+                "invoke_01J11111111111111111111111"
+            },
+            &format!("race-{ordinal}"),
+            review.decision_id.clone(),
+            4,
+        );
         handles.push(std::thread::spawn(move || {
             barrier.wait();
-            store.begin_method_advance(
-                &scope,
-                &session_id,
-                &binding,
-                MethodAdvanceRequest {
-                    invocation_id: id(if ordinal == 0 {
-                        "invoke_01J00000000000000000000000"
-                    } else {
-                        "invoke_01J11111111111111111111111"
-                    }),
-                    idempotency_key: format!("race-{ordinal}"),
-                    decision_id,
-                    expected_version: 4,
-                },
-            )
+            store.begin_method_advance(&scope, &session_id, &binding, request)
         }));
     }
     barrier.wait();
@@ -392,12 +714,13 @@ fn drift_is_checked_before_atomic_decision_consumption_and_can_be_rebound(
     let (session, binding, review) = ready_session(&store)?;
     let mut rebound = binding.clone();
     rebound.package_source_hash = sha256_bytes(b"updated package source");
-    let stale_request = MethodAdvanceRequest {
-        invocation_id: id("invoke_01J66666666666666666666666"),
-        idempotency_key: "drifted-binding".to_owned(),
-        decision_id: review.decision_id,
-        expected_version: 4,
-    };
+    let stale_request = advance_request(
+        &session,
+        "invoke_01J66666666666666666666666",
+        "drifted-binding",
+        review.decision_id,
+        4,
+    );
     assert!(store
         .begin_method_advance(
             &session.scope(),
@@ -445,12 +768,13 @@ fn drift_is_checked_before_atomic_decision_consumption_and_can_be_rebound(
         &session.scope(),
         &session.session_id(),
         &rebound,
-        MethodAdvanceRequest {
-            invocation_id: id("invoke_01J77777777777777777777777"),
-            idempotency_key: "fresh-rebound-review".to_owned(),
-            decision_id: fresh_review.decision_id,
-            expected_version: 7,
-        },
+        advance_request(
+            &ready,
+            "invoke_01J77777777777777777777777",
+            "fresh-rebound-review",
+            fresh_review.decision_id,
+            7,
+        ),
     )?;
     assert_eq!(receipt.aggregate_version, 8);
     Ok(())
@@ -480,27 +804,36 @@ fn coordinator_authenticates_artifacts_and_enforces_required_expectations(
         &session.scope(),
         &session.session_id(),
         &binding,
-        MethodAdvanceRequest {
-            invocation_id: id("invoke_01J88888888888888888888888"),
-            idempotency_key: "artifact-evidence".to_owned(),
-            decision_id: review.decision_id,
-            expected_version: 4,
-        },
+        advance_request(
+            &session,
+            "invoke_01J88888888888888888888888",
+            "artifact-evidence",
+            review.decision_id,
+            4,
+        ),
     )?;
+    let invented_artifact_ref = format!("cas://sha256/{}", "a".repeat(64));
     let missing = service.accept_result(
         &session.scope(),
         &session.session_id(),
         5,
-        &receipt.invocation_id,
-        MethodAdvanceResult {
-            disposition: MethodAdvanceDisposition::Completed,
-            current_step_key: "respond".to_owned(),
-            next_step_key: None,
-            working_artifact_refs: vec![format!("cas://sha256/{}", "a".repeat(64))],
-        },
+        verified_result(
+            &binding,
+            &receipt,
+            completed_result(vec![invented_artifact_ref]),
+            "missing-artifact",
+        ),
         UnixMillis(4_000),
     );
     assert!(missing.is_err(), "invented CAS references must fail");
+    let retained = service
+        .repository()
+        .load_method_session(&session.scope(), &session.session_id())?
+        .expect("artifact rejection retains advancing state");
+    assert_eq!(retained.version(), 5);
+    assert_eq!(retained.state(), desktop_runtime::MethodState::Advancing);
+    assert_active_invocation(&retained, &receipt.invocation_id)?;
+    assert_no_result_residue(&service.repository().database_path(), &session.session_id())?;
 
     let provenance = advancing.artifact_provenance_for(&receipt.invocation_id)?;
     let artifact_ref = service.repository().put_method_artifact(
@@ -523,13 +856,12 @@ fn coordinator_authenticates_artifacts_and_enforces_required_expectations(
         &session.scope(),
         &session.session_id(),
         5,
-        &receipt.invocation_id,
-        MethodAdvanceResult {
-            disposition: MethodAdvanceDisposition::Completed,
-            current_step_key: "respond".to_owned(),
-            next_step_key: None,
-            working_artifact_refs: vec![artifact_ref],
-        },
+        verified_result(
+            &binding,
+            &receipt,
+            completed_result(vec![artifact_ref]),
+            "stored-artifact",
+        ),
         UnixMillis(4_000),
     )?;
     assert_eq!(completed.state(), desktop_runtime::MethodState::Completed);
@@ -546,12 +878,13 @@ fn failed_result_transaction_leaves_state_and_evidence_unadvanced(
         &session.scope(),
         &session.session_id(),
         &binding,
-        MethodAdvanceRequest {
-            invocation_id: id("invoke_01J99999999999999999999999"),
-            idempotency_key: "injected-failure".to_owned(),
-            decision_id: review.decision_id,
-            expected_version: 4,
-        },
+        advance_request(
+            &session,
+            "invoke_01J99999999999999999999999",
+            "injected-failure",
+            review.decision_id,
+            4,
+        ),
     )?;
     drop(store);
     let connection = rusqlite::Connection::open(directory.path().join("authority.sqlite3"))?;
@@ -564,29 +897,147 @@ fn failed_result_transaction_leaves_state_and_evidence_unadvanced(
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    let mut advancing = reopened
-        .load_method_session(&session.scope(), &session.session_id())?
-        .expect("advancing state");
-    advancing.accept_result(
-        5,
-        &receipt.invocation_id,
-        MethodAdvanceResult {
-            disposition: MethodAdvanceDisposition::Completed,
-            current_step_key: "respond".to_owned(),
-            next_step_key: None,
-            working_artifact_refs: Vec::new(),
-        },
-        UnixMillis(5_000),
-    )?;
-    assert!(reopened
-        .persist_method_transition(&advancing, 5, MethodPersistenceEvent::ResultAccepted)
+    let service = MethodSessionService::new(reopened);
+    assert!(service
+        .accept_result(
+            &session.scope(),
+            &session.session_id(),
+            5,
+            verified_result(
+                &binding,
+                &receipt,
+                completed_result(Vec::new()),
+                "injected-failure",
+            ),
+            UnixMillis(5_000),
+        )
         .is_err());
-    let retained = reopened
+    let retained = service
+        .repository()
         .load_method_session(&session.scope(), &session.session_id())?
         .expect("retained advancing state");
     assert_eq!(retained.version(), 5);
     assert_eq!(retained.state(), desktop_runtime::MethodState::Advancing);
     assert!(retained.checkpoints().is_empty());
+    assert_active_invocation(&retained, &receipt.invocation_id)?;
+    assert_no_result_residue(&service.repository().database_path(), &session.session_id())?;
+    Ok(())
+}
+
+#[test]
+fn checkpoint_index_hash_tampering_is_detected_by_explicit_integrity_verification(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (service, completed) = persist_completed_session(store, "checkpoint-index-tamper")?;
+    let database_path = service.repository().database_path();
+    drop(service);
+
+    let connection = rusqlite::Connection::open(&database_path)?;
+    connection.execute(
+        "UPDATE bmad_method_checkpoints SET checkpoint_hash = ?1 WHERE session_id = ?2",
+        rusqlite::params![
+            sha256_bytes(b"tampered checkpoint index hash").to_string(),
+            completed.session_id().as_str(),
+        ],
+    )?;
+    drop(connection);
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    assert!(matches!(
+        reopened.verify_integrity(),
+        Err(StoreError::Inconsistent)
+    ));
+    Ok(())
+}
+
+#[test]
+fn session_projection_repointed_to_registered_stale_payload_fails_closed(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let (service, completed) = persist_completed_session(store, "stale-projection")?;
+    let database_path = service.repository().database_path();
+    drop(service);
+
+    let connection = rusqlite::Connection::open(&database_path)?;
+    let stale: (String, u64, u32) = connection.query_row(
+        "SELECT e.payload_hash, p.byte_count, p.key_version
+         FROM evidence_events e
+         JOIN payloads p
+           ON p.content_hash = e.payload_hash
+          AND p.kind = 'bmad_method_session'
+          AND p.schema_version = 'sapphirus.bmad-method-session-state.v1'
+         WHERE e.stream_id = 'bmad-method:' || ?1
+           AND e.event_type = 'bmad.method.context_review_accepted'",
+        [completed.session_id().as_str()],
+        |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+    )?;
+    connection.execute(
+        "UPDATE bmad_method_sessions
+         SET state_content_hash = ?1, state_byte_count = ?2, state_key_version = ?3
+         WHERE session_id = ?4",
+        rusqlite::params![stale.0, stale.1, stale.2, completed.session_id().as_str(),],
+    )?;
+    drop(connection);
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    assert!(matches!(
+        reopened.load_method_session(&completed.scope(), &completed.session_id()),
+        Err(StoreError::Inconsistent)
+    ));
+    assert!(reopened.verify_integrity().is_err());
+    Ok(())
+}
+
+#[test]
+fn frozen_pre_lineage_created_v1_session_restores_without_a_schema_migration(
+) -> Result<(), Box<dyn std::error::Error>> {
+    const PRE_BMAD_06_CREATED_V1: &str = r#"{
+        "schemaVersion":"sapphirus.bmad-method-session-state.v1",
+        "sessionId":"session_01J00000000000000000000000",
+        "scope":{
+            "ownerScopeRef":"ownerscope_01J00000000000000000000000",
+            "projectId":"project_01J00000000000000000000000",
+            "runId":"run_01J00000000000000000000000",
+            "authorityRef":{
+                "authorityKind":"desktop_local_store",
+                "authorityId":"authority_01J00000000000000000000000",
+                "installationId":"install_01J00000000000000000000000",
+                "localStoreId":"store_01J00000000000000000000000",
+                "authorityEpoch":1
+            }
+        },
+        "createdAt":1000,
+        "state":"created",
+        "version":1,
+        "turnOrdinal":0,
+        "bindingOrdinal":0,
+        "bindingHistory":[],
+        "exactBinding":null,
+        "stepTable":null,
+        "currentStepKey":null,
+        "pendingReview":null,
+        "activeInvocation":null,
+        "consumedDecisions":{},
+        "idempotentAdvances":{},
+        "checkpoints":[]
+    }"#;
+
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let frozen = MethodSession::from_persisted_json(PRE_BMAD_06_CREATED_V1)?;
+    store.create_method_session(&frozen)?;
+    drop(store);
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    assert_eq!(reopened.schema_version()?, 9);
+    let restored = reopened
+        .load_method_session(&frozen.scope(), &frozen.session_id())?
+        .expect("frozen Created/unbound session");
+    assert_eq!(restored.state(), desktop_runtime::MethodState::Created);
+    assert_eq!(restored.version(), 1);
+    assert!(restored.checkpoints().is_empty());
     Ok(())
 }
 
