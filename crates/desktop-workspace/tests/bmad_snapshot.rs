@@ -77,10 +77,10 @@ fn skips_sensitive_entries_and_rejects_source_limit_overflow() {
 }
 
 #[test]
-fn context_library_and_build_outputs_are_never_discovery_roots() {
+fn reference_vaults_and_build_outputs_are_never_discovery_roots() {
     let root = tempfile::tempdir().expect("workspace");
     for relative in [
-        "bmad-runtime-lib/_source_review/skill/SKILL.md",
+        "external-reference-vault/review/skill/SKILL.md",
         "target/debug/skill/SKILL.md",
         "node_modules/package/SKILL.md",
     ] {

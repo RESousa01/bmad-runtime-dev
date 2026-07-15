@@ -73,6 +73,7 @@ async function readyD1Runtime(): Promise<{ runtime: HostRuntime; invoke: ReturnT
       "workspace.read_text",
       "workspace.search",
       "bmad.scan",
+      "bmad.library.snapshot",
       "context.preview",
     ],
   };
@@ -182,6 +183,7 @@ async function workspaceManagementRuntime(
       "workspace.read_text",
       "workspace.search",
       "bmad.scan",
+      "bmad.library.snapshot",
       "context.preview",
     ],
     workspaces: [primary, secondary],
@@ -232,6 +234,180 @@ async function workspaceManagementRuntime(
   });
   await client.bootstrap();
   return { runtime: { kind: "ready", client, bootstrap }, invoke };
+}
+
+async function bmadLibraryRuntime({
+  dropBmadAfterRebind = false,
+  emitInvalidation = false,
+  expireFirstSession = false,
+  holdOldProjection = false,
+}: {
+  dropBmadAfterRebind?: boolean;
+  emitInvalidation?: boolean;
+  expireFirstSession?: boolean;
+  holdOldProjection?: boolean;
+} = {}): Promise<{
+  runtime: HostRuntime;
+  invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
+  releaseInvalidation: () => void;
+  releaseOldProjection: () => void;
+}> {
+  const bootstrap: BootstrapReply = {
+    ...recoveryBootstrap,
+    bootMode: "ready",
+    supportedCommands: [
+      "app.get_boot_state",
+      "workspace.select_folder",
+      "workspace.list",
+      "workspace.revoke",
+      "workspace.list_entries",
+      "workspace.read_text",
+      "workspace.search",
+      "bmad.scan",
+      "bmad.library.snapshot",
+      "context.preview",
+    ],
+  };
+  const reboundBootstrap: BootstrapReply = {
+    ...bootstrap,
+    rendererSessionId: "renderer_01K0Q6H3_rebound",
+    supportedCommands: dropBmadAfterRebind
+      ? bootstrap.supportedCommands.filter((command) => command !== "bmad.library.snapshot")
+      : bootstrap.supportedCommands,
+  };
+  let request = 0;
+  let bootstrapCount = 0;
+  let libraryAttemptCount = 0;
+  let librarySnapshotCount = 0;
+  let invalidationDelivered = false;
+  let invalidationReleased = false;
+  let releaseHeldProjection: () => void = () => undefined;
+  const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+    if (command === "host_bootstrap") {
+      bootstrapCount += 1;
+      return expireFirstSession && bootstrapCount > 1 ? reboundBootstrap : bootstrap;
+    }
+    if (command === "host_projection_events") {
+      if (holdOldProjection && bootstrapCount === 1) {
+        await new Promise<void>((resolve) => {
+          releaseHeldProjection = resolve;
+        });
+      }
+      const shouldInvalidate = emitInvalidation
+        && invalidationReleased
+        && librarySnapshotCount > 0
+        && !invalidationDelivered;
+      invalidationDelivered ||= shouldInvalidate;
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: expireFirstSession && bootstrapCount > 1
+          ? reboundBootstrap.rendererSessionId
+          : bootstrap.rendererSessionId,
+        status: "events",
+        events: shouldInvalidate ? [{
+          sequence: 19,
+          occurredAt: 1_725_000_000_010,
+          event: {
+            type: "bmad.projection_changed",
+            projection: { scope: "library" },
+          },
+        }] : [],
+      };
+    }
+    const envelope = JSON.parse(String(args?.body)) as {
+      command: string;
+      requestId: string;
+    };
+    if (envelope.command !== "bmad.library.snapshot") {
+      throw new Error(`Unexpected command ${envelope.command}`);
+    }
+    libraryAttemptCount += 1;
+    if (expireFirstSession && libraryAttemptCount === 1) {
+      return {
+        schemaVersion: "desktop-dispatch-reply.v1",
+        requestId: null,
+        sequence: 18,
+        status: "error",
+        error: {
+          code: "renderer_session_expired",
+          safeMessage: "The renderer session expired.",
+          retryable: true,
+          correlationId: null,
+        },
+      };
+    }
+    const refreshed = librarySnapshotCount > 0;
+    librarySnapshotCount += 1;
+    return successfulReply(envelope.requestId, {
+      kind: "bmad_library_snapshot",
+      value: {
+        schemaVersion: "bmad-library-snapshot.v1",
+        scope: "installed_method",
+        source: {
+          sourceKind: "sealed_foundation",
+          packageName: "bmad-method",
+          packageVersion: "6.10.0",
+        },
+        installedSkills: [{
+          moduleCode: "bmm",
+          skillName: "bmad-architecture",
+          displayName: refreshed ? "Review Architecture" : "Create Architecture",
+          description: "Create a bounded architecture spine.",
+          actions: ["create"],
+          entrypointKind: "step_jit",
+          distributionProfile: "sapphirus_package",
+          installProfile: "SapphirusManagedV1",
+          validationProfile: "MethodStepWorkflowV6",
+          availability: "capability_disabled",
+          blockerCodes: ["bmad_capability_disabled"],
+          hiddenFromHelp: false,
+        }],
+        helpActions: [{
+          moduleCode: "bmm",
+          skillName: "bmad-architecture",
+          action: "create",
+          displayName: "Architecture",
+          menuCode: "CA",
+          description: "Create the architecture spine.",
+          requiredGuidance: true,
+          expectedArtifacts: ["architecture"],
+          availability: "capability_disabled",
+          blockerCodes: ["bmad_capability_disabled"],
+        }],
+        methodAgents: [{
+          moduleCode: "bmm",
+          agentCode: "bmad-agent-architect",
+          name: "Winston",
+          title: "System Architect",
+          icon: "A",
+          team: "software-development",
+          description: "Reviews architecture trade-offs.",
+          availability: "capability_disabled",
+          blockerCodes: ["bmad_capability_disabled"],
+          menus: [{
+            code: "CA",
+            description: "Create architecture",
+            targetKind: "skill_target",
+            displayLabel: "Architecture",
+            availability: "capability_disabled",
+            availabilityReason: "bmad_capability_disabled",
+          }],
+        }],
+        nextCursor: null,
+      },
+    }, refreshed ? 19 : 18);
+  });
+  const client = new DesktopHostClient({
+    invoke,
+    requestId: () => `request_bmad_ui_${request += 1}`,
+  });
+  await client.bootstrap();
+  return {
+    runtime: { kind: "ready", client, bootstrap },
+    invoke,
+    releaseInvalidation: () => { invalidationReleased = true; },
+    releaseOldProjection: () => releaseHeldProjection(),
+  };
 }
 
 describe("Sapphirus desktop workbench", () => {
@@ -341,6 +517,8 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.getAllByText("bmad-runtime-dev").length).toBeGreaterThan(0);
     expect(screen.getByText(/absolute paths never enter renderer state/i)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Choose local workspace" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
     expect((screen.getByRole("button", { name: /remove workspace bmad-runtime-dev/i }) as HTMLButtonElement).disabled)
       .toBe(true);
 
@@ -626,6 +804,7 @@ describe("Sapphirus desktop workbench", () => {
         "workspace.read_text",
         "workspace.search",
         "bmad.scan",
+        "bmad.library.snapshot",
         "context.preview",
       ],
       projectionSequence: 18,
@@ -719,6 +898,163 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("tab", { name: "Evidence" }));
     expect(screen.getByRole("heading", { name: "Evidence" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "No evidence yet" })).toBeTruthy();
+  });
+
+  it("loads the native Method library once from the Agent workbench", async () => {
+    const { runtime, invoke } = await bmadLibraryRuntime();
+    const user = userEvent.setup();
+    const { container } = render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    const trigger = await screen.findByRole("button", { name: "Method library" });
+    await user.click(trigger);
+    expect(await screen.findByRole("heading", { name: "Method library" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Installed skills" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Available actions" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Method agents" })).toBeTruthy();
+    expect(screen.getByText("Create Architecture")).toBeTruthy();
+    expect(screen.getByText("Winston")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Suggested next step" })).toBeTruthy();
+    expect(screen.getByText(/No active governed session/i)).toBeTruthy();
+
+    const bmadCalls = invoke.mock.calls.filter(([command, args]) => {
+      if (command !== "host_dispatch") return false;
+      return (JSON.parse(String(args?.body)) as { command: string }).command
+        === "bmad.library.snapshot";
+    });
+    expect(bmadCalls).toHaveLength(1);
+    expect(JSON.parse(String(bmadCalls[0]![1]?.body))).toMatchObject({
+      command: "bmad.library.snapshot",
+      payload: { scope: "installed_method", cursor: null },
+    });
+    const methodTab = screen.getByRole("tab", { name: "Method library" });
+    methodTab.focus();
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByRole("tab", { name: "Evidence" }).getAttribute("aria-selected")).toBe("true");
+    await user.keyboard("{ArrowRight}");
+    expect(methodTab.getAttribute("aria-selected")).toBe("true");
+    const accessibility = await axe.run(container, {
+      rules: { "color-contrast": { enabled: false } },
+    });
+    expect(accessibility.violations).toEqual([]);
+  });
+
+  it("does not fabricate a Method library in browser preview or recovery", async () => {
+    const browser = render(<App />);
+    await screen.findAllByText("Browser preview");
+    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    browser.unmount();
+
+    const runtime = await recoveryRuntime();
+    render(<App hostRuntimeLoader={async () => runtime} />);
+    await screen.findAllByText("Read-only recovery");
+    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+  });
+
+  it("replaces a requested Method library after native projection invalidation", async () => {
+    const { runtime, invoke, releaseInvalidation } = await bmadLibraryRuntime({ emitInvalidation: true });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    expect(await screen.findByText("Create Architecture")).toBeTruthy();
+    releaseInvalidation();
+    expect(await screen.findByText("Review Architecture")).toBeTruthy();
+    expect(screen.queryByText("Create Architecture")).toBeNull();
+
+    await waitFor(() => {
+      const calls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.library.snapshot");
+      expect(calls).toHaveLength(2);
+    });
+  });
+
+  it("re-establishes an expired renderer session before retrying the Method snapshot", async () => {
+    const { runtime, invoke } = await bmadLibraryRuntime({ expireFirstSession: true });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    expect(await screen.findByText("Create Architecture")).toBeTruthy();
+
+    const bootstrapCalls = invoke.mock.calls.filter(([command]) => command === "host_bootstrap");
+    expect(bootstrapCalls).toHaveLength(2);
+    const snapshotCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.library.snapshot");
+    expect(snapshotCalls).toHaveLength(2);
+    expect(JSON.parse(String(snapshotCalls[1]![1]?.body))).toMatchObject({
+      rendererSessionId: "renderer_01K0Q6H3_rebound",
+      payload: { scope: "installed_method", cursor: null },
+    });
+  });
+
+  it("hides only Method controls when a rebound ready host removes the BMAD capability", async () => {
+    const { runtime } = await bmadLibraryRuntime({
+      dropBmadAfterRebind: true,
+      expireFirstSession: true,
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
+      expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    });
+    expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Read-only recovery")).toBeNull();
+    expect(screen.getByRole("button", { name: "Explorer" })).toBeTruthy();
+  });
+
+  it("ignores a stale projection poll that completes after renderer rebind", async () => {
+    const { runtime, invoke, releaseOldProjection } = await bmadLibraryRuntime({
+      expireFirstSession: true,
+      holdOldProjection: true,
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(invoke.mock.calls.some(([command]) => command === "host_projection_events")).toBe(true);
+    });
+    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    expect(await screen.findByText("Create Architecture")).toBeTruthy();
+
+    await act(async () => {
+      releaseOldProjection();
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
+      expect(screen.getByText("Create Architecture")).toBeTruthy();
+    });
+    expect(screen.queryByText("Host unavailable")).toBeNull();
   });
 
   it("has no automated accessibility violations in the default state", async () => {

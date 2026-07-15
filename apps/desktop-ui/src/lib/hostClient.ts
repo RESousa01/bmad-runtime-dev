@@ -1,8 +1,63 @@
+import type {
+  BmadAgentMenuProjection,
+  BmadAvailability,
+  BmadBlockerCode,
+  BmadEntrypointKind,
+  BmadHelpActionProjection,
+  BmadInstalledSkillProjection,
+  BmadLibrarySnapshot,
+  BmadMenuTargetKind,
+  BmadMethodAgentProjection,
+  BmadProjectionSource,
+} from "./bmadProjection";
+
 const BOOTSTRAP_SCHEMA = "desktop-bootstrap.v1" as const;
 const COMMAND_SCHEMA = "desktop-ipc-command.v1" as const;
 const DISPATCH_REPLY_SCHEMA = "desktop-dispatch-reply.v1" as const;
 const PROJECTION_REQUEST_SCHEMA = "desktop-projection-request.v1" as const;
 const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
+const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
+
+const bmadProjectionLimits = {
+  responseBytes: 256 * 1024,
+  installedSkills: 64,
+  helpActions: 64,
+  methodAgents: 16,
+  menusPerAgent: 32,
+  actionsPerSkill: 16,
+  expectedArtifacts: 16,
+  identifierBytes: 256,
+  descriptionBytes: 2_048,
+  iconBytes: 64,
+  cursorBytes: 256,
+} as const;
+
+const bmadAvailabilities = new Set<BmadAvailability>([
+  "available",
+  "capability_disabled",
+  "dependency_unavailable",
+  "orphan_skill",
+  "network_unavailable",
+  "source_prompt_unavailable",
+]);
+const bmadBlockerCodes = new Set<BmadBlockerCode>([
+  "bmad_capability_disabled",
+  "bmad_dependency_unavailable",
+  "bmad_help_catalog_orphan",
+  "bmad_network_reference_unavailable",
+  "bmad_source_prompt_unavailable",
+]);
+const bmadEntrypointKinds = new Set<BmadEntrypointKind>([
+  "direct",
+  "inline",
+  "step_jit",
+  "script_rendered",
+  "compatibility_shim",
+]);
+const bmadMenuTargetKinds = new Set<BmadMenuTargetKind>([
+  "skill_target",
+  "prompt_reference",
+]);
 
 export const desktopHostCommands = [
   "app.get_boot_state",
@@ -13,6 +68,7 @@ export const desktopHostCommands = [
   "workspace.read_text",
   "workspace.search",
   "bmad.scan",
+  "bmad.library.snapshot",
   "context.preview",
 ] as const;
 
@@ -62,7 +118,8 @@ export interface ProjectionSnapshot {
 
 type ProjectionEventPayload =
   | { type: "boot_state_changed"; projection: { mode: BootMode } }
-  | { type: "workspace_changed"; projection: { workspaceId: string } };
+  | { type: "workspace_changed"; projection: { workspaceId: string } }
+  | { type: "bmad.projection_changed"; projection: { scope: "library" } };
 
 export interface ProjectionEvent {
   sequence: number;
@@ -81,6 +138,9 @@ export interface LocalHostError {
     | "integrity_failure"
     | "recovery_required"
     | "temporarily_unavailable"
+    | "bmad_projection_unavailable"
+    | "bmad_projection_gap"
+    | "renderer_session_expired"
     | "internal";
   safeMessage: string;
   retryable: boolean;
@@ -189,6 +249,7 @@ type RendererDispatchCommand =
   | "workspace.read_text"
   | "workspace.search"
   | "bmad.scan"
+  | "bmad.library.snapshot"
   | "context.preview";
 
 export interface CommandEnvelope<
@@ -309,6 +370,102 @@ function hasUnpairedSurrogate(value: string): boolean {
     }
   }
   return false;
+}
+
+function asBmadCursor(value: unknown): string | null {
+  if (value === null) {
+    return null;
+  }
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || utf8Length(value) > bmadProjectionLimits.cursorBytes
+    || !/^[\x21-\x7e]+$/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asBmadIdentifier(value: unknown): string {
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || utf8Length(value) > bmadProjectionLimits.identifierBytes
+    || !/^[A-Za-z0-9._-]+$/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asNullableBmadIdentifier(value: unknown): string | null {
+  return value === null ? null : asBmadIdentifier(value);
+}
+
+function asBmadSafeText(value: unknown, maximumBytes: number): string {
+  if (
+    typeof value !== "string"
+    || utf8Length(value) > maximumBytes
+    || hasUnpairedSurrogate(value)
+    || /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asBmadAvailability(value: unknown): BmadAvailability {
+  const availability = asBmadIdentifier(value) as BmadAvailability;
+  if (!bmadAvailabilities.has(availability)) {
+    return fail();
+  }
+  return availability;
+}
+
+function asBmadEntrypointKind(value: unknown): BmadEntrypointKind {
+  const entrypointKind = asBmadIdentifier(value) as BmadEntrypointKind;
+  if (!bmadEntrypointKinds.has(entrypointKind)) {
+    return fail();
+  }
+  return entrypointKind;
+}
+
+function asBmadMenuTargetKind(value: unknown): BmadMenuTargetKind {
+  const targetKind = asBmadIdentifier(value) as BmadMenuTargetKind;
+  if (!bmadMenuTargetKinds.has(targetKind)) {
+    return fail();
+  }
+  return targetKind;
+}
+
+function asBmadBlockerCode(value: unknown): BmadBlockerCode {
+  const blockerCode = asBmadIdentifier(value) as BmadBlockerCode;
+  if (!bmadBlockerCodes.has(blockerCode)) {
+    return fail();
+  }
+  return blockerCode;
+}
+
+function parseBmadBlockerCodes(value: unknown): BmadBlockerCode[] {
+  if (!Array.isArray(value) || value.length > bmadBlockerCodes.size) {
+    return fail();
+  }
+  const blockerCodes = value.map(asBmadBlockerCode);
+  if (new Set(blockerCodes).size !== blockerCodes.length) {
+    return fail();
+  }
+  return blockerCodes;
+}
+
+function asNullableBmadBlockerCode(value: unknown): BmadBlockerCode | null {
+  return value === null ? null : asBmadBlockerCode(value);
+}
+
+function assertUniqueIdentities(identities: readonly string[]): void {
+  if (new Set(identities).size !== identities.length) {
+    fail();
+  }
 }
 
 function asNullableOpaqueCursor(value: unknown): string | null {
@@ -556,6 +713,9 @@ function parseLocalHostError(value: unknown): LocalHostError {
     "integrity_failure",
     "recovery_required",
     "temporarily_unavailable",
+    "bmad_projection_unavailable",
+    "bmad_projection_gap",
+    "renderer_session_expired",
     "internal",
   ]);
   const code = asBoundedString(error.code, 64) as LocalHostError["code"];
@@ -580,11 +740,15 @@ function parseDispatchReply(
   }
   if (reply.status === "error") {
     assertExactKeys(reply, ["schemaVersion", "requestId", "sequence", "status", "error"]);
-    if (reply.requestId !== requestId) {
+    const error = parseLocalHostError(reply.error);
+    const isUnboundExpiredRenderer = reply.requestId === null
+      && error.code === "renderer_session_expired"
+      && error.correlationId === null;
+    if (reply.requestId !== requestId && !isUnboundExpiredRenderer) {
       return fail();
     }
     asUnsignedInteger(reply.sequence);
-    throw new HostCommandError(parseLocalHostError(reply.error));
+    throw new HostCommandError(error);
   }
   if (reply.status !== "ok") {
     return fail();
@@ -886,6 +1050,212 @@ function parseBmadScanReply(
   };
 }
 
+function parseBmadProjectionSource(value: unknown): BmadProjectionSource {
+  const source = asRecord(value);
+  assertExactKeys(source, ["sourceKind", "packageName", "packageVersion"]);
+  if (source.sourceKind !== "sealed_foundation") {
+    return fail();
+  }
+  return {
+    sourceKind: source.sourceKind,
+    packageName: asBmadSafeText(source.packageName, bmadProjectionLimits.identifierBytes),
+    packageVersion: asBmadSafeText(source.packageVersion, bmadProjectionLimits.identifierBytes),
+  };
+}
+
+function parseBmadInstalledSkill(value: unknown): BmadInstalledSkillProjection {
+  const skill = asRecord(value);
+  assertExactKeys(skill, [
+    "moduleCode",
+    "skillName",
+    "displayName",
+    "description",
+    "actions",
+    "entrypointKind",
+    "distributionProfile",
+    "installProfile",
+    "validationProfile",
+    "availability",
+    "blockerCodes",
+    "hiddenFromHelp",
+  ]);
+  if (!Array.isArray(skill.actions) || skill.actions.length > bmadProjectionLimits.actionsPerSkill) {
+    return fail();
+  }
+  return {
+    moduleCode: asBmadIdentifier(skill.moduleCode),
+    skillName: asBmadIdentifier(skill.skillName),
+    displayName: asBmadSafeText(skill.displayName, bmadProjectionLimits.identifierBytes),
+    description: asBmadSafeText(skill.description, bmadProjectionLimits.descriptionBytes),
+    actions: skill.actions.map(asBmadIdentifier),
+    entrypointKind: asBmadEntrypointKind(skill.entrypointKind),
+    distributionProfile: asBmadIdentifier(skill.distributionProfile),
+    installProfile: asBmadIdentifier(skill.installProfile),
+    validationProfile: asBmadIdentifier(skill.validationProfile),
+    availability: asBmadAvailability(skill.availability),
+    blockerCodes: parseBmadBlockerCodes(skill.blockerCodes),
+    hiddenFromHelp: asBoolean(skill.hiddenFromHelp),
+  };
+}
+
+function parseBmadHelpAction(value: unknown): BmadHelpActionProjection {
+  const action = asRecord(value);
+  assertExactKeys(action, [
+    "moduleCode",
+    "skillName",
+    "action",
+    "displayName",
+    "menuCode",
+    "description",
+    "requiredGuidance",
+    "expectedArtifacts",
+    "availability",
+    "blockerCodes",
+  ]);
+  if (
+    !Array.isArray(action.expectedArtifacts)
+    || action.expectedArtifacts.length > bmadProjectionLimits.expectedArtifacts
+  ) {
+    return fail();
+  }
+  return {
+    moduleCode: asBmadIdentifier(action.moduleCode),
+    skillName: asBmadIdentifier(action.skillName),
+    action: asNullableBmadIdentifier(action.action),
+    displayName: asBmadSafeText(action.displayName, bmadProjectionLimits.identifierBytes),
+    menuCode: asNullableBmadIdentifier(action.menuCode),
+    description: asBmadSafeText(action.description, bmadProjectionLimits.descriptionBytes),
+    requiredGuidance: asBoolean(action.requiredGuidance),
+    expectedArtifacts: action.expectedArtifacts.map((artifact) =>
+      asBmadSafeText(artifact, bmadProjectionLimits.identifierBytes)
+    ),
+    availability: asBmadAvailability(action.availability),
+    blockerCodes: parseBmadBlockerCodes(action.blockerCodes),
+  };
+}
+
+function parseBmadAgentMenu(value: unknown): BmadAgentMenuProjection {
+  const menu = asRecord(value);
+  assertExactKeys(menu, [
+    "code",
+    "description",
+    "targetKind",
+    "displayLabel",
+    "availability",
+    "availabilityReason",
+  ]);
+  return {
+    code: asBmadIdentifier(menu.code),
+    description: asBmadSafeText(menu.description, bmadProjectionLimits.descriptionBytes),
+    targetKind: asBmadMenuTargetKind(menu.targetKind),
+    displayLabel: asBmadSafeText(menu.displayLabel, bmadProjectionLimits.identifierBytes),
+    availability: asBmadAvailability(menu.availability),
+    availabilityReason: asNullableBmadBlockerCode(menu.availabilityReason),
+  };
+}
+
+function parseBmadMethodAgent(value: unknown): BmadMethodAgentProjection {
+  const agent = asRecord(value);
+  assertExactKeys(agent, [
+    "moduleCode",
+    "agentCode",
+    "name",
+    "title",
+    "icon",
+    "team",
+    "description",
+    "availability",
+    "blockerCodes",
+    "menus",
+  ]);
+  if (!Array.isArray(agent.menus) || agent.menus.length > bmadProjectionLimits.menusPerAgent) {
+    return fail();
+  }
+  const menus = agent.menus.map(parseBmadAgentMenu);
+  assertUniqueIdentities(menus.map(({ code }) => code));
+  return {
+    moduleCode: asBmadIdentifier(agent.moduleCode),
+    agentCode: asBmadIdentifier(agent.agentCode),
+    name: asBmadSafeText(agent.name, bmadProjectionLimits.identifierBytes),
+    title: asBmadSafeText(agent.title, bmadProjectionLimits.identifierBytes),
+    icon: asBmadSafeText(agent.icon, bmadProjectionLimits.iconBytes),
+    team: asBmadIdentifier(agent.team),
+    description: asBmadSafeText(agent.description, bmadProjectionLimits.descriptionBytes),
+    availability: asBmadAvailability(agent.availability),
+    blockerCodes: parseBmadBlockerCodes(agent.blockerCodes),
+    menus,
+  };
+}
+
+function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
+  const snapshot = asRecord(value);
+  assertExactKeys(snapshot, [
+    "schemaVersion",
+    "scope",
+    "source",
+    "installedSkills",
+    "helpActions",
+    "methodAgents",
+    "nextCursor",
+  ]);
+  if (
+    snapshot.schemaVersion !== BMAD_LIBRARY_SCHEMA
+    || snapshot.scope !== "installed_method"
+    || !Array.isArray(snapshot.installedSkills)
+    || snapshot.installedSkills.length > bmadProjectionLimits.installedSkills
+    || !Array.isArray(snapshot.helpActions)
+    || snapshot.helpActions.length > bmadProjectionLimits.helpActions
+    || !Array.isArray(snapshot.methodAgents)
+    || snapshot.methodAgents.length > bmadProjectionLimits.methodAgents
+  ) {
+    return fail();
+  }
+  const installedSkills = snapshot.installedSkills.map(parseBmadInstalledSkill);
+  const helpActions = snapshot.helpActions.map(parseBmadHelpAction);
+  const methodAgents = snapshot.methodAgents.map(parseBmadMethodAgent);
+  assertUniqueIdentities(installedSkills.map(({ moduleCode, skillName }) =>
+    `${moduleCode}\u001f${skillName}`
+  ));
+  assertUniqueIdentities(helpActions.map(({ moduleCode, skillName, action }) =>
+    `${moduleCode}\u001f${skillName}\u001f${action ?? "\u0000"}`
+  ));
+  assertUniqueIdentities(helpActions.flatMap(({ menuCode, moduleCode }) =>
+    menuCode === null ? [] : [`${moduleCode}\u001f${menuCode}`]
+  ));
+  assertUniqueIdentities(methodAgents.map(({ moduleCode, agentCode }) =>
+    `${moduleCode}\u001f${agentCode}`
+  ));
+  const projection: BmadLibrarySnapshot = {
+    schemaVersion: BMAD_LIBRARY_SCHEMA,
+    scope: "installed_method",
+    source: parseBmadProjectionSource(snapshot.source),
+    installedSkills,
+    helpActions,
+    methodAgents,
+    nextCursor: asBmadCursor(snapshot.nextCursor),
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.responseBytes) {
+    return fail();
+  }
+  return projection;
+}
+
+function parseBmadLibrarySnapshotReply(
+  value: unknown,
+  requestId: string,
+): { projection: BmadLibrarySnapshot; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_library_snapshot") {
+    return fail();
+  }
+  return {
+    projection: parseBmadLibrarySnapshot(data.value),
+    sequence: parsed.sequence,
+  };
+}
+
 function rustLineCount(content: string): number {
   if (content.length === 0) {
     return 1;
@@ -1024,6 +1394,12 @@ function parseProjectionEventPayload(value: unknown): ProjectionEventPayload {
     case "workspace_changed":
       assertExactKeys(projection, ["workspaceId"]);
       return { type: event.type, projection: { workspaceId: asContractId(projection.workspaceId) } };
+    case "bmad.projection_changed":
+      assertExactKeys(projection, ["scope"]);
+      if (projection.scope !== "library") {
+        return fail();
+      }
+      return { type: event.type, projection: { scope: projection.scope } };
     default:
       return fail();
   }
@@ -1143,7 +1519,9 @@ function buildReadOnlyEnvelope<TCommand extends Exclude<
         ? { workspaceId: string; query: string; maxResults: number }
         : TCommand extends "bmad.scan"
           ? { workspaceId: string }
-          : { workspaceId: string; relativePaths: string[] },
+          : TCommand extends "bmad.library.snapshot"
+            ? { scope: "installed_method"; cursor: string | null }
+            : { workspaceId: string; relativePaths: string[] },
 ): CommandEnvelope<TCommand, typeof payload> {
   return {
     schemaVersion: COMMAND_SCHEMA,
@@ -1498,6 +1876,26 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async bmadLibrarySnapshot(cursor?: string | null): Promise<BmadLibrarySnapshot> {
+    const bootstrap = this.requireBmadLibraryCommand();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const normalizedCursor = asBmadCursor(cursor ?? null);
+    const requestId = this.#requestId();
+    const envelope = buildReadOnlyEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.library.snapshot",
+      { scope: "installed_method", cursor: normalizedCursor },
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadLibrarySnapshotReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadLibraryCommand();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async previewContext(
     workspaceId: string,
     relativePathValues: readonly string[],
@@ -1602,6 +2000,17 @@ export class DesktopHostClient {
       )
     ) {
       throw new HostCapabilityError("That read-only workspace capability is unavailable.");
+    }
+    return bootstrap;
+  }
+
+  private requireBmadLibraryCommand(): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("bmad.library.snapshot")
+    ) {
+      throw new HostCapabilityError("The Method library is unavailable in the current host mode.");
     }
     return bootstrap;
   }

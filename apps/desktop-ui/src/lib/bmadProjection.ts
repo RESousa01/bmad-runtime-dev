@@ -1,0 +1,131 @@
+export type BmadAvailability =
+  | "available"
+  | "capability_disabled"
+  | "dependency_unavailable"
+  | "orphan_skill"
+  | "network_unavailable"
+  | "source_prompt_unavailable";
+
+export type BmadBlockerCode =
+  | "bmad_capability_disabled"
+  | "bmad_dependency_unavailable"
+  | "bmad_help_catalog_orphan"
+  | "bmad_network_reference_unavailable"
+  | "bmad_source_prompt_unavailable";
+
+export type BmadEntrypointKind =
+  | "direct"
+  | "inline"
+  | "step_jit"
+  | "script_rendered"
+  | "compatibility_shim";
+
+export type BmadMenuTargetKind = "skill_target" | "prompt_reference";
+
+export type BmadHelpConfidence =
+  | "authoritative"
+  | "user_asserted"
+  | "heuristic"
+  | "contextual"
+  | "unknown";
+
+export interface BmadProjectionSource {
+  readonly sourceKind: "sealed_foundation";
+  readonly packageName: string;
+  readonly packageVersion: string;
+}
+
+export interface BmadInstalledSkillProjection {
+  readonly moduleCode: string;
+  readonly skillName: string;
+  readonly displayName: string;
+  readonly description: string;
+  readonly actions: readonly string[];
+  readonly entrypointKind: BmadEntrypointKind;
+  readonly distributionProfile: string;
+  readonly installProfile: string;
+  readonly validationProfile: string;
+  readonly availability: BmadAvailability;
+  readonly blockerCodes: readonly BmadBlockerCode[];
+  readonly hiddenFromHelp: boolean;
+}
+
+export interface BmadHelpActionProjection {
+  readonly moduleCode: string;
+  readonly skillName: string;
+  readonly action: string | null;
+  readonly displayName: string;
+  readonly menuCode: string | null;
+  readonly description: string;
+  readonly requiredGuidance: boolean;
+  readonly expectedArtifacts: readonly string[];
+  readonly availability: BmadAvailability;
+  readonly blockerCodes: readonly BmadBlockerCode[];
+}
+
+export interface BmadAgentMenuProjection {
+  readonly code: string;
+  readonly description: string;
+  readonly targetKind: BmadMenuTargetKind;
+  readonly displayLabel: string;
+  readonly availability: BmadAvailability;
+  readonly availabilityReason: BmadBlockerCode | null;
+}
+
+export interface BmadMethodAgentProjection {
+  readonly moduleCode: string;
+  readonly agentCode: string;
+  readonly name: string;
+  readonly title: string;
+  readonly icon: string;
+  readonly team: string;
+  readonly description: string;
+  readonly availability: BmadAvailability;
+  readonly blockerCodes: readonly BmadBlockerCode[];
+  readonly menus: readonly BmadAgentMenuProjection[];
+}
+
+export interface BmadLibraryProjection {
+  readonly schemaVersion: "bmad-library-snapshot.v1";
+  readonly scope: "installed_method";
+  readonly source: BmadProjectionSource;
+  readonly installedSkills: readonly BmadInstalledSkillProjection[];
+  readonly helpActions: readonly BmadHelpActionProjection[];
+  readonly methodAgents: readonly BmadMethodAgentProjection[];
+  readonly nextCursor: string | null;
+}
+
+export type BmadLibrarySnapshot = BmadLibraryProjection;
+
+export type BmadLibraryUiState =
+  | { readonly kind: "idle" }
+  | { readonly kind: "loading" }
+  | { readonly kind: "ready"; readonly projection: BmadLibraryProjection }
+  | {
+    readonly kind: "unavailable";
+    readonly message: string;
+    readonly retryable: boolean;
+  };
+
+export interface BmadHelpRecommendationProjection {
+  readonly displayName: string;
+  readonly moduleCode: string;
+  readonly skillName: string;
+  readonly action: string | null;
+  readonly confidence: BmadHelpConfidence;
+  readonly source: BmadProjectionSource;
+  readonly reason: string;
+  readonly requiredGuidance: boolean;
+  readonly expectedArtifacts: readonly string[];
+  readonly availability: BmadAvailability;
+  readonly blockerCodes: readonly BmadBlockerCode[];
+}
+
+export type BmadHelpUiState =
+  | { readonly kind: "no_evidence" }
+  | { readonly kind: "loading" }
+  | {
+    readonly kind: "ready";
+    readonly recommendation: BmadHelpRecommendationProjection;
+  }
+  | { readonly kind: "unavailable"; readonly message: string };

@@ -4,6 +4,7 @@ import {
   BookmarkCheck,
   ChevronDown,
   FileText,
+  Library,
   ListChecks,
   Menu,
   MoreVertical,
@@ -26,6 +27,8 @@ export interface TaskWorkspaceProps {
   isInert?: boolean;
   isNewSession: boolean;
   isReadOnlyRecovery: boolean;
+  methodLibraryAvailable: boolean;
+  onOpenMethodLibrary: () => void;
   onOpenInspector: () => void;
   onOpenSessions: () => void;
   onReviewContext: () => void;
@@ -52,6 +55,8 @@ export function TaskWorkspace({
   isInert = false,
   isNewSession,
   isReadOnlyRecovery,
+  methodLibraryAvailable,
+  onOpenMethodLibrary,
   onOpenInspector,
   onOpenSessions,
   onReviewContext,
@@ -102,6 +107,18 @@ export function TaskWorkspace({
           </span>
         </div>
         <div className="task-header__actions">
+          {methodLibraryAvailable ? (
+            <Button
+              aria-label="Method library"
+              className="method-library-trigger"
+              onPress={onOpenMethodLibrary}
+              size="small"
+              variant="secondary"
+            >
+              <Library aria-hidden="true" size={16} />
+              Method library
+            </Button>
+          ) : null}
           <Button aria-label="Pin session" isDisabled size="icon" variant="quiet">
             <Pin aria-hidden="true" size={17} />
           </Button>

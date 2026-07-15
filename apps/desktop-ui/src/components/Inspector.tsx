@@ -9,28 +9,36 @@ import {
 } from "lucide-react";
 import type { InspectorTab, ProposalState } from "../data/demo";
 import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { BmadHelpUiState, BmadLibraryUiState } from "../lib/bmadProjection";
 import type { WorkspaceProjectionProvenance } from "../lib/workspaceReadSource";
 import { containModalPanelFocus, useModalPanelFocus } from "../lib/panelFocus";
 import { CodeDiff } from "./CodeDiff";
+import { BmadHelpCard } from "./BmadHelpCard";
+import { BmadLibraryPanel } from "./BmadLibraryPanel";
 
-const inspectorTabs: Array<{ id: InspectorTab; label: string }> = [
-  { id: "context", label: "Context" },
-  { id: "changes", label: "Changes" },
-  { id: "logs", label: "Logs" },
-  { id: "evidence", label: "Evidence" },
+const inspectorTabs: Array<{ accessibleLabel: string; id: InspectorTab; label: string }> = [
+  { accessibleLabel: "Context", id: "context", label: "Context" },
+  { accessibleLabel: "Changes", id: "changes", label: "Changes" },
+  { accessibleLabel: "Logs", id: "logs", label: "Logs" },
+  { accessibleLabel: "Evidence", id: "evidence", label: "Evidence" },
+  { accessibleLabel: "Method library", id: "method", label: "Method" },
 ];
 
 export interface InspectorProps {
+  bmadHelpState: BmadHelpUiState;
+  bmadLibraryState: BmadLibraryUiState;
   contextPreview: ContextPreviewProjection | null;
   contextProvenance: WorkspaceProjectionProvenance | null;
   interactionDisabled: boolean;
   isInert?: boolean;
   isOpen: boolean;
   isOverlay: boolean;
+  methodLibraryAvailable: boolean;
   onApply: () => void;
   onClose: () => void;
   onDiscard: () => void;
   onRevise: () => void;
+  onReloadMethodLibrary: () => void;
   onTabChange: (tab: InspectorTab) => void;
   proposalState: ProposalState;
   selectedTab: InspectorTab;
@@ -169,16 +177,20 @@ function ChangesPanel({
 }
 
 export function Inspector({
+  bmadHelpState,
+  bmadLibraryState,
   contextPreview,
   contextProvenance,
   interactionDisabled,
   isInert = false,
   isOpen,
   isOverlay,
+  methodLibraryAvailable,
   onApply,
   onClose,
   onDiscard,
   onRevise,
+  onReloadMethodLibrary,
   onTabChange,
   proposalState,
   selectedTab,
@@ -192,7 +204,7 @@ export function Inspector({
       aria-hidden={isHidden || undefined}
       aria-label="Inspector"
       aria-modal={isModal || undefined}
-      className={`inspector ${isOpen ? "is-open" : ""}`}
+      className={`inspector ${isOpen ? "is-open" : ""} ${methodLibraryAvailable ? "has-method-library" : ""}`}
       inert={isHidden || isInert}
       onKeyDown={(event) => containModalPanelFocus(event, panelRef, isModal)}
       ref={panelRef}
@@ -212,8 +224,11 @@ export function Inspector({
         onSelectionChange={(key) => onTabChange(key as InspectorTab)}
         selectedKey={selectedTab}
       >
-        <TabList aria-label="Inspector sections" items={inspectorTabs}>
-          {(item) => <Tab id={item.id}>{item.label}</Tab>}
+        <TabList
+          aria-label="Inspector sections"
+          items={inspectorTabs.filter((item) => item.id !== "method" || methodLibraryAvailable)}
+        >
+          {(item) => <Tab aria-label={item.accessibleLabel} id={item.id}>{item.label}</Tab>}
         </TabList>
         <TabPanel id="context">
           <ContextPanel contextPreview={contextPreview} contextProvenance={contextProvenance} />
@@ -253,6 +268,17 @@ export function Inspector({
             </div>
           </div>
         </TabPanel>
+        {methodLibraryAvailable ? (
+          <TabPanel id="method">
+            <div className="method-library-panel">
+              <BmadHelpCard state={bmadHelpState} />
+              <BmadLibraryPanel
+                onReload={onReloadMethodLibrary}
+                state={bmadLibraryState}
+              />
+            </div>
+          </TabPanel>
+        ) : null}
       </Tabs>
     </aside>
   );
