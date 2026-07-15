@@ -866,6 +866,13 @@ impl MethodSession {
             }
             return Err(MethodError::new(MethodErrorCode::MethodStateConflict));
         }
+        if self
+            .consumed_decisions
+            .values()
+            .any(|consumption| consumption.receipt.invocation_id == request.invocation_id)
+        {
+            return Err(MethodError::new(MethodErrorCode::MethodStateConflict));
+        }
         if self.consumed_decisions.contains_key(&request.decision_id) {
             return Err(MethodError::new(
                 MethodErrorCode::ContextDecisionAlreadyConsumed,

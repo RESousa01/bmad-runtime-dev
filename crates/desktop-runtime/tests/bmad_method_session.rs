@@ -1046,6 +1046,130 @@ fn assert_replay_lineage_drift_is_rejected(
     }
 }
 
+fn assert_reused_invocation_is_rejected_before_and_after_restart(
+    session: MethodSession,
+    request: MethodAdvanceRequest,
+) {
+    let baseline = session.clone();
+    let mut live = session;
+    assert_eq!(
+        live.begin_advance(request.clone())
+            .expect_err("a fresh turn cannot reuse a prior invocation identifier")
+            .code(),
+        MethodErrorCode::MethodStateConflict
+    );
+    assert_eq!(live, baseline);
+
+    let mut restored = MethodSession::from_persisted_json(
+        &baseline
+            .to_persisted_json()
+            .expect("valid history before reused invocation"),
+    )
+    .expect("valid history restores before reused invocation");
+    let restored_baseline = restored.clone();
+    assert_eq!(
+        restored
+            .begin_advance(request)
+            .expect_err("restart cannot revive a prior invocation identifier")
+            .code(),
+        MethodErrorCode::MethodStateConflict
+    );
+    assert_eq!(restored, restored_baseline);
+}
+
+#[test]
+fn fresh_turn_rejects_a_prior_invocation_before_and_after_restart() {
+    let (mut session, exact, first_decision) = ready_session();
+    let invocation_id = "invoke_01J60000000000000000000000";
+    let first_request = advance_request(
+        &session,
+        invocation_id,
+        "invocation-history-first-turn",
+        first_decision.decision_id,
+        4,
+    );
+    let first_receipt = session.begin_advance(first_request).expect("first advance");
+    session
+        .accept_result(
+            5,
+            verified_result(
+                &exact,
+                &first_receipt,
+                accepted_result(
+                    MethodAdvanceDisposition::ContextReviewRequired,
+                    "discover",
+                    Some("decide"),
+                ),
+            ),
+            UnixMillis(2_000),
+        )
+        .expect("first checkpoint");
+    let fresh_decision = decision(&exact, "decision_01J60000000000000000000001");
+    session
+        .record_context_review(6, fresh_decision.clone())
+        .expect("fresh turn review");
+    let reused_request = advance_request(
+        &session,
+        invocation_id,
+        "invocation-history-fresh-turn",
+        fresh_decision.decision_id,
+        7,
+    );
+
+    assert_reused_invocation_is_rejected_before_and_after_restart(session, reused_request);
+}
+
+#[test]
+fn same_binding_rebind_still_rejects_a_prior_invocation_after_restart() {
+    let (mut session, exact, first_decision) = ready_session();
+    let invocation_id = "invoke_01J61000000000000000000000";
+    let first_request = advance_request(
+        &session,
+        invocation_id,
+        "invocation-history-first-revision",
+        first_decision.decision_id,
+        4,
+    );
+    let first_receipt = session.begin_advance(first_request).expect("first advance");
+    session
+        .accept_result(
+            5,
+            verified_result(
+                &exact,
+                &first_receipt,
+                accepted_result(
+                    MethodAdvanceDisposition::ContextReviewRequired,
+                    "discover",
+                    Some("decide"),
+                ),
+            ),
+            UnixMillis(2_000),
+        )
+        .expect("first checkpoint");
+    session
+        .rebind_capability(
+            6,
+            exact.clone(),
+            MethodStepTable::new("discover", [("discover", Some("decide")), ("decide", None)])
+                .expect("same step table"),
+        )
+        .expect("same-binding rebind");
+    session.request_context_review(7).expect("rebound review");
+    let fresh_decision = decision(&exact, "decision_01J61000000000000000000001");
+    session
+        .record_context_review(8, fresh_decision.clone())
+        .expect("fresh rebound decision");
+    let reused_request = advance_request(
+        &session,
+        invocation_id,
+        "invocation-history-second-revision",
+        fresh_decision.decision_id,
+        9,
+    );
+
+    assert_reused_invocation_is_rejected_before_and_after_restart(session, reused_request);
+}
+
 #[test]
 fn method_state_machine_requires_exact_steps_and_new_review_per_invocation() {
     let (mut session, exact, first_decision) = ready_session();
