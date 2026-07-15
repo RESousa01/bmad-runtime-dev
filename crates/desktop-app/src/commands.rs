@@ -1071,6 +1071,15 @@ fn map_workspace_error(error: &WorkspaceError) -> LocalError {
         WorkspaceError::RootIdentityChanged => {
             conflict_error("The local workspace identity changed; select the folder again.")
         }
+        WorkspaceError::EditsNotEnabled => conflict_error(
+            "Governed edits are not enabled for this workspace. Review its permissions before retrying.",
+        ),
+        WorkspaceError::StalePreimage => conflict_error(
+            "The workspace item changed after review. Refresh it before applying an edit.",
+        ),
+        WorkspaceError::AlreadyExists => conflict_error(
+            "The target workspace item already exists. Refresh the workspace before retrying.",
+        ),
         WorkspaceError::LimitExceeded => {
             resource_limit_error("The workspace operation exceeded its configured limit.")
         }
@@ -1087,9 +1096,11 @@ mod tests {
     use desktop_runtime::{
         BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalErrorCode, UnixMillis,
     };
+    use desktop_workspace::WorkspaceError;
 
     use super::{
-        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run, revoke_workspace,
+        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run, map_workspace_error,
+        revoke_workspace,
     };
     use crate::{bmad_foundation::load_bmad_foundation, state::HostState, wire::HostCommandData};
 
@@ -1168,6 +1179,20 @@ mod tests {
         .expect_err("stale cursor");
         assert_eq!(error.code, LocalErrorCode::BmadProjectionGap);
         assert!(error.retryable);
+    }
+
+    #[test]
+    fn governed_workspace_conflicts_map_to_safe_non_retryable_errors() {
+        for error in [
+            WorkspaceError::EditsNotEnabled,
+            WorkspaceError::StalePreimage,
+            WorkspaceError::AlreadyExists,
+        ] {
+            let mapped = map_workspace_error(&error);
+            assert_eq!(mapped.code, LocalErrorCode::Conflict);
+            assert!(!mapped.retryable);
+            assert!(!mapped.safe_message.is_empty());
+        }
     }
 
     #[test]
