@@ -10,12 +10,31 @@
 //! The composition root must run strict JSON, schema, and semantic validation
 //! before explicitly mapping an untrusted contract into these types.
 
+mod bmad;
 mod command;
 mod domain;
 mod error;
 mod hash;
 mod ids;
 
+// Typify emits crate/module-level inner attributes. Loading its output as a
+// real module keeps those tool-owned attributes valid; a nested `include!`
+// would reject them before the generated shapes could be compiled.
+#[cfg(test)]
+#[allow(dead_code, clippy::all, clippy::pedantic, clippy::unwrap_used)]
+#[path = "../../../packages/contracts/generated/rust/contracts.rs"]
+mod generated_contracts;
+
+pub use bmad::{
+    BmadCapabilityKey, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
+    MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
+    MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
+    MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
+    MethodModelPort, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
+    MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
+    MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
+};
 pub use command::{
     ApprovalChoice, CommandReceipt, LocalCommand, LocalRuntimeCommandBus, ProjectionCursor,
     ProjectionEvent, ProjectionEventKind, ProjectionScope, ProjectionSnapshot, RendererProjection,
@@ -30,7 +49,7 @@ pub use domain::{
 };
 pub use error::{LocalError, LocalErrorCode, LocalResult};
 pub use hash::{
-    canonical_hash, canonical_hash_without_field, canonical_json_bytes, sha256_bytes,
-    CanonicalHashError, Sha256Digest,
+    canonical_hash, canonical_hash_without_field, canonical_json_bytes, legacy_canonical_hash,
+    legacy_canonical_hash_without_field, sha256_bytes, CanonicalHashError, Sha256Digest,
 };
 pub use ids::{ContractId, IdentifierError, RelativeWorkspacePath, UnixMillis};

@@ -143,10 +143,21 @@ pub fn canonical_hash<T>(
 where
     T: Serialize + ?Sized,
 {
-    validate_hash_domain(purpose, schema_major)?;
-    let mut preimage = format!("sapphirus:{purpose}:{schema_major}\n").into_bytes();
-    preimage.extend(canonical_json_bytes(value)?);
-    Ok(sha256_bytes(&preimage))
+    canonical_hash_with_marker(purpose, schema_major, value, true)
+}
+
+/// Verifies authority records written before the canonical `vN` schema marker.
+/// New records must never use this compatibility hash.
+#[doc(hidden)]
+pub fn legacy_canonical_hash<T>(
+    purpose: &str,
+    schema_major: u32,
+    value: &T,
+) -> Result<Sha256Digest, CanonicalHashError>
+where
+    T: Serialize + ?Sized,
+{
+    canonical_hash_with_marker(purpose, schema_major, value, false)
 }
 
 /// Compute a purpose-separated hash after removing one top-level self-hash.
@@ -174,6 +185,45 @@ where
         return Err(CanonicalHashError::MissingExcludedField);
     }
     canonical_hash(purpose, schema_major, &value)
+}
+
+/// Legacy counterpart used only while verifying retained pre-v5 authority data.
+#[doc(hidden)]
+pub fn legacy_canonical_hash_without_field<T>(
+    purpose: &str,
+    schema_major: u32,
+    value: &T,
+    excluded_field: &str,
+) -> Result<Sha256Digest, CanonicalHashError>
+where
+    T: Serialize + ?Sized,
+{
+    validate_hash_domain(purpose, schema_major)?;
+    let mut value = serde_json::to_value(value)?;
+    let removed = value
+        .as_object_mut()
+        .ok_or(CanonicalHashError::ExpectedObject)?
+        .remove(excluded_field);
+    if removed.is_none() {
+        return Err(CanonicalHashError::MissingExcludedField);
+    }
+    legacy_canonical_hash(purpose, schema_major, &value)
+}
+
+fn canonical_hash_with_marker<T>(
+    purpose: &str,
+    schema_major: u32,
+    value: &T,
+    canonical_marker: bool,
+) -> Result<Sha256Digest, CanonicalHashError>
+where
+    T: Serialize + ?Sized,
+{
+    validate_hash_domain(purpose, schema_major)?;
+    let marker = if canonical_marker { "v" } else { "" };
+    let mut preimage = format!("sapphirus:{purpose}:{marker}{schema_major}\n").into_bytes();
+    preimage.extend(canonical_json_bytes(value)?);
+    Ok(sha256_bytes(&preimage))
 }
 
 fn validate_hash_domain(purpose: &str, schema_major: u32) -> Result<(), CanonicalHashError> {

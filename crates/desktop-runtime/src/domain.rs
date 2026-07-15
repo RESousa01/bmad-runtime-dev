@@ -825,20 +825,17 @@ mod tests {
         SpecConsumptionRecordDraft, WindowsPatchCandidateDraft, WorkspaceTarget,
     };
     use crate::{
-        canonical_hash, canonical_hash_without_field, sha256_bytes, ContractId,
-        RelativeWorkspacePath, Sha256Digest, UnixMillis,
+        canonical_hash, canonical_hash_without_field, generated_contracts, sha256_bytes,
+        ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
     };
 
-    #[allow(dead_code)]
-    mod generated_contracts {
-        include!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/contracts/generated/rust/contracts.rs"
-        ));
-    }
-
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
-        Ok(ContractId::new(value)?)
+        // Domain IDs are intentionally generic, while the wire schema binds
+        // persisted contract IDs to a canonical ULID-shaped suffix. Keep this
+        // generated-shape fixture valid for both boundaries.
+        Ok(ContractId::new(format!(
+            "{value}_01J00000000000000000000000"
+        ))?)
     }
 
     fn path(value: &str) -> Result<RelativeWorkspacePath, Box<dyn std::error::Error>> {
