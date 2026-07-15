@@ -7,9 +7,14 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 mod manifest;
+mod preparation;
 
 pub use manifest::{
     ContextClassification, ContextEgressManifest, ContextEgressManifestDraft, ContextExclusion,
     ContextReviewItem, ContextReviewProjection, EgressError, EgressLimits, PreparedContextItem,
     RedactionRecord, RetentionMode, SecretFinding,
+};
+pub use preparation::{
+    ContextCandidate, ContextPreparer, PatternSecretScanner, PrepareContextInput,
+    SecretScanFinding, SecretScanResult, SecretScanner,
 };

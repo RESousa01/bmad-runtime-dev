@@ -157,6 +157,8 @@ pub enum EgressError {
     DuplicateContextItem,
     #[error("the context exceeds its approved budget")]
     ContextBudgetExceeded,
+    #[error("the context label is denied by egress policy")]
+    DeniedContextLabel,
     #[error("canonical hashing failed")]
     CanonicalHash,
 }
