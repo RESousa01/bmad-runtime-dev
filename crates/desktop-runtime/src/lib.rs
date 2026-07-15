@@ -26,7 +26,15 @@ mod ids;
 mod generated_contracts;
 
 pub use bmad::{
-    BmadCapabilityKey, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
+    BmadCapabilityKey, BmadUtcInstant, BuilderActionName, BuilderAnalysisKind,
+    BuilderAnalysisModelBinding, BuilderAnalysisRun, BuilderAuthoringAction,
+    BuilderAuthoringService, BuilderCapabilityFact, BuilderDeterministicFinding, BuilderDraft,
+    BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope,
+    BuilderDraftState, BuilderError, BuilderErrorCode, BuilderFindingSeverity, BuilderKind,
+    BuilderLensVerdict, BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
+    BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
+    BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
+    BuilderValidationProfile, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
     MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
     MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
     MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,

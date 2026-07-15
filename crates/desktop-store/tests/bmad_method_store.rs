@@ -226,10 +226,10 @@ fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart
 }
 
 #[test]
-fn fresh_store_reaches_compiled_v5_schema() -> Result<(), Box<dyn std::error::Error>> {
+fn fresh_store_reaches_compiled_v6_schema() -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(store.schema_version()?, 5);
+    assert_eq!(store.schema_version()?, 6);
     let tables = store.schema_table_names()?;
     assert!(tables.contains(&"bmad_method_decision_consumptions".to_owned()));
     assert!(tables.contains(&"bmad_method_sessions".to_owned()));
@@ -237,7 +237,7 @@ fn fresh_store_reaches_compiled_v5_schema() -> Result<(), Box<dyn std::error::Er
 }
 
 #[test]
-fn fresh_and_v4_upgraded_stores_have_identical_v5_catalogs(
+fn fresh_and_v4_upgraded_stores_have_identical_v6_catalogs(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
@@ -249,7 +249,10 @@ fn fresh_and_v4_upgraded_stores_have_identical_v5_catalogs(
     drop(upgraded);
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE bmad_method_artifacts;
+        "DROP TABLE bmad_builder_analyses;
+         DROP TABLE bmad_builder_revisions;
+         DROP TABLE bmad_builder_drafts;
+         DROP TABLE bmad_method_artifacts;
          DROP TABLE bmad_method_decision_consumptions;
          DROP TABLE bmad_method_checkpoints;
          DROP TABLE bmad_method_sessions;
@@ -258,7 +261,7 @@ fn fresh_and_v4_upgraded_stores_have_identical_v5_catalogs(
     drop(connection);
 
     let reopened = LocalStore::open(upgraded_directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 5);
+    assert_eq!(reopened.schema_version()?, 6);
     assert_eq!(reopened.schema_catalog()?, expected);
     Ok(())
 }
@@ -586,7 +589,7 @@ fn failed_result_transaction_leaves_state_and_evidence_unadvanced(
 }
 
 #[test]
-fn migration_interruptions_roll_back_and_reopen_to_complete_v5(
+fn migration_interruptions_roll_back_and_reopen_to_complete_v6(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
@@ -596,6 +599,9 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v5(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE bmad_builder_analyses;
+         DROP TABLE bmad_builder_revisions;
+         DROP TABLE bmad_builder_drafts;
          DROP TABLE bmad_method_artifacts;
          DROP TABLE bmad_method_decision_consumptions;
          DROP TABLE bmad_method_checkpoints;
@@ -620,6 +626,9 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v5(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE bmad_builder_analyses;
+         DROP TABLE bmad_builder_revisions;
+         DROP TABLE bmad_builder_drafts;
          DROP TABLE bmad_method_artifacts;
          DROP TABLE bmad_method_decision_consumptions;
          DROP TABLE bmad_method_checkpoints;
@@ -650,7 +659,7 @@ fn migration_failure_can_open_retained_method_history_read_only(
     assert!(LocalStore::open(directory.path(), &TestProtector).is_err());
 
     let recovery = LocalStore::open_read_only_recovery(directory.path(), &TestProtector)?;
-    assert_eq!(recovery.schema_version()?, 5);
+    assert_eq!(recovery.schema_version()?, 6);
     assert!(!recovery
         .schema_table_names()?
         .contains(&"bmad_method_checkpoints".to_owned()));

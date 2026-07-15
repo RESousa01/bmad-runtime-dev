@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 5;
+pub(crate) const LATEST_STORE_VERSION: u32 = 6;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -16,6 +16,21 @@ const V4_TABLES: [&str; 6] = [
 ];
 const V5_TABLES: [&str; 10] = [
     "aggregates",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "evidence_events",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V6_TABLES: [&str; 13] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
     "bmad_method_artifacts",
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
@@ -165,6 +180,69 @@ const V4_TO_V5_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 5;
  COMMIT;";
 
+const V5_TO_V6_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_builder_drafts (
+   draft_id TEXT PRIMARY KEY,
+   owner_scope_ref TEXT NOT NULL,
+   project_id TEXT NOT NULL,
+   authoring_session_id TEXT NOT NULL,
+   authority_id TEXT NOT NULL,
+   version INTEGER NOT NULL CHECK(version >= 1),
+   state TEXT NOT NULL,
+   state_content_hash TEXT NOT NULL,
+   state_kind TEXT NOT NULL,
+   state_schema_version TEXT NOT NULL,
+   state_byte_count INTEGER NOT NULL CHECK(state_byte_count >= 0),
+   state_key_version INTEGER NOT NULL CHECK(state_key_version >= 1),
+   updated_at TEXT NOT NULL,
+   UNIQUE(owner_scope_ref, project_id, authoring_session_id, draft_id),
+   FOREIGN KEY(state_content_hash, state_kind, state_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE INDEX bmad_builder_drafts_scope
+   ON bmad_builder_drafts(owner_scope_ref, project_id, authoring_session_id, draft_id);
+ CREATE TABLE bmad_builder_revisions (
+   revision_id TEXT PRIMARY KEY,
+   draft_id TEXT NOT NULL REFERENCES bmad_builder_drafts(draft_id),
+   ordinal INTEGER NOT NULL CHECK(ordinal >= 1),
+   revision_hash TEXT NOT NULL,
+   source_inventory_hash TEXT NOT NULL,
+   host_inventory_hash TEXT NOT NULL,
+   content_hash TEXT NOT NULL,
+   content_kind TEXT NOT NULL,
+   content_schema_version TEXT NOT NULL,
+   recorded_at TEXT NOT NULL,
+   UNIQUE(draft_id, revision_id),
+   UNIQUE(draft_id, ordinal),
+   UNIQUE(draft_id, revision_hash),
+   FOREIGN KEY(content_hash, content_kind, content_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE INDEX bmad_builder_revisions_draft
+   ON bmad_builder_revisions(draft_id, ordinal);
+ CREATE TABLE bmad_builder_analyses (
+   analysis_id TEXT PRIMARY KEY,
+   draft_id TEXT NOT NULL,
+   revision_id TEXT NOT NULL,
+   revision_hash TEXT NOT NULL,
+   analysis_kind TEXT NOT NULL,
+   context_decision_id TEXT UNIQUE,
+   invocation_id TEXT UNIQUE,
+   decision_consumption_hash TEXT UNIQUE,
+   content_hash TEXT NOT NULL,
+   content_kind TEXT NOT NULL,
+   content_schema_version TEXT NOT NULL,
+   recorded_at TEXT NOT NULL,
+   FOREIGN KEY(draft_id, revision_id)
+     REFERENCES bmad_builder_revisions(draft_id, revision_id),
+   FOREIGN KEY(content_hash, content_kind, content_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE INDEX bmad_builder_analyses_draft
+   ON bmad_builder_analyses(draft_id, revision_id, analysis_id);
+ PRAGMA user_version = 6;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -182,8 +260,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V4_TO_V5_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            5 => {
                 require_store_tables(connection, &V5_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V5_TO_V6_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V6_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

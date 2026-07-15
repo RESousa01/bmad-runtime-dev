@@ -4,8 +4,9 @@ use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Nonce};
 use desktop_runtime::{
     canonical_hash, canonical_hash_without_field, canonical_json_bytes, legacy_canonical_hash,
-    legacy_canonical_hash_without_field, ContractId, MethodError, MethodSession,
-    MethodSessionRepository, MethodSessionScope, SpecConsumptionRecord,
+    legacy_canonical_hash_without_field, BuilderDraft, BuilderDraftRepository, BuilderDraftScope,
+    BuilderError, ContractId, MethodError, MethodSession, MethodSessionRepository,
+    MethodSessionScope, SpecConsumptionRecord,
 };
 use parking_lot::Mutex;
 use rand::RngCore;
@@ -26,6 +27,7 @@ const CAS_MAGIC: &[u8; 8] = b"SAPHCAS1";
 const CAS_FORMAT_VERSION: u16 = 1;
 const CAS_NONCE_BYTES: usize = 12;
 const STORE_KEY_BYTES: usize = 32;
+mod bmad_builder;
 mod bmad_method;
 mod migrations;
 
@@ -51,6 +53,8 @@ pub enum StoreError {
     StateConflict,
     #[error(transparent)]
     Method(#[from] MethodError),
+    #[error(transparent)]
+    Builder(#[from] BuilderError),
     #[error("local store I/O failed")]
     Io(#[from] std::io::Error),
     #[error("local store database operation failed")]
@@ -628,6 +632,7 @@ impl LocalStore {
             }
             verify_consumption_rows(&consumptions)?;
             self.verify_method_integrity()?;
+            self.verify_builder_integrity()?;
             Ok(())
         }
     }
@@ -800,6 +805,20 @@ impl LocalStoreRecovery {
         session_id: &ContractId,
     ) -> Result<Option<MethodSession>, StoreError> {
         MethodSessionRepository::load_method_session(&self.inner, scope, session_id)
+    }
+
+    /// Authenticates and reconstructs a retained inactive Builder draft.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] for damaged state, CAS authentication failure,
+    /// or unavailable retained schema.
+    pub fn load_builder_draft(
+        &self,
+        scope: &BuilderDraftScope,
+        draft_id: &ContractId,
+    ) -> Result<Option<BuilderDraft>, StoreError> {
+        BuilderDraftRepository::load_builder_draft(&self.inner, scope, draft_id)
     }
 
     /// Runs non-mutating integrity diagnostics across retained data.
@@ -1811,7 +1830,10 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_method_artifacts;
+            "DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
              DROP TABLE bmad_method_decision_consumptions;
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
@@ -1848,7 +1870,10 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_method_artifacts;
+            "DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
              DROP TABLE bmad_method_decision_consumptions;
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
@@ -1938,7 +1963,10 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_method_artifacts;
+            "DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
              DROP TABLE bmad_method_decision_consumptions;
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
@@ -1947,7 +1975,7 @@ mod tests {
         drop(store);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 5);
+        assert_eq!(reopened.schema_version()?, 6);
         reopened.verify_integrity()?;
         Ok(())
     }
