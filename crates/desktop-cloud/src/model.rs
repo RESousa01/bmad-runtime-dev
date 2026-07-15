@@ -229,7 +229,7 @@ impl AuthorizedModelRequest {
         }
     }
 
-    fn verify(&self) -> Result<(), CloudError> {
+    pub(crate) fn verify(&self) -> Result<(), CloudError> {
         let draft = self.draft();
         validate_request_draft(&draft)?;
         let actual = canonical_hash("authorized-model-request", 1, &draft)

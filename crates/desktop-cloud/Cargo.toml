@@ -17,6 +17,7 @@ desktop-runtime = { path = "../desktop-runtime" }
 hex.workspace = true
 parking_lot.workspace = true
 rand.workspace = true
+reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
@@ -24,6 +25,7 @@ thiserror.workspace = true
 time.workspace = true
 tokio.workspace = true
 zeroize.workspace = true
+url.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true

@@ -10,6 +10,7 @@ use thiserror::Error;
 mod broker_protocol;
 mod identity;
 mod model;
+mod transport;
 #[cfg(windows)]
 mod windows_broker;
 
@@ -18,6 +19,10 @@ pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, Sessi
 pub use model::{
     verify_model_response, AuthorizedContextItem, AuthorizedModelRequest, CanonicalOutputValidator,
     ModelAccessReceipt, ModelReceiptStatus, RawModelOutput, ReceiptVerifier, VerifiedModelOutput,
+};
+pub use transport::{
+    HttpExecutor, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor, SupportApiOrigin,
+    SupportApiTransport,
 };
 #[cfg(windows)]
 pub use windows_broker::{WindowsBrokerConfig, WindowsIdentityBroker};
@@ -130,6 +135,10 @@ pub enum CloudError {
     ResponseBindingMismatch,
     #[error("the model access receipt is invalid")]
     ReceiptInvalid,
+    #[error("the configured support API origin is invalid")]
+    InvalidSupportOrigin,
+    #[error("the support API transport failed")]
+    TransportFailed,
 }
 
 #[async_trait]
