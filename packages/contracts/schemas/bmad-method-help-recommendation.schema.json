@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json",
+  "title": "sapphirus.bmad-method-help-recommendation.v1",
+  "$ref": "./bmad-method-session.schema.json#/$defs/MethodHelpRecommendation"
+}

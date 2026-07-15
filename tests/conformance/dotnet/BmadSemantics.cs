@@ -42,6 +42,19 @@ public static class BmadSemantics
             }
         }
 
+        if (String(document, "proposalKind") is not null)
+        {
+            return ValidateMethodHelpProposal(document);
+        }
+        if (String(document, "recommendationKind") is not null)
+        {
+            return ValidateMethodHelpRecommendation(document);
+        }
+        if (String(document, "resultKind") is not null)
+        {
+            return ValidateMethodAdvanceResult(document);
+        }
+
         string? version = String(document, "schemaVersion");
         switch (version)
         {
@@ -66,6 +79,161 @@ public static class BmadSemantics
             VerifyHash(document, errors);
         }
         return errors;
+    }
+
+    public static IReadOnlyList<string> ValidateMethodHelpProposal(JsonElement value)
+    {
+        var errors = new List<string>();
+        if (String(value, "proposalKind") == "recommended_capability"
+            && !IsSafeHelpText(String(value, "rationaleSummary")))
+        {
+            Add(errors, "BMAD_UNSAFE_TEXT");
+        }
+        return errors;
+    }
+
+    public static IReadOnlyList<string> ValidateMethodHelpRecommendation(JsonElement value)
+    {
+        var errors = new List<string>();
+        if (String(value, "recommendationKind") == "recommended_capability"
+            && !IsSafeHelpText(String(value, "rationaleSummary")))
+        {
+            Add(errors, "BMAD_UNSAFE_TEXT");
+        }
+        ValidateStandaloneHash(
+            value,
+            "bmad-method-help-recommendation",
+            "recommendationHash",
+            errors);
+        ValidateInstant(String(value, "createdAt"), errors);
+        return errors;
+    }
+
+    public static IReadOnlyList<string> ValidateMethodAdvanceResult(JsonElement value)
+    {
+        var errors = new List<string>();
+        string? kind = String(value, "resultKind");
+        if ((kind == "refusal" || kind == "incomplete")
+            && !IsSafeHelpText(String(value, "safeMessage")))
+        {
+            Add(errors, "BMAD_UNSAFE_TEXT");
+        }
+        ValidateStandaloneHash(
+            value,
+            "bmad-method-canonical-advance-result",
+            "resultHash",
+            errors);
+        ValidateInstant(String(value, "receivedAt"), errors);
+        return errors;
+    }
+
+    private static bool IsSafeHelpText(string? value)
+    {
+        if (value is null)
+        {
+            return false;
+        }
+        for (int index = 0; index < value.Length; index++)
+        {
+            char character = value[index];
+            int codePoint;
+            if (char.IsHighSurrogate(character))
+            {
+                if (index + 1 >= value.Length || !char.IsLowSurrogate(value[index + 1]))
+                {
+                    return false;
+                }
+                codePoint = char.ConvertToUtf32(character, value[++index]);
+            }
+            else if (char.IsLowSurrogate(character))
+            {
+                return false;
+            }
+            else
+            {
+                codePoint = character;
+            }
+            if (codePoint <= 0x001f
+                || codePoint == 0x007f
+                || codePoint == 0x061c
+                || codePoint == 0x200e
+                || codePoint == 0x200f
+                || (codePoint >= 0x202a && codePoint <= 0x202e)
+                || (codePoint >= 0x2066 && codePoint <= 0x2069))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void ValidateStandaloneHash(
+        JsonElement value,
+        string purpose,
+        string field,
+        List<string> errors)
+    {
+        string expected = BmadCanonicalJson.HashWithoutField(purpose, "v1", value, field);
+        if (!StringComparer.Ordinal.Equals(String(value, field), expected))
+        {
+            Add(errors, "HASH_MISMATCH");
+        }
+    }
+
+    private static void ValidateInstant(string? value, List<string> errors)
+    {
+        if (!IsStrictUtcInstant(value))
+        {
+            Add(errors, "INVALID_UTC_INSTANT");
+        }
+    }
+
+    private static bool IsStrictUtcInstant(string? value)
+    {
+        if (value is null
+            || value.Length != 24
+            || value[4] != '-'
+            || value[7] != '-'
+            || value[10] != 'T'
+            || value[13] != ':'
+            || value[16] != ':'
+            || value[19] != '.'
+            || value[23] != 'Z'
+            || !TryDecimalPart(value, 0, 4, out int year)
+            || !TryDecimalPart(value, 5, 2, out int month)
+            || !TryDecimalPart(value, 8, 2, out int day)
+            || !TryDecimalPart(value, 11, 2, out int hour)
+            || !TryDecimalPart(value, 14, 2, out int minute)
+            || !TryDecimalPart(value, 17, 2, out int second)
+            || !TryDecimalPart(value, 20, 3, out _))
+        {
+            return false;
+        }
+        bool leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        int maximumDay = month switch
+        {
+            1 or 3 or 5 or 7 or 8 or 10 or 12 => 31,
+            4 or 6 or 9 or 11 => 30,
+            2 when leapYear => 29,
+            2 => 28,
+            _ => 0,
+        };
+        return day >= 1 && day <= maximumDay && hour <= 23 && minute <= 59 && second <= 59;
+    }
+
+    private static bool TryDecimalPart(string value, int start, int length, out int result)
+    {
+        result = 0;
+        for (int index = start; index < start + length; index++)
+        {
+            char character = value[index];
+            if (character < '0' || character > '9')
+            {
+                return false;
+            }
+            result = (result * 10) + character - '0';
+        }
+        return true;
     }
 
     private static string? String(JsonElement value, string field) =>

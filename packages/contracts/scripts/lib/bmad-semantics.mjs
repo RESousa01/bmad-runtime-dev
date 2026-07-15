@@ -52,6 +52,92 @@ function bmadIssue(code, field, details = {}) {
   return Object.freeze({ code, field, ...details });
 }
 
+function bmadIsSafeText(value) {
+  if (typeof value !== "string") return false;
+  for (const scalar of value) {
+    const codePoint = scalar.codePointAt(0);
+    if (
+      codePoint <= 0x001f
+      || codePoint === 0x007f
+      || (codePoint >= 0xd800 && codePoint <= 0xdfff)
+      || codePoint === 0x061c
+      || codePoint === 0x200e
+      || codePoint === 0x200f
+      || (codePoint >= 0x202a && codePoint <= 0x202e)
+      || (codePoint >= 0x2066 && codePoint <= 0x2069)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function bmadValidateStandaloneHash(document, purpose, hashField, errors) {
+  let expected;
+  try {
+    expected = canonicalHash({
+      purpose,
+      schemaMajor: "v1",
+      value: document,
+      excludedFields: [hashField],
+    }).serializedHash;
+  } catch {
+    expected = undefined;
+  }
+  if (document?.[hashField] !== expected) {
+    errors.push(bmadIssue("HASH_MISMATCH", hashField));
+  }
+}
+
+function bmadValidateInstant(value, field, errors) {
+  const epochMilliseconds = Date.parse(value);
+  if (!Number.isFinite(epochMilliseconds)
+    || new Date(epochMilliseconds).toISOString() !== value) {
+    errors.push(bmadIssue("INVALID_UTC_INSTANT", field));
+  }
+}
+
+export function validateMethodHelpProposalSemantics(document) {
+  const errors = [];
+  if (document?.proposalKind === "recommended_capability"
+    && !bmadIsSafeText(document.rationaleSummary)) {
+    errors.push(bmadIssue("BMAD_UNSAFE_TEXT", "rationaleSummary"));
+  }
+  return errors;
+}
+
+export function validateMethodHelpRecommendationSemantics(document) {
+  const errors = [];
+  if (document?.recommendationKind === "recommended_capability"
+    && !bmadIsSafeText(document.rationaleSummary)) {
+    errors.push(bmadIssue("BMAD_UNSAFE_TEXT", "rationaleSummary"));
+  }
+  bmadValidateStandaloneHash(
+    document,
+    "bmad-method-help-recommendation",
+    "recommendationHash",
+    errors,
+  );
+  bmadValidateInstant(document?.createdAt, "createdAt", errors);
+  return errors;
+}
+
+export function validateMethodAdvanceResultSemantics(document) {
+  const errors = [];
+  if ((document?.resultKind === "refusal" || document?.resultKind === "incomplete")
+    && !bmadIsSafeText(document.safeMessage)) {
+    errors.push(bmadIssue("BMAD_UNSAFE_TEXT", "safeMessage"));
+  }
+  bmadValidateStandaloneHash(
+    document,
+    "bmad-method-canonical-advance-result",
+    "resultHash",
+    errors,
+  );
+  bmadValidateInstant(document?.receivedAt, "receivedAt", errors);
+  return errors;
+}
+
 function bmadTuple(values) {
   if (values.some((value) => typeof value !== "string" || value.includes("\0"))) {
     return null;

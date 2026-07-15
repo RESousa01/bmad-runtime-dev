@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 import { canonicalHash } from "../scripts/lib/canonical-json.mjs";
 import { isDiscriminatorRefinement } from "../scripts/lib/schema-validator.mjs";
 import {
+  validateMethodAdvanceResultSemantics,
+  validateMethodHelpProposalSemantics,
+  validateMethodHelpRecommendationSemantics,
+} from "../scripts/lib/bmad-semantics.mjs";
+import {
   sealDocument,
   sealDurableObject,
   validateSemantics,
@@ -109,6 +114,125 @@ async function readSchema(file) {
 async function readFixture(file) {
   return parseStrictJson(await readFile(path.join(fixtureRoot, file), "utf8"));
 }
+
+const sealedHelpRoots = Object.freeze([
+  {
+    file: "bmad-method-advance-result.schema.json",
+    id: "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json",
+    title: "sapphirus.bmad-method-advance-result.v1",
+    ref: "./bmad-method-session.schema.json#/$defs/MethodAdvanceResult",
+  },
+  {
+    file: "bmad-method-help-proposal.schema.json",
+    id: "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json",
+    title: "sapphirus.bmad-method-help-proposal.v1",
+  },
+  {
+    file: "bmad-method-help-recommendation.schema.json",
+    id: "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json",
+    title: "sapphirus.bmad-method-help-recommendation.v1",
+    ref: "./bmad-method-session.schema.json#/$defs/MethodHelpRecommendation",
+  },
+]);
+
+for (const root of sealedHelpRoots) {
+  test(`${root.file} is a registered standalone BMAD contract root`, async () => {
+    const schema = await readSchema(root.file);
+    assert.equal(schema.$id, root.id);
+    assert.equal(schema.title, root.title);
+    if (root.ref !== undefined) assert.equal(schema.$ref, root.ref);
+  });
+}
+
+function sealStandaloneRecord(value, purpose, hashField) {
+  const sealed = structuredClone(value);
+  sealed[hashField] = canonicalHash({
+    purpose,
+    schemaMajor: "v1",
+    value: sealed,
+    excludedFields: [hashField],
+  }).serializedHash;
+  return sealed;
+}
+
+const helpCapabilityKey = Object.freeze({
+  packageVersionId: "package_01J0000000000000",
+  moduleCode: "core",
+  skillName: "bmad-help",
+  normalizedAction: "help",
+});
+
+function helpProposal(rationaleSummary = "Use the matching capability.") {
+  return {
+    proposalKind: "recommended_capability",
+    capabilityKey: helpCapabilityKey,
+    evidenceTokenIds: ["evidence_01J0000000000000"],
+    rationaleSummary,
+  };
+}
+
+function helpRecommendation(rationaleSummary = "Use the matching capability.") {
+  return sealStandaloneRecord({
+    recommendationKind: "recommended_capability",
+    recommendationId: "recommendation_01J0000000000000",
+    sessionId: "session_01J0000000000000",
+    capabilityKey: helpCapabilityKey,
+    evidenceClass: "authoritative",
+    evidenceRefs: [],
+    guidanceRequired: false,
+    rationaleSummary,
+    recommendationHash: `sha256:${"0".repeat(64)}`,
+    createdAt: "2026-07-15T10:00:00.000Z",
+  }, "bmad-method-help-recommendation", "recommendationHash");
+}
+
+function advanceRefusal(safeMessage = "The response could not be accepted.") {
+  return sealStandaloneRecord({
+    resultKind: "refusal",
+    resultId: "result_01J0000000000000",
+    requestId: "request_01J0000000000000",
+    invocationId: "invocation_01J0000000000000",
+    responseSchemaHash: `sha256:${"1".repeat(64)}`,
+    reasonCode: "proposal_rejected",
+    safeMessage,
+    resultHash: `sha256:${"0".repeat(64)}`,
+    receivedAt: "2026-07-15T10:00:01.000Z",
+  }, "bmad-method-canonical-advance-result", "resultHash");
+}
+
+test("sealed Help semantic entry points share the reviewed safe-text predicate", () => {
+  const controls = ["\u0000", "\u001f", "\u007f", "\u061c", "\u200e", "\u200f", "\u202a", "\u202e", "\u2066", "\u2069"];
+  assert.deepEqual(validateMethodHelpProposalSemantics(helpProposal("Safe text ✅")), []);
+  assert.deepEqual(validateMethodHelpRecommendationSemantics(helpRecommendation("Safe text ✅")), []);
+  assert.deepEqual(validateMethodAdvanceResultSemantics(advanceRefusal("Safe text ✅")), []);
+  for (const control of controls) {
+    assert.ok(validateMethodHelpProposalSemantics(helpProposal(`unsafe${control}text`))
+      .some(({ code, field }) => code === "BMAD_UNSAFE_TEXT" && field === "rationaleSummary"));
+    assert.ok(validateMethodHelpRecommendationSemantics(helpRecommendation(`unsafe${control}text`))
+      .some(({ code, field }) => code === "BMAD_UNSAFE_TEXT" && field === "rationaleSummary"));
+    assert.ok(validateMethodAdvanceResultSemantics(advanceRefusal(`unsafe${control}text`))
+      .some(({ code, field }) => code === "BMAD_UNSAFE_TEXT" && field === "safeMessage"));
+  }
+});
+
+test("canonical Help host records use distinct reviewed self-hash domains", () => {
+  const recommendation = helpRecommendation();
+  const advanceResult = advanceRefusal();
+  assert.deepEqual(validateMethodHelpRecommendationSemantics(recommendation), []);
+  assert.deepEqual(validateMethodAdvanceResultSemantics(advanceResult), []);
+
+  recommendation.recommendationHash = advanceResult.resultHash;
+  advanceResult.resultHash = canonicalHash({
+    purpose: "bmad-method-advance-result",
+    schemaMajor: "v1",
+    value: advanceResult,
+    excludedFields: ["resultHash"],
+  }).serializedHash;
+  assert.ok(validateMethodHelpRecommendationSemantics(recommendation)
+    .some(({ code, field }) => code === "HASH_MISMATCH" && field === "recommendationHash"));
+  assert.ok(validateMethodAdvanceResultSemantics(advanceResult)
+    .some(({ code, field }) => code === "HASH_MISMATCH" && field === "resultHash"));
+});
 
 function visit(node, callback, pointer = "#") {
   if (node === null || typeof node !== "object") return;
@@ -404,7 +528,7 @@ test("early BMAD schemas do not model deferred Builder lifecycle objects", async
   }
 });
 
-test("the six BMAD self-hash purposes exclude only their reviewed self-field", () => {
+test("the eight BMAD self-hash purposes exclude only their reviewed self-field", () => {
   const cases = [
     ["sapphirus.bmad-package-descriptor.v1", "descriptorHash", "bmad-package-descriptor"],
     ["sapphirus.bmad-capability-catalog.v1", "catalogHash", "bmad-capability-catalog"],
@@ -437,13 +561,32 @@ test("the six BMAD self-hash purposes exclude only their reviewed self-field", (
       expected,
     );
   }
+  for (const [value, hashField, purpose] of [
+    [helpRecommendation(), "recommendationHash", "bmad-method-help-recommendation"],
+    [advanceRefusal(), "resultHash", "bmad-method-canonical-advance-result"],
+  ]) {
+    const expected = value[hashField];
+    const selfFieldMutation = { ...value, [hashField]: `sha256:${"f".repeat(64)}` };
+    assert.equal(canonicalHash({
+      purpose,
+      schemaMajor: "v1",
+      value: selfFieldMutation,
+      excludedFields: [hashField],
+    }).serializedHash, expected);
+    assert.notEqual(canonicalHash({
+      purpose,
+      schemaMajor: "v1",
+      value: { ...value, fixtureMutation: true },
+      excludedFields: [hashField],
+    }).serializedHash, expected);
+  }
 });
 
 test("the committed BMAD golden vectors agree and semantic mutations drift every purpose", async () => {
   const golden = parseStrictJson(
     await readFile(path.join(fixtureRoot, "golden/bmad/hash-vectors.json"), "utf8"),
   );
-  assert.equal(golden.vectors.length, 6);
+  assert.equal(golden.vectors.length, 8);
   for (const vector of golden.vectors) {
     const computed = canonicalHash({
       purpose: vector.purpose,

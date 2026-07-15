@@ -26,7 +26,7 @@ public sealed class BmadContractConformanceTests
         FixtureEntry[] entries = catalog
             .Where(static entry => entry.File.Contains("/bmad/", StringComparison.Ordinal))
             .ToArray();
-        Assert.Equal(100, entries.Length);
+        Assert.Equal(103, entries.Length);
 
         foreach (FixtureEntry entry in entries)
         {
@@ -74,14 +74,14 @@ public sealed class BmadContractConformanceTests
     }
 
     [Fact]
-    public void DotnetMatchesAllSixBmadGoldenHashVectors()
+    public void DotnetMatchesAllEightBmadGoldenHashVectors()
     {
         using JsonDocument document = StrictBmadJson.Parse(
             File.ReadAllBytes(FixturePath("golden/bmad/hash-vectors.json")));
         JsonElement[] vectors = document.RootElement.GetProperty("vectors"u8)
             .EnumerateArray()
             .ToArray();
-        Assert.Equal(6, vectors.Length);
+        Assert.Equal(8, vectors.Length);
         foreach (JsonElement vector in vectors)
         {
             string name = vector.GetProperty("name"u8).GetString()!;
@@ -149,6 +149,53 @@ public sealed class BmadContractConformanceTests
     }
 
     [Fact]
+    public void DotnetSealedHelpSemanticsRejectUnsafeTextHashDriftAndInvalidInstants()
+    {
+        using JsonDocument proposal = StrictBmadJson.Parse(
+            File.ReadAllBytes(FixturePath("valid/bmad/method-help-proposal.json")));
+        using JsonDocument recommendation = StrictBmadJson.Parse(
+            File.ReadAllBytes(FixturePath("valid/bmad/method-help-recommendation.json")));
+        using JsonDocument advanceResult = StrictBmadJson.Parse(
+            File.ReadAllBytes(FixturePath("valid/bmad/method-advance-result.json")));
+        Assert.Empty(BmadSemantics.ValidateMethodHelpProposal(proposal.RootElement));
+        Assert.Empty(BmadSemantics.ValidateMethodHelpRecommendation(recommendation.RootElement));
+        Assert.Empty(BmadSemantics.ValidateMethodAdvanceResult(advanceResult.RootElement));
+
+        JsonObject unsafeProposal = JsonNode.Parse(proposal.RootElement.GetRawText())!.AsObject();
+        unsafeProposal["rationaleSummary"] = "unsafe\u202etext";
+        using JsonDocument unsafeProposalDocument = JsonDocument.Parse(unsafeProposal.ToJsonString());
+        Assert.Equal(
+            ["BMAD_UNSAFE_TEXT"],
+            BmadSemantics.ValidateMethodHelpProposal(unsafeProposalDocument.RootElement));
+
+        JsonObject invalidRecommendation =
+            JsonNode.Parse(recommendation.RootElement.GetRawText())!.AsObject();
+        invalidRecommendation["createdAt"] = "2026-02-31T10:00:00.000Z";
+        using JsonDocument invalidRecommendationDocument =
+            JsonDocument.Parse(invalidRecommendation.ToJsonString());
+        Assert.Equal(
+            ["HASH_MISMATCH", "INVALID_UTC_INSTANT"],
+            BmadSemantics.ValidateMethodHelpRecommendation(
+                invalidRecommendationDocument.RootElement));
+
+        invalidRecommendation["createdAt"] = "0000-02-29T10:00:00.000Z";
+        using JsonDocument yearZeroRecommendationDocument =
+            JsonDocument.Parse(invalidRecommendation.ToJsonString());
+        Assert.DoesNotContain(
+            "INVALID_UTC_INSTANT",
+            BmadSemantics.ValidateMethodHelpRecommendation(
+                yearZeroRecommendationDocument.RootElement));
+
+        JsonObject invalidAdvance = JsonNode.Parse(advanceResult.RootElement.GetRawText())!.AsObject();
+        invalidAdvance["resultKind"] = "refusal";
+        invalidAdvance["safeMessage"] = "unsafe\u2069text";
+        using JsonDocument invalidAdvanceDocument = JsonDocument.Parse(invalidAdvance.ToJsonString());
+        Assert.Equal(
+            ["BMAD_UNSAFE_TEXT", "HASH_MISMATCH"],
+            BmadSemantics.ValidateMethodAdvanceResult(invalidAdvanceDocument.RootElement));
+    }
+
+    [Fact]
     public void BmadStrictParserEnforcesExactByteAndDepthLimits()
     {
         byte[] exactLimit = Encoding.UTF8.GetBytes(
@@ -180,6 +227,12 @@ public sealed class BmadContractConformanceTests
                 SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).ToString(),
             "bmad-capability-catalog.schema.json" =>
                 SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).ToString(),
+            "bmad-method-advance-result.schema.json" =>
+                SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.ParseValue(source).ToString(),
+            "bmad-method-help-proposal.schema.json" =>
+                SapphirusContractsCatalog.MethodHelpProposal.ParseValue(source).ToString(),
+            "bmad-method-help-recommendation.schema.json" =>
+                SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.ParseValue(source).ToString(),
             "bmad-method-session.schema.json" =>
                 SapphirusContractsCatalog.MethodSession.ParseValue(source).ToString(),
             "bmad-builder-authoring.schema.json" =>
@@ -225,6 +278,12 @@ public sealed class BmadContractConformanceTests
                 SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).EvaluateSchema(collector),
             "bmad-capability-catalog.schema.json" =>
                 SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).EvaluateSchema(collector),
+            "bmad-method-advance-result.schema.json" =>
+                SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.ParseValue(source).EvaluateSchema(collector),
+            "bmad-method-help-proposal.schema.json" =>
+                SapphirusContractsCatalog.MethodHelpProposal.ParseValue(source).EvaluateSchema(collector),
+            "bmad-method-help-recommendation.schema.json" =>
+                SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.ParseValue(source).EvaluateSchema(collector),
             "bmad-method-session.schema.json" =>
                 SapphirusContractsCatalog.MethodSession.ParseValue(source).EvaluateSchema(collector),
             "bmad-builder-authoring.schema.json" =>

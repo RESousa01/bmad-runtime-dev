@@ -9,12 +9,18 @@ import {
 } from "../generated/typescript/validation.mjs";
 import {
   validateContractErrorSemantics,
+  validateMethodAdvanceResultSemantics,
+  validateMethodHelpProposalSemantics,
+  validateMethodHelpRecommendationSemantics,
   validatePackageCompatibilitySemantics,
   validateRemoteJobHandoffSemantics,
   validateRemoteJobHandoffTransition,
 } from "../generated/typescript/semantic-validation.mjs";
 import {
   validateCandidateAction,
+  validateBmadMethodAdvanceResult,
+  validateBmadMethodHelpProposal,
+  validateBmadMethodHelpRecommendation,
   validateContractError,
   validateFilesystemCapability,
   validatePackageCompatibility,
@@ -38,6 +44,67 @@ test("strict parsing rejects duplicate keys before standalone validation", async
   const source = await fixture("invalid/duplicate-member.json");
   assert.throws(
     () => parseAndValidateContract(source, "candidate-action"),
+    (error) => error?.code === "DUPLICATE_MEMBER",
+  );
+});
+
+test("standalone sealed Help roots enforce structure, semantics, and strict host timestamps", async () => {
+  const cases = [
+    ["method-help-proposal", "bmad-method-help-proposal", validateBmadMethodHelpProposal],
+    [
+      "method-help-recommendation",
+      "bmad-method-help-recommendation",
+      validateBmadMethodHelpRecommendation,
+    ],
+    ["method-advance-result", "bmad-method-advance-result", validateBmadMethodAdvanceResult],
+  ];
+  for (const [name, kind, validate] of cases) {
+    const source = await fixture(`valid/bmad/${name}.json`);
+    const value = parseAndValidateContract(source, kind);
+    assert.equal(validate(value), true, name);
+  }
+
+  const proposal = JSON.parse(await fixture("valid/bmad/method-help-proposal.json"));
+  assert.deepEqual(validateMethodHelpProposalSemantics(proposal), []);
+  proposal.rationaleSummary = "unsafe\u202etext";
+  assert.throws(
+    () => parseAndValidateContract(JSON.stringify(proposal), "bmad-method-help-proposal"),
+    (error) => error instanceof ContractValidationError
+      && error.issues.some((issue) => issue.keyword === "BMAD_UNSAFE_TEXT"),
+  );
+
+  const recommendation = JSON.parse(await fixture("valid/bmad/method-help-recommendation.json"));
+  assert.deepEqual(validateMethodHelpRecommendationSemantics(recommendation), []);
+  recommendation.createdAt = "2026-02-31T10:00:00.000Z";
+  assert.ok(validateMethodHelpRecommendationSemantics(recommendation)
+    .some(({ code, field }) => code === "INVALID_UTC_INSTANT" && field === "createdAt"));
+  recommendation.createdAt = "0000-02-29T10:00:00.000Z";
+  assert.ok(!validateMethodHelpRecommendationSemantics(recommendation)
+    .some(({ code }) => code === "INVALID_UTC_INSTANT"));
+
+  const advanceResult = JSON.parse(await fixture("valid/bmad/method-advance-result.json"));
+  assert.deepEqual(validateMethodAdvanceResultSemantics(advanceResult), []);
+  advanceResult.receivedAt = "2026-02-31T10:00:00.000Z";
+  assert.ok(validateMethodAdvanceResultSemantics(advanceResult)
+    .some(({ code, field }) => code === "INVALID_UTC_INSTANT" && field === "receivedAt"));
+
+  proposal.rationaleSummary = "safe";
+  proposal.untrustedAuthority = true;
+  assert.equal(validateBmadMethodHelpProposal(proposal), false);
+  proposal.evidenceTokenIds = [];
+  delete proposal.untrustedAuthority;
+  assert.equal(validateBmadMethodHelpProposal(proposal), false);
+  proposal.evidenceTokenIds = Array.from(
+    { length: 65 },
+    (_, index) => `evidence_01J${index.toString(32).toUpperCase().padStart(16, "0")}`,
+  );
+  assert.equal(validateBmadMethodHelpProposal(proposal), false);
+
+  assert.throws(
+    () => parseAndValidateContract(
+      '{"proposalKind":"no_recommendation","reasonCode":"catalog_evidence_absent","reasonCode":"dependency_unavailable"}',
+      "bmad-method-help-proposal",
+    ),
     (error) => error?.code === "DUPLICATE_MEMBER",
   );
 });

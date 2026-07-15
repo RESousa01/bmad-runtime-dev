@@ -364,6 +364,54 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the (optional) <c>methodAdvanceResult</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Mutable MethodAdvanceResult
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodAdvanceResultUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>methodHelpProposal</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Mutable MethodHelpProposalValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpProposalValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>methodHelpRecommendation</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Mutable MethodHelpRecommendation
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpRecommendationUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the (optional) <c>methodSession</c> property.
         /// </summary>
         public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Mutable MethodSessionValue
@@ -1429,6 +1477,249 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Set the <c>methodAdvanceResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodAdvanceResult(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodAdvanceResultUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodAdvanceResultUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodAdvanceResult, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>methodAdvanceResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodAdvanceResult<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodAdvanceResultUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodAdvanceResultUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodAdvanceResult, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>methodAdvanceResult</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveMethodAdvanceResult()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodAdvanceResultUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>methodHelpProposal</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodHelpProposalValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpProposalValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpProposalValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpProposalValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>methodHelpProposal</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodHelpProposalValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpProposalValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpProposalValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpProposalValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>methodHelpProposal</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveMethodHelpProposalValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpProposalValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>methodHelpRecommendation</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodHelpRecommendation(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpRecommendationUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpRecommendationUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>methodHelpRecommendation</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetMethodHelpRecommendation<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpRecommendationUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpRecommendationUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>methodHelpRecommendation</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveMethodHelpRecommendation()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MethodHelpRecommendationUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
         /// Set the <c>methodSession</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
@@ -2166,6 +2457,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default,
@@ -2183,6 +2477,9 @@ public readonly partial struct SapphirusContractsCatalog
             evidenceEvent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceEventValue, ref builder);
             executionResultManifest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ExecutionResultManifestValue, ref builder);
             filesystemCapabilitySnapshot.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.FilesystemCapabilitySnapshotValue, ref builder);
+            methodAdvanceResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodAdvanceResult, ref builder);
+            methodHelpProposal.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpProposalValue, ref builder);
+            methodHelpRecommendation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref builder);
             methodSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodSessionValue, ref builder);
             packageCompatibility.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageCompatibilityValue, ref builder);
             remoteJobHandoff.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RemoteJobHandoffValue, ref builder);
@@ -2205,12 +2502,15 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default)
         {
-            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         /// <summary>
@@ -2231,6 +2531,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default,
@@ -2251,6 +2554,9 @@ public readonly partial struct SapphirusContractsCatalog
             evidenceEvent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceEventValue, ref builder);
             executionResultManifest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ExecutionResultManifestValue, ref builder);
             filesystemCapabilitySnapshot.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.FilesystemCapabilitySnapshotValue, ref builder);
+            methodAdvanceResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodAdvanceResult, ref builder);
+            methodHelpProposal.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpProposalValue, ref builder);
+            methodHelpRecommendation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref builder);
             methodSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodSessionValue, ref builder);
             packageCompatibility.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageCompatibilityValue, ref builder);
             remoteJobHandoff.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RemoteJobHandoffValue, ref builder);
@@ -2274,6 +2580,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default,
@@ -2282,7 +2591,7 @@ public readonly partial struct SapphirusContractsCatalog
         where TContext : allows ref struct
         #endif
         {
-            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -2420,19 +2729,22 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="evidenceEvent">The value of the property.</param>
     /// <param name="executionResultManifest">The value of the property.</param>
     /// <param name="filesystemCapabilitySnapshot">The value of the property.</param>
+    /// <param name="methodAdvanceResult">The value of the property.</param>
+    /// <param name="methodHelpProposal">The value of the property.</param>
+    /// <param name="methodHelpRecommendation">The value of the property.</param>
     /// <param name="methodSession">The value of the property.</param>
     /// <param name="packageCompatibility">The value of the property.</param>
     /// <param name="remoteJobHandoff">The value of the property.</param>
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
     {
         JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -2457,13 +2769,16 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="evidenceEvent">The value of the property.</param>
     /// <param name="executionResultManifest">The value of the property.</param>
     /// <param name="filesystemCapabilitySnapshot">The value of the property.</param>
+    /// <param name="methodAdvanceResult">The value of the property.</param>
+    /// <param name="methodHelpProposal">The value of the property.</param>
+    /// <param name="methodHelpRecommendation">The value of the property.</param>
     /// <param name="methodSession">The value of the property.</param>
     /// <param name="packageCompatibility">The value of the property.</param>
     /// <param name="remoteJobHandoff">The value of the property.</param>
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
         #if NET9_0_OR_GREATER
         where TContext : allows ref struct
         #endif
@@ -2472,7 +2787,7 @@ public readonly partial struct SapphirusContractsCatalog
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

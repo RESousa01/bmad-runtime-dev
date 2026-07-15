@@ -1,0 +1,17 @@
+{
+  "resultKind": "completion_candidate",
+  "resultId": "result_01J00000000000000000000000",
+  "requestId": "request_01J00000000000000000000000",
+  "invocationId": "invocation_01J00000000000000000000000",
+  "responseSchemaHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "responseContentRef": {
+    "ref": "cas://bmad/help-recommendation",
+    "contentHash": "sha256:152ea57e682523bcb42cf67dc6078f0ac92962d96c99c1258a0bcd874991f456",
+    "byteLength": 512,
+    "mediaType": "application/json"
+  },
+  "producedArtifacts": [],
+  "unresolvedOpenItemCount": 0,
+  "resultHash": "sha256:ab7a07fff2ce8a76b36c039c9f6366d67c0a5fcd550bb26204c082f1235162c9",
+  "receivedAt": "2026-07-14T10:00:00.000Z"
+}

@@ -6,7 +6,10 @@ use std::{
 
 use desktop_runtime::{canonical_hash_without_field, canonical_json_bytes};
 use jsonschema::{error::ValidationErrorKind, Draft, Resource, Validator};
-use sapphirus_contracts_conformance::validate_bmad_semantics;
+use sapphirus_contracts_conformance::{
+    validate_bmad_semantics, validate_method_advance_result_semantics,
+    validate_method_help_proposal_semantics, validate_method_help_recommendation_semantics,
+};
 use sapphirus_generator_qualification::{
     ParserLimits, QualificationValidator, ReasonCategory, RejectionStage,
 };
@@ -184,7 +187,7 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
         .into_iter()
         .filter(|entry| entry.file.contains("/bmad/"))
         .collect();
-    assert_eq!(entries.len(), 100);
+    assert_eq!(entries.len(), 103);
 
     for entry in entries {
         let source = fs::read(fixture_root.join(&entry.file))?;
@@ -239,11 +242,11 @@ fn every_bmad_fixture_has_the_same_rust_reason_category() -> Result<(), Box<dyn 
 }
 
 #[test]
-fn rust_matches_all_six_bmad_golden_hash_vectors() -> Result<(), Box<dyn std::error::Error>> {
+fn rust_matches_all_eight_bmad_golden_hash_vectors() -> Result<(), Box<dyn std::error::Error>> {
     let golden: GoldenFile = serde_json::from_slice(&fs::read(
         contract_root().join("fixtures/golden/bmad/hash-vectors.json"),
     )?)?;
-    assert_eq!(golden.vectors.len(), 6);
+    assert_eq!(golden.vectors.len(), 8);
     for vector in golden.vectors {
         let schema_major = vector
             .schema_major
@@ -320,6 +323,15 @@ fn every_valid_bmad_root_round_trips_through_generated_rust_types(
             "bmad-capability-catalog.schema.json" => assert_generated_round_trip::<
                 generated_contracts::BmadCapabilityCatalog,
             >(&source, &value),
+            "bmad-method-advance-result.schema.json" => assert_generated_round_trip::<
+                generated_contracts::MethodAdvanceResult,
+            >(&source, &value),
+            "bmad-method-help-proposal.schema.json" => assert_generated_round_trip::<
+                generated_contracts::MethodHelpProposal,
+            >(&source, &value),
+            "bmad-method-help-recommendation.schema.json" => assert_generated_round_trip::<
+                generated_contracts::MethodHelpRecommendation,
+            >(&source, &value),
             "bmad-method-session.schema.json" => {
                 assert_generated_round_trip::<generated_contracts::MethodSession>(&source, &value)
             }
@@ -333,6 +345,51 @@ fn every_valid_bmad_root_round_trips_through_generated_rust_types(
         };
         result.map_err(|error| format!("{}: {error}", entry.file))?;
     }
+    Ok(())
+}
+
+#[test]
+fn rust_sealed_help_semantics_reject_unsafe_text_hash_drift_and_invalid_instants(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let fixture_root = contract_root().join("fixtures/valid/bmad");
+    let proposal: Value =
+        serde_json::from_slice(&fs::read(fixture_root.join("method-help-proposal.json"))?)?;
+    let recommendation: Value = serde_json::from_slice(&fs::read(
+        fixture_root.join("method-help-recommendation.json"),
+    )?)?;
+    let advance_result: Value =
+        serde_json::from_slice(&fs::read(fixture_root.join("method-advance-result.json"))?)?;
+    assert!(validate_method_help_proposal_semantics(&proposal).is_empty());
+    assert!(validate_method_help_recommendation_semantics(&recommendation).is_empty());
+    assert!(validate_method_advance_result_semantics(&advance_result).is_empty());
+
+    let mut unsafe_proposal = proposal;
+    unsafe_proposal["rationaleSummary"] = Value::String("unsafe\u{202e}text".to_owned());
+    assert_eq!(
+        validate_method_help_proposal_semantics(&unsafe_proposal),
+        ["BMAD_UNSAFE_TEXT"]
+    );
+
+    let mut invalid_recommendation = recommendation;
+    invalid_recommendation["createdAt"] = Value::String("2026-02-31T10:00:00.000Z".to_owned());
+    assert_eq!(
+        validate_method_help_recommendation_semantics(&invalid_recommendation),
+        ["HASH_MISMATCH", "INVALID_UTC_INSTANT"]
+    );
+    invalid_recommendation["createdAt"] = Value::String("0000-02-29T10:00:00.000Z".to_owned());
+    assert!(
+        !validate_method_help_recommendation_semantics(&invalid_recommendation)
+            .iter()
+            .any(|code| code == "INVALID_UTC_INSTANT")
+    );
+
+    let mut invalid_advance = advance_result;
+    invalid_advance["resultKind"] = Value::String("refusal".to_owned());
+    invalid_advance["safeMessage"] = Value::String("unsafe\u{2069}text".to_owned());
+    assert_eq!(
+        validate_method_advance_result_semantics(&invalid_advance),
+        ["BMAD_UNSAFE_TEXT", "HASH_MISMATCH"]
+    );
     Ok(())
 }
 

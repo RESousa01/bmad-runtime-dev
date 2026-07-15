@@ -257,6 +257,54 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>methodAdvanceResult</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult MethodAdvanceResult
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodAdvanceResultUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>methodHelpProposal</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal MethodHelpProposalValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpProposalValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>methodHelpRecommendation</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation MethodHelpRecommendation
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.MethodHelpRecommendationUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>methodSession</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession MethodSessionValue
@@ -802,6 +850,21 @@ public readonly partial struct SapphirusContractsCatalog
         public const string FilesystemCapabilitySnapshotValue = "filesystemCapabilitySnapshot";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="MethodAdvanceResult"/>.
+        /// </summary>
+        public const string MethodAdvanceResult = "methodAdvanceResult";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="MethodHelpProposalValue"/>.
+        /// </summary>
+        public const string MethodHelpProposalValue = "methodHelpProposal";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="MethodHelpRecommendation"/>.
+        /// </summary>
+        public const string MethodHelpRecommendation = "methodHelpRecommendation";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="MethodSessionValue"/>.
         /// </summary>
         public const string MethodSessionValue = "methodSession";
@@ -880,6 +943,21 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="FilesystemCapabilitySnapshotValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValueUtf8 => "filesystemCapabilitySnapshot"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="MethodAdvanceResult"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodAdvanceResultUtf8 => "methodAdvanceResult"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="MethodHelpProposalValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpProposalValueUtf8 => "methodHelpProposal"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="MethodHelpRecommendation"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpRecommendationUtf8 => "methodHelpRecommendation"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="MethodSessionValue"/>.
@@ -968,6 +1046,21 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValue => "filesystemCapabilitySnapshot"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="MethodAdvanceResult"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodAdvanceResult => "methodAdvanceResult"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="MethodHelpProposalValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpProposalValue => "methodHelpProposal"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="MethodHelpRecommendation"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpRecommendation => "methodHelpRecommendation"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="MethodSessionValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodSessionValue => "methodSession"u8;
@@ -1053,6 +1146,21 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="FilesystemCapabilitySnapshotValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValue => [0xE5, 0x01, 0x00, 0x00, 0x22, 0x66, 0x69, 0x6C, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6C, 0x69, 0x74, 0x79, 0x53, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="MethodAdvanceResult"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodAdvanceResult => [0x55, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x65, 0x74, 0x68, 0x6F, 0x64, 0x41, 0x64, 0x76, 0x61, 0x6E, 0x63, 0x65, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="MethodHelpProposalValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpProposalValue => [0x45, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x65, 0x74, 0x68, 0x6F, 0x64, 0x48, 0x65, 0x6C, 0x70, 0x50, 0x72, 0x6F, 0x70, 0x6F, 0x73, 0x61, 0x6C, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="MethodHelpRecommendation"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> MethodHelpRecommendation => [0xA5, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x65, 0x74, 0x68, 0x6F, 0x64, 0x48, 0x65, 0x6C, 0x70, 0x52, 0x65, 0x63, 0x6F, 0x6D, 0x6D, 0x65, 0x6E, 0x64, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="MethodSessionValue"/>.
