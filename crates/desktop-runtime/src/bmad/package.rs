@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
 use serde::Serialize;
 use serde_json::Value;
@@ -9,7 +10,9 @@ use crate::{
     RelativeWorkspacePath, Sha256Digest,
 };
 
-use super::{BmadKernelError, BmadKernelErrorCode};
+use super::{
+    help_run::seal_help_invocation, BmadKernelError, BmadKernelErrorCode, BmadLoadedMethodPackage,
+};
 
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
@@ -65,7 +68,7 @@ impl BmadLocationClass {
 #[derive(Clone, Debug)]
 pub struct BmadSourceEntry {
     path: RelativeWorkspacePath,
-    bytes: Vec<u8>,
+    bytes: Arc<[u8]>,
     content_hash: Sha256Digest,
     source_kind: BmadSourceKind,
     location: BmadLocationClass,
@@ -80,11 +83,12 @@ impl BmadSourceEntry {
     /// controls, or bytes larger than the per-entry bound.
     pub fn new(
         path: impl Into<String>,
-        bytes: Vec<u8>,
+        bytes: impl Into<Arc<[u8]>>,
         source_kind: BmadSourceKind,
         location: BmadLocationClass,
     ) -> Result<Self, BmadKernelError> {
         let path = path.into();
+        let bytes = bytes.into();
         if bytes.len() > MAX_SOURCE_ENTRY_BYTES || !is_safe_source_path(&path) {
             return Err(if bytes.len() > MAX_SOURCE_ENTRY_BYTES {
                 BmadKernelErrorCode::SourceLimitExceeded
@@ -113,6 +117,10 @@ impl BmadSourceEntry {
     #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
+    }
+
+    pub(super) fn bytes_arc(&self) -> Arc<[u8]> {
+        Arc::clone(&self.bytes)
     }
 
     #[must_use]
@@ -178,7 +186,7 @@ impl BmadSourceSnapshot {
         self.observed_inventory_hash
     }
 
-    fn entry(&self, path: &str) -> Option<&BmadSourceEntry> {
+    pub(super) fn entry(&self, path: &str) -> Option<&BmadSourceEntry> {
         self.entries.iter().find(|entry| entry.path() == path)
     }
 }
@@ -283,7 +291,8 @@ impl BmadPackageLoader {
     pub fn load(
         snapshot: &BmadSourceSnapshot,
         expected_semantic_ledger_hash: Sha256Digest,
-    ) -> Result<BmadLoadedPackage, BmadKernelError> {
+        expected_adoption_ledger_hash: Sha256Digest,
+    ) -> Result<BmadLoadedMethodPackage, BmadKernelError> {
         verify_semantic_ledger(snapshot, expected_semantic_ledger_hash)?;
         let descriptor_entry = snapshot
             .entry(DESCRIPTOR_PATH)
@@ -332,14 +341,22 @@ impl BmadPackageLoader {
             &descriptor_value,
             descriptor_entry.source_kind == BmadSourceKind::SealedFoundation,
         )?;
-        Ok(BmadLoadedPackage {
+        let package = BmadLoadedPackage {
             package_name,
             package_version,
             package_version_id,
             descriptor_hash,
             observed_inventory_hash: snapshot.observed_inventory_hash,
             skills,
-        })
+        };
+        let help_invocation = seal_help_invocation(
+            snapshot,
+            &descriptor_value,
+            &package,
+            expected_semantic_ledger_hash,
+            expected_adoption_ledger_hash,
+        )?;
+        Ok(BmadLoadedMethodPackage::new(package, help_invocation))
     }
 }
 

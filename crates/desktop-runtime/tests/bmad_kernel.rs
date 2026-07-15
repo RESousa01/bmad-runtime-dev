@@ -18,7 +18,7 @@ fn source_entry(path: &str, bytes: Vec<u8>, location: BmadLocationClass) -> Bmad
         .expect("valid source entry")
 }
 
-fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest) {
+fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
     let managed_paths = [
         "runtime/method/6.10.0/architect-persona.instructions.md",
         "runtime/method/6.10.0/architecture-create.instructions.md",
@@ -40,6 +40,8 @@ fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest) {
     let ledger = std::fs::read(foundation_path("semantic-source-ledger.json"))
         .expect("semantic source ledger");
     let ledger_hash = desktop_runtime::sha256_bytes(&ledger);
+    let adoption = std::fs::read(foundation_path("adoption-ledger.json")).expect("adoption ledger");
+    let adoption_hash = desktop_runtime::sha256_bytes(&adoption);
     let mut entries = managed;
     entries.push(source_entry(
         "semantic-source-ledger.json",
@@ -51,9 +53,15 @@ fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest) {
         descriptor_bytes,
         BmadLocationClass::ManagedMetadata,
     ));
+    entries.push(source_entry(
+        "adoption-ledger.json",
+        adoption,
+        BmadLocationClass::ManagedMetadata,
+    ));
     (
         BmadSourceSnapshot::new(entries).expect("foundation snapshot"),
         ledger_hash,
+        adoption_hash,
     )
 }
 
@@ -84,8 +92,10 @@ fn replace_snapshot_entry(
 
 #[test]
 fn sealed_loader_uses_generated_contract_shape_and_observed_final_bytes() {
-    let (snapshot, ledger_hash) = valid_foundation_snapshot();
-    let loaded = BmadPackageLoader::load(&snapshot, ledger_hash).expect("sealed package");
+    let (snapshot, ledger_hash, adoption_hash) = valid_foundation_snapshot();
+    let loaded =
+        BmadPackageLoader::load(&snapshot, ledger_hash, adoption_hash).expect("sealed package");
+    let loaded = loaded.package();
 
     assert_eq!(loaded.package_name, "bmad-method");
     assert_eq!(loaded.package_version, "6.10.0");
@@ -111,10 +121,10 @@ fn sealed_loader_uses_generated_contract_shape_and_observed_final_bytes() {
 
 #[test]
 fn loader_rejects_ledger_drift_staging_substitution_and_managed_resource_tamper() {
-    let (snapshot, ledger_hash) = valid_foundation_snapshot();
+    let (snapshot, ledger_hash, adoption_hash) = valid_foundation_snapshot();
     let wrong_ledger = desktop_runtime::sha256_bytes(b"different semantic ledger");
     assert_eq!(
-        BmadPackageLoader::load(&snapshot, wrong_ledger)
+        BmadPackageLoader::load(&snapshot, wrong_ledger, adoption_hash)
             .expect_err("ledger drift")
             .code(),
         BmadKernelErrorCode::SemanticLedgerMismatch
@@ -143,7 +153,7 @@ fn loader_rejects_ledger_drift_staging_substitution_and_managed_resource_tamper(
         &serde_json::to_vec_pretty(&descriptor).expect("descriptor bytes"),
     );
     assert_eq!(
-        BmadPackageLoader::load(&staging, ledger_hash)
+        BmadPackageLoader::load(&staging, ledger_hash, adoption_hash)
             .expect_err("staging hash cannot substitute for observed bytes")
             .code(),
         BmadKernelErrorCode::FinalInventoryMismatch
@@ -155,7 +165,7 @@ fn loader_rejects_ledger_drift_staging_substitution_and_managed_resource_tamper(
         b"tampered but internally re-hashed entry",
     );
     assert_eq!(
-        BmadPackageLoader::load(&tampered, ledger_hash)
+        BmadPackageLoader::load(&tampered, ledger_hash, adoption_hash)
             .expect_err("descriptor-to-resource binding must fail")
             .code(),
         BmadKernelErrorCode::ManagedResourceMismatch
