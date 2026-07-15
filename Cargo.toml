@@ -5,6 +5,7 @@ members = [
   "crates/desktop-runtime",
   "crates/desktop-workspace",
   "crates/desktop-airlock",
+  "crates/desktop-egress",
   "crates/desktop-execution",
   "crates/desktop-store",
   "crates/desktop-cloud",
