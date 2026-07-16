@@ -1,0 +1,13 @@
+{
+  "proposalKind": "recommended_capability",
+  "capabilityKey": {
+    "packageVersionId": "pkgver_01J00000000000000000000000",
+    "moduleCode": "bmm",
+    "skillName": "bmad-architecture",
+    "normalizedAction": "create"
+  },
+  "evidenceTokenIds": [
+    "evidence_01J00000000000000000000000"
+  ],
+  "rationaleSummary": "Use the catalog capability bound to the observed Help evidence."
+}

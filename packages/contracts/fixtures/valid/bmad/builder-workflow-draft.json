@@ -1,0 +1,18 @@
+{
+  "objectKind": "draft",
+  "schemaVersion": "sapphirus.bmad-builder-authoring.v1",
+  "draftId": "workflowdraft_01J00000000000000000000000",
+  "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+  "projectId": "project_01J00000000000000000000000",
+  "authoringSessionId": "authorsession_01J00000000000000000000000",
+  "builderKind": "workflow",
+  "validationProfile": "BuilderOutcomeSkillV2",
+  "authoringAction": {
+    "builderKind": "workflow",
+    "action": "build"
+  },
+  "sourceIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "createdAt": "2026-07-14T10:00:00.000Z",
+  "draftEffect": "none"
+}

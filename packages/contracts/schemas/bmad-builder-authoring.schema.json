@@ -1,0 +1,1290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
+  "title": "sapphirus.bmad-builder-authoring.v1",
+  "description": "Inactive early BMAD Builder draft, revision, and analysis records.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/BuilderDraft"
+    },
+    {
+      "$ref": "#/$defs/BuilderDraftRevision"
+    },
+    {
+      "$ref": "#/$defs/BuilderAnalysisRun"
+    }
+  ],
+  "$defs": {
+    "BuilderAuthoringAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "builderKind",
+            "action"
+          ],
+          "properties": {
+            "builderKind": {
+              "const": "agent"
+            },
+            "action": {
+              "enum": [
+                "create_rebuild",
+                "edit",
+                "analyze"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "builderKind",
+            "action"
+          ],
+          "properties": {
+            "builderKind": {
+              "const": "workflow"
+            },
+            "action": {
+              "enum": [
+                "build",
+                "edit",
+                "analyze"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "BuilderProposedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "content"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!/)(?!(?:.*\\/)?\\.{1,2}(?:\\/|$))(?!.*[\\\\:\\u0000-\\u001f\\u007f])(?=.{1,240}$)(?=[^/]{1,120}(?:/[^/]{1,120}){0,15}$)[^/]+(?:/[^/]+)*$"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 262144
+        }
+      }
+    },
+    "BuilderProposedFileSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limitProfile",
+        "files"
+      ],
+      "properties": {
+        "limitProfile": {
+          "const": "sapphirus.bmad-builder-limits.v1"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/BuilderProposedFile"
+          }
+        }
+      }
+    },
+    "BuilderDraft": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "draftId",
+            "ownerScopeRef",
+            "projectId",
+            "authoringSessionId",
+            "builderKind",
+            "validationProfile",
+            "authoringAction",
+            "sourceIdentityHash",
+            "instructionProjectionSetHash",
+            "createdAt",
+            "draftEffect"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "draft"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-authoring.v1"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "ownerScopeRef": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "projectId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "authoringSessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "builderKind": {
+              "const": "agent"
+            },
+            "validationProfile": {
+              "const": "BuilderAgentV2Stateless"
+            },
+            "authoringAction": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "builderKind",
+                "action"
+              ],
+              "properties": {
+                "builderKind": {
+                  "const": "agent"
+                },
+                "action": {
+                  "const": "create_rebuild"
+                }
+              }
+            },
+            "sourceIdentityHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "draftEffect": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "draftId",
+            "ownerScopeRef",
+            "projectId",
+            "authoringSessionId",
+            "builderKind",
+            "validationProfile",
+            "authoringAction",
+            "sourceIdentityHash",
+            "instructionProjectionSetHash",
+            "createdAt",
+            "draftEffect"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "draft"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-authoring.v1"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "ownerScopeRef": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "projectId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "authoringSessionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "builderKind": {
+              "const": "workflow"
+            },
+            "validationProfile": {
+              "const": "BuilderOutcomeSkillV2"
+            },
+            "authoringAction": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "builderKind",
+                "action"
+              ],
+              "properties": {
+                "builderKind": {
+                  "const": "workflow"
+                },
+                "action": {
+                  "const": "build"
+                }
+              }
+            },
+            "sourceIdentityHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "draftEffect": {
+              "const": "none"
+            }
+          }
+        }
+      ]
+    },
+    "BuilderDraftRevision": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "revisionId",
+            "draftId",
+            "builderKind",
+            "validationProfile",
+            "authoringAction",
+            "ordinal",
+            "parentRevisionHash",
+            "proposedFileSet",
+            "sourceIdentityHash",
+            "instructionProjectionSetHash",
+            "rawResultHash",
+            "inventoryHash",
+            "createdAt",
+            "revisionHash"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "revision"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-revision.v1"
+            },
+            "revisionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "builderKind": {
+              "const": "agent"
+            },
+            "validationProfile": {
+              "const": "BuilderAgentV2Stateless"
+            },
+            "authoringAction": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "builderKind",
+                "action"
+              ],
+              "properties": {
+                "builderKind": {
+                  "const": "agent"
+                },
+                "action": {
+                  "enum": [
+                    "create_rebuild",
+                    "edit"
+                  ]
+                }
+              }
+            },
+            "ordinal": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "parentRevisionHash": {
+              "oneOf": [
+                {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "proposedFileSet": {
+              "$ref": "#/$defs/BuilderProposedFileSet"
+            },
+            "sourceIdentityHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "rawResultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "inventoryHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "revisionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "revisionId",
+            "draftId",
+            "builderKind",
+            "validationProfile",
+            "authoringAction",
+            "ordinal",
+            "parentRevisionHash",
+            "proposedFileSet",
+            "sourceIdentityHash",
+            "instructionProjectionSetHash",
+            "rawResultHash",
+            "inventoryHash",
+            "createdAt",
+            "revisionHash"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "revision"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-revision.v1"
+            },
+            "revisionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "builderKind": {
+              "const": "workflow"
+            },
+            "validationProfile": {
+              "const": "BuilderOutcomeSkillV2"
+            },
+            "authoringAction": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "builderKind",
+                "action"
+              ],
+              "properties": {
+                "builderKind": {
+                  "const": "workflow"
+                },
+                "action": {
+                  "enum": [
+                    "build",
+                    "edit"
+                  ]
+                }
+              }
+            },
+            "ordinal": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "parentRevisionHash": {
+              "oneOf": [
+                {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "proposedFileSet": {
+              "$ref": "#/$defs/BuilderProposedFileSet"
+            },
+            "sourceIdentityHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "rawResultHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "inventoryHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "revisionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        }
+      ]
+    },
+    "BuilderAnalysisRun": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "analysisId",
+            "draftId",
+            "revisionId",
+            "revisionHash",
+            "builderKind",
+            "validationProfile",
+            "analysisKind",
+            "sourceMemberSetHash",
+            "instructionProjectionSetHash",
+            "deterministicFactsHash",
+            "deterministicFindings",
+            "modelLensesPerformed",
+            "modelLensesNotPerformedReason",
+            "evaluationClaim",
+            "createdAt",
+            "analysisHash"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "analysis"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-analysis.v1"
+            },
+            "analysisId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "builderKind": {
+              "enum": [
+                "agent",
+                "workflow"
+              ]
+            },
+            "validationProfile": {
+              "enum": [
+                "BuilderAgentV2Stateless",
+                "BuilderOutcomeSkillV2"
+              ]
+            },
+            "analysisKind": {
+              "const": "deterministic_static"
+            },
+            "sourceMemberSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFactsHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFindings": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "findingId",
+                  "ruleId",
+                  "severity",
+                  "message"
+                ],
+                "properties": {
+                  "findingId": {
+                    "$ref": "./common.schema.json#/$defs/ContractId"
+                  },
+                  "ruleId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                  },
+                  "severity": {
+                    "enum": [
+                      "critical",
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  },
+                  "relativePath": {
+                    "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+                  }
+                }
+              }
+            },
+            "modelLensesPerformed": {
+              "const": false
+            },
+            "modelLensesNotPerformedReason": {
+              "enum": [
+                "not_requested",
+                "consent_absent",
+                "connectivity_absent"
+              ]
+            },
+            "evaluationClaim": {
+              "const": "none"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "analysisHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "builderKind": {
+                  "const": "agent"
+                },
+                "validationProfile": {
+                  "const": "BuilderAgentV2Stateless"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builderKind": {
+                  "const": "workflow"
+                },
+                "validationProfile": {
+                  "const": "BuilderOutcomeSkillV2"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "analysisId",
+            "draftId",
+            "revisionId",
+            "revisionHash",
+            "builderKind",
+            "validationProfile",
+            "analysisKind",
+            "sourceMemberSetHash",
+            "instructionProjectionSetHash",
+            "deterministicFactsHash",
+            "deterministicFindings",
+            "modelLensesPerformed",
+            "modelBinding",
+            "modelLensResults",
+            "evaluationClaim",
+            "createdAt",
+            "analysisHash"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "analysis"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-analysis.v1"
+            },
+            "analysisId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "builderKind": {
+              "const": "agent"
+            },
+            "validationProfile": {
+              "const": "BuilderAgentV2Stateless"
+            },
+            "analysisKind": {
+              "const": "model_lens"
+            },
+            "sourceMemberSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFactsHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFindings": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "findingId",
+                  "ruleId",
+                  "severity",
+                  "message"
+                ],
+                "properties": {
+                  "findingId": {
+                    "$ref": "./common.schema.json#/$defs/ContractId"
+                  },
+                  "ruleId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                  },
+                  "severity": {
+                    "enum": [
+                      "critical",
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  },
+                  "relativePath": {
+                    "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+                  }
+                }
+              }
+            },
+            "modelLensesPerformed": {
+              "const": true
+            },
+            "modelBinding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "modelHash",
+                "deploymentHash",
+                "modelProfileHash",
+                "schemaHash",
+                "consentHash",
+                "contextDecisionId",
+                "contextDecisionConsumptionHash",
+                "invocationId",
+                "resultHash"
+              ],
+              "properties": {
+                "modelHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "deploymentHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "modelProfileHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "schemaHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "consentHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "contextDecisionId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "contextDecisionConsumptionHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "invocationId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "resultHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                }
+              }
+            },
+            "modelLensResults": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "leanness"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "architecture"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "determinism"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "customization"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "enhancement"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "agent"
+                        },
+                        "lens": {
+                          "const": "agent-cohesion"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "evaluationClaim": {
+              "const": "none"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "analysisHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objectKind",
+            "schemaVersion",
+            "analysisId",
+            "draftId",
+            "revisionId",
+            "revisionHash",
+            "builderKind",
+            "validationProfile",
+            "analysisKind",
+            "sourceMemberSetHash",
+            "instructionProjectionSetHash",
+            "deterministicFactsHash",
+            "deterministicFindings",
+            "modelLensesPerformed",
+            "modelBinding",
+            "modelLensResults",
+            "evaluationClaim",
+            "createdAt",
+            "analysisHash"
+          ],
+          "properties": {
+            "objectKind": {
+              "const": "analysis"
+            },
+            "schemaVersion": {
+              "const": "sapphirus.bmad-builder-analysis.v1"
+            },
+            "analysisId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "draftId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionId": {
+              "$ref": "./common.schema.json#/$defs/ContractId"
+            },
+            "revisionHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "builderKind": {
+              "const": "workflow"
+            },
+            "validationProfile": {
+              "const": "BuilderOutcomeSkillV2"
+            },
+            "analysisKind": {
+              "const": "model_lens"
+            },
+            "sourceMemberSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "instructionProjectionSetHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFactsHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            },
+            "deterministicFindings": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "findingId",
+                  "ruleId",
+                  "severity",
+                  "message"
+                ],
+                "properties": {
+                  "findingId": {
+                    "$ref": "./common.schema.json#/$defs/ContractId"
+                  },
+                  "ruleId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                  },
+                  "severity": {
+                    "enum": [
+                      "critical",
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  },
+                  "relativePath": {
+                    "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+                  }
+                }
+              }
+            },
+            "modelLensesPerformed": {
+              "const": true
+            },
+            "modelBinding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "modelHash",
+                "deploymentHash",
+                "modelProfileHash",
+                "schemaHash",
+                "consentHash",
+                "contextDecisionId",
+                "contextDecisionConsumptionHash",
+                "invocationId",
+                "resultHash"
+              ],
+              "properties": {
+                "modelHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "deploymentHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "modelProfileHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "schemaHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "consentHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "contextDecisionId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "contextDecisionConsumptionHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                },
+                "invocationId": {
+                  "$ref": "./common.schema.json#/$defs/ContractId"
+                },
+                "resultHash": {
+                  "$ref": "./common.schema.json#/$defs/Sha256"
+                }
+              }
+            },
+            "modelLensResults": {
+              "type": "array",
+              "minItems": 5,
+              "maxItems": 5,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "workflow"
+                        },
+                        "lens": {
+                          "const": "leanness"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "workflow"
+                        },
+                        "lens": {
+                          "const": "architecture"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "workflow"
+                        },
+                        "lens": {
+                          "const": "determinism"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "workflow"
+                        },
+                        "lens": {
+                          "const": "customization"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/BuilderModelLensResult"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "builderKind": {
+                          "const": "workflow"
+                        },
+                        "lens": {
+                          "const": "enhancement"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "evaluationClaim": {
+              "const": "none"
+            },
+            "createdAt": {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            "analysisHash": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        }
+      ]
+    },
+    "BuilderAnalysisKind": {
+      "enum": [
+        "deterministic_static",
+        "model_lens"
+      ]
+    },
+    "BuilderModelLensResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "builderKind",
+        "lens",
+        "revisionId",
+        "revisionHash",
+        "sourceMemberSetHash",
+        "instructionProjectionSetHash",
+        "deterministicFactsHash",
+        "modelHash",
+        "deploymentHash",
+        "modelProfileHash",
+        "schemaHash",
+        "consentHash",
+        "contextDecisionConsumptionHash",
+        "verdict",
+        "evaluationClaim",
+        "findings"
+      ],
+      "properties": {
+        "builderKind": {
+          "enum": [
+            "agent",
+            "workflow"
+          ]
+        },
+        "lens": {
+          "enum": [
+            "leanness",
+            "architecture",
+            "determinism",
+            "customization",
+            "enhancement",
+            "agent-cohesion"
+          ]
+        },
+        "revisionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "revisionHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "sourceMemberSetHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "instructionProjectionSetHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "deterministicFactsHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "deploymentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "modelProfileHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "schemaHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "consentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "contextDecisionConsumptionHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "verdict": {
+          "enum": [
+            "clear",
+            "findings_present"
+          ]
+        },
+        "evaluationClaim": {
+          "const": "none"
+        },
+        "findings": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "findingId",
+              "severity",
+              "title",
+              "location",
+              "evidence",
+              "recommendation"
+            ],
+            "properties": {
+              "findingId": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "location": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "recommendation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "proposedSmallest": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "predictedDelta": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

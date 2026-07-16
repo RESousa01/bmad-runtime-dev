@@ -1,4 +1,5 @@
 .agents/
+.worktrees/
 .idea/
 .vscode/
 node_modules/
@@ -26,3 +27,7 @@ services/desktop-support-api.Tests/bin/
 services/desktop-support-api.Tests/obj/
 helpers/windows-auth-broker/bin/
 helpers/windows-auth-broker/obj/
+tests/generator-qualification/dotnet/bin/
+tests/generator-qualification/dotnet/obj/
+tests/conformance/dotnet/bin/
+tests/conformance/dotnet/obj/

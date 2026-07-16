@@ -119,7 +119,11 @@ export function WorkspacePanel({
               <div className="workspace-panel__details">
                 <strong>{workspace.displayName}</strong>
                 <span>
-                  {mode === "browser_demo" ? "Preview workspace · no local access" : "Local workspace · Read only"}
+                  {mode === "browser_demo"
+                    ? "Preview workspace · no local access"
+                    : workspace.permissions === "governed_edits"
+                      ? "Local workspace · Governed edits"
+                      : "Local workspace · Read only"}
                 </span>
               </div>
               <div className="workspace-panel__actions">

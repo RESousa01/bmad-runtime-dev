@@ -1,8 +1,79 @@
+import type {
+  BmadAgentMenuProjection,
+  BmadAvailability,
+  BmadBlockerCode,
+  BmadEntrypointKind,
+  BmadHelpActionProjection,
+  BmadHelpConfidence,
+  BmadHelpRecommendationProjection,
+  BmadHelpRunCreatedProjection,
+  BmadInstalledSkillProjection,
+  BmadLibrarySnapshot,
+  BmadMenuTargetKind,
+  BmadMethodAgentProjection,
+  BmadProjectionSource,
+} from "./bmadProjection";
+
 const BOOTSTRAP_SCHEMA = "desktop-bootstrap.v1" as const;
 const COMMAND_SCHEMA = "desktop-ipc-command.v1" as const;
 const DISPATCH_REPLY_SCHEMA = "desktop-dispatch-reply.v1" as const;
 const PROJECTION_REQUEST_SCHEMA = "desktop-projection-request.v1" as const;
 const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
+const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
+const BMAD_HELP_RECOMMENDATION_SCHEMA = "bmad-help-recommendation.v1" as const;
+const BMAD_HELP_RUN_SCHEMA = "bmad-help-run.v1" as const;
+const CHANGES_REVIEW_SCHEMA = "sapphirus.changes-review.v1" as const;
+
+const bmadProjectionLimits = {
+  responseBytes: 256 * 1024,
+  installedSkills: 64,
+  helpActions: 64,
+  methodAgents: 16,
+  menusPerAgent: 32,
+  actionsPerSkill: 16,
+  expectedArtifacts: 16,
+  identifierBytes: 256,
+  descriptionBytes: 2_048,
+  iconBytes: 64,
+  cursorBytes: 256,
+  helpIntentBytes: 4_096,
+  helpReasonBytes: 4_096,
+  helpRunResponseBytes: (64 * 1_024) + 1_024,
+} as const;
+
+const bmadAvailabilities = new Set<BmadAvailability>([
+  "available",
+  "capability_disabled",
+  "dependency_unavailable",
+  "orphan_skill",
+  "network_unavailable",
+  "source_prompt_unavailable",
+]);
+const bmadBlockerCodes = new Set<BmadBlockerCode>([
+  "bmad_capability_disabled",
+  "bmad_dependency_unavailable",
+  "bmad_help_catalog_orphan",
+  "bmad_network_reference_unavailable",
+  "bmad_source_prompt_unavailable",
+]);
+const bmadEntrypointKinds = new Set<BmadEntrypointKind>([
+  "direct",
+  "inline",
+  "step_jit",
+  "script_rendered",
+  "compatibility_shim",
+]);
+const bmadMenuTargetKinds = new Set<BmadMenuTargetKind>([
+  "skill_target",
+  "prompt_reference",
+]);
+const bmadHelpConfidences = new Set<BmadHelpConfidence>([
+  "authoritative",
+  "user_asserted",
+  "heuristic",
+  "contextual",
+  "unknown",
+]);
 
 export const desktopHostCommands = [
   "app.get_boot_state",
@@ -13,12 +84,20 @@ export const desktopHostCommands = [
   "workspace.read_text",
   "workspace.search",
   "bmad.scan",
+  "bmad.library.snapshot",
+  "bmad.help.latest",
+  "run.create",
   "context.preview",
+  "workspace.enable_edits",
+  "changes.propose",
+  "approval.decide",
+  "rollback.request",
+  "changes.history",
 ] as const;
 
 export type DesktopHostCommand = (typeof desktopHostCommands)[number];
 export type BootMode = "ready" | "read_only_recovery";
-export type WorkspacePermission = "read_only";
+export type WorkspacePermission = "read_only" | "governed_edits";
 
 export const workspaceReadLimits = {
   contextBytes: 256 * 1024,
@@ -27,6 +106,15 @@ export const workspaceReadLimits = {
   readBytes: 1024 * 1024,
   searchQueryBytes: 256,
   searchResults: 200,
+} as const;
+
+export const localEditsLimits = {
+  changeContentBytes: 64 * 1024,
+  changesPerProposal: 20,
+  historyEntries: 50,
+  openJournals: 64,
+  reviewFiles: 20,
+  undoConflicts: 20,
 } as const;
 
 export interface WorkspaceProjection {
@@ -62,7 +150,15 @@ export interface ProjectionSnapshot {
 
 type ProjectionEventPayload =
   | { type: "boot_state_changed"; projection: { mode: BootMode } }
-  | { type: "workspace_changed"; projection: { workspaceId: string } };
+  | { type: "workspace_changed"; projection: { workspaceId: string } }
+  | { type: "bmad.projection_changed"; projection: { scope: "library" } }
+  | { type: "session_changed"; projection: { sessionId: string; state: string } }
+  | { type: "approval_required"; projection: { approvalId: string; candidateHash: string } }
+  | { type: "execution_state_changed"; projection: { executionId: string; state: string } }
+  | { type: "checkpoint_changed"; projection: { checkpointId: string; rollbackAvailable: boolean } }
+  | { type: "evidence_changed"; projection: { streamId: string } }
+  | { type: "connectivity_changed"; projection: { state: string } }
+  | { type: "update_state_changed"; projection: { state: string } };
 
 export interface ProjectionEvent {
   sequence: number;
@@ -81,6 +177,9 @@ export interface LocalHostError {
     | "integrity_failure"
     | "recovery_required"
     | "temporarily_unavailable"
+    | "bmad_projection_unavailable"
+    | "bmad_projection_gap"
+    | "renderer_session_expired"
     | "internal";
   safeMessage: string;
   retryable: boolean;
@@ -175,6 +274,113 @@ export interface ContextPreviewProjection {
   modelTarget: null;
 }
 
+export type ProposedChange =
+  | { change: "set_content"; relativePath: string; content: string }
+  | { change: "delete"; relativePath: string };
+
+export type ChangesReviewOperation = "create" | "modify" | "delete";
+export type ChangesProposalKind = "edit" | "undo";
+export type ApprovalChoice = "apply" | "revise" | "discard";
+export type ChangesDisposition = "applied" | "discarded" | "revise_requested";
+
+export interface ChangesReviewFileProjection {
+  relativePath: string;
+  operation: ChangesReviewOperation;
+  beforeContent: string | null;
+  afterContent: string | null;
+  beforeHash: string | null;
+  afterHash: string | null;
+  beforeBytes: number;
+  afterBytes: number;
+}
+
+export interface ChangesReviewProjection {
+  schemaVersion: typeof CHANGES_REVIEW_SCHEMA;
+  proposalId: string;
+  candidateId: string;
+  candidateHash: string;
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  proposalKind: ChangesProposalKind;
+  sourceExecutionId: string | null;
+  files: ChangesReviewFileProjection[];
+  totalChangedBytes: number;
+  createdAt: number;
+  expiresAt: number;
+}
+
+export interface ChangesReviewEnvelopeProjection {
+  approvalId: string;
+  displayedDiffHash: string;
+  review: ChangesReviewProjection;
+}
+
+export interface ChangesExecutionFileProjection {
+  relativePath: string;
+  operation: string;
+  exists: boolean;
+  contentHash: string | null;
+}
+
+export interface ChangesExecutionProjection {
+  executionId: string;
+  checkpointId: string;
+  completedAt: number;
+  undoable: boolean;
+  files: ChangesExecutionFileProjection[];
+}
+
+export interface ChangesDecisionProjection {
+  approvalId: string;
+  disposition: ChangesDisposition;
+  execution: ChangesExecutionProjection | null;
+}
+
+export interface ChangesUndoConflictProjection {
+  relativePath: string;
+  expectedExists: boolean;
+  currentExists: boolean;
+}
+
+export interface ChangesUndoUnavailableProjection {
+  executionId: string;
+  reason: string;
+  conflicts: ChangesUndoConflictProjection[];
+}
+
+export type RollbackRequestResult =
+  | { readonly kind: "review"; readonly value: ChangesReviewEnvelopeProjection }
+  | { readonly kind: "unavailable"; readonly value: ChangesUndoUnavailableProjection };
+
+export interface ChangesHistoryEntryProjection {
+  executionId: string;
+  journalState: string;
+  fileCount: number;
+  completedAt: string;
+  undoable: boolean;
+}
+
+export interface ChangesOpenJournalProjection {
+  journalId: string;
+  executionId: string;
+  state: string;
+  updatedAt: string;
+}
+
+export interface ChangesHistoryProjection {
+  workspaceId: string;
+  entries: ChangesHistoryEntryProjection[];
+  openJournals: ChangesOpenJournalProjection[];
+}
+
+export type LatestBmadHelpRunResult =
+  | { readonly kind: "no_run" }
+  | { readonly kind: "projection_unavailable" }
+  | {
+    readonly kind: "retained";
+    readonly run: BmadHelpRunCreatedProjection;
+  };
+
 export interface HostBinding {
   rendererSessionId: string;
   installationId: string;
@@ -189,7 +395,15 @@ type RendererDispatchCommand =
   | "workspace.read_text"
   | "workspace.search"
   | "bmad.scan"
-  | "context.preview";
+  | "bmad.library.snapshot"
+  | "bmad.help.latest"
+  | "context.preview"
+  | "run.create"
+  | "workspace.enable_edits"
+  | "changes.propose"
+  | "approval.decide"
+  | "rollback.request"
+  | "changes.history";
 
 export interface CommandEnvelope<
   TCommand extends RendererDispatchCommand,
@@ -311,6 +525,131 @@ function hasUnpairedSurrogate(value: string): boolean {
   return false;
 }
 
+function asBmadCursor(value: unknown): string | null {
+  if (value === null) {
+    return null;
+  }
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || utf8Length(value) > bmadProjectionLimits.cursorBytes
+    || !/^[\x21-\x7e]+$/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asBmadIdentifier(value: unknown): string {
+  if (
+    typeof value !== "string"
+    || value.length === 0
+    || utf8Length(value) > bmadProjectionLimits.identifierBytes
+    || !/^[A-Za-z0-9._-]+$/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asNullableBmadIdentifier(value: unknown): string | null {
+  return value === null ? null : asBmadIdentifier(value);
+}
+
+function asBmadSafeText(value: unknown, maximumBytes: number): string {
+  if (
+    typeof value !== "string"
+    || utf8Length(value) > maximumBytes
+    || hasUnpairedSurrogate(value)
+    || /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asBmadNonemptySafeText(value: unknown, maximumBytes: number): string {
+  const text = asBmadSafeText(value, maximumBytes);
+  if (text.trim().length === 0) {
+    return fail();
+  }
+  return text;
+}
+
+function asBmadHelpIntent(value: unknown): string {
+  if (
+    typeof value !== "string"
+    || value.trim().length === 0
+    || utf8Length(value) > bmadProjectionLimits.helpIntentBytes
+    || hasUnpairedSurrogate(value)
+    || /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asBmadAvailability(value: unknown): BmadAvailability {
+  const availability = asBmadIdentifier(value) as BmadAvailability;
+  if (!bmadAvailabilities.has(availability)) {
+    return fail();
+  }
+  return availability;
+}
+
+function asBmadEntrypointKind(value: unknown): BmadEntrypointKind {
+  const entrypointKind = asBmadIdentifier(value) as BmadEntrypointKind;
+  if (!bmadEntrypointKinds.has(entrypointKind)) {
+    return fail();
+  }
+  return entrypointKind;
+}
+
+function asBmadMenuTargetKind(value: unknown): BmadMenuTargetKind {
+  const targetKind = asBmadIdentifier(value) as BmadMenuTargetKind;
+  if (!bmadMenuTargetKinds.has(targetKind)) {
+    return fail();
+  }
+  return targetKind;
+}
+
+function asBmadHelpConfidence(value: unknown): BmadHelpConfidence {
+  const confidence = asBmadIdentifier(value) as BmadHelpConfidence;
+  if (!bmadHelpConfidences.has(confidence)) {
+    return fail();
+  }
+  return confidence;
+}
+
+function asBmadBlockerCode(value: unknown): BmadBlockerCode {
+  const blockerCode = asBmadIdentifier(value) as BmadBlockerCode;
+  if (!bmadBlockerCodes.has(blockerCode)) {
+    return fail();
+  }
+  return blockerCode;
+}
+
+function parseBmadBlockerCodes(value: unknown): BmadBlockerCode[] {
+  if (!Array.isArray(value) || value.length > bmadBlockerCodes.size) {
+    return fail();
+  }
+  const blockerCodes = value.map(asBmadBlockerCode);
+  if (new Set(blockerCodes).size !== blockerCodes.length) {
+    return fail();
+  }
+  return blockerCodes;
+}
+
+function asNullableBmadBlockerCode(value: unknown): BmadBlockerCode | null {
+  return value === null ? null : asBmadBlockerCode(value);
+}
+
+function assertUniqueIdentities(identities: readonly string[]): void {
+  if (new Set(identities).size !== identities.length) {
+    fail();
+  }
+}
+
 function asNullableOpaqueCursor(value: unknown): string | null {
   if (value === null) {
     return null;
@@ -425,7 +764,7 @@ function asBootMode(value: unknown): BootMode {
 }
 
 function asWorkspacePermission(value: unknown): WorkspacePermission {
-  if (value !== "read_only") {
+  if (value !== "read_only" && value !== "governed_edits") {
     return fail();
   }
   return value;
@@ -556,6 +895,9 @@ function parseLocalHostError(value: unknown): LocalHostError {
     "integrity_failure",
     "recovery_required",
     "temporarily_unavailable",
+    "bmad_projection_unavailable",
+    "bmad_projection_gap",
+    "renderer_session_expired",
     "internal",
   ]);
   const code = asBoundedString(error.code, 64) as LocalHostError["code"];
@@ -573,18 +915,26 @@ function parseLocalHostError(value: unknown): LocalHostError {
 function parseDispatchReply(
   value: unknown,
   requestId: string,
-): { data: Record<string, unknown>; sequence: number } {
+): {
+  data: Record<string, unknown>;
+  sequence: number;
+  receipt: { acceptedAt: number; operationId: string | null };
+} {
   const reply = asRecord(value);
   if (reply.schemaVersion !== DISPATCH_REPLY_SCHEMA) {
     return fail();
   }
   if (reply.status === "error") {
     assertExactKeys(reply, ["schemaVersion", "requestId", "sequence", "status", "error"]);
-    if (reply.requestId !== requestId) {
+    const error = parseLocalHostError(reply.error);
+    const isUnboundExpiredRenderer = reply.requestId === null
+      && error.code === "renderer_session_expired"
+      && error.correlationId === null;
+    if (reply.requestId !== requestId && !isUnboundExpiredRenderer) {
       return fail();
     }
     asUnsignedInteger(reply.sequence);
-    throw new HostCommandError(parseLocalHostError(reply.error));
+    throw new HostCommandError(error);
   }
   if (reply.status !== "ok") {
     return fail();
@@ -599,12 +949,13 @@ function parseDispatchReply(
   if (receipt.requestId !== requestId) {
     return fail();
   }
-  asUnsignedInteger(receipt.acceptedAt);
-  asNullableContractId(receipt.operationId);
+  const acceptedAt = asUnsignedInteger(receipt.acceptedAt);
+  const operationId = asNullableContractId(receipt.operationId);
 
   return {
     data: asRecord(reply.data),
     sequence: asUnsignedInteger(reply.sequence),
+    receipt: { acceptedAt, operationId },
   };
 }
 
@@ -886,6 +1237,387 @@ function parseBmadScanReply(
   };
 }
 
+function parseBmadProjectionSource(value: unknown): BmadProjectionSource {
+  const source = asRecord(value);
+  assertExactKeys(source, ["sourceKind", "packageName", "packageVersion"]);
+  if (source.sourceKind !== "sealed_foundation") {
+    return fail();
+  }
+  return {
+    sourceKind: source.sourceKind,
+    packageName: asBmadNonemptySafeText(source.packageName, bmadProjectionLimits.identifierBytes),
+    packageVersion: asBmadNonemptySafeText(
+      source.packageVersion,
+      bmadProjectionLimits.identifierBytes,
+    ),
+  };
+}
+
+function assertBmadAvailabilityBlockers(
+  availability: BmadAvailability,
+  blockerCodes: readonly BmadBlockerCode[],
+): void {
+  const expected = availability === "available"
+    ? []
+    : [({
+      capability_disabled: "bmad_capability_disabled",
+      dependency_unavailable: "bmad_dependency_unavailable",
+      orphan_skill: "bmad_help_catalog_orphan",
+      network_unavailable: "bmad_network_reference_unavailable",
+      source_prompt_unavailable: "bmad_source_prompt_unavailable",
+    } as const)[availability]];
+  if (
+    blockerCodes.length !== expected.length
+    || blockerCodes.some((code, index) => code !== expected[index])
+  ) {
+    fail();
+  }
+}
+
+function parseBmadHelpRecommendation(value: unknown): BmadHelpRecommendationProjection {
+  const recommendation = asRecord(value);
+  assertExactKeys(recommendation, [
+    "schemaVersion",
+    "displayName",
+    "moduleCode",
+    "skillName",
+    "action",
+    "confidence",
+    "source",
+    "reason",
+    "requiredGuidance",
+    "expectedArtifacts",
+    "availability",
+    "blockerCodes",
+    "completionClaimed",
+  ]);
+  if (
+    recommendation.schemaVersion !== BMAD_HELP_RECOMMENDATION_SCHEMA
+    || recommendation.completionClaimed !== false
+    || !Array.isArray(recommendation.expectedArtifacts)
+    || recommendation.expectedArtifacts.length > bmadProjectionLimits.expectedArtifacts
+  ) {
+    return fail();
+  }
+  const availability = asBmadAvailability(recommendation.availability);
+  const blockerCodes = parseBmadBlockerCodes(recommendation.blockerCodes);
+  assertBmadAvailabilityBlockers(availability, blockerCodes);
+  return {
+    schemaVersion: BMAD_HELP_RECOMMENDATION_SCHEMA,
+    displayName: asBmadNonemptySafeText(
+      recommendation.displayName,
+      bmadProjectionLimits.identifierBytes,
+    ),
+    moduleCode: asBmadIdentifier(recommendation.moduleCode),
+    skillName: asBmadIdentifier(recommendation.skillName),
+    action: asNullableBmadIdentifier(recommendation.action),
+    confidence: asBmadHelpConfidence(recommendation.confidence),
+    source: parseBmadProjectionSource(recommendation.source),
+    reason: asBmadNonemptySafeText(
+      recommendation.reason,
+      bmadProjectionLimits.helpReasonBytes,
+    ),
+    requiredGuidance: asBoolean(recommendation.requiredGuidance),
+    expectedArtifacts: recommendation.expectedArtifacts.map((artifact) =>
+      asBmadNonemptySafeText(artifact, bmadProjectionLimits.identifierBytes)
+    ),
+    availability,
+    blockerCodes,
+    completionClaimed: false,
+  };
+}
+
+function parseBmadHelpRunCreated(
+  value: unknown,
+  expectedWorkspaceId: string,
+): BmadHelpRunCreatedProjection {
+  const run = asRecord(value);
+  assertExactKeys(run, [
+    "schemaVersion",
+    "runKind",
+    "lifecycle",
+    "workspaceId",
+    "runId",
+    "sessionId",
+    "runnable",
+    "completionClaimed",
+    "recommendation",
+  ]);
+  if (
+    run.schemaVersion !== BMAD_HELP_RUN_SCHEMA
+    || run.runKind !== "bmad_help"
+    || run.lifecycle !== "created_unbound"
+    || run.runnable !== false
+    || run.completionClaimed !== false
+  ) {
+    return fail();
+  }
+  const workspaceId = asContractId(run.workspaceId);
+  if (workspaceId !== expectedWorkspaceId) {
+    return fail();
+  }
+  const projection: BmadHelpRunCreatedProjection = {
+    schemaVersion: BMAD_HELP_RUN_SCHEMA,
+    runKind: "bmad_help",
+    lifecycle: "created_unbound",
+    workspaceId,
+    runId: asContractId(run.runId),
+    sessionId: asContractId(run.sessionId),
+    runnable: false,
+    completionClaimed: false,
+    recommendation: parseBmadHelpRecommendation(run.recommendation),
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.helpRunResponseBytes) {
+    return fail();
+  }
+  return projection;
+}
+
+function parseBmadInstalledSkill(value: unknown): BmadInstalledSkillProjection {
+  const skill = asRecord(value);
+  assertExactKeys(skill, [
+    "moduleCode",
+    "skillName",
+    "displayName",
+    "description",
+    "actions",
+    "entrypointKind",
+    "distributionProfile",
+    "installProfile",
+    "validationProfile",
+    "availability",
+    "blockerCodes",
+    "hiddenFromHelp",
+  ]);
+  if (!Array.isArray(skill.actions) || skill.actions.length > bmadProjectionLimits.actionsPerSkill) {
+    return fail();
+  }
+  return {
+    moduleCode: asBmadIdentifier(skill.moduleCode),
+    skillName: asBmadIdentifier(skill.skillName),
+    displayName: asBmadSafeText(skill.displayName, bmadProjectionLimits.identifierBytes),
+    description: asBmadSafeText(skill.description, bmadProjectionLimits.descriptionBytes),
+    actions: skill.actions.map(asBmadIdentifier),
+    entrypointKind: asBmadEntrypointKind(skill.entrypointKind),
+    distributionProfile: asBmadIdentifier(skill.distributionProfile),
+    installProfile: asBmadIdentifier(skill.installProfile),
+    validationProfile: asBmadIdentifier(skill.validationProfile),
+    availability: asBmadAvailability(skill.availability),
+    blockerCodes: parseBmadBlockerCodes(skill.blockerCodes),
+    hiddenFromHelp: asBoolean(skill.hiddenFromHelp),
+  };
+}
+
+function parseBmadHelpAction(value: unknown): BmadHelpActionProjection {
+  const action = asRecord(value);
+  assertExactKeys(action, [
+    "moduleCode",
+    "skillName",
+    "action",
+    "displayName",
+    "menuCode",
+    "description",
+    "requiredGuidance",
+    "expectedArtifacts",
+    "availability",
+    "blockerCodes",
+  ]);
+  if (
+    !Array.isArray(action.expectedArtifacts)
+    || action.expectedArtifacts.length > bmadProjectionLimits.expectedArtifacts
+  ) {
+    return fail();
+  }
+  return {
+    moduleCode: asBmadIdentifier(action.moduleCode),
+    skillName: asBmadIdentifier(action.skillName),
+    action: asNullableBmadIdentifier(action.action),
+    displayName: asBmadSafeText(action.displayName, bmadProjectionLimits.identifierBytes),
+    menuCode: asNullableBmadIdentifier(action.menuCode),
+    description: asBmadSafeText(action.description, bmadProjectionLimits.descriptionBytes),
+    requiredGuidance: asBoolean(action.requiredGuidance),
+    expectedArtifacts: action.expectedArtifacts.map((artifact) =>
+      asBmadSafeText(artifact, bmadProjectionLimits.identifierBytes)
+    ),
+    availability: asBmadAvailability(action.availability),
+    blockerCodes: parseBmadBlockerCodes(action.blockerCodes),
+  };
+}
+
+function parseBmadAgentMenu(value: unknown): BmadAgentMenuProjection {
+  const menu = asRecord(value);
+  assertExactKeys(menu, [
+    "code",
+    "description",
+    "targetKind",
+    "displayLabel",
+    "availability",
+    "availabilityReason",
+  ]);
+  return {
+    code: asBmadIdentifier(menu.code),
+    description: asBmadSafeText(menu.description, bmadProjectionLimits.descriptionBytes),
+    targetKind: asBmadMenuTargetKind(menu.targetKind),
+    displayLabel: asBmadSafeText(menu.displayLabel, bmadProjectionLimits.identifierBytes),
+    availability: asBmadAvailability(menu.availability),
+    availabilityReason: asNullableBmadBlockerCode(menu.availabilityReason),
+  };
+}
+
+function parseBmadMethodAgent(value: unknown): BmadMethodAgentProjection {
+  const agent = asRecord(value);
+  assertExactKeys(agent, [
+    "moduleCode",
+    "agentCode",
+    "name",
+    "title",
+    "icon",
+    "team",
+    "description",
+    "availability",
+    "blockerCodes",
+    "menus",
+  ]);
+  if (!Array.isArray(agent.menus) || agent.menus.length > bmadProjectionLimits.menusPerAgent) {
+    return fail();
+  }
+  const menus = agent.menus.map(parseBmadAgentMenu);
+  assertUniqueIdentities(menus.map(({ code }) => code));
+  return {
+    moduleCode: asBmadIdentifier(agent.moduleCode),
+    agentCode: asBmadIdentifier(agent.agentCode),
+    name: asBmadSafeText(agent.name, bmadProjectionLimits.identifierBytes),
+    title: asBmadSafeText(agent.title, bmadProjectionLimits.identifierBytes),
+    icon: asBmadSafeText(agent.icon, bmadProjectionLimits.iconBytes),
+    team: asBmadIdentifier(agent.team),
+    description: asBmadSafeText(agent.description, bmadProjectionLimits.descriptionBytes),
+    availability: asBmadAvailability(agent.availability),
+    blockerCodes: parseBmadBlockerCodes(agent.blockerCodes),
+    menus,
+  };
+}
+
+function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
+  const snapshot = asRecord(value);
+  assertExactKeys(snapshot, [
+    "schemaVersion",
+    "scope",
+    "source",
+    "installedSkills",
+    "helpActions",
+    "methodAgents",
+    "nextCursor",
+  ]);
+  if (
+    snapshot.schemaVersion !== BMAD_LIBRARY_SCHEMA
+    || snapshot.scope !== "installed_method"
+    || !Array.isArray(snapshot.installedSkills)
+    || snapshot.installedSkills.length > bmadProjectionLimits.installedSkills
+    || !Array.isArray(snapshot.helpActions)
+    || snapshot.helpActions.length > bmadProjectionLimits.helpActions
+    || !Array.isArray(snapshot.methodAgents)
+    || snapshot.methodAgents.length > bmadProjectionLimits.methodAgents
+  ) {
+    return fail();
+  }
+  const installedSkills = snapshot.installedSkills.map(parseBmadInstalledSkill);
+  const helpActions = snapshot.helpActions.map(parseBmadHelpAction);
+  const methodAgents = snapshot.methodAgents.map(parseBmadMethodAgent);
+  assertUniqueIdentities(installedSkills.map(({ moduleCode, skillName }) =>
+    `${moduleCode}\u001f${skillName}`
+  ));
+  assertUniqueIdentities(helpActions.map(({ moduleCode, skillName, action }) =>
+    `${moduleCode}\u001f${skillName}\u001f${action ?? "\u0000"}`
+  ));
+  assertUniqueIdentities(helpActions.flatMap(({ menuCode, moduleCode }) =>
+    menuCode === null ? [] : [`${moduleCode}\u001f${menuCode}`]
+  ));
+  assertUniqueIdentities(methodAgents.map(({ moduleCode, agentCode }) =>
+    `${moduleCode}\u001f${agentCode}`
+  ));
+  const projection: BmadLibrarySnapshot = {
+    schemaVersion: BMAD_LIBRARY_SCHEMA,
+    scope: "installed_method",
+    source: parseBmadProjectionSource(snapshot.source),
+    installedSkills,
+    helpActions,
+    methodAgents,
+    nextCursor: asBmadCursor(snapshot.nextCursor),
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.responseBytes) {
+    return fail();
+  }
+  return projection;
+}
+
+function parseBmadLibrarySnapshotReply(
+  value: unknown,
+  requestId: string,
+): { projection: BmadLibrarySnapshot; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_library_snapshot") {
+    return fail();
+  }
+  return {
+    projection: parseBmadLibrarySnapshot(data.value),
+    sequence: parsed.sequence,
+  };
+}
+
+function parseBmadHelpRunCreatedReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { projection: BmadHelpRunCreatedProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_help_run_created") {
+    return fail();
+  }
+  const projection = parseBmadHelpRunCreated(data.value, workspaceId);
+  if (parsed.receipt.operationId !== projection.runId) {
+    return fail();
+  }
+  return { projection, sequence: parsed.sequence };
+}
+
+function parseLatestBmadHelpRunReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { result: LatestBmadHelpRunResult; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) {
+    return fail();
+  }
+  const data = parsed.data;
+  if (data.kind === "no_bmad_help_run") {
+    assertExactKeys(data, ["kind"]);
+    return { result: { kind: "no_run" }, sequence: parsed.sequence };
+  }
+  if (data.kind === "bmad_help_projection_unavailable") {
+    assertExactKeys(data, ["kind"]);
+    return {
+      result: { kind: "projection_unavailable" },
+      sequence: parsed.sequence,
+    };
+  }
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_help_run_created") {
+    return fail();
+  }
+  return {
+    result: {
+      kind: "retained",
+      run: parseBmadHelpRunCreated(data.value, workspaceId),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
 function rustLineCount(content: string): number {
   if (content.length === 0) {
     return 1;
@@ -995,6 +1727,402 @@ function parseContextPreviewReply(
   };
 }
 
+function asChangesReviewOperation(value: unknown): ChangesReviewOperation {
+  if (value !== "create" && value !== "modify" && value !== "delete") {
+    return fail();
+  }
+  return value;
+}
+
+function asChangesProposalKind(value: unknown): ChangesProposalKind {
+  if (value !== "edit" && value !== "undo") {
+    return fail();
+  }
+  return value;
+}
+
+function asNullableSha256(value: unknown): string | null {
+  return value === null ? null : asSha256(value);
+}
+
+function parseChangesReviewFile(value: unknown): ChangesReviewFileProjection {
+  const file = asRecord(value);
+  assertExactKeys(file, [
+    "relativePath",
+    "operation",
+    "beforeContent",
+    "afterContent",
+    "beforeHash",
+    "afterHash",
+    "beforeBytes",
+    "afterBytes",
+  ]);
+  const operation = asChangesReviewOperation(file.operation);
+  const beforeContent = file.beforeContent === null
+    ? null
+    : asTextContent(file.beforeContent, localEditsLimits.changeContentBytes);
+  const afterContent = file.afterContent === null
+    ? null
+    : asTextContent(file.afterContent, localEditsLimits.changeContentBytes);
+  const beforeHash = asNullableSha256(file.beforeHash);
+  const afterHash = asNullableSha256(file.afterHash);
+  const beforeBytes = asUnsignedInteger(file.beforeBytes);
+  const afterBytes = asUnsignedInteger(file.afterBytes);
+  if (
+    (operation === "create") !== (beforeContent === null)
+    || (operation === "delete") !== (afterContent === null)
+    || (beforeContent === null) !== (beforeHash === null)
+    || (afterContent === null) !== (afterHash === null)
+    || (beforeContent === null ? beforeBytes !== 0 : beforeBytes !== utf8Length(beforeContent))
+    || (afterContent === null ? afterBytes !== 0 : afterBytes !== utf8Length(afterContent))
+  ) {
+    return fail();
+  }
+  return {
+    relativePath: asRelativePath(file.relativePath),
+    operation,
+    beforeContent,
+    afterContent,
+    beforeHash,
+    afterHash,
+    beforeBytes,
+    afterBytes,
+  };
+}
+
+interface ExpectedChangesReview {
+  workspaceId: string;
+  workspaceGrantEpoch: number | null;
+  proposalKind: ChangesProposalKind;
+  sourceExecutionId: string | null;
+}
+
+function parseChangesReview(
+  value: unknown,
+  expected: ExpectedChangesReview,
+): ChangesReviewProjection {
+  const review = asRecord(value);
+  assertExactKeys(review, [
+    "schemaVersion",
+    "proposalId",
+    "candidateId",
+    "candidateHash",
+    "workspaceId",
+    "workspaceGrantEpoch",
+    "proposalKind",
+    "sourceExecutionId",
+    "files",
+    "totalChangedBytes",
+    "createdAt",
+    "expiresAt",
+  ]);
+  if (
+    review.schemaVersion !== CHANGES_REVIEW_SCHEMA
+    || review.workspaceId !== expected.workspaceId
+    || review.sourceExecutionId !== expected.sourceExecutionId
+    || !Array.isArray(review.files)
+    || review.files.length === 0
+    || review.files.length > localEditsLimits.reviewFiles
+  ) {
+    return fail();
+  }
+  const proposalKind = asChangesProposalKind(review.proposalKind);
+  if (proposalKind !== expected.proposalKind) {
+    return fail();
+  }
+  const workspaceGrantEpoch = asUnsignedInteger(review.workspaceGrantEpoch);
+  if (
+    workspaceGrantEpoch < 1
+    || (expected.workspaceGrantEpoch !== null && workspaceGrantEpoch !== expected.workspaceGrantEpoch)
+  ) {
+    return fail();
+  }
+  const files = review.files.map(parseChangesReviewFile);
+  assertUniqueRelativePaths(files.map(({ relativePath }) => relativePath));
+  const createdAt = asUnsignedInteger(review.createdAt);
+  const expiresAt = asUnsignedInteger(review.expiresAt);
+  if (expiresAt <= createdAt) {
+    return fail();
+  }
+  return {
+    schemaVersion: CHANGES_REVIEW_SCHEMA,
+    proposalId: asContractId(review.proposalId),
+    candidateId: asContractId(review.candidateId),
+    candidateHash: asSha256(review.candidateHash),
+    workspaceId: asContractId(review.workspaceId),
+    workspaceGrantEpoch,
+    proposalKind,
+    sourceExecutionId: expected.sourceExecutionId === null
+      ? null
+      : asContractId(review.sourceExecutionId),
+    files,
+    totalChangedBytes: asUnsignedInteger(review.totalChangedBytes),
+    createdAt,
+    expiresAt,
+  };
+}
+
+function parseChangesReviewEnvelope(
+  value: unknown,
+  expected: ExpectedChangesReview,
+): ChangesReviewEnvelopeProjection {
+  const envelope = asRecord(value);
+  assertExactKeys(envelope, ["approvalId", "displayedDiffHash", "review"]);
+  return {
+    approvalId: asContractId(envelope.approvalId),
+    displayedDiffHash: asSha256(envelope.displayedDiffHash),
+    review: parseChangesReview(envelope.review, expected),
+  };
+}
+
+function parseChangesReviewReply(
+  value: unknown,
+  requestId: string,
+  expected: ExpectedChangesReview,
+): { projection: ChangesReviewEnvelopeProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_review") {
+    return fail();
+  }
+  return {
+    projection: parseChangesReviewEnvelope(data.value, expected),
+    sequence: parsed.sequence,
+  };
+}
+
+function parseWorkspaceEditsEnabledReply(
+  value: unknown,
+  requestId: string,
+  expected: WorkspaceProjection,
+): { projection: WorkspaceProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "workspace_edits_enabled" || expected.grantEpoch >= Number.MAX_SAFE_INTEGER) {
+    return fail();
+  }
+  const enabled = parseWorkspace(data.value);
+  if (
+    enabled.workspaceId !== expected.workspaceId
+    || enabled.projectId !== expected.projectId
+    || enabled.displayName !== expected.displayName
+    || enabled.grantEpoch !== expected.grantEpoch + 1
+    || enabled.permissions !== "governed_edits"
+  ) {
+    return fail();
+  }
+  return { projection: enabled, sequence: parsed.sequence };
+}
+
+function parseChangesExecution(value: unknown): ChangesExecutionProjection {
+  const execution = asRecord(value);
+  assertExactKeys(execution, [
+    "executionId",
+    "checkpointId",
+    "completedAt",
+    "undoable",
+    "files",
+  ]);
+  if (
+    !Array.isArray(execution.files)
+    || execution.files.length === 0
+    || execution.files.length > localEditsLimits.reviewFiles
+  ) {
+    return fail();
+  }
+  const files = execution.files.map((value): ChangesExecutionFileProjection => {
+    const file = asRecord(value);
+    assertExactKeys(file, ["relativePath", "operation", "exists", "contentHash"]);
+    const exists = asBoolean(file.exists);
+    const contentHash = asNullableSha256(file.contentHash);
+    if (exists !== (contentHash !== null)) {
+      return fail();
+    }
+    return {
+      relativePath: asRelativePath(file.relativePath),
+      operation: asChangesReviewOperation(file.operation),
+      exists,
+      contentHash,
+    };
+  });
+  assertUniqueRelativePaths(files.map(({ relativePath }) => relativePath));
+  return {
+    executionId: asContractId(execution.executionId),
+    checkpointId: asContractId(execution.checkpointId),
+    completedAt: asUnsignedInteger(execution.completedAt),
+    undoable: asBoolean(execution.undoable),
+    files,
+  };
+}
+
+const changesDispositionByChoice: Record<ApprovalChoice, ChangesDisposition> = {
+  apply: "applied",
+  revise: "revise_requested",
+  discard: "discarded",
+};
+
+function parseChangesDecisionReply(
+  value: unknown,
+  requestId: string,
+  expected: { approvalId: string; choice: ApprovalChoice },
+): { projection: ChangesDecisionProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_decision") {
+    return fail();
+  }
+  const decision = asRecord(data.value);
+  assertExactKeys(decision, ["approvalId", "disposition", "execution"]);
+  const disposition = changesDispositionByChoice[expected.choice];
+  if (
+    decision.approvalId !== expected.approvalId
+    || decision.disposition !== disposition
+    || (disposition === "applied") !== (decision.execution !== null)
+  ) {
+    return fail();
+  }
+  return {
+    projection: {
+      approvalId: asContractId(decision.approvalId),
+      disposition,
+      execution: decision.execution === null ? null : parseChangesExecution(decision.execution),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
+function parseChangesUndoUnavailable(
+  value: unknown,
+  expectedExecutionId: string,
+): ChangesUndoUnavailableProjection {
+  const unavailable = asRecord(value);
+  assertExactKeys(unavailable, ["executionId", "reason", "conflicts"]);
+  if (
+    unavailable.executionId !== expectedExecutionId
+    || !Array.isArray(unavailable.conflicts)
+    || unavailable.conflicts.length > localEditsLimits.undoConflicts
+  ) {
+    return fail();
+  }
+  const conflicts = unavailable.conflicts.map((value): ChangesUndoConflictProjection => {
+    const conflict = asRecord(value);
+    assertExactKeys(conflict, ["relativePath", "expectedExists", "currentExists"]);
+    return {
+      relativePath: asRelativePath(conflict.relativePath),
+      expectedExists: asBoolean(conflict.expectedExists),
+      currentExists: asBoolean(conflict.currentExists),
+    };
+  });
+  assertUniqueRelativePaths(conflicts.map(({ relativePath }) => relativePath));
+  return {
+    executionId: asContractId(unavailable.executionId),
+    reason: asRendererSafeMessage(unavailable.reason),
+    conflicts,
+  };
+}
+
+function parseRollbackRequestReply(
+  value: unknown,
+  requestId: string,
+  executionId: string,
+): { result: RollbackRequestResult; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind === "changes_undo_unavailable") {
+    return {
+      result: {
+        kind: "unavailable",
+        value: parseChangesUndoUnavailable(data.value, executionId),
+      },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind !== "changes_review") {
+    return fail();
+  }
+  const envelope = asRecord(data.value);
+  assertExactKeys(envelope, ["approvalId", "displayedDiffHash", "review"]);
+  const review = asRecord(envelope.review);
+  const workspaceId = asContractId(review.workspaceId);
+  return {
+    result: {
+      kind: "review",
+      value: parseChangesReviewEnvelope(data.value, {
+        workspaceId,
+        workspaceGrantEpoch: null,
+        proposalKind: "undo",
+        sourceExecutionId: executionId,
+      }),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
+function parseChangesHistoryReply(
+  value: unknown,
+  requestId: string,
+  expectedWorkspaceId: string,
+): { projection: ChangesHistoryProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_history") {
+    return fail();
+  }
+  const history = asRecord(data.value);
+  assertExactKeys(history, ["workspaceId", "entries", "openJournals"]);
+  if (
+    history.workspaceId !== expectedWorkspaceId
+    || !Array.isArray(history.entries)
+    || history.entries.length > localEditsLimits.historyEntries
+    || !Array.isArray(history.openJournals)
+    || history.openJournals.length > localEditsLimits.openJournals
+  ) {
+    return fail();
+  }
+  const entries = history.entries.map((value): ChangesHistoryEntryProjection => {
+    const entry = asRecord(value);
+    assertExactKeys(entry, [
+      "executionId",
+      "journalState",
+      "fileCount",
+      "completedAt",
+      "undoable",
+    ]);
+    return {
+      executionId: asContractId(entry.executionId),
+      journalState: asBmadIdentifier(entry.journalState),
+      fileCount: asUnsignedInteger(entry.fileCount),
+      completedAt: asSingleLineText(entry.completedAt, 64),
+      undoable: asBoolean(entry.undoable),
+    };
+  });
+  assertUniqueIdentities(entries.map(({ executionId }) => executionId));
+  const openJournals = history.openJournals.map((value): ChangesOpenJournalProjection => {
+    const journal = asRecord(value);
+    assertExactKeys(journal, ["journalId", "executionId", "state", "updatedAt"]);
+    return {
+      journalId: asContractId(journal.journalId),
+      executionId: asContractId(journal.executionId),
+      state: asBmadIdentifier(journal.state),
+      updatedAt: asSingleLineText(journal.updatedAt, 64),
+    };
+  });
+  assertUniqueIdentities(openJournals.map(({ journalId }) => journalId));
+  return {
+    projection: {
+      workspaceId: asContractId(history.workspaceId),
+      entries,
+      openJournals,
+    },
+    sequence: parsed.sequence,
+  };
+}
+
 function parseProjectionSnapshot(value: unknown): ProjectionSnapshot {
   const snapshot = asRecord(value);
   assertExactKeys(snapshot, [
@@ -1024,6 +2152,66 @@ function parseProjectionEventPayload(value: unknown): ProjectionEventPayload {
     case "workspace_changed":
       assertExactKeys(projection, ["workspaceId"]);
       return { type: event.type, projection: { workspaceId: asContractId(projection.workspaceId) } };
+    case "bmad.projection_changed":
+      assertExactKeys(projection, ["scope"]);
+      if (projection.scope !== "library") {
+        return fail();
+      }
+      return { type: event.type, projection: { scope: projection.scope } };
+    case "session_changed":
+      assertExactKeys(projection, ["sessionId", "state"]);
+      return {
+        type: event.type,
+        projection: {
+          sessionId: asContractId(projection.sessionId),
+          state: asSingleLineText(projection.state, 64),
+        },
+      };
+    case "approval_required":
+      assertExactKeys(projection, ["approvalId", "candidateHash"]);
+      return {
+        type: event.type,
+        projection: {
+          approvalId: asContractId(projection.approvalId),
+          candidateHash: asSha256(projection.candidateHash),
+        },
+      };
+    case "execution_state_changed":
+      assertExactKeys(projection, ["executionId", "state"]);
+      return {
+        type: event.type,
+        projection: {
+          executionId: asContractId(projection.executionId),
+          state: asSingleLineText(projection.state, 64),
+        },
+      };
+    case "checkpoint_changed":
+      assertExactKeys(projection, ["checkpointId", "rollbackAvailable"]);
+      return {
+        type: event.type,
+        projection: {
+          checkpointId: asContractId(projection.checkpointId),
+          rollbackAvailable: asBoolean(projection.rollbackAvailable),
+        },
+      };
+    case "evidence_changed":
+      assertExactKeys(projection, ["streamId"]);
+      return {
+        type: event.type,
+        projection: { streamId: asSingleLineText(projection.streamId, 256) },
+      };
+    case "connectivity_changed":
+      assertExactKeys(projection, ["state"]);
+      return {
+        type: event.type,
+        projection: { state: asSingleLineText(projection.state, 64) },
+      };
+    case "update_state_changed":
+      assertExactKeys(projection, ["state"]);
+      return {
+        type: event.type,
+        projection: { state: asSingleLineText(projection.state, 64) },
+      };
     default:
       return fail();
   }
@@ -1127,9 +2315,175 @@ function buildWorkspaceRevocationEnvelope(
   };
 }
 
+function buildBmadHelpRunEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  currentIntent: string,
+): CommandEnvelope<"run.create", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  runKind: "bmad_help";
+  currentIntent: string;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "run.create",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+      runKind: "bmad_help",
+      currentIntent,
+    },
+  };
+}
+
+function buildLatestBmadHelpRunEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+): CommandEnvelope<"bmad.help.latest", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.help.latest",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+    },
+  };
+}
+
+function buildWorkspaceEpochEnvelope<
+  TCommand extends "workspace.enable_edits" | "changes.history",
+>(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  command: TCommand,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+): CommandEnvelope<TCommand, { workspaceId: string; workspaceGrantEpoch: number }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command,
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+    },
+  };
+}
+
+function buildProposeChangesEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  changes: readonly ProposedChange[],
+): CommandEnvelope<"changes.propose", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  changes: readonly ProposedChange[];
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "changes.propose",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+      changes,
+    },
+  };
+}
+
+function buildApprovalDecisionEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  approvalId: string,
+  candidateHash: string,
+  displayedDiffHash: string,
+  choice: ApprovalChoice,
+): CommandEnvelope<"approval.decide", {
+  approvalId: string;
+  candidateHash: string;
+  displayedDiffHash: string;
+  choice: ApprovalChoice;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "approval.decide",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      approvalId: asContractId(approvalId),
+      candidateHash: asSha256(candidateHash),
+      displayedDiffHash: asSha256(displayedDiffHash),
+      choice,
+    },
+  };
+}
+
+function buildRollbackRequestEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  executionId: string,
+): CommandEnvelope<"rollback.request", { executionId: string }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "rollback.request",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { executionId: asContractId(executionId) },
+  };
+}
+
 function buildReadOnlyEnvelope<TCommand extends Exclude<
   RendererDispatchCommand,
-  "workspace.select_folder" | "workspace.list" | "workspace.revoke"
+  | "workspace.select_folder"
+  | "workspace.list"
+  | "workspace.revoke"
+  | "bmad.help.latest"
+  | "run.create"
+  | "workspace.enable_edits"
+  | "changes.propose"
+  | "approval.decide"
+  | "rollback.request"
+  | "changes.history"
 >>(
   binding: HostBinding,
   requestId: string,
@@ -1143,7 +2497,9 @@ function buildReadOnlyEnvelope<TCommand extends Exclude<
         ? { workspaceId: string; query: string; maxResults: number }
         : TCommand extends "bmad.scan"
           ? { workspaceId: string }
-          : { workspaceId: string; relativePaths: string[] },
+          : TCommand extends "bmad.library.snapshot"
+            ? { scope: "installed_method"; cursor: string | null }
+            : { workspaceId: string; relativePaths: string[] },
 ): CommandEnvelope<TCommand, typeof payload> {
   return {
     schemaVersion: COMMAND_SCHEMA,
@@ -1498,6 +2854,281 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async bmadLibrarySnapshot(cursor?: string | null): Promise<BmadLibrarySnapshot> {
+    const bootstrap = this.requireBmadLibraryCommand();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const normalizedCursor = asBmadCursor(cursor ?? null);
+    const requestId = this.#requestId();
+    const envelope = buildReadOnlyEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.library.snapshot",
+      { scope: "installed_method", cursor: normalizedCursor },
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadLibrarySnapshotReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadLibraryCommand();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async createBmadHelpRun(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    currentIntentValue: string,
+  ): Promise<BmadHelpRunCreatedProjection> {
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "run.create",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const currentIntent = asBmadHelpIntent(currentIntentValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadHelpRunEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      currentIntent,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpRunCreatedReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, "run.create");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async latestBmadHelpRun(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): Promise<LatestBmadHelpRunResult> {
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "bmad.help.latest",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildLatestBmadHelpRunEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseLatestBmadHelpRunReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(
+      workspaceId,
+      workspaceGrantEpoch,
+      "bmad.help.latest",
+    );
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.result;
+  }
+
+  async enableWorkspaceEdits(
+    expectedWorkspaceValue: WorkspaceProjection,
+  ): Promise<WorkspaceProjection> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const expectedWorkspace = parseWorkspace(expectedWorkspaceValue);
+    const currentWorkspace = bootstrap.workspaces.find(
+      ({ workspaceId }) => workspaceId === expectedWorkspace.workspaceId,
+    );
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("workspace.enable_edits")
+      || !currentWorkspace
+      || currentWorkspace.grantEpoch !== expectedWorkspace.grantEpoch
+      || currentWorkspace.permissions !== "read_only"
+      || !sameWorkspaceIdentity(currentWorkspace, expectedWorkspace)
+    ) {
+      throw new HostCapabilityError("Governed edits cannot be enabled for that workspace.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceEpochEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "workspace.enable_edits",
+      expectedWorkspace.workspaceId,
+      expectedWorkspace.grantEpoch,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseWorkspaceEditsEnabledReply(reply, requestId, expectedWorkspace);
+    const currentBootstrap = this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    this.clearWorkspaceTraversal(expectedWorkspace.workspaceId);
+    this.replaceWorkspaces([
+      parsed.projection,
+      ...currentBootstrap.workspaces.filter(
+        ({ workspaceId }) => workspaceId !== parsed.projection.workspaceId,
+      ),
+    ]);
+    return parsed.projection;
+  }
+
+  async proposeChanges(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    changesValue: readonly ProposedChange[],
+  ): Promise<ChangesReviewEnvelopeProjection> {
+    const bootstrap = this.requireGovernedEditsCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "changes.propose",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      changesValue.length === 0
+      || changesValue.length > localEditsLimits.changesPerProposal
+    ) {
+      throw new HostCapabilityError(
+        "Propose between 1 and 20 file changes in a single review.",
+      );
+    }
+    const changes = changesValue.map((change): ProposedChange => {
+      const relativePath = asRelativePath(change.relativePath);
+      if (change.change === "set_content") {
+        return {
+          change: "set_content",
+          relativePath,
+          content: asTextContent(change.content, localEditsLimits.changeContentBytes),
+        };
+      }
+      return { change: "delete", relativePath };
+    });
+    assertUniqueRelativePaths(changes.map(({ relativePath }) => relativePath));
+    const requestId = this.#requestId();
+    const envelope = buildProposeChangesEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      changes,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesReviewReply(reply, requestId, {
+      workspaceId,
+      workspaceGrantEpoch,
+      proposalKind: "edit",
+      sourceExecutionId: null,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.projection;
+  }
+
+  async decideApproval(
+    review: ChangesReviewEnvelopeProjection,
+    choice: ApprovalChoice,
+  ): Promise<ChangesDecisionProjection> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("approval.decide")
+    ) {
+      throw new HostCapabilityError("Change decisions are unavailable in the current host mode.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildApprovalDecisionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      review.approvalId,
+      review.review.candidateHash,
+      review.displayedDiffHash,
+      choice,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesDecisionReply(reply, requestId, {
+      approvalId: review.approvalId,
+      choice,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.projection;
+  }
+
+  async requestRollback(executionIdValue: string): Promise<RollbackRequestResult> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const executionId = asContractId(executionIdValue);
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("rollback.request")
+    ) {
+      throw new HostCapabilityError("Undo changes is unavailable in the current host mode.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildRollbackRequestEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      executionId,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseRollbackRequestReply(reply, requestId, executionId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.result;
+  }
+
+  async changesHistory(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ChangesHistoryProjection> {
+    const bootstrap = this.requireGovernedEditsCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "changes.history",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceEpochEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "changes.history",
+      workspaceId,
+      workspaceGrantEpoch,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesHistoryReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async previewContext(
     workspaceId: string,
     relativePathValues: readonly string[],
@@ -1597,11 +3228,68 @@ export class DesktopHostClient {
     if (
       bootstrap.bootMode !== "ready"
       || !bootstrap.supportedCommands.includes(command)
-      || !bootstrap.workspaces.some((workspace) =>
-        workspace.workspaceId === workspaceId && workspace.permissions === "read_only"
-      )
+      || !bootstrap.workspaces.some((workspace) => workspace.workspaceId === workspaceId)
     ) {
       throw new HostCapabilityError("That read-only workspace capability is unavailable.");
+    }
+    return bootstrap;
+  }
+
+  private requireGovernedEditsCommand(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    command: Extract<RendererDispatchCommand, "changes.propose" | "changes.history">,
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes(command)
+      || !Number.isSafeInteger(workspaceGrantEpoch)
+      || workspaceGrantEpoch < 1
+      || !bootstrap.workspaces.some((workspace) =>
+        workspace.workspaceId === workspaceId
+        && workspace.grantEpoch === workspaceGrantEpoch
+        && workspace.permissions === "governed_edits"
+      )
+    ) {
+      throw new HostCapabilityError(
+        "Governed edits are not enabled for that workspace at the current grant.",
+      );
+    }
+    return bootstrap;
+  }
+
+  private requireBmadLibraryCommand(): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("bmad.library.snapshot")
+    ) {
+      throw new HostCapabilityError("The Method library is unavailable in the current host mode.");
+    }
+    return bootstrap;
+  }
+
+  private requireBmadHelpWorkspaceCommand(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    command: "bmad.help.latest" | "run.create",
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      !Number.isSafeInteger(workspaceGrantEpoch)
+      || workspaceGrantEpoch < 1
+      || bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes(command)
+      || !bootstrap.workspaces.some((workspace) =>
+        workspace.workspaceId === workspaceId
+        && workspace.grantEpoch === workspaceGrantEpoch
+        && workspace.permissions === "read_only"
+      )
+    ) {
+      throw new HostCapabilityError("Method guidance is unavailable for that workspace grant.");
     }
     return bootstrap;
   }

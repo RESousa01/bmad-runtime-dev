@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "count",
+    "count": 0
+  },
+  "nullableValue": "present",
+  "optionalValue": null,
+  "signedValue": -2147483648,
+  "unsignedValue": 4294967295,
+  "interoperableValue": -9007199254740991,
+  "externalValue": {
+    "code": "ext_C3D4"
+  },
+  "label": "count",
+  "items": [
+    ""
+  ],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

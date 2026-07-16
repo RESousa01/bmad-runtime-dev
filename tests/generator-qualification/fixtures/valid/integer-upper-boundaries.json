@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "count",
+    "count": 2147483647
+  },
+  "nullableValue": "",
+  "signedValue": 2147483647,
+  "unsignedValue": 0,
+  "interoperableValue": 9007199254740991,
+  "externalValue": {
+    "code": "ext_E5F6"
+  },
+  "label": "upper",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

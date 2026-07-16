@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-validation-report.schema.json",
+  "title": "sapphirus.bmad-validation-report.v1",
+  "description": "An evidence-backed report of early BMAD conformance facts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "reportId",
+    "subjectKind",
+    "subjectId",
+    "subjectHash",
+    "profile",
+    "findings",
+    "dependencies",
+    "evidence",
+    "disposition",
+    "generatedAt",
+    "reportHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "sapphirus.bmad-validation-report.v1"
+    },
+    "reportId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "subjectKind": {
+      "enum": [
+        "source_skill",
+        "installed_workspace",
+        "builder_draft_revision"
+      ]
+    },
+    "subjectId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "subjectHash": {
+      "$ref": "./common.schema.json#/$defs/Sha256"
+    },
+    "profile": {
+      "$ref": "#/$defs/BmadValidationProfile"
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/BmadValidationFinding"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/BmadValidationDependency"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/BmadValidationEvidenceRef"
+      }
+    },
+    "disposition": {
+      "$ref": "#/$defs/BmadValidationDisposition"
+    },
+    "generatedAt": {
+      "$ref": "./common.schema.json#/$defs/UtcInstant"
+    },
+    "reportHash": {
+      "$ref": "./common.schema.json#/$defs/Sha256"
+    }
+  },
+  "$defs": {
+    "BmadValidationProfile": {
+      "enum": [
+        "MethodOfficialSkillV6",
+        "MethodStepWorkflowV6",
+        "BuilderOutcomeSkillV2",
+        "BuilderAgentV2Stateless",
+        "MethodCliInstalledV6",
+        "StandaloneBuilderSetupV2"
+      ]
+    },
+    "BmadValidationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "findingId",
+        "ruleId",
+        "sourceKind",
+        "severity",
+        "message",
+        "evidenceIds"
+      ],
+      "properties": {
+        "findingId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "ruleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "sourceKind": {
+          "enum": [
+            "upstream_method",
+            "upstream_builder",
+            "sapphirus"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "relativePath": {
+          "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ContractId"
+          }
+        }
+      }
+    },
+    "BmadValidationDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyId",
+        "dependencyKind",
+        "requirement",
+        "availability",
+        "identityHash",
+        "evidenceIds"
+      ],
+      "properties": {
+        "dependencyId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "dependencyKind": {
+          "enum": [
+            "source_member",
+            "runtime",
+            "installed_skill",
+            "tool"
+          ]
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "unavailable",
+            "ambiguous"
+          ]
+        },
+        "identityHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ContractId"
+          }
+        }
+      }
+    },
+    "BmadValidationEvidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId",
+        "evidenceKind",
+        "contentHash",
+        "ref"
+      ],
+      "properties": {
+        "evidenceId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "evidenceKind": {
+          "enum": [
+            "source_member",
+            "schema_validation",
+            "static_analysis",
+            "dependency_check"
+          ]
+        },
+        "contentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "BmadValidationDisposition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dispositionKind"
+          ],
+          "properties": {
+            "dispositionKind": {
+              "const": "conformant"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dispositionKind",
+            "blockingFindingIds"
+          ],
+          "properties": {
+            "dispositionKind": {
+              "const": "nonconformant"
+            },
+            "blockingFindingIds": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 512,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dispositionKind",
+            "missingDependencyIds"
+          ],
+          "properties": {
+            "dispositionKind": {
+              "const": "incomplete"
+            },
+            "missingDependencyIds": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 256,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./common.schema.json#/$defs/ContractId"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

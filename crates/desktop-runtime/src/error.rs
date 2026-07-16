@@ -15,6 +15,9 @@ pub enum LocalErrorCode {
     IntegrityFailure,
     RecoveryRequired,
     TemporarilyUnavailable,
+    BmadProjectionUnavailable,
+    BmadProjectionGap,
+    RendererSessionExpired,
     Internal,
 }
 

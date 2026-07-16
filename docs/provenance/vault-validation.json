@@ -1,10 +1,10 @@
 {
   "schemaVersion": "sapphirus.reference-vault-validation.v1",
-  "validatedAtUtc": "2026-07-13T10:15:35Z",
+  "validatedAtUtc": "2026-07-16T08:53:19Z",
   "validator": "bmad-runtime-lib/_source_review/validate_library.py",
   "validatorSha256": "1cad425b4ea44a161ad1d03605ed5124a50ac2ba4f2a4fedf4fea94c7b3f7689",
   "manifest": "bmad-runtime-lib/manifest.json",
-  "manifestSha256": "c021ab51751aec1255171b774e899a5bc4740357aa2764661c3b17fba2e62492",
+  "manifestSha256": "c215dae57e76316aa672372af431a54f7390fd8f7461d7fc48c2ef981f0ddef3",
   "rootMarkdownFiles": 105,
   "manifestVerified": true,
   "errors": [],

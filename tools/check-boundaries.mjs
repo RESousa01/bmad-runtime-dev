@@ -19,6 +19,11 @@ const requiredCrates = new Set([
   "desktop-runtime",
   ...adapterCrates,
 ]);
+// The reviewed ready-command catalog: the D1 read-only set plus the D3
+// governed-edits set. Must stay byte-identical across READY_COMMANDS in
+// crates/desktop-app/src/commands.rs, is_known_command in
+// crates/desktop-ipc/src/envelope.rs, and desktopHostCommands in
+// apps/desktop-ui/src/lib/hostClient.ts.
 const d1ReadyCommands = [
   "app.get_boot_state",
   "workspace.select_folder",
@@ -28,7 +33,15 @@ const d1ReadyCommands = [
   "workspace.read_text",
   "workspace.search",
   "bmad.scan",
+  "bmad.library.snapshot",
+  "bmad.help.latest",
+  "run.create",
   "context.preview",
+  "workspace.enable_edits",
+  "changes.propose",
+  "approval.decide",
+  "rollback.request",
+  "changes.history",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
 const exactToolchain = Object.freeze({
@@ -38,6 +51,8 @@ const exactToolchain = Object.freeze({
   typescript: "7.0.2",
 });
 const referenceVaultPattern = /(?:bmad-runtime-lib|_source_review)/iu;
+const referenceVaultVerificationPattern =
+  /\b(?:pnpm(?:\.cmd)?\s+(?:run\s+)?vault:check|node(?:\.exe)?\s+(?:\.?[\\/])?tools[\\/]verify-reference-vault\.mjs)\b/iu;
 const referenceVaultAllowlist = new Set([
   ".gitignore",
   "README.md",
@@ -171,6 +186,10 @@ function hasForbiddenReferenceVaultDependency(path, source) {
     && !referenceVaultAllowlist.has(repositoryPath);
 }
 
+function invokesReferenceVaultVerification(source) {
+  return typeof source === "string" && referenceVaultVerificationPattern.test(source);
+}
+
 const referenceVaultGuardRegressionPath = join(root, "packages", "example", "package.json");
 if (
   !hasForbiddenReferenceVaultDependency(
@@ -182,6 +201,19 @@ if (
 }
 if (hasForbiddenReferenceVaultDependency(join(root, "README.md"), "bmad-runtime-lib")) {
   violations.push("tools/check-boundaries.mjs: reference-vault provenance allowlist regression");
+}
+for (const invocation of [
+  "pnpm vault:check",
+  "pnpm run vault:check",
+  "node tools/verify-reference-vault.mjs",
+  "node .\\tools\\verify-reference-vault.mjs",
+]) {
+  if (!invokesReferenceVaultVerification(invocation)) {
+    violations.push("tools/check-boundaries.mjs: reference-vault command guard regression");
+  }
+}
+if (invokesReferenceVaultVerification("pnpm bmad:foundation:verify")) {
+  violations.push("tools/check-boundaries.mjs: reference-vault command false positive");
 }
 
 function validateProductionCsp(source, displayPath) {
@@ -257,6 +289,11 @@ for (const { displayPath, manifest } of firstPartyManifests) {
     firstPartyPackageNames.add(manifest.name);
   }
 }
+for (const requiredPackageName of ["@sapphirus/bmad-foundation"]) {
+  if (!firstPartyPackageNames.has(requiredPackageName)) {
+    violations.push(`required first-party package is missing: ${requiredPackageName}`);
+  }
+}
 for (const { displayPath, manifest } of firstPartyManifests) {
   if (manifest.private !== true) {
     violations.push(`${displayPath}: internal first-party package must set private to true`);
@@ -304,14 +341,42 @@ if (rootPackage) {
   if (rootPackage.scripts?.verify !== "pnpm verify:source") {
     violations.push("package.json: default verify must remain an alias for verify:source");
   }
+  if (
+    rootPackage.scripts?.["bmad:foundation:verify"]
+    !== "pnpm --filter @sapphirus/bmad-foundation run verify"
+  ) {
+    violations.push("package.json: BMAD foundation verification gate is missing or drifted");
+  }
   const sourceVerification = rootPackage.scripts?.["verify:source"];
   if (typeof sourceVerification !== "string") {
     violations.push("package.json: verify:source is missing");
+  } else if (invokesReferenceVaultVerification(sourceVerification)) {
+    violations.push("package.json: verify:source must not depend on the optional reference vault");
   } else if (
     /\b(?:cargo|rustc|dotnet|msbuild|cl(?:\.exe)?|desktop:|rust:|verify:deferred-full|cross-language)\b/iu
       .test(sourceVerification)
   ) {
     violations.push("package.json: verify:source references a frozen native or cross-language lane");
+  } else if (
+    !sourceVerification
+      .split("&&")
+      .map((step) => step.trim())
+      .includes("pnpm bmad:foundation:verify")
+  ) {
+    violations.push("package.json: verify:source does not run the BMAD foundation gate");
+  }
+  if (invokesReferenceVaultVerification(rootPackage.scripts?.["verify:deferred-full"] ?? "")) {
+    violations.push("package.json: verify:deferred-full must not depend on the optional reference vault");
+  }
+}
+
+for (const workflowPath of [
+  ".github/workflows/contracts.yml",
+  ".github/workflows/source.yml",
+]) {
+  const workflow = await requiredText(join(root, ...workflowPath.split("/")));
+  if (workflow !== undefined && invokesReferenceVaultVerification(workflow)) {
+    violations.push(`${workflowPath}: product CI must not depend on the optional reference vault`);
   }
 }
 
@@ -497,6 +562,7 @@ const referenceScanExtensions = new Set([
   ".toml",
   ".ts",
   ".tsx",
+  ".txt",
   ".xml",
   ".yaml",
   ".yml",
@@ -554,6 +620,30 @@ async function walkFirstPartyInputs(directory) {
   return files;
 }
 
+async function walkOptionalFirstPartyInputRoot(directory) {
+  let rootEntry;
+  try {
+    rootEntry = await lstat(directory);
+  } catch (error) {
+    if (error?.code === "ENOENT") return [];
+    throw error;
+  }
+
+  if (rootEntry.isSymbolicLink()) {
+    violations.push(
+      `${normalizedRepositoryPath(directory)}: linked first-party input root is forbidden`,
+    );
+    return [];
+  }
+  if (!rootEntry.isDirectory()) {
+    violations.push(
+      `${normalizedRepositoryPath(directory)}: first-party input root must be a directory`,
+    );
+    return [];
+  }
+  return walkFirstPartyInputs(directory);
+}
+
 async function rootFirstPartyInputs() {
   const entries = await readdir(root, { withFileTypes: true });
   const files = [];
@@ -592,7 +682,7 @@ const referenceScanFiles = [
   ...(await rootFirstPartyInputs()),
   ...referenceScanAdditionalFiles.map((path) => join(root, path)),
   ...(await Promise.all(
-    referenceScanRoots.map((path) => walkFirstPartyInputs(join(root, path))),
+    referenceScanRoots.map((path) => walkOptionalFirstPartyInputRoot(join(root, path))),
   )).flat(),
 ];
 for (const path of referenceScanFiles) {

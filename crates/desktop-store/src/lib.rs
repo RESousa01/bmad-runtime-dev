@@ -3,11 +3,14 @@
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Nonce};
 use desktop_runtime::{
-    canonical_hash, canonical_hash_without_field, canonical_json_bytes, SpecConsumptionRecord,
+    canonical_hash, canonical_hash_without_field, canonical_json_bytes, legacy_canonical_hash,
+    legacy_canonical_hash_without_field, BuilderDraft, BuilderDraftRepository, BuilderDraftScope,
+    BuilderError, ContractId, DesktopLocalIdentity, MethodError, MethodSession,
+    MethodSessionRepository, MethodSessionScope, SpecConsumptionRecord,
 };
 use parking_lot::Mutex;
 use rand::RngCore;
-use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
@@ -24,73 +27,31 @@ const CAS_MAGIC: &[u8; 8] = b"SAPHCAS1";
 const CAS_FORMAT_VERSION: u16 = 1;
 const CAS_NONCE_BYTES: usize = 12;
 const STORE_KEY_BYTES: usize = 32;
-const LATEST_STORE_VERSION: u32 = 4;
-const REQUIRED_TABLES: [&str; 6] = [
-    "aggregates",
-    "evidence_events",
-    "outbox",
-    "payloads",
-    "spec_consumptions",
-    "store_meta",
-];
-const INITIAL_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
- CREATE TABLE IF NOT EXISTS store_meta (
-   key TEXT PRIMARY KEY,
-   value TEXT NOT NULL
- ) STRICT;
- CREATE TABLE IF NOT EXISTS payloads (
-   content_hash TEXT NOT NULL,
-   kind TEXT NOT NULL,
-   schema_version TEXT NOT NULL,
-   byte_count INTEGER NOT NULL CHECK(byte_count >= 0),
-   key_version INTEGER NOT NULL CHECK(key_version >= 1),
-   created_at TEXT NOT NULL,
-   PRIMARY KEY (content_hash, kind, schema_version)
- ) STRICT;
- CREATE TABLE IF NOT EXISTS aggregates (
-   aggregate_type TEXT NOT NULL,
-   aggregate_id TEXT NOT NULL,
-   version INTEGER NOT NULL CHECK(version >= 1),
-   state_json TEXT NOT NULL,
-   updated_at TEXT NOT NULL,
-   PRIMARY KEY (aggregate_type, aggregate_id)
- ) STRICT;
- CREATE TABLE IF NOT EXISTS evidence_events (
-   event_id TEXT PRIMARY KEY,
-   stream_id TEXT NOT NULL,
-   sequence INTEGER NOT NULL CHECK(sequence >= 1),
-   event_type TEXT NOT NULL,
-   payload_hash TEXT NOT NULL,
-   payload_ref TEXT,
-   previous_event_hash TEXT,
-   event_hash TEXT NOT NULL,
-   correlation_id TEXT NOT NULL,
-   causation_id TEXT,
-   redaction_level TEXT NOT NULL,
-   retention_class TEXT NOT NULL,
-   occurred_at TEXT NOT NULL,
-   UNIQUE(stream_id, sequence)
- ) STRICT;
- CREATE TABLE IF NOT EXISTS outbox (
-   outbox_id TEXT PRIMARY KEY,
-   event_id TEXT NOT NULL REFERENCES evidence_events(event_id),
-   created_at TEXT NOT NULL,
-   dispatched_at TEXT
- ) STRICT;
- CREATE UNIQUE INDEX outbox_event_once ON outbox(event_id);
- CREATE TABLE IF NOT EXISTS spec_consumptions (
-   consumption_id TEXT PRIMARY KEY,
-   spec_hash TEXT NOT NULL UNIQUE,
-   candidate_hash TEXT NOT NULL,
-   nonce_hash TEXT NOT NULL,
-   audience_hash TEXT NOT NULL,
-   execution_id TEXT NOT NULL,
-   consumption_hash TEXT NOT NULL UNIQUE,
-   record_json TEXT NOT NULL,
-   consumed_at TEXT NOT NULL
- ) STRICT;
- PRAGMA user_version = 4;
- COMMIT;";
+const LOCAL_IDENTITY_META_KEY: &str = "desktop_local_identity_ref";
+const LOCAL_IDENTITY_STATE_KEY: &str = "desktop_local_identity_state";
+const LOCAL_IDENTITY_STATE_SEALED: &str = "sealed";
+const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
+const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
+const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
+mod bmad_builder;
+mod bmad_method;
+mod execution;
+mod migrations;
+
+pub use bmad_method::{
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    BmadHelpRunReplayRequest, MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
+};
+pub use execution::{
+    EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,
+    ExecutionResultAppend, ExecutionResultRow, EXECUTION_CHECKPOINT_KIND,
+    EXECUTION_CHECKPOINT_SCHEMA, MAX_EXECUTION_CHECKPOINT_BYTES, MAX_EXECUTION_JOURNAL_BYTES,
+    MAX_EXECUTION_RESULT_BYTES,
+};
+
+#[cfg(test)]
+use migrations::LATEST_STORE_VERSION;
+use migrations::{migrate, require_outbox_event_uniqueness, schema_version, store_table_names};
 
 #[derive(Debug, Error)]
 pub enum StoreError {
@@ -108,6 +69,12 @@ pub enum StoreError {
     AlreadyConsumed,
     #[error("the aggregate version did not advance by exactly one")]
     StateConflict,
+    #[error("the durable workspace authority changed")]
+    WorkspaceAuthorityStale,
+    #[error(transparent)]
+    Method(#[from] MethodError),
+    #[error(transparent)]
+    Builder(#[from] BuilderError),
     #[error("local store I/O failed")]
     Io(#[from] std::io::Error),
     #[error("local store database operation failed")]
@@ -270,6 +237,12 @@ pub struct LocalStore {
     connection: Mutex<Connection>,
 }
 
+/// Read-only view used when normal schema migration or integrity validation fails.
+/// It deliberately exposes no mutation APIs.
+pub struct LocalStoreRecovery {
+    inner: LocalStore,
+}
+
 impl LocalStore {
     /// Opens or creates a local authority store and its encrypted CAS.
     ///
@@ -292,14 +265,60 @@ impl LocalStore {
         configure_connection(&connection)?;
         migrate(&connection)?;
         let store_id = load_or_create_store_id(&connection)?;
-        Ok(Self {
+        let store = Self {
             root,
             cas_root,
             store_id,
             key_version: 1,
             key,
             connection: Mutex::new(connection),
-        })
+        };
+        store.load_or_create_local_identity()?;
+        Ok(store)
+    }
+
+    /// Opens existing authority data without migrating or writing it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the existing database/key cannot be read. A
+    /// damaged Method row can still fail when that specific row is requested.
+    pub fn open_read_only_recovery(
+        root: impl AsRef<Path>,
+        protector: &dyn KeyProtector,
+    ) -> Result<LocalStoreRecovery, StoreError> {
+        let root = root.as_ref().to_path_buf();
+        let cas_root = root.join("cas");
+        let key_path = root.join("store.key");
+        let database_path = root.join("authority.sqlite3");
+        if !database_path.is_file() || !key_path.is_file() || !cas_root.is_dir() {
+            return Err(StoreError::Inconsistent);
+        }
+        let key = StoreKey::from_bytes(protector.unprotect(&fs::read(key_path)?)?)?;
+        let connection =
+            Connection::open_with_flags(database_path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+        connection.busy_timeout(std::time::Duration::from_secs(5))?;
+        let store_id = connection
+            .query_row(
+                "SELECT value FROM store_meta WHERE key = 'store_id'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?
+            .ok_or(StoreError::Inconsistent)?;
+        validate_label(&store_id)?;
+        let recovery = LocalStoreRecovery {
+            inner: Self {
+                root,
+                cas_root,
+                store_id,
+                key_version: 1,
+                key,
+                connection: Mutex::new(connection),
+            },
+        };
+        recovery.inner.load_local_identity()?;
+        Ok(recovery)
     }
 
     #[must_use]
@@ -307,9 +326,61 @@ impl LocalStore {
         &self.store_id
     }
 
+    /// Loads and authenticates the store-owned desktop identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the sealed marker, pointer, encrypted record,
+    /// canonical representation, self-hash, or store binding is invalid.
+    pub fn local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        self.load_local_identity()
+    }
+
     #[must_use]
     pub fn database_path(&self) -> PathBuf {
         self.root.join("authority.sqlite3")
+    }
+
+    /// Returns the compiled local-store schema version.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] if `SQLite` cannot read the schema version.
+    pub fn schema_version(&self) -> Result<u32, StoreError> {
+        schema_version(&self.connection.lock())
+    }
+
+    /// Returns the exact non-system table inventory for recovery diagnostics.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] if `SQLite` cannot read the schema catalog.
+    pub fn schema_table_names(&self) -> Result<Vec<String>, StoreError> {
+        let mut names = store_table_names(&self.connection.lock())?
+            .into_iter()
+            .collect::<Vec<_>>();
+        names.sort_unstable();
+        Ok(names)
+    }
+
+    /// Returns deterministic table/index DDL for migration equivalence checks.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] if `SQLite` cannot read its schema catalog.
+    pub fn schema_catalog(&self) -> Result<Vec<(String, String, String, String)>, StoreError> {
+        let connection = self.connection.lock();
+        let mut statement = connection.prepare(
+            "SELECT type, name, tbl_name, sql FROM sqlite_schema
+             WHERE type IN ('table', 'index') AND name NOT LIKE 'sqlite_%'
+             ORDER BY type, name",
+        )?;
+        let catalog = statement
+            .query_map([], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(catalog)
     }
 
     /// Encrypts and durably registers a content-addressed payload.
@@ -441,18 +512,6 @@ impl LocalStore {
         validate_transition_input(aggregate_type, aggregate_id, aggregate_state_json, event)?;
         let mut connection = self.connection.lock();
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
-        if event.payload_ref.is_some() {
-            let payload_exists = transaction.query_row(
-                "SELECT EXISTS(
-                   SELECT 1 FROM payloads WHERE content_hash = ?1
-                 )",
-                params![event.payload_hash.as_str()],
-                |row| row.get::<_, bool>(0),
-            )?;
-            if !payload_exists {
-                return Err(StoreError::Inconsistent);
-            }
-        }
         let current_version = transaction
             .query_row(
                 "SELECT version FROM aggregates
@@ -468,25 +527,7 @@ impl LocalStore {
         if aggregate_version != expected_version {
             return Err(StoreError::StateConflict);
         }
-        let (sequence, previous_event_hash) =
-            next_evidence_position(&transaction, &event.stream_id)?;
-        let event_id = format!("event_{}", Ulid::new());
         let occurred_at = canonical_now();
-        let event_hash = hash_event(&EvidenceHashInput {
-            event_id: &event_id,
-            stream_id: &event.stream_id,
-            sequence,
-            event_type: &event.event_type,
-            payload_hash: &event.payload_hash,
-            payload_ref: event.payload_ref.as_deref(),
-            previous_event_hash: previous_event_hash.as_deref(),
-            correlation_id: &event.correlation_id,
-            causation_id: event.causation_id.as_deref(),
-            redaction_level: &event.redaction_level,
-            retention_class: &event.retention_class,
-            occurred_at: &occurred_at,
-        })?;
-
         transaction.execute(
             "INSERT INTO aggregates (aggregate_type, aggregate_id, version, state_json, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5)
@@ -502,44 +543,9 @@ impl LocalStore {
                 occurred_at
             ],
         )?;
-        transaction.execute(
-            "INSERT INTO evidence_events
-             (event_id, stream_id, sequence, event_type, payload_hash, payload_ref,
-              previous_event_hash, event_hash, correlation_id, causation_id,
-              redaction_level, retention_class, occurred_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
-            params![
-                event_id,
-                event.stream_id,
-                sequence,
-                event.event_type,
-                event.payload_hash,
-                event.payload_ref,
-                previous_event_hash,
-                event_hash,
-                event.correlation_id,
-                event.causation_id,
-                event.redaction_level,
-                event.retention_class,
-                occurred_at
-            ],
-        )?;
-        transaction.execute(
-            "INSERT INTO outbox (outbox_id, event_id, created_at) VALUES (?1, ?2, ?3)",
-            params![format!("outbox_{}", Ulid::new()), event_id, occurred_at],
-        )?;
+        let record = append_evidence_in_transaction(&transaction, event, &occurred_at)?;
         transaction.commit()?;
-
-        Ok(EvidenceRecord {
-            event_id,
-            stream_id: event.stream_id.clone(),
-            sequence,
-            event_type: event.event_type.clone(),
-            payload_hash: event.payload_hash.clone(),
-            previous_event_hash,
-            event_hash,
-            occurred_at,
-        })
+        Ok(record)
     }
 
     /// Loads the latest durable aggregate projection, when present.
@@ -632,6 +638,7 @@ impl LocalStore {
     /// Returns [`StoreError`] when any durable relationship, canonical hash,
     /// payload authentication, or database invariant fails.
     pub fn verify_integrity(&self) -> Result<(), StoreError> {
+        self.load_local_identity()?;
         let IntegritySnapshot {
             quick_check,
             outbox_link_errors,
@@ -659,6 +666,9 @@ impl LocalStore {
                 }
             }
             verify_consumption_rows(&consumptions)?;
+            self.verify_method_integrity()?;
+            self.verify_builder_integrity()?;
+            self.verify_execution_integrity()?;
             Ok(())
         }
     }
@@ -685,6 +695,183 @@ impl LocalStore {
             || log_frames != checkpointed_frames
         {
             return Err(StoreError::Inconsistent);
+        }
+        Ok(())
+    }
+
+    fn load_or_create_local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        let (pointer, state) = load_local_identity_meta(&self.connection.lock())?;
+        match (pointer, state.as_deref()) {
+            (Some(pointer), Some(LOCAL_IDENTITY_STATE_SEALED)) => {
+                self.load_local_identity_at(&pointer)
+            }
+            (None, None) => {
+                let connection = self.connection.lock();
+                if local_identity_payload_count(&connection)? != 0
+                    || has_scoped_authority_history(&connection)?
+                {
+                    return Err(StoreError::Inconsistent);
+                }
+                drop(connection);
+                let identity = DesktopLocalIdentity::new(
+                    contract_id(format!("installation_{}", Ulid::new()))?,
+                    contract_id(format!("authority_{}", Ulid::new()))?,
+                    contract_id(format!("owner_scope_{}", Ulid::new()))?,
+                    contract_id(self.store_id.clone())?,
+                    1,
+                )
+                .map_err(|_| StoreError::Inconsistent)?;
+                self.persist_new_local_identity(&identity)
+            }
+            _ => Err(StoreError::Inconsistent),
+        }
+    }
+
+    fn load_local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        let (pointer, state) = load_local_identity_meta(&self.connection.lock())?;
+        if state.as_deref() != Some(LOCAL_IDENTITY_STATE_SEALED) {
+            return Err(StoreError::Inconsistent);
+        }
+        self.load_local_identity_at(pointer.as_deref().ok_or(StoreError::Inconsistent)?)
+    }
+
+    fn load_local_identity_at(&self, pointer: &str) -> Result<DesktopLocalIdentity, StoreError> {
+        let content_hash = local_identity_content_hash(pointer)?;
+        let reference = {
+            let connection = self.connection.lock();
+            if local_identity_payload_count(&connection)? != 1 {
+                return Err(StoreError::Inconsistent);
+            }
+            connection
+                .query_row(
+                    "SELECT byte_count, key_version FROM payloads
+                     WHERE content_hash = ?1 AND kind = ?2 AND schema_version = ?3",
+                    params![content_hash, LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA],
+                    |row| {
+                        Ok(PayloadRef {
+                            content_hash: content_hash.clone(),
+                            kind: LOCAL_IDENTITY_KIND.to_owned(),
+                            schema_version: LOCAL_IDENTITY_SCHEMA.to_owned(),
+                            byte_count: row.get(0)?,
+                            key_version: row.get(1)?,
+                        })
+                    },
+                )
+                .optional()?
+                .ok_or(StoreError::Inconsistent)?
+        };
+        if reference.byte_count == 0
+            || reference.byte_count > LOCAL_IDENTITY_MAX_BYTES
+            || reference.key_version != self.key_version
+        {
+            return Err(StoreError::Inconsistent);
+        }
+
+        let plaintext = self.get_payload(&reference)?;
+        if u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?
+            != reference.byte_count
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let value: serde_json::Value = serde_json::from_slice(&plaintext)?;
+        if canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)? != plaintext {
+            return Err(StoreError::Inconsistent);
+        }
+        let identity: DesktopLocalIdentity = serde_json::from_value(value)?;
+        let store_id = contract_id(self.store_id.clone())?;
+        identity
+            .verify_for_store(&store_id)
+            .map_err(|_| StoreError::Inconsistent)?;
+        Ok(identity)
+    }
+
+    fn persist_new_local_identity(
+        &self,
+        identity: &DesktopLocalIdentity,
+    ) -> Result<DesktopLocalIdentity, StoreError> {
+        let value = serde_json::to_value(identity)?;
+        let plaintext = canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)?;
+        let byte_count = u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?;
+        if byte_count == 0 || byte_count > LOCAL_IDENTITY_MAX_BYTES {
+            return Err(StoreError::Inconsistent);
+        }
+        let content_hash = format!("sha256:{}", hex::encode(Sha256::digest(&plaintext)));
+        let pointer = format!(
+            "cas://sha256/{}",
+            content_hash
+                .strip_prefix("sha256:")
+                .ok_or(StoreError::Inconsistent)?
+        );
+        self.persist_local_identity_ciphertext(&content_hash, &plaintext)?;
+
+        let selected_pointer = {
+            let mut connection = self.connection.lock();
+            let transaction =
+                connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            let (retained_pointer, retained_state) = load_local_identity_meta(&transaction)?;
+            let selected = match (retained_pointer, retained_state.as_deref()) {
+                (None, None) => {
+                    if local_identity_payload_count(&transaction)? != 0
+                        || has_scoped_authority_history(&transaction)?
+                    {
+                        return Err(StoreError::Inconsistent);
+                    }
+                    transaction.execute(
+                        "INSERT INTO payloads
+                         (content_hash, kind, schema_version, byte_count, key_version, created_at)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        params![
+                            content_hash,
+                            LOCAL_IDENTITY_KIND,
+                            LOCAL_IDENTITY_SCHEMA,
+                            byte_count,
+                            self.key_version,
+                            canonical_now()
+                        ],
+                    )?;
+                    transaction.execute(
+                        "INSERT INTO store_meta (key, value) VALUES (?1, ?2)",
+                        params![LOCAL_IDENTITY_META_KEY, pointer],
+                    )?;
+                    transaction.execute(
+                        "INSERT INTO store_meta (key, value) VALUES (?1, ?2)",
+                        params![LOCAL_IDENTITY_STATE_KEY, LOCAL_IDENTITY_STATE_SEALED],
+                    )?;
+                    pointer.clone()
+                }
+                (Some(retained_pointer), Some(LOCAL_IDENTITY_STATE_SEALED)) => retained_pointer,
+                _ => return Err(StoreError::Inconsistent),
+            };
+            transaction.commit()?;
+            selected
+        };
+        self.load_local_identity_at(&selected_pointer)
+    }
+
+    fn persist_local_identity_ciphertext(
+        &self,
+        content_hash: &str,
+        plaintext: &[u8],
+    ) -> Result<(), StoreError> {
+        let path = self.cas_path(LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA, content_hash)?;
+        if !path.exists() {
+            let encrypted = self.encrypt(
+                LOCAL_IDENTITY_KIND,
+                LOCAL_IDENTITY_SCHEMA,
+                content_hash,
+                plaintext,
+            )?;
+            Self::persist_cas(&path, &encrypted)?;
+        }
+        let retained = self.decrypt(
+            LOCAL_IDENTITY_KIND,
+            LOCAL_IDENTITY_SCHEMA,
+            content_hash,
+            self.key_version,
+            &fs::read(path)?,
+        )?;
+        if retained != plaintext {
+            return Err(StoreError::Authentication);
         }
         Ok(())
     }
@@ -796,6 +983,76 @@ impl LocalStore {
     }
 }
 
+impl LocalStoreRecovery {
+    #[must_use]
+    pub fn store_id(&self) -> &str {
+        self.inner.store_id()
+    }
+
+    /// Loads and authenticates the retained store-owned desktop identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the sealed identity is unavailable or invalid.
+    pub fn local_identity(&self) -> Result<DesktopLocalIdentity, StoreError> {
+        self.inner.load_local_identity()
+    }
+
+    /// Returns the retained schema version without attempting migration.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the read-only database cannot be queried.
+    pub fn schema_version(&self) -> Result<u32, StoreError> {
+        self.inner.schema_version()
+    }
+
+    /// Returns retained table names for recovery diagnostics.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the read-only catalog cannot be queried.
+    pub fn schema_table_names(&self) -> Result<Vec<String>, StoreError> {
+        self.inner.schema_table_names()
+    }
+
+    /// Authenticates and reconstructs a retained Method session when readable.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] for damaged state or unavailable retained schema.
+    pub fn load_method_session(
+        &self,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+    ) -> Result<Option<MethodSession>, StoreError> {
+        MethodSessionRepository::load_method_session(&self.inner, scope, session_id)
+    }
+
+    /// Authenticates and reconstructs a retained inactive Builder draft.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] for damaged state, CAS authentication failure,
+    /// or unavailable retained schema.
+    pub fn load_builder_draft(
+        &self,
+        scope: &BuilderDraftScope,
+        draft_id: &ContractId,
+    ) -> Result<Option<BuilderDraft>, StoreError> {
+        BuilderDraftRepository::load_builder_draft(&self.inner, scope, draft_id)
+    }
+
+    /// Runs non-mutating integrity diagnostics across retained data.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when corruption or unavailable schema is detected.
+    pub fn verify_integrity(&self) -> Result<(), StoreError> {
+        self.inner.verify_integrity()
+    }
+}
+
 fn validate_transition_input(
     aggregate_type: &str,
     aggregate_id: &str,
@@ -821,6 +1078,77 @@ fn validate_transition_input(
         return Err(StoreError::Inconsistent);
     }
     Ok(())
+}
+
+fn append_evidence_in_transaction(
+    transaction: &rusqlite::Transaction<'_>,
+    event: &EvidenceAppend,
+    occurred_at: &str,
+) -> Result<EvidenceRecord, StoreError> {
+    if event.payload_ref.is_some() {
+        let payload_exists = transaction.query_row(
+            "SELECT EXISTS(
+               SELECT 1 FROM payloads WHERE content_hash = ?1
+             )",
+            params![event.payload_hash.as_str()],
+            |row| row.get::<_, bool>(0),
+        )?;
+        if !payload_exists {
+            return Err(StoreError::Inconsistent);
+        }
+    }
+    let (sequence, previous_event_hash) = next_evidence_position(transaction, &event.stream_id)?;
+    let event_id = format!("event_{}", Ulid::new());
+    let event_hash = hash_event(&EvidenceHashInput {
+        event_id: &event_id,
+        stream_id: &event.stream_id,
+        sequence,
+        event_type: &event.event_type,
+        payload_hash: &event.payload_hash,
+        payload_ref: event.payload_ref.as_deref(),
+        previous_event_hash: previous_event_hash.as_deref(),
+        correlation_id: &event.correlation_id,
+        causation_id: event.causation_id.as_deref(),
+        redaction_level: &event.redaction_level,
+        retention_class: &event.retention_class,
+        occurred_at,
+    })?;
+    transaction.execute(
+        "INSERT INTO evidence_events
+         (event_id, stream_id, sequence, event_type, payload_hash, payload_ref,
+          previous_event_hash, event_hash, correlation_id, causation_id,
+          redaction_level, retention_class, occurred_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+        params![
+            event_id,
+            event.stream_id,
+            sequence,
+            event.event_type,
+            event.payload_hash,
+            event.payload_ref,
+            previous_event_hash,
+            event_hash,
+            event.correlation_id,
+            event.causation_id,
+            event.redaction_level,
+            event.retention_class,
+            occurred_at
+        ],
+    )?;
+    transaction.execute(
+        "INSERT INTO outbox (outbox_id, event_id, created_at) VALUES (?1, ?2, ?3)",
+        params![format!("outbox_{}", Ulid::new()), event_id, occurred_at],
+    )?;
+    Ok(EvidenceRecord {
+        event_id,
+        stream_id: event.stream_id.clone(),
+        sequence,
+        event_type: event.event_type.clone(),
+        payload_hash: event.payload_hash.clone(),
+        previous_event_hash,
+        event_hash,
+        occurred_at: occurred_at.to_owned(),
+    })
 }
 
 fn next_evidence_position(
@@ -955,120 +1283,77 @@ fn configure_connection(connection: &Connection) -> Result<(), StoreError> {
     Ok(())
 }
 
-fn migrate(connection: &Connection) -> Result<(), StoreError> {
-    let version: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    match version {
-        0 => {
-            if !store_table_names(connection)?.is_empty() {
-                return Err(StoreError::Inconsistent);
-            }
-            connection.execute_batch(INITIAL_SCHEMA_SQL)?;
-        }
-        1 | 2 => {
-            require_store_tables(connection)?;
-            reject_duplicate_outbox_events(connection)?;
-            let existing_consumptions: u64 =
-                connection.query_row("SELECT COUNT(*) FROM spec_consumptions", [], |row| {
-                    row.get(0)
-                })?;
-            if existing_consumptions != 0 {
-                return Err(StoreError::Inconsistent);
-            }
-            connection.execute_batch(
-                "BEGIN IMMEDIATE;
-                 DROP TABLE spec_consumptions;
-                 CREATE TABLE spec_consumptions (
-                   consumption_id TEXT PRIMARY KEY,
-                   spec_hash TEXT NOT NULL UNIQUE,
-                   candidate_hash TEXT NOT NULL,
-                   nonce_hash TEXT NOT NULL,
-                   audience_hash TEXT NOT NULL,
-                   execution_id TEXT NOT NULL,
-                   consumption_hash TEXT NOT NULL UNIQUE,
-                   record_json TEXT NOT NULL,
-                   consumed_at TEXT NOT NULL
-                 ) STRICT;
-                 CREATE UNIQUE INDEX outbox_event_once ON outbox(event_id);
-                 PRAGMA user_version = 4;
-                 COMMIT;",
-            )?;
-        }
-        3 => {
-            require_store_tables(connection)?;
-            reject_duplicate_outbox_events(connection)?;
-            connection.execute_batch(
-                "BEGIN IMMEDIATE;
-                 CREATE UNIQUE INDEX outbox_event_once ON outbox(event_id);
-                 PRAGMA user_version = 4;
-                 COMMIT;",
-            )?;
-        }
-        LATEST_STORE_VERSION => require_store_tables(connection)?,
-        _ => return Err(StoreError::UnsupportedStoreVersion),
-    }
-    require_outbox_event_uniqueness(connection)?;
-    Ok(())
-}
-
-fn store_table_names(connection: &Connection) -> Result<HashSet<String>, StoreError> {
-    let mut statement = connection.prepare(
-        "SELECT name FROM sqlite_schema
-         WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
-    )?;
-    let table_names = statement
-        .query_map([], |row| row.get::<_, String>(0))?
-        .collect::<Result<HashSet<_>, _>>()
-        .map_err(StoreError::from)?;
-    Ok(table_names)
-}
-
-fn require_store_tables(connection: &Connection) -> Result<(), StoreError> {
-    let expected = REQUIRED_TABLES
-        .iter()
-        .map(|name| (*name).to_owned())
-        .collect::<HashSet<_>>();
-    if store_table_names(connection)? != expected {
-        return Err(StoreError::Inconsistent);
-    }
-    Ok(())
-}
-
-fn reject_duplicate_outbox_events(connection: &Connection) -> Result<(), StoreError> {
-    let duplicate_count: u64 = connection.query_row(
-        "SELECT COUNT(*) FROM (
-           SELECT event_id FROM outbox GROUP BY event_id HAVING COUNT(*) > 1
-         )",
-        [],
-        |row| row.get(0),
-    )?;
-    if duplicate_count != 0 {
-        return Err(StoreError::Inconsistent);
-    }
-    Ok(())
-}
-
-fn require_outbox_event_uniqueness(connection: &Connection) -> Result<(), StoreError> {
-    let index_flags = connection
+fn load_local_identity_meta(
+    connection: &Connection,
+) -> Result<(Option<String>, Option<String>), StoreError> {
+    connection
         .query_row(
-            "SELECT \"unique\", partial
-             FROM pragma_index_list('outbox')
-             WHERE name = 'outbox_event_once'",
-            [],
-            |row| Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?)),
+            "SELECT
+               (SELECT value FROM store_meta WHERE key = ?1),
+               (SELECT value FROM store_meta WHERE key = ?2)",
+            params![LOCAL_IDENTITY_META_KEY, LOCAL_IDENTITY_STATE_KEY],
+            |row| Ok((row.get(0)?, row.get(1)?)),
         )
-        .optional()?;
-    if index_flags != Some((1, 0)) {
-        return Err(StoreError::Inconsistent);
-    }
-    let mut statement = connection
-        .prepare("SELECT name FROM pragma_index_info('outbox_event_once') ORDER BY seqno")?;
-    let columns = statement
-        .query_map([], |row| row.get::<_, String>(0))?
-        .collect::<Result<Vec<_>, _>>()?;
-    if columns != vec!["event_id".to_owned()] {
-        return Err(StoreError::Inconsistent);
-    }
-    Ok(())
+        .map_err(StoreError::from)
+}
+
+fn local_identity_payload_count(connection: &Connection) -> Result<u64, StoreError> {
+    connection
+        .query_row(
+            "SELECT COUNT(*) FROM payloads WHERE kind = ?1 AND schema_version = ?2",
+            params![LOCAL_IDENTITY_KIND, LOCAL_IDENTITY_SCHEMA],
+            |row| row.get(0),
+        )
+        .map_err(StoreError::from)
+}
+
+fn has_scoped_authority_history(connection: &Connection) -> Result<bool, StoreError> {
+    let present = connection.query_row(
+        "SELECT
+           EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_help_run_creations) OR
+           EXISTS(SELECT 1 FROM bmad_builder_drafts) OR
+           EXISTS(SELECT 1 FROM spec_consumptions)",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?;
+    Ok(present != 0)
+}
+
+fn has_any_authority_data(connection: &Connection) -> Result<bool, StoreError> {
+    let present = connection.query_row(
+        "SELECT
+           EXISTS(SELECT 1 FROM store_meta) OR
+           EXISTS(SELECT 1 FROM payloads) OR
+           EXISTS(SELECT 1 FROM aggregates) OR
+           EXISTS(SELECT 1 FROM evidence_events) OR
+           EXISTS(SELECT 1 FROM outbox) OR
+           EXISTS(SELECT 1 FROM spec_consumptions) OR
+           EXISTS(SELECT 1 FROM bmad_method_sessions) OR
+           EXISTS(SELECT 1 FROM bmad_help_run_creations) OR
+           EXISTS(SELECT 1 FROM bmad_method_artifacts) OR
+           EXISTS(SELECT 1 FROM bmad_method_checkpoints) OR
+           EXISTS(SELECT 1 FROM bmad_method_decision_consumptions) OR
+           EXISTS(SELECT 1 FROM bmad_builder_drafts) OR
+           EXISTS(SELECT 1 FROM bmad_builder_revisions) OR
+           EXISTS(SELECT 1 FROM bmad_builder_analyses) OR
+           EXISTS(SELECT 1 FROM bmad_builder_analysis_decisions)",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?;
+    Ok(present != 0)
+}
+
+fn local_identity_content_hash(pointer: &str) -> Result<String, StoreError> {
+    validate_cas_reference(pointer)?;
+    let digest = pointer
+        .strip_prefix("cas://sha256/")
+        .ok_or(StoreError::Inconsistent)?;
+    Ok(format!("sha256:{digest}"))
+}
+
+fn contract_id(value: String) -> Result<ContractId, StoreError> {
+    ContractId::new(value).map_err(|_| StoreError::Inconsistent)
 }
 
 fn load_or_create_store_id(connection: &Connection) -> Result<String, StoreError> {
@@ -1081,6 +1366,9 @@ fn load_or_create_store_id(connection: &Connection) -> Result<String, StoreError
         .optional()?
     {
         return Ok(value);
+    }
+    if has_any_authority_data(connection)? {
+        return Err(StoreError::Inconsistent);
     }
     let value = format!("store_{}", Ulid::new());
     connection.execute(
@@ -1111,6 +1399,12 @@ fn load_or_create_key(path: &Path, protector: &dyn KeyProtector) -> Result<Store
 
 fn hash_event(value: &EvidenceHashInput<'_>) -> Result<String, StoreError> {
     canonical_hash("local-evidence-event", 1, value)
+        .map(|digest| digest.to_string())
+        .map_err(|_| StoreError::Inconsistent)
+}
+
+fn legacy_hash_event(value: &EvidenceHashInput<'_>) -> Result<String, StoreError> {
+    legacy_canonical_hash("local-evidence-event", 1, value)
         .map(|digest| digest.to_string())
         .map_err(|_| StoreError::Inconsistent)
 }
@@ -1159,7 +1453,7 @@ fn verify_evidence_rows(
         if row.previous_event_hash.as_deref() != expected_previous {
             return Err(StoreError::Inconsistent);
         }
-        let expected_hash = hash_event(&EvidenceHashInput {
+        let hash_input = EvidenceHashInput {
             event_id: &row.event_id,
             stream_id: &row.stream_id,
             sequence: row.sequence,
@@ -1172,8 +1466,10 @@ fn verify_evidence_rows(
             redaction_level: &row.redaction_level,
             retention_class: &row.retention_class,
             occurred_at: &row.occurred_at,
-        })?;
-        if row.event_hash != expected_hash {
+        };
+        let expected_hash = hash_event(&hash_input)?;
+        let legacy_hash = legacy_hash_event(&hash_input)?;
+        if row.event_hash != expected_hash && row.event_hash != legacy_hash {
             return Err(StoreError::Inconsistent);
         }
         stream_heads.insert(&row.stream_id, (row.sequence, &row.event_hash));
@@ -1218,7 +1514,11 @@ fn verify_consumption_rows(rows: &[StoredConsumptionRow]) -> Result<(), StoreErr
         }
         let actual = canonical_hash_without_field("spec-consumption", 1, &value, "consumptionHash")
             .map_err(|_| StoreError::Inconsistent)?;
-        if actual.to_string() != row.consumption_hash {
+        let legacy =
+            legacy_canonical_hash_without_field("spec-consumption", 1, &value, "consumptionHash")
+                .map_err(|_| StoreError::Inconsistent)?;
+        if actual.to_string() != row.consumption_hash && legacy.to_string() != row.consumption_hash
+        {
             return Err(StoreError::Inconsistent);
         }
         if canonical_json_bytes(&value).map_err(|_| StoreError::Inconsistent)?
@@ -1828,7 +2128,19 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP INDEX outbox_event_once;
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
+             DROP TABLE bmad_method_decision_consumptions;
+             DROP TABLE bmad_method_checkpoints;
+             DROP TABLE bmad_method_sessions;
+             DROP INDEX outbox_event_once;
              PRAGMA user_version = 3;",
         )?;
         drop(store);
@@ -1861,7 +2173,19 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP INDEX outbox_event_once;
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
+             DROP TABLE bmad_method_decision_consumptions;
+             DROP TABLE bmad_method_checkpoints;
+             DROP TABLE bmad_method_sessions;
+             DROP INDEX outbox_event_once;
              PRAGMA user_version = 3;",
         )?;
         store.connection.lock().execute(
@@ -1878,6 +2202,94 @@ mod tests {
             LocalStore::open(directory.path(), &TestProtector),
             Err(StoreError::Inconsistent)
         ));
+        Ok(())
+    }
+
+    #[test]
+    fn populated_legacy_v4_history_survives_current_hash_marker_upgrade(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let event = EvidenceAppend {
+            stream_id: "run:legacy_01".to_owned(),
+            event_type: "proposal.created".to_owned(),
+            payload_hash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                .to_owned(),
+            payload_ref: None,
+            correlation_id: "legacy_01".to_owned(),
+            causation_id: None,
+            redaction_level: "summary".to_owned(),
+            retention_class: "evidence".to_owned(),
+        };
+        let _ = store.append_transition("run", "legacy_01", 1, "{}", &event)?;
+        store.consume_spec_record(&consumption_record(
+            "consume_legacy",
+            "execution_legacy",
+            b"legacy nonce",
+        )?)?;
+
+        let snapshot = load_integrity_snapshot(&store.connection.lock())?;
+        let row = snapshot.events.first().ok_or(StoreError::Inconsistent)?;
+        let legacy_event_hash = legacy_hash_event(&EvidenceHashInput {
+            event_id: &row.event_id,
+            stream_id: &row.stream_id,
+            sequence: row.sequence,
+            event_type: &row.event_type,
+            payload_hash: &row.payload_hash,
+            payload_ref: row.payload_ref.as_deref(),
+            previous_event_hash: row.previous_event_hash.as_deref(),
+            correlation_id: &row.correlation_id,
+            causation_id: row.causation_id.as_deref(),
+            redaction_level: &row.redaction_level,
+            retention_class: &row.retention_class,
+            occurred_at: &row.occurred_at,
+        })?;
+        let (consumption_id, source): (String, String) = store.connection.lock().query_row(
+            "SELECT consumption_id, record_json FROM spec_consumptions LIMIT 1",
+            [],
+            |query_row| Ok((query_row.get(0)?, query_row.get(1)?)),
+        )?;
+        let mut value: serde_json::Value = serde_json::from_str(&source)?;
+        let legacy_consumption_hash =
+            legacy_canonical_hash_without_field("spec-consumption", 1, &value, "consumptionHash")?
+                .to_string();
+        value
+            .as_object_mut()
+            .ok_or(StoreError::Inconsistent)?
+            .insert(
+                "consumptionHash".to_owned(),
+                serde_json::Value::String(legacy_consumption_hash.clone()),
+            );
+        let legacy_json = String::from_utf8(canonical_json_bytes(&value)?)?;
+        store.connection.lock().execute(
+            "UPDATE evidence_events SET event_hash = ?1",
+            params![legacy_event_hash],
+        )?;
+        store.connection.lock().execute(
+            "UPDATE spec_consumptions
+             SET consumption_hash = ?1, record_json = ?2 WHERE consumption_id = ?3",
+            params![legacy_consumption_hash, legacy_json, consumption_id],
+        )?;
+        store.connection.lock().execute_batch(
+            "DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
+             DROP TABLE bmad_builder_analysis_decisions;
+             DROP TABLE bmad_builder_analyses;
+             DROP TABLE bmad_builder_revisions;
+             DROP TABLE bmad_builder_drafts;
+             DROP TABLE bmad_method_artifacts;
+             DROP TABLE bmad_method_decision_consumptions;
+             DROP TABLE bmad_method_checkpoints;
+             DROP TABLE bmad_method_sessions;
+             PRAGMA user_version = 4;",
+        )?;
+        drop(store);
+
+        let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+        assert_eq!(reopened.schema_version()?, LATEST_STORE_VERSION);
+        reopened.verify_integrity()?;
         Ok(())
     }
 }

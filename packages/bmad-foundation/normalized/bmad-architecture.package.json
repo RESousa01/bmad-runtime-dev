@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-architecture",
+    "normalizedAction": "create"
+  },
+  "instructionProjection": {
+    "projectionId": "projection_57B356FB427008F181C1A6027E8EFBF7D177D4B45DAD4D15612C84213999D6F0",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+      "contentHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+        "contentHash": "sha256:82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
+        "contentHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+        "contentHash": "sha256:ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+        "contentHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+        "contentHash": "sha256:4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
+        "treatment": "defer"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+        "contentHash": "sha256:d32e32a3c1d59b5612b947004f3f6fef1117a13ce9f1ffa428d616e0b5d4db69",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+        "contentHash": "sha256:040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
+        "treatment": "reject"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
+        "contentHash": "sha256:4b1673582dc8e0957b559cece14f048c0c995874b79ad255f033b36b2b789eb0",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
+        "contentHash": "sha256:618be49b0286f18dfb4b6bac3d96bf1cf062994fa5278cd327be9898e651b43c",
+        "treatment": "adapt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/architecture-create.instructions.md",
+      "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "external_handoff",
+      "file_read",
+      "file_write",
+      "process",
+      "subagent",
+      "web"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "external_handoff",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "file_read",
+        "inputKind": "bounded_resource_set",
+        "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+      },
+      {
+        "toolIntent": "file_write",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "process",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "subagent",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "web",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      }
+    ],
+    "projectionHash": "sha256:c4a15122cc3dfc34e30a55f3762cb434275013bd27d88267f6f7f0d8eab1ce3a"
+  },
+  "projectionEnvelopeHash": "sha256:02e1d64814dfe1d51e232ab9cd1330954bfbe411e7bfaa628d9f584a68b4a5cc"
+}

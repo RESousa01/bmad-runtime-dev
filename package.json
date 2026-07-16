@@ -19,6 +19,7 @@
     "contracts:verify:typescript": "pnpm --filter @sapphirus/contracts verify:typescript",
     "contracts:verify:cross-language": "pnpm --filter @sapphirus/contracts verify:cross-language",
     "contracts:test": "pnpm --filter @sapphirus/contracts test",
+    "bmad:foundation:verify": "pnpm --filter @sapphirus/bmad-foundation run verify",
     "secrets:check": "node tools/check-secrets.mjs",
     "vault:check": "node tools/verify-reference-vault.mjs",
     "rust:fmt": "cargo fmt --all --check",
@@ -27,9 +28,9 @@
     "desktop:dev": "pnpm exec tauri dev --config crates/desktop-app/tauri.conf.json",
     "desktop:build": "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json",
     "verify:boundaries": "node tools/check-boundaries.mjs",
-    "verify:source": "pnpm vault:check && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",
+    "verify:source": "pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",
     "verify": "pnpm verify:source",
-    "verify:deferred-full": "pnpm vault:check && pnpm contracts:verify:cross-language && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm rust:fmt && pnpm rust:clippy && pnpm rust:test && pnpm build"
+    "verify:deferred-full": "pnpm contracts:verify:cross-language && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm rust:fmt && pnpm rust:clippy && pnpm rust:test && pnpm build"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.11.4",

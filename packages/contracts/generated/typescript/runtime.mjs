@@ -38,4 +38,111 @@ export const HASH_RULES = Object.freeze({
     purpose: "package-compatibility",
     schemaMajor: "v1",
   }),
+  "sapphirus.bmad-package-descriptor.v1": Object.freeze({
+    excludedFields: Object.freeze(["descriptorHash"]),
+    purpose: "bmad-package-descriptor",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-capability-catalog.v1": Object.freeze({
+    excludedFields: Object.freeze(["catalogHash"]),
+    purpose: "bmad-capability-catalog",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-method-checkpoint.v1": Object.freeze({
+    excludedFields: Object.freeze(["checkpointHash"]),
+    purpose: "bmad-method-checkpoint",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-method-session.v1": Object.freeze({
+    excludedFields: Object.freeze(["contentHash"]),
+    purpose: "contract-object",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-builder-revision.v1": Object.freeze({
+    excludedFields: Object.freeze(["revisionHash"]),
+    purpose: "bmad-builder-revision",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-builder-analysis.v1": Object.freeze({
+    excludedFields: Object.freeze(["analysisHash"]),
+    purpose: "bmad-builder-analysis",
+    schemaMajor: "v1",
+  }),
+  "sapphirus.bmad-validation-report.v1": Object.freeze({
+    excludedFields: Object.freeze(["reportHash"]),
+    purpose: "bmad-validation-report",
+    schemaMajor: "v1",
+  }),
 });
+
+function freezeSchemaClosure(manifest) {
+  return Object.freeze({
+    rootSchemaId: manifest.rootSchemaId,
+    members: Object.freeze(manifest.members.map((member) => Object.freeze(member))),
+    closureSha256: manifest.closureSha256,
+  });
+}
+
+export const SCHEMA_CLOSURES = Object.freeze(Object.fromEntries(
+  Object.entries({
+  "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json": {
+    "rootSchemaId": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json",
+    "members": [
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json",
+        "canonicalSha256": "sha256:b3c5f6a33ff56dd646c51c5f612c4e8b448ea006772b6e32dd8fdeead595dedf"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json",
+        "canonicalSha256": "sha256:16d5d550c3e7bdd922a4961c3eece6229194d8d49a3ab4e02c8d6fac2f7e3d9e"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/common.schema.json",
+        "canonicalSha256": "sha256:9429072eae30a7b1e5a3415b4a19992883daec233b76b2058e2231b8b3753171"
+      }
+    ],
+    "closureSha256": "sha256:600432affbca9baec428903211df9c4c2a1fc6ba595959013236e1a0f16bc746"
+  },
+  "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json": {
+    "rootSchemaId": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json",
+    "members": [
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-capability-catalog.schema.json",
+        "canonicalSha256": "sha256:fa69850101e55f353be3895b4864b7d2cfddf10a57019a103aaa7aec40953760"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json",
+        "canonicalSha256": "sha256:77109b32d2a453cd8624c5b24942fd4a4bda6bd646b1bb84692b9fc24690e9ec"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/common.schema.json",
+        "canonicalSha256": "sha256:9429072eae30a7b1e5a3415b4a19992883daec233b76b2058e2231b8b3753171"
+      }
+    ],
+    "closureSha256": "sha256:b86f154fd9ba6a7575171b849645e44a1753d191b4e3480e985b6042159af965"
+  },
+  "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json": {
+    "rootSchemaId": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json",
+    "members": [
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-capability-catalog.schema.json",
+        "canonicalSha256": "sha256:fa69850101e55f353be3895b4864b7d2cfddf10a57019a103aaa7aec40953760"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json",
+        "canonicalSha256": "sha256:5941a1223f269996bd68267000bf54c98b29a301f2ca8f5c67bfd98cea1fa52b"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json",
+        "canonicalSha256": "sha256:16d5d550c3e7bdd922a4961c3eece6229194d8d49a3ab4e02c8d6fac2f7e3d9e"
+      },
+      {
+        "schemaId": "https://schemas.sapphirus.dev/v1/common.schema.json",
+        "canonicalSha256": "sha256:9429072eae30a7b1e5a3415b4a19992883daec233b76b2058e2231b8b3753171"
+      }
+    ],
+    "closureSha256": "sha256:5cff85e4f40af521df317763fa86f405c11e410005c7a8901d5ed72a25320242"
+  }
+})
+    .map(([schemaId, manifest]) => [schemaId, freezeSchemaClosure(manifest)]),
+));

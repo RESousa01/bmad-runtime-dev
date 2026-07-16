@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { sha256Hex } from "./sha256.mjs";
 
 export class CanonicalizationError extends Error {
   constructor(code, message) {
@@ -173,7 +173,7 @@ export function canonicalHash({ purpose, schemaMajor, value, excludedFields = []
       ? value
       : withoutRootFields(value, excludedFields);
   const preimage = `sapphirus:${purpose}:${schemaMajor}\n${canonicalize(hashValue)}`;
-  const digest = createHash("sha256").update(preimage, "utf8").digest("hex");
+  const digest = sha256Hex(preimage);
 
   return {
     canonicalJson: canonicalize(hashValue),

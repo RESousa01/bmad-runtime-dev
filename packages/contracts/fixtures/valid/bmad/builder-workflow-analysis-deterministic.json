@@ -1,0 +1,20 @@
+{
+  "objectKind": "analysis",
+  "schemaVersion": "sapphirus.bmad-builder-analysis.v1",
+  "analysisId": "workflowanalysis_01J11111111111111111111111",
+  "draftId": "workflowdraft_01J00000000000000000000000",
+  "revisionId": "workflowrevision_01J00000000000000000000000",
+  "revisionHash": "sha256:1f41287eea73030cba305ca901809b6a574796d00b35e16cedfc2b1f47e2ca69",
+  "builderKind": "workflow",
+  "validationProfile": "BuilderOutcomeSkillV2",
+  "analysisKind": "deterministic_static",
+  "sourceMemberSetHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "deterministicFactsHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "deterministicFindings": [],
+  "modelLensesPerformed": false,
+  "evaluationClaim": "none",
+  "createdAt": "2026-07-14T10:00:00.000Z",
+  "analysisHash": "sha256:b3df2bf11ce1ec449a7eb34b513ca18cad68d765117319a79964f543c6f045c6",
+  "modelLensesNotPerformedReason": "not_requested"
+}

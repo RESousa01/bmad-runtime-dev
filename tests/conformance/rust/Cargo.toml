@@ -1,0 +1,20 @@
+[package]
+name = "sapphirus-contracts-conformance"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+desktop-runtime = { path = "../../../crates/desktop-runtime" }
+jsonschema.workspace = true
+regress.workspace = true
+sapphirus-generator-qualification = { path = "../../generator-qualification/rust" }
+serde.workspace = true
+serde_json.workspace = true
+unicode-normalization.workspace = true
+
+[lints]
+workspace = true

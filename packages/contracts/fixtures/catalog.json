@@ -208,5 +208,1008 @@
     "schema": null,
     "valid": false,
     "reasonCode": "DUPLICATE_MEMBER"
+  },
+  {
+    "file": "valid/bmad/package-descriptor.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/capability-catalog.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": [],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "valid/bmad/method-no-agent-direct.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": [],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "valid/bmad/method-architect-iterative.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": [],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "valid/bmad/builder-agent-draft.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-agent-revision.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-agent-analysis-deterministic.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-agent-analysis-model-lens.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-workflow-draft.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-workflow-revision.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-workflow-analysis-deterministic.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/builder-workflow-analysis-model-lens.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/validation-report.json",
+    "schema": "bmad-validation-report.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/method-help-proposal.json",
+    "schema": "bmad-method-help-proposal.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/method-help-recommendation.json",
+    "schema": "bmad-method-help-recommendation.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/method-advance-result.json",
+    "schema": "bmad-method-advance-result.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "invalid/bmad/duplicate-member.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER",
+    "reasonCodes": [
+      "DUPLICATE_MEMBER"
+    ]
+  },
+  {
+    "file": "invalid/bmad/duplicate-member-nested.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER",
+    "reasonCodes": [
+      "DUPLICATE_MEMBER"
+    ]
+  },
+  {
+    "file": "invalid/bmad/duplicate-member-escaped.json",
+    "schema": null,
+    "valid": false,
+    "reasonCode": "DUPLICATE_MEMBER",
+    "reasonCodes": [
+      "DUPLICATE_MEMBER"
+    ]
+  },
+  {
+    "file": "invalid/bmad/unknown-profile.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/unknown-action.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/capability-key-collision.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CAPABILITY_KEY_COLLISION",
+    "reasonCodes": [
+      "BMAD_CAPABILITY_KEY_COLLISION",
+      "BMAD_HELP_ORPHAN",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/installed-skills-unsorted.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_INSTALLED_SKILL_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_INSTALLED_SKILL_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/help-actions-unsorted.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_HELP_ACTION_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_HELP_ACTION_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/normalized-action-absent.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "REQUIRED_PROPERTY_MISSING",
+    "reasonCodes": [
+      "REQUIRED_PROPERTY_MISSING"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/help-record-as-installed-skill.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY",
+    "reasonCodes": [
+      "UNKNOWN_PROPERTY"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/installed-skill-as-help-record.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY",
+    "reasonCodes": [
+      "UNKNOWN_PROPERTY"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/help-orphan.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_HELP_ORPHAN",
+    "reasonCodes": [
+      "BMAD_HELP_ORPHAN",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/dependency-availability-unsorted.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_DEPENDENCY_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_DEPENDENCY_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/agent-roster-unsorted.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/agent-record-hash-substitution.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/source-menu-item-hash-substitution.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/roster-duplicate.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/roster-orphan.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_NOT_CANONICAL",
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/menu-target-mismatch.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_MENU_TARGET_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "BMAD_MENU_TARGET_TRANSPLANT",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/menu-target-missing-discriminator.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/menu-target-dual-discriminator.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/menu-target-unknown-discriminator.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/prompt-coerced-to-skill.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/prompt-member-transplant.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/prompt-label-transplant.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "BMAD_PROMPT_REFERENCE_TRANSPLANT",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/prompt-label-control-character.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/prompt-body-smuggling.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/persona-hash-substitution.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_PERSONA_HASH_MISMATCH",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "BMAD_PERSONA_HASH_MISMATCH",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/same-scope-menu-ambiguity.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_MENU_SCOPE_AMBIGUOUS",
+    "reasonCodes": [
+      "BMAD_AGENT_ROSTER_BINDING_MISMATCH",
+      "BMAD_MENU_SCOPE_AMBIGUOUS",
+      "HASH_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/flattened-config-graphs.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "ARRAY_TOO_SHORT",
+    "reasonCodes": [
+      "ARRAY_TOO_SHORT"
+    ]
+  },
+  {
+    "file": "invalid/bmad/modules-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_MODULE_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_MODULE_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/skills-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_SKILL_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_SKILL_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/resources-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_RESOURCE_SET_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_RESOURCE_SET_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/config-graphs-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONFIG_GRAPH_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_CONFIG_GRAPH_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/config-resolutions-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONFIG_RESOLUTION_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_CONFIG_RESOLUTION_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/projection-sources-unsorted.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_INSTRUCTION_PROJECTION_SOURCE_NOT_CANONICAL",
+    "reasonCodes": [
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+      "BMAD_INSTRUCTION_PROJECTION_SOURCE_NOT_CANONICAL",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/projection-source-transplant.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_INSTRUCTION_PROJECTION_SOURCE_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+      "BMAD_INSTRUCTION_PROJECTION_SOURCE_TRANSPLANT",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/managed-instruction-transplant.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_MANAGED_INSTRUCTION_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+      "BMAD_MANAGED_INSTRUCTION_TRANSPLANT",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/projection-hash-stale.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    "reasonCodes": [
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/projection-hash-substitution.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+    "reasonCodes": [
+      "BMAD_INSTRUCTION_PROJECTION_HASH_MISMATCH",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/skill-projection-transplant.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_SKILL_PROJECTION_TRANSPLANT",
+    "reasonCodes": [
+      "BMAD_SKILL_PROJECTION_TRANSPLANT",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/method-source-version-transplant.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_SOURCE_IDENTITY_MISMATCH",
+    "reasonCodes": [
+      "BMAD_METHOD_SOURCE_IDENTITY_MISMATCH",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/invalid-config-ownership.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONFIG_SCOPE_INVALID",
+    "reasonCodes": [
+      "BMAD_CONFIG_RESOLUTION_ORPHAN",
+      "BMAD_CONFIG_SCOPE_INVALID",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/config-layer-kind-crossover.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/generic-workflow-ast.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/model-authored-step-key.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/non-monotonic-turn-ordinals.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_TURN_ORDINAL_INVALID",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_TURN_ORDINAL_INVALID"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/reused-context-decision.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONTEXT_DECISION_REUSED",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/reused-context-decision-identical-binding.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONTEXT_DECISION_REUSED",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-authority-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH",
+    "reasonCodes": [
+      "CONST_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-profile-mismatch.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_HELP_BINDING_MISMATCH",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_HELP_BINDING_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-execution-profile-hash-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_PROFILE_BINDING_MISMATCH",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_PROFILE_BINDING_MISMATCH",
+      "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+      "BMAD_CONTEXT_LEDGER_BINDING_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-catalog-hash-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-agent-record-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-menu-item-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_AGENT_CATALOG_TRANSPLANT"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-agent-name-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-descriptor-binding-substitution.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_CATALOG_BINDING_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/method-source-binding-substitution.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_METHOD_CATALOG_BINDING_MISMATCH",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_METHOD_CATALOG_BINDING_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/decision-manifest-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONTEXT_DECISION_REUSED",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/decision-distribution-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONTEXT_DECISION_REUSED",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/decision-model-transplant.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_CONTEXT_DECISION_REUSED",
+    "reasonCodes": [
+      "HASH_MISMATCH",
+      "BMAD_CONTEXT_DECISION_REUSED"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/agent-build.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/workflow-create-rebuild.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/model-lens-order-substitution.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/model-lens-binding-substitution.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_MODEL_LENS_BINDING_MISMATCH",
+    "reasonCodes": [
+      "BMAD_MODEL_LENS_BINDING_MISMATCH",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/builder-aggregate-finding-limit.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_BUILDER_FINDING_LIMIT_EXCEEDED",
+    "reasonCodes": [
+      "BMAD_BUILDER_FINDING_LIMIT_EXCEEDED",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/builder-windows-reserved-path.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_BUILDER_PATH_INVALID",
+    "reasonCodes": [
+      "BMAD_BUILDER_PATH_INVALID",
+      "BMAD_BUILDER_INVENTORY_INVALID",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/builder-file-too-large.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "BMAD_BUILDER_FILE_TOO_LARGE",
+    "reasonCodes": [
+      "BMAD_BUILDER_FILE_TOO_LARGE",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/convert.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/analyze-as-evaluation.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/future-lifecycle-field.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/active-builder-draft.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/limit-profile-bypass.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/file-cap-bypass.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/script-authority.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/network-authority.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/memory-agent-output.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/autonomous-agent-output.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/hash-drift.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "HASH_MISMATCH",
+    "reasonCodes": [
+      "BMAD_SOURCE_IDENTITY_MISMATCH",
+      "HASH_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/package-descriptor-unknown-major.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH",
+    "reasonCodes": [
+      "CONST_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/capability-catalog-unknown-major.json",
+    "schema": "bmad-capability-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH",
+    "reasonCodes": [
+      "CONST_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/package-descriptor.json"
+  },
+  {
+    "file": "invalid/bmad/method-session-unknown-major.json",
+    "schema": "bmad-method-session.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ],
+    "contextFile": "valid/bmad/capability-catalog.json"
+  },
+  {
+    "file": "invalid/bmad/builder-draft-unknown-major.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/builder-revision-unknown-major.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/builder-analysis-unknown-major.json",
+    "schema": "bmad-builder-authoring.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH",
+    "reasonCodes": [
+      "ONE_OF_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/unknown-major.json",
+    "schema": "bmad-validation-report.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH",
+    "reasonCodes": [
+      "CONST_MISMATCH"
+    ]
+  },
+  {
+    "file": "invalid/bmad/untrusted-authority-field.json",
+    "schema": "bmad-package-descriptor.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY",
+    "reasonCodes": [
+      "UNKNOWN_PROPERTY"
+    ]
   }
 ]

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/generator-qualification/v1/qualification.schema.json",
+  "title": "SapphirusGeneratorQualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "variant",
+    "nullableValue",
+    "signedValue",
+    "unsignedValue",
+    "interoperableValue",
+    "externalValue",
+    "label",
+    "items",
+    "node"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "sapphirus.generator-qualification.v1"
+    },
+    "variant": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextVariant"
+        },
+        {
+          "$ref": "#/$defs/CountVariant"
+        }
+      ]
+    },
+    "nullableValue": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "optionalValue": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "signedValue": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    },
+    "unsignedValue": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "interoperableValue": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "externalValue": {
+      "$ref": "qualification-external.schema.json#/$defs/ExternalValue"
+    },
+    "label": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "string"
+      }
+    },
+    "node": {
+      "$ref": "#/$defs/Node"
+    }
+  },
+  "$defs": {
+    "TextVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "text"
+      ],
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "CountVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "count"
+      ],
+      "properties": {
+        "kind": {
+          "const": "count"
+        },
+        "count": {
+          "type": "integer"
+        }
+      }
+    },
+    "Node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "next"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "next": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Node"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

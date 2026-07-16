@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json",
+  "title": "sapphirus.bmad-method-help-proposal.v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposalKind",
+        "capabilityKey",
+        "evidenceTokenIds",
+        "rationaleSummary"
+      ],
+      "properties": {
+        "proposalKind": {
+          "const": "recommended_capability"
+        },
+        "capabilityKey": {
+          "$ref": "./bmad-capability-catalog.schema.json#/$defs/BmadCapabilityKey"
+        },
+        "evidenceTokenIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ContractId"
+          }
+        },
+        "rationaleSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposalKind",
+        "reasonCode"
+      ],
+      "properties": {
+        "proposalKind": {
+          "const": "no_recommendation"
+        },
+        "reasonCode": {
+          "enum": [
+            "catalog_evidence_absent",
+            "completion_evidence_ambiguous",
+            "dependency_unavailable"
+          ]
+        }
+      }
+    }
+  ]
+}

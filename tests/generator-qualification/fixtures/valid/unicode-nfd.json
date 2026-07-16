@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "unicode"
+  },
+  "nullableValue": null,
+  "signedValue": 1,
+  "unsignedValue": 1,
+  "interoperableValue": 1,
+  "externalValue": {
+    "code": "ext_A7B8"
+  },
+  "label": "e\u0301",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

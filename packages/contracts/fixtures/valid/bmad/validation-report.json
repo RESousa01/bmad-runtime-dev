@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "sapphirus.bmad-validation-report.v1",
+  "reportId": "report_01J00000000000000000000000",
+  "subjectKind": "builder_draft_revision",
+  "subjectId": "agentrevision_01J00000000000000000000000",
+  "subjectHash": "sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8",
+  "profile": "BuilderAgentV2Stateless",
+  "findings": [],
+  "dependencies": [],
+  "evidence": [],
+  "disposition": {
+    "dispositionKind": "conformant"
+  },
+  "generatedAt": "2026-07-14T10:00:00.000Z",
+  "reportHash": "sha256:2721e85baac995d93ddd6cba5018f153025f2221bf213ff2cadd06f96e74a2db"
+}

@@ -4,8 +4,13 @@ import {
   validatePackageCompatibilitySemantics,
   validateRemoteJobHandoffSemantics,
 } from "./compatibility-semantics.mjs";
+import {
+  bmadContextDecisionUniquenessKey,
+  validateBmadSemantics,
+} from "./bmad-semantics.mjs";
 
 export { validateRemoteJobHandoffTransition } from "./compatibility-semantics.mjs";
+export { bmadContextDecisionUniquenessKey, validateBmadSemantics } from "./bmad-semantics.mjs";
 
 const HASH_RULES = Object.freeze({
   "sapphirus.candidate-action.v1": {
@@ -48,6 +53,48 @@ const HASH_RULES = Object.freeze({
     hashField: "signedPayloadHash",
     excludedFields: ["signedPayloadHash", "signature"],
     purpose: "package-compatibility",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-package-descriptor.v1": {
+    hashField: "descriptorHash",
+    excludedFields: ["descriptorHash"],
+    purpose: "bmad-package-descriptor",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-capability-catalog.v1": {
+    hashField: "catalogHash",
+    excludedFields: ["catalogHash"],
+    purpose: "bmad-capability-catalog",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-method-checkpoint.v1": {
+    hashField: "checkpointHash",
+    excludedFields: ["checkpointHash"],
+    purpose: "bmad-method-checkpoint",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-method-session.v1": {
+    hashField: "contentHash",
+    excludedFields: ["contentHash"],
+    purpose: "contract-object",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-builder-revision.v1": {
+    hashField: "revisionHash",
+    excludedFields: ["revisionHash"],
+    purpose: "bmad-builder-revision",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-builder-analysis.v1": {
+    hashField: "analysisHash",
+    excludedFields: ["analysisHash"],
+    purpose: "bmad-builder-analysis",
+    schemaMajor: "v1",
+  },
+  "sapphirus.bmad-validation-report.v1": {
+    hashField: "reportHash",
+    excludedFields: ["reportHash"],
+    purpose: "bmad-validation-report",
     schemaMajor: "v1",
   },
 });
@@ -106,8 +153,24 @@ function verifySelfHash(document, errors) {
   }
 }
 
-export function validateSemantics(document) {
+export function validateSemantics(document, context = {}) {
   const errors = [];
+
+  if (
+    document?.envelope?.objectType === "bmad_method_session"
+    && document?.payload?.schemaVersion === "sapphirus.bmad-method-session.v1"
+  ) {
+    errors.push(...validateDurableObjectHash(document));
+    errors.push(...validateBmadSemantics(document.payload, {
+      ...context,
+      envelope: document.envelope,
+    }));
+    for (const checkpoint of document.payload.checkpoints ?? []) {
+      verifySelfHash(checkpoint, errors);
+    }
+    return errors.filter((error, index) =>
+      errors.findIndex((candidate) => candidate.code === error.code) === index);
+  }
 
   if (document.schemaVersion === "sapphirus.candidate-action.v1") {
     validateInstant(document.createdAt, "createdAt", errors);
@@ -204,6 +267,11 @@ export function validateSemantics(document) {
     errors.push(...validateRemoteJobHandoffSemantics(document));
   }
 
+  if (typeof document.schemaVersion === "string" && document.schemaVersion.startsWith("sapphirus.bmad-")) {
+    errors.push(...validateBmadSemantics(document, context));
+    for (const checkpoint of document.checkpoints ?? []) verifySelfHash(checkpoint, errors);
+  }
+
   verifySelfHash(document, errors);
   return errors;
 }
@@ -253,6 +321,10 @@ export function specConsumptionUniquenessKey(document) {
     document.singleUseNonceHash,
     document.executorAudienceHash,
   ]);
+}
+
+export function contextDecisionUniquenessKey(document) {
+  return bmadContextDecisionUniquenessKey(document);
 }
 
 function canonicalizeTuple(values) {

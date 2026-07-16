@@ -8,8 +8,18 @@ export interface ContractHashRule {
   readonly purpose: string;
   readonly schemaMajor: string;
 }
+export interface SchemaClosureMember {
+  readonly schemaId: string;
+  readonly canonicalSha256: Sha256;
+}
+export interface SchemaClosureManifest {
+  readonly rootSchemaId: string;
+  readonly members: readonly SchemaClosureMember[];
+  readonly closureSha256: Sha256;
+}
 export declare const CONTRACT_EPOCH: 1;
 export declare const HASH_RULES: Readonly<Record<string, ContractHashRule>>;
+export declare const SCHEMA_CLOSURES: Readonly<Record<string, SchemaClosureManifest>>;
 
 export type {
   SapphirusAuthorityRefV1 as AuthorityRef,
@@ -27,6 +37,56 @@ export type {
 export type {
   SapphirusApprovedExecutionSpecV1 as ApprovedExecutionSpec,
 } from "./schema/approved-execution-spec.js";
+export type {
+  SapphirusBmadBuilderAuthoringV1 as BuilderAuthoringObject,
+  BuilderDraft,
+  BuilderDraftRevision,
+  BuilderAnalysisRun,
+  BuilderProposedFile,
+  BuilderProposedFileSet,
+} from "./schema/bmad-builder-authoring.js";
+export type {
+  SapphirusBmadCapabilityCatalogV1 as BmadCapabilityCatalog,
+  BmadCapabilityKey,
+  InstalledSkillRecord,
+  BmadHelpActionRecord,
+  BmadAgentRoster,
+  BmadAgentRecord,
+  BmadAgentMenuItem,
+  BmadAgentMenuTarget,
+} from "./schema/bmad-capability-catalog.js";
+export type {
+  SapphirusBmadMethodAdvanceResultV1 as MethodAdvanceResult,
+} from "./schema/bmad-method-advance-result.js";
+export type {
+  SapphirusBmadMethodHelpProposalV1 as MethodHelpProposal,
+} from "./schema/bmad-method-help-proposal.js";
+export type {
+  SapphirusBmadMethodHelpRecommendationV1 as MethodHelpRecommendation,
+} from "./schema/bmad-method-help-recommendation.js";
+export type {
+  SapphirusBmadMethodSessionV1 as MethodSession,
+  MethodAgentBinding,
+  MethodContextLedger,
+  BmadContextDecisionConsumption,
+  MethodCheckpoint,
+} from "./schema/bmad-method-session.js";
+export type {
+  SapphirusBmadPackageDescriptorV1 as BmadPackageDescriptor,
+  BmadSourceIdentity,
+  BmadInstructionProjection,
+  BmadSkillDescriptor,
+  SkillExecutionProfile,
+  BmadConfigGraphDescriptor,
+  BmadConfigResolution,
+} from "./schema/bmad-package-descriptor.js";
+export type {
+  SapphirusBmadValidationReportV1 as BmadValidationReport,
+  BmadValidationProfile,
+  BmadValidationFinding,
+  BmadValidationDependency,
+  BmadValidationDisposition,
+} from "./schema/bmad-validation-report.js";
 export type {
   SapphirusSpecConsumptionV1 as SpecConsumptionRecord,
 } from "./schema/spec-consumption.js";

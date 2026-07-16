@@ -35,8 +35,14 @@ impl Default for AdmissionPolicy {
 struct GateState {
     session_requests: HashMap<ContractId, VecDeque<u64>>,
     session_order: VecDeque<ContractId>,
-    mutation_fingerprints: HashMap<ContractId, Sha256Digest>,
+    mutation_identities: HashMap<ContractId, MutationIdentity>,
     mutation_order: VecDeque<ContractId>,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum MutationIdentity {
+    DurableHelpRun,
+    Fingerprint(Sha256Digest),
 }
 
 /// In-memory abuse and short-retry guard. The runtime/store remains responsible
@@ -54,13 +60,16 @@ impl RequestGate {
             state: Mutex::new(GateState {
                 session_requests: HashMap::new(),
                 session_order: VecDeque::new(),
-                mutation_fingerprints: HashMap::new(),
+                mutation_identities: HashMap::new(),
                 mutation_order: VecDeque::new(),
             }),
         }
     }
 
-    /// Applies rate limiting and mutation idempotency admission checks.
+    /// Applies rate limiting and short-lived mutation admission checks.
+    /// `run.create` records only command-family occupancy: its same-family
+    /// replay and conflict authority remains the durable local store, including
+    /// after renderer rebind or process restart.
     ///
     /// # Errors
     ///
@@ -80,7 +89,18 @@ impl RequestGate {
             return Err(IpcValidationError::AdmissionUnavailable);
         }
 
-        let fingerprint = command_fingerprint(envelope)?;
+        let mutation_identity = if !envelope.command.is_mutating() {
+            None
+        } else if matches!(
+            &envelope.command,
+            desktop_runtime::LocalCommand::CreateBmadHelpRun { .. }
+        ) {
+            Some(MutationIdentity::DurableHelpRun)
+        } else {
+            Some(MutationIdentity::Fingerprint(command_fingerprint(
+                envelope,
+            )?))
+        };
         let mut state = self
             .state
             .lock()
@@ -112,26 +132,32 @@ impl RequestGate {
         }
         requests.push_back(now.0);
 
-        if !envelope.command.is_mutating() {
+        let Some(mutation_identity) = mutation_identity else {
             return Ok(Admission::New);
-        }
+        };
 
-        if let Some(previous) = state.mutation_fingerprints.get(&envelope.request_id) {
-            return if *previous == fingerprint {
-                Ok(Admission::Replay)
-            } else {
-                Err(IpcValidationError::IdempotencyConflict)
+        if let Some(previous) = state.mutation_identities.get(&envelope.request_id) {
+            return match (previous, &mutation_identity) {
+                (MutationIdentity::DurableHelpRun, MutationIdentity::DurableHelpRun) => {
+                    Ok(Admission::New)
+                }
+                (MutationIdentity::Fingerprint(previous), MutationIdentity::Fingerprint(next))
+                    if previous == next =>
+                {
+                    Ok(Admission::Replay)
+                }
+                _ => Err(IpcValidationError::IdempotencyConflict),
             };
         }
 
         while state.mutation_order.len() >= self.policy.max_tracked_mutations {
             if let Some(evicted) = state.mutation_order.pop_front() {
-                state.mutation_fingerprints.remove(&evicted);
+                state.mutation_identities.remove(&evicted);
             }
         }
         state
-            .mutation_fingerprints
-            .insert(envelope.request_id.clone(), fingerprint);
+            .mutation_identities
+            .insert(envelope.request_id.clone(), mutation_identity);
         state.mutation_order.push_back(envelope.request_id.clone());
         Ok(Admission::New)
     }
@@ -164,7 +190,7 @@ fn command_fingerprint(
 
 #[cfg(test)]
 mod tests {
-    use desktop_runtime::{ContractId, LocalCommand, UnixMillis};
+    use desktop_runtime::{BmadHelpIntent, ContractId, LocalCommand, UnixMillis};
 
     use super::{Admission, AdmissionPolicy, RequestGate};
     use crate::ValidatedCommandEnvelope;
@@ -205,6 +231,54 @@ mod tests {
         })?;
         assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
         assert!(gate.admit(&second, UnixMillis(1_001)).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn help_run_creation_is_rate_limited_but_never_short_circuits_durable_store_admission(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let gate = RequestGate::new(AdmissionPolicy::default());
+        let first = envelope(LocalCommand::CreateBmadHelpRun {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 1,
+            current_intent: BmadHelpIntent::new("find the next Method step")?,
+        })?;
+        let mut rebound = envelope(LocalCommand::CreateBmadHelpRun {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 1,
+            current_intent: BmadHelpIntent::new("changed intent reaches durable conflict logic")?,
+        })?;
+        rebound.renderer_session_id = id("rs_rebound")?;
+        rebound.issued_at = UnixMillis(2_000);
+
+        assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
+        assert_eq!(gate.admit(&first, UnixMillis(1_001))?, Admission::New);
+        assert_eq!(gate.admit(&rebound, UnixMillis(2_000))?, Admission::New);
+        Ok(())
+    }
+
+    #[test]
+    fn help_run_request_ids_cannot_alias_another_mutation_family(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let help = envelope(LocalCommand::CreateBmadHelpRun {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 1,
+            current_intent: BmadHelpIntent::new("find the next Method step")?,
+        })?;
+        let revoke = envelope(LocalCommand::RevokeWorkspace {
+            workspace_id: id("workspace_1")?,
+        })?;
+
+        let help_first = RequestGate::new(AdmissionPolicy::default());
+        assert_eq!(help_first.admit(&help, UnixMillis(1_000))?, Admission::New);
+        assert!(help_first.admit(&revoke, UnixMillis(1_001)).is_err());
+
+        let revoke_first = RequestGate::new(AdmissionPolicy::default());
+        assert_eq!(
+            revoke_first.admit(&revoke, UnixMillis(1_000))?,
+            Admission::New
+        );
+        assert!(revoke_first.admit(&help, UnixMillis(1_001)).is_err());
         Ok(())
     }
 }

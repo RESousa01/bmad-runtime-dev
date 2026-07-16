@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   DesktopHostClient,
+  HostCapabilityError,
   HostCommandError,
   HostProtocolError,
   initializeHostRuntime,
@@ -8,6 +9,10 @@ import {
   type BootstrapReply,
   type TauriInvoke,
 } from "./hostClient";
+import type {
+  BmadHelpRunCreatedProjection,
+  BmadLibrarySnapshot,
+} from "./bmadProjection";
 
 const readyBootstrap: BootstrapReply = {
   schemaVersion: "desktop-bootstrap.v1",
@@ -15,7 +20,12 @@ const readyBootstrap: BootstrapReply = {
   installationId: "install_01K0Q6H3",
   windowLabel: "main",
   bootMode: "ready",
-  supportedCommands: ["app.get_boot_state", "workspace.select_folder", "workspace.list"],
+  supportedCommands: [
+    "app.get_boot_state",
+    "workspace.select_folder",
+    "workspace.list",
+    "bmad.library.snapshot",
+  ],
   workspaces: [
     {
       workspaceId: "workspace_01K0Q6H3",
@@ -39,7 +49,17 @@ const d1Bootstrap: BootstrapReply = {
     "workspace.read_text",
     "workspace.search",
     "bmad.scan",
+    "bmad.library.snapshot",
     "context.preview",
+  ],
+};
+
+const helpBootstrap: BootstrapReply = {
+  ...d1Bootstrap,
+  supportedCommands: [
+    ...d1Bootstrap.supportedCommands,
+    "bmad.help.latest",
+    "run.create",
   ],
 };
 
@@ -47,6 +67,92 @@ const firstCursor = "cursor_01ARZ3NDEKTSV4RRFFQ69G5FAV";
 const secondCursor = "cursor_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const digestA = `sha256:${"a".repeat(64)}`;
 const digestB = `sha256:${"b".repeat(64)}`;
+
+const bmadLibrarySnapshot: BmadLibrarySnapshot = {
+  schemaVersion: "bmad-library-snapshot.v1",
+  scope: "installed_method",
+  source: {
+    sourceKind: "sealed_foundation",
+    packageName: "bmad-method",
+    packageVersion: "6.10.0",
+  },
+  installedSkills: [{
+    moduleCode: "bmm",
+    skillName: "bmad-architecture",
+    displayName: "Create Architecture",
+    description: "Create a bounded architecture spine.",
+    actions: ["create"],
+    entrypointKind: "step_jit",
+    distributionProfile: "sapphirus_package",
+    installProfile: "SapphirusManagedV1",
+    validationProfile: "MethodStepWorkflowV6",
+    availability: "capability_disabled",
+    blockerCodes: ["bmad_capability_disabled"],
+    hiddenFromHelp: false,
+  }],
+  helpActions: [{
+    moduleCode: "bmm",
+    skillName: "bmad-architecture",
+    action: "create",
+    displayName: "Architecture",
+    menuCode: "CA",
+    description: "Create the architecture spine.",
+    requiredGuidance: true,
+    expectedArtifacts: ["architecture"],
+    availability: "capability_disabled",
+    blockerCodes: ["bmad_capability_disabled"],
+  }],
+  methodAgents: [{
+    moduleCode: "bmm",
+    agentCode: "bmad-agent-architect",
+    name: "Winston",
+    title: "System Architect",
+    icon: "A",
+    team: "software-development",
+    description: "Reviews architecture trade-offs.",
+    availability: "capability_disabled",
+    blockerCodes: ["bmad_capability_disabled"],
+    menus: [{
+      code: "CA",
+      description: "Create architecture",
+      targetKind: "skill_target",
+      displayLabel: "Architecture",
+      availability: "capability_disabled",
+      availabilityReason: "bmad_capability_disabled",
+    }],
+  }],
+  nextCursor: null,
+};
+
+const bmadHelpRun: BmadHelpRunCreatedProjection = {
+  schemaVersion: "bmad-help-run.v1",
+  runKind: "bmad_help",
+  lifecycle: "created_unbound",
+  workspaceId: "workspace_01K0Q6H3",
+  runId: "run_01K0Q6H3",
+  sessionId: "session_01K0Q6H3",
+  runnable: false,
+  completionClaimed: false,
+  recommendation: {
+    schemaVersion: "bmad-help-recommendation.v1",
+    displayName: "BMad Help",
+    moduleCode: "core",
+    skillName: "bmad-help",
+    action: null,
+    confidence: "unknown",
+    source: {
+      sourceKind: "sealed_foundation",
+      packageName: "bmad-method",
+      packageVersion: "6.10.0",
+    },
+    reason: "The current intent most closely matches the catalog entry BMad Help.",
+    requiredGuidance: true,
+    expectedArtifacts: [],
+    availability: "capability_disabled",
+    blockerCodes: ["bmad_capability_disabled"],
+    completionClaimed: false,
+  },
+};
 
 function successfulReply(requestId: string, data: unknown, sequence = 12) {
   return {
@@ -57,13 +163,751 @@ function successfulReply(requestId: string, data: unknown, sequence = 12) {
     receipt: {
       requestId,
       acceptedAt: 1_725_000_000_005,
-      operationId: null,
+      operationId: null as string | null,
     },
     data,
   };
 }
 
+async function createBmadReplyClient(data: unknown, bootstrap = readyBootstrap) {
+  const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+    if (command === "host_bootstrap") {
+      return bootstrap;
+    }
+    const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+    return successfulReply(envelope.requestId, data);
+  });
+  const client = new DesktopHostClient({
+    invoke,
+    requestId: () => "request_bmad_validation",
+  });
+  await client.bootstrap();
+  return { client, invoke };
+}
+
 describe("DesktopHostClient", () => {
+  it("creates an inert Help run through the exact renderer-bound payload", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      const reply = successfulReply(envelope.requestId, {
+        kind: "bmad_help_run_created",
+        value: bmadHelpRun,
+      }, 13);
+      reply.receipt.operationId = bmadHelpRun.runId;
+      return reply;
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      now: () => 1_725_000_000_000,
+      requestId: () => "request_bmad_help_run",
+    });
+    await client.bootstrap();
+
+    await expect(client.createBmadHelpRun(
+      "workspace_01K0Q6H3",
+      3,
+      "Help me choose the next Method step",
+    )).resolves.toEqual(bmadHelpRun);
+
+    expect(invoke).toHaveBeenNthCalledWith(2, "host_dispatch", {
+      body: JSON.stringify({
+        schemaVersion: "desktop-ipc-command.v1",
+        requestId: "request_bmad_help_run",
+        command: "run.create",
+        windowLabel: "main",
+        rendererSessionId: "renderer_01K0Q6H3",
+        installationId: "install_01K0Q6H3",
+        issuedAt: 1_725_000_000_000,
+        payload: {
+          workspaceId: "workspace_01K0Q6H3",
+          workspaceGrantEpoch: 3,
+          runKind: "bmad_help",
+          currentIntent: "Help me choose the next Method step",
+        },
+      }),
+    });
+  });
+
+  it("loads the latest retained Help run through an exact read-only envelope", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, {
+        kind: "bmad_help_run_created",
+        value: bmadHelpRun,
+      }, 13);
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      now: () => 1_725_000_000_000,
+      requestId: () => "request_bmad_help_latest",
+    });
+    await client.bootstrap();
+
+    await expect(client.latestBmadHelpRun(
+      "workspace_01K0Q6H3",
+      3,
+    )).resolves.toEqual({ kind: "retained", run: bmadHelpRun });
+
+    expect(invoke).toHaveBeenNthCalledWith(2, "host_dispatch", {
+      body: JSON.stringify({
+        schemaVersion: "desktop-ipc-command.v1",
+        requestId: "request_bmad_help_latest",
+        command: "bmad.help.latest",
+        windowLabel: "main",
+        rendererSessionId: "renderer_01K0Q6H3",
+        installationId: "install_01K0Q6H3",
+        issuedAt: 1_725_000_000_000,
+        payload: {
+          workspaceId: "workspace_01K0Q6H3",
+          workspaceGrantEpoch: 3,
+        },
+      }),
+    });
+  });
+
+  it("returns null only for the exact no-retained-Help-run reply", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, { kind: "no_bmad_help_run" }, 13);
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.latestBmadHelpRun(bmadHelpRun.workspaceId, 3)).resolves.toEqual({
+      kind: "no_run",
+    });
+  });
+
+  it("surfaces an authenticated legacy run whose projection cannot be restored", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, {
+        kind: "bmad_help_projection_unavailable",
+      }, 13);
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.latestBmadHelpRun(bmadHelpRun.workspaceId, 3)).resolves.toEqual({
+      kind: "projection_unavailable",
+    });
+  });
+
+  it.each([
+    { kind: "no_bmad_help_run", value: null },
+    { kind: "no_bmad_help_run", runId: bmadHelpRun.runId },
+    { kind: "bmad_help_projection_unavailable", value: null },
+    { kind: "bmad_help_run_created" },
+    { kind: "bmad_help_run_created", value: { ...bmadHelpRun, runnable: true } },
+  ])("rejects an inexact retained Help run reply %#", async (data) => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, data, 13);
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.latestBmadHelpRun(
+      bmadHelpRun.workspaceId,
+      3,
+    )).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it.each([
+    ["run schema", { ...bmadHelpRun, schemaVersion: "bmad-help-run.v2" }],
+    ["run kind", { ...bmadHelpRun, runKind: "bmad_architecture" }],
+    ["lifecycle", { ...bmadHelpRun, lifecycle: "running" }],
+    ["runnable state", { ...bmadHelpRun, runnable: true }],
+    ["completion state", { ...bmadHelpRun, completionClaimed: true }],
+    ["recommendation completion", {
+      ...bmadHelpRun,
+      recommendation: { ...bmadHelpRun.recommendation, completionClaimed: true },
+    }],
+    ["source kind", {
+      ...bmadHelpRun,
+      recommendation: {
+        ...bmadHelpRun.recommendation,
+        source: { ...bmadHelpRun.recommendation.source, sourceKind: "renderer" },
+      },
+    }],
+    ["authority field", { ...bmadHelpRun, authorityRef: "must-not-cross-ipc" }],
+    ["nested authority field", {
+      ...bmadHelpRun,
+      recommendation: { ...bmadHelpRun.recommendation, capabilityCatalogHash: digestA },
+    }],
+  ])("rejects an unsafe Help run %s", async (_field, value) => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      const reply = successfulReply(envelope.requestId, {
+        kind: "bmad_help_run_created",
+        value,
+      });
+      reply.receipt.operationId = bmadHelpRun.runId;
+      return reply;
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      requestId: () => "request_bmad_help_invalid",
+    });
+    await client.bootstrap();
+
+    await expect(client.createBmadHelpRun(
+      bmadHelpRun.workspaceId,
+      3,
+      "BMad Help",
+    )).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it("rejects a Help run whose receipt is not bound to the projected run", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return helpBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      const reply = successfulReply(envelope.requestId, {
+        kind: "bmad_help_run_created",
+        value: bmadHelpRun,
+      });
+      reply.receipt.operationId = "run_different";
+      return reply;
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.createBmadHelpRun(
+      bmadHelpRun.workspaceId,
+      3,
+      "BMad Help",
+    )).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it("requests and validates the installed Method library through the exact renderer envelope", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        return readyBootstrap;
+      }
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, {
+        kind: "bmad_library_snapshot",
+        value: bmadLibrarySnapshot,
+      });
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      now: () => 1_725_000_000_000,
+      requestId: () => "request_bmad_library",
+    });
+    await client.bootstrap();
+
+    await expect(client.bmadLibrarySnapshot()).resolves.toEqual(bmadLibrarySnapshot);
+
+    expect(invoke).toHaveBeenNthCalledWith(2, "host_dispatch", {
+      body: JSON.stringify({
+        schemaVersion: "desktop-ipc-command.v1",
+        requestId: "request_bmad_library",
+        command: "bmad.library.snapshot",
+        windowLabel: "main",
+        rendererSessionId: "renderer_01K0Q6H3",
+        installationId: "install_01K0Q6H3",
+        issuedAt: 1_725_000_000_000,
+        payload: {
+          scope: "installed_method",
+          cursor: null,
+        },
+      }),
+    });
+  });
+
+  it("forwards only a native-valid opaque BMAD continuation cursor", async () => {
+    const cursor = "library-cursor.v1!";
+    const { client, invoke } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value: bmadLibrarySnapshot,
+    });
+
+    await client.bmadLibrarySnapshot(cursor);
+
+    const envelope = JSON.parse(String(invoke.mock.calls[1]?.[1]?.body)) as {
+      payload: Record<string, unknown>;
+    };
+    expect(envelope.payload).toEqual({ scope: "installed_method", cursor });
+    expect(Object.keys(envelope.payload)).toEqual(["scope", "cursor"]);
+  });
+
+  it.each([
+    "",
+    "contains space",
+    "contains\u007fdelete",
+    "é",
+    "x".repeat(257),
+  ])("rejects an invalid BMAD continuation cursor %j before dispatch", async (cursor) => {
+    const { client, invoke } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value: bmadLibrarySnapshot,
+    });
+
+    await expect(client.bmadLibrarySnapshot(cursor)).rejects.toBeInstanceOf(HostProtocolError);
+    expect(invoke).toHaveBeenCalledTimes(1);
+  });
+
+  it("capability-checks the current ready bootstrap before dispatch", async () => {
+    const bootstrapWithoutLibrary: BootstrapReply = {
+      ...readyBootstrap,
+      supportedCommands: readyBootstrap.supportedCommands.filter(
+        (command) => command !== "bmad.library.snapshot",
+      ),
+    };
+    const { client, invoke } = await createBmadReplyClient(
+      { kind: "bmad_library_snapshot", value: bmadLibrarySnapshot },
+      bootstrapWithoutLibrary,
+    );
+
+    await expect(client.bmadLibrarySnapshot()).rejects.toBeInstanceOf(HostCapabilityError);
+    expect(invoke).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not return an in-flight Method library after the current bootstrap enters recovery", async () => {
+    let resolveLibrary!: (value: unknown) => void;
+    const libraryReply = new Promise<unknown>((resolve) => {
+      resolveLibrary = resolve;
+    });
+    const invoke = vi.fn<TauriInvoke>(async (command) => {
+      if (command === "host_bootstrap") {
+        return readyBootstrap;
+      }
+      if (command === "host_projection_events") {
+        return {
+          schemaVersion: "desktop-projection-reply.v1",
+          rendererSessionId: readyBootstrap.rendererSessionId,
+          status: "events",
+          events: [{
+            sequence: 13,
+            occurredAt: 1_725_000_000_010,
+            event: {
+              type: "boot_state_changed",
+              projection: { mode: "read_only_recovery" },
+            },
+          }],
+        };
+      }
+      return libraryReply;
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      requestId: () => "request_bmad_recovery",
+    });
+    await client.bootstrap();
+
+    const pending = client.bmadLibrarySnapshot();
+    await client.projectionEvents(12);
+    resolveLibrary(successfulReply("request_bmad_recovery", {
+      kind: "bmad_library_snapshot",
+      value: bmadLibrarySnapshot,
+    }, 13));
+
+    await expect(pending).rejects.toBeInstanceOf(HostCapabilityError);
+  });
+
+  it.each([
+    ["dispatch data", {
+      kind: "bmad_library_snapshot",
+      value: bmadLibrarySnapshot,
+      owner: "must-not-cross-ipc",
+    }],
+    ["snapshot", {
+      kind: "bmad_library_snapshot",
+      value: { ...bmadLibrarySnapshot, workspaceId: "must-not-cross-ipc" },
+    }],
+    ["source", {
+      kind: "bmad_library_snapshot",
+      value: {
+        ...bmadLibrarySnapshot,
+        source: { ...bmadLibrarySnapshot.source, owner: "must-not-cross-ipc" },
+      },
+    }],
+    ["installed skill", {
+      kind: "bmad_library_snapshot",
+      value: {
+        ...bmadLibrarySnapshot,
+        installedSkills: [{
+          ...bmadLibrarySnapshot.installedSkills[0]!,
+          sessionId: "must-not-cross-ipc",
+        }],
+      },
+    }],
+    ["help action", {
+      kind: "bmad_library_snapshot",
+      value: {
+        ...bmadLibrarySnapshot,
+        helpActions: [{
+          ...bmadLibrarySnapshot.helpActions[0]!,
+          confidence: "must-not-cross-ipc",
+        }],
+      },
+    }],
+    ["method agent", {
+      kind: "bmad_library_snapshot",
+      value: {
+        ...bmadLibrarySnapshot,
+        methodAgents: [{
+          ...bmadLibrarySnapshot.methodAgents[0]!,
+          availabilityReason: "must-not-cross-ipc",
+        }],
+      },
+    }],
+    ["agent menu", {
+      kind: "bmad_library_snapshot",
+      value: {
+        ...bmadLibrarySnapshot,
+        methodAgents: [{
+          ...bmadLibrarySnapshot.methodAgents[0]!,
+          menus: [{
+            ...bmadLibrarySnapshot.methodAgents[0]!.menus[0]!,
+            prompt: "must-not-cross-ipc",
+          }],
+        }],
+      },
+    }],
+  ])("rejects unknown keys on the %s projection record", async (_record, data) => {
+    const { client } = await createBmadReplyClient(data);
+    await expect(client.bmadLibrarySnapshot()).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it.each([
+    ["installed skills", {
+      ...bmadLibrarySnapshot,
+      installedSkills: Array.from({ length: 65 }, (_, index) => ({
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        skillName: `skill_${index}`,
+      })),
+    }],
+    ["help actions", {
+      ...bmadLibrarySnapshot,
+      helpActions: Array.from({ length: 65 }, (_, index) => ({
+        ...bmadLibrarySnapshot.helpActions[0]!,
+        action: `action_${index}`,
+      })),
+    }],
+    ["method agents", {
+      ...bmadLibrarySnapshot,
+      methodAgents: Array.from({ length: 17 }, (_, index) => ({
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        agentCode: `agent_${index}`,
+      })),
+    }],
+    ["agent menus", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        menus: Array.from({ length: 33 }, (_, index) => ({
+          ...bmadLibrarySnapshot.methodAgents[0]!.menus[0]!,
+          code: `M_${index}`,
+        })),
+      }],
+    }],
+    ["skill actions", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [{
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        actions: Array.from({ length: 17 }, (_, index) => `action_${index}`),
+      }],
+    }],
+    ["expected artifacts", {
+      ...bmadLibrarySnapshot,
+      helpActions: [{
+        ...bmadLibrarySnapshot.helpActions[0]!,
+        expectedArtifacts: Array.from({ length: 17 }, (_, index) => `artifact ${index}`),
+      }],
+    }],
+  ])("rejects a Method library exceeding the native %s bound", async (_bound, value) => {
+    const { client } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value,
+    });
+    await expect(client.bmadLibrarySnapshot()).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it.each([
+    ["skill identity", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [
+        bmadLibrarySnapshot.installedSkills[0]!,
+        { ...bmadLibrarySnapshot.installedSkills[0]! },
+      ],
+    }],
+    ["help-action identity", {
+      ...bmadLibrarySnapshot,
+      helpActions: [
+        bmadLibrarySnapshot.helpActions[0]!,
+        { ...bmadLibrarySnapshot.helpActions[0]! },
+      ],
+    }],
+    ["help-action menu alias within a module", {
+      ...bmadLibrarySnapshot,
+      helpActions: [
+        bmadLibrarySnapshot.helpActions[0]!,
+        {
+          ...bmadLibrarySnapshot.helpActions[0]!,
+          action: "review",
+          skillName: "bmad-architecture-review",
+        },
+      ],
+    }],
+    ["agent identity", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [
+        bmadLibrarySnapshot.methodAgents[0]!,
+        { ...bmadLibrarySnapshot.methodAgents[0]! },
+      ],
+    }],
+    ["menu identity within one agent", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        menus: [
+          bmadLibrarySnapshot.methodAgents[0]!.menus[0]!,
+          { ...bmadLibrarySnapshot.methodAgents[0]!.menus[0]! },
+        ],
+      }],
+    }],
+  ])("rejects a duplicate composite %s", async (_identity, value) => {
+    const { client } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value,
+    });
+    await expect(client.bmadLibrarySnapshot()).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it("allows the same menu code on different agents", async () => {
+    const secondAgent = {
+      ...bmadLibrarySnapshot.methodAgents[0]!,
+      agentCode: "bmad-agent-second",
+      name: "Second agent",
+    };
+    const value = {
+      ...bmadLibrarySnapshot,
+      methodAgents: [bmadLibrarySnapshot.methodAgents[0]!, secondAgent],
+    };
+    const { client } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value,
+    });
+
+    await expect(client.bmadLibrarySnapshot()).resolves.toEqual(value);
+  });
+
+  it.each([
+    ["snapshot schema", { ...bmadLibrarySnapshot, schemaVersion: "bmad-library-snapshot.v2" }],
+    ["projection scope", { ...bmadLibrarySnapshot, scope: "workspace" }],
+    ["source kind", {
+      ...bmadLibrarySnapshot,
+      source: { ...bmadLibrarySnapshot.source, sourceKind: "downloaded_package" },
+    }],
+    ["entrypoint kind", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [{
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        entrypointKind: "host_script",
+      }],
+    }],
+    ["availability", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [{
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        availability: "future_state",
+      }],
+    }],
+    ["blocker code", {
+      ...bmadLibrarySnapshot,
+      helpActions: [{
+        ...bmadLibrarySnapshot.helpActions[0]!,
+        blockerCodes: ["internal_path_unavailable"],
+      }],
+    }],
+    ["duplicate blocker code", {
+      ...bmadLibrarySnapshot,
+      helpActions: [{
+        ...bmadLibrarySnapshot.helpActions[0]!,
+        blockerCodes: ["bmad_capability_disabled", "bmad_capability_disabled"],
+      }],
+    }],
+    ["menu target kind", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        menus: [{
+          ...bmadLibrarySnapshot.methodAgents[0]!.menus[0]!,
+          targetKind: "prompt_body",
+        }],
+      }],
+    }],
+    ["availability reason", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        menus: [{
+          ...bmadLibrarySnapshot.methodAgents[0]!.menus[0]!,
+          availabilityReason: "internal_path_unavailable",
+        }],
+      }],
+    }],
+    ["response cursor", { ...bmadLibrarySnapshot, nextCursor: "contains space" }],
+    ["identifier text", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [{
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        moduleCode: "not allowed",
+      }],
+    }],
+    ["multi-byte source text", {
+      ...bmadLibrarySnapshot,
+      source: { ...bmadLibrarySnapshot.source, packageName: "é".repeat(129) },
+    }],
+    ["description text", {
+      ...bmadLibrarySnapshot,
+      helpActions: [{
+        ...bmadLibrarySnapshot.helpActions[0]!,
+        description: "unsafe\u202Etext",
+      }],
+    }],
+    ["unpaired surrogate text", {
+      ...bmadLibrarySnapshot,
+      installedSkills: [{
+        ...bmadLibrarySnapshot.installedSkills[0]!,
+        displayName: "unsafe\uD800text",
+      }],
+    }],
+    ["description byte bound", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        description: "x".repeat(2_049),
+      }],
+    }],
+    ["icon byte bound", {
+      ...bmadLibrarySnapshot,
+      methodAgents: [{
+        ...bmadLibrarySnapshot.methodAgents[0]!,
+        icon: "x".repeat(65),
+      }],
+    }],
+  ])("rejects an invalid or unsafe BMAD %s", async (_field, value) => {
+    const { client } = await createBmadReplyClient({
+      kind: "bmad_library_snapshot",
+      value,
+    });
+    await expect(client.bmadLibrarySnapshot()).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
+  it.each([
+    ["bmad_projection_unavailable", "request_bmad_error"],
+    ["bmad_projection_gap", "request_bmad_error"],
+    ["renderer_session_expired", null],
+  ] as const)("surfaces the native local error code %s", async (code, replyRequestId) => {
+    const invoke = vi.fn<TauriInvoke>(async (command) => {
+      if (command === "host_bootstrap") {
+        return readyBootstrap;
+      }
+      return {
+        schemaVersion: "desktop-dispatch-reply.v1",
+        requestId: replyRequestId,
+        sequence: 12,
+        status: "error",
+        error: {
+          code,
+          safeMessage: "The Method library request is unavailable. Retry from the desktop.",
+          retryable: true,
+          correlationId: replyRequestId,
+        },
+      };
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      requestId: () => "request_bmad_error",
+    });
+    await client.bootstrap();
+
+    await expect(client.bmadLibrarySnapshot()).rejects.toMatchObject({
+      name: HostCommandError.name,
+      details: { code },
+    });
+  });
+
+  it("accepts the exact BMAD library invalidation event", async () => {
+    const invoke = vi.fn<TauriInvoke>(async (command) => {
+      if (command === "host_bootstrap") {
+        return readyBootstrap;
+      }
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: readyBootstrap.rendererSessionId,
+        status: "events",
+        events: [{
+          sequence: 13,
+          occurredAt: 1_725_000_000_010,
+          event: {
+            type: "bmad.projection_changed",
+            projection: { scope: "library" },
+          },
+        }],
+      };
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.projectionEvents(12)).resolves.toEqual([{
+      sequence: 13,
+      occurredAt: 1_725_000_000_010,
+      event: {
+        type: "bmad.projection_changed",
+        projection: { scope: "library" },
+      },
+    }]);
+  });
+
+  it.each([
+    { scope: "workspace" },
+    { scope: "library", owner: "must-not-cross-ipc" },
+  ])("rejects an invalid BMAD library invalidation payload %j", async (projection) => {
+    const invoke = vi.fn<TauriInvoke>(async (command) => {
+      if (command === "host_bootstrap") {
+        return readyBootstrap;
+      }
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: readyBootstrap.rendererSessionId,
+        status: "events",
+        events: [{
+          sequence: 13,
+          occurredAt: 1_725_000_000_010,
+          event: { type: "bmad.projection_changed", projection },
+        }],
+      };
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+
+    await expect(client.projectionEvents(12)).rejects.toBeInstanceOf(HostProtocolError);
+  });
+
   it("constructs the exact renderer-bound command envelope", async () => {
     const invoke = vi.fn<TauriInvoke>(async (command, args) => {
       if (command === "host_bootstrap") {
@@ -873,8 +1717,8 @@ describe("DesktopHostClient", () => {
               sequence: 13,
               occurredAt: 1_725_000_000_010,
               event: {
-                type: "session_changed",
-                projection: { sessionId: "session_01K0Q6H3", state: "created" },
+                type: "model_response_received",
+                projection: { responseId: "response_01K0Q6H3" },
               },
             }],
           };
@@ -1019,7 +1863,7 @@ describe("DesktopHostClient", () => {
     })).toThrow(HostProtocolError);
     expect(() => parseBootstrapReply({
       ...readyBootstrap,
-      workspaces: [{ ...readyBootstrap.workspaces[0], permissions: "governed_edits" }],
+      workspaces: [{ ...readyBootstrap.workspaces[0], permissions: "unrestricted" }],
     })).toThrow(HostProtocolError);
     expect(() => parseBootstrapReply({
       ...readyBootstrap,

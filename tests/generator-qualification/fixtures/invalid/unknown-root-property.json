@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "unknown root"
+  },
+  "nullableValue": null,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_A1B2"
+  },
+  "label": "unknown root",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  },
+  "unexpected": true
+}

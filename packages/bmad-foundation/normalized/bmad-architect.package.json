@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-architect",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_6D3512C6F9014A2344418CE0B53B1C9ED8521E6BF8B337F2A802ADE6307146E4",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+      "contentHash": "sha256:82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
+        "contentHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/architect-persona.instructions.md",
+      "contentHash": "sha256:6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:e5090da3280f47e796f41dc30de53d5bca6dea9e2dd0cc9da98be3301f6aa734"
+  },
+  "projectionEnvelopeHash": "sha256:1f050174846683e136ce99f659e102a7b361c9c04dd5019a9f006c472fdc3c14"
+}

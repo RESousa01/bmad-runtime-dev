@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "text": "depth-nine"
+  },
+  "nullableValue": null,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_D9E9"
+  },
+  "label": "depth-nine",
+  "items": [],
+  "node": {
+    "value": "depth-2",
+    "next": {
+      "value": "depth-3",
+      "next": {
+        "value": "depth-4",
+        "next": {
+          "value": "depth-5",
+          "next": {
+            "value": "depth-6",
+            "next": {
+              "value": "depth-7",
+              "next": {
+                "value": "depth-8",
+                "next": {
+                  "value": "depth-9",
+                  "next": null
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.generator-qualification.v1",
+  "variant": {
+    "kind": "text",
+    "count": 1
+  },
+  "nullableValue": null,
+  "signedValue": 0,
+  "unsignedValue": 0,
+  "interoperableValue": 0,
+  "externalValue": {
+    "code": "ext_A1B2"
+  },
+  "label": "union transplant",
+  "items": [],
+  "node": {
+    "value": "terminal",
+    "next": null
+  }
+}

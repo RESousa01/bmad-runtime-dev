@@ -1,0 +1,29 @@
+{
+  "name": "@sapphirus/bmad-foundation",
+  "version": "0.1.0-beta.1",
+  "description": "Hash-locked, first-party BMAD Method and Builder semantic foundation.",
+  "private": true,
+  "type": "module",
+  "files": [
+    "adoption-ledger.json",
+    "semantic-source-ledger.json",
+    "NOTICE.md",
+    "licenses",
+    "normalized",
+    "runtime",
+    "runtime-manifest.json",
+    "scripts",
+    "tests",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "node ./scripts/verify.mjs",
+    "lint": "node ./scripts/verify.mjs",
+    "test": "node --test --test-isolation=none ./tests/*.test.mjs",
+    "verify": "node ./scripts/verify.mjs && node --test --test-isolation=none ./tests/*.test.mjs"
+  },
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.12.0"
+  }
+}

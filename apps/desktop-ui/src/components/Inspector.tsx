@@ -1,38 +1,38 @@
 import { Button, Tab, TabList, TabPanel, Tabs } from "@sapphirus/ui";
-import {
-  ChevronRight,
-  FileCode2,
-  PencilLine,
-  ShieldCheck,
-  Trash2,
-  X,
-} from "lucide-react";
-import type { InspectorTab, ProposalState } from "../data/demo";
+import { FileCode2, ShieldCheck, X } from "lucide-react";
+import type { InspectorTab } from "../data/demo";
 import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { BmadHelpUiState, BmadLibraryUiState } from "../lib/bmadProjection";
 import type { WorkspaceProjectionProvenance } from "../lib/workspaceReadSource";
 import { containModalPanelFocus, useModalPanelFocus } from "../lib/panelFocus";
-import { CodeDiff } from "./CodeDiff";
+import { BmadHelpCard } from "./BmadHelpCard";
+import { BmadLibraryPanel } from "./BmadLibraryPanel";
+import {
+  GovernedChangesPanel,
+  type GovernedChangesPanelProps,
+} from "./GovernedChangesPanel";
 
-const inspectorTabs: Array<{ id: InspectorTab; label: string }> = [
-  { id: "context", label: "Context" },
-  { id: "changes", label: "Changes" },
-  { id: "logs", label: "Logs" },
-  { id: "evidence", label: "Evidence" },
+const inspectorTabs: Array<{ accessibleLabel: string; id: InspectorTab; label: string }> = [
+  { accessibleLabel: "Context", id: "context", label: "Context" },
+  { accessibleLabel: "Changes", id: "changes", label: "Changes" },
+  { accessibleLabel: "Logs", id: "logs", label: "Logs" },
+  { accessibleLabel: "Evidence", id: "evidence", label: "Evidence" },
+  { accessibleLabel: "Method library", id: "method", label: "Method" },
 ];
 
 export interface InspectorProps {
+  bmadHelpState: BmadHelpUiState;
+  bmadLibraryState: BmadLibraryUiState;
+  changesPanel: GovernedChangesPanelProps;
   contextPreview: ContextPreviewProjection | null;
   contextProvenance: WorkspaceProjectionProvenance | null;
-  interactionDisabled: boolean;
   isInert?: boolean;
   isOpen: boolean;
   isOverlay: boolean;
-  onApply: () => void;
+  methodLibraryAvailable: boolean;
   onClose: () => void;
-  onDiscard: () => void;
-  onRevise: () => void;
+  onReloadMethodLibrary: () => void;
   onTabChange: (tab: InspectorTab) => void;
-  proposalState: ProposalState;
   selectedTab: InspectorTab;
 }
 
@@ -112,75 +112,19 @@ function ContextPanel({
   );
 }
 
-function ChangesPanel({
-  interactionDisabled,
-  onApply,
-  onDiscard,
-  onRevise,
-  proposalState,
-}: Pick<InspectorProps, "interactionDisabled" | "onApply" | "onDiscard" | "onRevise" | "proposalState">) {
-  if (proposalState === "discarded") {
-    return (
-      <div className="inspector-empty-state">
-        <Trash2 aria-hidden="true" size={24} />
-        <h3>No proposed changes</h3>
-        <p>The previous proposal was discarded without changing your local workspace.</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="inspector-preview-callout" role="note">
-        <strong>Preview demo</strong>
-        <span>No candidate, approval, checkpoint, or file write exists for these sample changes.</span>
-      </div>
-      <div className="proposal-files">
-        <strong>2 preview files</strong>
-        <div className="proposal-file-row">
-          <ChevronRight aria-hidden="true" size={16} />
-          <code>src/scan/workspace_scanner.ts</code>
-          <span className="change-count change-count--added">+142</span>
-        </div>
-        <div className="proposal-file-row">
-          <ChevronRight aria-hidden="true" size={16} />
-          <code>tests/scan/workspace_scanner.test.ts</code>
-          <span className="change-count"><b>+88</b> <i>−11</i></span>
-        </div>
-      </div>
-      <CodeDiff />
-      <div className="change-actions">
-        <Button isDisabled={interactionDisabled} onPress={onDiscard} size="large" variant="secondary">
-          <Trash2 aria-hidden="true" size={17} />
-          Discard
-        </Button>
-        <Button isDisabled={interactionDisabled} onPress={onRevise} size="large" variant="secondary">
-          <PencilLine aria-hidden="true" size={17} />
-          Revise
-        </Button>
-        <Button isDisabled={interactionDisabled} onPress={onApply} size="large" variant="primary">
-          <ShieldCheck aria-hidden="true" size={17} />
-          Apply changes
-        </Button>
-      </div>
-      <p className="inspector-footnote">Preview only — Apply changes is unavailable in this internal build.</p>
-    </>
-  );
-}
-
 export function Inspector({
+  bmadHelpState,
+  bmadLibraryState,
+  changesPanel,
   contextPreview,
   contextProvenance,
-  interactionDisabled,
   isInert = false,
   isOpen,
   isOverlay,
-  onApply,
+  methodLibraryAvailable,
   onClose,
-  onDiscard,
-  onRevise,
+  onReloadMethodLibrary,
   onTabChange,
-  proposalState,
   selectedTab,
 }: InspectorProps) {
   const isModal = isOverlay && isOpen;
@@ -192,7 +136,7 @@ export function Inspector({
       aria-hidden={isHidden || undefined}
       aria-label="Inspector"
       aria-modal={isModal || undefined}
-      className={`inspector ${isOpen ? "is-open" : ""}`}
+      className={`inspector ${isOpen ? "is-open" : ""} ${methodLibraryAvailable ? "has-method-library" : ""}`}
       inert={isHidden || isInert}
       onKeyDown={(event) => containModalPanelFocus(event, panelRef, isModal)}
       ref={panelRef}
@@ -212,20 +156,17 @@ export function Inspector({
         onSelectionChange={(key) => onTabChange(key as InspectorTab)}
         selectedKey={selectedTab}
       >
-        <TabList aria-label="Inspector sections" items={inspectorTabs}>
-          {(item) => <Tab id={item.id}>{item.label}</Tab>}
+        <TabList
+          aria-label="Inspector sections"
+          items={inspectorTabs.filter((item) => item.id !== "method" || methodLibraryAvailable)}
+        >
+          {(item) => <Tab aria-label={item.accessibleLabel} id={item.id}>{item.label}</Tab>}
         </TabList>
         <TabPanel id="context">
           <ContextPanel contextPreview={contextPreview} contextProvenance={contextProvenance} />
         </TabPanel>
         <TabPanel className="changes-tab-panel" id="changes">
-          <ChangesPanel
-            interactionDisabled={interactionDisabled}
-            onApply={onApply}
-            onDiscard={onDiscard}
-            onRevise={onRevise}
-            proposalState={proposalState}
-          />
+          <GovernedChangesPanel {...changesPanel} />
         </TabPanel>
         <TabPanel id="logs">
           <div className="log-panel">
@@ -253,6 +194,17 @@ export function Inspector({
             </div>
           </div>
         </TabPanel>
+        {methodLibraryAvailable ? (
+          <TabPanel id="method">
+            <div className="method-library-panel">
+              <BmadHelpCard state={bmadHelpState} />
+              <BmadLibraryPanel
+                onReload={onReloadMethodLibrary}
+                state={bmadLibraryState}
+              />
+            </div>
+          </TabPanel>
+        ) : null}
       </Tabs>
     </aside>
   );

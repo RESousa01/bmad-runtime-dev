@@ -1,12 +1,13 @@
 use desktop_runtime::{
-    ApprovalChoice, CommandReceipt, ContractId, LocalCommand, LocalError, ProjectionEvent,
-    RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId,
+    LocalCommand, LocalError, ProjectionEvent, ProposedFileChange, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::unique_json::UniqueJson;
+use crate::bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload};
 
 pub const MAX_COMMAND_BYTES: usize = 128 * 1024;
 const MAX_JSON_DEPTH: usize = 16;
@@ -21,6 +22,7 @@ const MAX_LIST_ENTRIES: u16 = 500;
 const MAX_SEARCH_RESULTS: u16 = 200;
 const MAX_REQUEST_AGE_MS: u64 = 5 * 60 * 1000;
 const MAX_FUTURE_SKEW_MS: u64 = 30 * 1000;
+const MAX_SAFE_JSON_INTEGER: u64 = 9_007_199_254_740_991;
 
 #[derive(Clone, Debug)]
 pub struct IpcValidationContext {
@@ -124,8 +126,8 @@ impl CommandEnvelopeValidator {
         if bytes.len() > MAX_COMMAND_BYTES {
             return Err(IpcValidationError::EnvelopeTooLarge);
         }
-        let UniqueJson(value) =
-            serde_json::from_slice(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
+        let value: Value =
+            deserialize_strict_json(bytes).map_err(|_| IpcValidationError::InvalidJson)?;
         let mut nodes = 0;
         validate_structure(&value, 0, &mut nodes)?;
         let raw: RawCommandEnvelope =
@@ -175,7 +177,15 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.read_text"
             | "workspace.search"
             | "bmad.scan"
+            | "bmad.library.snapshot"
+            | "bmad.help.latest"
+            | "run.create"
             | "context.preview"
+            | "workspace.enable_edits"
+            | "changes.propose"
+            | "approval.decide"
+            | "rollback.request"
+            | "changes.history"
     )
 }
 
@@ -276,6 +286,43 @@ struct BundleIdPayload {
     bundle_id: ContractId,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum BmadRunKindPayload {
+    BmadHelp,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct CreateBmadRunPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    run_kind: BmadRunKindPayload,
+    current_intent: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LatestBmadHelpRunPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorkspaceEpochPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ProposeChangesPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    changes: Vec<ProposedFileChange>,
+}
+
 fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
     match command {
         "app.get_boot_state" => {
@@ -305,9 +352,121 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 workspace_id: input.workspace_id,
             })
         }
+        "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
+        "bmad.help.latest" => parse_bmad_help_latest(payload),
+        "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
+        "workspace.enable_edits" => {
+            let input = parse_workspace_epoch(payload)?;
+            Ok(LocalCommand::EnableWorkspaceEdits {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
+        "changes.propose" => parse_propose_changes(payload),
+        "approval.decide" => {
+            let input: ApprovalPayload = parse_payload(payload)?;
+            Ok(LocalCommand::DecideApproval {
+                approval_id: input.approval_id,
+                candidate_hash: input.candidate_hash,
+                displayed_diff_hash: input.displayed_diff_hash,
+                choice: input.choice,
+            })
+        }
+        "rollback.request" => {
+            let input: ExecutionIdPayload = parse_payload(payload)?;
+            Ok(LocalCommand::RequestRollback {
+                execution_id: input.execution_id,
+            })
+        }
+        "changes.history" => {
+            let input = parse_workspace_epoch(payload)?;
+            Ok(LocalCommand::ChangesHistory {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
         _ => parse_later_phase_command(command, payload),
     }
+}
+
+fn parse_workspace_epoch(payload: Value) -> Result<WorkspaceEpochPayload, IpcValidationError> {
+    let input: WorkspaceEpochPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(input)
+}
+
+fn parse_propose_changes(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ProposeChangesPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    if input.changes.is_empty() || input.changes.len() > HARD_MAX_CHANGED_FILES as usize {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    let unique_paths: std::collections::BTreeSet<_> = input
+        .changes
+        .iter()
+        .map(|change| change.relative_path().case_folded())
+        .collect();
+    if unique_paths.len() != input.changes.len() {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    for change in &input.changes {
+        if let ProposedFileChange::SetContent { content, .. } = change {
+            if content.contains('\0') || content.len() > MAX_STRING_BYTES {
+                return Err(IpcValidationError::InvalidPayload);
+            }
+        }
+    }
+    Ok(LocalCommand::ProposeChanges {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        changes: input.changes,
+    })
+}
+
+fn parse_bmad_help_latest(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: LatestBmadHelpRunPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::LatestBmadHelpRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+    })
+}
+
+fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: CreateBmadRunPayload = parse_payload(payload)?;
+    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    let BmadRunKindPayload::BmadHelp = input.run_kind;
+    let current_intent = BmadHelpIntent::new(input.current_intent)
+        .map_err(|_| IpcValidationError::InvalidPayload)?;
+    Ok(LocalCommand::CreateBmadHelpRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        current_intent,
+    })
+}
+
+fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadLibrarySnapshotPayload = parse_payload(payload)?;
+    if input
+        .cursor
+        .as_deref()
+        .is_some_and(|cursor| !valid_bmad_cursor(cursor))
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::BmadLibrarySnapshot {
+        scope: input.scope,
+        cursor: input.cursor,
+    })
 }
 
 fn parse_list_entries(payload: Value) -> Result<LocalCommand, IpcValidationError> {
@@ -406,21 +565,6 @@ fn parse_later_phase_command(
             let input: TaskIdPayload = parse_payload(payload)?;
             Ok(LocalCommand::CancelTask {
                 task_id: input.task_id,
-            })
-        }
-        "approval.decide" => {
-            let input: ApprovalPayload = parse_payload(payload)?;
-            Ok(LocalCommand::DecideApproval {
-                approval_id: input.approval_id,
-                candidate_hash: input.candidate_hash,
-                displayed_diff_hash: input.displayed_diff_hash,
-                choice: input.choice,
-            })
-        }
-        "rollback.request" => {
-            let input: ExecutionIdPayload = parse_payload(payload)?;
-            Ok(LocalCommand::RequestRollback {
-                execution_id: input.execution_id,
             })
         }
         "evidence.materialize" => {
@@ -584,8 +728,6 @@ mod tests {
             "session.create",
             "task.submit",
             "task.cancel",
-            "approval.decide",
-            "rollback.request",
             "evidence.materialize",
             "evidence.export",
         ] {
