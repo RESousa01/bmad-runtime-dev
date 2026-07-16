@@ -33,6 +33,15 @@ IMPLEMENTATION_STATUSES = {
 }
 CONFIDENCE_LEVELS = {"high", "medium", "low"}
 REGISTRY_FILES = ("claims.json", "sources.json", "note-catalog.json", "pins.json")
+AUTHORITY_CLASSES = {
+    "current_authority",
+    "supporting_reference",
+    "source_evidence",
+    "planned",
+    "superseded",
+    "historical",
+    "preserved_verbatim",
+}
 
 
 @dataclass
@@ -139,6 +148,47 @@ def _validate_claims(
             )
 
 
+def _validate_catalog(
+    vault_root: Path, document: Any, records: list[Any], result: ValidationResult
+) -> None:
+    paths: set[str] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            result.errors.append("note-catalog.json: note records must be objects")
+            continue
+        path = record.get("path")
+        if not isinstance(path, str) or not path.strip():
+            result.errors.append("note-catalog.json: note record requires path")
+            continue
+        if path in paths:
+            result.errors.append(f"note-catalog.json: duplicate path {path!r}")
+        paths.add(path)
+        if record.get("authorityClass") not in AUTHORITY_CLASSES:
+            result.errors.append(
+                f"note-catalog.json: {path!r} has invalid authorityClass"
+            )
+        if not isinstance(record.get("reason"), str) or not record["reason"].strip():
+            result.errors.append(f"note-catalog.json: {path!r} requires reason")
+        superseded_by = record.get("supersededBy")
+        if superseded_by is not None and not isinstance(superseded_by, str):
+            result.errors.append(
+                f"note-catalog.json: {path!r} has invalid supersededBy"
+            )
+
+    manifest_path = vault_root / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_paths = {
+            record["name"]
+            for record in manifest["files"]
+            if isinstance(record, dict) and isinstance(record.get("name"), str)
+        }
+    except (FileNotFoundError, KeyError, TypeError, json.JSONDecodeError):
+        return
+    if paths != manifest_paths or document.get("rootNoteCount") != len(manifest_paths):
+        result.errors.append("note-catalog.json: root-note coverage mismatch")
+
+
 def validate_living_knowledge(
     vault_root: Path, repository_root: Path
 ) -> ValidationResult:
@@ -170,10 +220,16 @@ def validate_living_knowledge(
     _validate_claims(claim_records, source_ids, result)
 
     if "note-catalog.json" in documents:
-        _records(
+        catalog_records = _records(
             documents["note-catalog.json"],
             "note-catalog.json",
             "notes",
+            result,
+        )
+        _validate_catalog(
+            vault_root,
+            documents["note-catalog.json"],
+            catalog_records,
             result,
         )
     if "pins.json" in documents:

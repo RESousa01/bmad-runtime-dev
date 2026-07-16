@@ -76,6 +76,20 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
             {"schemaVersion": "sapphirus.living-knowledge.v1", "pins": []},
         )
 
+    def write_root_manifest(self, names: list[str]) -> None:
+        (self.vault / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "files": [
+                        {"name": name, "lines": 1, "bytes": 1, "sha256": "0" * 64}
+                        for name in names
+                    ]
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+
     def test_missing_registries_fail_closed(self) -> None:
         result = validate_living_knowledge(self.vault, self.repo)
         self.assertIn(
@@ -101,6 +115,17 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
         result = validate_living_knowledge(self.vault, self.repo)
 
         self.assertIn("claims.json: invalid claim id 'claim-one'", result.errors)
+
+    def test_catalog_covers_every_root_manifest_note(self) -> None:
+        self.write_minimum_registries()
+        self.write_root_manifest(["00 - Example.md"])
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "note-catalog.json: root-note coverage mismatch",
+            result.errors,
+        )
 
 
 if __name__ == "__main__":
