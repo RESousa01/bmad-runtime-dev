@@ -151,6 +151,51 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
             result.errors,
         )
 
+    def test_json_pin_drift_is_reported(self) -> None:
+        self.write_minimum_registries()
+        self.write_json(
+            "pins.json",
+            {
+                "schemaVersion": "sapphirus.living-knowledge.v1",
+                "pins": [
+                    {
+                        "id": "pnpm",
+                        "mode": "json_path",
+                        "path": "package.json",
+                        "selector": ["packageManager"],
+                        "expected": "pnpm@11.12.0",
+                    }
+                ],
+            },
+        )
+        (self.repo / "package.json").write_text(
+            json.dumps({"packageManager": "pnpm@11.9.0"}),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "pins.json: pin pnpm mismatch: expected 'pnpm@11.12.0', observed 'pnpm@11.9.0'",
+            result.errors,
+        )
+
+    def test_current_authority_is_rejected_outside_current_directory(self) -> None:
+        self.write_minimum_registries()
+        (self.vault / "Legacy.md").write_text(
+            "---\nauthority: current\n---\n\n# Legacy\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "Legacy.md: current authority is allowed only in knowledge-base/current",
+            result.errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

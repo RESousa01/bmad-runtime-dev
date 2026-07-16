@@ -122,6 +122,13 @@ def _validate_claims(
             result.errors.append(
                 f"claims.json: claim {identifier!r} has invalid implementationStatus"
             )
+        if (
+            record.get("classification") == "WORKTREE_CANDIDATE"
+            and record.get("implementationStatus") == "implemented"
+        ):
+            result.errors.append(
+                f"claims.json: claim {identifier!r} cannot present WORKTREE_CANDIDATE as implemented"
+            )
         if record.get("confidence") not in CONFIDENCE_LEVELS:
             result.errors.append(
                 f"claims.json: claim {identifier!r} has invalid confidence"
@@ -207,6 +214,101 @@ def _validate_current_notes(
         result.errors.append(f"claims.json: claim {claim_id!r} is not referenced by current notes")
 
 
+def _validate_authority_locations(vault_root: Path, result: ValidationResult) -> None:
+    candidates = list(vault_root.glob("*.md"))
+    knowledge_root = vault_root / "knowledge-base"
+    if knowledge_root.is_dir():
+        candidates.extend(
+            path
+            for path in knowledge_root.rglob("*.md")
+            if "current" not in path.relative_to(knowledge_root).parts
+        )
+    for path in candidates:
+        text = path.read_text(encoding="utf-8-sig")
+        if _frontmatter_value(text, "authority") == "current":
+            relative = path.relative_to(vault_root).as_posix()
+            result.errors.append(
+                f"{relative}: current authority is allowed only in knowledge-base/current"
+            )
+
+
+def _repository_path(
+    repository_root: Path, relative: Any, pin_id: Any, result: ValidationResult
+) -> Path | None:
+    if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
+        result.errors.append(f"pins.json: pin {pin_id} has invalid path")
+        return None
+    root = repository_root.resolve()
+    candidate = (root / relative).resolve()
+    if not candidate.is_relative_to(root):
+        result.errors.append(f"pins.json: pin {pin_id} path escapes repository root")
+        return None
+    return candidate
+
+
+def _json_path_value(document: Any, selector: Any) -> Any:
+    if not isinstance(selector, list) or not selector:
+        raise ValueError("json_path selector must be a non-empty array")
+    value = document
+    for part in selector:
+        if not isinstance(part, str) or not isinstance(value, dict) or part not in value:
+            raise ValueError("json_path selector does not resolve")
+        value = value[part]
+    return value
+
+
+def _validate_pins(
+    repository_root: Path, records: list[Any], result: ValidationResult
+) -> None:
+    identifiers: set[str] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            result.errors.append("pins.json: pin records must be objects")
+            continue
+        pin_id = record.get("id")
+        if not isinstance(pin_id, str) or not pin_id:
+            result.errors.append("pins.json: pin record requires id")
+            continue
+        if pin_id in identifiers:
+            result.errors.append(f"pins.json: duplicate pin id {pin_id!r}")
+        identifiers.add(pin_id)
+        mode = record.get("mode")
+        expected = record.get("expected")
+        if mode not in {"exact_text", "json_path", "regex"}:
+            result.errors.append(f"pins.json: pin {pin_id} has invalid mode")
+            continue
+        if not isinstance(expected, str):
+            result.errors.append(f"pins.json: pin {pin_id} requires string expected")
+            continue
+        path = _repository_path(repository_root, record.get("path"), pin_id, result)
+        if path is None:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+            if mode == "exact_text":
+                observed: Any = text.rstrip("\r\n")
+            elif mode == "json_path":
+                observed = _json_path_value(json.loads(text), record.get("selector"))
+            else:
+                selector = record.get("selector")
+                if not isinstance(selector, str):
+                    raise ValueError("regex selector must be a string")
+                pattern = re.compile(selector)
+                if pattern.groups != 1:
+                    raise ValueError("regex selector must contain one capture group")
+                match = pattern.search(text)
+                if match is None:
+                    raise ValueError("regex selector does not match")
+                observed = match.group(1)
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, re.error, ValueError) as exc:
+            result.errors.append(f"pins.json: pin {pin_id} cannot be evaluated ({exc})")
+            continue
+        if observed != expected:
+            result.errors.append(
+                f"pins.json: pin {pin_id} mismatch: expected {expected!r}, observed {observed!r}"
+            )
+
+
 def _validate_catalog(
     vault_root: Path, document: Any, records: list[Any], result: ValidationResult
 ) -> None:
@@ -253,7 +355,6 @@ def validate_living_knowledge(
 ) -> ValidationResult:
     """Validate living-knowledge registries without network or mutation."""
 
-    del repository_root  # Pin and containment checks are added in a later slice.
     result = ValidationResult()
     evidence = vault_root / "knowledge-base" / "evidence"
     documents: dict[str, Any] = {}
@@ -292,6 +393,8 @@ def validate_living_knowledge(
             result,
         )
     if "pins.json" in documents:
-        _records(documents["pins.json"], "pins.json", "pins", result)
+        pin_records = _records(documents["pins.json"], "pins.json", "pins", result)
+        _validate_pins(repository_root, pin_records, result)
     _validate_current_notes(vault_root, claim_ids, result)
+    _validate_authority_locations(vault_root, result)
     return result
