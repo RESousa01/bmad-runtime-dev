@@ -127,6 +127,30 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
             result.errors,
         )
 
+    def test_current_authority_requires_eight_notes(self) -> None:
+        self.write_minimum_registries()
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "knowledge-base/current: expected 8 authority notes, found 0",
+            result.errors,
+        )
+
+    def test_claim_requires_two_sources_or_an_exception(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        claims["claims"][0]["singleSourceException"] = ""
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "claims.json: claim 'KB-CORE-001' requires two sources or singleSourceException",
+            result.errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -101,7 +101,7 @@ def _validate_sources(records: list[Any], result: ValidationResult) -> set[str]:
 
 def _validate_claims(
     records: list[Any], source_ids: set[str], result: ValidationResult
-) -> None:
+) -> set[str]:
     identifiers: set[str] = set()
     for record in records:
         if not isinstance(record, dict):
@@ -142,10 +142,69 @@ def _validate_claims(
                     result.errors.append(
                         f"claims.json: claim {identifier!r} references unknown source {source_id!r}"
                     )
+            exception = record.get("singleSourceException")
+            if len(linked_sources) < 2 and (
+                not isinstance(exception, str) or not exception.strip()
+            ):
+                result.errors.append(
+                    f"claims.json: claim {identifier!r} requires two sources or singleSourceException"
+                )
         if not isinstance(record.get("supersedes"), list):
             result.errors.append(
                 f"claims.json: claim {identifier!r} requires supersedes array"
             )
+    return identifiers
+
+
+def _frontmatter_value(text: str, field_name: str) -> str | None:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    for line in lines[1:]:
+        if line.strip() == "---":
+            return None
+        if line.startswith(f"{field_name}:"):
+            return line.split(":", 1)[1].strip().strip('"')
+    return None
+
+
+def _claim_id_list(value: str | None) -> list[str] | None:
+    if value is None or not value.startswith("[") or not value.endswith("]"):
+        return None
+    return [item.strip() for item in value[1:-1].split(",") if item.strip()]
+
+
+def _validate_current_notes(
+    vault_root: Path, claim_ids: set[str], result: ValidationResult
+) -> None:
+    current_root = vault_root / "knowledge-base" / "current"
+    notes = sorted(current_root.glob("*.md")) if current_root.is_dir() else []
+    if len(notes) != 8:
+        result.errors.append(
+            f"knowledge-base/current: expected 8 authority notes, found {len(notes)}"
+        )
+    referenced: set[str] = set()
+    for path in notes:
+        text = path.read_text(encoding="utf-8-sig")
+        relative = path.relative_to(vault_root).as_posix()
+        if _frontmatter_value(text, "authority") != "current":
+            result.errors.append(f"{relative}: authority must be current")
+        commit = _frontmatter_value(text, "repository_commit")
+        if commit is None or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+            result.errors.append(f"{relative}: invalid repository_commit")
+        cutoff = _frontmatter_value(text, "research_cutoff")
+        if cutoff is None or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", cutoff) is None:
+            result.errors.append(f"{relative}: invalid research_cutoff")
+        note_claim_ids = _claim_id_list(_frontmatter_value(text, "claim_ids"))
+        if not note_claim_ids:
+            result.errors.append(f"{relative}: claim_ids must be a non-empty inline list")
+            continue
+        for claim_id in note_claim_ids:
+            if claim_id not in claim_ids:
+                result.errors.append(f"{relative}: unknown claim id {claim_id!r}")
+            referenced.add(claim_id)
+    for claim_id in sorted(claim_ids - referenced):
+        result.errors.append(f"claims.json: claim {claim_id!r} is not referenced by current notes")
 
 
 def _validate_catalog(
@@ -217,7 +276,7 @@ def validate_living_knowledge(
         "claims",
         result,
     ) if "claims.json" in documents else []
-    _validate_claims(claim_records, source_ids, result)
+    claim_ids = _validate_claims(claim_records, source_ids, result)
 
     if "note-catalog.json" in documents:
         catalog_records = _records(
@@ -234,4 +293,5 @@ def validate_living_knowledge(
         )
     if "pins.json" in documents:
         _records(documents["pins.json"], "pins.json", "pins", result)
+    _validate_current_notes(vault_root, claim_ids, result)
     return result
