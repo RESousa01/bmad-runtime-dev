@@ -6,10 +6,11 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+import subprocess
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 
@@ -45,6 +46,13 @@ AUTHORITY_CLASSES = {
     "historical",
     "preserved_verbatim",
 }
+OFFICIAL_SOURCE_HOSTS = {
+    "devblogs.microsoft.com",
+    "nodejs.org",
+    "react.dev",
+    "vite.dev",
+}
+GitBlobReader = Callable[[Path, str, str], bytes]
 
 
 @dataclass
@@ -82,7 +90,10 @@ def _records(
 
 
 def _validate_sources(
-    records: list[Any], repository_root: Path, result: ValidationResult
+    records: list[Any],
+    repository_root: Path,
+    result: ValidationResult,
+    git_blob_reader: GitBlobReader,
 ) -> dict[str, dict[str, Any]]:
     identifiers: set[str] = set()
     valid_records: dict[str, dict[str, Any]] = {}
@@ -102,26 +113,45 @@ def _validate_sources(
                 result.errors.append(
                     f"sources.json: source {identifier!r} requires {field_name}"
                 )
+        if record.get("authority") != "primary":
+            result.errors.append(
+                f"sources.json: source {identifier!r} authority must be primary"
+            )
+        try:
+            date.fromisoformat(record.get("retrievedAt"))
+        except (TypeError, ValueError):
+            result.errors.append(
+                f"sources.json: source {identifier!r} has invalid retrievedAt"
+            )
         source_type = record.get("type")
         locator = record.get("locator")
         if source_type == "repository" and isinstance(locator, str):
-            target = _repository_path(
-                repository_root, locator, identifier, result, registry="sources.json"
-            )
-            if target is not None and not target.is_file():
-                result.errors.append(
-                    f"sources.json: source {identifier!r} locator does not exist"
-                )
+            target = _repository_path(repository_root, locator, identifier, result, registry="sources.json")
             commit = record.get("repositoryCommit")
             if not isinstance(commit, str) or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
                 result.errors.append(
                     f"sources.json: source {identifier!r} requires repositoryCommit"
                 )
+            elif target is not None:
+                try:
+                    git_blob_reader(repository_root, commit, locator)
+                except (OSError, subprocess.SubprocessError, ValueError) as exc:
+                    result.errors.append(
+                        f"sources.json: source {identifier!r} is not available at repositoryCommit ({exc})"
+                    )
+            if target is not None and not target.is_file():
+                result.errors.append(
+                    f"sources.json: source {identifier!r} locator does not exist in the working tree"
+                )
         elif source_type == "external_official" and isinstance(locator, str):
             parsed = urlparse(locator)
-            if parsed.scheme != "https" or not parsed.netloc:
+            if (
+                parsed.scheme != "https"
+                or not parsed.netloc
+                or parsed.hostname not in OFFICIAL_SOURCE_HOSTS
+            ):
                 result.errors.append(
-                    f"sources.json: source {identifier!r} requires an HTTPS locator"
+                    f"sources.json: source {identifier!r} is not on the reviewed official-source allowlist"
                 )
         elif source_type not in {"repository", "external_official"}:
             result.errors.append(
@@ -131,10 +161,31 @@ def _validate_sources(
     return valid_records
 
 
+def _read_git_blob(repository_root: Path, commit: str, locator: str) -> bytes:
+    completed = subprocess.run(
+        [
+            "git",
+            "-c",
+            f"safe.directory={repository_root.resolve().as_posix()}",
+            "show",
+            f"{commit}:{locator}",
+        ],
+        cwd=repository_root,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise ValueError(detail or "git object lookup failed")
+    return completed.stdout
+
+
 def _validate_claims(
     records: list[Any], sources: dict[str, dict[str, Any]], result: ValidationResult
 ) -> set[str]:
     identifiers: set[str] = set()
+    claims_by_id: dict[str, dict[str, Any]] = {}
+    subjects: dict[str, list[str]] = {}
     for record in records:
         if not isinstance(record, dict):
             result.errors.append("claims.json: claim records must be objects")
@@ -146,6 +197,12 @@ def _validate_claims(
         if identifier in identifiers:
             result.errors.append(f"claims.json: duplicate claim id {identifier!r}")
         identifiers.add(identifier)
+        claims_by_id[identifier] = record
+        subject = record.get("subject")
+        if not isinstance(subject, str) or not subject.strip():
+            result.errors.append(f"claims.json: claim {identifier!r} requires subject")
+        else:
+            subjects.setdefault(subject, []).append(identifier)
         if record.get("classification") not in CLASSIFICATIONS:
             result.errors.append(
                 f"claims.json: claim {identifier!r} has invalid classification"
@@ -202,6 +259,17 @@ def _validate_claims(
                     result.errors.append(
                         f"claims.json: external claim {identifier!r} requires two official sources or singleSourceException"
                     )
+            if isinstance(exception, str) and exception.strip():
+                if len(exception.strip()) < 40:
+                    result.errors.append(
+                        f"claims.json: claim {identifier!r} singleSourceException is not sufficiently justified"
+                    )
+                try:
+                    date.fromisoformat(record.get("singleSourceExceptionReviewedAt"))
+                except (TypeError, ValueError):
+                    result.errors.append(
+                        f"claims.json: claim {identifier!r} requires singleSourceExceptionReviewedAt"
+                    )
         deadline = record.get("revalidateBy")
         try:
             parsed_deadline = date.fromisoformat(deadline)
@@ -218,7 +286,59 @@ def _validate_claims(
             result.errors.append(
                 f"claims.json: claim {identifier!r} requires supersedes array"
             )
+    graph: dict[str, list[str]] = {}
+    for identifier, record in claims_by_id.items():
+        targets = record.get("supersedes")
+        if not isinstance(targets, list):
+            continue
+        graph[identifier] = []
+        for target in targets:
+            if target not in claims_by_id:
+                result.errors.append(
+                    f"claims.json: claim {identifier!r} supersedes unknown claim {target!r}"
+                )
+            elif target == identifier:
+                result.errors.append(
+                    f"claims.json: claim {identifier!r} cannot supersede itself"
+                )
+            else:
+                graph[identifier].append(target)
+    _validate_acyclic_graph(graph, "claims.json: supersession cycle", result)
+    for subject, claim_ids in subjects.items():
+        if len(claim_ids) < 2:
+            continue
+        related = all(
+            right in graph.get(left, []) or left in graph.get(right, [])
+            for index, left in enumerate(claim_ids)
+            for right in claim_ids[index + 1 :]
+        )
+        if not related:
+            result.errors.append(
+                f"claims.json: subject {subject!r} has conflicting current claims"
+            )
     return identifiers
+
+
+def _validate_acyclic_graph(
+    graph: dict[str, list[str]], label: str, result: ValidationResult
+) -> None:
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(node: str) -> None:
+        if node in visiting:
+            result.errors.append(f"{label} involving {node!r}")
+            return
+        if node in visited:
+            return
+        visiting.add(node)
+        for target in graph.get(node, []):
+            visit(target)
+        visiting.remove(node)
+        visited.add(node)
+
+    for node in graph:
+        visit(node)
 
 
 def _frontmatter_value(text: str, field_name: str) -> str | None:
@@ -241,7 +361,7 @@ def _claim_id_list(value: str | None) -> list[str] | None:
 
 def _validate_current_notes(
     vault_root: Path, claim_ids: set[str], result: ValidationResult
-) -> None:
+) -> set[str]:
     current_root = vault_root / "knowledge-base" / "current"
     notes = sorted(current_root.glob("*.md")) if current_root.is_dir() else []
     if len(notes) != 8:
@@ -249,6 +369,7 @@ def _validate_current_notes(
             f"knowledge-base/current: expected 8 authority notes, found {len(notes)}"
         )
     referenced: set[str] = set()
+    commits: set[str] = set()
     for path in notes:
         text = path.read_text(encoding="utf-8-sig")
         relative = path.relative_to(vault_root).as_posix()
@@ -257,6 +378,8 @@ def _validate_current_notes(
         commit = _frontmatter_value(text, "repository_commit")
         if commit is None or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
             result.errors.append(f"{relative}: invalid repository_commit")
+        else:
+            commits.add(commit)
         cutoff = _frontmatter_value(text, "research_cutoff")
         if cutoff is None or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", cutoff) is None:
             result.errors.append(f"{relative}: invalid research_cutoff")
@@ -268,8 +391,24 @@ def _validate_current_notes(
             if claim_id not in claim_ids:
                 result.errors.append(f"{relative}: unknown claim id {claim_id!r}")
             referenced.add(claim_id)
+        _validate_markdown_links(path, vault_root, text, result)
     for claim_id in sorted(claim_ids - referenced):
         result.errors.append(f"claims.json: claim {claim_id!r} is not referenced by current notes")
+    return commits
+
+
+def _validate_markdown_links(
+    path: Path, vault_root: Path, text: str, result: ValidationResult
+) -> None:
+    for target in re.findall(r"(?<!!)\[[^\]]+\]\(([^)]+)\)", text):
+        clean = target.split("#", 1)[0].strip()
+        if not clean or urlparse(clean).scheme:
+            continue
+        resolved = (path.parent / clean).resolve()
+        root = vault_root.resolve()
+        relative = path.relative_to(vault_root).as_posix()
+        if not resolved.is_relative_to(root) or not resolved.exists():
+            result.errors.append(f"{relative}: broken Markdown link {target!r}")
 
 
 def _validate_authority_locations(vault_root: Path, result: ValidationResult) -> None:
@@ -439,6 +578,7 @@ def _validate_catalog(
     vault_root: Path, document: Any, records: list[Any], result: ValidationResult
 ) -> None:
     paths: set[str] = set()
+    supersession_graph: dict[str, list[str]] = {}
     for record in records:
         if not isinstance(record, dict):
             result.errors.append("note-catalog.json: note records must be objects")
@@ -461,6 +601,14 @@ def _validate_catalog(
             result.errors.append(
                 f"note-catalog.json: {path!r} has invalid supersededBy"
             )
+        elif isinstance(superseded_by, str):
+            target = (vault_root / superseded_by).resolve()
+            if not target.is_relative_to(vault_root.resolve()) or not target.is_file():
+                result.errors.append(
+                    f"note-catalog.json: {path!r} supersedes to missing target {superseded_by!r}"
+                )
+            if superseded_by in paths:
+                supersession_graph.setdefault(path, []).append(superseded_by)
 
     manifest_path = vault_root / "manifest.json"
     try:
@@ -474,10 +622,23 @@ def _validate_catalog(
         return
     if paths != manifest_paths or document.get("rootNoteCount") != len(manifest_paths):
         result.errors.append("note-catalog.json: root-note coverage mismatch")
+    catalog_targets = {
+        record.get("path"): record.get("supersededBy")
+        for record in records
+        if isinstance(record, dict)
+    }
+    graph = {
+        path: [target]
+        for path, target in catalog_targets.items()
+        if isinstance(path, str) and isinstance(target, str) and target in catalog_targets
+    }
+    _validate_acyclic_graph(graph, "note-catalog.json: supersession cycle", result)
 
 
 def validate_living_knowledge(
-    vault_root: Path, repository_root: Path
+    vault_root: Path,
+    repository_root: Path,
+    git_blob_reader: GitBlobReader | None = None,
 ) -> ValidationResult:
     """Validate living-knowledge registries without network or mutation."""
 
@@ -495,7 +656,12 @@ def validate_living_knowledge(
         "sources",
         result,
     ) if "sources.json" in documents else []
-    sources = _validate_sources(source_records, repository_root, result)
+    sources = _validate_sources(
+        source_records,
+        repository_root,
+        result,
+        git_blob_reader or _read_git_blob,
+    )
 
     claim_records = _records(
         documents.get("claims.json", {}),
@@ -521,7 +687,17 @@ def validate_living_knowledge(
     if "pins.json" in documents:
         pin_records = _records(documents["pins.json"], "pins.json", "pins", result)
         _validate_pins(repository_root, pin_records, result)
-    _validate_current_notes(vault_root, claim_ids, result)
+    note_commits = _validate_current_notes(vault_root, claim_ids, result)
+    source_commits = {
+        record.get("repositoryCommit")
+        for record in sources.values()
+        if record.get("type") == "repository"
+    }
+    anchors = note_commits | source_commits
+    if len(anchors) != 1:
+        result.errors.append(
+            "living knowledge must use exactly one repository commit anchor"
+        )
     _validate_authority_locations(vault_root, result)
     _validate_living_manifest(vault_root, result)
     return result

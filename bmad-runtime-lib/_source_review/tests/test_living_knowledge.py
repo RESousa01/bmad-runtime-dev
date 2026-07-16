@@ -10,7 +10,15 @@ from pathlib import Path
 SOURCE_REVIEW = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SOURCE_REVIEW))
 
-from living_knowledge import validate_living_knowledge
+from living_knowledge import validate_living_knowledge as validate_with_git
+
+
+def validate_living_knowledge(vault: Path, repo: Path):
+    return validate_with_git(
+        vault,
+        repo,
+        git_blob_reader=lambda root, _commit, locator: (root / locator).read_bytes(),
+    )
 
 
 class LivingKnowledgeValidationTests(unittest.TestCase):
@@ -37,6 +45,7 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
                 "claims": [
                     {
                         "id": claim_id,
+                        "subject": "fixture.core",
                         "statement": "The fixture claim is evidence-backed.",
                         "classification": "IMPLEMENTED_FACT",
                         "implementationStatus": "implemented",
@@ -46,7 +55,8 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
                         "revalidateBy": "2099-01-01",
                         "limitations": "Fixture only.",
                         "supersedes": [],
-                        "singleSourceException": "Fixture uses one local source.",
+                        "singleSourceException": "Fixture deliberately uses one local source to isolate validator behavior.",
+                        "singleSourceExceptionReviewedAt": "2026-07-16",
                     }
                 ],
             },
@@ -162,7 +172,7 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
         result = validate_living_knowledge(self.vault, self.repo)
 
         self.assertIn(
-            "sources.json: source 'SRC-REPO-001' locator does not exist",
+            "sources.json: source 'SRC-REPO-001' locator does not exist in the working tree",
             result.errors,
         )
 
@@ -192,6 +202,131 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
 
         self.assertIn(
             "claims.json: claim 'KB-CORE-001' requires two distinct sources or singleSourceException",
+            result.errors,
+        )
+
+    def test_repository_source_must_exist_at_declared_commit(self) -> None:
+        self.write_minimum_registries()
+
+        def missing_blob(_root: Path, _commit: str, _locator: str) -> bytes:
+            raise ValueError("unknown revision")
+
+        result = validate_with_git(
+            self.vault, self.repo, git_blob_reader=missing_blob
+        )
+
+        self.assertTrue(
+            any("is not available at repositoryCommit" in error for error in result.errors)
+        )
+
+    def test_note_and_source_commit_anchors_must_match(self) -> None:
+        self.write_minimum_registries()
+        current = self.vault / "knowledge-base" / "current"
+        current.mkdir()
+        (current / "state.md").write_text(
+            "---\nauthority: current\nrepository_commit: "
+            + "b" * 40
+            + "\nresearch_cutoff: 2026-07-16\nclaim_ids: [KB-CORE-001]\n---\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "living knowledge must use exactly one repository commit anchor",
+            result.errors,
+        )
+
+    def test_supersession_targets_are_closed(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        claims["claims"][0]["supersedes"] = ["KB-MISSING-999"]
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "claims.json: claim 'KB-CORE-001' supersedes unknown claim 'KB-MISSING-999'",
+            result.errors,
+        )
+
+    def test_duplicate_subjects_require_explicit_supersession(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        duplicate = dict(claims["claims"][0])
+        duplicate["id"] = "KB-CORE-002"
+        claims["claims"].append(duplicate)
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "claims.json: subject 'fixture.core' has conflicting current claims",
+            result.errors,
+        )
+
+    def test_supersession_cycles_are_rejected(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        duplicate = dict(claims["claims"][0])
+        duplicate["id"] = "KB-CORE-002"
+        duplicate["supersedes"] = ["KB-CORE-001"]
+        claims["claims"][0]["supersedes"] = ["KB-CORE-002"]
+        claims["claims"].append(duplicate)
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertTrue(
+            any("claims.json: supersession cycle" in error for error in result.errors)
+        )
+
+    def test_current_note_markdown_links_must_resolve(self) -> None:
+        self.write_minimum_registries()
+        current = self.vault / "knowledge-base" / "current"
+        current.mkdir()
+        (current / "state.md").write_text(
+            "---\nauthority: current\nrepository_commit: "
+            + "a" * 40
+            + "\nresearch_cutoff: 2026-07-16\nclaim_ids: [KB-CORE-001]\n---\n\n"
+            + "[missing](missing.md)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "knowledge-base/current/state.md: broken Markdown link 'missing.md'",
+            result.errors,
+        )
+
+    def test_external_sources_require_reviewed_host_and_iso_date(self) -> None:
+        self.write_minimum_registries()
+        sources_path = self.vault / "knowledge-base" / "evidence" / "sources.json"
+        sources = json.loads(sources_path.read_text(encoding="utf-8"))
+        sources["sources"][0].update(
+            {
+                "type": "external_official",
+                "locator": "https://example.com/release",
+                "retrievedAt": "yesterday",
+                "repositoryCommit": "",
+            }
+        )
+        sources_path.write_text(json.dumps(sources), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "sources.json: source 'SRC-REPO-001' has invalid retrievedAt",
+            result.errors,
+        )
+        self.assertIn(
+            "sources.json: source 'SRC-REPO-001' is not on the reviewed official-source allowlist",
             result.errors,
         )
 

@@ -23,6 +23,7 @@ The living authority layer is validated offline. Run these commands from the rep
 
 ```powershell
 py -3 -B -m unittest discover -s bmad-runtime-lib/_source_review/tests -p "test_*.py"
+pnpm vault:test
 py -3 -B bmad-runtime-lib/_source_review/validate_library.py
 node tools/verify-reference-vault.mjs
 ```

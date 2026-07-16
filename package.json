@@ -21,6 +21,7 @@
     "contracts:test": "pnpm --filter @sapphirus/contracts test",
     "bmad:foundation:verify": "pnpm --filter @sapphirus/bmad-foundation run verify",
     "secrets:check": "node tools/check-secrets.mjs",
+    "vault:test": "node --test tools/tests/closed-manifest.test.mjs",
     "vault:check": "node tools/verify-reference-vault.mjs",
     "rust:fmt": "cargo fmt --all --check",
     "rust:clippy": "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",

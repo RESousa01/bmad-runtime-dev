@@ -3,6 +3,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import process from "node:process";
 
+import { verifyClosedManifest } from "./lib/closed-manifest.mjs";
+
 const root = process.cwd();
 const vaultRoot = join(root, "bmad-runtime-lib");
 const recordPath = join(root, "docs", "provenance", "vault-validation.json");
@@ -79,6 +81,16 @@ if (sha256(livingManifestBytes) !== record.livingManifestSha256) {
 }
 
 const manifest = parseJson(manifestBytes, record.manifest);
+const livingManifest = parseJson(livingManifestBytes, record.livingManifest);
+try {
+  await verifyClosedManifest({
+    root: join(vaultRoot, "knowledge-base"),
+    manifest: livingManifest,
+    directories: ["current", "evidence"],
+  });
+} catch (error) {
+  fail(error instanceof Error ? error.message : "living manifest verification failed");
+}
 if (!Array.isArray(manifest.files) || typeof manifest.metrics !== "object" || manifest.metrics === null) {
   fail("manifest.json does not have the required closed top-level data");
 }
