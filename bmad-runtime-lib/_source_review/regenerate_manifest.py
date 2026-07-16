@@ -50,7 +50,11 @@ def main() -> None:
         },
         "files": records,
     }
-    MANIFEST.write_text(json.dumps(output, indent=4, ensure_ascii=False) + "\n", encoding="utf-8")
+    MANIFEST.write_text(
+        json.dumps(output, indent=4, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 if __name__ == "__main__":
