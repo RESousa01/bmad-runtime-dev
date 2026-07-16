@@ -502,6 +502,39 @@ fn create_bmad_help_run(
     Ok(result)
 }
 
+#[cfg(test)]
+pub(crate) fn create_bmad_help_run_for_test(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    request_id: &ContractId,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+    current_intent: BmadHelpIntent,
+    accepted_at: UnixMillis,
+) -> Result<BmadHelpRunCreationReceipt, LocalError> {
+    create_bmad_help_run(
+        state,
+        foundation,
+        request_id,
+        workspace_id.clone(),
+        workspace_grant_epoch,
+        current_intent,
+        accepted_at,
+    )?;
+    let authority = state.ready_workspace_commit()?;
+    let latest = state
+        .latest_bmad_help_run(
+            authority.authority(),
+            workspace_id,
+            authority.workspace_catalog_version(),
+        )
+        .map_err(|_| recovery_error())?;
+    match latest {
+        BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+        _ => Err(recovery_error()),
+    }
+}
+
 fn bmad_help_run_fingerprint(
     foundation: &BmadLoadedFoundation,
     current_intent: &BmadHelpIntent,
@@ -1425,10 +1458,8 @@ mod tests {
             "Review architecture readiness before implementation",
         )?;
 
-        let data = latest_bmad_help_run_data(
-            &id(&workspace_id),
-            BmadHelpRunLatest::Interrupted(receipt),
-        )?;
+        let data =
+            latest_bmad_help_run_data(&id(&workspace_id), BmadHelpRunLatest::Interrupted(receipt))?;
         let value = serde_json::to_value(data)?;
 
         assert_eq!(value["kind"], "bmad_help_run_interrupted");
@@ -1490,7 +1521,9 @@ mod tests {
             ("/sessionId", serde_json::json!("session_substituted")),
         ] {
             let mut value: serde_json::Value = serde_json::from_slice(&valid)?;
-            *value.pointer_mut(pointer).ok_or("missing fixture pointer")? = replacement;
+            *value
+                .pointer_mut(pointer)
+                .ok_or("missing fixture pointer")? = replacement;
             cases.push(serde_json::to_vec(&value)?);
         }
 

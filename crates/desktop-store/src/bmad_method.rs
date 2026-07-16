@@ -528,8 +528,9 @@ impl LocalStore {
         replayed: bool,
     ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
         match self.authenticate_help_run(identity, stored, replayed)? {
-            BmadHelpRunLatest::Retained(receipt)
-            | BmadHelpRunLatest::Interrupted(receipt) => Ok(receipt),
+            BmadHelpRunLatest::Retained(receipt) | BmadHelpRunLatest::Interrupted(receipt) => {
+                Ok(receipt)
+            }
             BmadHelpRunLatest::Completed(receipt) => Ok(receipt.creation),
             BmadHelpRunLatest::None | BmadHelpRunLatest::LegacyProjectionUnavailable => {
                 Err(StoreError::Inconsistent)

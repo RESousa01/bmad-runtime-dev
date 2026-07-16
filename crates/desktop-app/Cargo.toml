@@ -8,6 +8,10 @@ license.workspace = true
 authors.workspace = true
 publish.workspace = true
 
+[features]
+default = []
+deterministic-help = ["desktop-cloud/deterministic-fake"]
+
 [build-dependencies]
 tauri-build.workspace = true
 

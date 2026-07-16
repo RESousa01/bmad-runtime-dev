@@ -21,6 +21,7 @@ use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
+use crate::bmad_model::coordinator::BmadHelpCoordinator;
 use crate::wire::{BootMode, HostDispatchReply};
 
 const WORKSPACE_CATALOG_SCHEMA: &str = "workspace-catalog.v1";
@@ -102,6 +103,7 @@ pub(crate) struct HostState {
     replies: Mutex<ReplyCache>,
     sequence: AtomicU64,
     events: Mutex<VecDeque<ProjectionEvent>>,
+    pub(crate) bmad_model: Mutex<BmadHelpCoordinator>,
 }
 
 /// Proof that the local authority remained in Ready mode while a D1 operation
@@ -197,6 +199,7 @@ impl HostState {
             replies: Mutex::new(ReplyCache::default()),
             sequence: AtomicU64::new(0),
             events: Mutex::new(VecDeque::new()),
+            bmad_model: Mutex::new(BmadHelpCoordinator::new()),
         })
     }
 
@@ -217,6 +220,7 @@ impl HostState {
             replies: Mutex::new(ReplyCache::default()),
             sequence: AtomicU64::new(0),
             events: Mutex::new(VecDeque::new()),
+            bmad_model: Mutex::new(BmadHelpCoordinator::new()),
         }
     }
 
@@ -291,14 +295,23 @@ impl HostState {
             .latest_bmad_help_run(workspace_id, expected_workspace_catalog_version)
     }
 
+    pub fn method_store<'a>(
+        &'a self,
+        _authority: &ReadyAuthorityGuard<'_>,
+    ) -> Result<&'a LocalStore, StoreError> {
+        self.store.as_ref().ok_or(StoreError::Inconsistent)
+    }
+
     /// Enters recovery once and publishes the corresponding projection before
     /// releasing the authority write lock. Callers therefore cannot observe a
     /// recovery mode whose transition event has not yet been sequenced.
     pub fn enter_recovery(&self) -> u64 {
+        let mut bmad_model = self.bmad_model.lock();
         let mut mode = self.boot_mode.write();
         if *mode == BootMode::ReadOnlyRecovery {
             return self.sequence();
         }
+        bmad_model.invalidate();
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {
             mode: BootMode::ReadOnlyRecovery.as_str().to_owned(),
@@ -307,9 +320,10 @@ impl HostState {
 
     pub fn bind_renderer(&self, window_label: &str) -> Result<ContractId, LocalError> {
         let renderer_session_id = new_contract_id("renderer")?;
-        self.renderer_sessions
-            .write()
-            .insert(window_label.to_owned(), renderer_session_id.clone());
+        let mut renderer_sessions = self.renderer_sessions.write();
+        let mut bmad_model = self.bmad_model.lock();
+        renderer_sessions.insert(window_label.to_owned(), renderer_session_id.clone());
+        bmad_model.invalidate();
         Ok(renderer_session_id)
     }
 
