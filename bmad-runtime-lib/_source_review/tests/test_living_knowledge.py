@@ -1,0 +1,107 @@
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+SOURCE_REVIEW = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SOURCE_REVIEW))
+
+from living_knowledge import validate_living_knowledge
+
+
+class LivingKnowledgeValidationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        base = Path(self.temp.name)
+        self.repo = base / "repo"
+        self.vault = self.repo / "bmad-runtime-lib"
+        (self.vault / "knowledge-base" / "evidence").mkdir(parents=True)
+
+    def write_json(self, name: str, value: object) -> None:
+        path = self.vault / "knowledge-base" / "evidence" / name
+        path.write_text(json.dumps(value), encoding="utf-8", newline="\n")
+
+    def write_minimum_registries(self, claim_id: str = "KB-CORE-001") -> None:
+        self.write_json(
+            "claims.json",
+            {
+                "schemaVersion": "sapphirus.living-knowledge.v1",
+                "claims": [
+                    {
+                        "id": claim_id,
+                        "statement": "The fixture claim is evidence-backed.",
+                        "classification": "IMPLEMENTED_FACT",
+                        "implementationStatus": "implemented",
+                        "confidence": "high",
+                        "sourceIds": ["SRC-REPO-001"],
+                        "observedAt": "2026-07-16",
+                        "limitations": "Fixture only.",
+                        "supersedes": [],
+                        "singleSourceException": "Fixture uses one local source.",
+                    }
+                ],
+            },
+        )
+        self.write_json(
+            "sources.json",
+            {
+                "schemaVersion": "sapphirus.living-knowledge.v1",
+                "sources": [
+                    {
+                        "id": "SRC-REPO-001",
+                        "type": "repository",
+                        "authority": "primary",
+                        "locator": "README.md",
+                        "retrievedAt": "2026-07-16",
+                        "repositoryCommit": "a" * 40,
+                    }
+                ],
+            },
+        )
+        self.write_json(
+            "note-catalog.json",
+            {
+                "schemaVersion": "sapphirus.living-knowledge.v1",
+                "rootNoteCount": 0,
+                "notes": [],
+            },
+        )
+        self.write_json(
+            "pins.json",
+            {"schemaVersion": "sapphirus.living-knowledge.v1", "pins": []},
+        )
+
+    def test_missing_registries_fail_closed(self) -> None:
+        result = validate_living_knowledge(self.vault, self.repo)
+        self.assertIn(
+            "knowledge-base/evidence/claims.json is missing",
+            result.errors,
+        )
+        self.assertIn(
+            "knowledge-base/evidence/sources.json is missing",
+            result.errors,
+        )
+        self.assertIn(
+            "knowledge-base/evidence/note-catalog.json is missing",
+            result.errors,
+        )
+        self.assertIn(
+            "knowledge-base/evidence/pins.json is missing",
+            result.errors,
+        )
+
+    def test_claim_ids_are_closed(self) -> None:
+        self.write_minimum_registries(claim_id="claim-one")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn("claims.json: invalid claim id 'claim-one'", result.errors)
+
+
+if __name__ == "__main__":
+    unittest.main()

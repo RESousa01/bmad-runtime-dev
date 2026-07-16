@@ -9,6 +9,8 @@ import re
 import sys
 from pathlib import Path
 
+from living_knowledge import validate_living_knowledge
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
@@ -231,6 +233,10 @@ def main() -> int:
         manifest_verified = not any(item.startswith("manifest.json:") for item in errors)
     except (FileNotFoundError, KeyError, TypeError, json.JSONDecodeError) as exc:
         errors.append(f"manifest.json: invalid or unreadable ({exc})")
+
+    living_result = validate_living_knowledge(ROOT, ROOT.parent)
+    errors.extend(living_result.errors)
+    warnings.extend(living_result.warnings)
 
     print(
         json.dumps(
