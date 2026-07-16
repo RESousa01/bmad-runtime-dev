@@ -22,6 +22,7 @@ use desktop_runtime::{
     MethodSessionRepository, MethodSessionService, MethodState, Sha256Digest, UnixMillis,
 };
 use desktop_store::{BmadHelpRunCreationReceipt, BmadHelpRunLatest, StoreError};
+use desktop_workspace::WorkspaceScopeAuthorityGuard;
 use serde::Serialize;
 
 use super::bridge::{bridge_method_context_decision, BmadHelpDecisionBridgeExpectation};
@@ -38,7 +39,7 @@ use super::verification::BmadHelpProposalValidator;
 #[cfg(feature = "deterministic-help")]
 use super::verification::{deterministic_receipt_verifier, DeterministicReceiptVerifier};
 use crate::bmad_foundation::BmadLoadedFoundation;
-use crate::state::{HostState, RendererSessionGuard};
+use crate::state::{HostState, ReadyWorkspaceCommitGuard, RendererSessionGuard};
 
 const CONSENT_DISCLOSURE: &str =
     "Only the exact reviewed context shown here will be sent once. Redaction reduces risk but cannot prove that every secret was detected.";
@@ -111,6 +112,8 @@ pub(super) struct PreparedBmadHelpReview {
     pub manifest: ContextEgressManifest,
     pub invocation_binding: ModelInvocationBinding,
     pub deterministic_fixture: String,
+    pub destination_label: String,
+    pub consent_disclosure_hash: Sha256Digest,
 }
 
 impl fmt::Debug for PreparedBmadHelpReview {
@@ -126,6 +129,8 @@ impl fmt::Debug for PreparedBmadHelpReview {
             .field("compiled", &"<redacted>")
             .field("invocation_binding", &"<redacted>")
             .field("deterministic_fixture", &"<redacted>")
+            .field("destination_label", &"<redacted>")
+            .field("consent_disclosure_hash", &"<redacted>")
             .finish()
     }
 }
@@ -156,23 +161,41 @@ struct BmadHelpAdvancing {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum BmadHelpTerminalReason {
+pub(crate) enum BmadHelpTerminalReason {
     Cancelled,
     ConsentExpired,
     ConsentConsumed,
     Failed,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct BmadHelpTerminalState {
+    workspace_id: ContractId,
     reason: BmadHelpTerminalReason,
+}
+
+#[derive(Clone, Debug)]
+struct CompletedBmadHelp {
+    workspace_id: ContractId,
+    projection: BmadHelpRunCompletedProjection,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) enum BmadHelpInMemoryLifecycle {
+    ReviewRequired(BmadHelpReviewProjection),
+    Approved {
+        review: BmadHelpReviewProjection,
+        approval: BmadHelpApprovedProjection,
+    },
+    Completed(BmadHelpRunCompletedProjection),
+    Terminal(BmadHelpTerminalReason),
 }
 
 enum ActiveBmadHelp {
     ReviewRequired(Box<PreparedBmadHelpReview>),
     Approved(Box<ApprovedBmadHelpReview>),
     Advancing(BmadHelpAdvancing),
-    Completed(Box<BmadHelpRunCompletedProjection>),
+    Completed(Box<CompletedBmadHelp>),
     Terminal(BmadHelpTerminalState),
 }
 
@@ -186,6 +209,13 @@ impl fmt::Debug for ActiveBmadHelp {
             Self::Terminal(value) => formatter.debug_tuple("Terminal").field(value).finish(),
         }
     }
+}
+
+fn terminal_active(workspace_id: ContractId, reason: BmadHelpTerminalReason) -> ActiveBmadHelp {
+    ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+        workspace_id,
+        reason,
+    })
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -269,6 +299,48 @@ impl BmadHelpCoordinator {
         )
     }
 
+    /// Returns only the currently live renderer-safe lifecycle for the
+    /// authenticated workspace. Durable records remain the restart fallback.
+    #[must_use]
+    pub(crate) fn snapshot_for_workspace(
+        &self,
+        workspace_id: &ContractId,
+    ) -> Option<BmadHelpInMemoryLifecycle> {
+        match self.active.as_ref()? {
+            ActiveBmadHelp::ReviewRequired(prepared) if &prepared.workspace_id == workspace_id => {
+                Some(BmadHelpInMemoryLifecycle::ReviewRequired(
+                    review_projection(prepared),
+                ))
+            }
+            ActiveBmadHelp::Approved(approved)
+                if &approved.prepared.workspace_id == workspace_id =>
+            {
+                Some(BmadHelpInMemoryLifecycle::Approved {
+                    review: review_projection(&approved.prepared),
+                    approval: BmadHelpApprovedProjection {
+                        manifest_hash: approved.prepared.manifest.manifest_hash,
+                        decision_id: approved.decision.decision_id().clone(),
+                        expires_at: approved.decision.expires_at(),
+                        send_eligible: true,
+                    },
+                })
+            }
+            ActiveBmadHelp::Completed(completed) if &completed.workspace_id == workspace_id => {
+                Some(BmadHelpInMemoryLifecycle::Completed(
+                    completed.projection.clone(),
+                ))
+            }
+            ActiveBmadHelp::Terminal(terminal) if &terminal.workspace_id == workspace_id => {
+                Some(BmadHelpInMemoryLifecycle::Terminal(terminal.reason))
+            }
+            ActiveBmadHelp::Advancing(_)
+            | ActiveBmadHelp::ReviewRequired(_)
+            | ActiveBmadHelp::Approved(_)
+            | ActiveBmadHelp::Completed(_)
+            | ActiveBmadHelp::Terminal(_) => None,
+        }
+    }
+
     #[cfg(test)]
     #[must_use]
     pub fn active_fixture_for_test(&self) -> &str {
@@ -286,6 +358,8 @@ impl BmadHelpCoordinator {
     pub fn approve(
         &mut self,
         state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
         input: ApproveBmadHelpReviewInput<'_>,
     ) -> Result<BmadHelpApprovedProjection, BmadHelpCoordinatorError> {
         let prepared = match self.active.as_ref() {
@@ -303,6 +377,8 @@ impl BmadHelpCoordinator {
         }
         validate_active_authority(
             state,
+            authority,
+            workspace_authority,
             input.renderer_session,
             prepared,
             &input.workspace_id,
@@ -316,9 +392,10 @@ impl BmadHelpCoordinator {
         if input.approved_at < prepared.manifest.draft.created_at
             || input.approved_at >= prepared.manifest.draft.expires_at
         {
-            self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                reason: BmadHelpTerminalReason::ConsentExpired,
-            }));
+            self.active = Some(terminal_active(
+                prepared.workspace_id.clone(),
+                BmadHelpTerminalReason::ConsentExpired,
+            ));
             return Err(BmadHelpCoordinatorError::ConsentExpired);
         }
         let expires_at = UnixMillis(
@@ -376,6 +453,8 @@ impl BmadHelpCoordinator {
     pub fn cancel(
         &mut self,
         state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
         input: CancelBmadHelpReviewInput<'_>,
     ) -> Result<(), BmadHelpCoordinatorError> {
         let approved = match self.active.as_ref() {
@@ -397,6 +476,8 @@ impl BmadHelpCoordinator {
         }
         validate_active_authority(
             state,
+            authority,
+            workspace_authority,
             input.renderer_session,
             &approved.prepared,
             &input.workspace_id,
@@ -414,6 +495,7 @@ impl BmadHelpCoordinator {
             })
             .map_err(map_egress_error)?;
         self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+            workspace_id: approved.prepared.workspace_id.clone(),
             reason: BmadHelpTerminalReason::Cancelled,
         }));
         Ok(())
@@ -430,6 +512,8 @@ impl BmadHelpCoordinator {
     pub fn submit(
         &mut self,
         state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
         input: SubmitBmadHelpReviewInput<'_>,
     ) -> Result<BmadHelpRunCompletedProjection, BmadHelpCoordinatorError> {
         let approved = match self.active.as_ref() {
@@ -451,6 +535,8 @@ impl BmadHelpCoordinator {
         }
         validate_active_authority(
             state,
+            authority,
+            workspace_authority,
             input.renderer_session,
             &approved.prepared,
             &input.workspace_id,
@@ -469,26 +555,16 @@ impl BmadHelpCoordinator {
                 cancelled_at: input.submitted_at,
             });
             self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                workspace_id: approved.prepared.workspace_id.clone(),
                 reason: BmadHelpTerminalReason::ConsentExpired,
             }));
             return Err(BmadHelpCoordinatorError::ConsentExpired);
         }
 
-        let Ok(authority) = state.ready_workspace_commit() else {
-            self.active = Some(ActiveBmadHelp::Approved(approved));
-            return Err(BmadHelpCoordinatorError::Unauthorized);
-        };
         if authority.workspace_catalog_version() != approved.prepared.workspace_catalog_version {
             self.active = Some(ActiveBmadHelp::Approved(approved));
             return Err(BmadHelpCoordinatorError::Unauthorized);
         }
-        let Ok(workspace_authority) = state
-            .workspace
-            .authorize_scope(input.workspace_id.as_str(), input.workspace_grant_epoch)
-        else {
-            self.active = Some(ActiveBmadHelp::Approved(approved));
-            return Err(BmadHelpCoordinatorError::Unauthorized);
-        };
         let workspace = workspace_authority.projection();
         if workspace.workspace_id != approved.prepared.workspace_id.as_str()
             || workspace.grant_epoch != approved.prepared.workspace_grant_epoch
@@ -558,6 +634,7 @@ impl BmadHelpCoordinator {
         };
         if ready_session.state() != MethodState::Ready || ready_session.version() != 4 {
             self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                workspace_id: approved.prepared.workspace_id.clone(),
                 reason: BmadHelpTerminalReason::Failed,
             }));
             return Err(BmadHelpCoordinatorError::Integrity);
@@ -584,6 +661,7 @@ impl BmadHelpCoordinator {
             Ok(consumption) => consumption,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: terminal_reason_for_egress(error),
                 }));
                 return Err(map_egress_error(error));
@@ -599,6 +677,7 @@ impl BmadHelpCoordinator {
             Ok(request) => request,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: BmadHelpTerminalReason::ConsentConsumed,
                 }));
                 return Err(map_cloud_error(&error));
@@ -633,6 +712,7 @@ impl BmadHelpCoordinator {
             Ok(receipt) => receipt,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: BmadHelpTerminalReason::ConsentConsumed,
                 }));
                 return Err(map_store_error(&error));
@@ -654,6 +734,7 @@ impl BmadHelpCoordinator {
             Ok(output) => output,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: BmadHelpTerminalReason::ConsentConsumed,
                 }));
                 return Err(map_cloud_error(&error));
@@ -688,6 +769,7 @@ impl BmadHelpCoordinator {
             Ok(verified) => verified,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: BmadHelpTerminalReason::ConsentConsumed,
                 }));
                 return Err(map_cloud_error(&error));
@@ -711,6 +793,7 @@ impl BmadHelpCoordinator {
             .ok_or(BmadHelpCoordinatorError::Integrity)?;
         if session_v5.state() != MethodState::Advancing || session_v5.version() != 5 {
             self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                workspace_id: approved.prepared.workspace_id.clone(),
                 reason: BmadHelpTerminalReason::ConsentConsumed,
             }));
             return Err(BmadHelpCoordinatorError::Integrity);
@@ -749,6 +832,7 @@ impl BmadHelpCoordinator {
             || receipt.retention_mode != RetentionMode::TransientNoStore
         {
             self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                workspace_id: approved.prepared.workspace_id.clone(),
                 reason: BmadHelpTerminalReason::ConsentConsumed,
             }));
             return Err(BmadHelpCoordinatorError::ReceiptInvalid);
@@ -756,7 +840,7 @@ impl BmadHelpCoordinator {
         let completed_projection = project_completed_bmad_help_run(
             records.recommendation(),
             display_name.as_deref(),
-            approved.prepared.workspace_id,
+            approved.prepared.workspace_id.clone(),
             approved.prepared.creation.run_id.clone(),
             approved.prepared.creation.session_id.clone(),
             &BmadHelpReceiptSummaryInput {
@@ -784,6 +868,7 @@ impl BmadHelpCoordinator {
             Ok(session) => session,
             Err(error) => {
                 self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                    workspace_id: approved.prepared.workspace_id.clone(),
                     reason: BmadHelpTerminalReason::ConsentConsumed,
                 }));
                 return Err(map_store_error(&error));
@@ -791,13 +876,15 @@ impl BmadHelpCoordinator {
         };
         if completed_session.state() != MethodState::Completed || completed_session.version() != 6 {
             self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
+                workspace_id: approved.prepared.workspace_id.clone(),
                 reason: BmadHelpTerminalReason::ConsentConsumed,
             }));
             return Err(BmadHelpCoordinatorError::Integrity);
         }
-        self.active = Some(ActiveBmadHelp::Completed(Box::new(
-            completed_projection.clone(),
-        )));
+        self.active = Some(ActiveBmadHelp::Completed(Box::new(CompletedBmadHelp {
+            workspace_id: approved.prepared.workspace_id.clone(),
+            projection: completed_projection.clone(),
+        })));
         Ok(completed_projection)
     }
 
@@ -808,17 +895,12 @@ impl BmadHelpCoordinator {
     pub fn prepare(
         &mut self,
         state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
         foundation: &BmadLoadedFoundation,
         input: PrepareBmadHelpReviewInput<'_>,
     ) -> Result<BmadHelpReviewProjection, BmadHelpCoordinatorError> {
-        let authority = state
-            .ready_workspace_commit()
-            .map_err(|_| BmadHelpCoordinatorError::Unauthorized)?;
         let workspace_catalog_version = authority.workspace_catalog_version();
-        let workspace_authority = state
-            .workspace
-            .authorize_scope(input.workspace_id.as_str(), input.workspace_grant_epoch)
-            .map_err(|_| BmadHelpCoordinatorError::Unauthorized)?;
         let workspace = workspace_authority.projection();
         if workspace.workspace_id != input.workspace_id.as_str()
             || workspace.grant_epoch != input.workspace_grant_epoch
@@ -963,33 +1045,38 @@ impl BmadHelpCoordinator {
         }
         .seal()
         .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
-        let projection = BmadHelpReviewProjection {
+        let prepared = PreparedBmadHelpReview {
             renderer_session_id: input.renderer_session.session_id().clone(),
-            workspace_id: input.workspace_id.clone(),
+            workspace_id: input.workspace_id,
             workspace_grant_epoch: input.workspace_grant_epoch,
             workspace_catalog_version,
-            run_id: creation.run_id.clone(),
-            session_id: creation.session_id.clone(),
+            creation,
+            compiled,
+            manifest,
+            invocation_binding,
+            deterministic_fixture: policy.deterministic_fixture,
             destination_label: configuration.destination_label.to_owned(),
-            development_only: true,
-            consent_disclosure: CONSENT_DISCLOSURE.to_owned(),
             consent_disclosure_hash,
-            context: manifest.review_projection(),
         };
-        self.active = Some(ActiveBmadHelp::ReviewRequired(Box::new(
-            PreparedBmadHelpReview {
-                renderer_session_id: input.renderer_session.session_id().clone(),
-                workspace_id: input.workspace_id,
-                workspace_grant_epoch: input.workspace_grant_epoch,
-                workspace_catalog_version,
-                creation,
-                compiled,
-                manifest,
-                invocation_binding,
-                deterministic_fixture: policy.deterministic_fixture,
-            },
-        )));
+        let projection = review_projection(&prepared);
+        self.active = Some(ActiveBmadHelp::ReviewRequired(Box::new(prepared)));
         Ok(projection)
+    }
+}
+
+fn review_projection(prepared: &PreparedBmadHelpReview) -> BmadHelpReviewProjection {
+    BmadHelpReviewProjection {
+        renderer_session_id: prepared.renderer_session_id.clone(),
+        workspace_id: prepared.workspace_id.clone(),
+        workspace_grant_epoch: prepared.workspace_grant_epoch,
+        workspace_catalog_version: prepared.workspace_catalog_version,
+        run_id: prepared.creation.run_id.clone(),
+        session_id: prepared.creation.session_id.clone(),
+        destination_label: prepared.destination_label.clone(),
+        development_only: true,
+        consent_disclosure: CONSENT_DISCLOSURE.to_owned(),
+        consent_disclosure_hash: prepared.consent_disclosure_hash,
+        context: prepared.manifest.review_projection(),
     }
 }
 
@@ -1094,8 +1181,14 @@ fn recommendation_display_name(
         .ok_or(BmadHelpCoordinatorError::Integrity)
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the authority check keeps every renderer, workspace, Method, and binding expectation explicit"
+)]
 fn validate_active_authority(
     state: &HostState,
+    authority: &ReadyWorkspaceCommitGuard<'_>,
+    workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
     renderer_session: &RendererSessionGuard<'_>,
     prepared: &PreparedBmadHelpReview,
     workspace_id: &ContractId,
@@ -1117,16 +1210,9 @@ fn validate_active_authority(
         .invocation_binding
         .verify_for(&prepared.manifest)
         .map_err(|_| BmadHelpCoordinatorError::ConsentBindingMismatch)?;
-    let authority = state
-        .ready_workspace_commit()
-        .map_err(|_| BmadHelpCoordinatorError::Unauthorized)?;
     if authority.workspace_catalog_version() != prepared.workspace_catalog_version {
         return Err(BmadHelpCoordinatorError::Unauthorized);
     }
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
-        .map_err(|_| BmadHelpCoordinatorError::Unauthorized)?;
     let workspace = workspace_authority.projection();
     if workspace.workspace_id != workspace_id.as_str()
         || workspace.grant_epoch != workspace_grant_epoch

@@ -130,6 +130,7 @@ export interface BmadHelpRunCreatedProjection {
   readonly workspaceId: string;
   readonly runId: string;
   readonly sessionId: string;
+  readonly currentIntent: string;
   readonly runnable: false;
   readonly completionClaimed: false;
   readonly recommendation: BmadHelpRecommendationProjection;

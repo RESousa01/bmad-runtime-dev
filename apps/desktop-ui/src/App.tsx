@@ -27,10 +27,18 @@ import {
   type WorkspaceProjection,
 } from "./lib/hostClient";
 import type {
-  BmadHelpUiState,
   BmadLibrarySnapshot,
   BmadLibraryUiState,
 } from "./lib/bmadProjection";
+import {
+  bmadRequestAuthorityIsCurrent,
+  initialBmadRequestState,
+  transitionBmadRequest,
+  type BmadAuthoritySnapshot,
+  type BmadRequestEvent,
+  type BmadRequestState,
+  type ModelAuthStatusProjection,
+} from "./lib/bmadModelProjection";
 import {
   browserDemoWorkspaceSource,
   createHostWorkspaceSource,
@@ -97,8 +105,8 @@ export function App({
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
   const [contextProvenance, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
-  const [bmadHelpState, setBmadHelpState] = useState<BmadHelpUiState>({ kind: "no_evidence" });
-  const [methodGuidanceBusy, setMethodGuidanceBusy] = useState(false);
+  const [bmadHelpState, setBmadHelpState] = useState<BmadRequestState>(initialBmadRequestState);
+  const [modelAuthStatus, setModelAuthStatus] = useState<ModelAuthStatusProjection | null>(null);
   const inspectorIsOverlay = useMediaQuery("(max-width: 1050px)");
   const sessionsIsOverlay = useMediaQuery("(max-width: 820px)");
   const workspaceActionBusyRef = useRef(false);
@@ -109,6 +117,8 @@ export function App({
   const bmadLibraryRequestedRef = useRef(false);
   const bmadHelpGenerationRef = useRef(0);
   const bmadHelpCreationRef = useRef<Promise<void> | null>(null);
+  const bmadHelpOperationRef = useRef<"approve" | "cancel" | "submit" | null>(null);
+  const bmadHelpStateRef = useRef<BmadRequestState>(initialBmadRequestState);
 
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId) ?? fallbackSession,
@@ -147,13 +157,23 @@ export function App({
   const methodGuidanceClient = hostRuntime.kind === "ready"
     && activeWorkspace !== null
     && activeWorkspace.grantEpoch >= 1
-    && (["bmad.library.snapshot", "bmad.help.latest", "run.create"] as const).every(
+    && ([
+      "bmad.library.snapshot",
+      "model.auth.status",
+      "model.auth.sign_in",
+      "model.auth.sign_out",
+      "bmad.help.prepare",
+      "bmad.help.approve",
+      "bmad.help.cancel",
+      "bmad.help.submit",
+      "bmad.help.latest",
+      "run.create",
+    ] as const).every(
       (command) => hostRuntime.bootstrap.supportedCommands.includes(command),
     )
     ? hostRuntime.client
     : null;
-  const methodGuidanceAvailable = methodGuidanceClient !== null
-    && bmadHelpState.kind !== "unavailable";
+  const methodGuidanceAvailable = methodGuidanceClient !== null;
   const methodGuidanceBindingKey = hostRuntime.kind === "ready"
     || hostRuntime.kind === "read_only_recovery"
     ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
@@ -193,6 +213,25 @@ export function App({
         return "Browser demo data is unavailable.";
     }
   })();
+
+  const applyBmadEvent = useCallback((event: BmadRequestEvent): BmadRequestState => {
+    const next = transitionBmadRequest(bmadHelpStateRef.current, event);
+    bmadHelpStateRef.current = next;
+    setBmadHelpState(next);
+    return next;
+  }, []);
+
+  const currentBmadAuthority = useCallback((runId: string): BmadAuthoritySnapshot | null => {
+    if (!activeWorkspace || !modelAuthStatus) return null;
+    return {
+      workspaceId: activeWorkspace.workspaceId,
+      workspaceGrantEpoch: activeWorkspace.grantEpoch,
+      runId,
+      authEpoch: modelAuthStatus.authEpoch,
+      rendererGeneration: bmadHelpGenerationRef.current,
+      now: Date.now(),
+    };
+  }, [activeWorkspace, modelAuthStatus]);
 
   const loadMethodLibrary = useCallback(async (client: DesktopHostClient) => {
     bmadLibraryRequestedRef.current = true;
@@ -280,8 +319,20 @@ export function App({
   const clearBmadHelpProjection = useCallback(() => {
     bmadHelpGenerationRef.current += 1;
     bmadHelpCreationRef.current = null;
-    setMethodGuidanceBusy(false);
-    setBmadHelpState({ kind: "no_evidence" });
+    bmadHelpOperationRef.current = null;
+    setModelAuthStatus(null);
+    const current = bmadHelpStateRef.current;
+    const next = current.kind === "review_required"
+      || current.kind === "approving"
+      || current.kind === "approved"
+      || current.kind === "submitting"
+      ? transitionBmadRequest(current, {
+        type: "authority_invalidated",
+        reason: "authority_changed",
+      })
+      : initialBmadRequestState;
+    bmadHelpStateRef.current = next;
+    setBmadHelpState(next);
   }, []);
 
   function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
@@ -412,9 +463,11 @@ export function App({
   useEffect(() => {
     const generation = ++bmadHelpGenerationRef.current;
     bmadHelpCreationRef.current = null;
-    setBmadHelpState({ kind: "no_evidence" });
+    bmadHelpOperationRef.current = null;
+    setModelAuthStatus(null);
+    applyBmadEvent({ type: "recover_started" });
     if (!methodGuidanceClient || !activeWorkspace) {
-      setMethodGuidanceBusy(false);
+      applyBmadEvent({ type: "recovered", run: null });
       return;
     }
 
@@ -423,25 +476,67 @@ export function App({
     const projectionSequence = hostRuntime.kind === "ready"
       ? hostRuntime.bootstrap.projectionSequence
       : 0;
-    setMethodGuidanceBusy(true);
-    setBmadHelpState({ kind: "loading" });
-    void client.latestBmadHelpRun(workspace.workspaceId, workspace.grantEpoch)
-      .then((result) => {
+    void Promise.all([
+      client.modelAuthStatus(),
+      client.latestBmadHelpRun(workspace.workspaceId, workspace.grantEpoch),
+    ])
+      .then(([authStatus, result]) => {
         if (generation !== bmadHelpGenerationRef.current) {
           return;
         }
+        setModelAuthStatus(authStatus);
         if (result.kind === "no_run") {
-          setBmadHelpState({ kind: "no_evidence" });
+          applyBmadEvent({ type: "recovered", run: null });
           return;
         }
         if (result.kind === "retained") {
-          setBmadHelpState({ kind: "ready", run: result.run });
+          applyBmadEvent({ type: "recovered", run: result.run });
           return;
         }
-        setBmadHelpState({
-          kind: "legacy_projection_unavailable",
-          message: retainedHelpProjectionUnavailableMessage,
-        });
+        if (result.kind === "interrupted") {
+          applyBmadEvent({ type: "interrupted", result: result.run });
+          return;
+        }
+        if (result.kind === "completed") {
+          applyBmadEvent({ type: "completed", result: result.result });
+          if (bmadHelpStateRef.current.kind !== "completed") {
+            bmadHelpStateRef.current = { kind: "completed", result: result.result };
+            setBmadHelpState(bmadHelpStateRef.current);
+          }
+          return;
+        }
+        if (result.kind === "terminal") {
+          applyBmadEvent({ type: "terminal", reason: result.terminal.reason });
+          return;
+        }
+        if (result.kind === "projection_unavailable") {
+          applyBmadEvent({
+            type: "unavailable",
+            message: retainedHelpProjectionUnavailableMessage,
+          });
+          return;
+        }
+        if (authStatus.status !== "development_ready") {
+          applyBmadEvent({
+            type: "unavailable",
+            message: "A retained request cannot be restored while model support is unavailable.",
+          });
+          return;
+        }
+        const review = result.review;
+        const authority: BmadAuthoritySnapshot = {
+          workspaceId: workspace.workspaceId,
+          workspaceGrantEpoch: workspace.grantEpoch,
+          runId: review.runId,
+          authEpoch: authStatus.authEpoch,
+          rendererGeneration: generation,
+          now: Date.now(),
+        };
+        const recovered = applyBmadEvent({ type: "review_recovered", review, authority });
+        if (result.kind === "approved" && recovered.kind === "review_required") {
+          applyBmadEvent({ type: "approve_started" });
+          applyBmadEvent({ type: "approved", approval: result.approval });
+        }
       })
       .catch((error: unknown) => {
         if (generation !== bmadHelpGenerationRef.current) {
@@ -454,20 +549,35 @@ export function App({
           markReadOnlyRecovery(client, projectionSequence);
           return;
         }
-        setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
-      })
-      .finally(() => {
-        if (generation === bmadHelpGenerationRef.current) {
-          setMethodGuidanceBusy(false);
-        }
+        applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
       });
 
     return () => {
       if (generation === bmadHelpGenerationRef.current) {
         bmadHelpGenerationRef.current += 1;
       }
+      bmadHelpCreationRef.current = null;
+      bmadHelpOperationRef.current = null;
     };
-  }, [methodGuidanceBindingKey, methodGuidanceClient]);
+  }, [applyBmadEvent, methodGuidanceBindingKey, methodGuidanceClient]);
+
+  useEffect(() => {
+    if (
+      bmadHelpState.kind !== "review_required"
+      && bmadHelpState.kind !== "approving"
+      && bmadHelpState.kind !== "approved"
+      && bmadHelpState.kind !== "submitting"
+    ) return;
+    const remaining = bmadHelpState.authority.expiresAt - Date.now();
+    if (remaining <= 0) {
+      applyBmadEvent({ type: "authority_invalidated", reason: "consent_expired" });
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      applyBmadEvent({ type: "authority_invalidated", reason: "consent_expired" });
+    }, Math.min(remaining, 2_147_483_647));
+    return () => window.clearTimeout(timer);
+  }, [applyBmadEvent, bmadHelpState]);
 
   useEffect(() => {
     if (hostRuntime.kind !== "ready" && hostRuntime.kind !== "read_only_recovery") {
@@ -637,15 +747,16 @@ export function App({
     }
   }
 
-  function submitTask(currentIntent: string): Promise<void> {
+  function reviewBmadRequest(currentIntent: string): Promise<void> {
     if (bmadHelpCreationRef.current) {
       return bmadHelpCreationRef.current;
     }
     if (
       !methodGuidanceAvailable
-      || methodGuidanceBusy
       || !methodGuidanceClient
       || !activeWorkspace
+      || !modelAuthStatus
+      || bmadHelpOperationRef.current !== null
     ) {
       return Promise.reject(
         new HostCapabilityError("Method guidance is unavailable for the active workspace grant."),
@@ -658,27 +769,55 @@ export function App({
       ? hostRuntime.bootstrap.projectionSequence
       : 0;
     const generation = ++bmadHelpGenerationRef.current;
-    setMethodGuidanceBusy(true);
-    setBmadHelpState({ kind: "loading" });
+    applyBmadEvent({ type: "create_started" });
 
-    const creation = client.createBmadHelpRun(
-      workspace.workspaceId,
-      workspace.grantEpoch,
-      currentIntent,
-    ).then((run) => {
-      if (generation !== bmadHelpGenerationRef.current) {
-        throw new HostCapabilityError(
-          "The Method guidance result no longer belongs to the active workspace grant.",
+    const creation = (async () => {
+      try {
+        const run = await client.createBmadHelpRun(
+          workspace.workspaceId,
+          workspace.grantEpoch,
+          currentIntent,
         );
-      }
-      setBmadHelpState({ kind: "ready", run });
-      setInspectorTab("method");
-      setSessionRailOpen(false);
-      setInspectorOpen(true);
-      if (!bmadLibraryRequestedRef.current) {
-        void loadMethodLibrary(client);
-      }
-    }).catch((error: unknown) => {
+        if (generation !== bmadHelpGenerationRef.current) {
+          throw new HostCapabilityError(
+            "The Method guidance result no longer belongs to the active workspace grant.",
+          );
+        }
+        const review = await client.prepareBmadHelp(
+          workspace.workspaceId,
+          workspace.grantEpoch,
+        );
+        if (
+          generation !== bmadHelpGenerationRef.current
+          || modelAuthStatus.status !== "development_ready"
+        ) {
+          throw new HostCapabilityError(
+            "The Method request authority changed before review opened.",
+          );
+        }
+        const next = applyBmadEvent({
+          type: "review_ready",
+          run,
+          review,
+          authority: {
+            workspaceId: workspace.workspaceId,
+            workspaceGrantEpoch: workspace.grantEpoch,
+            runId: run.runId,
+            authEpoch: modelAuthStatus.authEpoch,
+            rendererGeneration: generation,
+            now: Date.now(),
+          },
+        });
+        if (next.kind !== "review_required") {
+          throw new HostCapabilityError("The prepared Method request failed closed.");
+        }
+        setInspectorTab("method");
+        setSessionRailOpen(false);
+        setInspectorOpen(true);
+        if (!bmadLibraryRequestedRef.current) {
+          void loadMethodLibrary(client);
+        }
+      } catch (error: unknown) {
       if (generation === bmadHelpGenerationRef.current) {
         if (
           error instanceof HostCommandError
@@ -686,18 +825,124 @@ export function App({
         ) {
           markReadOnlyRecovery(client, projectionSequence);
         } else {
-          setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
+          applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
         }
       }
       throw error;
-    }).finally(() => {
+      }
+    })().finally(() => {
       if (bmadHelpCreationRef.current === creation) {
         bmadHelpCreationRef.current = null;
-        setMethodGuidanceBusy(false);
       }
     });
     bmadHelpCreationRef.current = creation;
     return creation;
+  }
+
+  function approveBmadContext() {
+    const state = bmadHelpStateRef.current;
+    if (
+      state.kind !== "review_required"
+      || !methodGuidanceClient
+      || !activeWorkspace
+      || bmadHelpOperationRef.current !== null
+    ) return;
+    const authority = currentBmadAuthority(state.run.runId);
+    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
+      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
+      return;
+    }
+    const generation = authority.rendererGeneration;
+    bmadHelpOperationRef.current = "approve";
+    applyBmadEvent({ type: "approve_started" });
+    void methodGuidanceClient.approveBmadHelp(
+      activeWorkspace.workspaceId,
+      activeWorkspace.grantEpoch,
+      state.authority.manifestHash,
+    ).then((approval) => {
+      const current = bmadHelpStateRef.current;
+      const snapshot = currentBmadAuthority(state.run.runId);
+      if (
+        generation !== bmadHelpGenerationRef.current
+        || current.kind !== "approving"
+        || !snapshot
+        || !bmadRequestAuthorityIsCurrent(current, snapshot)
+      ) return;
+      applyBmadEvent({ type: "approved", approval });
+    }).catch((error: unknown) => {
+      if (generation === bmadHelpGenerationRef.current) {
+        applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
+      }
+    }).finally(() => {
+      if (bmadHelpOperationRef.current === "approve") bmadHelpOperationRef.current = null;
+    });
+  }
+
+  function cancelBmadContext() {
+    const state = bmadHelpStateRef.current;
+    if (state.kind === "review_required") {
+      applyBmadEvent({ type: "terminal", reason: "cancelled" });
+      return;
+    }
+    if (
+      state.kind !== "approved"
+      || !methodGuidanceClient
+      || !activeWorkspace
+      || bmadHelpOperationRef.current !== null
+    ) return;
+    const authority = currentBmadAuthority(state.run.runId);
+    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
+      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
+      return;
+    }
+    bmadHelpOperationRef.current = "cancel";
+    applyBmadEvent({ type: "terminal", reason: "cancelled" });
+    void methodGuidanceClient.cancelBmadHelp(
+      activeWorkspace.workspaceId,
+      activeWorkspace.grantEpoch,
+      state.authority.manifestHash,
+      state.approval.decisionId,
+    ).catch(() => undefined).finally(() => {
+      if (bmadHelpOperationRef.current === "cancel") bmadHelpOperationRef.current = null;
+    });
+  }
+
+  function sendBmadRequest() {
+    const state = bmadHelpStateRef.current;
+    if (
+      state.kind !== "approved"
+      || !methodGuidanceClient
+      || !activeWorkspace
+      || bmadHelpOperationRef.current !== null
+    ) return;
+    const authority = currentBmadAuthority(state.run.runId);
+    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
+      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
+      return;
+    }
+    const workspace = activeWorkspace;
+    const generation = authority.rendererGeneration;
+    const manifestHash = state.authority.manifestHash;
+    const decisionId = state.approval.decisionId;
+    bmadHelpOperationRef.current = "submit";
+    applyBmadEvent({ type: "submit_started" });
+    void methodGuidanceClient.submitBmadHelp(
+      workspace.workspaceId,
+      workspace.grantEpoch,
+      manifestHash,
+      decisionId,
+    ).then((result) => {
+      if (
+        generation === bmadHelpGenerationRef.current
+        && bmadHelpStateRef.current.kind === "submitting"
+      ) applyBmadEvent({ type: "completed", result });
+    }).catch(() => {
+      if (generation === bmadHelpGenerationRef.current) {
+        applyBmadEvent({ type: "terminal", reason: "failed" });
+      }
+    }).finally(() => {
+      if (bmadHelpOperationRef.current === "submit") bmadHelpOperationRef.current = null;
+    });
   }
 
   async function selectWorkspace() {
@@ -850,7 +1095,7 @@ export function App({
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
               key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
               methodGuidanceAvailable={methodGuidanceAvailable}
-              methodGuidanceBusy={methodGuidanceBusy}
+              methodGuidanceState={bmadHelpState}
               methodLibraryAvailable={methodLibraryAvailable}
               onOpenMethodLibrary={openMethodLibrary}
               onOpenInspector={() => {
@@ -867,7 +1112,7 @@ export function App({
                 setInspectorOpen(true);
               }}
               onReviewChanges={reviewChanges}
-              onTaskSubmitted={submitTask}
+              onReviewRequest={reviewBmadRequest}
               proposalState={proposalState}
               sessionTitle={selectedSession.title}
               workspaceName={workspaceName}
@@ -875,6 +1120,7 @@ export function App({
           )}
           <Inspector
             bmadHelpState={bmadHelpState}
+            bmadModelDevelopmentOnly={modelAuthStatus?.developmentOnly ?? false}
             bmadLibraryState={bmadLibraryState}
             contextPreview={contextPreview}
             contextProvenance={contextProvenance}
@@ -884,6 +1130,9 @@ export function App({
             isOverlay={inspectorIsOverlay}
             methodLibraryAvailable={methodLibraryAvailable}
             onApply={() => undefined}
+            onBmadApprove={approveBmadContext}
+            onBmadCancel={cancelBmadContext}
+            onBmadSend={sendBmadRequest}
             onClose={() => setInspectorOpen(false)}
             onDiscard={() => undefined}
             onRevise={() => undefined}

@@ -68,6 +68,23 @@ mod prepare {
         (state, storage, workspace, projection.workspace_id)
     }
 
+    fn transition_authority<'a>(
+        state: &'a HostState,
+        workspace_id: &str,
+    ) -> (
+        crate::state::ReadyWorkspaceCommitGuard<'a>,
+        desktop_workspace::WorkspaceScopeAuthorityGuard<'a>,
+    ) {
+        let authority = state
+            .ready_workspace_commit()
+            .expect("ready workspace commit authority");
+        let workspace_authority = state
+            .workspace
+            .authorize_scope(workspace_id, 1)
+            .expect("workspace scope authority");
+        (authority, workspace_authority)
+    }
+
     #[cfg(feature = "deterministic-help")]
     struct CountingDeterministicTransport(Arc<AtomicUsize>);
 
@@ -152,10 +169,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let projection = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -228,10 +248,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -245,6 +268,8 @@ mod prepare {
         let wrong = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -260,6 +285,8 @@ mod prepare {
         let approved = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -287,6 +314,70 @@ mod prepare {
 
     #[cfg(feature = "deterministic-help")]
     #[test]
+    fn sign_out_invalidates_a_prepared_review_between_command_boundaries() {
+        let foundation = foundation();
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let now = crate::state::now();
+        create_bmad_help_run_for_test(
+            &state,
+            &foundation,
+            &id("request_01J00000000000000000000025"),
+            &id(&workspace_id),
+            1,
+            BmadHelpIntent::new("Review architecture readiness").expect("bounded intent"),
+            now,
+        )
+        .expect("retained Help run");
+        state.bind_renderer("main").expect("renderer binding");
+
+        let review = {
+            let renderer = state
+                .renderer_session_authority("main")
+                .expect("renderer authority");
+            let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+            let mut coordinator = state.bmad_model.lock();
+            coordinator
+                .prepare(
+                    &state,
+                    &authority,
+                    &workspace_authority,
+                    &foundation,
+                    PrepareBmadHelpReviewInput {
+                        renderer_session: &renderer,
+                        workspace_id: id(&workspace_id),
+                        workspace_grant_epoch: 1,
+                        created_at: UnixMillis(now.0 + 1),
+                    },
+                )
+                .expect("prepared review")
+        };
+
+        assert_eq!(state.sign_out_model().expect("broker-free sign-out"), 2);
+
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("new renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+        let mut coordinator = state.bmad_model.lock();
+        let error = coordinator
+            .approve(
+                &state,
+                &authority,
+                &workspace_authority,
+                ApproveBmadHelpReviewInput {
+                    renderer_session: &renderer,
+                    workspace_id: id(&workspace_id),
+                    workspace_grant_epoch: 1,
+                    manifest_hash: review.context.manifest_hash,
+                    approved_at: UnixMillis(now.0 + 2),
+                },
+            )
+            .expect_err("sign-out must invalidate the retained review");
+        assert_eq!(error, BmadHelpCoordinatorError::Unauthorized);
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
     fn cancel_and_renderer_rebind_invalidate_without_dispatch() {
         let foundation = foundation();
         let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
@@ -309,10 +400,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -325,6 +419,8 @@ mod prepare {
         let approved = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -337,6 +433,8 @@ mod prepare {
         coordinator
             .cancel(
                 &state,
+                &authority,
+                &workspace_authority,
                 CancelBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -357,6 +455,10 @@ mod prepare {
 
     #[cfg(feature = "deterministic-help")]
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "the end-to-end D2 success fixture keeps the six Method transitions and one dispatch assertion together"
+    )]
     fn submit_dispatches_once_after_v5_and_atomically_completes_v6() {
         let foundation = foundation();
         let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
@@ -379,10 +481,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -395,6 +500,8 @@ mod prepare {
         let approved = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -407,6 +514,8 @@ mod prepare {
         let completed = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -426,6 +535,8 @@ mod prepare {
         let duplicate = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -439,7 +550,6 @@ mod prepare {
         assert_eq!(duplicate, BmadHelpCoordinatorError::ConsentAlreadyConsumed);
         assert_eq!(calls.load(Ordering::SeqCst), 1);
 
-        let authority = state.ready_workspace_commit().expect("ready authority");
         let session = state
             .method_store(authority.authority())
             .expect("Method store")
@@ -489,10 +599,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -505,6 +618,8 @@ mod prepare {
         let approved = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -517,6 +632,8 @@ mod prepare {
         let error = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -533,6 +650,8 @@ mod prepare {
         let replay = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -546,7 +665,6 @@ mod prepare {
         assert_eq!(replay, BmadHelpCoordinatorError::ConsentAlreadyConsumed);
         assert_eq!(calls.load(Ordering::SeqCst), 1);
 
-        let authority = state.ready_workspace_commit().expect("ready authority");
         let session = state
             .method_store(authority.authority())
             .expect("Method store")
@@ -605,10 +723,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -621,6 +742,8 @@ mod prepare {
         let approved = coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -634,6 +757,8 @@ mod prepare {
         let substituted_manifest = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -651,6 +776,8 @@ mod prepare {
         let substituted_decision = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -668,6 +795,8 @@ mod prepare {
         let expired = coordinator
             .submit(
                 &state,
+                &authority,
+                &workspace_authority,
                 SubmitBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -681,7 +810,6 @@ mod prepare {
         assert_eq!(expired, BmadHelpCoordinatorError::ConsentExpired);
         assert_eq!(calls.load(Ordering::SeqCst), 0);
 
-        let authority = state.ready_workspace_commit().expect("ready authority");
         let session = state
             .method_store(authority.authority())
             .expect("Method store")
@@ -716,10 +844,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let review = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,
@@ -732,6 +863,8 @@ mod prepare {
         coordinator
             .approve(
                 &state,
+                &authority,
+                &workspace_authority,
                 ApproveBmadHelpReviewInput {
                     renderer_session: &renderer,
                     workspace_id: id(&workspace_id),
@@ -743,6 +876,8 @@ mod prepare {
             .expect("approved review");
         drop(coordinator);
         drop(renderer);
+        drop(workspace_authority);
+        drop(authority);
 
         state.bind_renderer("main").expect("renderer rebound");
         assert!(!state.bmad_model.lock().has_active_review());
@@ -776,10 +911,13 @@ mod prepare {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
         let mut coordinator = state.bmad_model.lock();
         let error = coordinator
             .prepare(
                 &state,
+                &authority,
+                &workspace_authority,
                 &foundation,
                 PrepareBmadHelpReviewInput {
                     renderer_session: &renderer,

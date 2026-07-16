@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
 import "../test/setup";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type {
   BmadHelpConfidence,
   BmadHelpRecommendationProjection,
   BmadHelpRunCreatedProjection,
-  BmadHelpUiState,
 } from "../lib/bmadProjection";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
 import { BmadHelpCard } from "./BmadHelpCard";
 
 const recommendation: BmadHelpRecommendationProjection = {
@@ -38,16 +39,62 @@ const run: BmadHelpRunCreatedProjection = {
   workspaceId: "workspace-internal-id",
   runId: "run-internal-id",
   sessionId: "session-internal-id",
+  currentIntent: "Review architecture readiness",
   runnable: false,
   completionClaimed: false,
   recommendation,
 };
 
+const reviewState: BmadRequestState = {
+  kind: "review_required",
+  run,
+  runProjection: run,
+  review: {
+    workspaceId: run.workspaceId,
+    workspaceGrantEpoch: 1,
+    runId: run.runId,
+    sessionId: run.sessionId,
+    destinationLabel: "Deterministic local model",
+    developmentOnly: true,
+    consentDisclosure: "Only the exact reviewed context will be sent once.",
+    manifestHash: `sha256:${"a".repeat(64)}`,
+    purpose: "bmad_help",
+    region: "localdev",
+    retentionMode: "transient_no_store",
+    expiresAt: Date.now() + 60_000,
+    items: [{
+      relativeLabel: "method/current-intent.txt",
+      semanticRole: "current_intent",
+      language: "text",
+      outboundByteCount: run.currentIntent.length,
+      tokenEstimate: 1,
+      classification: "internal",
+      redactions: [],
+      outboundContent: run.currentIntent,
+    }],
+    exclusions: [],
+    secretFindings: [],
+    totalOutboundBytes: run.currentIntent.length,
+    totalTokenEstimate: 1,
+    redactionLimitation: "Redaction reduces risk but cannot prove every secret was detected.",
+  },
+  authority: {
+    workspaceId: run.workspaceId,
+    workspaceGrantEpoch: 1,
+    runId: run.runId,
+    sessionId: run.sessionId,
+    authEpoch: 1,
+    rendererGeneration: 1,
+    manifestHash: `sha256:${"a".repeat(64)}`,
+    expiresAt: Date.now() + 60_000,
+  },
+};
+
 function readyState(
   overrides: Partial<BmadHelpRecommendationProjection> = {},
-): BmadHelpUiState {
+): BmadRequestState {
   return {
-    kind: "ready",
+    kind: "idle",
     run: {
       ...run,
       recommendation: { ...recommendation, ...overrides },
@@ -98,7 +145,7 @@ describe("BmadHelpCard", () => {
   });
 
   it("renders an honest no-evidence state", () => {
-    render(<BmadHelpCard state={{ kind: "no_evidence" }} />);
+    render(<BmadHelpCard state={{ kind: "idle", run: null }} />);
 
     expect(screen.getByRole("heading", { name: "Suggested next step" })).toBeTruthy();
     expect(screen.getByText("No recommendation yet")).toBeTruthy();
@@ -108,13 +155,33 @@ describe("BmadHelpCard", () => {
   });
 
   it("renders loading without inventing a recommendation", () => {
-    render(<BmadHelpCard state={{ kind: "loading" }} />);
+    render(<BmadHelpCard state={{ kind: "creating", activity: "creating" }} />);
 
     expect(screen.getByRole("status")).toHaveProperty(
       "textContent",
-      expect.stringContaining("Finding a source-grounded recommendation"),
+      expect.stringContaining("Preparing an exact Method request review"),
     );
     expect(screen.queryByText("Architecture")).toBeNull();
+  });
+
+  it("forwards explicit review gestures to the owning inspector", async () => {
+    const user = userEvent.setup();
+    const onApprove = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <BmadHelpCard
+        onApprove={onApprove}
+        onCancel={onCancel}
+        onSend={vi.fn()}
+        state={reviewState}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Approve context" }));
+    await user.click(screen.getByRole("button", { name: "Cancel review" }));
+
+    expect(onApprove).toHaveBeenCalledOnce();
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it.each([
@@ -123,7 +190,7 @@ describe("BmadHelpCard", () => {
     "The selected dependency is unavailable.",
     "The source prompt is unavailable.",
   ])("renders bounded unavailable state: %s", (message) => {
-    render(<BmadHelpCard state={{ kind: "unavailable", message }} />);
+    render(<BmadHelpCard state={{ kind: "unavailable", message, run: null }} />);
     expect(screen.getByRole("alert")).toHaveProperty(
       "textContent",
       expect.stringContaining(message),

@@ -13,6 +13,19 @@ import type {
   BmadMethodAgentProjection,
   BmadProjectionSource,
 } from "./bmadProjection";
+import {
+  bmadModelCommands,
+  type BmadHelpApprovedProjection,
+  type BmadHelpCancelledProjection,
+  type BmadHelpCompletedRecommendationProjection,
+  type BmadHelpContextReviewProjection,
+  type BmadHelpEvidenceClass,
+  type BmadHelpNoRecommendationReason,
+  type BmadHelpReceiptSummaryProjection,
+  type BmadHelpRunCompletedProjection,
+  type BmadHelpTerminalProjection,
+  type ModelAuthStatusProjection,
+} from "./bmadModelProjection";
 
 const BOOTSTRAP_SCHEMA = "desktop-bootstrap.v1" as const;
 const COMMAND_SCHEMA = "desktop-ipc-command.v1" as const;
@@ -22,6 +35,8 @@ const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
 const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
 const BMAD_HELP_RECOMMENDATION_SCHEMA = "bmad-help-recommendation.v1" as const;
 const BMAD_HELP_RUN_SCHEMA = "bmad-help-run.v1" as const;
+const BMAD_HELP_COMPLETED_SCHEMA = "bmad-help-completed.v1" as const;
+const BMAD_MODEL_RECEIPT_SCHEMA = "bmad-model-receipt-summary.v1" as const;
 
 const bmadProjectionLimits = {
   responseBytes: 256 * 1024,
@@ -38,6 +53,15 @@ const bmadProjectionLimits = {
   helpIntentBytes: 4_096,
   helpReasonBytes: 4_096,
   helpRunResponseBytes: (64 * 1_024) + 1_024,
+  modelResponseBytes: 5 * 1_024 * 1_024,
+  reviewItems: 16,
+  reviewExclusions: 32,
+  reviewSecretFindings: 64,
+  reviewTextBytes: 64 * 1024,
+  reviewProjectionBytes: 96 * 1024,
+  reviewLabelBytes: 1_024,
+  receiptInputBytes: 4 * 1024 * 1024,
+  receiptOutputBytes: 1024 * 1024,
 } as const;
 
 const bmadAvailabilities = new Set<BmadAvailability>([
@@ -84,6 +108,13 @@ export const desktopHostCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  bmadModelCommands.authStatus,
+  bmadModelCommands.authSignIn,
+  bmadModelCommands.authSignOut,
+  bmadModelCommands.prepare,
+  bmadModelCommands.approve,
+  bmadModelCommands.cancel,
+  bmadModelCommands.submit,
   "bmad.help.latest",
   "run.create",
   "context.preview",
@@ -158,6 +189,23 @@ export interface LocalHostError {
     | "bmad_projection_unavailable"
     | "bmad_projection_gap"
     | "renderer_session_expired"
+    | "identity_unavailable"
+    | "authentication_required"
+    | "reauthentication_required"
+    | "tenant_mismatch"
+    | "entitlement_unavailable"
+    | "feature_disabled"
+    | "context_rejected"
+    | "context_drift"
+    | "consent_required"
+    | "consent_expired"
+    | "consent_binding_mismatch"
+    | "consent_already_consumed"
+    | "support_plane_offline"
+    | "transport_failed"
+    | "response_binding_mismatch"
+    | "invalid_model_output"
+    | "receipt_invalid"
     | "internal";
   safeMessage: string;
   retryable: boolean;
@@ -258,7 +306,16 @@ export type LatestBmadHelpRunResult =
   | {
     readonly kind: "retained";
     readonly run: BmadHelpRunCreatedProjection;
-  };
+  }
+  | { readonly kind: "interrupted"; readonly run: BmadHelpRunCreatedProjection }
+  | { readonly kind: "review"; readonly review: BmadHelpContextReviewProjection }
+  | {
+    readonly kind: "approved";
+    readonly review: BmadHelpContextReviewProjection;
+    readonly approval: BmadHelpApprovedProjection;
+  }
+  | { readonly kind: "completed"; readonly result: BmadHelpRunCompletedProjection }
+  | { readonly kind: "terminal"; readonly terminal: BmadHelpTerminalProjection };
 
 export interface HostBinding {
   rendererSessionId: string;
@@ -275,6 +332,13 @@ type RendererDispatchCommand =
   | "workspace.search"
   | "bmad.scan"
   | "bmad.library.snapshot"
+  | "model.auth.status"
+  | "model.auth.sign_in"
+  | "model.auth.sign_out"
+  | "bmad.help.prepare"
+  | "bmad.help.approve"
+  | "bmad.help.cancel"
+  | "bmad.help.submit"
   | "bmad.help.latest"
   | "context.preview"
   | "run.create";
@@ -420,6 +484,18 @@ function asBmadIdentifier(value: unknown): string {
     || value.length === 0
     || utf8Length(value) > bmadProjectionLimits.identifierBytes
     || !/^[A-Za-z0-9._-]+$/u.test(value)
+  ) {
+    return fail();
+  }
+  return value;
+}
+
+function asModelRegion(value: unknown): string {
+  if (
+    typeof value !== "string"
+    || value.length < 3
+    || value.length > 64
+    || !/^[a-z][a-z0-9-]+$/u.test(value)
   ) {
     return fail();
   }
@@ -772,6 +848,23 @@ function parseLocalHostError(value: unknown): LocalHostError {
     "bmad_projection_unavailable",
     "bmad_projection_gap",
     "renderer_session_expired",
+    "identity_unavailable",
+    "authentication_required",
+    "reauthentication_required",
+    "tenant_mismatch",
+    "entitlement_unavailable",
+    "feature_disabled",
+    "context_rejected",
+    "context_drift",
+    "consent_required",
+    "consent_expired",
+    "consent_binding_mismatch",
+    "consent_already_consumed",
+    "support_plane_offline",
+    "transport_failed",
+    "response_binding_mismatch",
+    "invalid_model_output",
+    "receipt_invalid",
     "internal",
   ]);
   const code = asBoundedString(error.code, 64) as LocalHostError["code"];
@@ -1213,6 +1306,7 @@ function parseBmadHelpRunCreated(
     "workspaceId",
     "runId",
     "sessionId",
+    "currentIntent",
     "runnable",
     "completionClaimed",
     "recommendation",
@@ -1237,6 +1331,7 @@ function parseBmadHelpRunCreated(
     workspaceId,
     runId: asContractId(run.runId),
     sessionId: asContractId(run.sessionId),
+    currentIntent: asBmadHelpIntent(run.currentIntent),
     runnable: false,
     completionClaimed: false,
     recommendation: parseBmadHelpRecommendation(run.recommendation),
@@ -1244,6 +1339,333 @@ function parseBmadHelpRunCreated(
   if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.helpRunResponseBytes) {
     return fail();
   }
+  return projection;
+}
+
+function asPositiveSafeInteger(value: unknown): number {
+  const parsed = asUnsignedInteger(value);
+  if (parsed === 0) return fail();
+  return parsed;
+}
+
+function asBmadRendererText(value: unknown, maximumBytes: number): string {
+  const text = asBmadNonemptySafeText(value, maximumBytes);
+  if (/(?:\\\\|[A-Za-z]:[\\/]|file:\/\/|(?:^|\s)\/(?:[^\s]|$))/iu.test(text)) {
+    return fail();
+  }
+  return text;
+}
+
+function parseModelAuthStatus(value: unknown): ModelAuthStatusProjection {
+  const status = asRecord(value);
+  const developmentOnly = asBoolean(status.developmentOnly);
+  assertExactKeys(status, [
+    "status",
+    "mode",
+    "authEpoch",
+    "developmentOnly",
+    "destinationLabel",
+    "signInAvailable",
+    "signOutAvailable",
+  ]);
+  if (
+    (status.status !== "unavailable" && status.status !== "development_ready")
+    || (status.mode !== "offline" && status.mode !== "deterministic_development")
+    || status.signInAvailable !== false
+    || status.signOutAvailable !== true
+    || (
+      status.status === "development_ready"
+        ? status.mode !== "deterministic_development" || developmentOnly !== true
+        : status.mode !== "offline" || developmentOnly !== false
+    )
+  ) {
+    return fail();
+  }
+  return {
+    status: status.status,
+    mode: status.mode,
+    authEpoch: asUnsignedInteger(status.authEpoch),
+    developmentOnly,
+    destinationLabel: asBmadRendererText(status.destinationLabel, 256),
+    signInAvailable: false,
+    signOutAvailable: true,
+  };
+}
+
+function parseBmadHelpReview(value: unknown, expectedWorkspaceId: string): BmadHelpContextReviewProjection {
+  const review = asRecord(value);
+  assertExactKeys(review, [
+    "workspaceId",
+    "workspaceGrantEpoch",
+    "runId",
+    "sessionId",
+    "destinationLabel",
+    "developmentOnly",
+    "consentDisclosure",
+    "manifestHash",
+    "purpose",
+    "region",
+    "retentionMode",
+    "expiresAt",
+    "items",
+    "exclusions",
+    "secretFindings",
+    "totalOutboundBytes",
+    "totalTokenEstimate",
+    "redactionLimitation",
+  ]);
+  if (
+    review.workspaceId !== expectedWorkspaceId
+    || typeof review.developmentOnly !== "boolean"
+    || review.retentionMode !== "transient_no_store"
+    || !Array.isArray(review.items)
+    || review.items.length === 0
+    || review.items.length > bmadProjectionLimits.reviewItems
+    || !Array.isArray(review.exclusions)
+    || review.exclusions.length > bmadProjectionLimits.reviewExclusions
+    || !Array.isArray(review.secretFindings)
+    || review.secretFindings.length > bmadProjectionLimits.reviewSecretFindings
+  ) {
+    return fail();
+  }
+  const items = review.items.map((value) => {
+    const item = asRecord(value);
+    assertExactKeys(item, [
+      "relativeLabel",
+      "semanticRole",
+      "language",
+      "outboundByteCount",
+      "tokenEstimate",
+      "classification",
+      "redactions",
+      "outboundContent",
+    ]);
+    if (
+      !["public", "internal", "confidential"].includes(String(item.classification))
+      || !Array.isArray(item.redactions)
+      || item.redactions.length > 32
+    ) {
+      return fail();
+    }
+    const outboundContent = asTextContent(item.outboundContent, bmadProjectionLimits.reviewTextBytes);
+    const outboundByteCount = asPositiveSafeInteger(item.outboundByteCount);
+    if (outboundByteCount !== utf8Length(outboundContent)) return fail();
+    return {
+      relativeLabel: asRelativePath(item.relativeLabel),
+      semanticRole: asBmadIdentifier(item.semanticRole),
+      language: item.language === null ? null : asBmadIdentifier(item.language),
+      outboundByteCount,
+      tokenEstimate: asPositiveSafeInteger(item.tokenEstimate),
+      classification: item.classification as "public" | "internal" | "confidential",
+      redactions: item.redactions.map((value) => {
+        const redaction = asRecord(value);
+        assertExactKeys(redaction, ["kind", "occurrenceCount"]);
+        return {
+          kind: asBmadIdentifier(redaction.kind),
+          occurrenceCount: asPositiveSafeInteger(redaction.occurrenceCount),
+        };
+      }),
+      outboundContent,
+    };
+  });
+  assertUniqueRelativePaths(items.map(({ relativeLabel }) => relativeLabel));
+  const exclusions = review.exclusions.map((value) => {
+    const exclusion = asRecord(value);
+    assertExactKeys(exclusion, ["relativeLabel", "reason"]);
+    return {
+      relativeLabel: asRelativePath(exclusion.relativeLabel),
+      reason: asBmadRendererText(exclusion.reason, 1_024),
+    };
+  });
+  const secretFindings = review.secretFindings.map((value) => {
+    const finding = asRecord(value);
+    assertExactKeys(finding, ["relativeLabel", "kind", "occurrenceCount"]);
+    return {
+      relativeLabel: asRelativePath(finding.relativeLabel),
+      kind: asBmadIdentifier(finding.kind),
+      occurrenceCount: asPositiveSafeInteger(finding.occurrenceCount),
+    };
+  });
+  const totalOutboundBytes = asPositiveSafeInteger(review.totalOutboundBytes);
+  const totalTokenEstimate = asPositiveSafeInteger(review.totalTokenEstimate);
+  if (
+    items.reduce((total, item) => total + item.outboundByteCount, 0) !== totalOutboundBytes
+    || items.reduce((total, item) => total + item.tokenEstimate, 0) !== totalTokenEstimate
+    || totalOutboundBytes > bmadProjectionLimits.reviewTextBytes
+  ) {
+    return fail();
+  }
+  const projection: BmadHelpContextReviewProjection = {
+    workspaceId: asContractId(review.workspaceId),
+    workspaceGrantEpoch: asPositiveSafeInteger(review.workspaceGrantEpoch),
+    runId: asContractId(review.runId),
+    sessionId: asContractId(review.sessionId),
+    destinationLabel: asBmadRendererText(review.destinationLabel, 256),
+    developmentOnly: review.developmentOnly,
+    consentDisclosure: asBmadRendererText(review.consentDisclosure, 4_096),
+    manifestHash: asSha256(review.manifestHash),
+    purpose: asBmadIdentifier(review.purpose),
+    region: asModelRegion(review.region),
+    retentionMode: "transient_no_store",
+    expiresAt: asPositiveSafeInteger(review.expiresAt),
+    items,
+    exclusions,
+    secretFindings,
+    totalOutboundBytes,
+    totalTokenEstimate,
+    redactionLimitation: asBmadRendererText(review.redactionLimitation, 1_024),
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.reviewProjectionBytes) return fail();
+  return projection;
+}
+
+function parseBmadHelpApproval(value: unknown): BmadHelpApprovedProjection {
+  const approval = asRecord(value);
+  assertExactKeys(approval, ["manifestHash", "decisionId", "expiresAt", "sendEligible"]);
+  if (approval.sendEligible !== true) return fail();
+  return {
+    manifestHash: asSha256(approval.manifestHash),
+    decisionId: asContractId(approval.decisionId),
+    expiresAt: asPositiveSafeInteger(approval.expiresAt),
+    sendEligible: true,
+  };
+}
+
+function parseBmadHelpCancellation(value: unknown): BmadHelpCancelledProjection {
+  const cancellation = asRecord(value);
+  assertExactKeys(cancellation, ["manifestHash", "decisionId"]);
+  return {
+    manifestHash: asSha256(cancellation.manifestHash),
+    decisionId: asContractId(cancellation.decisionId),
+  };
+}
+
+const bmadTerminalReasons = new Set<BmadHelpTerminalProjection["reason"]>([
+  "cancelled", "consent_expired", "consent_consumed", "failed",
+]);
+
+function parseBmadHelpTerminal(
+  value: unknown,
+  expectedWorkspaceId: string,
+): BmadHelpTerminalProjection {
+  const terminal = asRecord(value);
+  assertExactKeys(terminal, ["workspaceId", "reason", "resumable", "sendEligible"]);
+  const workspaceId = asContractId(terminal.workspaceId);
+  const reason = asBmadIdentifier(terminal.reason) as BmadHelpTerminalProjection["reason"];
+  if (
+    workspaceId !== expectedWorkspaceId
+    || !bmadTerminalReasons.has(reason)
+    || terminal.resumable !== false
+    || terminal.sendEligible !== false
+  ) return fail();
+  return { workspaceId, reason, resumable: false, sendEligible: false };
+}
+
+const evidenceClasses = new Set<BmadHelpEvidenceClass>([
+  "authoritative", "user_asserted", "heuristic", "contextual",
+]);
+const noRecommendationReasons = new Set<BmadHelpNoRecommendationReason>([
+  "catalog_evidence_absent", "completion_evidence_ambiguous", "dependency_unavailable",
+]);
+
+function parseBmadCompletedRecommendation(value: unknown): BmadHelpCompletedRecommendationProjection {
+  const recommendation = asRecord(value);
+  if (recommendation.recommendationKind === "recommended_capability") {
+    assertExactKeys(recommendation, [
+      "recommendationKind", "displayName", "moduleCode", "skillName", "action",
+      "evidenceClass", "guidanceRequired", "rationaleSummary", "createdAt",
+    ]);
+    const evidenceClass = asBmadIdentifier(recommendation.evidenceClass) as BmadHelpEvidenceClass;
+    if (!evidenceClasses.has(evidenceClass)) return fail();
+    return {
+      recommendationKind: "recommended_capability",
+      displayName: asBmadRendererText(recommendation.displayName, 256),
+      moduleCode: asBmadIdentifier(recommendation.moduleCode),
+      skillName: asBmadIdentifier(recommendation.skillName),
+      action: asNullableBmadIdentifier(recommendation.action),
+      evidenceClass,
+      guidanceRequired: asBoolean(recommendation.guidanceRequired),
+      rationaleSummary: asBmadRendererText(recommendation.rationaleSummary, 4_096),
+      createdAt: asPositiveSafeInteger(recommendation.createdAt),
+    };
+  }
+  if (recommendation.recommendationKind !== "no_recommendation") return fail();
+  assertExactKeys(recommendation, ["recommendationKind", "reasonCode", "createdAt"]);
+  const reasonCode = asBmadIdentifier(recommendation.reasonCode) as BmadHelpNoRecommendationReason;
+  if (!noRecommendationReasons.has(reasonCode)) return fail();
+  return {
+    recommendationKind: "no_recommendation",
+    reasonCode,
+    createdAt: asPositiveSafeInteger(recommendation.createdAt),
+  };
+}
+
+function parseBmadReceipt(value: unknown): BmadHelpReceiptSummaryProjection {
+  const receipt = asRecord(value);
+  assertExactKeys(receipt, [
+    "schemaVersion", "receiptId", "status", "retentionMode", "region", "inputBytes",
+    "outputBytes", "startedAt", "completedAt",
+  ]);
+  if (
+    receipt.schemaVersion !== BMAD_MODEL_RECEIPT_SCHEMA
+    || receipt.status !== "succeeded"
+    || receipt.retentionMode !== "transient_no_store"
+  ) return fail();
+  const inputBytes = asPositiveSafeInteger(receipt.inputBytes);
+  const outputBytes = asPositiveSafeInteger(receipt.outputBytes);
+  const startedAt = asPositiveSafeInteger(receipt.startedAt);
+  const completedAt = asPositiveSafeInteger(receipt.completedAt);
+  if (
+    inputBytes > bmadProjectionLimits.receiptInputBytes
+    || outputBytes > bmadProjectionLimits.receiptOutputBytes
+    || startedAt > completedAt
+  ) return fail();
+  return {
+    schemaVersion: BMAD_MODEL_RECEIPT_SCHEMA,
+    receiptId: asContractId(receipt.receiptId),
+    status: "succeeded",
+    retentionMode: "transient_no_store",
+    region: asModelRegion(receipt.region),
+    inputBytes,
+    outputBytes,
+    startedAt,
+    completedAt,
+  };
+}
+
+function parseBmadHelpCompleted(
+  value: unknown,
+  expectedWorkspaceId: string,
+): BmadHelpRunCompletedProjection {
+  const result = asRecord(value);
+  assertExactKeys(result, [
+    "schemaVersion", "runKind", "lifecycle", "workspaceId", "runId", "sessionId",
+    "runnable", "completionClaimed", "recommendation", "receipt",
+  ]);
+  if (
+    result.schemaVersion !== BMAD_HELP_COMPLETED_SCHEMA
+    || result.runKind !== "bmad_help"
+    || result.lifecycle !== "completed"
+    || result.workspaceId !== expectedWorkspaceId
+    || result.runnable !== false
+    || result.completionClaimed !== true
+  ) return fail();
+  const recommendation = parseBmadCompletedRecommendation(result.recommendation);
+  const receipt = parseBmadReceipt(result.receipt);
+  if (recommendation.createdAt < receipt.completedAt) return fail();
+  const projection: BmadHelpRunCompletedProjection = {
+    schemaVersion: BMAD_HELP_COMPLETED_SCHEMA,
+    runKind: "bmad_help",
+    lifecycle: "completed",
+    workspaceId: asContractId(result.workspaceId),
+    runId: asContractId(result.runId),
+    sessionId: asContractId(result.sessionId),
+    runnable: false,
+    completionClaimed: true,
+    recommendation,
+    receipt,
+  };
+  if (utf8Length(JSON.stringify(projection)) > bmadProjectionLimits.modelResponseBytes) return fail();
   return projection;
 }
 
@@ -1458,10 +1880,74 @@ function parseBmadHelpRunCreatedReply(
   return { projection, sequence: parsed.sequence };
 }
 
+function parseModelAuthStatusReply(
+  value: unknown,
+  requestId: string,
+): { projection: ModelAuthStatusProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) return fail();
+  assertExactKeys(parsed.data, ["kind", "value"]);
+  if (parsed.data.kind !== "model_auth_status") return fail();
+  return { projection: parseModelAuthStatus(parsed.data.value), sequence: parsed.sequence };
+}
+
+function parseBmadHelpReviewReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { projection: BmadHelpContextReviewProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) return fail();
+  assertExactKeys(parsed.data, ["kind", "value"]);
+  if (parsed.data.kind !== "bmad_help_review") return fail();
+  return {
+    projection: parseBmadHelpReview(parsed.data.value, workspaceId),
+    sequence: parsed.sequence,
+  };
+}
+
+function parseBmadHelpApprovedReply(
+  value: unknown,
+  requestId: string,
+): { projection: BmadHelpApprovedProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) return fail();
+  assertExactKeys(parsed.data, ["kind", "value"]);
+  if (parsed.data.kind !== "bmad_help_approved") return fail();
+  return { projection: parseBmadHelpApproval(parsed.data.value), sequence: parsed.sequence };
+}
+
+function parseBmadHelpCancelledReply(
+  value: unknown,
+  requestId: string,
+): { projection: BmadHelpCancelledProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) return fail();
+  assertExactKeys(parsed.data, ["kind", "value"]);
+  if (parsed.data.kind !== "bmad_help_cancelled") return fail();
+  return { projection: parseBmadHelpCancellation(parsed.data.value), sequence: parsed.sequence };
+}
+
+function parseBmadHelpCompletedReply(
+  value: unknown,
+  requestId: string,
+  workspaceId: string,
+): { projection: BmadHelpRunCompletedProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  if (parsed.receipt.operationId !== null) return fail();
+  assertExactKeys(parsed.data, ["kind", "value"]);
+  if (parsed.data.kind !== "bmad_help_run_completed") return fail();
+  return {
+    projection: parseBmadHelpCompleted(parsed.data.value, workspaceId),
+    sequence: parsed.sequence,
+  };
+}
+
 function parseLatestBmadHelpRunReply(
   value: unknown,
   requestId: string,
   workspaceId: string,
+  workspaceGrantEpoch: number,
 ): { result: LatestBmadHelpRunResult; sequence: number } {
   const parsed = parseDispatchReply(value, requestId);
   if (parsed.receipt.operationId !== null) {
@@ -1476,6 +1962,49 @@ function parseLatestBmadHelpRunReply(
     assertExactKeys(data, ["kind"]);
     return {
       result: { kind: "projection_unavailable" },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind === "bmad_help_review") {
+    assertExactKeys(data, ["kind", "value"]);
+    const review = parseBmadHelpReview(data.value, workspaceId);
+    if (review.workspaceGrantEpoch !== workspaceGrantEpoch) return fail();
+    return { result: { kind: "review", review }, sequence: parsed.sequence };
+  }
+  if (data.kind === "bmad_help_approved_lifecycle") {
+    assertExactKeys(data, ["kind", "value"]);
+    const lifecycle = asRecord(data.value);
+    assertExactKeys(lifecycle, ["review", "approval"]);
+    const review = parseBmadHelpReview(lifecycle.review, workspaceId);
+    const approval = parseBmadHelpApproval(lifecycle.approval);
+    if (
+      review.workspaceGrantEpoch !== workspaceGrantEpoch
+      || approval.manifestHash !== review.manifestHash
+      || approval.expiresAt > review.expiresAt
+    ) return fail();
+    return {
+      result: { kind: "approved", review, approval },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind === "bmad_help_terminal") {
+    assertExactKeys(data, ["kind", "value"]);
+    return {
+      result: { kind: "terminal", terminal: parseBmadHelpTerminal(data.value, workspaceId) },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind === "bmad_help_run_interrupted") {
+    assertExactKeys(data, ["kind", "value"]);
+    return {
+      result: { kind: "interrupted", run: parseBmadHelpRunCreated(data.value, workspaceId) },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind === "bmad_help_run_completed") {
+    assertExactKeys(data, ["kind", "value"]);
+    return {
+      result: { kind: "completed", result: parseBmadHelpCompleted(data.value, workspaceId) },
       sequence: parsed.sequence,
     };
   }
@@ -1794,11 +2323,47 @@ function buildLatestBmadHelpRunEnvelope(
   };
 }
 
+function buildBmadModelEnvelope<
+  TCommand extends
+    | "model.auth.status"
+    | "model.auth.sign_in"
+    | "model.auth.sign_out"
+    | "bmad.help.prepare"
+    | "bmad.help.approve"
+    | "bmad.help.cancel"
+    | "bmad.help.submit",
+  TPayload extends object,
+>(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  command: TCommand,
+  payload: TPayload,
+): CommandEnvelope<TCommand, TPayload> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command,
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload,
+  };
+}
+
 function buildReadOnlyEnvelope<TCommand extends Exclude<
   RendererDispatchCommand,
   | "workspace.select_folder"
   | "workspace.list"
   | "workspace.revoke"
+  | "model.auth.status"
+  | "model.auth.sign_in"
+  | "model.auth.sign_out"
+  | "bmad.help.prepare"
+  | "bmad.help.approve"
+  | "bmad.help.cancel"
+  | "bmad.help.submit"
   | "bmad.help.latest"
   | "run.create"
 >>(
@@ -2191,6 +2756,140 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async modelAuthStatus(): Promise<ModelAuthStatusProjection> {
+    return this.dispatchModelAuthCommand("model.auth.status");
+  }
+
+  async modelAuthSignIn(): Promise<ModelAuthStatusProjection> {
+    return this.dispatchModelAuthCommand("model.auth.sign_in");
+  }
+
+  async modelAuthSignOut(): Promise<ModelAuthStatusProjection> {
+    return this.dispatchModelAuthCommand("model.auth.sign_out");
+  }
+
+  async prepareBmadHelp(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): Promise<BmadHelpContextReviewProjection> {
+    const command = "bmad.help.prepare" as const;
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      command,
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      command,
+      { workspaceId, workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch) },
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpReviewReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, command);
+    if (parsed.projection.workspaceGrantEpoch !== workspaceGrantEpoch) return fail();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async approveBmadHelp(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    manifestHashValue: string,
+  ): Promise<BmadHelpApprovedProjection> {
+    const command = "bmad.help.approve" as const;
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      command,
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const manifestHash = asSha256(manifestHashValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId,
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+      manifestHash,
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpApprovedReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, command);
+    if (parsed.projection.manifestHash !== manifestHash) return fail();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async cancelBmadHelp(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    manifestHashValue: string,
+    decisionIdValue: string,
+  ): Promise<BmadHelpCancelledProjection> {
+    const command = "bmad.help.cancel" as const;
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      command,
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const manifestHash = asSha256(manifestHashValue);
+    const decisionId = asContractId(decisionIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId,
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+      manifestHash,
+      decisionId,
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpCancelledReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, command);
+    if (
+      parsed.projection.manifestHash !== manifestHash
+      || parsed.projection.decisionId !== decisionId
+    ) return fail();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async submitBmadHelp(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    manifestHashValue: string,
+    decisionIdValue: string,
+  ): Promise<BmadHelpRunCompletedProjection> {
+    const command = "bmad.help.submit" as const;
+    const bootstrap = this.requireBmadHelpWorkspaceCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      command,
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId,
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+      manifestHash: asSha256(manifestHashValue),
+      decisionId: asContractId(decisionIdValue),
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseBmadHelpCompletedReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireBmadHelpWorkspaceCommand(workspaceId, workspaceGrantEpoch, command);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async createBmadHelpRun(
     workspaceIdValue: string,
     workspaceGrantEpoch: number,
@@ -2241,7 +2940,12 @@ export class DesktopHostClient {
       workspaceGrantEpoch,
     );
     const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
-    const parsed = parseLatestBmadHelpRunReply(reply, requestId, workspaceId);
+    const parsed = parseLatestBmadHelpRunReply(
+      reply,
+      requestId,
+      workspaceId,
+      workspaceGrantEpoch,
+    );
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.requireBmadHelpWorkspaceCommand(
       workspaceId,
@@ -2371,10 +3075,41 @@ export class DesktopHostClient {
     return bootstrap;
   }
 
+  private async dispatchModelAuthCommand(
+    command: "model.auth.status" | "model.auth.sign_in" | "model.auth.sign_out",
+  ): Promise<ModelAuthStatusProjection> {
+    const bootstrap = this.requireModelAuthCommand(command);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {});
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelAuthStatusReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireModelAuthCommand(command);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  private requireModelAuthCommand(
+    command: "model.auth.status" | "model.auth.sign_in" | "model.auth.sign_out",
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    if (bootstrap.bootMode !== "ready" || !bootstrap.supportedCommands.includes(command)) {
+      throw new HostCapabilityError("Model identity is unavailable in the current host mode.");
+    }
+    return bootstrap;
+  }
+
   private requireBmadHelpWorkspaceCommand(
     workspaceIdValue: string,
     workspaceGrantEpoch: number,
-    command: "bmad.help.latest" | "run.create",
+    command:
+      | "bmad.help.prepare"
+      | "bmad.help.approve"
+      | "bmad.help.cancel"
+      | "bmad.help.submit"
+      | "bmad.help.latest"
+      | "run.create",
   ): BootstrapReply {
     const bootstrap = this.requireBootstrap();
     const workspaceId = asContractId(workspaceIdValue);

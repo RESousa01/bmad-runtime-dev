@@ -415,6 +415,7 @@ function bmadHelpRun(
   workspaceId: string,
   label = "BMad Help",
   suffix = "01K0Q6H3",
+  currentIntent = "Help me choose the next Method step",
 ): BmadHelpRunCreatedProjection {
   return {
     schemaVersion: "bmad-help-run.v1",
@@ -423,6 +424,7 @@ function bmadHelpRun(
     workspaceId,
     runId: `run_${suffix}`,
     sessionId: `session_${suffix}`,
+    currentIntent,
     runnable: false,
     completionClaimed: false,
     recommendation: {
@@ -486,6 +488,13 @@ async function bmadHelpRuntime({
       "workspace.search",
       "bmad.scan",
       "bmad.library.snapshot",
+      "model.auth.status",
+      "model.auth.sign_in",
+      "model.auth.sign_out",
+      "bmad.help.prepare",
+      "bmad.help.approve",
+      "bmad.help.cancel",
+      "bmad.help.submit",
       "bmad.help.latest",
       "run.create",
       "context.preview",
@@ -493,12 +502,20 @@ async function bmadHelpRuntime({
     workspaces,
   };
   let request = 0;
+  let responseSequence = bootstrap.projectionSequence;
+  const bmadReply = (requestId: string, data: unknown) => successfulReply(
+    requestId,
+    data,
+    ++responseSequence,
+  );
   let resolveCreateStarted!: () => void;
   let resolveCreate!: () => void;
   let resolveLatest!: () => void;
   const createStarted = new Promise<void>((resolve) => { resolveCreateStarted = resolve; });
   const heldCreate = new Promise<void>((resolve) => { resolveCreate = resolve; });
   const heldLatest = new Promise<void>((resolve) => { resolveLatest = resolve; });
+  const createdRuns = new Map<string, BmadHelpRunCreatedProjection>();
+  const createdIntents = new Map<string, string>();
   const invoke = vi.fn<TauriInvoke>(async (command, args) => {
     if (command === "host_bootstrap") {
       return bootstrap;
@@ -520,13 +537,27 @@ async function bmadHelpRuntime({
       };
       requestId: string;
     };
+    if (envelope.command === "model.auth.status") {
+      return bmadReply(envelope.requestId, {
+        kind: "model_auth_status",
+        value: {
+          status: "development_ready",
+          mode: "deterministic_development",
+          authEpoch: 5,
+          developmentOnly: true,
+          destinationLabel: "Deterministic local model",
+          signInAvailable: false,
+          signOutAvailable: true,
+        },
+      });
+    }
     if (envelope.command === "bmad.help.latest") {
       const workspaceId = envelope.payload.workspaceId!;
       if (workspaceId === holdLatestWorkspaceId) {
         await heldLatest;
       }
       const retained = latestRuns[workspaceId] ?? null;
-      return successfulReply(
+      return bmadReply(
         envelope.requestId,
         retained === "projection_unavailable"
           ? { kind: "bmad_help_projection_unavailable" }
@@ -562,19 +593,64 @@ async function bmadHelpRuntime({
           },
         };
       }
-      const projection = createRun
-        ?? bmadHelpRun(envelope.payload.workspaceId!, "BMad Help", "01K0Q6H4");
-      const reply = successfulReply(envelope.requestId, {
+      const projection = {
+        ...(createRun
+          ?? bmadHelpRun(envelope.payload.workspaceId!, "BMad Help", "01K0Q6H4")),
+        currentIntent: envelope.payload.currentIntent ?? "",
+      };
+      createdRuns.set(projection.workspaceId, projection);
+      createdIntents.set(projection.workspaceId, envelope.payload.currentIntent ?? "");
+      const reply = bmadReply(envelope.requestId, {
         kind: "bmad_help_run_created",
         value: projection,
-      }, 19);
+      });
       return {
         ...reply,
         receipt: { ...reply.receipt, operationId: projection.runId },
       };
     }
+    if (envelope.command === "bmad.help.prepare") {
+      const workspaceId = envelope.payload.workspaceId!;
+      const run = createdRuns.get(workspaceId)
+        ?? createRun
+        ?? bmadHelpRun(workspaceId, "BMad Help", "01K0Q6H4");
+      const currentIntent = createdIntents.get(workspaceId) ?? "Choose the next safe Method step.";
+      const outboundByteCount = new TextEncoder().encode(currentIntent).byteLength;
+      return bmadReply(envelope.requestId, {
+        kind: "bmad_help_review",
+        value: {
+          workspaceId,
+          workspaceGrantEpoch: envelope.payload.workspaceGrantEpoch ?? 1,
+          runId: run.runId,
+          sessionId: run.sessionId,
+          destinationLabel: "Deterministic local model",
+          developmentOnly: true,
+          consentDisclosure: "Send the exact reviewed context once for this Help request.",
+          manifestHash: digestA,
+          purpose: "bmad_help",
+          region: "localdev",
+          retentionMode: "transient_no_store",
+          expiresAt: Date.now() + 60_000,
+          items: [{
+            relativeLabel: "method/current-intent.txt",
+            semanticRole: "current_intent",
+            language: "text",
+            outboundByteCount,
+            tokenEstimate: Math.max(1, Math.ceil(outboundByteCount / 4)),
+            classification: "internal",
+            redactions: [],
+            outboundContent: currentIntent,
+          }],
+          exclusions: [],
+          secretFindings: [],
+          totalOutboundBytes: outboundByteCount,
+          totalTokenEstimate: Math.max(1, Math.ceil(outboundByteCount / 4)),
+          redactionLimitation: "Redaction reduces risk but cannot prove every secret was detected.",
+        },
+      });
+    }
     if (envelope.command === "bmad.library.snapshot") {
-      return successfulReply(envelope.requestId, {
+      return bmadReply(envelope.requestId, {
         kind: "bmad_library_snapshot",
         value: {
           schemaVersion: "bmad-library-snapshot.v1",
@@ -589,7 +665,7 @@ async function bmadHelpRuntime({
           methodAgents: [],
           nextCursor: null,
         },
-      }, 19);
+      });
     }
     throw new Error(`Unexpected command ${envelope.command}`);
   });
@@ -1158,7 +1234,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     expect(composer).toHaveProperty("disabled", true);
     expect(
-      screen.getByRole("button", { name: "Request Method guidance" }),
+      screen.getByRole("button", { name: "Review request" }),
     ).toHaveProperty("disabled", true);
 
     releaseLatest();
@@ -1185,7 +1261,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     await user.click(await screen.findByRole("button", { name: "Method library" }));
 
-    const legacyWarning = await screen.findByRole("alert");
+    const legacyWarning = (await screen.findAllByRole("alert"))[0]!;
     expect(legacyWarning).toHaveProperty(
       "textContent",
       expect.stringContaining("retained Method session"),
@@ -1199,7 +1275,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.queryByText(/^Created$/)).toBeNull();
 
     await user.type(composer, "Create a newly retained Method session");
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
 
     expect(await screen.findByText("Created · Unbound")).toBeTruthy();
     expect(invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -1221,7 +1297,7 @@ describe("Sapphirus desktop workbench", () => {
 
     const composer = await readyMethodGuidanceComposer();
     await user.type(composer, "  Choose the next safe architecture step.  ");
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
 
     expect(await screen.findByText("Source-grounded Help")).toBeTruthy();
     expect(screen.getAllByText("Created").length).toBeGreaterThan(0);
@@ -1261,7 +1337,7 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend one safe Method step",
     );
-    const submit = screen.getByRole("button", { name: "Request Method guidance" });
+    const submit = screen.getByRole("button", { name: "Review request" });
     fireEvent.click(submit);
     fireEvent.click(submit);
     await createStarted;
@@ -1290,7 +1366,7 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend a safe next step",
     );
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
     await waitFor(() => {
       const createCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
         && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
@@ -1298,7 +1374,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     await user.click(screen.getByRole("button", { name: "Method library" }));
 
-    expect(await screen.findByRole("alert")).toHaveProperty(
+    expect((await screen.findAllByRole("alert"))[0]).toHaveProperty(
       "textContent",
       expect.stringContaining("Method guidance could not be created. Nothing was changed."),
     );
@@ -1330,7 +1406,7 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend a safe next step",
     );
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
     await waitFor(() => {
       expect(
         screen.getByLabelText("Describe what you want Method guidance for"),
@@ -1360,7 +1436,7 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend a safe next step",
     );
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
     await oldHost.createStarted;
 
     view.rerender(
@@ -1404,7 +1480,7 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend a safe next step",
     );
-    await user.click(screen.getByRole("button", { name: "Request Method guidance" }));
+    await user.click(screen.getByRole("button", { name: "Review request" }));
 
     expect((await screen.findAllByText("Read-only recovery")).length).toBeGreaterThan(0);
     expect(

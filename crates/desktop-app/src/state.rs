@@ -30,6 +30,7 @@ const MAX_ROOT_BYTES: usize = 64 * 1024;
 const MAX_EVENTS: usize = 1_024;
 const MAX_CURSORS: usize = 4_096;
 const MAX_CACHED_REPLIES: usize = 2_048;
+const MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH: u64 = 9_007_199_254_740_991;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -102,6 +103,7 @@ pub(crate) struct HostState {
     cursors: Mutex<CursorState>,
     replies: Mutex<ReplyCache>,
     sequence: AtomicU64,
+    model_auth_epoch: AtomicU64,
     events: Mutex<VecDeque<ProjectionEvent>>,
     pub(crate) bmad_model: Mutex<BmadHelpCoordinator>,
 }
@@ -198,6 +200,7 @@ impl HostState {
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
             sequence: AtomicU64::new(0),
+            model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
         })
@@ -219,6 +222,7 @@ impl HostState {
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
             sequence: AtomicU64::new(0),
+            model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
         }
@@ -226,6 +230,30 @@ impl HostState {
 
     pub fn installation_id(&self) -> &ContractId {
         &self.installation_id
+    }
+
+    /// Returns the renderer-visible model identity epoch. It is process-local
+    /// in D2-D because no production identity session is composed yet.
+    pub fn model_auth_epoch(&self) -> u64 {
+        self.model_auth_epoch.load(Ordering::SeqCst)
+    }
+
+    /// Invalidates every pending Help decision and advances the model identity
+    /// epoch without contacting an identity broker.
+    ///
+    /// # Errors
+    ///
+    /// Returns recovery-required if the bounded epoch is exhausted.
+    pub fn sign_out_model(&self) -> Result<u64, LocalError> {
+        let mut bmad_model = self.bmad_model.lock();
+        bmad_model.invalidate(now());
+        let current = self.model_auth_epoch.load(Ordering::SeqCst);
+        if current >= MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH {
+            return Err(recovery_error());
+        }
+        let next = current.checked_add(1).ok_or_else(recovery_error)?;
+        self.model_auth_epoch.store(next, Ordering::SeqCst);
+        Ok(next)
     }
 
     pub fn boot_mode(&self) -> BootMode {
@@ -306,11 +334,14 @@ impl HostState {
     /// releasing the authority write lock. Callers therefore cannot observe a
     /// recovery mode whose transition event has not yet been sequenced.
     pub fn enter_recovery(&self) -> u64 {
-        let mut bmad_model = self.bmad_model.lock();
         let mut mode = self.boot_mode.write();
         if *mode == BootMode::ReadOnlyRecovery {
             return self.sequence();
         }
+        // Acquire the Ready write authority before the Help coordinator. A
+        // workspace-bound transition holds Ready before `bmad_model`; taking
+        // this order prevents recovery from forming the inverse wait cycle.
+        let mut bmad_model = self.bmad_model.lock();
         bmad_model.invalidate(now());
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {
@@ -742,6 +773,33 @@ mod tests {
         error.safe_message
     }
 
+    #[test]
+    fn model_sign_out_is_broker_free_and_advances_the_process_epoch() -> Result<(), String> {
+        let state = ready_state()?;
+        assert_eq!(state.model_auth_epoch(), 1);
+        assert_eq!(state.sign_out_model().map_err(map_local_error)?, 2);
+        assert_eq!(state.model_auth_epoch(), 2);
+        assert_eq!(state.sign_out_model().map_err(map_local_error)?, 3);
+        assert_eq!(state.model_auth_epoch(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn model_sign_out_fails_closed_at_the_renderer_safe_epoch_bound() -> Result<(), String> {
+        let state = ready_state()?;
+        state
+            .model_auth_epoch
+            .store(MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH, Ordering::SeqCst);
+
+        let error = match state.sign_out_model() {
+            Ok(epoch) => return Err(format!("epoch exhaustion unexpectedly advanced to {epoch}")),
+            Err(error) => error,
+        };
+        assert_eq!(error.code, LocalErrorCode::RecoveryRequired);
+        assert_eq!(state.model_auth_epoch(), MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH);
+        Ok(())
+    }
+
     fn assert_single_recovery_event(state: &HostState) -> Result<(), String> {
         let events = state.events_after(0).map_err(map_local_error)?;
         assert_eq!(state.sequence(), 1);
@@ -813,7 +871,6 @@ mod tests {
             completed_rx.recv_timeout(BLOCKED_ASSERTION_WINDOW),
             Err(RecvTimeoutError::Timeout)
         ));
-
         drop(authority);
         let rebound_session = completed_rx
             .recv_timeout(COMPLETION_TIMEOUT)
@@ -902,6 +959,10 @@ mod tests {
             completed_rx.recv_timeout(BLOCKED_ASSERTION_WINDOW),
             Err(RecvTimeoutError::Timeout)
         ));
+        assert!(
+            state.bmad_model.try_lock().is_some(),
+            "recovery must not hold the Help coordinator while waiting for Ready"
+        );
 
         drop(authority);
         let transition_sequence = completed_rx

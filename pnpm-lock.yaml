@@ -84,6 +84,8 @@ importers:
 
   packages/bmad-fixtures: {}
 
+  packages/bmad-foundation: {}
+
   packages/contracts:
     dependencies:
       ajv:
