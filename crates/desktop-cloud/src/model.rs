@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use desktop_egress::{
     ContextClassification, ContextEgressManifest, DecisionConsumption, EgressError,
@@ -16,7 +16,7 @@ use crate::CloudError;
 
 const REQUEST_SCHEMA: &str = "sapphirus.authorized-model-request.v1";
 const RECEIPT_SCHEMA: &str = "sapphirus.model-access-receipt.v1";
-const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
+pub(crate) const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
 const MAX_ACCEPTED_RECEIPT_IDS: usize = 100_000;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -438,14 +438,73 @@ pub struct RawModelOutput {
     pub receipt: ModelAccessReceipt,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+/// Trusted-host output whose verified payload and receipt evidence must not be
+/// serialized across an untrusted boundary.
+///
+/// ```compile_fail
+/// fn assert_serializable<T: serde::Serialize>() {}
+/// assert_serializable::<desktop_cloud::VerifiedModelOutput>();
+/// ```
+///
+/// ```compile_fail
+/// fn expose_payload(output: &desktop_cloud::VerifiedModelOutput) {
+///     let _ = &output.payload;
+/// }
+/// ```
+#[derive(Clone, PartialEq)]
 pub struct VerifiedModelOutput {
-    pub request_id: ContractId,
-    pub output_schema_id: ContractId,
-    pub payload: Value,
-    pub payload_hash: Sha256Digest,
-    pub receipt: ModelAccessReceipt,
+    request_id: ContractId,
+    output_schema_id: ContractId,
+    payload: Value,
+    payload_bytes: Arc<[u8]>,
+    payload_hash: Sha256Digest,
+    receipt: ModelAccessReceipt,
+}
+
+impl VerifiedModelOutput {
+    #[must_use]
+    pub fn request_id(&self) -> &ContractId {
+        &self.request_id
+    }
+
+    #[must_use]
+    pub fn output_schema_id(&self) -> &ContractId {
+        &self.output_schema_id
+    }
+
+    #[must_use]
+    pub fn payload(&self) -> &Value {
+        &self.payload
+    }
+
+    #[must_use]
+    pub fn payload_bytes(&self) -> &[u8] {
+        self.payload_bytes.as_ref()
+    }
+
+    #[must_use]
+    pub const fn payload_hash(&self) -> Sha256Digest {
+        self.payload_hash
+    }
+
+    #[must_use]
+    pub const fn receipt(&self) -> &ModelAccessReceipt {
+        &self.receipt
+    }
+}
+
+impl fmt::Debug for VerifiedModelOutput {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("VerifiedModelOutput")
+            .field("request_id", &self.request_id)
+            .field("output_schema_id", &self.output_schema_id)
+            .field("payload", &"[REDACTED]")
+            .field("payload_bytes", &"[REDACTED]")
+            .field("payload_hash", &self.payload_hash)
+            .field("receipt", &"[REDACTED]")
+            .finish()
+    }
 }
 
 pub trait CanonicalOutputValidator: Send + Sync {
@@ -616,10 +675,12 @@ where
     )?;
     validate_receipt(request, &response)?;
     receipt_verifier.verify(&response.receipt)?;
+    let payload_bytes = Arc::from(response.payload_json.into_bytes());
     Ok(VerifiedModelOutput {
         request_id: response.request_id,
         output_schema_id: response.output_schema_id,
         payload,
+        payload_bytes,
         payload_hash: response.payload_hash,
         receipt: response.receipt,
     })

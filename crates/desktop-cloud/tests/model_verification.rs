@@ -110,8 +110,16 @@ fn authorized_fixture() -> AuthorizedModelRequest {
 }
 
 fn raw_response_for(request: &AuthorizedModelRequest) -> RawModelOutput {
-    let payload_json = r#"{"summary":"bounded plan"}"#.to_owned();
+    raw_response_with_payload(request, r#"{"summary":"bounded plan"}"#)
+}
+
+fn raw_response_with_payload(
+    request: &AuthorizedModelRequest,
+    payload_json: &str,
+) -> RawModelOutput {
+    let payload_json = payload_json.to_owned();
     let payload_hash = sha256_bytes(payload_json.as_bytes());
+    let output_bytes = u64::try_from(payload_json.len()).expect("bounded fixture length");
     RawModelOutput {
         request_id: request.request_id().clone(),
         output_schema_id: request.canonical_output_schema_id().clone(),
@@ -133,7 +141,7 @@ fn raw_response_for(request: &AuthorizedModelRequest) -> RawModelOutput {
             retention_mode: request.retention_mode(),
             region: request.region().to_owned(),
             input_bytes: request.total_outbound_bytes(),
-            output_bytes: 26,
+            output_bytes,
             started_at: UnixMillis(2_100),
             completed_at: UnixMillis(2_200),
             status: ModelReceiptStatus::Succeeded,
@@ -358,7 +366,7 @@ fn deterministic_composition_is_explicit_and_returns_a_dispatched_capability() {
         verify_dispatched_model_response(dispatched, response, &KnownSchema, &FakeReceipt)
             .expect("verified deterministic output");
     assert_eq!(
-        verified.payload["summary"],
+        verified.payload()["summary"],
         "Deterministic planning preview"
     );
 }
@@ -374,8 +382,53 @@ async fn valid_typed_response_and_receipt_are_verified() {
         verify_dispatched_model_response(dispatched, response, &KnownSchema, &KnownReceipt)
             .expect("verified output");
 
-    assert_eq!(output.request_id, expected_request_id);
-    assert_eq!(output.payload["summary"], "bounded plan");
+    assert_eq!(output.request_id(), &expected_request_id);
+    assert_eq!(output.payload()["summary"], "bounded plan");
+}
+
+#[tokio::test]
+async fn verified_output_retains_exact_original_utf8_json_bytes() {
+    let exact_payload = "{\n  \"z\": \"\\u00e9\",\n  \"a\": \"é\"\n}";
+    let request = authorized_fixture();
+    let expected_request_id = request.request_id().clone();
+    let expected_schema_id = request.canonical_output_schema_id().clone();
+    let response = raw_response_with_payload(&request, exact_payload);
+    let (dispatched, response) = dispatch(request, response).await;
+
+    let output =
+        verify_dispatched_model_response(dispatched, response, &KnownSchema, &KnownReceipt)
+            .expect("verified output");
+
+    assert_eq!(output.request_id(), &expected_request_id);
+    assert_eq!(output.output_schema_id(), &expected_schema_id);
+    assert_eq!(output.payload_bytes(), exact_payload.as_bytes());
+    assert_eq!(
+        output.payload_hash(),
+        sha256_bytes(exact_payload.as_bytes())
+    );
+    assert_eq!(output.payload()["z"], "é");
+    assert_eq!(output.payload()["a"], "é");
+    assert_eq!(output.receipt().proof, "test-proof");
+    assert_ne!(
+        serde_json::to_vec(output.payload()).expect("normalized JSON"),
+        output.payload_bytes()
+    );
+}
+
+#[tokio::test]
+async fn verified_output_debug_redacts_payload_and_receipt_proof() {
+    let request = authorized_fixture();
+    let response = raw_response_for(&request);
+    let (dispatched, response) = dispatch(request, response).await;
+
+    let output =
+        verify_dispatched_model_response(dispatched, response, &KnownSchema, &KnownReceipt)
+            .expect("verified output");
+    let debug = format!("{output:?}");
+
+    assert!(!debug.contains("bounded plan"));
+    assert!(!debug.contains("test-proof"));
+    assert!(debug.contains("[REDACTED]"));
 }
 
 #[tokio::test]

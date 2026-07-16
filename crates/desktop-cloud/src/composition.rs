@@ -27,6 +27,7 @@ impl OfflineModelTransport {
 mod deterministic {
     use desktop_runtime::{sha256_bytes, ContractId, UnixMillis};
 
+    use crate::model::MAX_OUTPUT_BYTES;
     use crate::{
         AuthorizedModelRequest, CloudError, DispatchedModelRequest, ModelAccessReceipt,
         ModelReceiptStatus, RawModelOutput,
@@ -49,13 +50,32 @@ mod deterministic {
             request: AuthorizedModelRequest,
             now: UnixMillis,
         ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-            request.verify()?;
             let payload_json = serde_json::json!({
                 "summary": "Deterministic planning preview",
                 "purpose": request.purpose(),
                 "modelRole": request.model_role(),
             })
             .to_string();
+            self.send_fixture(request, payload_json, now)
+        }
+
+        /// Binds caller-supplied fixture bytes to a one-shot deterministic
+        /// response for tests and demos.
+        ///
+        /// # Errors
+        ///
+        /// Returns [`CloudError`] when the request capability is invalid or the
+        /// fixture exceeds the normal model response bound.
+        pub fn send_fixture(
+            &self,
+            request: AuthorizedModelRequest,
+            payload_json: String,
+            now: UnixMillis,
+        ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+            request.verify()?;
+            if payload_json.len() > MAX_OUTPUT_BYTES {
+                return Err(CloudError::InvalidModelOutput);
+            }
             let payload_hash = sha256_bytes(payload_json.as_bytes());
             let output_bytes =
                 u64::try_from(payload_json.len()).map_err(|_| CloudError::InvalidModelOutput)?;
