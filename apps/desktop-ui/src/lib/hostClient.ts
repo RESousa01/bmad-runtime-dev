@@ -22,6 +22,7 @@ const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
 const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
 const BMAD_HELP_RECOMMENDATION_SCHEMA = "bmad-help-recommendation.v1" as const;
 const BMAD_HELP_RUN_SCHEMA = "bmad-help-run.v1" as const;
+const CHANGES_REVIEW_SCHEMA = "sapphirus.changes-review.v1" as const;
 
 const bmadProjectionLimits = {
   responseBytes: 256 * 1024,
@@ -87,11 +88,16 @@ export const desktopHostCommands = [
   "bmad.help.latest",
   "run.create",
   "context.preview",
+  "workspace.enable_edits",
+  "changes.propose",
+  "approval.decide",
+  "rollback.request",
+  "changes.history",
 ] as const;
 
 export type DesktopHostCommand = (typeof desktopHostCommands)[number];
 export type BootMode = "ready" | "read_only_recovery";
-export type WorkspacePermission = "read_only";
+export type WorkspacePermission = "read_only" | "governed_edits";
 
 export const workspaceReadLimits = {
   contextBytes: 256 * 1024,
@@ -100,6 +106,15 @@ export const workspaceReadLimits = {
   readBytes: 1024 * 1024,
   searchQueryBytes: 256,
   searchResults: 200,
+} as const;
+
+export const localEditsLimits = {
+  changeContentBytes: 64 * 1024,
+  changesPerProposal: 20,
+  historyEntries: 50,
+  openJournals: 64,
+  reviewFiles: 20,
+  undoConflicts: 20,
 } as const;
 
 export interface WorkspaceProjection {
@@ -136,7 +151,14 @@ export interface ProjectionSnapshot {
 type ProjectionEventPayload =
   | { type: "boot_state_changed"; projection: { mode: BootMode } }
   | { type: "workspace_changed"; projection: { workspaceId: string } }
-  | { type: "bmad.projection_changed"; projection: { scope: "library" } };
+  | { type: "bmad.projection_changed"; projection: { scope: "library" } }
+  | { type: "session_changed"; projection: { sessionId: string; state: string } }
+  | { type: "approval_required"; projection: { approvalId: string; candidateHash: string } }
+  | { type: "execution_state_changed"; projection: { executionId: string; state: string } }
+  | { type: "checkpoint_changed"; projection: { checkpointId: string; rollbackAvailable: boolean } }
+  | { type: "evidence_changed"; projection: { streamId: string } }
+  | { type: "connectivity_changed"; projection: { state: string } }
+  | { type: "update_state_changed"; projection: { state: string } };
 
 export interface ProjectionEvent {
   sequence: number;
@@ -252,6 +274,105 @@ export interface ContextPreviewProjection {
   modelTarget: null;
 }
 
+export type ProposedChange =
+  | { change: "set_content"; relativePath: string; content: string }
+  | { change: "delete"; relativePath: string };
+
+export type ChangesReviewOperation = "create" | "modify" | "delete";
+export type ChangesProposalKind = "edit" | "undo";
+export type ApprovalChoice = "apply" | "revise" | "discard";
+export type ChangesDisposition = "applied" | "discarded" | "revise_requested";
+
+export interface ChangesReviewFileProjection {
+  relativePath: string;
+  operation: ChangesReviewOperation;
+  beforeContent: string | null;
+  afterContent: string | null;
+  beforeHash: string | null;
+  afterHash: string | null;
+  beforeBytes: number;
+  afterBytes: number;
+}
+
+export interface ChangesReviewProjection {
+  schemaVersion: typeof CHANGES_REVIEW_SCHEMA;
+  proposalId: string;
+  candidateId: string;
+  candidateHash: string;
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  proposalKind: ChangesProposalKind;
+  sourceExecutionId: string | null;
+  files: ChangesReviewFileProjection[];
+  totalChangedBytes: number;
+  createdAt: number;
+  expiresAt: number;
+}
+
+export interface ChangesReviewEnvelopeProjection {
+  approvalId: string;
+  displayedDiffHash: string;
+  review: ChangesReviewProjection;
+}
+
+export interface ChangesExecutionFileProjection {
+  relativePath: string;
+  operation: string;
+  exists: boolean;
+  contentHash: string | null;
+}
+
+export interface ChangesExecutionProjection {
+  executionId: string;
+  checkpointId: string;
+  completedAt: number;
+  undoable: boolean;
+  files: ChangesExecutionFileProjection[];
+}
+
+export interface ChangesDecisionProjection {
+  approvalId: string;
+  disposition: ChangesDisposition;
+  execution: ChangesExecutionProjection | null;
+}
+
+export interface ChangesUndoConflictProjection {
+  relativePath: string;
+  expectedExists: boolean;
+  currentExists: boolean;
+}
+
+export interface ChangesUndoUnavailableProjection {
+  executionId: string;
+  reason: string;
+  conflicts: ChangesUndoConflictProjection[];
+}
+
+export type RollbackRequestResult =
+  | { readonly kind: "review"; readonly value: ChangesReviewEnvelopeProjection }
+  | { readonly kind: "unavailable"; readonly value: ChangesUndoUnavailableProjection };
+
+export interface ChangesHistoryEntryProjection {
+  executionId: string;
+  journalState: string;
+  fileCount: number;
+  completedAt: string;
+  undoable: boolean;
+}
+
+export interface ChangesOpenJournalProjection {
+  journalId: string;
+  executionId: string;
+  state: string;
+  updatedAt: string;
+}
+
+export interface ChangesHistoryProjection {
+  workspaceId: string;
+  entries: ChangesHistoryEntryProjection[];
+  openJournals: ChangesOpenJournalProjection[];
+}
+
 export type LatestBmadHelpRunResult =
   | { readonly kind: "no_run" }
   | { readonly kind: "projection_unavailable" }
@@ -277,7 +398,12 @@ type RendererDispatchCommand =
   | "bmad.library.snapshot"
   | "bmad.help.latest"
   | "context.preview"
-  | "run.create";
+  | "run.create"
+  | "workspace.enable_edits"
+  | "changes.propose"
+  | "approval.decide"
+  | "rollback.request"
+  | "changes.history";
 
 export interface CommandEnvelope<
   TCommand extends RendererDispatchCommand,
@@ -638,7 +764,7 @@ function asBootMode(value: unknown): BootMode {
 }
 
 function asWorkspacePermission(value: unknown): WorkspacePermission {
-  if (value !== "read_only") {
+  if (value !== "read_only" && value !== "governed_edits") {
     return fail();
   }
   return value;
@@ -1601,6 +1727,402 @@ function parseContextPreviewReply(
   };
 }
 
+function asChangesReviewOperation(value: unknown): ChangesReviewOperation {
+  if (value !== "create" && value !== "modify" && value !== "delete") {
+    return fail();
+  }
+  return value;
+}
+
+function asChangesProposalKind(value: unknown): ChangesProposalKind {
+  if (value !== "edit" && value !== "undo") {
+    return fail();
+  }
+  return value;
+}
+
+function asNullableSha256(value: unknown): string | null {
+  return value === null ? null : asSha256(value);
+}
+
+function parseChangesReviewFile(value: unknown): ChangesReviewFileProjection {
+  const file = asRecord(value);
+  assertExactKeys(file, [
+    "relativePath",
+    "operation",
+    "beforeContent",
+    "afterContent",
+    "beforeHash",
+    "afterHash",
+    "beforeBytes",
+    "afterBytes",
+  ]);
+  const operation = asChangesReviewOperation(file.operation);
+  const beforeContent = file.beforeContent === null
+    ? null
+    : asTextContent(file.beforeContent, localEditsLimits.changeContentBytes);
+  const afterContent = file.afterContent === null
+    ? null
+    : asTextContent(file.afterContent, localEditsLimits.changeContentBytes);
+  const beforeHash = asNullableSha256(file.beforeHash);
+  const afterHash = asNullableSha256(file.afterHash);
+  const beforeBytes = asUnsignedInteger(file.beforeBytes);
+  const afterBytes = asUnsignedInteger(file.afterBytes);
+  if (
+    (operation === "create") !== (beforeContent === null)
+    || (operation === "delete") !== (afterContent === null)
+    || (beforeContent === null) !== (beforeHash === null)
+    || (afterContent === null) !== (afterHash === null)
+    || (beforeContent === null ? beforeBytes !== 0 : beforeBytes !== utf8Length(beforeContent))
+    || (afterContent === null ? afterBytes !== 0 : afterBytes !== utf8Length(afterContent))
+  ) {
+    return fail();
+  }
+  return {
+    relativePath: asRelativePath(file.relativePath),
+    operation,
+    beforeContent,
+    afterContent,
+    beforeHash,
+    afterHash,
+    beforeBytes,
+    afterBytes,
+  };
+}
+
+interface ExpectedChangesReview {
+  workspaceId: string;
+  workspaceGrantEpoch: number | null;
+  proposalKind: ChangesProposalKind;
+  sourceExecutionId: string | null;
+}
+
+function parseChangesReview(
+  value: unknown,
+  expected: ExpectedChangesReview,
+): ChangesReviewProjection {
+  const review = asRecord(value);
+  assertExactKeys(review, [
+    "schemaVersion",
+    "proposalId",
+    "candidateId",
+    "candidateHash",
+    "workspaceId",
+    "workspaceGrantEpoch",
+    "proposalKind",
+    "sourceExecutionId",
+    "files",
+    "totalChangedBytes",
+    "createdAt",
+    "expiresAt",
+  ]);
+  if (
+    review.schemaVersion !== CHANGES_REVIEW_SCHEMA
+    || review.workspaceId !== expected.workspaceId
+    || review.sourceExecutionId !== expected.sourceExecutionId
+    || !Array.isArray(review.files)
+    || review.files.length === 0
+    || review.files.length > localEditsLimits.reviewFiles
+  ) {
+    return fail();
+  }
+  const proposalKind = asChangesProposalKind(review.proposalKind);
+  if (proposalKind !== expected.proposalKind) {
+    return fail();
+  }
+  const workspaceGrantEpoch = asUnsignedInteger(review.workspaceGrantEpoch);
+  if (
+    workspaceGrantEpoch < 1
+    || (expected.workspaceGrantEpoch !== null && workspaceGrantEpoch !== expected.workspaceGrantEpoch)
+  ) {
+    return fail();
+  }
+  const files = review.files.map(parseChangesReviewFile);
+  assertUniqueRelativePaths(files.map(({ relativePath }) => relativePath));
+  const createdAt = asUnsignedInteger(review.createdAt);
+  const expiresAt = asUnsignedInteger(review.expiresAt);
+  if (expiresAt <= createdAt) {
+    return fail();
+  }
+  return {
+    schemaVersion: CHANGES_REVIEW_SCHEMA,
+    proposalId: asContractId(review.proposalId),
+    candidateId: asContractId(review.candidateId),
+    candidateHash: asSha256(review.candidateHash),
+    workspaceId: asContractId(review.workspaceId),
+    workspaceGrantEpoch,
+    proposalKind,
+    sourceExecutionId: expected.sourceExecutionId === null
+      ? null
+      : asContractId(review.sourceExecutionId),
+    files,
+    totalChangedBytes: asUnsignedInteger(review.totalChangedBytes),
+    createdAt,
+    expiresAt,
+  };
+}
+
+function parseChangesReviewEnvelope(
+  value: unknown,
+  expected: ExpectedChangesReview,
+): ChangesReviewEnvelopeProjection {
+  const envelope = asRecord(value);
+  assertExactKeys(envelope, ["approvalId", "displayedDiffHash", "review"]);
+  return {
+    approvalId: asContractId(envelope.approvalId),
+    displayedDiffHash: asSha256(envelope.displayedDiffHash),
+    review: parseChangesReview(envelope.review, expected),
+  };
+}
+
+function parseChangesReviewReply(
+  value: unknown,
+  requestId: string,
+  expected: ExpectedChangesReview,
+): { projection: ChangesReviewEnvelopeProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_review") {
+    return fail();
+  }
+  return {
+    projection: parseChangesReviewEnvelope(data.value, expected),
+    sequence: parsed.sequence,
+  };
+}
+
+function parseWorkspaceEditsEnabledReply(
+  value: unknown,
+  requestId: string,
+  expected: WorkspaceProjection,
+): { projection: WorkspaceProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "workspace_edits_enabled" || expected.grantEpoch >= Number.MAX_SAFE_INTEGER) {
+    return fail();
+  }
+  const enabled = parseWorkspace(data.value);
+  if (
+    enabled.workspaceId !== expected.workspaceId
+    || enabled.projectId !== expected.projectId
+    || enabled.displayName !== expected.displayName
+    || enabled.grantEpoch !== expected.grantEpoch + 1
+    || enabled.permissions !== "governed_edits"
+  ) {
+    return fail();
+  }
+  return { projection: enabled, sequence: parsed.sequence };
+}
+
+function parseChangesExecution(value: unknown): ChangesExecutionProjection {
+  const execution = asRecord(value);
+  assertExactKeys(execution, [
+    "executionId",
+    "checkpointId",
+    "completedAt",
+    "undoable",
+    "files",
+  ]);
+  if (
+    !Array.isArray(execution.files)
+    || execution.files.length === 0
+    || execution.files.length > localEditsLimits.reviewFiles
+  ) {
+    return fail();
+  }
+  const files = execution.files.map((value): ChangesExecutionFileProjection => {
+    const file = asRecord(value);
+    assertExactKeys(file, ["relativePath", "operation", "exists", "contentHash"]);
+    const exists = asBoolean(file.exists);
+    const contentHash = asNullableSha256(file.contentHash);
+    if (exists !== (contentHash !== null)) {
+      return fail();
+    }
+    return {
+      relativePath: asRelativePath(file.relativePath),
+      operation: asChangesReviewOperation(file.operation),
+      exists,
+      contentHash,
+    };
+  });
+  assertUniqueRelativePaths(files.map(({ relativePath }) => relativePath));
+  return {
+    executionId: asContractId(execution.executionId),
+    checkpointId: asContractId(execution.checkpointId),
+    completedAt: asUnsignedInteger(execution.completedAt),
+    undoable: asBoolean(execution.undoable),
+    files,
+  };
+}
+
+const changesDispositionByChoice: Record<ApprovalChoice, ChangesDisposition> = {
+  apply: "applied",
+  revise: "revise_requested",
+  discard: "discarded",
+};
+
+function parseChangesDecisionReply(
+  value: unknown,
+  requestId: string,
+  expected: { approvalId: string; choice: ApprovalChoice },
+): { projection: ChangesDecisionProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_decision") {
+    return fail();
+  }
+  const decision = asRecord(data.value);
+  assertExactKeys(decision, ["approvalId", "disposition", "execution"]);
+  const disposition = changesDispositionByChoice[expected.choice];
+  if (
+    decision.approvalId !== expected.approvalId
+    || decision.disposition !== disposition
+    || (disposition === "applied") !== (decision.execution !== null)
+  ) {
+    return fail();
+  }
+  return {
+    projection: {
+      approvalId: asContractId(decision.approvalId),
+      disposition,
+      execution: decision.execution === null ? null : parseChangesExecution(decision.execution),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
+function parseChangesUndoUnavailable(
+  value: unknown,
+  expectedExecutionId: string,
+): ChangesUndoUnavailableProjection {
+  const unavailable = asRecord(value);
+  assertExactKeys(unavailable, ["executionId", "reason", "conflicts"]);
+  if (
+    unavailable.executionId !== expectedExecutionId
+    || !Array.isArray(unavailable.conflicts)
+    || unavailable.conflicts.length > localEditsLimits.undoConflicts
+  ) {
+    return fail();
+  }
+  const conflicts = unavailable.conflicts.map((value): ChangesUndoConflictProjection => {
+    const conflict = asRecord(value);
+    assertExactKeys(conflict, ["relativePath", "expectedExists", "currentExists"]);
+    return {
+      relativePath: asRelativePath(conflict.relativePath),
+      expectedExists: asBoolean(conflict.expectedExists),
+      currentExists: asBoolean(conflict.currentExists),
+    };
+  });
+  assertUniqueRelativePaths(conflicts.map(({ relativePath }) => relativePath));
+  return {
+    executionId: asContractId(unavailable.executionId),
+    reason: asRendererSafeMessage(unavailable.reason),
+    conflicts,
+  };
+}
+
+function parseRollbackRequestReply(
+  value: unknown,
+  requestId: string,
+  executionId: string,
+): { result: RollbackRequestResult; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind === "changes_undo_unavailable") {
+    return {
+      result: {
+        kind: "unavailable",
+        value: parseChangesUndoUnavailable(data.value, executionId),
+      },
+      sequence: parsed.sequence,
+    };
+  }
+  if (data.kind !== "changes_review") {
+    return fail();
+  }
+  const envelope = asRecord(data.value);
+  assertExactKeys(envelope, ["approvalId", "displayedDiffHash", "review"]);
+  const review = asRecord(envelope.review);
+  const workspaceId = asContractId(review.workspaceId);
+  return {
+    result: {
+      kind: "review",
+      value: parseChangesReviewEnvelope(data.value, {
+        workspaceId,
+        workspaceGrantEpoch: null,
+        proposalKind: "undo",
+        sourceExecutionId: executionId,
+      }),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
+function parseChangesHistoryReply(
+  value: unknown,
+  requestId: string,
+  expectedWorkspaceId: string,
+): { projection: ChangesHistoryProjection; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_history") {
+    return fail();
+  }
+  const history = asRecord(data.value);
+  assertExactKeys(history, ["workspaceId", "entries", "openJournals"]);
+  if (
+    history.workspaceId !== expectedWorkspaceId
+    || !Array.isArray(history.entries)
+    || history.entries.length > localEditsLimits.historyEntries
+    || !Array.isArray(history.openJournals)
+    || history.openJournals.length > localEditsLimits.openJournals
+  ) {
+    return fail();
+  }
+  const entries = history.entries.map((value): ChangesHistoryEntryProjection => {
+    const entry = asRecord(value);
+    assertExactKeys(entry, [
+      "executionId",
+      "journalState",
+      "fileCount",
+      "completedAt",
+      "undoable",
+    ]);
+    return {
+      executionId: asContractId(entry.executionId),
+      journalState: asBmadIdentifier(entry.journalState),
+      fileCount: asUnsignedInteger(entry.fileCount),
+      completedAt: asSingleLineText(entry.completedAt, 64),
+      undoable: asBoolean(entry.undoable),
+    };
+  });
+  assertUniqueIdentities(entries.map(({ executionId }) => executionId));
+  const openJournals = history.openJournals.map((value): ChangesOpenJournalProjection => {
+    const journal = asRecord(value);
+    assertExactKeys(journal, ["journalId", "executionId", "state", "updatedAt"]);
+    return {
+      journalId: asContractId(journal.journalId),
+      executionId: asContractId(journal.executionId),
+      state: asBmadIdentifier(journal.state),
+      updatedAt: asSingleLineText(journal.updatedAt, 64),
+    };
+  });
+  assertUniqueIdentities(openJournals.map(({ journalId }) => journalId));
+  return {
+    projection: {
+      workspaceId: asContractId(history.workspaceId),
+      entries,
+      openJournals,
+    },
+    sequence: parsed.sequence,
+  };
+}
+
 function parseProjectionSnapshot(value: unknown): ProjectionSnapshot {
   const snapshot = asRecord(value);
   assertExactKeys(snapshot, [
@@ -1636,6 +2158,60 @@ function parseProjectionEventPayload(value: unknown): ProjectionEventPayload {
         return fail();
       }
       return { type: event.type, projection: { scope: projection.scope } };
+    case "session_changed":
+      assertExactKeys(projection, ["sessionId", "state"]);
+      return {
+        type: event.type,
+        projection: {
+          sessionId: asContractId(projection.sessionId),
+          state: asSingleLineText(projection.state, 64),
+        },
+      };
+    case "approval_required":
+      assertExactKeys(projection, ["approvalId", "candidateHash"]);
+      return {
+        type: event.type,
+        projection: {
+          approvalId: asContractId(projection.approvalId),
+          candidateHash: asSha256(projection.candidateHash),
+        },
+      };
+    case "execution_state_changed":
+      assertExactKeys(projection, ["executionId", "state"]);
+      return {
+        type: event.type,
+        projection: {
+          executionId: asContractId(projection.executionId),
+          state: asSingleLineText(projection.state, 64),
+        },
+      };
+    case "checkpoint_changed":
+      assertExactKeys(projection, ["checkpointId", "rollbackAvailable"]);
+      return {
+        type: event.type,
+        projection: {
+          checkpointId: asContractId(projection.checkpointId),
+          rollbackAvailable: asBoolean(projection.rollbackAvailable),
+        },
+      };
+    case "evidence_changed":
+      assertExactKeys(projection, ["streamId"]);
+      return {
+        type: event.type,
+        projection: { streamId: asSingleLineText(projection.streamId, 256) },
+      };
+    case "connectivity_changed":
+      assertExactKeys(projection, ["state"]);
+      return {
+        type: event.type,
+        projection: { state: asSingleLineText(projection.state, 64) },
+      };
+    case "update_state_changed":
+      assertExactKeys(projection, ["state"]);
+      return {
+        type: event.type,
+        projection: { state: asSingleLineText(projection.state, 64) },
+      };
     default:
       return fail();
   }
@@ -1794,6 +2370,108 @@ function buildLatestBmadHelpRunEnvelope(
   };
 }
 
+function buildWorkspaceEpochEnvelope<
+  TCommand extends "workspace.enable_edits" | "changes.history",
+>(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  command: TCommand,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+): CommandEnvelope<TCommand, { workspaceId: string; workspaceGrantEpoch: number }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command,
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+    },
+  };
+}
+
+function buildProposeChangesEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  changes: readonly ProposedChange[],
+): CommandEnvelope<"changes.propose", {
+  workspaceId: string;
+  workspaceGrantEpoch: number;
+  changes: readonly ProposedChange[];
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "changes.propose",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch,
+      changes,
+    },
+  };
+}
+
+function buildApprovalDecisionEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  approvalId: string,
+  candidateHash: string,
+  displayedDiffHash: string,
+  choice: ApprovalChoice,
+): CommandEnvelope<"approval.decide", {
+  approvalId: string;
+  candidateHash: string;
+  displayedDiffHash: string;
+  choice: ApprovalChoice;
+}> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "approval.decide",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      approvalId: asContractId(approvalId),
+      candidateHash: asSha256(candidateHash),
+      displayedDiffHash: asSha256(displayedDiffHash),
+      choice,
+    },
+  };
+}
+
+function buildRollbackRequestEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  executionId: string,
+): CommandEnvelope<"rollback.request", { executionId: string }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "rollback.request",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { executionId: asContractId(executionId) },
+  };
+}
+
 function buildReadOnlyEnvelope<TCommand extends Exclude<
   RendererDispatchCommand,
   | "workspace.select_folder"
@@ -1801,6 +2479,11 @@ function buildReadOnlyEnvelope<TCommand extends Exclude<
   | "workspace.revoke"
   | "bmad.help.latest"
   | "run.create"
+  | "workspace.enable_edits"
+  | "changes.propose"
+  | "approval.decide"
+  | "rollback.request"
+  | "changes.history"
 >>(
   binding: HostBinding,
   requestId: string,
@@ -2252,6 +2935,200 @@ export class DesktopHostClient {
     return parsed.result;
   }
 
+  async enableWorkspaceEdits(
+    expectedWorkspaceValue: WorkspaceProjection,
+  ): Promise<WorkspaceProjection> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const expectedWorkspace = parseWorkspace(expectedWorkspaceValue);
+    const currentWorkspace = bootstrap.workspaces.find(
+      ({ workspaceId }) => workspaceId === expectedWorkspace.workspaceId,
+    );
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("workspace.enable_edits")
+      || !currentWorkspace
+      || currentWorkspace.grantEpoch !== expectedWorkspace.grantEpoch
+      || currentWorkspace.permissions !== "read_only"
+      || !sameWorkspaceIdentity(currentWorkspace, expectedWorkspace)
+    ) {
+      throw new HostCapabilityError("Governed edits cannot be enabled for that workspace.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceEpochEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "workspace.enable_edits",
+      expectedWorkspace.workspaceId,
+      expectedWorkspace.grantEpoch,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseWorkspaceEditsEnabledReply(reply, requestId, expectedWorkspace);
+    const currentBootstrap = this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    this.clearWorkspaceTraversal(expectedWorkspace.workspaceId);
+    this.replaceWorkspaces([
+      parsed.projection,
+      ...currentBootstrap.workspaces.filter(
+        ({ workspaceId }) => workspaceId !== parsed.projection.workspaceId,
+      ),
+    ]);
+    return parsed.projection;
+  }
+
+  async proposeChanges(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    changesValue: readonly ProposedChange[],
+  ): Promise<ChangesReviewEnvelopeProjection> {
+    const bootstrap = this.requireGovernedEditsCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "changes.propose",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      changesValue.length === 0
+      || changesValue.length > localEditsLimits.changesPerProposal
+    ) {
+      throw new HostCapabilityError(
+        "Propose between 1 and 20 file changes in a single review.",
+      );
+    }
+    const changes = changesValue.map((change): ProposedChange => {
+      const relativePath = asRelativePath(change.relativePath);
+      if (change.change === "set_content") {
+        return {
+          change: "set_content",
+          relativePath,
+          content: asTextContent(change.content, localEditsLimits.changeContentBytes),
+        };
+      }
+      return { change: "delete", relativePath };
+    });
+    assertUniqueRelativePaths(changes.map(({ relativePath }) => relativePath));
+    const requestId = this.#requestId();
+    const envelope = buildProposeChangesEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      changes,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesReviewReply(reply, requestId, {
+      workspaceId,
+      workspaceGrantEpoch,
+      proposalKind: "edit",
+      sourceExecutionId: null,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.projection;
+  }
+
+  async decideApproval(
+    review: ChangesReviewEnvelopeProjection,
+    choice: ApprovalChoice,
+  ): Promise<ChangesDecisionProjection> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("approval.decide")
+    ) {
+      throw new HostCapabilityError("Change decisions are unavailable in the current host mode.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildApprovalDecisionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      review.approvalId,
+      review.review.candidateHash,
+      review.displayedDiffHash,
+      choice,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesDecisionReply(reply, requestId, {
+      approvalId: review.approvalId,
+      choice,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.projection;
+  }
+
+  async requestRollback(executionIdValue: string): Promise<RollbackRequestResult> {
+    const bootstrap = this.requireBootstrap();
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const executionId = asContractId(executionIdValue);
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes("rollback.request")
+    ) {
+      throw new HostCapabilityError("Undo changes is unavailable in the current host mode.");
+    }
+    const requestId = this.#requestId();
+    const envelope = buildRollbackRequestEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      executionId,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseRollbackRequestReply(reply, requestId, executionId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.result;
+  }
+
+  async changesHistory(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ChangesHistoryProjection> {
+    const bootstrap = this.requireGovernedEditsCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "changes.history",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceEpochEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "changes.history",
+      workspaceId,
+      workspaceGrantEpoch,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseChangesHistoryReply(reply, requestId, workspaceId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async previewContext(
     workspaceId: string,
     relativePathValues: readonly string[],
@@ -2351,11 +3228,34 @@ export class DesktopHostClient {
     if (
       bootstrap.bootMode !== "ready"
       || !bootstrap.supportedCommands.includes(command)
-      || !bootstrap.workspaces.some((workspace) =>
-        workspace.workspaceId === workspaceId && workspace.permissions === "read_only"
-      )
+      || !bootstrap.workspaces.some((workspace) => workspace.workspaceId === workspaceId)
     ) {
       throw new HostCapabilityError("That read-only workspace capability is unavailable.");
+    }
+    return bootstrap;
+  }
+
+  private requireGovernedEditsCommand(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    command: Extract<RendererDispatchCommand, "changes.propose" | "changes.history">,
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      bootstrap.bootMode !== "ready"
+      || !bootstrap.supportedCommands.includes(command)
+      || !Number.isSafeInteger(workspaceGrantEpoch)
+      || workspaceGrantEpoch < 1
+      || !bootstrap.workspaces.some((workspace) =>
+        workspace.workspaceId === workspaceId
+        && workspace.grantEpoch === workspaceGrantEpoch
+        && workspace.permissions === "governed_edits"
+      )
+    ) {
+      throw new HostCapabilityError(
+        "Governed edits are not enabled for that workspace at the current grant.",
+      );
     }
     return bootstrap;
   }

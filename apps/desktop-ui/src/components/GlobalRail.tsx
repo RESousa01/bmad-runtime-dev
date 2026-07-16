@@ -1,15 +1,18 @@
 import { Button } from "@sapphirus/ui";
 import {
   Activity,
-  Bot,
+  ChevronDown,
   FileCode2,
   FolderKanban,
   GitCompareArrows,
+  MessageSquare,
+  Search,
   Settings,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
 import type { PrimaryView } from "../data/demo";
+import { BrandMark } from "./BrandMark";
 
 interface NavigationItem {
   icon: LucideIcon;
@@ -18,8 +21,8 @@ interface NavigationItem {
 }
 
 const primaryItems: NavigationItem[] = [
+  { id: "agent", label: "Agent", icon: MessageSquare },
   { id: "workspaces", label: "Workspaces", icon: FolderKanban },
-  { id: "agent", label: "Agent", icon: Bot },
   { id: "explorer", label: "Explorer", icon: FileCode2 },
   { id: "changes", label: "Changes", icon: GitCompareArrows },
   { id: "activity", label: "Activity", icon: Activity },
@@ -36,6 +39,23 @@ export interface GlobalRailProps {
 export function GlobalRail({ activeView, isInert = false, onAccount, onNavigate, onSettings }: GlobalRailProps) {
   return (
     <nav aria-label="Primary" className="global-rail" inert={isInert}>
+      <div className="sidebar-identity">
+        <div className="sidebar-product" title="Sapphirus">
+          <BrandMark size={22} />
+          <strong>Sapphirus</strong>
+          <ChevronDown aria-hidden="true" size={14} strokeWidth={1.8} />
+        </div>
+        <Button
+          aria-label="Search sessions"
+          className="sidebar-search"
+          isDisabled
+          size="icon"
+          title="Search sessions"
+          variant="quiet"
+        >
+          <Search aria-hidden="true" size={16} strokeWidth={1.8} />
+        </Button>
+      </div>
       <div className="global-rail__primary">
         {primaryItems.map(({ icon: Icon, id, label }) => (
           <Button
@@ -47,8 +67,14 @@ export function GlobalRail({ activeView, isInert = false, onAccount, onNavigate,
             title={label}
             variant="quiet"
           >
-            <Icon aria-hidden="true" size={23} strokeWidth={1.65} />
-            <span>{label}</span>
+            <span aria-hidden="true" className="global-nav-item__indicator" />
+            <Icon
+              aria-hidden="true"
+              className="global-nav-item__icon"
+              size={21}
+              strokeWidth={1.7}
+            />
+            <span className="global-nav-item__label">{label}</span>
           </Button>
         ))}
       </div>
@@ -60,18 +86,26 @@ export function GlobalRail({ activeView, isInert = false, onAccount, onNavigate,
           title="Settings"
           variant="quiet"
         >
-          <Settings aria-hidden="true" size={23} strokeWidth={1.65} />
-          <span>Settings</span>
+          <span aria-hidden="true" className="global-nav-item__indicator" />
+          <Settings
+            aria-hidden="true"
+            className="global-nav-item__icon"
+            size={21}
+            strokeWidth={1.7}
+          />
+          <span className="global-nav-item__label">Settings</span>
         </Button>
         <Button
           aria-label="Account"
-          className="global-nav-item"
+          className="global-nav-item global-nav-item--account"
           onPress={onAccount}
           title="Account"
           variant="quiet"
         >
-          <UserRound aria-hidden="true" size={23} strokeWidth={1.65} />
-          <span>Account</span>
+          <span aria-hidden="true" className="global-nav-item__indicator" />
+          <span aria-hidden="true" className="sidebar-avatar">RA</span>
+          <span className="global-nav-item__label">Local account</span>
+          <UserRound aria-hidden="true" className="global-nav-item__account-icon" size={15} />
         </Button>
       </div>
     </nav>
