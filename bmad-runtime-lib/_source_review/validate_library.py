@@ -16,6 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
 
 
+def canonical_markdown_bytes(payload: bytes) -> bytes:
+    return payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
 def unquote(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
@@ -207,7 +211,7 @@ def main() -> int:
         total_lines = 0
         total_bytes = 0
         for path in files:
-            payload = path.read_bytes()
+            payload = canonical_markdown_bytes(path.read_bytes())
             line_count = len(payload.decode("utf-8-sig").splitlines())
             byte_count = len(payload)
             total_lines += line_count

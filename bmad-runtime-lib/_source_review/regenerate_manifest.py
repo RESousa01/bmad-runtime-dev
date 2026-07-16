@@ -16,6 +16,10 @@ MANIFEST = ROOT / "manifest.json"
 LIVING_MANIFEST = ROOT / "knowledge-base" / "manifest.json"
 
 
+def canonical_markdown_bytes(payload: bytes) -> bytes:
+    return payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
 def main() -> None:
     created_at = "2026-07-09T00:00:00+00:00"
     if MANIFEST.exists():
@@ -28,7 +32,7 @@ def main() -> None:
     total_lines = 0
     total_bytes = 0
     for path in sorted(ROOT.glob("*.md"), key=lambda item: item.name.casefold()):
-        payload = path.read_bytes()
+        payload = canonical_markdown_bytes(path.read_bytes())
         line_count = len(payload.decode("utf-8-sig").splitlines())
         byte_count = len(payload)
         total_lines += line_count

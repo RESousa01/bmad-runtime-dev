@@ -3,7 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import process from "node:process";
 
-import { verifyClosedManifest } from "./lib/closed-manifest.mjs";
+import { canonicalTextBytes, verifyClosedManifest } from "./lib/closed-manifest.mjs";
 
 const root = process.cwd();
 const vaultRoot = join(root, "bmad-runtime-lib");
@@ -125,7 +125,7 @@ if (
 let totalLines = 0;
 let totalBytes = 0;
 for (const name of markdownNames) {
-  const payload = await bytes(join(vaultRoot, name));
+  const payload = canonicalTextBytes(await bytes(join(vaultRoot, name)));
   const actual = { lines: lineCount(payload), bytes: payload.length, sha256: sha256(payload) };
   const expected = records.get(name);
   if (

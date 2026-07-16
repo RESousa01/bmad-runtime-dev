@@ -5,9 +5,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { verifyClosedManifest } from "../lib/closed-manifest.mjs";
+import { canonicalTextBytes, verifyClosedManifest } from "../lib/closed-manifest.mjs";
 
 const hash = (payload) => createHash("sha256").update(payload).digest("hex");
+
+test("canonical text bytes make LF and CRLF vault notes equivalent", () => {
+  assert.deepEqual(canonicalTextBytes(Buffer.from("one\r\ntwo\r\n")), Buffer.from("one\ntwo\n"));
+});
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), "living-manifest-"));

@@ -6,6 +6,10 @@ function sha256(payload) {
   return createHash("sha256").update(payload).digest("hex");
 }
 
+export function canonicalTextBytes(payload) {
+  return Buffer.from(payload.toString("utf8").replace(/\r\n?/g, "\n"), "utf8");
+}
+
 async function walk(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {

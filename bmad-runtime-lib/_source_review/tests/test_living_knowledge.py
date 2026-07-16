@@ -11,6 +11,7 @@ SOURCE_REVIEW = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SOURCE_REVIEW))
 
 from living_knowledge import validate_living_knowledge as validate_with_git
+from regenerate_manifest import canonical_markdown_bytes
 
 
 def validate_living_knowledge(vault: Path, repo: Path):
@@ -121,6 +122,12 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
         self.assertIn(
             "knowledge-base/evidence/pins.json is missing",
             result.errors,
+        )
+
+    def test_manifest_markdown_bytes_are_line_ending_stable(self) -> None:
+        self.assertEqual(
+            canonical_markdown_bytes(b"one\r\ntwo\r\n"),
+            b"one\ntwo\n",
         )
 
     def test_claim_ids_are_closed(self) -> None:
