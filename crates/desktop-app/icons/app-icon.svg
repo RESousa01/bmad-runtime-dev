@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Sapphirus application mark</title>
+  <desc id="desc">A faceted sapphire formed from three interlocking planes.</desc>
+  <defs>
+    <linearGradient id="backdrop" x1="128" y1="96" x2="896" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#111B3D"/>
+      <stop offset="1" stop-color="#080D20"/>
+    </linearGradient>
+    <linearGradient id="upper" x1="301" y1="253" x2="723" y2="572" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#77E8FF"/>
+      <stop offset="1" stop-color="#2A82FF"/>
+    </linearGradient>
+    <linearGradient id="left" x1="270" y1="405" x2="522" y2="789" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#305BFF"/>
+      <stop offset="1" stop-color="#754BEB"/>
+    </linearGradient>
+    <linearGradient id="right" x1="496" y1="412" x2="755" y2="783" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#50C7FF"/>
+      <stop offset="1" stop-color="#3954D9"/>
+    </linearGradient>
+  </defs>
+  <rect x="48" y="48" width="928" height="928" rx="224" fill="url(#backdrop)"/>
+  <path d="M512 190 771 377 512 526 253 377Z" fill="url(#upper)"/>
+  <path d="M253 377 512 526 512 834 253 646Z" fill="url(#left)"/>
+  <path d="M771 377 512 526 512 834 771 646Z" fill="url(#right)"/>
+  <path d="m512 190 87 187-87 149-87-149Z" fill="#D3F7FF" fill-opacity=".22"/>
+  <path d="M512 526 253 377m259 149 259-149M512 526v308" fill="none" stroke="#E8FCFF" stroke-opacity=".18" stroke-width="12" stroke-linecap="round"/>
+</svg>
