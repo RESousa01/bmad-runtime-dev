@@ -11,8 +11,8 @@ mod manifest;
 mod preparation;
 
 pub use consent::{
-    ApproveDecisionInput, ConsentService, ConsumeDecisionInput, DecisionConsumption,
-    DecisionLedger, MemoryDecisionLedger, ModelInvocationBinding, ModelInvocationBindingDraft,
+    ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
+    DecisionConsumption, MemoryDecisionLedger, ModelInvocationBinding, ModelInvocationBindingDraft,
     PendingContextDecision,
 };
 pub use manifest::{

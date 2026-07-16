@@ -7,8 +7,10 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use desktop_cloud::{
-    AuthorizedModelRequest, BrokerToken, CloudError, CloudSession, HttpExecutor, HttpResponse,
-    IdentityBroker, OutboundHttpRequest, RawModelOutput, SupportApiOrigin, SupportApiTransport,
+    AuthorizedModelRequest, BrokerToken, CloudError, CloudSession, EntitlementLease,
+    EntitlementProofVerifier, EntitlementVerifier, HttpExecutor, HttpResponse, IdentityBroker,
+    OutboundHttpRequest, RawModelOutput, SupportApiOrigin, SupportApiTransport,
+    VerifiedEntitlement,
 };
 use desktop_egress::{
     ApproveDecisionInput, ConsentService, ConsumeDecisionInput, ContextCandidate,
@@ -17,6 +19,7 @@ use desktop_egress::{
 };
 use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, UnixMillis};
 use parking_lot::Mutex;
+use semver::Version;
 
 fn id(value: &str) -> ContractId {
     ContractId::new(value).expect("valid fixture identifier")
@@ -98,7 +101,59 @@ fn authorized_fixture() -> AuthorizedModelRequest {
             consumed_at: UnixMillis(2_000),
         })
         .expect("consumption");
-    AuthorizedModelRequest::new(&manifest, &binding, &consumption).expect("authorized request")
+    AuthorizedModelRequest::new(&manifest, &binding, consumption).expect("authorized request")
+}
+
+struct KnownEntitlementProof;
+
+impl EntitlementProofVerifier for KnownEntitlementProof {
+    fn verify(&self, lease: &EntitlementLease) -> Result<(), CloudError> {
+        if lease.signature == "valid-proof" {
+            Ok(())
+        } else {
+            Err(CloudError::EntitlementUnavailable)
+        }
+    }
+}
+
+fn entitlement_for(policy: &[u8], now: UnixMillis) -> VerifiedEntitlement {
+    entitlement_with(policy, "model_access", "1970-01-02T00:00:00Z", now)
+}
+
+fn entitlement_with(
+    policy: &[u8],
+    feature: &str,
+    expires_at: &str,
+    now: UnixMillis,
+) -> VerifiedEntitlement {
+    let policy_hash = sha256_bytes(policy);
+    let lease = EntitlementLease {
+        schema_version: "desktop-entitlement-lease.v1".to_owned(),
+        lease_id: "lease_001".to_owned(),
+        registration_id: "dreg_0123456789abcdef0123456789".to_owned(),
+        subject_hash: sha256_bytes(b"subject").to_string(),
+        delivery_model: "windows_local".to_owned(),
+        issued_at: "1970-01-01T00:00:00Z".to_owned(),
+        not_before: "1970-01-01T00:00:00Z".to_owned(),
+        expires_at: expires_at.to_owned(),
+        offline_grace_ends_at: "1970-01-03T00:00:00Z".to_owned(),
+        features: vec![feature.to_owned()],
+        tenant_policy_hash: policy_hash.to_string(),
+        minimum_client_version: "0.1.0-beta.1".to_owned(),
+        key_id: "test-key".to_owned(),
+        signature: "valid-proof".to_owned(),
+    };
+    EntitlementVerifier::new(
+        KnownEntitlementProof,
+        "dreg_0123456789abcdef0123456789",
+        sha256_bytes(b"subject"),
+        policy_hash,
+        feature,
+        Version::parse("0.1.0-beta.1").expect("version"),
+    )
+    .expect("verifier")
+    .verify(&lease, now)
+    .expect("verified entitlement")
 }
 
 struct StaticBroker;
@@ -123,7 +178,6 @@ impl IdentityBroker for StaticBroker {
 struct RecordedRequest {
     url: String,
     body: Vec<u8>,
-    bearer: String,
     idempotency_key: String,
     safe_debug: String,
 }
@@ -140,7 +194,6 @@ impl HttpExecutor for RecordingExecutor {
         self.requests.lock().push(RecordedRequest {
             url: request.url().to_string(),
             body: request.body().to_vec(),
-            bearer: request.with_bearer(str::to_owned),
             idempotency_key: request.idempotency_key().to_owned(),
             safe_debug: format!("{request:?}"),
         });
@@ -176,26 +229,26 @@ fn support_origin_is_https_only_and_cannot_embed_request_controlled_components()
 async fn authorized_request_uses_one_fixed_endpoint_and_secret_safe_boundary() {
     let request = authorized_fixture();
     let raw = serde_json::json!({
-        "requestId": request.request_id,
-        "outputSchemaId": request.canonical_output_schema_id,
+        "requestId": request.request_id(),
+        "outputSchemaId": request.canonical_output_schema_id(),
         "payloadJson": "{}",
         "payloadHash": sha256_bytes(b"{}"),
         "receipt": {
             "schemaVersion": "sapphirus.model-access-receipt.v1",
             "receiptId": "receipt_001",
             "requestId": "request_001",
-            "requestHash": request.request_hash,
+            "requestHash": request.request_hash(),
             "resultHash": sha256_bytes(b"{}"),
-            "manifestHash": request.manifest_hash,
-            "bindingHash": request.binding_hash,
-            "consumptionHash": request.consumption_hash,
-            "consentDisclosureHash": request.consent_disclosure_hash,
-            "providerProfileHash": request.provider_profile_hash,
-            "modelProfileHash": request.model_profile_hash,
-            "deploymentHash": request.deployment_hash,
+            "manifestHash": request.manifest_hash(),
+            "bindingHash": request.binding_hash(),
+            "consumptionHash": request.consumption_hash(),
+            "consentDisclosureHash": request.consent_disclosure_hash(),
+            "providerProfileHash": request.provider_profile_hash(),
+            "modelProfileHash": request.model_profile_hash(),
+            "deploymentHash": request.deployment_hash(),
             "retentionMode": "transient_no_store",
-            "region": request.region,
-            "inputBytes": request.total_outbound_bytes,
+            "region": request.region(),
+            "inputBytes": request.total_outbound_bytes(),
             "outputBytes": 2,
             "startedAt": 2100,
             "completedAt": 2200,
@@ -220,23 +273,22 @@ async fn authorized_request_uses_one_fixed_endpoint_and_secret_safe_boundary() {
         .acquire_access(UnixMillis(1_000))
         .await
         .expect("access");
+    let entitlement = entitlement_for(b"policy", UnixMillis(1_000));
+    let expected_request_id = request.request_id().clone();
+    let expected_body = serde_json::to_vec(&request).expect("request serialization");
 
-    let response: RawModelOutput = transport
-        .send(&session, &access, &request, UnixMillis(1_000))
+    let (_dispatched, response): (_, RawModelOutput) = transport
+        .send(&session, &access, &entitlement, request, UnixMillis(1_000))
         .await
         .expect("transport response");
-    assert_eq!(response.request_id, request.request_id);
+    assert_eq!(response.request_id, expected_request_id);
     let recorded = requests.lock();
     assert_eq!(recorded.len(), 1);
     assert_eq!(
         recorded[0].url,
         "https://support.example.com/desktop/v1/model-access/calls"
     );
-    assert_eq!(
-        recorded[0].body,
-        serde_json::to_vec(&request).expect("request serialization")
-    );
-    assert_eq!(recorded[0].bearer, "transport-secret");
+    assert_eq!(recorded[0].body, expected_body);
     assert_eq!(recorded[0].idempotency_key, "request_001");
     assert!(!recorded[0].safe_debug.contains("transport-secret"));
     assert!(!recorded[0].safe_debug.contains("safe context"));
@@ -261,16 +313,23 @@ async fn stale_access_status_and_untrusted_body_fail_before_projection() {
         .acquire_access(UnixMillis(1_000))
         .await
         .expect("access");
+    let entitlement = entitlement_for(b"policy", UnixMillis(1_000));
     assert!(matches!(
         transport
-            .send(&session, &access, &request, UnixMillis(1_000))
+            .send(&session, &access, &entitlement, request, UnixMillis(1_000),)
             .await,
         Err(CloudError::TransportFailed)
     ));
     session.sign_out().await.expect("sign out");
     assert!(matches!(
         transport
-            .send(&session, &access, &request, UnixMillis(1_000))
+            .send(
+                &session,
+                &access,
+                &entitlement,
+                authorized_fixture(),
+                UnixMillis(1_000),
+            )
             .await,
         Err(CloudError::SessionInvalidated)
     ));
@@ -279,12 +338,12 @@ async fn stale_access_status_and_untrusted_body_fail_before_projection() {
 
 #[tokio::test]
 async fn oversized_or_non_json_responses_fail_closed() {
-    let request = authorized_fixture();
     let session = CloudSession::new(StaticBroker, id("tenant_ref"));
     let access = session
         .acquire_access(UnixMillis(1_000))
         .await
         .expect("access");
+    let entitlement = entitlement_for(b"policy", UnixMillis(1_000));
     for response in [
         HttpResponse::new(
             200,
@@ -311,7 +370,13 @@ async fn oversized_or_non_json_responses_fail_closed() {
             executor(response),
         );
         assert!(transport
-            .send(&session, &access, &request, UnixMillis(1_000))
+            .send(
+                &session,
+                &access,
+                &entitlement,
+                authorized_fixture(),
+                UnixMillis(1_000),
+            )
             .await
             .is_err());
     }
@@ -336,12 +401,86 @@ async fn expired_access_is_rejected_before_any_context_leaves_the_process() {
         .acquire_access(UnixMillis(1_000))
         .await
         .expect("access");
+    let entitlement = entitlement_for(b"policy", UnixMillis(1_000));
 
     assert!(matches!(
         transport
-            .send(&session, &access, &request, UnixMillis(60_000))
+            .send(&session, &access, &entitlement, request, UnixMillis(60_000),)
             .await,
         Err(CloudError::ReauthenticationRequired)
+    ));
+    assert!(requests.lock().is_empty());
+}
+
+#[tokio::test]
+async fn stale_or_wrong_policy_entitlement_blocks_egress() {
+    let executor = executor(HttpResponse::new(
+        200,
+        Some("application/json".to_owned()),
+        Some(2),
+        b"{}".to_vec(),
+    ));
+    let requests = Arc::clone(&executor.requests);
+    let transport = SupportApiTransport::new(
+        SupportApiOrigin::new("https://support.example.com").expect("origin"),
+        executor,
+    );
+    let session = CloudSession::new(StaticBroker, id("tenant_ref"));
+    let access = session
+        .acquire_access(UnixMillis(1_000))
+        .await
+        .expect("access");
+    let entitlement = entitlement_for(b"other-policy", UnixMillis(1_000));
+
+    assert!(matches!(
+        transport
+            .send(
+                &session,
+                &access,
+                &entitlement,
+                authorized_fixture(),
+                UnixMillis(1_000),
+            )
+            .await,
+        Err(CloudError::EntitlementUnavailable)
+    ));
+
+    let wrong_feature = entitlement_with(
+        b"policy",
+        "local_runtime",
+        "1970-01-02T00:00:00Z",
+        UnixMillis(1_000),
+    );
+    assert!(matches!(
+        transport
+            .send(
+                &session,
+                &access,
+                &wrong_feature,
+                authorized_fixture(),
+                UnixMillis(1_000),
+            )
+            .await,
+        Err(CloudError::EntitlementUnavailable)
+    ));
+
+    let expired = entitlement_with(
+        b"policy",
+        "model_access",
+        "1970-01-01T00:00:10Z",
+        UnixMillis(1_000),
+    );
+    assert!(matches!(
+        transport
+            .send(
+                &session,
+                &access,
+                &expired,
+                authorized_fixture(),
+                UnixMillis(10_000),
+            )
+            .await,
+        Err(CloudError::EntitlementUnavailable)
     ));
     assert!(requests.lock().is_empty());
 }

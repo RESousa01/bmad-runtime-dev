@@ -35,7 +35,7 @@ pub struct ModelInvocationBindingDraft {
     pub consent_disclosure_hash: Sha256Digest,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelInvocationBinding {
     #[serde(flatten)]
@@ -125,20 +125,35 @@ struct PendingContextDecisionDraft {
     expires_at: UnixMillis,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+/// A pending decision is created only by [`ConsentService::approve`] and
+/// cannot be cloned or retargeted by downstream code.
+///
+/// ```compile_fail
+/// fn duplicate(decision: desktop_egress::PendingContextDecision) {
+///     let replay = decision.clone();
+/// }
+/// ```
+///
+/// ```compile_fail
+/// fn retarget(mut decision: desktop_egress::PendingContextDecision) {
+///     decision.manifest_hash = desktop_runtime::sha256_bytes(b"other manifest");
+///     decision.decision_hash = desktop_runtime::sha256_bytes(b"rehashed");
+/// }
+/// ```
+#[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PendingContextDecision {
-    pub schema_version: String,
-    pub decision_id: ContractId,
-    pub manifest_hash: Sha256Digest,
-    pub binding_hash: Sha256Digest,
-    pub consent_disclosure_hash: Sha256Digest,
-    pub policy_hash: Sha256Digest,
-    pub installation_id: ContractId,
-    pub session_authority_hash: Sha256Digest,
-    pub issued_at: UnixMillis,
-    pub expires_at: UnixMillis,
-    pub decision_hash: Sha256Digest,
+    schema_version: String,
+    decision_id: ContractId,
+    manifest_hash: Sha256Digest,
+    binding_hash: Sha256Digest,
+    consent_disclosure_hash: Sha256Digest,
+    policy_hash: Sha256Digest,
+    installation_id: ContractId,
+    session_authority_hash: Sha256Digest,
+    issued_at: UnixMillis,
+    expires_at: UnixMillis,
+    decision_hash: Sha256Digest,
 }
 
 impl PendingContextDecision {
@@ -176,6 +191,32 @@ impl PendingContextDecision {
         }
     }
 
+    fn stored_copy(&self) -> Self {
+        Self {
+            schema_version: self.schema_version.clone(),
+            decision_id: self.decision_id.clone(),
+            manifest_hash: self.manifest_hash,
+            binding_hash: self.binding_hash,
+            consent_disclosure_hash: self.consent_disclosure_hash,
+            policy_hash: self.policy_hash,
+            installation_id: self.installation_id.clone(),
+            session_authority_hash: self.session_authority_hash,
+            issued_at: self.issued_at,
+            expires_at: self.expires_at,
+            decision_hash: self.decision_hash,
+        }
+    }
+
+    #[must_use]
+    pub fn decision_id(&self) -> &ContractId {
+        &self.decision_id
+    }
+
+    #[must_use]
+    pub const fn expires_at(&self) -> UnixMillis {
+        self.expires_at
+    }
+
     fn verify(&self) -> Result<(), EgressError> {
         if self.schema_version != DECISION_SCHEMA {
             return Err(EgressError::DecisionIntegrity);
@@ -206,21 +247,43 @@ struct DecisionConsumptionDraft {
     consumed_at: UnixMillis,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Eq, PartialEq)]
+struct ConsumptionAuthority;
+
+/// A consumed consent capability cannot be duplicated for a second model
+/// request.
+///
+/// ```compile_fail
+/// fn duplicate(consumption: desktop_egress::DecisionConsumption) {
+///     let replay = consumption.clone();
+/// }
+/// ```
+///
+/// ```compile_fail
+/// # use desktop_egress::DecisionConsumption;
+/// fn retarget(mut consumption: DecisionConsumption) -> DecisionConsumption {
+///     consumption.invocation_id = consumption.decision_id().clone();
+///     consumption.consumption_hash = desktop_runtime::sha256_bytes(b"rehashed");
+///     consumption
+/// }
+/// ```
+#[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DecisionConsumption {
-    pub schema_version: String,
-    pub decision_id: ContractId,
-    pub decision_hash: Sha256Digest,
-    pub invocation_id: ContractId,
-    pub manifest_hash: Sha256Digest,
-    pub binding_hash: Sha256Digest,
-    pub consent_disclosure_hash: Sha256Digest,
-    pub policy_hash: Sha256Digest,
-    pub installation_id: ContractId,
-    pub session_authority_hash: Sha256Digest,
-    pub consumed_at: UnixMillis,
-    pub consumption_hash: Sha256Digest,
+    schema_version: String,
+    decision_id: ContractId,
+    decision_hash: Sha256Digest,
+    invocation_id: ContractId,
+    manifest_hash: Sha256Digest,
+    binding_hash: Sha256Digest,
+    consent_disclosure_hash: Sha256Digest,
+    policy_hash: Sha256Digest,
+    installation_id: ContractId,
+    session_authority_hash: Sha256Digest,
+    consumed_at: UnixMillis,
+    consumption_hash: Sha256Digest,
+    #[serde(skip)]
+    authority: ConsumptionAuthority,
 }
 
 impl DecisionConsumption {
@@ -240,6 +303,7 @@ impl DecisionConsumption {
             session_authority_hash: draft.session_authority_hash,
             consumed_at: draft.consumed_at,
             consumption_hash,
+            authority: ConsumptionAuthority,
         })
     }
 
@@ -257,6 +321,61 @@ impl DecisionConsumption {
             session_authority_hash: self.session_authority_hash,
             consumed_at: self.consumed_at,
         }
+    }
+
+    #[must_use]
+    pub fn decision_id(&self) -> &ContractId {
+        &self.decision_id
+    }
+
+    #[must_use]
+    pub const fn decision_hash(&self) -> Sha256Digest {
+        self.decision_hash
+    }
+
+    #[must_use]
+    pub fn invocation_id(&self) -> &ContractId {
+        &self.invocation_id
+    }
+
+    #[must_use]
+    pub const fn manifest_hash(&self) -> Sha256Digest {
+        self.manifest_hash
+    }
+
+    #[must_use]
+    pub const fn binding_hash(&self) -> Sha256Digest {
+        self.binding_hash
+    }
+
+    #[must_use]
+    pub const fn consent_disclosure_hash(&self) -> Sha256Digest {
+        self.consent_disclosure_hash
+    }
+
+    #[must_use]
+    pub const fn policy_hash(&self) -> Sha256Digest {
+        self.policy_hash
+    }
+
+    #[must_use]
+    pub fn installation_id(&self) -> &ContractId {
+        &self.installation_id
+    }
+
+    #[must_use]
+    pub const fn session_authority_hash(&self) -> Sha256Digest {
+        self.session_authority_hash
+    }
+
+    #[must_use]
+    pub const fn consumed_at(&self) -> UnixMillis {
+        self.consumed_at
+    }
+
+    #[must_use]
+    pub const fn consumption_hash(&self) -> Sha256Digest {
+        self.consumption_hash
     }
 
     /// Revalidates the immutable decision-consumption record.
@@ -295,40 +414,48 @@ pub struct ConsumeDecisionInput<'a> {
     pub consumed_at: UnixMillis,
 }
 
-pub trait DecisionLedger: Send + Sync {
-    /// Inserts a new pending decision only when its identifier is unused.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`EgressError::DecisionAlreadyExists`] for duplicate authority.
-    fn insert_pending(&self, decision: PendingContextDecision) -> Result<(), EgressError>;
+#[derive(Clone, Debug)]
+pub struct CancelDecisionInput<'a> {
+    pub decision: &'a PendingContextDecision,
+    pub cancelled_at: UnixMillis,
+}
 
-    /// Atomically validates and consumes one pending decision.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`EgressError`] for unknown, expired, consumed, drifted, or
-    /// integrity-invalid decisions.
+trait DecisionLedger: Send + Sync {
+    fn insert_pending(&self, decision: &PendingContextDecision) -> Result<(), EgressError>;
+
     fn consume_if_pending(
         &self,
         input: ConsumeDecisionInput<'_>,
     ) -> Result<DecisionConsumption, EgressError>;
+
+    fn cancel_if_pending(&self, input: CancelDecisionInput<'_>) -> Result<(), EgressError>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 enum DecisionState {
     Pending(Box<PendingContextDecision>),
     Consumed,
+    Cancelled,
     Expired,
 }
 
+/// In-memory consent authority used by the current desktop composition.
+/// Registration is intentionally available only through
+/// [`ConsentService::approve`].
+///
+/// ```compile_fail
+/// # use desktop_egress::{ConsentService, MemoryDecisionLedger, PendingContextDecision};
+/// fn reinsert(ledger: &MemoryDecisionLedger, decision: PendingContextDecision) {
+///     ledger.insert_pending(&decision).unwrap();
+/// }
+/// ```
 #[derive(Debug, Default)]
 pub struct MemoryDecisionLedger {
     decisions: Mutex<HashMap<ContractId, DecisionState>>,
 }
 
 impl DecisionLedger for MemoryDecisionLedger {
-    fn insert_pending(&self, decision: PendingContextDecision) -> Result<(), EgressError> {
+    fn insert_pending(&self, decision: &PendingContextDecision) -> Result<(), EgressError> {
         decision.verify()?;
         let mut decisions = self.decisions.lock();
         if decisions.contains_key(&decision.decision_id) {
@@ -336,7 +463,7 @@ impl DecisionLedger for MemoryDecisionLedger {
         }
         decisions.insert(
             decision.decision_id.clone(),
-            DecisionState::Pending(Box::new(decision)),
+            DecisionState::Pending(Box::new(decision.stored_copy())),
         );
         Ok(())
     }
@@ -353,6 +480,7 @@ impl DecisionLedger for MemoryDecisionLedger {
             .ok_or(EgressError::DecisionUnknown)?;
         match state {
             DecisionState::Consumed => Err(EgressError::DecisionAlreadyConsumed),
+            DecisionState::Cancelled => Err(EgressError::DecisionCancelled),
             DecisionState::Expired => Err(EgressError::DecisionExpired),
             DecisionState::Pending(stored) => {
                 if input.consumed_at > stored.expires_at {
@@ -388,21 +516,39 @@ impl DecisionLedger for MemoryDecisionLedger {
             }
         }
     }
+
+    fn cancel_if_pending(&self, input: CancelDecisionInput<'_>) -> Result<(), EgressError> {
+        input.decision.verify()?;
+        let mut decisions = self.decisions.lock();
+        let state = decisions
+            .get_mut(&input.decision.decision_id)
+            .ok_or(EgressError::DecisionUnknown)?;
+        match state {
+            DecisionState::Consumed => Err(EgressError::DecisionAlreadyConsumed),
+            DecisionState::Cancelled => Err(EgressError::DecisionCancelled),
+            DecisionState::Expired => Err(EgressError::DecisionExpired),
+            DecisionState::Pending(stored) => {
+                if input.cancelled_at > stored.expires_at {
+                    *state = DecisionState::Expired;
+                    return Err(EgressError::DecisionExpired);
+                }
+                if input.cancelled_at < stored.issued_at || stored.as_ref() != input.decision {
+                    return Err(EgressError::DecisionBindingMismatch);
+                }
+                *state = DecisionState::Cancelled;
+                Ok(())
+            }
+        }
+    }
 }
 
-pub struct ConsentService<'a, L>
-where
-    L: DecisionLedger + ?Sized,
-{
-    ledger: &'a L,
+pub struct ConsentService<'a> {
+    ledger: &'a MemoryDecisionLedger,
 }
 
-impl<'a, L> ConsentService<'a, L>
-where
-    L: DecisionLedger + ?Sized,
-{
+impl<'a> ConsentService<'a> {
     #[must_use]
-    pub const fn new(ledger: &'a L) -> Self {
+    pub const fn new(ledger: &'a MemoryDecisionLedger) -> Self {
         Self { ledger }
     }
 
@@ -436,7 +582,7 @@ where
             issued_at: input.issued_at,
             expires_at: input.expires_at,
         })?;
-        self.ledger.insert_pending(decision.clone())?;
+        self.ledger.insert_pending(&decision)?;
         Ok(decision)
     }
 
@@ -456,6 +602,18 @@ where
             return Err(EgressError::DecisionBindingMismatch);
         }
         self.ledger.consume_if_pending(input)
+    }
+
+    /// Permanently cancels one exact pending decision without creating model
+    /// invocation authority.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EgressError`] when the decision is invalid, expired, unknown,
+    /// consumed, or already cancelled.
+    pub fn cancel(&self, input: CancelDecisionInput<'_>) -> Result<(), EgressError> {
+        input.decision.verify()?;
+        self.ledger.cancel_if_pending(input)
     }
 }
 

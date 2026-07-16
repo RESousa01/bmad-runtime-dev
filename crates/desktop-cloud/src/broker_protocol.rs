@@ -1,15 +1,15 @@
-use std::collections::HashSet;
+use core::fmt;
 
 use desktop_runtime::{sha256_bytes, ContractId, UnixMillis};
 use serde::de::{MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{Map, Value};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
+use zeroize::Zeroizing;
 
 use crate::{BrokerToken, CloudError};
 
-const PROTOCOL_VERSION: &str = "sapphirus.auth-broker.v1";
+pub(crate) const PROTOCOL_VERSION: &str = "sapphirus.auth-broker.v1";
 const MAX_MESSAGE_BYTES: usize = 64 * 1024;
 const MAX_SCOPES: usize = 16;
 
@@ -244,7 +244,8 @@ impl BrokerExchange {
     ) -> Result<BrokerOutcome, CloudError> {
         let access_token = response
             .access_token
-            .ok_or(CloudError::IdentityUnavailable)?;
+            .ok_or(CloudError::IdentityUnavailable)?
+            .0;
         let expires_at = parse_expiry(
             response
                 .expires_on
@@ -273,7 +274,7 @@ impl BrokerExchange {
         if expires_at <= now {
             return Err(CloudError::ReauthenticationRequired);
         }
-        let token = BrokerToken::new(
+        let token = BrokerToken::from_secret(
             access_token,
             opaque_ref("tenant", tenant_id),
             opaque_ref("account", account_id),
@@ -297,65 +298,194 @@ struct BrokerRequest<'a> {
     allow_system_browser_fallback: bool,
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct BrokerResponse {
     protocol_version: String,
     request_id: String,
     success: bool,
     error_code: Option<String>,
     retryable: bool,
-    access_token: Option<String>,
+    access_token: Option<SecretString>,
     expires_on: Option<String>,
     account_id: Option<String>,
     tenant_id: Option<String>,
 }
 
-struct UniqueObject(Map<String, Value>);
+struct SecretString(Zeroizing<String>);
 
-impl<'de> Deserialize<'de> for UniqueObject {
+impl<'de> Deserialize<'de> for SecretString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        struct UniqueObjectVisitor;
+        String::deserialize(deserializer).map(|value| Self(Zeroizing::new(value)))
+    }
+}
 
-        impl<'de> Visitor<'de> for UniqueObjectVisitor {
-            type Value = UniqueObject;
+#[derive(Clone, Copy)]
+enum BrokerResponseField {
+    ProtocolVersion,
+    RequestId,
+    Success,
+    ErrorCode,
+    Retryable,
+    AccessToken,
+    ExpiresOn,
+    AccountId,
+    TenantId,
+}
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("a JSON object with unique property names")
+impl<'de> Deserialize<'de> for BrokerResponseField {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FieldVisitor;
+
+        impl Visitor<'_> for FieldVisitor {
+            type Value = BrokerResponseField;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a known broker response field")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match value {
+                    "protocolVersion" => Ok(BrokerResponseField::ProtocolVersion),
+                    "requestId" => Ok(BrokerResponseField::RequestId),
+                    "success" => Ok(BrokerResponseField::Success),
+                    "errorCode" => Ok(BrokerResponseField::ErrorCode),
+                    "retryable" => Ok(BrokerResponseField::Retryable),
+                    "accessToken" => Ok(BrokerResponseField::AccessToken),
+                    "expiresOn" => Ok(BrokerResponseField::ExpiresOn),
+                    "accountId" => Ok(BrokerResponseField::AccountId),
+                    "tenantId" => Ok(BrokerResponseField::TenantId),
+                    _ => Err(E::unknown_field(value, BROKER_RESPONSE_FIELDS)),
+                }
+            }
+        }
+
+        deserializer.deserialize_identifier(FieldVisitor)
+    }
+}
+
+const BROKER_RESPONSE_FIELDS: &[&str] = &[
+    "protocolVersion",
+    "requestId",
+    "success",
+    "errorCode",
+    "retryable",
+    "accessToken",
+    "expiresOn",
+    "accountId",
+    "tenantId",
+];
+
+impl<'de> Deserialize<'de> for BrokerResponse {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct BrokerResponseVisitor;
+
+        impl<'de> Visitor<'de> for BrokerResponseVisitor {
+            type Value = BrokerResponse;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a complete broker response with unique fields")
             }
 
             fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
             where
                 M: MapAccess<'de>,
             {
-                let mut keys = HashSet::new();
-                let mut values = Map::new();
-                while let Some(key) = access.next_key::<String>()? {
-                    if !keys.insert(key.clone()) {
-                        return Err(serde::de::Error::custom("duplicate object property"));
-                    }
-                    let value = access.next_value::<Value>()?;
-                    values.insert(key, value);
+                let mut protocol_version = None;
+                let mut request_id = None;
+                let mut success = None;
+                let mut error_code = None;
+                let mut retryable = None;
+                let mut access_token = None;
+                let mut expires_on = None;
+                let mut account_id = None;
+                let mut tenant_id = None;
+
+                macro_rules! read_unique {
+                    ($slot:ident, $field:literal, $value_type:ty) => {{
+                        if $slot.is_some() {
+                            return Err(serde::de::Error::duplicate_field($field));
+                        }
+                        $slot = Some(access.next_value::<$value_type>()?);
+                    }};
                 }
-                Ok(UniqueObject(values))
+
+                while let Some(field) = access.next_key::<BrokerResponseField>()? {
+                    match field {
+                        BrokerResponseField::ProtocolVersion => {
+                            read_unique!(protocol_version, "protocolVersion", String);
+                        }
+                        BrokerResponseField::RequestId => {
+                            read_unique!(request_id, "requestId", String);
+                        }
+                        BrokerResponseField::Success => {
+                            read_unique!(success, "success", bool);
+                        }
+                        BrokerResponseField::ErrorCode => {
+                            read_unique!(error_code, "errorCode", Option<String>);
+                        }
+                        BrokerResponseField::Retryable => {
+                            read_unique!(retryable, "retryable", bool);
+                        }
+                        BrokerResponseField::AccessToken => {
+                            read_unique!(access_token, "accessToken", Option<SecretString>);
+                        }
+                        BrokerResponseField::ExpiresOn => {
+                            read_unique!(expires_on, "expiresOn", Option<String>);
+                        }
+                        BrokerResponseField::AccountId => {
+                            read_unique!(account_id, "accountId", Option<String>);
+                        }
+                        BrokerResponseField::TenantId => {
+                            read_unique!(tenant_id, "tenantId", Option<String>);
+                        }
+                    }
+                }
+
+                Ok(BrokerResponse {
+                    protocol_version: protocol_version
+                        .ok_or_else(|| serde::de::Error::missing_field("protocolVersion"))?,
+                    request_id: request_id
+                        .ok_or_else(|| serde::de::Error::missing_field("requestId"))?,
+                    success: success.ok_or_else(|| serde::de::Error::missing_field("success"))?,
+                    error_code: error_code
+                        .ok_or_else(|| serde::de::Error::missing_field("errorCode"))?,
+                    retryable: retryable
+                        .ok_or_else(|| serde::de::Error::missing_field("retryable"))?,
+                    access_token: access_token
+                        .ok_or_else(|| serde::de::Error::missing_field("accessToken"))?,
+                    expires_on: expires_on
+                        .ok_or_else(|| serde::de::Error::missing_field("expiresOn"))?,
+                    account_id: account_id
+                        .ok_or_else(|| serde::de::Error::missing_field("accountId"))?,
+                    tenant_id: tenant_id
+                        .ok_or_else(|| serde::de::Error::missing_field("tenantId"))?,
+                })
             }
         }
 
-        deserializer.deserialize_map(UniqueObjectVisitor)
+        deserializer.deserialize_map(BrokerResponseVisitor)
     }
 }
 
 fn deserialize_unique_response(payload: &[u8]) -> Result<BrokerResponse, CloudError> {
     let mut deserializer = serde_json::Deserializer::from_slice(payload);
-    let value = UniqueObject::deserialize(&mut deserializer)
+    let response = BrokerResponse::deserialize(&mut deserializer)
         .map_err(|_| CloudError::IdentityUnavailable)?;
     deserializer
         .end()
         .map_err(|_| CloudError::IdentityUnavailable)?;
-    serde_json::from_value(Value::Object(value.0)).map_err(|_| CloudError::IdentityUnavailable)
+    Ok(response)
 }
 
 fn decode_frame(frame: &[u8]) -> Result<&[u8], CloudError> {

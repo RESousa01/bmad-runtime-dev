@@ -1,7 +1,7 @@
 use super::{
-    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult,
-    MethodArtifactProvenance, MethodExactBinding, MethodPersistenceEvent, MethodSession,
-    MethodSessionScope,
+    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactProvenance,
+    MethodExactBinding, MethodPersistenceEvent, MethodSession, MethodSessionScope,
+    MethodVerifiedAdvanceResult,
 };
 use crate::ContractId;
 
@@ -67,8 +67,57 @@ pub trait MethodSessionRepository: Send + Sync {
     ) -> Result<(), Self::Error>;
 }
 
-/// Model port. A model can return content but cannot persist or transition a
-/// Method session.
+impl<R> MethodSessionRepository for &R
+where
+    R: MethodSessionRepository + ?Sized,
+{
+    type Error = R::Error;
+
+    fn create_method_session(&self, session: &MethodSession) -> Result<(), Self::Error> {
+        (**self).create_method_session(session)
+    }
+
+    fn load_method_session(
+        &self,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+    ) -> Result<Option<MethodSession>, Self::Error> {
+        (**self).load_method_session(scope, session_id)
+    }
+
+    fn begin_method_advance(
+        &self,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+        observed_binding: &MethodExactBinding,
+        request: MethodAdvanceRequest,
+    ) -> Result<MethodAdvanceReceipt, Self::Error> {
+        (**self).begin_method_advance(scope, session_id, observed_binding, request)
+    }
+
+    fn persist_method_transition(
+        &self,
+        session: &MethodSession,
+        expected_previous_version: u64,
+        event: MethodPersistenceEvent,
+    ) -> Result<(), Self::Error> {
+        (**self).persist_method_transition(session, expected_previous_version, event)
+    }
+
+    fn validate_method_artifact_refs(
+        &self,
+        provenance: &MethodArtifactProvenance,
+        binding: &MethodExactBinding,
+        disposition: MethodAdvanceDisposition,
+        refs: &[String],
+    ) -> Result<(), Self::Error> {
+        (**self).validate_method_artifact_refs(provenance, binding, disposition, refs)
+    }
+}
+
+/// Trusted-host model bridge. It may return sealed evidence but cannot persist
+/// or transition a Method session. Implementations remain responsible for D2
+/// output opacity and receipt authenticity before constructing that evidence.
 pub trait MethodModelPort: Send + Sync {
     type Error;
 
@@ -77,5 +126,8 @@ pub trait MethodModelPort: Send + Sync {
     /// # Errors
     ///
     /// Returns the adapter error when the bounded model call fails.
-    fn advance(&self, request: &MethodAdvanceRequest) -> Result<MethodAdvanceResult, Self::Error>;
+    fn advance(
+        &self,
+        request: &MethodAdvanceRequest,
+    ) -> Result<MethodVerifiedAdvanceResult, Self::Error>;
 }

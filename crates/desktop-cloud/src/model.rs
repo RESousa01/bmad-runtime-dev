@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use desktop_egress::{
     ContextClassification, ContextEgressManifest, DecisionConsumption, EgressError,
     ModelInvocationBinding, RedactionRecord, RetentionMode,
@@ -5,14 +7,17 @@ use desktop_egress::{
 use desktop_runtime::{
     canonical_hash, sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use time::OffsetDateTime;
 
 use crate::CloudError;
 
 const REQUEST_SCHEMA: &str = "sapphirus.authorized-model-request.v1";
 const RECEIPT_SCHEMA: &str = "sapphirus.model-access-receipt.v1";
 const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
+const MAX_ACCEPTED_RECEIPT_IDS: usize = 100_000;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -60,36 +65,58 @@ struct AuthorizedModelRequestDraft {
     total_token_estimate: u64,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Eq, PartialEq)]
+struct InvocationAuthority;
+
+/// A request contains one consumed invocation capability and cannot be cloned
+/// for a local replay.
+///
+/// ```compile_fail
+/// fn duplicate(request: desktop_cloud::AuthorizedModelRequest) {
+///     let replay = request.clone();
+/// }
+/// ```
+///
+/// ```compile_fail
+/// # use desktop_cloud::AuthorizedModelRequest;
+/// fn retarget(mut request: AuthorizedModelRequest) -> AuthorizedModelRequest {
+///     request.items[0].content = "unreviewed context".to_owned();
+///     request.request_hash = desktop_runtime::sha256_bytes(b"rehashed");
+///     request
+/// }
+/// ```
+#[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthorizedModelRequest {
-    pub schema_version: String,
-    pub request_id: ContractId,
-    pub tenant_ref: ContractId,
-    pub project_ref: ContractId,
-    pub run_ref: ContractId,
-    pub installation_id: ContractId,
-    pub invocation_id: ContractId,
-    pub decision_id: ContractId,
-    pub decision_hash: Sha256Digest,
-    pub manifest_hash: Sha256Digest,
-    pub binding_hash: Sha256Digest,
-    pub consumption_hash: Sha256Digest,
-    pub consent_disclosure_hash: Sha256Digest,
-    pub purpose: String,
-    pub model_role: String,
-    pub canonical_output_schema_id: ContractId,
-    pub canonical_output_schema_hash: Sha256Digest,
-    pub provider_profile_hash: Sha256Digest,
-    pub model_profile_hash: Sha256Digest,
-    pub deployment_hash: Sha256Digest,
-    pub policy_hash: Sha256Digest,
-    pub region: String,
-    pub retention_mode: RetentionMode,
-    pub items: Vec<AuthorizedContextItem>,
-    pub total_outbound_bytes: u64,
-    pub total_token_estimate: u64,
-    pub request_hash: Sha256Digest,
+    schema_version: String,
+    request_id: ContractId,
+    tenant_ref: ContractId,
+    project_ref: ContractId,
+    run_ref: ContractId,
+    installation_id: ContractId,
+    invocation_id: ContractId,
+    decision_id: ContractId,
+    decision_hash: Sha256Digest,
+    manifest_hash: Sha256Digest,
+    binding_hash: Sha256Digest,
+    consumption_hash: Sha256Digest,
+    consent_disclosure_hash: Sha256Digest,
+    purpose: String,
+    model_role: String,
+    canonical_output_schema_id: ContractId,
+    canonical_output_schema_hash: Sha256Digest,
+    provider_profile_hash: Sha256Digest,
+    model_profile_hash: Sha256Digest,
+    deployment_hash: Sha256Digest,
+    policy_hash: Sha256Digest,
+    region: String,
+    retention_mode: RetentionMode,
+    items: Vec<AuthorizedContextItem>,
+    total_outbound_bytes: u64,
+    total_token_estimate: u64,
+    request_hash: Sha256Digest,
+    #[serde(skip)]
+    authority: InvocationAuthority,
 }
 
 impl AuthorizedModelRequest {
@@ -102,16 +129,16 @@ impl AuthorizedModelRequest {
     pub fn new(
         manifest: &ContextEgressManifest,
         binding: &ModelInvocationBinding,
-        consumption: &DecisionConsumption,
+        consumption: DecisionConsumption,
     ) -> Result<Self, CloudError> {
         binding.verify_for(manifest).map_err(map_egress_error)?;
         consumption.verify().map_err(map_egress_error)?;
-        if consumption.manifest_hash != manifest.manifest_hash
-            || consumption.binding_hash != binding.binding_hash
-            || consumption.consent_disclosure_hash != binding.draft.consent_disclosure_hash
-            || consumption.policy_hash != binding.draft.policy_hash
-            || consumption.installation_id != binding.draft.installation_id
-            || consumption.session_authority_hash != binding.draft.session_authority_hash
+        if consumption.manifest_hash() != manifest.manifest_hash
+            || consumption.binding_hash() != binding.binding_hash
+            || consumption.consent_disclosure_hash() != binding.draft.consent_disclosure_hash
+            || consumption.policy_hash() != binding.draft.policy_hash
+            || consumption.installation_id() != &binding.draft.installation_id
+            || consumption.session_authority_hash() != binding.draft.session_authority_hash
         {
             return Err(CloudError::ConsentBindingMismatch);
         }
@@ -139,12 +166,12 @@ impl AuthorizedModelRequest {
             project_ref: binding.draft.project_ref.clone(),
             run_ref: binding.draft.run_ref.clone(),
             installation_id: binding.draft.installation_id.clone(),
-            invocation_id: consumption.invocation_id.clone(),
-            decision_id: consumption.decision_id.clone(),
-            decision_hash: consumption.decision_hash,
+            invocation_id: consumption.invocation_id().clone(),
+            decision_id: consumption.decision_id().clone(),
+            decision_hash: consumption.decision_hash(),
             manifest_hash: manifest.manifest_hash,
             binding_hash: binding.binding_hash,
-            consumption_hash: consumption.consumption_hash,
+            consumption_hash: consumption.consumption_hash(),
             consent_disclosure_hash: binding.draft.consent_disclosure_hash,
             purpose: binding.draft.purpose.clone(),
             model_role: binding.draft.model_role.clone(),
@@ -160,6 +187,7 @@ impl AuthorizedModelRequest {
             total_outbound_bytes: manifest.draft.total_outbound_bytes,
             total_token_estimate: manifest.draft.total_token_estimate,
         };
+        drop(consumption);
         Self::seal(draft)
     }
 
@@ -195,6 +223,7 @@ impl AuthorizedModelRequest {
             total_outbound_bytes: draft.total_outbound_bytes,
             total_token_estimate: draft.total_token_estimate,
             request_hash,
+            authority: InvocationAuthority,
         })
     }
 
@@ -229,6 +258,101 @@ impl AuthorizedModelRequest {
         }
     }
 
+    #[must_use]
+    pub fn request_id(&self) -> &ContractId {
+        &self.request_id
+    }
+
+    #[must_use]
+    pub fn purpose(&self) -> &str {
+        &self.purpose
+    }
+
+    #[must_use]
+    pub fn model_role(&self) -> &str {
+        &self.model_role
+    }
+
+    #[must_use]
+    pub fn canonical_output_schema_id(&self) -> &ContractId {
+        &self.canonical_output_schema_id
+    }
+
+    #[must_use]
+    pub const fn canonical_output_schema_hash(&self) -> Sha256Digest {
+        self.canonical_output_schema_hash
+    }
+
+    #[must_use]
+    pub const fn manifest_hash(&self) -> Sha256Digest {
+        self.manifest_hash
+    }
+
+    #[must_use]
+    pub const fn binding_hash(&self) -> Sha256Digest {
+        self.binding_hash
+    }
+
+    #[must_use]
+    pub const fn consumption_hash(&self) -> Sha256Digest {
+        self.consumption_hash
+    }
+
+    #[must_use]
+    pub const fn consent_disclosure_hash(&self) -> Sha256Digest {
+        self.consent_disclosure_hash
+    }
+
+    #[must_use]
+    pub const fn provider_profile_hash(&self) -> Sha256Digest {
+        self.provider_profile_hash
+    }
+
+    #[must_use]
+    pub const fn model_profile_hash(&self) -> Sha256Digest {
+        self.model_profile_hash
+    }
+
+    #[must_use]
+    pub const fn deployment_hash(&self) -> Sha256Digest {
+        self.deployment_hash
+    }
+
+    #[must_use]
+    pub const fn policy_hash(&self) -> Sha256Digest {
+        self.policy_hash
+    }
+
+    #[must_use]
+    pub fn region(&self) -> &str {
+        &self.region
+    }
+
+    #[must_use]
+    pub const fn retention_mode(&self) -> RetentionMode {
+        self.retention_mode
+    }
+
+    #[must_use]
+    pub fn items(&self) -> &[AuthorizedContextItem] {
+        &self.items
+    }
+
+    #[must_use]
+    pub const fn total_outbound_bytes(&self) -> u64 {
+        self.total_outbound_bytes
+    }
+
+    #[must_use]
+    pub const fn total_token_estimate(&self) -> u64 {
+        self.total_token_estimate
+    }
+
+    #[must_use]
+    pub const fn request_hash(&self) -> Sha256Digest {
+        self.request_hash
+    }
+
     pub(crate) fn verify(&self) -> Result<(), CloudError> {
         let draft = self.draft();
         validate_request_draft(&draft)?;
@@ -239,6 +363,38 @@ impl AuthorizedModelRequest {
         }
         Ok(())
     }
+}
+
+/// A request that has crossed the one-shot transport boundary. It retains the
+/// trusted request bindings needed for response verification but cannot be
+/// submitted again.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(transparent)]
+pub struct DispatchedModelRequest(AuthorizedModelRequest);
+
+impl DispatchedModelRequest {
+    pub(crate) const fn new(request: AuthorizedModelRequest) -> Self {
+        Self(request)
+    }
+}
+
+/// Verifies a response against a request that was consumed by the transport.
+///
+/// # Errors
+///
+/// Returns [`CloudError`] for any schema, receipt, payload, or binding drift.
+pub fn verify_dispatched_model_response<S, R>(
+    request: DispatchedModelRequest,
+    response: RawModelOutput,
+    schema_validator: &S,
+    receipt_verifier: &R,
+) -> Result<VerifiedModelOutput, CloudError>
+where
+    S: CanonicalOutputValidator,
+    R: ReceiptVerifier,
+{
+    let DispatchedModelRequest(request) = request;
+    verify_model_response(&request, response, schema_validator, receipt_verifier)
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -315,13 +471,122 @@ pub trait ReceiptVerifier: Send + Sync {
     fn verify(&self, receipt: &ModelAccessReceipt) -> Result<(), CloudError>;
 }
 
+pub trait ReceiptProofVerifier: Send + Sync {
+    /// Verifies the receipt signature, issuer, audience, and key policy.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::ReceiptInvalid`] when proof or trust fails.
+    fn verify_proof(&self, receipt: &ModelAccessReceipt) -> Result<(), CloudError>;
+}
+
+pub trait ReceiptClock: Send + Sync {
+    /// Returns the trusted host time used for receipt freshness checks.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::ReceiptInvalid`] when trusted time is unavailable.
+    fn now(&self) -> Result<UnixMillis, CloudError>;
+}
+
+#[derive(Debug, Default)]
+pub struct SystemReceiptClock;
+
+impl ReceiptClock for SystemReceiptClock {
+    fn now(&self) -> Result<UnixMillis, CloudError> {
+        let millis = OffsetDateTime::now_utc()
+            .unix_timestamp_nanos()
+            .checked_div(1_000_000)
+            .and_then(|value| u64::try_from(value).ok())
+            .ok_or(CloudError::ReceiptInvalid)?;
+        Ok(UnixMillis(millis))
+    }
+}
+
+#[derive(Debug)]
+pub struct ReplaySafeReceiptVerifier<P, C> {
+    proof_verifier: P,
+    clock: C,
+    maximum_age_ms: u64,
+    maximum_future_skew_ms: u64,
+    accepted_receipt_ids: Mutex<HashMap<String, u64>>,
+}
+
+impl<P, C> ReplaySafeReceiptVerifier<P, C>
+where
+    P: ReceiptProofVerifier,
+    C: ReceiptClock,
+{
+    /// Creates an in-process receipt freshness and replay guard.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::ReceiptInvalid`] for unbounded policy windows.
+    pub fn new(
+        proof_verifier: P,
+        clock: C,
+        maximum_age_ms: u64,
+        maximum_future_skew_ms: u64,
+    ) -> Result<Self, CloudError> {
+        if maximum_age_ms == 0
+            || maximum_age_ms > 24 * 60 * 60 * 1_000
+            || maximum_future_skew_ms > 5 * 60 * 1_000
+        {
+            return Err(CloudError::ReceiptInvalid);
+        }
+        Ok(Self {
+            proof_verifier,
+            clock,
+            maximum_age_ms,
+            maximum_future_skew_ms,
+            accepted_receipt_ids: Mutex::new(HashMap::new()),
+        })
+    }
+}
+
+impl<P, C> ReceiptVerifier for ReplaySafeReceiptVerifier<P, C>
+where
+    P: ReceiptProofVerifier,
+    C: ReceiptClock,
+{
+    fn verify(&self, receipt: &ModelAccessReceipt) -> Result<(), CloudError> {
+        if receipt.started_at > receipt.completed_at {
+            return Err(CloudError::ReceiptInvalid);
+        }
+        let now = self.clock.now()?;
+        let latest_allowed = now
+            .0
+            .checked_add(self.maximum_future_skew_ms)
+            .ok_or(CloudError::ReceiptInvalid)?;
+        if receipt.completed_at.0 > latest_allowed
+            || now.0.saturating_sub(receipt.completed_at.0) > self.maximum_age_ms
+        {
+            return Err(CloudError::ReceiptInvalid);
+        }
+        self.proof_verifier.verify_proof(receipt)?;
+        let mut accepted = self.accepted_receipt_ids.lock();
+        let oldest_relevant = now.0.saturating_sub(self.maximum_age_ms);
+        accepted.retain(|_, completed_at| *completed_at >= oldest_relevant);
+        if accepted.contains_key(receipt.receipt_id.as_str())
+            || accepted.len() >= MAX_ACCEPTED_RECEIPT_IDS
+        {
+            return Err(CloudError::ReceiptInvalid);
+        }
+        accepted.insert(
+            receipt.receipt_id.as_str().to_owned(),
+            receipt.completed_at.0,
+        );
+        Ok(())
+    }
+}
+
 /// Verifies untrusted model output and receipt bindings before projection.
 ///
 /// # Errors
 ///
 /// Returns [`CloudError`] for request/schema substitution, malformed or drifted
 /// payloads, receipt-binding drift, or failed schema/receipt trust checks.
-pub fn verify_model_response<V, R>(
+fn verify_model_response<V, R>(
     request: &AuthorizedModelRequest,
     response: RawModelOutput,
     output_validator: &V,

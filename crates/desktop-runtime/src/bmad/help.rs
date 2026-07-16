@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use serde::Serialize;
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::{ContractId, Sha256Digest};
 
@@ -11,7 +11,8 @@ use super::{
 
 const MAX_INTENT_BYTES: usize = 4_096;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(transparent)]
 pub struct BmadHelpIntent(String);
 
 impl BmadHelpIntent {
@@ -40,6 +41,21 @@ impl BmadHelpIntent {
             return Err(BmadKernelErrorCode::HelpEvidenceInsufficient.into());
         }
         Ok(Self(value))
+    }
+
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl<'de> Deserialize<'de> for BmadHelpIntent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Self::new(value).map_err(serde::de::Error::custom)
     }
 }
 
@@ -137,6 +153,7 @@ pub struct BmadHelpRecommendation {
     pub action: BmadHelpActionKey,
     pub display_name: String,
     pub reason: String,
+    pub required_guidance: bool,
     pub confidence: BmadHelpConfidence,
     pub availability: BmadCatalogAvailability,
     pub expected_outputs: Vec<String>,
@@ -178,6 +195,7 @@ impl BmadHelpAdvisor {
             action: action.key.clone(),
             display_name: action.display_name.clone(),
             reason: recommendation_reason(action, confidence),
+            required_guidance: action.required,
             confidence,
             availability: action.availability,
             expected_outputs: action.expected_outputs.clone(),

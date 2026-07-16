@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 mod broker_protocol;
+mod composition;
 mod entitlement;
 mod identity;
 mod model;
@@ -13,11 +14,16 @@ mod transport;
 mod windows_broker;
 
 pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
+#[cfg(feature = "deterministic-fake")]
+pub use composition::DeterministicModelTransport;
+pub use composition::OfflineModelTransport;
 pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 pub use model::{
-    verify_model_response, AuthorizedContextItem, AuthorizedModelRequest, CanonicalOutputValidator,
-    ModelAccessReceipt, ModelReceiptStatus, RawModelOutput, ReceiptVerifier, VerifiedModelOutput,
+    verify_dispatched_model_response, AuthorizedContextItem, AuthorizedModelRequest,
+    CanonicalOutputValidator, DispatchedModelRequest, ModelAccessReceipt, ModelReceiptStatus,
+    RawModelOutput, ReceiptClock, ReceiptProofVerifier, ReceiptVerifier, ReplaySafeReceiptVerifier,
+    SystemReceiptClock, VerifiedModelOutput,
 };
 pub use transport::{
     HttpExecutor, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor, SupportApiOrigin,

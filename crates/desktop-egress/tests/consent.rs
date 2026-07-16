@@ -4,12 +4,13 @@
 )]
 
 use desktop_egress::{
-    ApproveDecisionInput, ConsentService, ConsumeDecisionInput, ContextCandidate,
-    ContextClassification, ContextEgressManifest, ContextPreparer, EgressError, EgressLimits,
-    MemoryDecisionLedger, ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput,
-    RetentionMode,
+    ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
+    ContextCandidate, ContextClassification, ContextEgressManifest, ContextPreparer, EgressError,
+    EgressLimits, MemoryDecisionLedger, ModelInvocationBindingDraft, PatternSecretScanner,
+    PrepareContextInput, RetentionMode,
 };
 use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, UnixMillis};
+use std::sync::{Arc, Barrier};
 
 fn id(value: &str) -> ContractId {
     ContractId::new(value).expect("valid fixture identifier")
@@ -114,8 +115,8 @@ fn one_decision_authorizes_one_exact_invocation() {
         .consume(fixture_consumption(&decision, &binding))
         .expect("consumption");
 
-    assert_eq!(consumed.decision_id, decision.decision_id);
-    assert_eq!(consumed.binding_hash, binding.binding_hash);
+    assert_eq!(consumed.decision_id(), decision.decision_id());
+    assert_eq!(consumed.binding_hash(), binding.binding_hash);
     assert_eq!(
         service.consume(fixture_consumption(&decision, &binding)),
         Err(EgressError::DecisionAlreadyConsumed)
@@ -191,7 +192,7 @@ fn expired_decision_is_terminal() {
         .approve(fixture_approval(&manifest, &binding))
         .expect("decision");
     let mut input = fixture_consumption(&decision, &binding);
-    input.consumed_at = UnixMillis(decision.expires_at.0 + 1);
+    input.consumed_at = UnixMillis(decision.expires_at().0 + 1);
 
     assert_eq!(service.consume(input), Err(EgressError::DecisionExpired));
     assert_eq!(
@@ -217,7 +218,7 @@ fn duplicate_decision_identifier_is_rejected() {
 }
 
 #[test]
-fn consumption_tamper_is_detected() {
+fn consumption_is_read_only_and_serializes_without_private_authority() {
     let manifest = fixture_manifest();
     let binding = fixture_binding(&manifest).seal().expect("binding");
     let ledger = MemoryDecisionLedger::default();
@@ -225,10 +226,110 @@ fn consumption_tamper_is_detected() {
     let decision = service
         .approve(fixture_approval(&manifest, &binding))
         .expect("decision");
-    let mut consumption = service
+    let consumption = service
         .consume(fixture_consumption(&decision, &binding))
         .expect("consumption");
-    consumption.invocation_id = id("tampered_invocation");
+    let serialized = serde_json::to_value(&consumption).expect("serialized consumption");
 
-    assert_eq!(consumption.verify(), Err(EgressError::DecisionIntegrity));
+    consumption.verify().expect("sealed consumption");
+    assert_eq!(serialized["invocationId"], "invocation_001");
+    assert_eq!(
+        serialized["consumptionHash"],
+        consumption.consumption_hash().to_string()
+    );
+    assert!(serialized.get("authority").is_none());
+}
+
+#[test]
+fn cancelled_decision_is_terminal_and_cannot_authorize_egress() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+    let decision = service
+        .approve(fixture_approval(&manifest, &binding))
+        .expect("decision");
+
+    service
+        .cancel(CancelDecisionInput {
+            decision: &decision,
+            cancelled_at: UnixMillis(2_000),
+        })
+        .expect("cancel pending decision");
+
+    assert_eq!(
+        service.consume(fixture_consumption(&decision, &binding)),
+        Err(EgressError::DecisionCancelled)
+    );
+    assert_eq!(
+        service.cancel(CancelDecisionInput {
+            decision: &decision,
+            cancelled_at: UnixMillis(2_100),
+        }),
+        Err(EgressError::DecisionCancelled)
+    );
+}
+
+#[test]
+fn cancellation_and_consumption_race_has_exactly_one_terminal_winner() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+    let decision = service
+        .approve(fixture_approval(&manifest, &binding))
+        .expect("decision");
+    let barrier = Arc::new(Barrier::new(2));
+    let service = &service;
+    let decision = &decision;
+    let binding = &binding;
+
+    std::thread::scope(|scope| {
+        let consume_barrier = Arc::clone(&barrier);
+        let consume = scope.spawn(move || {
+            consume_barrier.wait();
+            service.consume(fixture_consumption(decision, binding))
+        });
+        let cancel_barrier = Arc::clone(&barrier);
+        let cancel = scope.spawn(move || {
+            cancel_barrier.wait();
+            service.cancel(CancelDecisionInput {
+                decision,
+                cancelled_at: UnixMillis(2_000),
+            })
+        });
+
+        let consumed = consume.join().expect("consume thread");
+        let cancelled = cancel.join().expect("cancel thread");
+        assert_ne!(consumed.is_ok(), cancelled.is_ok());
+        assert!(matches!(
+            (consumed, cancelled),
+            (Ok(_), Err(EgressError::DecisionAlreadyConsumed))
+                | (Err(EgressError::DecisionCancelled), Ok(()))
+        ));
+    });
+}
+
+#[test]
+fn pending_decision_cannot_be_cancelled_or_consumed_after_memory_ledger_restart() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let original_ledger = MemoryDecisionLedger::default();
+    let decision = ConsentService::new(&original_ledger)
+        .approve(fixture_approval(&manifest, &binding))
+        .expect("decision");
+    let restarted_ledger = MemoryDecisionLedger::default();
+    let restarted = ConsentService::new(&restarted_ledger);
+
+    assert_eq!(
+        restarted.cancel(CancelDecisionInput {
+            decision: &decision,
+            cancelled_at: UnixMillis(2_000),
+        }),
+        Err(EgressError::DecisionUnknown)
+    );
+    assert_eq!(
+        restarted.consume(fixture_consumption(&decision, &binding)),
+        Err(EgressError::DecisionUnknown)
+    );
 }

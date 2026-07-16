@@ -2,13 +2,14 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read as _;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use desktop_ipc::deserialize_strict;
 use desktop_runtime::{
     canonical_hash_without_field, sha256_bytes, BmadAgentRoster, BmadCatalog, BmadCatalogBuilder,
-    BmadHelpCatalogSource, BmadKernelError, BmadLoadedPackage, BmadLocationClass,
-    BmadPackageLoader, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, RelativeWorkspacePath,
-    Sha256Digest,
+    BmadHelpCatalogSource, BmadKernelError, BmadLoadedMethodPackage, BmadLoadedPackage,
+    BmadLocationClass, BmadPackageLoader, BmadSealedHelpInvocation, BmadSourceEntry,
+    BmadSourceKind, BmadSourceSnapshot, RelativeWorkspacePath, Sha256Digest,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -21,11 +22,13 @@ const EXPECTED_MANIFEST_HASH: &str =
     "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
+const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
+const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
 const METHOD_RUNTIME_PATHS: [&str; 3] = [
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
-    "runtime/method/6.10.0/bmad-help.instructions.md",
+    HELP_INSTRUCTION_PATH,
 ];
 const EXPECTED_RESOURCE_PATHS: [&str; 20] = [
     "NOTICE.md",
@@ -50,6 +53,8 @@ const EXPECTED_RESOURCE_PATHS: [&str; 20] = [
     "semantic-source-ledger.json",
 ];
 
+type FoundationResources = BTreeMap<String, Arc<[u8]>>;
+
 #[derive(Debug, Error)]
 pub enum BmadFoundationError {
     #[error("the bundled BMAD foundation root is unavailable")]
@@ -68,7 +73,7 @@ pub enum BmadFoundationError {
 
 #[derive(Debug)]
 pub struct BmadLoadedFoundation {
-    package: BmadLoadedPackage,
+    method_package: BmadLoadedMethodPackage,
     catalog: BmadCatalog,
     roster: BmadAgentRoster,
     manifest_hash: Sha256Digest,
@@ -79,7 +84,12 @@ pub struct BmadLoadedFoundation {
 impl BmadLoadedFoundation {
     #[must_use]
     pub const fn package(&self) -> &BmadLoadedPackage {
-        &self.package
+        self.method_package.package()
+    }
+
+    #[must_use]
+    pub const fn help_invocation(&self) -> &BmadSealedHelpInvocation {
+        self.method_package.help_invocation()
     }
 
     #[must_use]
@@ -207,13 +217,20 @@ pub fn load_bmad_foundation(
         .ok_or(BmadFoundationError::ResourceMismatch)?;
     let resources = read_manifest_resources(root, &manifest)?;
     let semantic_ledger_hash = validate_semantic_ledger(&manifest, &resources)?;
-    let package = load_method_package(&resources, semantic_ledger_hash)?;
-    let catalog = load_help_catalog(&resources, &package)?;
-    let roster = load_roster(&resources, &package, &catalog, roster_content_hash)?;
+    let adoption_ledger_hash = sha256_bytes(required_bytes(&resources, ADOPTION_LEDGER_PATH)?);
+    let method_package =
+        load_method_package(&resources, semantic_ledger_hash, adoption_ledger_hash)?;
+    let catalog = load_help_catalog(&resources, method_package.package())?;
+    let roster = load_roster(
+        &resources,
+        method_package.package(),
+        &catalog,
+        roster_content_hash,
+    )?;
     let inactive_builder_package_count = validate_builder_packages(&resources)?;
 
     Ok(BmadLoadedFoundation {
-        package,
+        method_package,
         catalog,
         roster,
         manifest_hash: manifest.manifest_hash,
@@ -254,7 +271,7 @@ fn validate_manifest_identity(manifest: &RuntimeManifest) -> Result<(), BmadFoun
 fn read_manifest_resources(
     root: &Path,
     manifest: &RuntimeManifest,
-) -> Result<BTreeMap<String, Vec<u8>>, BmadFoundationError> {
+) -> Result<FoundationResources, BmadFoundationError> {
     let mut total = 0_usize;
     let mut observed = BTreeMap::new();
     for resource in &manifest.resources {
@@ -270,7 +287,9 @@ fn read_manifest_resources(
             .ok_or(BmadFoundationError::LimitExceeded)?;
         if bytes.len() as u64 != resource.byte_length
             || sha256_bytes(&bytes) != resource.content_hash
-            || observed.insert(resource.path.clone(), bytes).is_some()
+            || observed
+                .insert(resource.path.clone(), Arc::from(bytes))
+                .is_some()
         {
             return Err(BmadFoundationError::ResourceMismatch);
         }
@@ -280,7 +299,7 @@ fn read_manifest_resources(
 
 fn validate_semantic_ledger(
     manifest: &RuntimeManifest,
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
 ) -> Result<Sha256Digest, BmadFoundationError> {
     let bytes = resources
         .get(SEMANTIC_LEDGER_PATH)
@@ -293,9 +312,10 @@ fn validate_semantic_ledger(
 }
 
 fn load_method_package(
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
     semantic_ledger_hash: Sha256Digest,
-) -> Result<BmadLoadedPackage, BmadFoundationError> {
+    adoption_ledger_hash: Sha256Digest,
+) -> Result<BmadLoadedMethodPackage, BmadFoundationError> {
     let mut entries = vec![source_entry(
         resources,
         SEMANTIC_LEDGER_PATH,
@@ -306,6 +326,11 @@ fn load_method_package(
         DESCRIPTOR_PATH,
         BmadLocationClass::ManagedMetadata,
     )?);
+    entries.push(source_entry(
+        resources,
+        ADOPTION_LEDGER_PATH,
+        BmadLocationClass::ManagedMetadata,
+    )?);
     for path in METHOD_RUNTIME_PATHS {
         entries.push(source_entry(
             resources,
@@ -314,11 +339,12 @@ fn load_method_package(
         )?);
     }
     let snapshot = BmadSourceSnapshot::new(entries)?;
-    BmadPackageLoader::load(&snapshot, semantic_ledger_hash).map_err(Into::into)
+    BmadPackageLoader::load(&snapshot, semantic_ledger_hash, adoption_ledger_hash)
+        .map_err(Into::into)
 }
 
 fn load_help_catalog(
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
     package: &BmadLoadedPackage,
 ) -> Result<BmadCatalog, BmadFoundationError> {
     let graph: FoundationHelpActionGraph =
@@ -366,7 +392,7 @@ fn load_help_catalog(
 }
 
 fn load_roster(
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
     package: &BmadLoadedPackage,
     catalog: &BmadCatalog,
     trusted_content_hash: Sha256Digest,
@@ -384,7 +410,7 @@ fn load_roster(
 }
 
 fn validate_builder_packages(
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
 ) -> Result<usize, BmadFoundationError> {
     let expected = [
         (
@@ -433,13 +459,17 @@ fn validate_builder_packages(
 }
 
 fn source_entry(
-    resources: &BTreeMap<String, Vec<u8>>,
+    resources: &FoundationResources,
     path: &str,
     location: BmadLocationClass,
 ) -> Result<BmadSourceEntry, BmadFoundationError> {
     BmadSourceEntry::new(
         path,
-        required_bytes(resources, path)?.to_vec(),
+        Arc::clone(
+            resources
+                .get(path)
+                .ok_or(BmadFoundationError::ResourceMismatch)?,
+        ),
         BmadSourceKind::SealedFoundation,
         location,
     )
@@ -447,12 +477,12 @@ fn source_entry(
 }
 
 fn required_bytes<'a>(
-    resources: &'a BTreeMap<String, Vec<u8>>,
+    resources: &'a FoundationResources,
     path: &str,
 ) -> Result<&'a [u8], BmadFoundationError> {
     resources
         .get(path)
-        .map(Vec::as_slice)
+        .map(AsRef::as_ref)
         .ok_or(BmadFoundationError::ResourceMismatch)
 }
 
@@ -511,7 +541,13 @@ fn read_bounded_regular(root: &Path, relative: &str) -> Result<Vec<u8>, BmadFoun
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{load_bmad_foundation, BmadFoundationError};
+    use super::{
+        load_bmad_foundation, load_method_package, read_bounded_regular, read_manifest_resources,
+        required_bytes, validate_manifest_identity, validate_semantic_ledger, BmadFoundationError,
+        RuntimeManifest, ADOPTION_LEDGER_PATH, HELP_INSTRUCTION_PATH,
+    };
+    use desktop_ipc::deserialize_strict;
+    use desktop_runtime::sha256_bytes;
 
     fn foundation_path() -> std::path::PathBuf {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation")
@@ -522,6 +558,18 @@ mod tests {
         let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
         assert_eq!(foundation.package().package_name, "bmad-method");
         assert_eq!(foundation.package().skills.len(), 2);
+        assert_eq!(foundation.help_invocation().skill_name(), "bmad-help");
+        assert_eq!(
+            foundation.help_invocation().instruction_bytes().len(),
+            1_283
+        );
+        assert_eq!(
+            foundation
+                .help_invocation()
+                .adoption_ledger_hash()
+                .to_string(),
+            "sha256:7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d"
+        );
         assert_eq!(foundation.catalog().installed_skills.len(), 2);
         assert_eq!(foundation.catalog().help_actions.len(), 2);
         assert!(foundation.catalog().help_actions.iter().any(|action| {
@@ -552,6 +600,31 @@ mod tests {
     }
 
     #[test]
+    fn shares_manifest_owned_help_bytes_through_the_sealed_wrapper() {
+        let root = foundation_path();
+        let manifest_bytes =
+            read_bounded_regular(&root, "runtime-manifest.json").expect("runtime manifest");
+        let manifest: RuntimeManifest =
+            deserialize_strict(&manifest_bytes).expect("strict runtime manifest");
+        validate_manifest_identity(&manifest).expect("manifest identity");
+        let resources = read_manifest_resources(&root, &manifest).expect("manifest resources");
+        let semantic_hash =
+            validate_semantic_ledger(&manifest, &resources).expect("semantic ledger");
+        let adoption_hash = sha256_bytes(
+            required_bytes(&resources, ADOPTION_LEDGER_PATH).expect("adoption ledger"),
+        );
+        let original_pointer = required_bytes(&resources, HELP_INSTRUCTION_PATH)
+            .expect("manifest-owned Help bytes")
+            .as_ptr();
+        let method = load_method_package(&resources, semantic_hash, adoption_hash)
+            .expect("sealed Method package");
+        assert_eq!(
+            original_pointer,
+            method.help_invocation().instruction_bytes().as_ptr()
+        );
+    }
+
+    #[test]
     fn rejects_a_manifest_bound_resource_after_byte_tampering() {
         let temporary = tempfile::tempdir().expect("temporary foundation");
         copy_tree(&foundation_path(), temporary.path());
@@ -565,6 +638,23 @@ mod tests {
         assert!(matches!(
             load_bmad_foundation(temporary.path()),
             Err(BmadFoundationError::ResourceMismatch)
+        ));
+    }
+
+    #[test]
+    fn rejects_runtime_manifest_identity_tampering_before_package_loading() {
+        let temporary = tempfile::tempdir().expect("temporary foundation");
+        copy_tree(&foundation_path(), temporary.path());
+        let manifest_path = temporary.path().join("runtime-manifest.json");
+        let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
+        let tampered = manifest.replace(
+            "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        );
+        std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");
+        assert!(matches!(
+            load_bmad_foundation(temporary.path()),
+            Err(BmadFoundationError::ManifestInvalid)
         ));
     }
 

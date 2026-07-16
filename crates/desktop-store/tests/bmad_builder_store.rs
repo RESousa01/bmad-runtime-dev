@@ -466,12 +466,12 @@ fn builder_payload_tamper_enters_read_only_recovery() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn v5_upgrade_and_interrupted_v7_migration_match_fresh_schema(
+fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 7);
+    assert_eq!(fresh.schema_version()?, 10);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -481,6 +481,10 @@ fn v5_upgrade_and_interrupted_v7_migration_match_fresh_schema(
         let connection = rusqlite::Connection::open(&database_path)?;
         connection.execute_batch(
             "PRAGMA foreign_keys = OFF;
+             DROP TABLE execution_results;
+             DROP TABLE effect_journals;
+             DROP TABLE execution_checkpoints;
+             DROP TABLE bmad_help_run_creations;
              DROP TABLE bmad_builder_analysis_decisions;
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
@@ -496,7 +500,7 @@ fn v5_upgrade_and_interrupted_v7_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 7);
+        assert_eq!(reopened.schema_version()?, 10);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
@@ -519,6 +523,10 @@ fn populated_v6_model_analysis_is_refused_without_inventing_consent_history(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE execution_results;
+         DROP TABLE effect_journals;
+         DROP TABLE execution_checkpoints;
+         DROP TABLE bmad_help_run_creations;
          DROP TABLE bmad_builder_analysis_decisions;
          PRAGMA user_version = 6;",
     )?;
@@ -572,7 +580,7 @@ fn concurrent_builder_revisions_use_optimistic_projection_version(
 }
 
 #[test]
-fn v7_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dyn std::error::Error>>
+fn v10_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dyn std::error::Error>>
 {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;

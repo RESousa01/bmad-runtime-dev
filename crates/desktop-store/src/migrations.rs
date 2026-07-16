@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 7;
+pub(crate) const LATEST_STORE_VERSION: u32 = 10;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -52,6 +52,44 @@ const V7_TABLES: [&str; 14] = [
     "bmad_method_decision_consumptions",
     "bmad_method_sessions",
     "evidence_events",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V8_TABLES: [&str; 15] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "evidence_events",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V9_TABLES: [&str; 15] = V8_TABLES;
+const V10_TABLES: [&str; 18] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
     "outbox",
     "payloads",
     "spec_consumptions",
@@ -310,6 +348,172 @@ const V6_TO_V7_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 7;
  COMMIT;";
 
+const V7_TO_V8_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_help_run_creations (
+   owner_scope_ref TEXT NOT NULL,
+   installation_id TEXT NOT NULL,
+   request_id TEXT NOT NULL,
+   request_fingerprint TEXT NOT NULL,
+   session_id TEXT NOT NULL UNIQUE REFERENCES bmad_method_sessions(session_id),
+   project_id TEXT NOT NULL,
+   run_id TEXT NOT NULL,
+   authority_id TEXT NOT NULL,
+   authority_epoch INTEGER NOT NULL
+     CHECK(authority_epoch >= 1 AND authority_epoch <= 9007199254740991),
+   local_store_id TEXT NOT NULL,
+   workspace_id TEXT NOT NULL,
+   workspace_grant_epoch INTEGER NOT NULL
+     CHECK(workspace_grant_epoch >= 1 AND workspace_grant_epoch <= 9007199254740991),
+   workspace_catalog_version INTEGER NOT NULL
+     CHECK(workspace_catalog_version >= 1 AND workspace_catalog_version <= 9007199254740991),
+   workspace_root_identity_hash TEXT NOT NULL,
+   capability_catalog_hash TEXT NOT NULL,
+   foundation_binding_hash TEXT NOT NULL,
+   intent_hash TEXT NOT NULL,
+   accepted_at INTEGER NOT NULL
+     CHECK(accepted_at >= 0 AND accepted_at <= 9007199254740991),
+   PRIMARY KEY(owner_scope_ref, installation_id, request_id)
+ ) STRICT;
+ CREATE INDEX bmad_help_run_creations_scope
+   ON bmad_help_run_creations(owner_scope_ref, project_id, run_id, session_id);
+ PRAGMA user_version = 8;
+ COMMIT;";
+
+const V8_TO_V9_SQL: &str = "BEGIN IMMEDIATE;
+ DROP INDEX bmad_help_run_creations_scope;
+ ALTER TABLE bmad_help_run_creations RENAME TO bmad_help_run_creations_v8;
+ CREATE TABLE bmad_help_run_creations (
+   owner_scope_ref TEXT NOT NULL,
+   installation_id TEXT NOT NULL,
+   request_id TEXT NOT NULL,
+   request_fingerprint TEXT NOT NULL,
+   session_id TEXT NOT NULL UNIQUE REFERENCES bmad_method_sessions(session_id),
+   project_id TEXT NOT NULL,
+   run_id TEXT NOT NULL,
+   authority_id TEXT NOT NULL,
+   authority_epoch INTEGER NOT NULL
+     CHECK(authority_epoch >= 1 AND authority_epoch <= 9007199254740991),
+   local_store_id TEXT NOT NULL,
+   workspace_id TEXT NOT NULL,
+   workspace_grant_epoch INTEGER NOT NULL
+     CHECK(workspace_grant_epoch >= 1 AND workspace_grant_epoch <= 9007199254740991),
+   workspace_catalog_version INTEGER NOT NULL
+     CHECK(workspace_catalog_version >= 1 AND workspace_catalog_version <= 9007199254740991),
+   workspace_root_identity_hash TEXT NOT NULL,
+   capability_catalog_hash TEXT NOT NULL,
+   foundation_binding_hash TEXT NOT NULL,
+   intent_hash TEXT NOT NULL,
+   renderer_projection_state TEXT NOT NULL
+     CHECK(renderer_projection_state IN ('legacy_unretained', 'retained')),
+   renderer_projection_content_hash TEXT,
+   renderer_projection_kind TEXT,
+   renderer_projection_schema_version TEXT,
+   renderer_projection_byte_count INTEGER,
+   renderer_projection_key_version INTEGER,
+   renderer_projection_binding_hash TEXT,
+   creation_ordinal INTEGER NOT NULL UNIQUE
+     CHECK(creation_ordinal >= 1 AND creation_ordinal <= 9007199254740991),
+   accepted_at INTEGER NOT NULL
+     CHECK(accepted_at >= 0 AND accepted_at <= 9007199254740991),
+   PRIMARY KEY(owner_scope_ref, installation_id, request_id),
+   FOREIGN KEY(renderer_projection_content_hash, renderer_projection_kind,
+               renderer_projection_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version),
+   CHECK (
+     (renderer_projection_state = 'legacy_unretained'
+       AND renderer_projection_content_hash IS NULL
+       AND renderer_projection_kind IS NULL
+       AND renderer_projection_schema_version IS NULL
+       AND renderer_projection_byte_count IS NULL
+       AND renderer_projection_key_version IS NULL
+       AND renderer_projection_binding_hash IS NULL)
+     OR
+     (renderer_projection_state = 'retained'
+       AND renderer_projection_content_hash IS NOT NULL
+       AND renderer_projection_kind = 'bmad_help_run_renderer_projection'
+       AND renderer_projection_schema_version = 'sapphirus.bmad-help-run-renderer-projection.v1'
+       AND renderer_projection_byte_count >= 1
+       AND renderer_projection_byte_count <= 66560
+       AND renderer_projection_key_version >= 1
+       AND renderer_projection_binding_hash IS NOT NULL)
+   )
+ ) STRICT;
+ INSERT INTO bmad_help_run_creations
+   (owner_scope_ref, installation_id, request_id, request_fingerprint,
+    session_id, project_id, run_id, authority_id, authority_epoch,
+    local_store_id, workspace_id, workspace_grant_epoch, workspace_catalog_version,
+    workspace_root_identity_hash, capability_catalog_hash, foundation_binding_hash,
+    intent_hash, renderer_projection_state, renderer_projection_content_hash,
+    renderer_projection_kind, renderer_projection_schema_version,
+    renderer_projection_byte_count, renderer_projection_key_version,
+    renderer_projection_binding_hash, creation_ordinal, accepted_at)
+ SELECT owner_scope_ref, installation_id, request_id, request_fingerprint,
+        session_id, project_id, run_id, authority_id, authority_epoch,
+        local_store_id, workspace_id, workspace_grant_epoch, workspace_catalog_version,
+        workspace_root_identity_hash, capability_catalog_hash, foundation_binding_hash,
+        intent_hash, 'legacy_unretained', NULL, NULL, NULL, NULL, NULL, NULL,
+        ROW_NUMBER() OVER (ORDER BY rowid), accepted_at
+ FROM bmad_help_run_creations_v8;
+ DROP TABLE bmad_help_run_creations_v8;
+ CREATE INDEX bmad_help_run_creations_scope
+   ON bmad_help_run_creations(owner_scope_ref, project_id, run_id, session_id);
+ CREATE INDEX bmad_help_run_creations_workspace_latest
+   ON bmad_help_run_creations(
+     owner_scope_ref, installation_id, workspace_id, creation_ordinal DESC
+   );
+ PRAGMA user_version = 9;
+ COMMIT;";
+
+const V9_TO_V10_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE execution_checkpoints (
+   checkpoint_id TEXT PRIMARY KEY,
+   workspace_target_hash TEXT NOT NULL,
+   candidate_hash TEXT NOT NULL,
+   manifest_hash TEXT NOT NULL UNIQUE,
+   entry_count INTEGER NOT NULL CHECK(entry_count >= 0),
+   state_content_hash TEXT NOT NULL,
+   state_kind TEXT NOT NULL CHECK(state_kind = 'execution_checkpoint'),
+   state_schema_version TEXT NOT NULL
+     CHECK(state_schema_version = 'sapphirus.local-checkpoint.v1'),
+   recorded_at TEXT NOT NULL,
+   FOREIGN KEY(state_content_hash, state_kind, state_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ CREATE TABLE effect_journals (
+   journal_id TEXT PRIMARY KEY,
+   execution_id TEXT NOT NULL UNIQUE,
+   checkpoint_id TEXT NOT NULL REFERENCES execution_checkpoints(checkpoint_id),
+   candidate_hash TEXT NOT NULL,
+   spec_hash TEXT NOT NULL,
+   consumption_hash TEXT NOT NULL UNIQUE,
+   workspace_id TEXT NOT NULL,
+   workspace_grant_epoch INTEGER NOT NULL
+     CHECK(workspace_grant_epoch >= 1 AND workspace_grant_epoch <= 9007199254740991),
+   state TEXT NOT NULL CHECK(state IN (
+     'prepared', 'checkpoint_durable', 'preconditions_verified', 'applying',
+     'effects_applied', 'postimages_verified', 'result_recorded', 'completed',
+     'recovery_required', 'restoring', 'recovered', 'manual_review')),
+   journal_json TEXT NOT NULL,
+   created_at TEXT NOT NULL,
+   updated_at TEXT NOT NULL
+ ) STRICT;
+ CREATE INDEX effect_journals_open
+   ON effect_journals(state, created_at, journal_id);
+ CREATE TABLE execution_results (
+   execution_id TEXT PRIMARY KEY,
+   journal_id TEXT NOT NULL UNIQUE REFERENCES effect_journals(journal_id),
+   checkpoint_id TEXT NOT NULL REFERENCES execution_checkpoints(checkpoint_id),
+   candidate_hash TEXT NOT NULL,
+   spec_hash TEXT NOT NULL UNIQUE,
+   consumption_hash TEXT NOT NULL UNIQUE,
+   result_hash TEXT NOT NULL UNIQUE,
+   result_json TEXT NOT NULL,
+   file_count INTEGER NOT NULL CHECK(file_count >= 1),
+   completed_at TEXT NOT NULL
+ ) STRICT;
+ PRAGMA user_version = 10;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -338,8 +542,23 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 reject_untrusted_v6_model_analysis_history(connection)?;
                 connection.execute_batch(V6_TO_V7_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            7 => {
                 require_store_tables(connection, &V7_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V7_TO_V8_SQL)?;
+            }
+            8 => {
+                require_store_tables(connection, &V8_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V8_TO_V9_SQL)?;
+            }
+            9 => {
+                require_store_tables(connection, &V9_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V9_TO_V10_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V10_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

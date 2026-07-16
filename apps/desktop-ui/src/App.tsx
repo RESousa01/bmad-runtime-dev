@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GlobalRail } from "./components/GlobalRail";
 import { Inspector } from "./components/Inspector";
 import { SessionRail } from "./components/SessionRail";
@@ -19,11 +19,18 @@ import {
 import {
   getDefaultHostRuntime,
   getSafeHostMessage,
+  type DesktopHostClient,
+  HostCapabilityError,
   HostCommandError,
   type ContextPreviewProjection,
   type HostRuntime,
   type WorkspaceProjection,
 } from "./lib/hostClient";
+import type {
+  BmadHelpUiState,
+  BmadLibrarySnapshot,
+  BmadLibraryUiState,
+} from "./lib/bmadProjection";
 import {
   browserDemoWorkspaceSource,
   createHostWorkspaceSource,
@@ -44,6 +51,9 @@ const browserDemoWorkspace: WorkspaceProjection = {
   grantEpoch: 0,
   permissions: "read_only",
 };
+
+const retainedHelpProjectionUnavailableMessage =
+  "A retained Method session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local Method session for this workspace grant.";
 
 type HostUiRuntime = HostRuntime | { kind: "loading" };
 
@@ -86,11 +96,19 @@ export function App({
   const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null);
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
   const [contextProvenance, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
+  const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
+  const [bmadHelpState, setBmadHelpState] = useState<BmadHelpUiState>({ kind: "no_evidence" });
+  const [methodGuidanceBusy, setMethodGuidanceBusy] = useState(false);
   const inspectorIsOverlay = useMediaQuery("(max-width: 1050px)");
   const sessionsIsOverlay = useMediaQuery("(max-width: 820px)");
   const workspaceActionBusyRef = useRef(false);
   const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
   const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
+  const hostBindingGenerationRef = useRef(0);
+  const bmadProjectionGenerationRef = useRef(0);
+  const bmadLibraryRequestedRef = useRef(false);
+  const bmadHelpGenerationRef = useRef(0);
+  const bmadHelpCreationRef = useRef<Promise<void> | null>(null);
 
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId) ?? fallbackSession,
@@ -121,6 +139,25 @@ export function App({
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.list");
   const canRemoveWorkspace = hostRuntime.kind === "ready"
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.revoke");
+  const methodLibraryClient = hostRuntime.kind === "ready"
+    && hostRuntime.bootstrap.supportedCommands.includes("bmad.library.snapshot")
+    ? hostRuntime.client
+    : null;
+  const methodLibraryAvailable = methodLibraryClient !== null;
+  const methodGuidanceClient = hostRuntime.kind === "ready"
+    && activeWorkspace !== null
+    && activeWorkspace.grantEpoch >= 1
+    && (["bmad.library.snapshot", "bmad.help.latest", "run.create"] as const).every(
+      (command) => hostRuntime.bootstrap.supportedCommands.includes(command),
+    )
+    ? hostRuntime.client
+    : null;
+  const methodGuidanceAvailable = methodGuidanceClient !== null
+    && bmadHelpState.kind !== "unavailable";
+  const methodGuidanceBindingKey = hostRuntime.kind === "ready"
+    || hostRuntime.kind === "read_only_recovery"
+    ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
+    : hostRuntime.kind;
   const workspaceSource = useMemo(() => {
     if (hostRuntime.kind === "browser_demo") {
       return browserDemoWorkspaceSource;
@@ -157,9 +194,102 @@ export function App({
     }
   })();
 
+  const loadMethodLibrary = useCallback(async (client: DesktopHostClient) => {
+    bmadLibraryRequestedRef.current = true;
+    const generation = ++bmadProjectionGenerationRef.current;
+    setBmadLibraryState({ kind: "loading" });
+    let rendererSessionRebindAttempted = false;
+    let rendererSessionRebound = false;
+    try {
+      let projection: BmadLibrarySnapshot;
+      try {
+        projection = await client.bmadLibrarySnapshot(null);
+      } catch (error) {
+        if (!(error instanceof HostCommandError && error.details.code === "renderer_session_expired")) {
+          throw error;
+        }
+        rendererSessionRebindAttempted = true;
+        const hostBindingGeneration = ++hostBindingGenerationRef.current;
+        const bootstrap = await client.bootstrap();
+        rendererSessionRebound = true;
+        if (
+          generation !== bmadProjectionGenerationRef.current
+          || hostBindingGeneration !== hostBindingGenerationRef.current
+        ) {
+          return;
+        }
+        setHostWorkspaces(bootstrap.workspaces);
+        setActiveWorkspaceId((current) => current !== null
+          && bootstrap.workspaces.some(({ workspaceId }) => workspaceId === current)
+          ? current
+          : bootstrap.workspaces[0]?.workspaceId ?? null);
+        if (bootstrap.bootMode !== "ready") {
+          setHostRuntime({ kind: "read_only_recovery", client, bootstrap });
+          return;
+        }
+        setHostRuntime({ kind: "ready", client, bootstrap });
+        if (!bootstrap.supportedCommands.includes("bmad.library.snapshot")) {
+          return;
+        }
+        projection = await client.bmadLibrarySnapshot(null);
+      }
+      if (generation === bmadProjectionGenerationRef.current) {
+        setBmadLibraryState({ kind: "ready", projection });
+      }
+    } catch (error) {
+      if (generation !== bmadProjectionGenerationRef.current) {
+        return;
+      }
+      if (
+        rendererSessionRebindAttempted
+        && (
+          !rendererSessionRebound
+          || (error instanceof HostCommandError && error.details.code === "renderer_session_expired")
+        )
+      ) {
+        hostBindingGenerationRef.current += 1;
+        bmadLibraryRequestedRef.current = false;
+        bmadProjectionGenerationRef.current += 1;
+        setBmadLibraryState({ kind: "idle" });
+        setContextPreview(null);
+        setContextProvenance(null);
+        setHostRuntime((current) => current.kind === "ready" && current.client === client
+          ? {
+            kind: "unavailable",
+            client: null,
+            bootstrap: null,
+            message: "The signed Windows host could not be verified. Local actions remain unavailable.",
+          }
+          : current);
+        return;
+      }
+      setBmadLibraryState({
+        kind: "unavailable",
+        message: getSafeHostMessage(error),
+        retryable: error instanceof HostCommandError && error.details.retryable,
+      });
+    }
+  }, []);
+
+  const clearMethodLibraryProjection = useCallback(() => {
+    bmadLibraryRequestedRef.current = false;
+    bmadProjectionGenerationRef.current += 1;
+    setBmadLibraryState({ kind: "idle" });
+  }, []);
+
+  const clearBmadHelpProjection = useCallback(() => {
+    bmadHelpGenerationRef.current += 1;
+    bmadHelpCreationRef.current = null;
+    setMethodGuidanceBusy(false);
+    setBmadHelpState({ kind: "no_evidence" });
+  }, []);
+
   function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
+    hostBindingGenerationRef.current += 1;
     setContextPreview(null);
     setContextProvenance(null);
+    clearMethodLibraryProjection();
+    clearBmadHelpProjection();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -186,8 +316,11 @@ export function App({
   }
 
   function markHostUnavailable(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"]) {
+    hostBindingGenerationRef.current += 1;
     setContextPreview(null);
     setContextProvenance(null);
+    clearMethodLibraryProjection();
+    clearBmadHelpProjection();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -235,6 +368,7 @@ export function App({
         if (!isCurrent) {
           return;
         }
+        hostBindingGenerationRef.current += 1;
         setHostRuntime(runtime);
         const workspaces = runtime.kind === "browser_demo"
           ? [browserDemoWorkspace]
@@ -248,6 +382,7 @@ export function App({
         if (!isCurrent) {
           return;
         }
+        hostBindingGenerationRef.current += 1;
         setHostRuntime({
           kind: "unavailable",
           client: null,
@@ -268,35 +403,110 @@ export function App({
   }, [activeWorkspaceId]);
 
   useEffect(() => {
+    clearMethodLibraryProjection();
+    if (!methodLibraryClient) {
+      setInspectorTab((current) => current === "method" ? "changes" : current);
+    }
+  }, [activeWorkspaceId, clearMethodLibraryProjection, methodLibraryClient]);
+
+  useEffect(() => {
+    const generation = ++bmadHelpGenerationRef.current;
+    bmadHelpCreationRef.current = null;
+    setBmadHelpState({ kind: "no_evidence" });
+    if (!methodGuidanceClient || !activeWorkspace) {
+      setMethodGuidanceBusy(false);
+      return;
+    }
+
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    const projectionSequence = hostRuntime.kind === "ready"
+      ? hostRuntime.bootstrap.projectionSequence
+      : 0;
+    setMethodGuidanceBusy(true);
+    setBmadHelpState({ kind: "loading" });
+    void client.latestBmadHelpRun(workspace.workspaceId, workspace.grantEpoch)
+      .then((result) => {
+        if (generation !== bmadHelpGenerationRef.current) {
+          return;
+        }
+        if (result.kind === "no_run") {
+          setBmadHelpState({ kind: "no_evidence" });
+          return;
+        }
+        if (result.kind === "retained") {
+          setBmadHelpState({ kind: "ready", run: result.run });
+          return;
+        }
+        setBmadHelpState({
+          kind: "legacy_projection_unavailable",
+          message: retainedHelpProjectionUnavailableMessage,
+        });
+      })
+      .catch((error: unknown) => {
+        if (generation !== bmadHelpGenerationRef.current) {
+          return;
+        }
+        if (
+          error instanceof HostCommandError
+          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+        ) {
+          markReadOnlyRecovery(client, projectionSequence);
+          return;
+        }
+        setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
+      })
+      .finally(() => {
+        if (generation === bmadHelpGenerationRef.current) {
+          setMethodGuidanceBusy(false);
+        }
+      });
+
+    return () => {
+      if (generation === bmadHelpGenerationRef.current) {
+        bmadHelpGenerationRef.current += 1;
+      }
+    };
+  }, [methodGuidanceBindingKey, methodGuidanceClient]);
+
+  useEffect(() => {
     if (hostRuntime.kind !== "ready" && hostRuntime.kind !== "read_only_recovery") {
       return;
     }
     const { bootstrap, client } = hostRuntime;
+    const hostBindingGeneration = hostBindingGenerationRef.current;
     let cancelled = false;
     let cursor = bootstrap.projectionSequence;
     let timerId: number | undefined;
+    const isStale = () => cancelled
+      || hostBindingGeneration !== hostBindingGenerationRef.current;
 
     const poll = async () => {
       try {
         const events = await client.projectionEvents(cursor);
-        if (cancelled) {
+        if (isStale()) {
           return;
         }
         if (events.length > 0) {
           cursor = events.at(-1)!.sequence;
         }
         let refreshWorkspaces = false;
+        let refreshMethodLibrary = false;
+        let enterReadOnlyRecovery = false;
         for (const { event } of events) {
           if (event.type === "boot_state_changed" && event.projection.mode === "read_only_recovery") {
-            markReadOnlyRecovery(client, cursor);
+            enterReadOnlyRecovery = true;
           }
           if (event.type === "workspace_changed") {
             refreshWorkspaces = true;
           }
+          if (event.type === "bmad.projection_changed") {
+            refreshMethodLibrary = true;
+          }
         }
         if (refreshWorkspaces) {
           const workspaces = await client.listWorkspaces();
-          if (cancelled) {
+          if (isStale()) {
             return;
           }
           setHostWorkspaces(workspaces);
@@ -305,8 +515,15 @@ export function App({
             ? current
             : workspaces[0]?.workspaceId ?? null);
         }
+        if (enterReadOnlyRecovery) {
+          markReadOnlyRecovery(client, cursor);
+          return;
+        }
+        if (refreshMethodLibrary && bmadLibraryRequestedRef.current) {
+          await loadMethodLibrary(client);
+        }
       } catch (error) {
-        if (cancelled) {
+        if (isStale()) {
           return;
         }
         if (
@@ -318,7 +535,7 @@ export function App({
           markHostUnavailable(client);
         }
       } finally {
-        if (!cancelled) {
+        if (!isStale()) {
           timerId = window.setTimeout(() => void poll(), projectionPollIntervalMs);
         }
       }
@@ -331,7 +548,7 @@ export function App({
         window.clearTimeout(timerId);
       }
     };
-  }, [hostRuntime, projectionPollIntervalMs]);
+  }, [hostRuntime, loadMethodLibrary, projectionPollIntervalMs]);
 
   useEffect(() => {
     applyThemePreference(theme);
@@ -408,8 +625,79 @@ export function App({
     setInspectorOpen(true);
   }
 
-  function submitTask() {
-    // Connected task submission is intentionally absent from this internal desktop build.
+  function openMethodLibrary() {
+    if (!methodLibraryClient) {
+      return;
+    }
+    setInspectorTab("method");
+    setSessionRailOpen(false);
+    setInspectorOpen(true);
+    if (!bmadLibraryRequestedRef.current) {
+      void loadMethodLibrary(methodLibraryClient);
+    }
+  }
+
+  function submitTask(currentIntent: string): Promise<void> {
+    if (bmadHelpCreationRef.current) {
+      return bmadHelpCreationRef.current;
+    }
+    if (
+      !methodGuidanceAvailable
+      || methodGuidanceBusy
+      || !methodGuidanceClient
+      || !activeWorkspace
+    ) {
+      return Promise.reject(
+        new HostCapabilityError("Method guidance is unavailable for the active workspace grant."),
+      );
+    }
+
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    const projectionSequence = hostRuntime.kind === "ready"
+      ? hostRuntime.bootstrap.projectionSequence
+      : 0;
+    const generation = ++bmadHelpGenerationRef.current;
+    setMethodGuidanceBusy(true);
+    setBmadHelpState({ kind: "loading" });
+
+    const creation = client.createBmadHelpRun(
+      workspace.workspaceId,
+      workspace.grantEpoch,
+      currentIntent,
+    ).then((run) => {
+      if (generation !== bmadHelpGenerationRef.current) {
+        throw new HostCapabilityError(
+          "The Method guidance result no longer belongs to the active workspace grant.",
+        );
+      }
+      setBmadHelpState({ kind: "ready", run });
+      setInspectorTab("method");
+      setSessionRailOpen(false);
+      setInspectorOpen(true);
+      if (!bmadLibraryRequestedRef.current) {
+        void loadMethodLibrary(client);
+      }
+    }).catch((error: unknown) => {
+      if (generation === bmadHelpGenerationRef.current) {
+        if (
+          error instanceof HostCommandError
+          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+        ) {
+          markReadOnlyRecovery(client, projectionSequence);
+        } else {
+          setBmadHelpState({ kind: "unavailable", message: getSafeHostMessage(error) });
+        }
+      }
+      throw error;
+    }).finally(() => {
+      if (bmadHelpCreationRef.current === creation) {
+        bmadHelpCreationRef.current = null;
+        setMethodGuidanceBusy(false);
+      }
+    });
+    bmadHelpCreationRef.current = creation;
+    return creation;
   }
 
   async function selectWorkspace() {
@@ -560,7 +848,11 @@ export function App({
               isInert={workbenchIsInert}
               isNewSession={isNewSession}
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
-              key={selectedSessionId}
+              key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
+              methodGuidanceAvailable={methodGuidanceAvailable}
+              methodGuidanceBusy={methodGuidanceBusy}
+              methodLibraryAvailable={methodLibraryAvailable}
+              onOpenMethodLibrary={openMethodLibrary}
               onOpenInspector={() => {
                 setSessionRailOpen(false);
                 setInspectorOpen(true);
@@ -582,16 +874,24 @@ export function App({
             />
           )}
           <Inspector
+            bmadHelpState={bmadHelpState}
+            bmadLibraryState={bmadLibraryState}
             contextPreview={contextPreview}
             contextProvenance={contextProvenance}
             interactionDisabled
             isInert={sessionsIsModal}
             isOpen={inspectorOpen}
             isOverlay={inspectorIsOverlay}
+            methodLibraryAvailable={methodLibraryAvailable}
             onApply={() => undefined}
             onClose={() => setInspectorOpen(false)}
             onDiscard={() => undefined}
             onRevise={() => undefined}
+            onReloadMethodLibrary={() => {
+              if (methodLibraryClient) {
+                void loadMethodLibrary(methodLibraryClient);
+              }
+            }}
             onTabChange={setInspectorTab}
             proposalState={proposalState}
             selectedTab={inspectorTab}

@@ -47,13 +47,27 @@ impl BrokerToken {
         account_ref: ContractId,
         expires_at: UnixMillis,
     ) -> Result<Self, CloudError> {
+        Self::from_secret(
+            Zeroizing::new(access_token),
+            tenant_ref,
+            account_ref,
+            expires_at,
+        )
+    }
+
+    pub(crate) fn from_secret(
+        access_token: Zeroizing<String>,
+        tenant_ref: ContractId,
+        account_ref: ContractId,
+        expires_at: UnixMillis,
+    ) -> Result<Self, CloudError> {
         if !(MIN_TOKEN_BYTES..=MAX_TOKEN_BYTES).contains(&access_token.len())
             || access_token.bytes().any(|byte| byte.is_ascii_whitespace())
         {
             return Err(CloudError::IdentityUnavailable);
         }
         Ok(Self {
-            access_token: Zeroizing::new(access_token),
+            access_token,
             tenant_ref,
             account_ref,
             expires_at,
@@ -87,8 +101,8 @@ impl CloudAccess {
         self.epoch
     }
 
-    pub fn with_bearer<T>(&self, operation: impl FnOnce(&str) -> T) -> T {
-        operation(self.access_token.as_str())
+    pub(crate) fn bearer_copy(&self) -> Zeroizing<String> {
+        Zeroizing::new(self.access_token.as_str().to_owned())
     }
 }
 

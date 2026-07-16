@@ -1,9 +1,35 @@
 use std::fmt;
 
-use serde::de::{self, Deserialize, Deserializer, Error as _, MapAccess, SeqAccess, Visitor};
+use serde::de::{
+    self, Deserialize, DeserializeOwned, Deserializer, Error as _, MapAccess, SeqAccess, Visitor,
+};
 use serde_json::{Map, Number, Value};
+use thiserror::Error;
 
-pub(crate) struct UniqueJson(pub Value);
+#[derive(Clone, Copy, Debug, Eq, Error, PartialEq)]
+#[error("JSON is malformed or contains duplicate object members")]
+pub struct StrictJsonError;
+
+/// Deserializes JSON only after recursively rejecting duplicate object keys.
+///
+/// # Errors
+///
+/// Returns [`StrictJsonError`] for malformed JSON, decoded duplicate keys, or
+/// a target-shape mismatch.
+pub fn deserialize_strict_json<T>(bytes: &[u8]) -> Result<T, StrictJsonError>
+where
+    T: DeserializeOwned,
+{
+    let value = parse_strict_json_value(bytes)?;
+    serde_json::from_value(value).map_err(|_| StrictJsonError)
+}
+
+pub(crate) fn parse_strict_json_value(bytes: &[u8]) -> Result<Value, StrictJsonError> {
+    let UniqueJson(value) = serde_json::from_slice(bytes).map_err(|_| StrictJsonError)?;
+    Ok(value)
+}
+
+struct UniqueJson(Value);
 
 impl<'de> Deserialize<'de> for UniqueJson {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

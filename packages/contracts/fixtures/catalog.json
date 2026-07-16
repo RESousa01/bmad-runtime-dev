@@ -304,6 +304,27 @@
     "reasonCodes": []
   },
   {
+    "file": "valid/bmad/method-help-proposal.json",
+    "schema": "bmad-method-help-proposal.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/method-help-recommendation.json",
+    "schema": "bmad-method-help-recommendation.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
+    "file": "valid/bmad/method-advance-result.json",
+    "schema": "bmad-method-advance-result.schema.json",
+    "valid": true,
+    "reasonCode": null,
+    "reasonCodes": []
+  },
+  {
     "file": "invalid/bmad/duplicate-member.json",
     "schema": null,
     "valid": false,

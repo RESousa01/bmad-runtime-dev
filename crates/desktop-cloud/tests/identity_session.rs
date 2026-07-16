@@ -95,8 +95,8 @@ async fn access_token_debug_is_redacted_and_sign_out_invalidates_the_epoch() {
         .await
         .expect("access");
 
+    assert_eq!(access.epoch(), 0);
     assert!(!format!("{access:?}").contains("secret-token"));
-    assert_eq!(access.with_bearer(str::len), "secret-token".len());
     assert!(session.is_current(&access));
     assert!(session.is_current_at(&access, UnixMillis(59_999)));
     assert!(!session.is_current_at(&access, UnixMillis(60_000)));

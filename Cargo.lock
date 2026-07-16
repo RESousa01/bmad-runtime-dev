@@ -751,6 +751,7 @@ dependencies = [
  "time",
  "tokio",
  "url",
+ "windows 0.62.2",
  "zeroize",
 ]
 

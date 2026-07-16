@@ -1946,6 +1946,60 @@
       },
       "canonicalJson": "{\"dependencies\":[],\"disposition\":{\"dispositionKind\":\"conformant\"},\"evidence\":[],\"findings\":[],\"generatedAt\":\"2026-07-14T10:00:00.000Z\",\"profile\":\"BuilderAgentV2Stateless\",\"reportId\":\"report_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-validation-report.v1\",\"subjectHash\":\"sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8\",\"subjectId\":\"agentrevision_01J00000000000000000000000\",\"subjectKind\":\"builder_draft_revision\"}",
       "expectedHash": "sha256:2721e85baac995d93ddd6cba5018f153025f2221bf213ff2cadd06f96e74a2db"
+    },
+    {
+      "name": "method-help-recommendation",
+      "purpose": "bmad-method-help-recommendation",
+      "schemaMajor": "v1",
+      "excludedFields": [
+        "recommendationHash"
+      ],
+      "value": {
+        "recommendationKind": "recommended_capability",
+        "recommendationId": "recommendation_01J00000000000000000000000",
+        "sessionId": "session_01J11111111111111111111111",
+        "capabilityKey": {
+          "packageVersionId": "pkgver_01J00000000000000000000000",
+          "moduleCode": "bmm",
+          "skillName": "bmad-architecture",
+          "normalizedAction": "create"
+        },
+        "evidenceClass": "authoritative",
+        "evidenceRefs": [],
+        "guidanceRequired": false,
+        "rationaleSummary": "Use the catalog capability bound to the observed Help evidence.",
+        "recommendationHash": "sha256:152ea57e682523bcb42cf67dc6078f0ac92962d96c99c1258a0bcd874991f456",
+        "createdAt": "2026-07-14T10:00:00.000Z"
+      },
+      "canonicalJson": "{\"capabilityKey\":{\"moduleCode\":\"bmm\",\"normalizedAction\":\"create\",\"packageVersionId\":\"pkgver_01J00000000000000000000000\",\"skillName\":\"bmad-architecture\"},\"createdAt\":\"2026-07-14T10:00:00.000Z\",\"evidenceClass\":\"authoritative\",\"evidenceRefs\":[],\"guidanceRequired\":false,\"rationaleSummary\":\"Use the catalog capability bound to the observed Help evidence.\",\"recommendationId\":\"recommendation_01J00000000000000000000000\",\"recommendationKind\":\"recommended_capability\",\"sessionId\":\"session_01J11111111111111111111111\"}",
+      "expectedHash": "sha256:152ea57e682523bcb42cf67dc6078f0ac92962d96c99c1258a0bcd874991f456"
+    },
+    {
+      "name": "method-canonical-advance-result",
+      "purpose": "bmad-method-canonical-advance-result",
+      "schemaMajor": "v1",
+      "excludedFields": [
+        "resultHash"
+      ],
+      "value": {
+        "resultKind": "completion_candidate",
+        "resultId": "result_01J00000000000000000000000",
+        "requestId": "request_01J00000000000000000000000",
+        "invocationId": "invocation_01J00000000000000000000000",
+        "responseSchemaHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "responseContentRef": {
+          "ref": "cas://bmad/help-recommendation",
+          "contentHash": "sha256:152ea57e682523bcb42cf67dc6078f0ac92962d96c99c1258a0bcd874991f456",
+          "byteLength": 512,
+          "mediaType": "application/json"
+        },
+        "producedArtifacts": [],
+        "unresolvedOpenItemCount": 0,
+        "resultHash": "sha256:ab7a07fff2ce8a76b36c039c9f6366d67c0a5fcd550bb26204c082f1235162c9",
+        "receivedAt": "2026-07-14T10:00:00.000Z"
+      },
+      "canonicalJson": "{\"invocationId\":\"invocation_01J00000000000000000000000\",\"producedArtifacts\":[],\"receivedAt\":\"2026-07-14T10:00:00.000Z\",\"requestId\":\"request_01J00000000000000000000000\",\"responseContentRef\":{\"byteLength\":512,\"contentHash\":\"sha256:152ea57e682523bcb42cf67dc6078f0ac92962d96c99c1258a0bcd874991f456\",\"mediaType\":\"application/json\",\"ref\":\"cas://bmad/help-recommendation\"},\"responseSchemaHash\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"resultId\":\"result_01J00000000000000000000000\",\"resultKind\":\"completion_candidate\",\"unresolvedOpenItemCount\":0}",
+      "expectedHash": "sha256:ab7a07fff2ce8a76b36c039c9f6366d67c0a5fcd550bb26204c082f1235162c9"
     }
   ]
 }

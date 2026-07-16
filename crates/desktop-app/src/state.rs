@@ -8,12 +8,16 @@ use base64::engine::general_purpose::STANDARD_NO_PAD;
 use base64::Engine as _;
 use desktop_ipc::{deserialize_strict, AdmissionPolicy, RequestGate};
 use desktop_runtime::{
-    sha256_bytes, ContractId, LocalError, LocalErrorCode, ProjectionEvent, ProjectionEventKind,
-    ProjectionSnapshot, UnixMillis,
+    sha256_bytes, ContractId, DesktopLocalIdentity, LocalError, LocalErrorCode, MethodSession,
+    ProjectionEvent, ProjectionEventKind, ProjectionSnapshot, UnixMillis,
 };
-use desktop_store::{EvidenceAppend, LocalStore, PayloadRef, UserDpapiProtector};
+use desktop_store::{
+    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    BmadHelpRunReplayRequest, EvidenceAppend, LocalStore, PayloadRef, StoreError,
+    UserDpapiProtector,
+};
 use desktop_workspace::{WorkspaceBroker, WorkspaceProjection};
-use parking_lot::{Mutex, RwLock, RwLockReadGuard};
+use parking_lot::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
@@ -88,6 +92,7 @@ struct ReplyCache {
 pub(crate) struct HostState {
     pub workspace: WorkspaceBroker,
     pub gate: RequestGate,
+    workspace_commits: Mutex<()>,
     store: Option<LocalStore>,
     installation_id: ContractId,
     boot_mode: RwLock<BootMode>,
@@ -104,6 +109,42 @@ pub(crate) struct HostState {
 /// from crossing the operation's stateful boundary.
 pub(crate) struct ReadyAuthorityGuard<'a> {
     _mode: RwLockReadGuard<'a, BootMode>,
+}
+
+/// Serializes workspace-bound durable commits with revocation. The constructor
+/// always acquires this host barrier before checking Ready mode, then guarded
+/// callers may acquire a [`desktop_workspace::WorkspaceScopeAuthorityGuard`]
+/// and finally the store transaction. This lock order must not be inverted.
+pub(crate) struct ReadyWorkspaceCommitGuard<'a> {
+    state: &'a HostState,
+    commit: MutexGuard<'a, ()>,
+    ready: ReadyAuthorityGuard<'a>,
+}
+
+impl ReadyWorkspaceCommitGuard<'_> {
+    pub fn authority(&self) -> &ReadyAuthorityGuard<'_> {
+        &self.ready
+    }
+
+    /// Returns the durable catalog version represented by this process's
+    /// authorized workspace broker while the commit barrier remains held.
+    pub fn workspace_catalog_version(&self) -> u64 {
+        self.state.catalog.lock().version
+    }
+
+    /// Enters recovery while still excluding another workspace-bound commit.
+    /// The Ready read guard is released before the mode write is requested.
+    pub fn enter_recovery(self) -> u64 {
+        let Self {
+            state,
+            commit,
+            ready,
+        } = self;
+        drop(ready);
+        let sequence = state.enter_recovery();
+        drop(commit);
+        sequence
+    }
 }
 
 /// Pins the renderer session mapped to a window until request processing is
@@ -130,11 +171,10 @@ impl HostState {
         let Ok(store) = LocalStore::open(root, &UserDpapiProtector) else {
             return Ok(Self::recovery(recovery_id, None));
         };
-        let installation_id = ContractId::new(format!(
-            "installation_{}",
-            sha256_bytes(store.store_id().as_bytes()).hex_value()
-        ))
-        .map_err(|_| internal_error())?;
+        let installation_id = match store.local_identity() {
+            Ok(identity) => identity.installation_id().clone(),
+            Err(_) => return Ok(Self::recovery(recovery_id, Some(store))),
+        };
 
         if store.verify_integrity().is_err() {
             return Ok(Self::recovery(installation_id, Some(store)));
@@ -147,6 +187,7 @@ impl HostState {
         Ok(Self {
             workspace,
             gate: RequestGate::new(AdmissionPolicy::default()),
+            workspace_commits: Mutex::new(()),
             store: Some(store),
             installation_id,
             boot_mode: RwLock::new(BootMode::Ready),
@@ -163,6 +204,7 @@ impl HostState {
         Self {
             workspace: WorkspaceBroker::new(),
             gate: RequestGate::new(AdmissionPolicy::default()),
+            workspace_commits: Mutex::new(()),
             store,
             installation_id,
             boot_mode: RwLock::new(BootMode::ReadOnlyRecovery),
@@ -192,6 +234,61 @@ impl HostState {
             return Err(recovery_error());
         }
         Ok(ReadyAuthorityGuard { _mode: mode })
+    }
+
+    pub fn ready_workspace_commit(&self) -> Result<ReadyWorkspaceCommitGuard<'_>, LocalError> {
+        let commit = self.workspace_commits.lock();
+        let ready = self.ready_authority()?;
+        Ok(ReadyWorkspaceCommitGuard {
+            state: self,
+            commit,
+            ready,
+        })
+    }
+
+    pub fn local_identity(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+    ) -> Result<DesktopLocalIdentity, StoreError> {
+        self.store
+            .as_ref()
+            .ok_or(StoreError::Inconsistent)?
+            .local_identity()
+    }
+
+    pub fn replay_bmad_help_run(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+        request: &BmadHelpRunReplayRequest,
+    ) -> Result<Option<BmadHelpRunCreationReceipt>, StoreError> {
+        self.store
+            .as_ref()
+            .ok_or(StoreError::Inconsistent)?
+            .replay_bmad_help_run(request)
+    }
+
+    pub fn create_bmad_help_run(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+        candidate: &MethodSession,
+        request: &BmadHelpRunCreateRequest,
+    ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
+        self.store
+            .as_ref()
+            .ok_or(StoreError::Inconsistent)?
+            .create_bmad_help_run(candidate, request)
+    }
+
+    pub fn latest_bmad_help_run(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+        workspace_id: &ContractId,
+        expected_workspace_catalog_version: u64,
+    ) -> Result<BmadHelpRunLatest, StoreError> {
+        self.store
+            .as_ref()
+            .ok_or(StoreError::Inconsistent)?
+            .latest_bmad_help_run(workspace_id, expected_workspace_catalog_version)
     }
 
     /// Enters recovery once and publishes the corresponding projection before
@@ -644,6 +741,27 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn initialization_projects_the_stable_sealed_store_installation_identity() -> Result<(), String>
+    {
+        let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
+        let root = directory.path().join("authority");
+        let first = HostState::initialize(Some(root.clone())).map_err(map_local_error)?;
+        let first_identity = first
+            .store
+            .as_ref()
+            .ok_or_else(|| "ready store is unavailable".to_owned())?
+            .local_identity()
+            .map_err(|error| error.to_string())?;
+        assert_eq!(first.installation_id(), first_identity.installation_id());
+        let retained = first.installation_id().clone();
+        drop(first);
+
+        let reopened = HostState::initialize(Some(root)).map_err(map_local_error)?;
+        assert_eq!(reopened.installation_id(), &retained);
+        Ok(())
+    }
+
     fn simulated_renderer_error_scope(state: &HostState) -> Result<(), &'static str> {
         let _authority = state
             .renderer_session_authority("main")
@@ -706,6 +824,42 @@ mod tests {
         );
         assert!(state.renderer_sessions.try_write().is_some());
         Ok(())
+    }
+
+    #[test]
+    fn workspace_commit_guard_orders_ready_checks_and_recovery_without_a_race() -> Result<(), String>
+    {
+        let state = Arc::new(ready_state()?);
+        let authority = state.ready_workspace_commit().map_err(map_local_error)?;
+        let (attempted_tx, attempted_rx) = mpsc::channel();
+        let (completed_tx, completed_rx) = mpsc::channel();
+        let worker_state = Arc::clone(&state);
+        let worker = thread::spawn(move || {
+            let _ = attempted_tx.send(());
+            let result = worker_state
+                .ready_workspace_commit()
+                .map(|_| ())
+                .map_err(map_local_error);
+            let _ = completed_tx.send(result);
+        });
+
+        attempted_rx
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("workspace commit worker did not start: {error}"))?;
+        assert!(matches!(
+            completed_rx.recv_timeout(BLOCKED_ASSERTION_WINDOW),
+            Err(RecvTimeoutError::Timeout)
+        ));
+
+        authority.enter_recovery();
+        let result = completed_rx
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("workspace commit worker did not complete: {error}"))?;
+        assert!(result.is_err_and(|message| message.contains("requires recovery")));
+        worker
+            .join()
+            .map_err(|_| "workspace commit worker panicked".to_owned())?;
+        assert_single_recovery_event(&state)
     }
 
     #[test]

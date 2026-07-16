@@ -66,6 +66,9 @@ const productionRoots = Object.freeze([
   ["authority-ref.schema.json", "AuthorityRef"],
   ["bmad-builder-authoring.schema.json", "BuilderAuthoringObject"],
   ["bmad-capability-catalog.schema.json", "BmadCapabilityCatalog"],
+  ["bmad-method-advance-result.schema.json", "MethodAdvanceResult"],
+  ["bmad-method-help-proposal.schema.json", "MethodHelpProposal"],
+  ["bmad-method-help-recommendation.schema.json", "MethodHelpRecommendation"],
   ["bmad-method-session.schema.json", "MethodSession"],
   ["bmad-package-descriptor.schema.json", "BmadPackageDescriptor"],
   ["bmad-validation-report.schema.json", "BmadValidationReport"],
@@ -97,7 +100,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22",
+    sha256: "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071",
     status: "reviewed",
   },
   dotnetTools: {
@@ -719,7 +722,7 @@ export function validateToolLock(lock) {
     versionExitCode: 1,
     versionOutput: "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
     generationArguments: [...expectedDotnetArguments],
-    sdk: "10.0.301",
+    sdk: "10.0.302",
     sdkExecutable: "C:/Program Files/dotnet/dotnet.exe",
     sdkAuthenticode: {
       status: "Valid",

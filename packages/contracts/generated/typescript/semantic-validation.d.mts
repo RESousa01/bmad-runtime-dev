@@ -4,6 +4,9 @@ import type {
   BmadPackageDescriptor,
   BuilderAuthoringObject,
   ContractError,
+  MethodAdvanceResult,
+  MethodHelpProposal,
+  MethodHelpRecommendation,
   MethodSession,
   PackageCompatibility,
   RemoteJobHandoff,
@@ -36,6 +39,15 @@ export interface BmadSemanticContext {
 export declare function validateBmadSemantics(
   document: BmadPackageDescriptor | BmadCapabilityCatalog | MethodSession["payload"] | BuilderAuthoringObject,
   context?: BmadSemanticContext,
+): readonly SemanticValidationIssue[];
+export declare function validateMethodHelpProposalSemantics(
+  document: MethodHelpProposal,
+): readonly SemanticValidationIssue[];
+export declare function validateMethodHelpRecommendationSemantics(
+  document: MethodHelpRecommendation,
+): readonly SemanticValidationIssue[];
+export declare function validateMethodAdvanceResultSemantics(
+  document: MethodAdvanceResult,
 ): readonly SemanticValidationIssue[];
 export declare function bmadContextDecisionUniquenessKey(
   document: Record<string, unknown>,

@@ -4,6 +4,7 @@ import {
   BookmarkCheck,
   ChevronDown,
   FileText,
+  Library,
   ListChecks,
   Menu,
   MoreVertical,
@@ -26,11 +27,15 @@ export interface TaskWorkspaceProps {
   isInert?: boolean;
   isNewSession: boolean;
   isReadOnlyRecovery: boolean;
+  methodGuidanceAvailable: boolean;
+  methodGuidanceBusy: boolean;
+  methodLibraryAvailable: boolean;
+  onOpenMethodLibrary: () => void;
   onOpenInspector: () => void;
   onOpenSessions: () => void;
   onReviewContext: () => void;
   onReviewChanges: () => void;
-  onTaskSubmitted: () => void;
+  onTaskSubmitted: (intent: string) => Promise<void>;
   proposalState: ProposalState;
   sessionTitle: string;
   workspaceName: string;
@@ -52,6 +57,10 @@ export function TaskWorkspace({
   isInert = false,
   isNewSession,
   isReadOnlyRecovery,
+  methodGuidanceAvailable,
+  methodGuidanceBusy,
+  methodLibraryAvailable,
+  onOpenMethodLibrary,
   onOpenInspector,
   onOpenSessions,
   onReviewContext,
@@ -63,11 +72,21 @@ export function TaskWorkspace({
 }: TaskWorkspaceProps) {
   const [draft, setDraft] = useState("");
   const [submittedTask, setSubmittedTask] = useState<string | null>(null);
+  const [hasMethodGuidanceSubmission, setHasMethodGuidanceSubmission] = useState(false);
+  const [guidanceStatus, setGuidanceStatus] = useState<
+    "idle" | "submitting" | "created"
+  >("idle");
   const currentStage = getCurrentStage(proposalState, isNewSession && !submittedTask);
+  const methodGuidanceView = methodGuidanceAvailable || hasMethodGuidanceSubmission;
+  const guidanceSubmitting = methodGuidanceBusy || guidanceStatus === "submitting";
+  const checkingRetainedGuidance = guidanceSubmitting
+    && submittedTask === null
+    && guidanceStatus === "idle";
+  const composerDisabled = !methodGuidanceAvailable || guidanceSubmitting;
 
-  function submitTask(event: FormEvent<HTMLFormElement>) {
+  async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (interactionDisabled) {
+    if (composerDisabled) {
       return;
     }
     const value = draft.trim();
@@ -76,10 +95,23 @@ export function TaskWorkspace({
     }
     setSubmittedTask(value);
     setDraft("");
-    onTaskSubmitted();
+    if (methodGuidanceAvailable) {
+      setHasMethodGuidanceSubmission(true);
+      setGuidanceStatus("submitting");
+    }
+    try {
+      await onTaskSubmitted(value);
+      if (methodGuidanceAvailable) {
+        setGuidanceStatus("created");
+      }
+    } catch {
+      if (methodGuidanceAvailable) {
+        setGuidanceStatus("idle");
+      }
+    }
   }
 
-  const showProposal = !isNewSession || submittedTask !== null;
+  const showProposal = !methodGuidanceView && (!isNewSession || submittedTask !== null);
 
   return (
     <main className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""}`} inert={isInert}>
@@ -102,6 +134,18 @@ export function TaskWorkspace({
           </span>
         </div>
         <div className="task-header__actions">
+          {methodLibraryAvailable ? (
+            <Button
+              aria-label="Method library"
+              className="method-library-trigger"
+              onPress={onOpenMethodLibrary}
+              size="small"
+              variant="secondary"
+            >
+              <Library aria-hidden="true" size={16} />
+              Method library
+            </Button>
+          ) : null}
           <Button aria-label="Pin session" isDisabled size="icon" variant="quiet">
             <Pin aria-hidden="true" size={17} />
           </Button>
@@ -120,7 +164,9 @@ export function TaskWorkspace({
         </div>
         <div className="task-title-row">
           <h1>{isNewSession && !submittedTask ? "New session" : sessionTitle}</h1>
-          <span className="preview-badge">Preview demo</span>
+          <span className="preview-badge">
+            {methodGuidanceView ? "Method guidance" : "Preview demo"}
+          </span>
         </div>
       </header>
 
@@ -136,10 +182,68 @@ export function TaskWorkspace({
 
       <div className="task-scroll-region">
         <div className="preview-notice" role="note">
-          <strong>Internal preview</strong>
-          <span>Agent tasks and local changes are not enabled in this build. The proposal below is demonstration content only.</span>
+          <strong>{methodGuidanceView ? "Local Method guidance" : "Internal preview"}</strong>
+          <span>
+            {methodGuidanceView
+              ? "Submitting an intent creates a local, unbound Method session. It does not contact a model or change workspace files."
+              : "Agent tasks and local changes are not enabled in this build. The proposal below is demonstration content only."}
+          </span>
         </div>
-        {showProposal ? (
+        {methodGuidanceView ? (
+          <>
+            {submittedTask ? (
+              <article className="message message--user">
+                <div className="message__avatar message__avatar--user">You</div>
+                <div>
+                  <p>{submittedTask}</p>
+                  <time>Now</time>
+                </div>
+              </article>
+            ) : null}
+            {guidanceSubmitting ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar">
+                  <BrandMark size={22} />
+                </div>
+                <div>
+                  <span className="message__label">
+                    {checkingRetainedGuidance ? "Checking · Local only" : "Creating · Local only"}
+                  </span>
+                  <p>
+                    {checkingRetainedGuidance
+                      ? "Checking for a retained local Method session without contacting a model or changing the workspace…"
+                      : "Creating the local Method session without a model request or workspace change…"}
+                  </p>
+                </div>
+              </article>
+            ) : guidanceStatus === "created" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar">
+                  <BrandMark size={22} />
+                </div>
+                <div>
+                  <span className="message__label">Created · Unbound</span>
+                  <p>
+                    A local Method session was created. It remains unbound: no model request was
+                    made and no workspace change was proposed. Review the source-grounded
+                    recommendation in the Method inspector.
+                  </p>
+                </div>
+              </article>
+            ) : submittedTask ? null : (
+              <section className="empty-session" aria-labelledby="empty-session-title">
+                <div className="empty-session__mark">
+                  <BrandMark size={31} />
+                </div>
+                <h2 id="empty-session-title">What do you want Method guidance for?</h2>
+                <p>
+                  Describe your intent to create a local, unbound session and review a
+                  source-grounded recommendation. No model or execution capability is attached.
+                </p>
+              </section>
+            )}
+          </>
+        ) : showProposal ? (
           <>
             {submittedTask ? (
               <article className="message message--user">
@@ -244,18 +348,27 @@ export function TaskWorkspace({
 
       <form className="composer" onSubmit={submitTask}>
         <div className="composer__input-row">
-          <Button aria-label="Attach context" isDisabled={interactionDisabled} size="icon" variant="quiet">
+          <Button
+            aria-label="Attach context"
+            isDisabled={interactionDisabled || methodGuidanceView}
+            size="icon"
+            variant="quiet"
+          >
             <Paperclip aria-hidden="true" size={19} />
           </Button>
           <label className="sr-only" htmlFor="task-composer">
-            Describe a task
+            {methodGuidanceView
+              ? "Describe what you want Method guidance for"
+              : "Describe a task"}
           </label>
           <textarea
             id="task-composer"
             aria-describedby="task-composer-availability"
-            disabled={interactionDisabled}
+            disabled={composerDisabled}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Describe a task, ask a question, or request a review…"
+            placeholder={methodGuidanceView
+              ? "Describe your intent for Method guidance…"
+              : "Describe a task, ask a question, or request a review…"}
             rows={2}
             value={draft}
           />
@@ -263,8 +376,14 @@ export function TaskWorkspace({
         <div className="composer__toolbar">
           <label>
             <span className="sr-only">Mode</span>
-            <select defaultValue="agent" disabled={interactionDisabled}>
-              <option value="agent">Agent</option>
+            <select
+              defaultValue={methodGuidanceView ? "method" : "agent"}
+              disabled={interactionDisabled || methodGuidanceView}
+              key={methodGuidanceView ? "method" : "agent"}
+            >
+              <option value={methodGuidanceView ? "method" : "agent"}>
+                {methodGuidanceView ? "Method guidance" : "Agent"}
+              </option>
             </select>
             <ChevronDown aria-hidden="true" size={14} />
           </label>
@@ -277,8 +396,8 @@ export function TaskWorkspace({
               <span className="status-dot status-dot--preview" /> {hostStatusLabel}
             </span>
             <Button
-              aria-label="Send task"
-              isDisabled={interactionDisabled || !draft.trim()}
+              aria-label={methodGuidanceView ? "Request Method guidance" : "Send task"}
+              isDisabled={composerDisabled || !draft.trim()}
               size="icon"
               type="submit"
               variant="secondary"
@@ -288,7 +407,13 @@ export function TaskWorkspace({
           </div>
         </div>
         <p className="composer__availability" id="task-composer-availability">
-          Preview only — submitting tasks and applying changes require a later governed capability build.
+          {methodGuidanceView
+            ? guidanceSubmitting
+              ? checkingRetainedGuidance
+                ? "Checking for a retained local Method session. No model request or workspace change is being made."
+                : "Creating the local Method session. No model request or workspace change is being made."
+              : "Creates a local, unbound Method session. No model request or workspace change is performed."
+            : "Preview only — submitting tasks and applying changes require a later governed capability build."}
         </p>
       </form>
     </main>

@@ -4,27 +4,50 @@
 )]
 
 use desktop_egress::{
-    ContextClassification, ContextEgressManifestDraft, EgressError, EgressLimits,
-    PreparedContextItem, RetentionMode,
+    ContextCandidate, ContextClassification, ContextEgressManifestDraft, ContextPreparer,
+    EgressError, EgressLimits, PatternSecretScanner, PrepareContextInput, PreparedContextItem,
+    RetentionMode,
 };
 use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, UnixMillis};
 
 fn fixture_item(label: &str, content: &str) -> PreparedContextItem {
-    PreparedContextItem {
-        client_item_id: ContractId::new(format!("item_{}", label.replace(['/', '.'], "_")))
-            .expect("fixture item id"),
-        relative_label: RelativeWorkspacePath::new(label).expect("fixture label"),
-        semantic_role: "source".to_owned(),
-        language: Some("rust".to_owned()),
-        original_content_hash: sha256_bytes(content.as_bytes()),
-        outbound_content_hash: sha256_bytes(content.as_bytes()),
-        original_byte_count: content.len() as u64,
-        outbound_byte_count: content.len() as u64,
-        token_estimate: 4,
-        classification: ContextClassification::Internal,
-        redactions: Vec::new(),
-        outbound_content: content.to_owned(),
-    }
+    ContextPreparer::new(PatternSecretScanner)
+        .prepare(PrepareContextInput {
+            tenant_ref: ContractId::new("tenant_ref").expect("tenant ref"),
+            project_ref: ContractId::new("project_ref").expect("project ref"),
+            run_ref: ContractId::new("run_ref").expect("run ref"),
+            purpose: "planning".to_owned(),
+            model_role: "planner".to_owned(),
+            canonical_output_schema_id: ContractId::new("planning_output_v1").expect("schema id"),
+            canonical_output_schema_hash: sha256_bytes(b"schema"),
+            provider_profile_hash: sha256_bytes(b"provider-profile"),
+            model_profile_hash: sha256_bytes(b"model-profile"),
+            deployment_hash: sha256_bytes(b"deployment"),
+            policy_hash: sha256_bytes(b"policy"),
+            region: "westeurope".to_owned(),
+            retention_mode: RetentionMode::TransientNoStore,
+            created_at: UnixMillis(1_000),
+            expires_at: UnixMillis(61_000),
+            limits: EgressLimits {
+                maximum_context_items: 8,
+                maximum_context_bytes: 64 * 1024,
+                maximum_token_estimate: 16_000,
+            },
+            candidates: vec![ContextCandidate {
+                client_item_id: ContractId::new(format!("item_{}", label.replace(['/', '.'], "_")))
+                    .expect("fixture item id"),
+                relative_label: RelativeWorkspacePath::new(label).expect("fixture label"),
+                semantic_role: "source".to_owned(),
+                language: Some("rust".to_owned()),
+                classification: ContextClassification::Internal,
+                content: content.to_owned(),
+            }],
+            exclusions: Vec::new(),
+        })
+        .expect("prepared fixture")
+        .draft
+        .items
+        .remove(0)
 }
 
 fn fixture_draft(items: Vec<PreparedContextItem>) -> ContextEgressManifestDraft {
@@ -81,6 +104,19 @@ fn manifest_rejects_an_outbound_hash_that_does_not_match_the_bytes() {
     let error = fixture_draft(vec![item])
         .seal()
         .expect_err("hash drift must fail");
+
+    assert_eq!(error, EgressError::ContextDrift);
+}
+
+#[test]
+fn manifest_rejects_original_source_metadata_changed_after_preparation() {
+    let mut item = fixture_item("src/lib.rs", "safe\n");
+    item.original_content_hash = sha256_bytes(b"unrelated source");
+    item.original_byte_count = 16;
+
+    let error = fixture_draft(vec![item])
+        .seal()
+        .expect_err("source lineage drift must fail");
 
     assert_eq!(error, EgressError::ContextDrift);
 }

@@ -17,6 +17,8 @@ const PATCH_SCHEMA: &str = "sapphirus.patch-set.v1";
 const APPROVAL_SCHEMA: &str = "sapphirus.approval-decision.v1";
 const SPEC_SCHEMA: &str = "sapphirus.approved-execution-spec.v1";
 const CONSUMPTION_SCHEMA: &str = "sapphirus.spec-consumption.v1";
+const DESKTOP_LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
+const DESKTOP_LOCAL_AUTHORITY_KIND: &str = "desktop_local_store";
 
 #[derive(Debug, Error)]
 pub enum DomainValidationError {
@@ -54,6 +56,8 @@ pub enum DomainValidationError {
     ApprovalMismatch,
     #[error("spec consumption does not bind the immutable spec")]
     ConsumptionMismatch,
+    #[error("the desktop local identity is invalid")]
+    InvalidLocalIdentity,
     #[error(transparent)]
     CanonicalHash(#[from] CanonicalHashError),
 }
@@ -72,6 +76,199 @@ pub struct AuthorityRef {
     pub installation_id: ContractId,
     pub local_store_id: ContractId,
     pub authority_epoch: u64,
+}
+
+/// Store-owned identity used to bind local authority, installation, and owner scope.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DesktopLocalIdentity {
+    schema_version: String,
+    installation_id: ContractId,
+    authority_id: ContractId,
+    owner_scope_ref: ContractId,
+    local_store_id: ContractId,
+    authority_epoch: u64,
+    identity_hash: Sha256Digest,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DesktopLocalIdentityHashInput<'a> {
+    schema_version: &'a str,
+    installation_id: &'a ContractId,
+    authority_id: &'a ContractId,
+    owner_scope_ref: &'a ContractId,
+    local_store_id: &'a ContractId,
+    authority_epoch: u64,
+}
+
+impl DesktopLocalIdentity {
+    /// Creates and seals a canonical desktop-local identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when an identifier is not in its exact
+    /// canonical ULID form, the epoch is invalid, or canonical hashing fails.
+    pub fn new(
+        installation_id: ContractId,
+        authority_id: ContractId,
+        owner_scope_ref: ContractId,
+        local_store_id: ContractId,
+        authority_epoch: u64,
+    ) -> Result<Self, DomainValidationError> {
+        let mut identity = Self {
+            schema_version: DESKTOP_LOCAL_IDENTITY_SCHEMA.to_owned(),
+            installation_id,
+            authority_id,
+            owner_scope_ref,
+            local_store_id,
+            authority_epoch,
+            identity_hash: sha256_bytes(b"unsealed-desktop-local-identity"),
+        };
+        identity.validate_shape()?;
+        identity.identity_hash = identity.calculate_hash()?;
+        Ok(identity)
+    }
+
+    /// Creates a sealed identity from an existing exact desktop-local authority reference.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the authority kind or any bound
+    /// identity value is invalid.
+    pub fn from_authority_ref(
+        owner_scope_ref: ContractId,
+        authority_ref: AuthorityRef,
+    ) -> Result<Self, DomainValidationError> {
+        if authority_ref.authority_kind != DESKTOP_LOCAL_AUTHORITY_KIND {
+            return Err(DomainValidationError::InvalidLocalIdentity);
+        }
+        Self::new(
+            authority_ref.installation_id,
+            authority_ref.authority_id,
+            owner_scope_ref,
+            authority_ref.local_store_id,
+            authority_ref.authority_epoch,
+        )
+    }
+
+    /// Verifies the identity's shape, self-hash, and exact local-store binding.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when any identity invariant or the
+    /// expected store binding does not match.
+    pub fn verify_for_store(
+        &self,
+        expected_store_id: &ContractId,
+    ) -> Result<(), DomainValidationError> {
+        self.validate_shape()?;
+        if &self.local_store_id != expected_store_id {
+            return Err(DomainValidationError::InvalidLocalIdentity);
+        }
+        if self.calculate_hash()? != self.identity_hash {
+            return Err(DomainValidationError::HashMismatch);
+        }
+        Ok(())
+    }
+
+    /// Converts this verified identity into the exact desktop-local authority reference.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainValidationError`] when the identity is not internally valid.
+    pub fn authority_ref(&self) -> Result<AuthorityRef, DomainValidationError> {
+        AuthorityRef::try_from(self)
+    }
+
+    #[must_use]
+    pub const fn installation_id(&self) -> &ContractId {
+        &self.installation_id
+    }
+
+    #[must_use]
+    pub const fn authority_id(&self) -> &ContractId {
+        &self.authority_id
+    }
+
+    #[must_use]
+    pub const fn owner_scope_ref(&self) -> &ContractId {
+        &self.owner_scope_ref
+    }
+
+    #[must_use]
+    pub const fn local_store_id(&self) -> &ContractId {
+        &self.local_store_id
+    }
+
+    #[must_use]
+    pub const fn authority_epoch(&self) -> u64 {
+        self.authority_epoch
+    }
+
+    fn validate_shape(&self) -> Result<(), DomainValidationError> {
+        if self.schema_version != DESKTOP_LOCAL_IDENTITY_SCHEMA
+            || !is_canonical_ulid_id(&self.installation_id, "installation_")
+            || !is_canonical_ulid_id(&self.authority_id, "authority_")
+            || !is_canonical_ulid_id(&self.owner_scope_ref, "owner_scope_")
+            || !is_canonical_ulid_id(&self.local_store_id, "store_")
+            || self.authority_epoch == 0
+            || self.authority_epoch > MAX_SAFE_JSON_INTEGER
+        {
+            return Err(DomainValidationError::InvalidLocalIdentity);
+        }
+        Ok(())
+    }
+
+    fn calculate_hash(&self) -> Result<Sha256Digest, DomainValidationError> {
+        Ok(canonical_hash(
+            "desktop-local-identity",
+            1,
+            &DesktopLocalIdentityHashInput {
+                schema_version: &self.schema_version,
+                installation_id: &self.installation_id,
+                authority_id: &self.authority_id,
+                owner_scope_ref: &self.owner_scope_ref,
+                local_store_id: &self.local_store_id,
+                authority_epoch: self.authority_epoch,
+            },
+        )?)
+    }
+}
+
+impl TryFrom<&DesktopLocalIdentity> for AuthorityRef {
+    type Error = DomainValidationError;
+
+    fn try_from(identity: &DesktopLocalIdentity) -> Result<Self, Self::Error> {
+        identity.verify_for_store(&identity.local_store_id)?;
+        Ok(Self {
+            authority_kind: DESKTOP_LOCAL_AUTHORITY_KIND.to_owned(),
+            authority_id: identity.authority_id.clone(),
+            installation_id: identity.installation_id.clone(),
+            local_store_id: identity.local_store_id.clone(),
+            authority_epoch: identity.authority_epoch,
+        })
+    }
+}
+
+fn is_canonical_ulid_id(value: &ContractId, expected_prefix: &str) -> bool {
+    let Some(suffix) = value.as_str().strip_prefix(expected_prefix) else {
+        return false;
+    };
+    let bytes = suffix.as_bytes();
+    bytes.len() == 26
+        && matches!(bytes.first(), Some(b'0'..=b'7'))
+        && bytes.iter().all(|byte| {
+            matches!(
+                byte,
+                b'0'..=b'9'
+                    | b'A'..=b'H'
+                    | b'J'..=b'K'
+                    | b'M'..=b'N'
+                    | b'P'..=b'T'
+                    | b'V'..=b'Z'
+            )
+        })
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -820,9 +1017,10 @@ fn valid_cas_reference(reference: &str, digest: Sha256Digest) -> bool {
 mod tests {
     use super::{
         ApprovedExecutionSpecDraft, AuthorityRef, CandidateCommon, DeclaredWrite,
-        DeclaredWriteOperation, DeliveryModel, ExecutionLimits, InputKind, LocalPathPreimage,
-        MutableInputBinding, NativePatchEngineAudience, PatchOperation, PatchSet, RollbackClass,
-        SpecConsumptionRecordDraft, WindowsPatchCandidateDraft, WorkspaceTarget,
+        DeclaredWriteOperation, DeliveryModel, DesktopLocalIdentity, ExecutionLimits, InputKind,
+        LocalPathPreimage, MutableInputBinding, NativePatchEngineAudience, PatchOperation,
+        PatchSet, RollbackClass, SpecConsumptionRecordDraft, WindowsPatchCandidateDraft,
+        WorkspaceTarget,
     };
     use crate::{
         canonical_hash, canonical_hash_without_field, generated_contracts, sha256_bytes,
@@ -840,6 +1038,68 @@ mod tests {
 
     fn path(value: &str) -> Result<RelativeWorkspacePath, Box<dyn std::error::Error>> {
         Ok(RelativeWorkspacePath::new(value)?)
+    }
+
+    #[test]
+    fn desktop_local_identity_seals_canonical_ids_and_authority(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let identity = DesktopLocalIdentity::new(
+            ContractId::new("installation_01J00000000000000000000000")?,
+            ContractId::new("authority_01J00000000000000000000000")?,
+            ContractId::new("owner_scope_01J00000000000000000000000")?,
+            ContractId::new("store_01J00000000000000000000000")?,
+            1,
+        )?;
+
+        identity.verify_for_store(identity.local_store_id())?;
+        let authority = identity.authority_ref()?;
+        assert_eq!(authority.authority_kind, "desktop_local_store");
+        assert_eq!(&authority.authority_id, identity.authority_id());
+        assert_eq!(&authority.installation_id, identity.installation_id());
+        assert_eq!(&authority.local_store_id, identity.local_store_id());
+        assert_eq!(authority.authority_epoch, 1);
+
+        let encoded = serde_json::to_vec(&identity)?;
+        let decoded: DesktopLocalIdentity = serde_json::from_slice(&encoded)?;
+        decoded.verify_for_store(identity.local_store_id())?;
+        assert_eq!(decoded, identity);
+        Ok(())
+    }
+
+    #[test]
+    fn desktop_local_identity_rejects_noncanonical_ids_epoch_and_authority_kind(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let store_id = ContractId::new("store_01J00000000000000000000000")?;
+        assert!(DesktopLocalIdentity::new(
+            ContractId::new("installation_01j00000000000000000000000")?,
+            ContractId::new("authority_01J00000000000000000000000")?,
+            ContractId::new("owner_scope_01J00000000000000000000000")?,
+            store_id.clone(),
+            1,
+        )
+        .is_err());
+        assert!(DesktopLocalIdentity::new(
+            ContractId::new("installation_01J00000000000000000000000")?,
+            ContractId::new("authority_01J00000000000000000000000")?,
+            ContractId::new("owner_scope_01J00000000000000000000000")?,
+            store_id.clone(),
+            0,
+        )
+        .is_err());
+
+        let wrong_kind = AuthorityRef {
+            authority_kind: "cloud_authority".to_owned(),
+            authority_id: ContractId::new("authority_01J00000000000000000000000")?,
+            installation_id: ContractId::new("installation_01J00000000000000000000000")?,
+            local_store_id: store_id,
+            authority_epoch: 1,
+        };
+        assert!(DesktopLocalIdentity::from_authority_ref(
+            ContractId::new("owner_scope_01J00000000000000000000000")?,
+            wrong_kind,
+        )
+        .is_err());
+        Ok(())
     }
 
     #[test]

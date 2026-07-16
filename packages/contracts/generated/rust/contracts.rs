@@ -23393,6 +23393,296 @@ impl ::std::convert::TryFrom<::std::string::String> for FilesystemCapabilitySnap
         value.parse()
     }
 }
+#[doc = "`MethodAdvanceResult`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-method-advance-result.v1\","]
+#[doc = "  \"$ref\": \"#/$defs/MethodSessionMethodAdvanceResult\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct MethodAdvanceResult(pub MethodSessionMethodAdvanceResult);
+impl ::std::ops::Deref for MethodAdvanceResult {
+    type Target = MethodSessionMethodAdvanceResult;
+    fn deref(&self) -> &MethodSessionMethodAdvanceResult {
+        &self.0
+    }
+}
+impl ::std::convert::From<MethodAdvanceResult> for MethodSessionMethodAdvanceResult {
+    fn from(value: MethodAdvanceResult) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<MethodSessionMethodAdvanceResult> for MethodAdvanceResult {
+    fn from(value: MethodSessionMethodAdvanceResult) -> Self {
+        Self(value)
+    }
+}
+#[doc = "`MethodHelpProposal`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-method-help-proposal.v1\","]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"capabilityKey\","]
+#[doc = "        \"evidenceTokenIds\","]
+#[doc = "        \"proposalKind\","]
+#[doc = "        \"rationaleSummary\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"capabilityKey\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadCapabilityCatalogBmadCapabilityKey\""]
+#[doc = "        },"]
+#[doc = "        \"evidenceTokenIds\": {"]
+#[doc = "          \"type\": \"array\","]
+#[doc = "          \"items\": {"]
+#[doc = "            \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "          },"]
+#[doc = "          \"maxItems\": 64,"]
+#[doc = "          \"minItems\": 1,"]
+#[doc = "          \"uniqueItems\": true"]
+#[doc = "        },"]
+#[doc = "        \"proposalKind\": {"]
+#[doc = "          \"const\": \"recommended_capability\""]
+#[doc = "        },"]
+#[doc = "        \"rationaleSummary\": {"]
+#[doc = "          \"type\": \"string\","]
+#[doc = "          \"maxLength\": 4096,"]
+#[doc = "          \"minLength\": 1"]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"proposalKind\","]
+#[doc = "        \"reasonCode\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"proposalKind\": {"]
+#[doc = "          \"const\": \"no_recommendation\""]
+#[doc = "        },"]
+#[doc = "        \"reasonCode\": {"]
+#[doc = "          \"enum\": ["]
+#[doc = "            \"catalog_evidence_absent\","]
+#[doc = "            \"completion_evidence_ambiguous\","]
+#[doc = "            \"dependency_unavailable\""]
+#[doc = "          ]"]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(tag = "proposalKind", deny_unknown_fields)]
+pub enum MethodHelpProposal {
+    #[serde(rename = "recommended_capability")]
+    RecommendedCapability {
+        #[serde(rename = "capabilityKey")]
+        capability_key: BmadCapabilityCatalogBmadCapabilityKey,
+        #[serde(rename = "evidenceTokenIds")]
+        evidence_token_ids: Vec<CommonContractId>,
+        #[serde(rename = "rationaleSummary")]
+        rationale_summary: MethodHelpProposalRationaleSummary,
+    },
+    #[serde(rename = "no_recommendation")]
+    NoRecommendation {
+        #[serde(rename = "reasonCode")]
+        reason_code: MethodHelpProposalReasonCode,
+    },
+}
+#[doc = "`MethodHelpProposalRationaleSummary`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4096,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MethodHelpProposalRationaleSummary(::std::string::String);
+impl ::std::ops::Deref for MethodHelpProposalRationaleSummary {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MethodHelpProposalRationaleSummary> for ::std::string::String {
+    fn from(value: MethodHelpProposalRationaleSummary) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MethodHelpProposalRationaleSummary {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MethodHelpProposalRationaleSummary {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MethodHelpProposalRationaleSummary {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MethodHelpProposalRationaleSummary {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MethodHelpProposalRationaleSummary {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`MethodHelpProposalReasonCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"catalog_evidence_absent\","]
+#[doc = "    \"completion_evidence_ambiguous\","]
+#[doc = "    \"dependency_unavailable\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MethodHelpProposalReasonCode {
+    #[serde(rename = "catalog_evidence_absent")]
+    CatalogEvidenceAbsent,
+    #[serde(rename = "completion_evidence_ambiguous")]
+    CompletionEvidenceAmbiguous,
+    #[serde(rename = "dependency_unavailable")]
+    DependencyUnavailable,
+}
+impl ::std::fmt::Display for MethodHelpProposalReasonCode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CatalogEvidenceAbsent => f.write_str("catalog_evidence_absent"),
+            Self::CompletionEvidenceAmbiguous => f.write_str("completion_evidence_ambiguous"),
+            Self::DependencyUnavailable => f.write_str("dependency_unavailable"),
+        }
+    }
+}
+impl ::std::str::FromStr for MethodHelpProposalReasonCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "catalog_evidence_absent" => Ok(Self::CatalogEvidenceAbsent),
+            "completion_evidence_ambiguous" => Ok(Self::CompletionEvidenceAmbiguous),
+            "dependency_unavailable" => Ok(Self::DependencyUnavailable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MethodHelpProposalReasonCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MethodHelpProposalReasonCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MethodHelpProposalReasonCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MethodHelpRecommendation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-method-help-recommendation.v1\","]
+#[doc = "  \"$ref\": \"#/$defs/MethodSessionMethodHelpRecommendation\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct MethodHelpRecommendation(pub MethodSessionMethodHelpRecommendation);
+impl ::std::ops::Deref for MethodHelpRecommendation {
+    type Target = MethodSessionMethodHelpRecommendation;
+    fn deref(&self) -> &MethodSessionMethodHelpRecommendation {
+        &self.0
+    }
+}
+impl ::std::convert::From<MethodHelpRecommendation> for MethodSessionMethodHelpRecommendation {
+    fn from(value: MethodHelpRecommendation) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<MethodSessionMethodHelpRecommendation> for MethodHelpRecommendation {
+    fn from(value: MethodSessionMethodHelpRecommendation) -> Self {
+        Self(value)
+    }
+}
 #[doc = "`MethodSession`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -35074,6 +35364,15 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"filesystemCapabilitySnapshot\": {"]
 #[doc = "      \"$ref\": \"#/$defs/FilesystemCapabilitySnapshot\""]
 #[doc = "    },"]
+#[doc = "    \"methodAdvanceResult\": {"]
+#[doc = "      \"$ref\": \"#/$defs/MethodAdvanceResult\""]
+#[doc = "    },"]
+#[doc = "    \"methodHelpProposal\": {"]
+#[doc = "      \"$ref\": \"#/$defs/MethodHelpProposal\""]
+#[doc = "    },"]
+#[doc = "    \"methodHelpRecommendation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/MethodHelpRecommendation\""]
+#[doc = "    },"]
 #[doc = "    \"methodSession\": {"]
 #[doc = "      \"$ref\": \"#/$defs/MethodSession\""]
 #[doc = "    },"]
@@ -35167,6 +35466,24 @@ pub struct SapphirusContractsCatalog {
     )]
     pub filesystem_capability_snapshot: ::std::option::Option<FilesystemCapabilitySnapshot>,
     #[serde(
+        rename = "methodAdvanceResult",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub method_advance_result: ::std::option::Option<MethodAdvanceResult>,
+    #[serde(
+        rename = "methodHelpProposal",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub method_help_proposal: ::std::option::Option<MethodHelpProposal>,
+    #[serde(
+        rename = "methodHelpRecommendation",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub method_help_recommendation: ::std::option::Option<MethodHelpRecommendation>,
+    #[serde(
         rename = "methodSession",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -35206,6 +35523,9 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             evidence_event: Default::default(),
             execution_result_manifest: Default::default(),
             filesystem_capability_snapshot: Default::default(),
+            method_advance_result: Default::default(),
+            method_help_proposal: Default::default(),
+            method_help_recommendation: Default::default(),
             method_session: Default::default(),
             package_compatibility: Default::default(),
             remote_job_handoff: Default::default(),
@@ -53413,6 +53733,18 @@ pub mod builder {
             ::std::option::Option<super::FilesystemCapabilitySnapshot>,
             ::std::string::String,
         >,
+        method_advance_result: ::std::result::Result<
+            ::std::option::Option<super::MethodAdvanceResult>,
+            ::std::string::String,
+        >,
+        method_help_proposal: ::std::result::Result<
+            ::std::option::Option<super::MethodHelpProposal>,
+            ::std::string::String,
+        >,
+        method_help_recommendation: ::std::result::Result<
+            ::std::option::Option<super::MethodHelpRecommendation>,
+            ::std::string::String,
+        >,
         method_session: ::std::result::Result<
             ::std::option::Option<super::MethodSession>,
             ::std::string::String,
@@ -53445,6 +53777,9 @@ pub mod builder {
                 evidence_event: Ok(Default::default()),
                 execution_result_manifest: Ok(Default::default()),
                 filesystem_capability_snapshot: Ok(Default::default()),
+                method_advance_result: Ok(Default::default()),
+                method_help_proposal: Ok(Default::default()),
+                method_help_recommendation: Ok(Default::default()),
                 method_session: Ok(Default::default()),
                 package_compatibility: Ok(Default::default()),
                 remote_job_handoff: Ok(Default::default()),
@@ -53573,6 +53908,36 @@ pub mod builder {
             });
             self
         }
+        pub fn method_advance_result<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::MethodAdvanceResult>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.method_advance_result = value.try_into().map_err(|e| {
+                format!("error converting supplied value for method_advance_result: {e}")
+            });
+            self
+        }
+        pub fn method_help_proposal<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::MethodHelpProposal>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.method_help_proposal = value.try_into().map_err(|e| {
+                format!("error converting supplied value for method_help_proposal: {e}")
+            });
+            self
+        }
+        pub fn method_help_recommendation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::MethodHelpRecommendation>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.method_help_recommendation = value.try_into().map_err(|e| {
+                format!("error converting supplied value for method_help_recommendation: {e}")
+            });
+            self
+        }
         pub fn method_session<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::MethodSession>>,
@@ -53632,6 +53997,9 @@ pub mod builder {
                 evidence_event: value.evidence_event?,
                 execution_result_manifest: value.execution_result_manifest?,
                 filesystem_capability_snapshot: value.filesystem_capability_snapshot?,
+                method_advance_result: value.method_advance_result?,
+                method_help_proposal: value.method_help_proposal?,
+                method_help_recommendation: value.method_help_recommendation?,
                 method_session: value.method_session?,
                 package_compatibility: value.package_compatibility?,
                 remote_job_handoff: value.remote_job_handoff?,
@@ -53654,6 +54022,9 @@ pub mod builder {
                 evidence_event: Ok(value.evidence_event),
                 execution_result_manifest: Ok(value.execution_result_manifest),
                 filesystem_capability_snapshot: Ok(value.filesystem_capability_snapshot),
+                method_advance_result: Ok(value.method_advance_result),
+                method_help_proposal: Ok(value.method_help_proposal),
+                method_help_recommendation: Ok(value.method_help_recommendation),
                 method_session: Ok(value.method_session),
                 package_compatibility: Ok(value.package_compatibility),
                 remote_job_handoff: Ok(value.remote_job_handoff),
@@ -53877,3 +54248,11 @@ pub mod builder {
         }
     }
 }
+
+// BMAD sealed Help schema closures.
+pub const BMAD_METHOD_ADVANCE_RESULT_SCHEMA_CLOSURE_SHA256: &str =
+    "sha256:600432affbca9baec428903211df9c4c2a1fc6ba595959013236e1a0f16bc746";
+pub const BMAD_METHOD_HELP_PROPOSAL_SCHEMA_CLOSURE_SHA256: &str =
+    "sha256:b86f154fd9ba6a7575171b849645e44a1753d191b4e3480e985b6042159af965";
+pub const BMAD_METHOD_HELP_RECOMMENDATION_SCHEMA_CLOSURE_SHA256: &str =
+    "sha256:5cff85e4f40af521df317763fa86f405c11e410005c7a8901d5ed72a25320242";

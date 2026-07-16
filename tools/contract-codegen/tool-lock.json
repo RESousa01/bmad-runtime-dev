@@ -3,7 +3,7 @@
   "lockStatus": "reviewed_bootstrap",
   "bootstrapLocks": {
     "pnpm": { "file": "pnpm-lock.yaml", "sha256": "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12", "status": "reviewed" },
-    "cargo": { "file": "Cargo.lock", "sha256": "34c68bd3920665cc5e59dcbf9ccccddfe295fc07cdbb50026726e76c1707aa22", "status": "reviewed" },
+    "cargo": { "file": "Cargo.lock", "sha256": "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071", "status": "reviewed" },
     "dotnetTools": { "file": ".config/dotnet-tools.json", "sha256": "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20", "status": "reviewed" },
     "dotnetPackages": { "file": "tests/generator-qualification/dotnet/packages.lock.json", "sha256": "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872", "status": "reviewed" }
   },
@@ -15,6 +15,9 @@
         { "file": "authority-ref.schema.json", "id": "https://schemas.sapphirus.dev/v1/authority-ref.schema.json", "typeName": "AuthorityRef" },
         { "file": "bmad-builder-authoring.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json", "typeName": "BuilderAuthoringObject" },
         { "file": "bmad-capability-catalog.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-capability-catalog.schema.json", "typeName": "BmadCapabilityCatalog" },
+        { "file": "bmad-method-advance-result.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json", "typeName": "MethodAdvanceResult" },
+        { "file": "bmad-method-help-proposal.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json", "typeName": "MethodHelpProposal" },
+        { "file": "bmad-method-help-recommendation.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json", "typeName": "MethodHelpRecommendation" },
         { "file": "bmad-method-session.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json", "typeName": "MethodSession" },
         { "file": "bmad-package-descriptor.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-package-descriptor.schema.json", "typeName": "BmadPackageDescriptor" },
         { "file": "bmad-validation-report.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-validation-report.schema.json", "typeName": "BmadValidationReport" },
@@ -106,7 +109,7 @@
       "versionOutput": "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
       "generationArguments": ["jsonschema", "{input}", "--engine", "V5", "--useSchema", "Draft202012", "--useUnixLineEndings", "true", "--optionalAsNullable", "None", "--assertFormat", "false", "--disableOptionalNamingHeuristics", "true", "--rootNamespace", "{namespace}", "--outputRootTypeName", "{rootType}", "--outputRootAccessibility", "Public", "--defaultAccessibility", "Public", "--outputPath", "{output}"],
       "restoreArguments": ["tool", "restore", "--tool-manifest", ".config/dotnet-tools.json"],
-      "sdk": "10.0.301",
+      "sdk": "10.0.302",
       "sdkExecutable": "C:/Program Files/dotnet/dotnet.exe",
       "sdkAuthenticode": {
         "status": "Valid",

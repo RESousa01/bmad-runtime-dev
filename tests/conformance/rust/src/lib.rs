@@ -111,6 +111,123 @@ fn push_once(errors: &mut Vec<String>, code: &str) {
     }
 }
 
+fn is_safe_help_text(value: &str) -> bool {
+    value.chars().all(|character| {
+        let code_point = u32::from(character);
+        !(code_point <= 0x001f
+            || code_point == 0x007f
+            || code_point == 0x061c
+            || code_point == 0x200e
+            || code_point == 0x200f
+            || (0x202a..=0x202e).contains(&code_point)
+            || (0x2066..=0x2069).contains(&code_point))
+    })
+}
+
+fn is_strict_utc_instant(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 24
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'.'
+        || bytes[23] != b'Z'
+    {
+        return false;
+    }
+    let parse = |start: usize, end: usize| {
+        value
+            .get(start..end)
+            .and_then(|part| part.parse::<u32>().ok())
+    };
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second), Some(_)) = (
+        parse(0, 4),
+        parse(5, 7),
+        parse(8, 10),
+        parse(11, 13),
+        parse(14, 16),
+        parse(17, 19),
+        parse(20, 23),
+    ) else {
+        return false;
+    };
+    let leap_year =
+        year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400));
+    let maximum_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=maximum_day).contains(&day) && hour <= 23 && minute <= 59 && second <= 59
+}
+
+fn validate_standalone_hash(value: &Value, purpose: &str, field: &str, errors: &mut Vec<String>) {
+    if canonical_hash_without_field(purpose, 1, value, field)
+        .ok()
+        .is_none_or(|expected| string(value, field) != Some(expected.to_string().as_str()))
+    {
+        push_once(errors, "HASH_MISMATCH");
+    }
+}
+
+/// Validates the untrusted sealed Help proposal's contract-local semantics.
+#[must_use]
+pub fn validate_method_help_proposal_semantics(value: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    if string(value, "proposalKind") == Some("recommended_capability")
+        && string(value, "rationaleSummary").is_none_or(|text| !is_safe_help_text(text))
+    {
+        push_once(&mut errors, "BMAD_UNSAFE_TEXT");
+    }
+    errors
+}
+
+/// Validates the canonical host-owned sealed Help recommendation.
+#[must_use]
+pub fn validate_method_help_recommendation_semantics(value: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    if string(value, "recommendationKind") == Some("recommended_capability")
+        && string(value, "rationaleSummary").is_none_or(|text| !is_safe_help_text(text))
+    {
+        push_once(&mut errors, "BMAD_UNSAFE_TEXT");
+    }
+    validate_standalone_hash(
+        value,
+        "bmad-method-help-recommendation",
+        "recommendationHash",
+        &mut errors,
+    );
+    if string(value, "createdAt").is_none_or(|instant| !is_strict_utc_instant(instant)) {
+        push_once(&mut errors, "INVALID_UTC_INSTANT");
+    }
+    errors
+}
+
+/// Validates the canonical host-owned Method advance result.
+#[must_use]
+pub fn validate_method_advance_result_semantics(value: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    if matches!(string(value, "resultKind"), Some("refusal" | "incomplete"))
+        && string(value, "safeMessage").is_none_or(|text| !is_safe_help_text(text))
+    {
+        push_once(&mut errors, "BMAD_UNSAFE_TEXT");
+    }
+    validate_standalone_hash(
+        value,
+        "bmad-method-canonical-advance-result",
+        "resultHash",
+        &mut errors,
+    );
+    if string(value, "receivedAt").is_none_or(|instant| !is_strict_utc_instant(instant)) {
+        push_once(&mut errors, "INVALID_UTC_INSTANT");
+    }
+    errors
+}
+
 fn verify_hash(value: &Value, errors: &mut Vec<String>) {
     let Some(version) = string(value, "schemaVersion") else {
         return;
@@ -1268,6 +1385,15 @@ fn validate_builder(value: &Value, errors: &mut Vec<String>) {
 /// Performs handwritten semantic checks after strict parsing and structural validation.
 #[must_use]
 pub fn validate_bmad_semantics(value: &Value, descriptor: Option<&Value>) -> Vec<String> {
+    if value.get("proposalKind").is_some() {
+        return validate_method_help_proposal_semantics(value);
+    }
+    if value.get("recommendationKind").is_some() {
+        return validate_method_help_recommendation_semantics(value);
+    }
+    if value.get("resultKind").is_some() {
+        return validate_method_advance_result_semantics(value);
+    }
     let mut errors = Vec::new();
     let envelope = value.get("envelope");
     let document = value.get("payload").filter(|payload| {

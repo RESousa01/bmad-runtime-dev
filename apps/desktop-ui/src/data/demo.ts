@@ -1,5 +1,5 @@
 export type PrimaryView = "workspaces" | "agent" | "explorer" | "changes" | "activity";
-export type InspectorTab = "context" | "changes" | "logs" | "evidence";
+export type InspectorTab = "context" | "changes" | "logs" | "evidence" | "method";
 export type ThemePreference = "dark" | "light" | "system";
 export type DensityPreference = "comfortable" | "compact";
 export type ProposalState = "ready" | "discarded";

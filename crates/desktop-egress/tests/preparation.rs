@@ -85,6 +85,36 @@ fn preparation_rejects_nested_secret_bearing_filenames_case_insensitively() {
 }
 
 #[test]
+fn preparation_denies_credential_stores_token_caches_and_authority_state() {
+    for label in [
+        ".git-credentials",
+        ".netrc",
+        ".pypirc",
+        ".docker/config.json",
+        ".azure/msal_token_cache.json",
+        ".sapphirus/authority.db",
+        ".kube/config",
+        ".gnupg/private-keys-v1.d/key.key",
+        "tls/server.key",
+        "certs/client.pem",
+        "keys/id_ecdsa",
+        "keys/id_dsa",
+        "keys/id_ed25519_sk",
+        "certs/client.p12",
+        "certs/client.pfx",
+        "config/token-cache.bin",
+    ] {
+        let error = ContextPreparer::new(PatternSecretScanner)
+            .prepare(fixture_input(vec![candidate(
+                label,
+                "innocent-looking bytes",
+            )]))
+            .expect_err("authority-bearing label is denied before scanning");
+        assert_eq!(error, EgressError::DeniedContextLabel, "accepted {label}");
+    }
+}
+
+#[test]
 fn preparation_redacts_private_key_material_and_records_a_finding() {
     let source = "prefix -----BEGIN PRIVATE KEY----- value";
     let manifest = ContextPreparer::new(PatternSecretScanner)

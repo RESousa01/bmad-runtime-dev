@@ -8,8 +8,18 @@ export interface ContractHashRule {
   readonly purpose: string;
   readonly schemaMajor: string;
 }
+export interface SchemaClosureMember {
+  readonly schemaId: string;
+  readonly canonicalSha256: Sha256;
+}
+export interface SchemaClosureManifest {
+  readonly rootSchemaId: string;
+  readonly members: readonly SchemaClosureMember[];
+  readonly closureSha256: Sha256;
+}
 export declare const CONTRACT_EPOCH: 1;
 export declare const HASH_RULES: Readonly<Record<string, ContractHashRule>>;
+export declare const SCHEMA_CLOSURES: Readonly<Record<string, SchemaClosureManifest>>;
 
 export type {
   SapphirusAuthorityRefV1 as AuthorityRef,
@@ -45,6 +55,15 @@ export type {
   BmadAgentMenuItem,
   BmadAgentMenuTarget,
 } from "./schema/bmad-capability-catalog.js";
+export type {
+  SapphirusBmadMethodAdvanceResultV1 as MethodAdvanceResult,
+} from "./schema/bmad-method-advance-result.js";
+export type {
+  SapphirusBmadMethodHelpProposalV1 as MethodHelpProposal,
+} from "./schema/bmad-method-help-proposal.js";
+export type {
+  SapphirusBmadMethodHelpRecommendationV1 as MethodHelpRecommendation,
+} from "./schema/bmad-method-help-recommendation.js";
 export type {
   SapphirusBmadMethodSessionV1 as MethodSession,
   MethodAgentBinding,

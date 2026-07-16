@@ -23,6 +23,7 @@ pub trait EntitlementProofVerifier: Send + Sync {
 pub struct VerifiedEntitlement {
     registration_id: String,
     required_feature: String,
+    policy_hash: Sha256Digest,
     expires_at: UnixMillis,
     offline_grace_ends_at: UnixMillis,
 }
@@ -46,6 +47,20 @@ impl VerifiedEntitlement {
     #[must_use]
     pub const fn offline_grace_ends_at(&self) -> UnixMillis {
         self.offline_grace_ends_at
+    }
+
+    pub(crate) fn authorize_model_request(
+        &self,
+        policy_hash: Sha256Digest,
+        now: UnixMillis,
+    ) -> Result<(), CloudError> {
+        if self.required_feature != "model_access"
+            || self.policy_hash != policy_hash
+            || now >= self.expires_at
+        {
+            return Err(CloudError::EntitlementUnavailable);
+        }
+        Ok(())
     }
 }
 
@@ -143,6 +158,7 @@ where
         Ok(VerifiedEntitlement {
             registration_id: lease.registration_id.clone(),
             required_feature: self.required_feature.clone(),
+            policy_hash,
             expires_at,
             offline_grace_ends_at,
         })

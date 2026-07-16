@@ -55,10 +55,12 @@ url = "=2.5.7"
 walkdir = "=2.5.0"
 windows = { version = "=0.62.2", features = [
   "Win32_Foundation",
+  "Win32_Security_Authorization",
   "Win32_Security_Cryptography",
   "Win32_Storage_FileSystem",
   "Win32_System_IO",
   "Win32_System_Memory",
+  "Win32_System_Pipes",
   "Win32_System_Threading",
 ] }
 zeroize = { version = "=1.8.2", features = ["derive"] }

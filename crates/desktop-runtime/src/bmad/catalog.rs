@@ -49,7 +49,7 @@ pub struct BmadHelpActionKey {
     pub action: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct BmadInstalledSkillRecord {
     pub module_code: String,
     pub skill_name: String,
@@ -67,7 +67,7 @@ pub struct BmadInstalledSkillRecord {
     pub hidden_from_help: bool,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct BmadHelpAction {
     pub key: BmadHelpActionKey,
     pub module_code: String,
@@ -98,7 +98,7 @@ pub struct BmadHelpAction {
 
 impl BmadHelpAction {
     #[must_use]
-    pub fn raw_source_row(&self) -> &[String; 13] {
+    pub const fn raw_source_row(&self) -> &[String; 13] {
         &self.source_row
     }
 }
@@ -109,12 +109,23 @@ pub struct BmadCatalog {
     pub help_actions: Vec<BmadHelpAction>,
     #[serde(skip_serializing)]
     capability_catalog_hash: Sha256Digest,
+    #[serde(skip_serializing)]
+    projection_hash: Sha256Digest,
 }
 
 impl BmadCatalog {
     #[must_use]
     pub const fn capability_catalog_hash(&self) -> Sha256Digest {
         self.capability_catalog_hash
+    }
+
+    pub(crate) fn verify_integrity(&self) -> Result<(), BmadKernelError> {
+        if catalog_projection_hash(&self.installed_skills, &self.help_actions)?
+            != self.projection_hash
+        {
+            return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+        }
+        Ok(())
     }
 }
 
@@ -316,12 +327,72 @@ impl BmadCatalogBuilder {
 
         apply_availability(&installed_skills, &mut help_actions);
         help_actions.sort_by(|left, right| left.key.cmp(&right.key));
+        let projection_hash = catalog_projection_hash(&installed_skills, &help_actions)?;
         Ok(BmadCatalog {
             installed_skills,
             help_actions,
             capability_catalog_hash,
+            projection_hash,
         })
     }
+}
+
+fn catalog_projection_hash(
+    installed_skills: &[BmadInstalledSkillRecord],
+    help_actions: &[BmadHelpAction],
+) -> Result<Sha256Digest, BmadKernelError> {
+    let installed = installed_skills
+        .iter()
+        .map(|skill| {
+            serde_json::json!({
+                "moduleCode": skill.module_code,
+                "skillName": skill.skill_name,
+                "displayName": skill.display_name,
+                "description": skill.description,
+                "entrypointKind": skill.entrypoint_kind,
+                "actions": skill.actions,
+                "distributionProfile": skill.distribution_profile,
+                "installProfile": skill.install_profile,
+                "validationProfile": skill.validation_profile,
+                "executionProfileHash": skill.execution_profile_hash,
+                "capabilityEnabled": skill.capability_enabled,
+                "structurallyEligible": skill.structurally_eligible,
+                "hiddenFromHelp": skill.hidden_from_help
+            })
+        })
+        .collect::<Vec<_>>();
+    let actions = help_actions
+        .iter()
+        .map(|action| {
+            serde_json::json!({
+                "key": action.key,
+                "moduleCode": action.module_code,
+                "skillName": action.skill_name,
+                "displayName": action.display_name,
+                "menuCode": action.menu_code,
+                "description": action.description,
+                "action": action.action,
+                "args": action.args,
+                "phase": action.phase,
+                "precededBy": action.preceded_by,
+                "followedBy": action.followed_by,
+                "required": action.required,
+                "outputLocations": action.output_locations,
+                "expectedOutputs": action.expected_outputs,
+                "availability": action.availability,
+                "networkReferencePresent": action.network_reference_present,
+                "sourceOrdinal": action.source_ordinal,
+                "sourceRowHash": action.source_row_hash,
+                "sourceRow": action.source_row
+            })
+        })
+        .collect::<Vec<_>>();
+    canonical_hash(
+        "bmad-native-catalog-projection",
+        1,
+        &serde_json::json!({"installedSkills": installed, "helpActions": actions}),
+    )
+    .map_err(|_| BmadKernelErrorCode::HelpCatalogInvalid.into())
 }
 
 fn infer_single_action(installed: &[BmadInstalledSkillRecord], action: &mut BmadHelpAction) {

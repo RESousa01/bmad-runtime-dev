@@ -16,6 +16,7 @@ mod domain;
 mod error;
 mod hash;
 mod ids;
+mod strict_json;
 
 // Typify emits crate/module-level inner attributes. Loading its output as a
 // real module keeps those tool-owned attributes valid; a nested `include!`
@@ -26,15 +27,21 @@ pub(crate) mod generated_contracts;
 
 pub use bmad::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
-    BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadCapabilityKey, BmadCatalog,
-    BmadCatalogAvailability, BmadCatalogBuilder, BmadConfigGraph, BmadConfigGraphKind,
-    BmadConfigLayer, BmadConfigResolution, BmadConfigResolver, BmadConfigWarning,
-    BmadEntrypointKind, BmadHelpAction, BmadHelpActionKey, BmadHelpAdvisor, BmadHelpCatalogSource,
-    BmadHelpConfidence, BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
-    BmadInstalledSkillRecord, BmadKernelError, BmadKernelErrorCode, BmadLoadedPackage,
-    BmadLoadedSkill, BmadLocationClass, BmadMenuTargetKind, BmadPackageLoader, BmadResolvedConfig,
-    BmadReviewedPromptReference, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
-    BmadUnavailableDependency, BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
+    BmadArtifactClassification, BmadArtifactEvidence, BmadArtifactEvidenceKind,
+    BmadArtifactReference, BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadCapabilityKey,
+    BmadCatalog, BmadCatalogAvailability, BmadCatalogBuilder, BmadCompiledHelpInvocation,
+    BmadConfigGraph, BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution,
+    BmadConfigResolver, BmadConfigWarning, BmadContentReference, BmadEntrypointKind,
+    BmadHelpAction, BmadHelpActionKey, BmadHelpAdvisor, BmadHelpBindingCompiler,
+    BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpEvidenceClass, BmadHelpEvidenceToken,
+    BmadHelpIntent, BmadHelpMaterializer, BmadHelpNoRecommendationReason, BmadHelpRecommendation,
+    BmadHelpRecordIds, BmadHelpSourceRef, BmadHostInputReplacement, BmadInstalledSkillRecord,
+    BmadKernelError, BmadKernelErrorCode, BmadLoadedMethodPackage, BmadLoadedPackage,
+    BmadLoadedSkill, BmadLocationClass, BmadMenuTargetKind, BmadMethodHelpRecommendation,
+    BmadPackageLoader, BmadQualifiedHelpSource, BmadResolvedConfig, BmadReviewedPromptReference,
+    BmadSealedHelpInvocation, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
+    BmadTrustedHelpModelProfile, BmadTrustedHelpModelProfileData, BmadUnavailableDependency,
+    BmadUtcInstant, BmadVerifiedHelpProposal, BuilderActionName, BuilderAnalysisContextDecision,
     BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
     BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
     BuilderAnalysisRun, BuilderAuthoringAction, BuilderAuthoringService, BuilderCapabilityFact,
@@ -44,14 +51,17 @@ pub use bmad::{
     BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
     BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderProposedFile,
     BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
-    BuilderValidationProfile, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
+    BuilderValidationProfile, CreateInertBmadHelpSession, CreateMethodSession,
+    InertBmadHelpSession, InertBmadHelpSessionCoordinator, InertBmadHelpSessionError,
+    InertBmadHelpSessionPreparationError, MethodAdvanceDisposition, MethodAdvanceReceipt,
     MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodCheckpoint, MethodContextDecision,
-    MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
-    MethodModelPort, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
-    MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
-    MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
+    MethodArtifactExpectation, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
+    MethodCheckpoint, MethodContextDecision, MethodError, MethodErrorCode, MethodEvidenceClass,
+    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodModelBinding, MethodModelBindingData, MethodModelPort, MethodPersistenceEvent,
+    MethodRendererProjection, MethodResourcePolicy, MethodRuntimeRequirement, MethodServiceError,
+    MethodSession, MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState,
+    MethodStepTable, MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
 };
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,
@@ -61,10 +71,11 @@ pub use command::{
 pub use domain::{
     ApprovalDecision, ApprovalDecisionDraft, ApprovalOutcome, ApprovedExecutionSpec,
     ApprovedExecutionSpecDraft, AuthorityRef, CandidateCommon, DeclaredWrite,
-    DeclaredWriteOperation, DeliveryModel, DomainValidationError, ExecutionLimits, InputKind,
-    LocalPathPreimage, MutableInputBinding, NativePatchEngineAudience, PatchOperation, PatchSet,
-    RollbackClass, SpecConsumptionRecord, SpecConsumptionRecordDraft, WindowsPatchCandidate,
-    WindowsPatchCandidateDraft, WorkspaceTarget, HARD_MAX_CHANGED_BYTES, HARD_MAX_CHANGED_FILES,
+    DeclaredWriteOperation, DeliveryModel, DesktopLocalIdentity, DomainValidationError,
+    ExecutionLimits, InputKind, LocalPathPreimage, MutableInputBinding, NativePatchEngineAudience,
+    PatchOperation, PatchSet, RollbackClass, SpecConsumptionRecord, SpecConsumptionRecordDraft,
+    WindowsPatchCandidate, WindowsPatchCandidateDraft, WorkspaceTarget, HARD_MAX_CHANGED_BYTES,
+    HARD_MAX_CHANGED_FILES,
 };
 pub use error::{LocalError, LocalErrorCode, LocalResult};
 pub use hash::{
@@ -72,3 +83,4 @@ pub use hash::{
     legacy_canonical_hash_without_field, sha256_bytes, CanonicalHashError, Sha256Digest,
 };
 pub use ids::{ContractId, IdentifierError, RelativeWorkspacePath, UnixMillis};
+pub use strict_json::{deserialize_strict_json, StrictJsonError};

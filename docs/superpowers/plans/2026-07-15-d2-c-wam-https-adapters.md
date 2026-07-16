@@ -1,5 +1,9 @@
 # D2-C WAM and HTTPS Adapters Implementation Plan
 
+## Completion checkpoint — 2026-07-15
+
+D2-C is implemented and independently reviewed. The fixed packaged-helper launch contract, actual-current-user named-pipe ACL, child-PID correlation, bounded protocol, zeroizing broker decode, fixed-origin HTTPS dispatch, entitlement-before-egress enforcement, and offline-by-default composition all pass the focused default/all-feature suites, strict Clippy, formatting, and the Rust workspace gate excluding the separately blocked Tauri packaging crate. Authenticode signing and desktop command/UI wiring remain later packaging and D2-D integration work. The task checklist below is retained as the historical implementation script.
+
 **Goal:** Connect the verified D2 identity and model boundaries to a bounded Windows authentication helper protocol and a fixed-origin HTTPS support API transport without exposing secrets or allowing request-controlled destinations.
 
 **Architecture:** `desktop-cloud::broker_protocol` owns the strict framed JSON contract and response validation independently of Windows I/O. A Windows-only adapter creates a current-user named pipe before launching the fixed helper and implements `IdentityBroker`. `desktop-cloud::transport` owns one constructor-validated support API origin, bounded request/response serialization, bearer-token borrowing, timeout handling, and untrusted response decoding. Model response trust remains exclusively in `verify_model_response`.

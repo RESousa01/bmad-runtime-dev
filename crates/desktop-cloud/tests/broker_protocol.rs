@@ -190,13 +190,17 @@ fn sign_out_requires_a_success_response_without_token_material() {
 #[cfg(windows)]
 #[test]
 fn windows_adapter_accepts_only_a_fixed_packaged_helper_and_bounded_operation() {
-    let helper = PathBuf::from(r"C:\Program Files\Sapphirus\Sapphirus.WindowsAuthBroker.exe");
-    assert!(
-        WindowsBrokerConfig::new(helper, protocol(), 0x1234, false, Duration::from_secs(30),)
-            .is_ok()
-    );
+    let package_root = PathBuf::from(r"C:\Program Files\Sapphirus");
     assert!(WindowsBrokerConfig::new(
-        PathBuf::from("Sapphirus.WindowsAuthBroker.exe"),
+        package_root,
+        protocol(),
+        0x1234,
+        false,
+        Duration::from_secs(30),
+    )
+    .is_ok());
+    assert!(WindowsBrokerConfig::new(
+        PathBuf::from("relative-package-root"),
         protocol(),
         0x1234,
         false,
@@ -204,7 +208,7 @@ fn windows_adapter_accepts_only_a_fixed_packaged_helper_and_bounded_operation() 
     )
     .is_err());
     assert!(WindowsBrokerConfig::new(
-        PathBuf::from(r"C:\Program Files\Sapphirus\other.exe"),
+        PathBuf::from(r"C:\Program Files\Sapphirus\..\Substituted"),
         protocol(),
         0x1234,
         false,

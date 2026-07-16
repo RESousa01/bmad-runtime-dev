@@ -1160,6 +1160,17 @@ function goldenVector(name, purpose, value, excludedFields) {
   };
 }
 
+function sealStandaloneRecord(value, purpose, hashField) {
+  const sealed = clone(value);
+  sealed[hashField] = canonicalHash({
+    purpose,
+    schemaMajor: "v1",
+    value: sealed,
+    excludedFields: [hashField],
+  }).serializedHash;
+  return sealed;
+}
+
 const BMAD_EXACT_SEMANTIC_REASONS = Object.freeze({
   "capability-key-collision": [
     "BMAD_CAPABILITY_KEY_COLLISION",
@@ -1288,6 +1299,42 @@ export function buildBmadFixtureSet() {
   const workflowStatic = makeBuilderAnalysis("workflow", workflowDraft, workflowRevision, false);
   const workflowModel = makeBuilderAnalysis("workflow", workflowDraft, workflowRevision, true);
   const validationReport = makeValidationReport(agentRevision);
+  const helpCapabilityKey = clone(catalog.helpActionGraph.actions[0].capabilityKey);
+  const helpProposal = {
+    proposalKind: "recommended_capability",
+    capabilityKey: helpCapabilityKey,
+    evidenceTokenIds: [id("evidence")],
+    rationaleSummary: "Use the catalog capability bound to the observed Help evidence.",
+  };
+  const helpRecommendation = sealStandaloneRecord({
+    recommendationKind: "recommended_capability",
+    recommendationId: id("recommendation"),
+    sessionId: directSession.payload.sessionId,
+    capabilityKey: helpCapabilityKey,
+    evidenceClass: "authoritative",
+    evidenceRefs: [],
+    guidanceRequired: false,
+    rationaleSummary: helpProposal.rationaleSummary,
+    recommendationHash: hash("0"),
+    createdAt: NOW,
+  }, "bmad-method-help-recommendation", "recommendationHash");
+  const advanceResult = sealStandaloneRecord({
+    resultKind: "completion_candidate",
+    resultId: id("result"),
+    requestId: id("request"),
+    invocationId: id("invocation"),
+    responseSchemaHash: hash("a"),
+    responseContentRef: {
+      ref: "cas://bmad/help-recommendation",
+      contentHash: helpRecommendation.recommendationHash,
+      byteLength: 512,
+      mediaType: "application/json",
+    },
+    producedArtifacts: [],
+    unresolvedOpenItemCount: 0,
+    resultHash: hash("0"),
+    receivedAt: NOW,
+  }, "bmad-method-canonical-advance-result", "resultHash");
   const files = new Map();
   const catalogEntries = [];
 
@@ -1343,6 +1390,13 @@ export function buildBmadFixtureSet() {
   addValid("builder-workflow-analysis-deterministic", "bmad-builder-authoring.schema.json", workflowStatic);
   addValid("builder-workflow-analysis-model-lens", "bmad-builder-authoring.schema.json", workflowModel);
   addValid("validation-report", "bmad-validation-report.schema.json", validationReport);
+  addValid("method-help-proposal", "bmad-method-help-proposal.schema.json", helpProposal);
+  addValid(
+    "method-help-recommendation",
+    "bmad-method-help-recommendation.schema.json",
+    helpRecommendation,
+  );
+  addValid("method-advance-result", "bmad-method-advance-result.schema.json", advanceResult);
 
   files.set(
     "fixtures/invalid/bmad/duplicate-member.json",
@@ -1474,6 +1528,18 @@ export function buildBmadFixtureSet() {
       goldenVector("builder-revision", "bmad-builder-revision", agentRevision, ["revisionHash"]),
       goldenVector("builder-analysis", "bmad-builder-analysis", agentModel, ["analysisHash"]),
       goldenVector("validation-report", "bmad-validation-report", validationReport, ["reportHash"]),
+      goldenVector(
+        "method-help-recommendation",
+        "bmad-method-help-recommendation",
+        helpRecommendation,
+        ["recommendationHash"],
+      ),
+      goldenVector(
+        "method-canonical-advance-result",
+        "bmad-method-canonical-advance-result",
+        advanceResult,
+        ["resultHash"],
+      ),
     ],
   };
   add("golden/bmad/hash-vectors.json", golden);

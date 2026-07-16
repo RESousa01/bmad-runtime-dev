@@ -17,6 +17,14 @@ pub enum BmadKernelErrorCode {
     DescriptorHashMismatch,
     #[error("the semantic source ledger does not match the sealed expectation")]
     SemanticLedgerMismatch,
+    #[error("the adoption ledger does not match the sealed expectation")]
+    AdoptionLedgerMismatch,
+    #[error("the installed BMAD Help invocation does not match its sealed identity chain")]
+    SealedHelpMismatch,
+    #[error("the compiled BMAD Help binding does not match its sealed source and catalog")]
+    SealedHelpBindingMismatch,
+    #[error("the verified BMAD Help proposal or its canonical lineage is invalid")]
+    HelpProposalInvalid,
     #[error("the observed final BMAD inventory does not match the descriptor")]
     FinalInventoryMismatch,
     #[error("a managed BMAD resource does not match the descriptor")]

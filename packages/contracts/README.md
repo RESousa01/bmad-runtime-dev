@@ -18,7 +18,7 @@ decision, filesystem access, executor dispatch, or persistence behavior.
 - BMAD native conformance additionally runs through
   `cargo test --manifest-path tests/conformance/rust/Cargo.toml --locked` and the
   locked `tests/conformance/dotnet/Sapphirus.Contracts.Conformance.Tests.csproj`.
-  Both replay the same cataloged BMAD fixtures and six golden hash vectors used
+  Both replay the same cataloged BMAD fixtures and eight golden hash vectors used
   by the TypeScript lane.
 
 The active `--typescript-only` check is read-only and neither constructs nor
@@ -69,7 +69,7 @@ available for explicit diagnostics and for the non-BMAD semantic families.
 Semantic validators assume their input has already passed the matching closed
 schema; they do not grant authority or perform lifecycle transitions.
 
-All sixteen public schema families and the shared `common` dependency are
+All nineteen public schema families and the shared `common` dependency are
 reachable from the same deterministic internal-`$defs` bundle in Rust and C#.
 The bundle rewrites only declared references, rejects source-set drift and
 definition collisions, and is staging-only: it is not a public wire contract.
@@ -80,6 +80,13 @@ recursion, duplicate members, canonicalization, and purpose-separated hashes.
 The five early BMAD families cover inert package descriptors, separate
 installed-skill/help/agent-roster catalogs, Method session/checkpoint records,
 inactive Builder drafts/revisions/analysis evidence, and validation reports.
+Three additional sealed Help roots expose the untrusted proposal, canonical
+host-owned recommendation, and canonical advance result without granting model
+or lifecycle authority. Their fragment-aware transitive schema closures are
+locked in `schema-lock.json` and emitted as generated TypeScript, Rust, and C#
+constants. Recommendation and advance-result hashes use distinct reviewed
+domains, while all three semantic entry points share the same control/bidi-safe
+text predicate and strict UTC-instant checks for host records.
 They deliberately contain no runner, generic workflow AST, memory/autonomy,
 registration, evaluation, publication, promotion, activation, rollback, or
 workspace-effect authority. Their cross-record ordering, source closure,

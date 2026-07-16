@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis};
 use serde::{Deserialize, Serialize};
 
+use crate::manifest::PreparedContextItemDraft;
 use crate::{
     ContextClassification, ContextEgressManifest, ContextEgressManifestDraft, ContextExclusion,
     EgressError, EgressLimits, PreparedContextItem, RedactionRecord, RetentionMode, SecretFinding,
@@ -166,7 +167,7 @@ where
                 kind: finding.kind,
                 occurrence_count: finding.occurrence_count,
             }));
-            items.push(PreparedContextItem {
+            items.push(PreparedContextItem::seal(PreparedContextItemDraft {
                 client_item_id: candidate.client_item_id,
                 relative_label: candidate.relative_label,
                 semantic_role: candidate.semantic_role,
@@ -179,7 +180,7 @@ where
                 classification: candidate.classification,
                 redactions,
                 outbound_content: scan.outbound_content,
-            });
+            })?);
         }
 
         ContextEgressManifestDraft {
@@ -211,17 +212,47 @@ where
 }
 
 fn is_denied_label(label: &RelativeWorkspacePath) -> bool {
-    let filename = label
-        .as_str()
-        .rsplit('/')
-        .next()
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    filename == ".env"
-        || filename.starts_with(".env.")
+    let normalized = label.as_str().to_ascii_lowercase();
+    let filename = normalized.rsplit('/').next().unwrap_or_default().to_owned();
+    let components: Vec<&str> = normalized.split('/').collect();
+    let authority_directory = components.iter().any(|component| {
+        matches!(
+            *component,
+            ".azure" | ".aws" | ".ssh" | ".sapphirus" | ".codex" | ".kube" | ".gnupg"
+        )
+    });
+    let docker_credentials =
+        normalized == ".docker/config.json" || normalized.ends_with("/.docker/config.json");
+    let cache_or_authority_store = filename.contains("token_cache")
+        || filename.contains("token-cache")
+        || filename.starts_with("msal")
         || matches!(
             filename.as_str(),
-            ".npmrc" | "id_rsa" | "id_ed25519" | "credentials"
+            "authority.db" | "identity.db" | "accounts.json" | "tokens.json"
+        );
+    let private_key_extension = matches!(
+        filename.rsplit_once('.').map(|(_, extension)| extension),
+        Some("key" | "pem" | "p12" | "pfx")
+    );
+    filename == ".env"
+        || filename.starts_with(".env.")
+        || authority_directory
+        || docker_credentials
+        || cache_or_authority_store
+        || private_key_extension
+        || matches!(
+            filename.as_str(),
+            ".git-credentials"
+                | ".netrc"
+                | ".npmrc"
+                | ".pypirc"
+                | "id_rsa"
+                | "id_dsa"
+                | "id_ecdsa"
+                | "id_ed25519"
+                | "id_ecdsa_sk"
+                | "id_ed25519_sk"
+                | "credentials"
         )
         || filename.starts_with("credentials.")
 }

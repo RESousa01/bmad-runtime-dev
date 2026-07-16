@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::{ContractId, LocalResult, RelativeWorkspacePath, Sha256Digest, UnixMillis};
+use crate::{
+    BmadHelpIntent, ContractId, LocalResult, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+};
 
 /// User-facing approval outcomes. Only `Apply` can lead to spec issuance.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -59,6 +61,15 @@ pub enum LocalCommand {
         scope: BmadLibraryProjectionScope,
         cursor: Option<String>,
     },
+    CreateBmadHelpRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        current_intent: BmadHelpIntent,
+    },
+    LatestBmadHelpRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
     PreviewContext {
         workspace_id: ContractId,
         relative_paths: Vec<RelativeWorkspacePath>,
@@ -104,6 +115,8 @@ impl LocalCommand {
             Self::SearchWorkspace { .. } => "workspace.search",
             Self::ScanBmad { .. } => "bmad.scan",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
+            Self::CreateBmadHelpRun { .. } => "run.create",
+            Self::LatestBmadHelpRun { .. } => "bmad.help.latest",
             Self::PreviewContext { .. } => "context.preview",
             Self::CreateSession { .. } => "session.create",
             Self::SubmitTask { .. } => "task.submit",
@@ -126,6 +139,7 @@ impl LocalCommand {
                 | Self::SearchWorkspace { .. }
                 | Self::ScanBmad { .. }
                 | Self::BmadLibrarySnapshot { .. }
+                | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }
         )
     }
@@ -275,6 +289,15 @@ mod tests {
                 scope: BmadLibraryProjectionScope::InstalledMethod,
                 cursor: None,
             },
+            LocalCommand::CreateBmadHelpRun {
+                workspace_id: workspace_id.clone(),
+                workspace_grant_epoch: 1,
+                current_intent: crate::BmadHelpIntent::new("find the next Method step")?,
+            },
+            LocalCommand::LatestBmadHelpRun {
+                workspace_id: workspace_id.clone(),
+                workspace_grant_epoch: 1,
+            },
             LocalCommand::PreviewContext {
                 workspace_id: workspace_id.clone(),
                 relative_paths: vec![RelativeWorkspacePath::new("README.md")?],
@@ -303,6 +326,19 @@ mod tests {
             assert!(!name.contains("write_path"));
             assert!(!name.contains("execute_spec"));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn latest_help_run_is_an_explicit_read_only_capability(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let command = LocalCommand::LatestBmadHelpRun {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 1,
+        };
+
+        assert_eq!(command.name(), "bmad.help.latest");
+        assert!(!command.is_mutating());
         Ok(())
     }
 }

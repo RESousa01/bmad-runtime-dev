@@ -6,7 +6,8 @@ use url::Url;
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizedModelRequest, CloudAccess, CloudError, CloudSession, IdentityBroker, RawModelOutput,
+    AuthorizedModelRequest, CloudAccess, CloudError, CloudSession, DispatchedModelRequest,
+    IdentityBroker, RawModelOutput, VerifiedEntitlement,
 };
 use desktop_runtime::UnixMillis;
 
@@ -68,10 +69,6 @@ impl OutboundHttpRequest {
     #[must_use]
     pub fn body(&self) -> &[u8] {
         &self.body
-    }
-
-    pub fn with_bearer<T>(&self, operation: impl FnOnce(&str) -> T) -> T {
-        operation(self.bearer.as_str())
     }
 
     #[must_use]
@@ -166,9 +163,10 @@ where
         &self,
         session: &CloudSession<B>,
         access: &CloudAccess,
-        request: &AuthorizedModelRequest,
+        entitlement: &VerifiedEntitlement,
+        request: AuthorizedModelRequest,
         now: UnixMillis,
-    ) -> Result<RawModelOutput, CloudError>
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError>
     where
         B: IdentityBroker,
     {
@@ -179,11 +177,12 @@ where
             return Err(CloudError::ReauthenticationRequired);
         }
         request.verify()?;
-        let body = serde_json::to_vec(request).map_err(|_| CloudError::TransportFailed)?;
+        entitlement.authorize_model_request(request.policy_hash(), now)?;
+        let body = serde_json::to_vec(&request).map_err(|_| CloudError::TransportFailed)?;
         if body.len() > MAX_REQUEST_BYTES {
             return Err(CloudError::TransportFailed);
         }
-        let bearer = access.with_bearer(|token| Zeroizing::new(token.to_owned()));
+        let bearer = access.bearer_copy();
         if !session.is_current(access) {
             return Err(CloudError::SessionInvalidated);
         }
@@ -193,13 +192,14 @@ where
                 url: self.origin.endpoint.clone(),
                 body,
                 bearer,
-                idempotency_key: request.request_id.to_string(),
+                idempotency_key: request.request_id().to_string(),
             })
             .await?;
         if !session.is_current(access) {
             return Err(CloudError::SessionInvalidated);
         }
-        validate_response(&response)
+        let output = validate_response(&response)?;
+        Ok((DispatchedModelRequest::new(request), output))
     }
 }
 

@@ -1,5 +1,9 @@
 # D2-A Egress and Consent Core Implementation Plan
 
+## Completion checkpoint — 2026-07-15
+
+D2-A is implemented and independently reviewed. Exact prepared-context attestations, expanded secret-path denial, terminal cancellation, atomic single-use consent, and sealed consumption capabilities all pass the focused tests, compile-fail proofs, strict Clippy, formatting, and the Rust workspace gate excluding the separately blocked Tauri packaging crate. The task checklist below is retained as the historical implementation script.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a pure Rust crate that prepares exact outbound context manifests, exposes sanitized review projections, and authorizes one model invocation through an atomic single-use consent decision.
@@ -157,7 +161,8 @@ git commit -m "feat(d2): seal context egress manifests"
 ```rust
 #[test]
 fn preparation_rejects_dotenv_before_scanning() {
-    let input = fixture_input(vec![candidate(".env", "API_KEY=secret")]);
+    let dotenv_content = ["API", "_KEY=test-only"].concat();
+    let input = fixture_input(vec![candidate(".env", &dotenv_content)]);
     let error = ContextPreparer::new(PatternSecretScanner::default())
         .prepare(input)
         .expect_err("dotenv is denied");
@@ -166,12 +171,13 @@ fn preparation_rejects_dotenv_before_scanning() {
 
 #[test]
 fn preparation_redacts_private_key_material_and_records_a_finding() {
-    let source = "prefix -----BEGIN PRIVATE KEY----- value";
+    let private_key_marker = ["BEGIN ", "PRIVATE KEY"].concat();
+    let source = format!("prefix -----{private_key_marker}----- value");
     let manifest = ContextPreparer::new(PatternSecretScanner::default())
-        .prepare(fixture_input(vec![candidate("notes.txt", source)]))
+        .prepare(fixture_input(vec![candidate("notes.txt", &source)]))
         .expect("redacted manifest");
     let item = &manifest.draft.items[0];
-    assert!(!item.outbound_content.contains("BEGIN PRIVATE KEY"));
+    assert!(!item.outbound_content.contains(&private_key_marker));
     assert_eq!(item.redactions[0].kind, "private_key");
     assert_eq!(manifest.draft.secret_findings[0].kind, "private_key");
 }

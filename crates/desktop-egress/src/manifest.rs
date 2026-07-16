@@ -56,9 +56,9 @@ pub struct ContextExclusion {
     pub reason: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PreparedContextItem {
+pub(crate) struct PreparedContextItemDraft {
     pub client_item_id: ContractId,
     pub relative_label: RelativeWorkspacePath,
     pub semantic_role: String,
@@ -73,7 +73,73 @@ pub struct PreparedContextItem {
     pub outbound_content: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+/// Context prepared by the crate-owned scanner. Its private attestation makes
+/// original-source metadata immutable to safe downstream code.
+///
+/// ```compile_fail
+/// # use desktop_egress::PreparedContextItem;
+/// fn forge(item: PreparedContextItem) -> PreparedContextItem {
+///     PreparedContextItem { original_byte_count: 0, ..item }
+/// }
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreparedContextItem {
+    pub client_item_id: ContractId,
+    pub relative_label: RelativeWorkspacePath,
+    pub semantic_role: String,
+    pub language: Option<String>,
+    pub original_content_hash: Sha256Digest,
+    pub outbound_content_hash: Sha256Digest,
+    pub original_byte_count: u64,
+    pub outbound_byte_count: u64,
+    pub token_estimate: u64,
+    pub classification: ContextClassification,
+    pub redactions: Vec<RedactionRecord>,
+    pub outbound_content: String,
+    preparation_attestation: Sha256Digest,
+}
+
+impl PreparedContextItem {
+    pub(crate) fn seal(draft: PreparedContextItemDraft) -> Result<Self, EgressError> {
+        let preparation_attestation = canonical_hash("prepared-context-item", 1, &draft)
+            .map_err(|_| EgressError::CanonicalHash)?;
+        Ok(Self {
+            client_item_id: draft.client_item_id,
+            relative_label: draft.relative_label,
+            semantic_role: draft.semantic_role,
+            language: draft.language,
+            original_content_hash: draft.original_content_hash,
+            outbound_content_hash: draft.outbound_content_hash,
+            original_byte_count: draft.original_byte_count,
+            outbound_byte_count: draft.outbound_byte_count,
+            token_estimate: draft.token_estimate,
+            classification: draft.classification,
+            redactions: draft.redactions,
+            outbound_content: draft.outbound_content,
+            preparation_attestation,
+        })
+    }
+
+    fn attestation_draft(&self) -> PreparedContextItemDraft {
+        PreparedContextItemDraft {
+            client_item_id: self.client_item_id.clone(),
+            relative_label: self.relative_label.clone(),
+            semantic_role: self.semantic_role.clone(),
+            language: self.language.clone(),
+            original_content_hash: self.original_content_hash,
+            outbound_content_hash: self.outbound_content_hash,
+            original_byte_count: self.original_byte_count,
+            outbound_byte_count: self.outbound_byte_count,
+            token_estimate: self.token_estimate,
+            classification: self.classification,
+            redactions: self.redactions.clone(),
+            outbound_content: self.outbound_content.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContextEgressManifestDraft {
     pub schema_version: String,
@@ -173,6 +239,8 @@ pub enum EgressError {
     DecisionExpired,
     #[error("the consent decision was already consumed")]
     DecisionAlreadyConsumed,
+    #[error("the consent decision was cancelled")]
+    DecisionCancelled,
     #[error("canonical hashing failed")]
     CanonicalHash,
 }
@@ -344,6 +412,11 @@ fn validate_item(item: &PreparedContextItem) -> Result<(), EgressError> {
     if content_bytes != item.outbound_byte_count
         || sha256_bytes(item.outbound_content.as_bytes()) != item.outbound_content_hash
     {
+        return Err(EgressError::ContextDrift);
+    }
+    let actual_attestation = canonical_hash("prepared-context-item", 1, &item.attestation_draft())
+        .map_err(|_| EgressError::CanonicalHash)?;
+    if actual_attestation != item.preparation_attestation {
         return Err(EgressError::ContextDrift);
     }
     Ok(())
