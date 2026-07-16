@@ -73,7 +73,7 @@ const LOCKED_FIXTURES = Object.freeze({
     validationProfile: "BuilderAgentV2Stateless",
     executionProfile: "direct",
     activationState: "not_active",
-    builderActions: Object.freeze(["Build", "Edit", "Analyze"]),
+    builderActions: Object.freeze(["create_rebuild", "edit", "analyze"]),
     source: Object.freeze({
       project: "bmad-builder",
       packageVersion: "2.1.0",
@@ -105,7 +105,7 @@ const LOCKED_FIXTURES = Object.freeze({
     validationProfile: "BuilderOutcomeSkillV2",
     executionProfile: "inline",
     activationState: "not_active",
-    builderActions: Object.freeze(["Build", "Edit", "Analyze"]),
+    builderActions: Object.freeze(["build", "edit", "analyze"]),
     source: Object.freeze({
       project: "bmad-builder",
       packageVersion: "2.1.0",

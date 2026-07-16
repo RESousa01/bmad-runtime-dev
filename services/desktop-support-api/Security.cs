@@ -198,7 +198,7 @@ public static class RequestGuards
                 || item.Content is null
                 || item.ByteCount < 0
                 || item.ByteCount != Encoding.UTF8.GetByteCount(item.Content)
-                || item.RelativeLabel.StartsWith('/', StringComparison.Ordinal)
+                || item.RelativeLabel.StartsWith("/", StringComparison.Ordinal)
                 || item.RelativeLabel.Contains('\\', StringComparison.Ordinal)
                 || item.RelativeLabel.Contains(':', StringComparison.Ordinal)
                 || item.RelativeLabel.Split('/').Any(segment => segment is "." or ".." or "")
@@ -298,6 +298,153 @@ public static class RequestGuards
         "sha256:" + Convert.ToHexStringLower(SHA256.HashData(value));
 }
 
+internal static class ModelResultGuards
+{
+    private const int MaximumPayloadBytes = 2 * 1024 * 1024;
+    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
+
+    public static void ValidateOrThrow(
+        RegisteredDevice device,
+        ModelAccessRequest request,
+        ModelAccessResult result,
+        string expectedRegion)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(result);
+        if (!RequestGuards.ValidateModelRequest(request, out _, out _)
+            || !string.Equals(
+                request.RegistrationId,
+                device.RegistrationId,
+                StringComparison.Ordinal)
+            || result.SchemaVersion != "desktop-model-access-result.v1"
+            || !string.Equals(result.RequestId, request.RequestId, StringComparison.Ordinal)
+            || !string.Equals(
+                result.OutputSchemaId,
+                request.CanonicalOutputSchemaId,
+                StringComparison.Ordinal)
+            || !TryValidatePayload(result.PayloadJson, out int payloadBytes)
+            || !RequestGuards.IsSha256(result.PayloadHash)
+            || !string.Equals(
+                result.PayloadHash,
+                HashBytes(StrictUtf8.GetBytes(result.PayloadJson)),
+                StringComparison.Ordinal)
+            || result.Receipt is null
+            || !ValidateReceipt(
+                request,
+                result,
+                result.Receipt,
+                expectedRegion,
+                payloadBytes))
+        {
+            throw new InvalidOperationException(
+                "The model result was not bound to the authorized request.");
+        }
+    }
+
+    private static bool ValidateReceipt(
+        ModelAccessRequest request,
+        ModelAccessResult result,
+        ModelAccessReceipt receipt,
+        string expectedRegion,
+        int payloadBytes) =>
+        receipt.SchemaVersion == "desktop-model-access-receipt.v1"
+        && IsReceiptId(receipt.ReceiptId)
+        && string.Equals(
+            receipt.RequestHash,
+            RequestGuards.Fingerprint(request),
+            StringComparison.Ordinal)
+        && string.Equals(receipt.ResultHash, result.PayloadHash, StringComparison.Ordinal)
+        && string.Equals(
+            receipt.LocalEgressManifestHash,
+            request.LocalEgressManifestHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ConsentReceiptHash,
+            request.ConsentReceiptHash,
+            StringComparison.Ordinal)
+        && RequestGuards.IsSha256(receipt.ModelProfileHash)
+        && string.Equals(receipt.RetentionMode, request.RetentionMode, StringComparison.Ordinal)
+        && expectedRegion is { Length: >= 1 and <= 128 }
+        && string.Equals(receipt.Region, expectedRegion, StringComparison.Ordinal)
+        && receipt.InputBytes == request.Items.Sum(item => item.ByteCount)
+        && receipt.OutputBytes == payloadBytes
+        && receipt.StartedAt != default
+        && receipt.CompletedAt != default
+        && receipt.StartedAt <= receipt.CompletedAt
+        && receipt.Status == "succeeded";
+
+    private static bool TryValidatePayload(string? payload, out int payloadBytes)
+    {
+        payloadBytes = 0;
+        if (payload is null)
+        {
+            return false;
+        }
+        try
+        {
+            payloadBytes = StrictUtf8.GetByteCount(payload);
+            if (payloadBytes is < 1 or > MaximumPayloadBytes)
+            {
+                return false;
+            }
+            using JsonDocument document = JsonDocument.Parse(
+                payload,
+                new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = false,
+                    CommentHandling = JsonCommentHandling.Disallow,
+                    MaxDepth = 64,
+                });
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                && HasUniqueObjectMembers(document.RootElement);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+        catch (EncoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    private static bool HasUniqueObjectMembers(JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            HashSet<string> names = new(StringComparer.Ordinal);
+            foreach (JsonProperty property in value.EnumerateObject())
+            {
+                if (!names.Add(property.Name) || !HasUniqueObjectMembers(property.Value))
+                {
+                    return false;
+                }
+            }
+        }
+        else if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in value.EnumerateArray())
+            {
+                if (!HasUniqueObjectMembers(item))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static bool IsReceiptId(string? value) =>
+        value is { Length: 40 }
+        && value.StartsWith("receipt_", StringComparison.Ordinal)
+        && value.AsSpan(8).ToArray().All(character =>
+            character is >= '0' and <= '9' or >= 'a' and <= 'f');
+
+    private static string HashBytes(ReadOnlySpan<byte> value) =>
+        "sha256:" + Convert.ToHexStringLower(SHA256.HashData(value));
+}
+
 public sealed class SafeApiExceptionHandler(ILogger<SafeApiExceptionHandler> logger)
     : IExceptionHandler
 {
@@ -308,6 +455,8 @@ public sealed class SafeApiExceptionHandler(ILogger<SafeApiExceptionHandler> log
     {
         (int status, string code) = exception switch
         {
+            BadHttpRequestException =>
+                (StatusCodes.Status400BadRequest, "request_invalid"),
             IdempotencyConflictException =>
                 (StatusCodes.Status409Conflict, "idempotency_conflict"),
             DeviceRegistrationRevokedException =>

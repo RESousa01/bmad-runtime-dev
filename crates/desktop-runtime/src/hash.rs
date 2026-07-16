@@ -282,9 +282,63 @@ fn compare_utf16(left: &str, right: &str) -> Ordering {
 
 #[cfg(test)]
 mod tests {
+    use std::{fs, path::Path};
+
+    use serde::Deserialize;
     use serde_json::json;
 
     use super::{canonical_hash, canonical_json_bytes, sha256_bytes, Sha256Digest};
+
+    #[derive(Deserialize)]
+    struct HashVectors {
+        required: Vec<HashVector>,
+        supplemental: Vec<HashVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct HashVector {
+        purpose: String,
+        schema_major: String,
+        value: serde_json::Value,
+        canonical_json: String,
+        expected_hash: String,
+    }
+
+    #[test]
+    fn matches_every_shared_canonical_hash_vector() -> Result<(), Box<dyn std::error::Error>> {
+        let vector_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packages/contracts/fixtures/golden/hash-vectors.json");
+        let vectors: HashVectors = serde_json::from_str(&fs::read_to_string(vector_path)?)?;
+
+        for vector in vectors.required.into_iter().chain(vectors.supplemental) {
+            let schema_major = vector
+                .schema_major
+                .strip_prefix('v')
+                .ok_or("schema major must start with v")?
+                .parse::<u32>()?;
+            assert_eq!(
+                format!("v{schema_major}"),
+                vector.schema_major,
+                "shared hash vector schema major must use canonical vN form",
+            );
+            let canonical_json = String::from_utf8(canonical_json_bytes(&vector.value)?)?;
+
+            assert_eq!(canonical_json, vector.canonical_json);
+            assert_eq!(
+                canonical_hash(&vector.purpose, schema_major, &vector.value)?.to_string(),
+                vector.expected_hash,
+                "{} must hash a `sapphirus:{}:{}\\n` preimage, not `sapphirus:{}:{}\\n`",
+                vector.schema_major,
+                vector.purpose,
+                vector.schema_major,
+                vector.purpose,
+                schema_major,
+            );
+        }
+
+        Ok(())
+    }
 
     #[test]
     fn rejects_noncanonical_digest_text() {

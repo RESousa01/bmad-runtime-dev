@@ -11,7 +11,9 @@ integration are separate implementation work.
   BMAD Method help skill and keeps the conformance fixture sealed and read-only.
 - `inactive-stateless-agent.json` and `inactive-simple-workflow.json` record
   immutable provenance for reviewed Builder entrypoints and bind small,
-  Sapphirus-owned candidate payloads. Their Build, Edit, and Analyze actions are
+  Sapphirus-owned candidate payloads. The Agent preserves Create/rebuild, Edit,
+  and Analyze as `create_rebuild`, `edit`, and `analyze`; the Workflow preserves
+  Build, Edit, and Analyze as `build`, `edit`, and `analyze`. Both remain
   intentionally inactive.
 
 No setup, eval, scaffold, cleanup, hook, wake, dependency-install, or
@@ -32,15 +34,17 @@ review.
 `distributionProfile`, `validationProfile`, and `executionProfile` classify the
 reviewed upstream Method/Builder shapes and semantics; they do not imply that an
 upstream source tree is packaged, and they grant no runtime authority. Method
-remains sealed and read-only. Builder payloads remain inactive drafts with only
-Build, Edit, and Analyze authoring actions. Convert, evaluation, activation,
-script, process, and network capabilities are absent; the explicit
-script/network fields are deny-only assertions.
+remains sealed and read-only. Builder payloads remain inactive drafts. The Agent
+admits only `create_rebuild`, `edit`, and `analyze`; the Workflow admits only
+`build`, `edit`, and `analyze`. Convert, evaluation, activation, script, process,
+and network capabilities are absent; the explicit script/network fields are
+deny-only assertions.
 
-`Build` is the desktop's normalized inactive-authoring label for this proof
-surface. It does not replace the upstream Agent Builder's raw Create/rebuild
-intent in a future source catalog. The simple workflow uses note 100's `inline`
-execution classification; that classification is descriptive, not executable.
+The former generalized `Build` action is legacy and rejected. Agent and Workflow
+identities are deliberately distinct: `create_rebuild` retains the Agent
+Builder's Create/rebuild intent, while `build` belongs to the Workflow. The
+simple workflow uses note 100's `inline` execution classification; that
+classification is descriptive, not executable.
 
 The test suite copies this package into a minimal checkout and verifies it there,
 proving that conformance validation has no dependency on an external context

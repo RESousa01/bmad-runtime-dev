@@ -74,22 +74,22 @@ test("Method proof is exact, provenance-bound, and read-only", async () => {
   assert.equal(fixture.networkAccess, "blocked");
 });
 
-test("Builder examples expose only inactive Build, Edit, and Analyze drafts", async () => {
-  for (const name of [
-    "inactive-stateless-agent.json",
-    "inactive-simple-workflow.json",
-  ]) {
-    const fixture = await loadDescriptor(name);
-    assert.equal(fixture.activationState, "not_active");
-    assert.deepEqual(fixture.builderActions, ["Build", "Edit", "Analyze"]);
-    assert.equal(
-      fixture.executionProfile,
-      name === "inactive-simple-workflow.json" ? "inline" : "direct",
-    );
-    assert.notEqual(fixture.payload, null);
-    assert.equal(fixture.scriptExecution, "blocked");
-    assert.equal(fixture.networkAccess, "blocked");
-  }
+test("Builder examples preserve source-correct inactive action identities", async () => {
+  const agent = await loadDescriptor("inactive-stateless-agent.json");
+  assert.equal(agent.activationState, "not_active");
+  assert.deepEqual(agent.builderActions, ["create_rebuild", "edit", "analyze"]);
+  assert.equal(agent.executionProfile, "direct");
+  assert.notEqual(agent.payload, null);
+  assert.equal(agent.scriptExecution, "blocked");
+  assert.equal(agent.networkAccess, "blocked");
+
+  const workflow = await loadDescriptor("inactive-simple-workflow.json");
+  assert.equal(workflow.activationState, "not_active");
+  assert.deepEqual(workflow.builderActions, ["build", "edit", "analyze"]);
+  assert.equal(workflow.executionProfile, "inline");
+  assert.notEqual(workflow.payload, null);
+  assert.equal(workflow.scriptExecution, "blocked");
+  assert.equal(workflow.networkAccess, "blocked");
 });
 
 test("JSON parser rejects malformed input and duplicate decoded keys", async (t) => {
@@ -415,11 +415,12 @@ test("deny-only fields cannot become capabilities", async (t) => {
 
 test("fixture-kind semantics and action enums fail closed", async (t) => {
   const methodSource = await readDescriptor("sealed-method-bmad-help.json");
-  const builderSource = await readDescriptor("inactive-simple-workflow.json");
+  const agentSource = await readDescriptor("inactive-stateless-agent.json");
+  const workflowSource = await readDescriptor("inactive-simple-workflow.json");
 
   await t.test("Method cannot expose Builder actions", () => {
     const input = mutateDescriptor(methodSource, (fixture) => {
-      fixture.builderActions = ["Build"];
+      fixture.builderActions = ["create_rebuild"];
     });
     assert.throws(
       () => parseFixtureDescriptor(input, "sealed-method-bmad-help.json"),
@@ -427,8 +428,8 @@ test("fixture-kind semantics and action enums fail closed", async (t) => {
     );
   });
   await t.test("Builder cannot expose Convert", () => {
-    const input = mutateDescriptor(builderSource, (fixture) => {
-      fixture.builderActions.push("Convert");
+    const input = mutateDescriptor(workflowSource, (fixture) => {
+      fixture.builderActions.push("convert");
     });
     assert.throws(
       () => parseFixtureDescriptor(input, "inactive-simple-workflow.json"),
@@ -436,8 +437,35 @@ test("fixture-kind semantics and action enums fail closed", async (t) => {
     );
   });
   await t.test("Builder action order is canonical", () => {
-    const input = mutateDescriptor(builderSource, (fixture) => {
-      fixture.builderActions = ["Edit", "Build", "Analyze"];
+    const input = mutateDescriptor(workflowSource, (fixture) => {
+      fixture.builderActions = ["edit", "build", "analyze"];
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "inactive-simple-workflow.json"),
+      hasCode("SEMANTIC_ACTIONS"),
+    );
+  });
+  await t.test("legacy generalized Agent Build is rejected", () => {
+    const input = mutateDescriptor(agentSource, (fixture) => {
+      fixture.builderActions = ["Build", "Edit", "Analyze"];
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "inactive-stateless-agent.json"),
+      hasCode("SEMANTIC_ACTIONS"),
+    );
+  });
+  await t.test("Agent cannot use Workflow build", () => {
+    const input = mutateDescriptor(agentSource, (fixture) => {
+      fixture.builderActions = ["build", "edit", "analyze"];
+    });
+    assert.throws(
+      () => parseFixtureDescriptor(input, "inactive-stateless-agent.json"),
+      hasCode("SEMANTIC_ACTIONS"),
+    );
+  });
+  await t.test("Workflow cannot use Agent create_rebuild", () => {
+    const input = mutateDescriptor(workflowSource, (fixture) => {
+      fixture.builderActions = ["create_rebuild", "edit", "analyze"];
     });
     assert.throws(
       () => parseFixtureDescriptor(input, "inactive-simple-workflow.json"),
@@ -445,7 +473,7 @@ test("fixture-kind semantics and action enums fail closed", async (t) => {
     );
   });
   await t.test("Builder draft payload is required", () => {
-    const input = mutateDescriptor(builderSource, (fixture) => {
+    const input = mutateDescriptor(workflowSource, (fixture) => {
       fixture.payload = null;
     });
     assert.throws(
