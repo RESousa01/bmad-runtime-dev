@@ -5,9 +5,9 @@
 
 use desktop_egress::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
-    ContextCandidate, ContextClassification, ContextEgressManifest, ContextPreparer, EgressError,
-    EgressLimits, MemoryDecisionLedger, ModelInvocationBindingDraft, PatternSecretScanner,
-    PrepareContextInput, RetentionMode,
+    ContextCandidate, ContextClassification, ContextEgressManifest, ContextPreparer,
+    DecisionEvidenceInput, EgressError, EgressLimits, MemoryDecisionLedger,
+    ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput, RetentionMode,
 };
 use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, UnixMillis};
 use std::sync::{Arc, Barrier};
@@ -332,4 +332,201 @@ fn pending_decision_cannot_be_cancelled_or_consumed_after_memory_ledger_restart(
         restarted.consume(fixture_consumption(&decision, &binding)),
         Err(EgressError::DecisionUnknown)
     );
+}
+
+#[test]
+fn decision_ledger_is_bounded_and_prunes_expired_authority_without_replay() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+    let first = service
+        .approve(ApproveDecisionInput {
+            decision_id: id("decision_0000"),
+            ..fixture_approval(&manifest, &binding)
+        })
+        .expect("first decision");
+    service
+        .consume(fixture_consumption(&first, &binding))
+        .expect("first consumption");
+
+    for index in 1..MemoryDecisionLedger::MAX_TRACKED_DECISIONS {
+        service
+            .approve(ApproveDecisionInput {
+                decision_id: id(&format!("decision_{index:04}")),
+                ..fixture_approval(&manifest, &binding)
+            })
+            .expect("decision within fixed ledger capacity");
+    }
+
+    assert_eq!(
+        service.approve(ApproveDecisionInput {
+            decision_id: id("decision_at_capacity"),
+            ..fixture_approval(&manifest, &binding)
+        }),
+        Err(EgressError::DecisionAlreadyExists)
+    );
+
+    service
+        .approve(ApproveDecisionInput {
+            manifest: &manifest,
+            binding: &binding,
+            decision_id: id("decision_after_expiry"),
+            issued_at: UnixMillis(31_501),
+            expires_at: UnixMillis(60_000),
+        })
+        .expect("expired authority was pruned before bounded insertion");
+
+    let mut replay = fixture_consumption(&first, &binding);
+    replay.consumed_at = UnixMillis(32_000);
+    assert_eq!(service.consume(replay), Err(EgressError::DecisionUnknown));
+    assert_eq!(
+        service.approve(ApproveDecisionInput {
+            manifest: &manifest,
+            binding: &binding,
+            decision_id: id("decision_0000"),
+            issued_at: UnixMillis(31_501),
+            expires_at: UnixMillis(60_000),
+        }),
+        Err(EgressError::DecisionAlreadyExists)
+    );
+}
+
+#[test]
+fn pending_decision_exposes_only_sealed_bridge_evidence() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+    let decision = service
+        .approve(fixture_approval(&manifest, &binding))
+        .expect("decision");
+
+    let evidence = service
+        .evidence(DecisionEvidenceInput {
+            decision: &decision,
+            observed_at: UnixMillis(2_000),
+        })
+        .expect("sealed host evidence");
+
+    assert_eq!(evidence.decision_id(), decision.decision_id());
+    assert_eq!(evidence.manifest_hash(), manifest.manifest_hash);
+    assert_eq!(evidence.invocation_binding_hash(), binding.binding_hash);
+    assert_eq!(
+        evidence.consent_disclosure_hash(),
+        binding.draft.consent_disclosure_hash
+    );
+    assert_eq!(evidence.policy_hash(), binding.draft.policy_hash);
+    assert_eq!(evidence.installation_id(), &binding.draft.installation_id);
+    assert_eq!(
+        evidence.session_authority_hash(),
+        binding.draft.session_authority_hash
+    );
+    assert_eq!(evidence.issued_at(), UnixMillis(1_500));
+    assert_eq!(evidence.expires_at(), UnixMillis(31_500));
+    assert_eq!(evidence.observed_at(), UnixMillis(2_000));
+    assert_eq!(format!("{evidence:?}"), "ContextDecisionEvidence { .. }");
+}
+
+#[test]
+fn terminal_or_unregistered_decisions_cannot_expose_bridge_evidence() {
+    let manifest = fixture_manifest();
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+
+    let consumed_ledger = MemoryDecisionLedger::default();
+    let consumed_service = ConsentService::new(&consumed_ledger);
+    let consumed = consumed_service
+        .approve(ApproveDecisionInput {
+            decision_id: id("decision_consumed"),
+            ..fixture_approval(&manifest, &binding)
+        })
+        .expect("consumed decision");
+    consumed_service
+        .consume(ConsumeDecisionInput {
+            decision: &consumed,
+            binding: &binding,
+            invocation_id: id("invocation_consumed"),
+            consumed_at: UnixMillis(2_000),
+        })
+        .expect("consume decision");
+    assert!(matches!(
+        consumed_service.evidence(DecisionEvidenceInput {
+            decision: &consumed,
+            observed_at: UnixMillis(2_100),
+        }),
+        Err(EgressError::DecisionAlreadyConsumed)
+    ));
+
+    let cancelled_ledger = MemoryDecisionLedger::default();
+    let cancelled_service = ConsentService::new(&cancelled_ledger);
+    let cancelled = cancelled_service
+        .approve(ApproveDecisionInput {
+            decision_id: id("decision_cancelled"),
+            ..fixture_approval(&manifest, &binding)
+        })
+        .expect("cancelled decision");
+    cancelled_service
+        .cancel(CancelDecisionInput {
+            decision: &cancelled,
+            cancelled_at: UnixMillis(2_000),
+        })
+        .expect("cancel decision");
+    assert!(matches!(
+        cancelled_service.evidence(DecisionEvidenceInput {
+            decision: &cancelled,
+            observed_at: UnixMillis(2_100),
+        }),
+        Err(EgressError::DecisionCancelled)
+    ));
+
+    let expired_ledger = MemoryDecisionLedger::default();
+    let expired_service = ConsentService::new(&expired_ledger);
+    let expired = expired_service
+        .approve(ApproveDecisionInput {
+            decision_id: id("decision_expired"),
+            ..fixture_approval(&manifest, &binding)
+        })
+        .expect("expired decision");
+    assert!(matches!(
+        expired_service.evidence(DecisionEvidenceInput {
+            decision: &expired,
+            observed_at: UnixMillis(31_501),
+        }),
+        Err(EgressError::DecisionExpired)
+    ));
+
+    let pruned_ledger = MemoryDecisionLedger::default();
+    let pruned_service = ConsentService::new(&pruned_ledger);
+    let pruned = pruned_service
+        .approve(ApproveDecisionInput {
+            decision_id: id("decision_pruned"),
+            ..fixture_approval(&manifest, &binding)
+        })
+        .expect("decision before pruning");
+    pruned_service
+        .approve(ApproveDecisionInput {
+            manifest: &manifest,
+            binding: &binding,
+            decision_id: id("decision_prune_trigger"),
+            issued_at: UnixMillis(31_501),
+            expires_at: UnixMillis(60_000),
+        })
+        .expect("prune trigger");
+    assert!(matches!(
+        pruned_service.evidence(DecisionEvidenceInput {
+            decision: &pruned,
+            observed_at: UnixMillis(32_000),
+        }),
+        Err(EgressError::DecisionUnknown)
+    ));
+
+    let restarted_ledger = MemoryDecisionLedger::default();
+    let restarted_service = ConsentService::new(&restarted_ledger);
+    assert!(matches!(
+        restarted_service.evidence(DecisionEvidenceInput {
+            decision: &pruned,
+            observed_at: UnixMillis(2_000),
+        }),
+        Err(EgressError::DecisionUnknown)
+    ));
 }

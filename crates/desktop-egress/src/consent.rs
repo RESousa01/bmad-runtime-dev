@@ -1,7 +1,10 @@
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+};
 
 use desktop_runtime::{canonical_hash, ContractId, Sha256Digest, UnixMillis};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, MutexGuard};
 use serde::{Deserialize, Serialize};
 
 use crate::{ContextEgressManifest, EgressError, RetentionMode};
@@ -10,6 +13,8 @@ const BINDING_SCHEMA: &str = "sapphirus.model-invocation-binding.v1";
 const DECISION_SCHEMA: &str = "sapphirus.context-decision.v1";
 const CONSUMPTION_SCHEMA: &str = "sapphirus.decision-consumption.v1";
 const MAX_DECISION_LIFETIME_MS: u64 = 5 * 60 * 1_000;
+const DEFAULT_MAX_TRACKED_DECISIONS: usize = 256;
+const DEFAULT_MAX_SEEN_DECISION_IDS: usize = 4_096;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -140,8 +145,7 @@ struct PendingContextDecisionDraft {
 ///     decision.decision_hash = desktop_runtime::sha256_bytes(b"rehashed");
 /// }
 /// ```
-#[derive(Debug, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Eq, PartialEq)]
 pub struct PendingContextDecision {
     schema_version: String,
     decision_id: ContractId,
@@ -154,6 +158,14 @@ pub struct PendingContextDecision {
     issued_at: UnixMillis,
     expires_at: UnixMillis,
     decision_hash: Sha256Digest,
+}
+
+impl fmt::Debug for PendingContextDecision {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PendingContextDecision")
+            .finish_non_exhaustive()
+    }
 }
 
 impl PendingContextDecision {
@@ -228,6 +240,82 @@ impl PendingContextDecision {
             return Err(EgressError::DecisionIntegrity);
         }
         Ok(())
+    }
+}
+
+/// A borrowed, integrity-checked view of one live consent decision.
+///
+/// The view deliberately implements neither `Clone` nor `Serialize`; it can
+/// only be created from an intact [`PendingContextDecision`].
+///
+/// ```compile_fail,E0277
+/// fn serialize(evidence: &desktop_egress::ContextDecisionEvidence<'_>) {
+///     let _ = serde_json::to_string(evidence);
+/// }
+/// ```
+pub struct ContextDecisionEvidence<'a> {
+    decision: &'a PendingContextDecision,
+    observed_at: UnixMillis,
+    _ledger_state: MutexGuard<'a, MemoryDecisionLedgerState>,
+}
+
+impl fmt::Debug for ContextDecisionEvidence<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ContextDecisionEvidence")
+            .finish_non_exhaustive()
+    }
+}
+
+impl ContextDecisionEvidence<'_> {
+    #[must_use]
+    pub fn decision_id(&self) -> &ContractId {
+        &self.decision.decision_id
+    }
+
+    #[must_use]
+    pub const fn manifest_hash(&self) -> Sha256Digest {
+        self.decision.manifest_hash
+    }
+
+    #[must_use]
+    pub const fn invocation_binding_hash(&self) -> Sha256Digest {
+        self.decision.binding_hash
+    }
+
+    #[must_use]
+    pub const fn consent_disclosure_hash(&self) -> Sha256Digest {
+        self.decision.consent_disclosure_hash
+    }
+
+    #[must_use]
+    pub const fn policy_hash(&self) -> Sha256Digest {
+        self.decision.policy_hash
+    }
+
+    #[must_use]
+    pub fn installation_id(&self) -> &ContractId {
+        &self.decision.installation_id
+    }
+
+    #[must_use]
+    pub const fn session_authority_hash(&self) -> Sha256Digest {
+        self.decision.session_authority_hash
+    }
+
+    #[must_use]
+    pub const fn issued_at(&self) -> UnixMillis {
+        self.decision.issued_at
+    }
+
+    #[must_use]
+    pub const fn expires_at(&self) -> UnixMillis {
+        self.decision.expires_at
+    }
+
+    #[must_use]
+    pub const fn observed_at(&self) -> UnixMillis {
+        self.observed_at
     }
 }
 
@@ -420,6 +508,12 @@ pub struct CancelDecisionInput<'a> {
     pub cancelled_at: UnixMillis,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct DecisionEvidenceInput<'a> {
+    pub decision: &'a PendingContextDecision,
+    pub observed_at: UnixMillis,
+}
+
 trait DecisionLedger: Send + Sync {
     fn insert_pending(&self, decision: &PendingContextDecision) -> Result<(), EgressError>;
 
@@ -434,9 +528,20 @@ trait DecisionLedger: Send + Sync {
 #[derive(Debug)]
 enum DecisionState {
     Pending(Box<PendingContextDecision>),
-    Consumed,
-    Cancelled,
-    Expired,
+    Consumed { expires_at: UnixMillis },
+    Cancelled { expires_at: UnixMillis },
+    Expired { expires_at: UnixMillis },
+}
+
+impl DecisionState {
+    fn expires_at(&self) -> UnixMillis {
+        match self {
+            Self::Pending(decision) => decision.expires_at,
+            Self::Consumed { expires_at }
+            | Self::Cancelled { expires_at }
+            | Self::Expired { expires_at } => *expires_at,
+        }
+    }
 }
 
 /// In-memory consent authority used by the current desktop composition.
@@ -449,19 +554,50 @@ enum DecisionState {
 ///     ledger.insert_pending(&decision).unwrap();
 /// }
 /// ```
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct MemoryDecisionLedger {
-    decisions: Mutex<HashMap<ContractId, DecisionState>>,
+    state: Mutex<MemoryDecisionLedgerState>,
+}
+
+#[derive(Default)]
+struct MemoryDecisionLedgerState {
+    decisions: HashMap<ContractId, DecisionState>,
+    seen_decision_ids: HashSet<ContractId>,
+}
+
+impl fmt::Debug for MemoryDecisionLedger {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("MemoryDecisionLedger")
+            .finish_non_exhaustive()
+    }
+}
+
+impl MemoryDecisionLedger {
+    /// Maximum number of simultaneously relevant decisions retained in one
+    /// in-process authority ledger.
+    pub const MAX_TRACKED_DECISIONS: usize = DEFAULT_MAX_TRACKED_DECISIONS;
+
+    /// Maximum number of identifier replay tombstones retained for one
+    /// process lifetime. Saturation rejects new approvals fail-closed.
+    pub const MAX_SEEN_DECISION_IDS: usize = DEFAULT_MAX_SEEN_DECISION_IDS;
 }
 
 impl DecisionLedger for MemoryDecisionLedger {
     fn insert_pending(&self, decision: &PendingContextDecision) -> Result<(), EgressError> {
         decision.verify()?;
-        let mut decisions = self.decisions.lock();
-        if decisions.contains_key(&decision.decision_id) {
+        let mut state = self.state.lock();
+        state
+            .decisions
+            .retain(|_, entry| entry.expires_at() >= decision.issued_at);
+        if state.seen_decision_ids.contains(&decision.decision_id)
+            || state.decisions.len() >= DEFAULT_MAX_TRACKED_DECISIONS
+            || state.seen_decision_ids.len() >= DEFAULT_MAX_SEEN_DECISION_IDS
+        {
             return Err(EgressError::DecisionAlreadyExists);
         }
-        decisions.insert(
+        state.seen_decision_ids.insert(decision.decision_id.clone());
+        state.decisions.insert(
             decision.decision_id.clone(),
             DecisionState::Pending(Box::new(decision.stored_copy())),
         );
@@ -474,17 +610,19 @@ impl DecisionLedger for MemoryDecisionLedger {
     ) -> Result<DecisionConsumption, EgressError> {
         input.decision.verify()?;
         input.binding.verify()?;
-        let mut decisions = self.decisions.lock();
-        let state = decisions
+        let mut ledger = self.state.lock();
+        let state = ledger
+            .decisions
             .get_mut(&input.decision.decision_id)
             .ok_or(EgressError::DecisionUnknown)?;
         match state {
-            DecisionState::Consumed => Err(EgressError::DecisionAlreadyConsumed),
-            DecisionState::Cancelled => Err(EgressError::DecisionCancelled),
-            DecisionState::Expired => Err(EgressError::DecisionExpired),
+            DecisionState::Consumed { .. } => Err(EgressError::DecisionAlreadyConsumed),
+            DecisionState::Cancelled { .. } => Err(EgressError::DecisionCancelled),
+            DecisionState::Expired { .. } => Err(EgressError::DecisionExpired),
             DecisionState::Pending(stored) => {
                 if input.consumed_at > stored.expires_at {
-                    *state = DecisionState::Expired;
+                    let expires_at = stored.expires_at;
+                    *state = DecisionState::Expired { expires_at };
                     return Err(EgressError::DecisionExpired);
                 }
                 if input.consumed_at < stored.issued_at
@@ -511,7 +649,8 @@ impl DecisionLedger for MemoryDecisionLedger {
                     session_authority_hash: stored.session_authority_hash,
                     consumed_at: input.consumed_at,
                 })?;
-                *state = DecisionState::Consumed;
+                let expires_at = stored.expires_at;
+                *state = DecisionState::Consumed { expires_at };
                 Ok(consumption)
             }
         }
@@ -519,23 +658,26 @@ impl DecisionLedger for MemoryDecisionLedger {
 
     fn cancel_if_pending(&self, input: CancelDecisionInput<'_>) -> Result<(), EgressError> {
         input.decision.verify()?;
-        let mut decisions = self.decisions.lock();
-        let state = decisions
+        let mut ledger = self.state.lock();
+        let state = ledger
+            .decisions
             .get_mut(&input.decision.decision_id)
             .ok_or(EgressError::DecisionUnknown)?;
         match state {
-            DecisionState::Consumed => Err(EgressError::DecisionAlreadyConsumed),
-            DecisionState::Cancelled => Err(EgressError::DecisionCancelled),
-            DecisionState::Expired => Err(EgressError::DecisionExpired),
+            DecisionState::Consumed { .. } => Err(EgressError::DecisionAlreadyConsumed),
+            DecisionState::Cancelled { .. } => Err(EgressError::DecisionCancelled),
+            DecisionState::Expired { .. } => Err(EgressError::DecisionExpired),
             DecisionState::Pending(stored) => {
                 if input.cancelled_at > stored.expires_at {
-                    *state = DecisionState::Expired;
+                    let expires_at = stored.expires_at;
+                    *state = DecisionState::Expired { expires_at };
                     return Err(EgressError::DecisionExpired);
                 }
                 if input.cancelled_at < stored.issued_at || stored.as_ref() != input.decision {
                     return Err(EgressError::DecisionBindingMismatch);
                 }
-                *state = DecisionState::Cancelled;
+                let expires_at = stored.expires_at;
+                *state = DecisionState::Cancelled { expires_at };
                 Ok(())
             }
         }
@@ -550,6 +692,54 @@ impl<'a> ConsentService<'a> {
     #[must_use]
     pub const fn new(ledger: &'a MemoryDecisionLedger) -> Self {
         Self { ledger }
+    }
+
+    /// Borrows verified bridge evidence only while the exact decision remains
+    /// live and pending in this ledger.
+    ///
+    /// The returned view retains the ledger lock until it is dropped, so a
+    /// concurrent consume or cancel cannot race bridge materialization.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EgressError`] when the decision is invalid, expired,
+    /// terminal, unregistered, or does not match the ledger copy.
+    pub fn evidence<'b>(
+        &'b self,
+        input: DecisionEvidenceInput<'b>,
+    ) -> Result<ContextDecisionEvidence<'b>, EgressError> {
+        input.decision.verify()?;
+        let mut state = self.ledger.state.lock();
+        {
+            let decision_state = state
+                .decisions
+                .get_mut(&input.decision.decision_id)
+                .ok_or(EgressError::DecisionUnknown)?;
+            match decision_state {
+                DecisionState::Consumed { .. } => {
+                    return Err(EgressError::DecisionAlreadyConsumed);
+                }
+                DecisionState::Cancelled { .. } => {
+                    return Err(EgressError::DecisionCancelled);
+                }
+                DecisionState::Expired { .. } => return Err(EgressError::DecisionExpired),
+                DecisionState::Pending(stored) => {
+                    if input.observed_at > stored.expires_at {
+                        let expires_at = stored.expires_at;
+                        *decision_state = DecisionState::Expired { expires_at };
+                        return Err(EgressError::DecisionExpired);
+                    }
+                    if input.observed_at < stored.issued_at || stored.as_ref() != input.decision {
+                        return Err(EgressError::DecisionBindingMismatch);
+                    }
+                }
+            }
+        }
+        Ok(ContextDecisionEvidence {
+            decision: input.decision,
+            observed_at: input.observed_at,
+            _ledger_state: state,
+        })
     }
 
     /// Approves an exact reviewed manifest and invocation binding.

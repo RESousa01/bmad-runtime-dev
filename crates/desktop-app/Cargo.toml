@@ -15,6 +15,7 @@ tauri-build.workspace = true
 base64.workspace = true
 desktop-airlock = { path = "../desktop-airlock" }
 desktop-cloud = { path = "../desktop-cloud" }
+desktop-egress = { path = "../desktop-egress" }
 desktop-execution = { path = "../desktop-execution" }
 desktop-ipc = { path = "../desktop-ipc" }
 desktop-runtime = { path = "../desktop-runtime" }

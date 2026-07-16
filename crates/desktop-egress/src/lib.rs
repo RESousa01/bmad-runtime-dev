@@ -12,8 +12,8 @@ mod preparation;
 
 pub use consent::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
-    DecisionConsumption, MemoryDecisionLedger, ModelInvocationBinding, ModelInvocationBindingDraft,
-    PendingContextDecision,
+    ContextDecisionEvidence, DecisionConsumption, DecisionEvidenceInput, MemoryDecisionLedger,
+    ModelInvocationBinding, ModelInvocationBindingDraft, PendingContextDecision,
 };
 pub use manifest::{
     ContextClassification, ContextEgressManifest, ContextEgressManifestDraft, ContextExclusion,

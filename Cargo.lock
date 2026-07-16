@@ -713,6 +713,7 @@ dependencies = [
  "base64 0.22.1",
  "desktop-airlock",
  "desktop-cloud",
+ "desktop-egress",
  "desktop-execution",
  "desktop-ipc",
  "desktop-runtime",
