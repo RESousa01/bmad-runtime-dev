@@ -17,6 +17,21 @@ status: active
 
 # Library Validation Protocol
 
+## Living knowledge validation
+
+The living authority layer is validated offline. Run these commands from the repository root before accepting a knowledge change:
+
+```powershell
+py -3 -B -m unittest discover -s bmad-runtime-lib/_source_review/tests -p "test_*.py"
+pnpm vault:test
+py -3 -B bmad-runtime-lib/_source_review/validate_library.py
+node tools/verify-reference-vault.mjs
+```
+
+The validator checks closed claim/source registries, evidence depth, note-catalog coverage, current-note claim references, repository pins, root legacy-status hygiene, and both manifests. External facts must be researched from official primary sources and corroborated where practical; repository facts require implementation evidence plus tests or checks.
+
+The sections below describe the retained legacy-library checks. They remain useful, but the `knowledge-base/current` notes now own current product authority.
+
 ## V6.17 architecture-consistency checks
 
 Validation scans every active note for an applicability statement or an unambiguous shared/web/desktop context. It fails on: cloud services presented as desktop local authority; generic Tauri filesystem/shell bridges; `local` used for `sealed_test_fake`; provider keys on device; Job Objects called a sandbox; multi-file apply called atomic; remote result direct apply; last-write-wins on protected facts; missing delivery/authority discriminator on durable contracts; or broken links to 93–99.

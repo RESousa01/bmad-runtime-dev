@@ -13,7 +13,7 @@ section: "Windows Desktop Runtime"
 order: 95
 vault_role: "desktop-workspace-execution-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 updated_on: 2026-07-10
 ---
 

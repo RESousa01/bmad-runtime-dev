@@ -3,6 +3,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import process from "node:process";
 
+import { verifyClosedManifest } from "./lib/closed-manifest.mjs";
+
 const root = process.cwd();
 const vaultRoot = join(root, "bmad-runtime-lib");
 const recordPath = join(root, "docs", "provenance", "vault-validation.json");
@@ -54,16 +56,41 @@ if (
 
 const expectedValidator = "bmad-runtime-lib/_source_review/validate_library.py";
 const expectedManifest = "bmad-runtime-lib/manifest.json";
-if (record.validator !== expectedValidator || record.manifest !== expectedManifest) {
+const expectedLivingValidator = "bmad-runtime-lib/_source_review/living_knowledge.py";
+const expectedLivingManifest = "bmad-runtime-lib/knowledge-base/manifest.json";
+if (
+  record.validator !== expectedValidator ||
+  record.manifest !== expectedManifest ||
+  record.livingValidator !== expectedLivingValidator ||
+  record.livingManifest !== expectedLivingManifest
+) {
   fail("the verification record points outside the reviewed validator and manifest paths");
 }
 
 const validatorBytes = await bytes(join(root, ...record.validator.split("/")));
 const manifestBytes = await bytes(join(root, ...record.manifest.split("/")));
+const livingValidatorBytes = await bytes(join(root, ...record.livingValidator.split("/")));
+const livingManifestBytes = await bytes(join(root, ...record.livingManifest.split("/")));
 if (sha256(validatorBytes) !== record.validatorSha256) fail("the reviewed validator hash drifted");
 if (sha256(manifestBytes) !== record.manifestSha256) fail("the frozen manifest hash drifted");
+if (sha256(livingValidatorBytes) !== record.livingValidatorSha256) {
+  fail("the living-knowledge validator hash drifted");
+}
+if (sha256(livingManifestBytes) !== record.livingManifestSha256) {
+  fail("the living-knowledge manifest hash drifted");
+}
 
 const manifest = parseJson(manifestBytes, record.manifest);
+const livingManifest = parseJson(livingManifestBytes, record.livingManifest);
+try {
+  await verifyClosedManifest({
+    root: join(vaultRoot, "knowledge-base"),
+    manifest: livingManifest,
+    directories: ["current", "evidence"],
+  });
+} catch (error) {
+  fail(error instanceof Error ? error.message : "living manifest verification failed");
+}
 if (!Array.isArray(manifest.files) || typeof manifest.metrics !== "object" || manifest.metrics === null) {
   fail("manifest.json does not have the required closed top-level data");
 }
@@ -123,5 +150,5 @@ if (
 }
 
 console.log(
-  `Reference vault verified: ${markdownNames.length} root Markdown files, manifest and validator hashes unchanged.`,
+  `Reference vault verified: ${markdownNames.length} root Markdown files; root and living validator/manifest hashes unchanged.`,
 );

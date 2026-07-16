@@ -1,0 +1,636 @@
+{
+  "schemaVersion": "sapphirus.living-knowledge.v1",
+  "rootNoteCount": 105,
+  "notes": [
+    {
+      "path": "00 - Common Rules and Product Shape.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "01 - First Build - Executable Vertical Slice.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "02 - Locked Architecture Decisions.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "03 - Repository and Vault Usage.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "04 - Review Findings and Changelog.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "05 - Preserved Source Context.md",
+      "authorityClass": "preserved_verbatim",
+      "reason": "Preserved source or critical-review evidence; retain byte identity.",
+      "supersededBy": null
+    },
+    {
+      "path": "06 - Preserved Critical Review.md",
+      "authorityClass": "preserved_verbatim",
+      "reason": "Preserved source or critical-review evidence; retain byte identity.",
+      "supersededBy": null
+    },
+    {
+      "path": "07 - Source Coverage Matrix.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "08 - Phased Roadmap and Build Order.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "09 - Glossary and Naming.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "10 - Chat Workbench.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "100 - BMAD Method and Builder Deep Comprehension Audit.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "11 - Runtime API Control Plane.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "12 - Run Orchestrator and Agent Kernel.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "14 - Builder Studio and SkillOps.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "15 - Artifact Creator and Presentation Adapter.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "16 - Workspace Service.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "17 - Workspace Intelligence and Context Packs.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "18 - Model Gateway and Microsoft Foundry.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "19 - Airlock Policy and Approvals.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "20 - Execution Lanes and Container App Jobs.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "21 - Trace, Evidence, and Observability.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "22 - Data Model - SQL and Blob.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "23 - Security, Identity, and Secrets.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "24 - Operator Console and Operations.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "25 - OpenAPI, Schemas, and Generated Clients.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "26 - Frontend Design System.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "27 - Testing, Validation, and Replay.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "28 - Supply Chain, Deployment, and IaC.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "29 - Concurrency, Transactions, and Failures.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "30 - Implementation Epics and Backlog.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "31 - Architecture Decision Records.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "32 - Integration Contract Map.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "33 - Release Gates and Acceptance Matrix.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "34 - Canonical Object Model.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "35 - Source Alignment Notes.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "36 - Local Development and DevEx.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "37 - Azure Environments and Deployment Runbooks.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "38 - Worker Images and Command DSL.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "39 - BMAD Package Format.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "40 - Threat Model and Security Tests.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "41 - Observability Dashboards and Alerts.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "42 - Migrations, Retention, and Cleanup.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "43 - Product UX Flows and Wireframe Notes.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "44 - AI Coding Agent Handoff Prompts.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "45 - Trace Bundle Schema.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "46 - API Route Catalog.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "47 - Database DDL Starter.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "48 - Blob Storage Layout.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "49 - Detailed Component Build Checklists.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "50 - V4 Full Library Audit.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "51 - Master Implementation Sequence.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "52 - API, Event, Table, and Blob Ownership.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "53 - Event Taxonomy and Stream Protocol.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "54 - State Machine Reference.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "55 - Airlock Policy Rulebook.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "56 - Worker Manifest Protocol.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "57 - Replay Fixture Library Plan.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "58 - Risk Register and Mitigation Plan.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "59 - Definition of Done by Component.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "60 - External Platform References and Verification Sources.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "61 - First Vertical Slice User Stories.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "62 - Component Interview Prompts.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "63 - Backend Port Interfaces.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "64 - JSON Schema Contract Examples.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "65 - SQL Migration and Index Plan.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "66 - Frontend Component Specification.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "67 - Azure IaC Module Specification.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "68 - Security Test Case Catalog.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "69 - BMAD Validation Rules.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "70 - Presentation Adapter Mapping Workbook.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "71 - Backlog Story Template and Ready Rules.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "72 - Week-by-Week Build Plan.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "73 - Verification Register.md",
+      "authorityClass": "supporting_reference",
+      "reason": "Operational navigation or validation evidence; not product authority.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "74 - Targeted Corrections.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "75 - Library Validation Protocol.md",
+      "authorityClass": "supporting_reference",
+      "reason": "Operational navigation or validation evidence; not product authority.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "76 - Current Stack Baseline.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "77 - Platform Revalidation Register.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "78 - Deprecation and Preview Watchlist.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "79 - Corrections Applied.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "80 - Modern Engineering Methods.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "81 - Modernization Spike Backlog.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "82 - Current Technology Decision Summary.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "83 - BMAD Source Code Review - Method and Builder.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "85 - OpenClaw Structured Code Review.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "86 - Hermes Source Code Review - Agent Runtime and Learning Loop.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "87 - Hermes Deep Review - Extension Runtime and Operational Contracts.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "88 - Odysseus Source Code Review - Self-Hosted AI Workspace.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "89 - Consolidated AI Workspace Source Review and Architecture Improvements.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "90 - LLM-Tailored Development Plan and Agent Workflow.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "91 - Technology, Language, Method, and LLM Implementation Review.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "92 - Source Snapshot Verification and Adoption Ledger.md",
+      "authorityClass": "source_evidence",
+      "reason": "Reviewed source evidence supporting current clean-room decisions.",
+      "supersededBy": null
+    },
+    {
+      "path": "93 - Split Web and Windows Desktop Architecture Plans.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "94 - Windows Desktop Native Host and IPC.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "95 - Windows Local Workspace and Execution.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "97 - Windows Desktop Security and Trust Model.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "98 - Azure Support Plane for Windows Desktop.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "99 - Dual-Delivery Contract and Conformance Specification.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "Library Quality Report.md",
+      "authorityClass": "supporting_reference",
+      "reason": "Operational navigation or validation evidence; not product authority.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "Start Here.md",
+      "authorityClass": "supporting_reference",
+      "reason": "Operational navigation or validation evidence; not product authority.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "Technology Baseline Fact Check.md",
+      "authorityClass": "historical",
+      "reason": "Legacy planning guidance retained for provenance and supersession review.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    },
+    {
+      "path": "Vault Map.md",
+      "authorityClass": "supporting_reference",
+      "reason": "Operational navigation or validation evidence; not product authority.",
+      "supersededBy": "knowledge-base/current/00-current-product-state.md"
+    }
+  ]
+}
