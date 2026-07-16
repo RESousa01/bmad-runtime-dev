@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    BmadHelpIntent, ContractId, LocalResult, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    BmadHelpIntent, ContractId, LocalResult, ProposedFileChange, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis,
 };
 
 /// User-facing approval outcomes. Only `Apply` can lead to spec issuance.
@@ -74,6 +75,19 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         relative_paths: Vec<RelativeWorkspacePath>,
     },
+    EnableWorkspaceEdits {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
+    ProposeChanges {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        changes: Vec<ProposedFileChange>,
+    },
+    ChangesHistory {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
     CreateSession {
         workspace_id: ContractId,
     },
@@ -118,6 +132,9 @@ impl LocalCommand {
             Self::CreateBmadHelpRun { .. } => "run.create",
             Self::LatestBmadHelpRun { .. } => "bmad.help.latest",
             Self::PreviewContext { .. } => "context.preview",
+            Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
+            Self::ProposeChanges { .. } => "changes.propose",
+            Self::ChangesHistory { .. } => "changes.history",
             Self::CreateSession { .. } => "session.create",
             Self::SubmitTask { .. } => "task.submit",
             Self::CancelTask { .. } => "task.cancel",
@@ -141,6 +158,7 @@ impl LocalCommand {
                 | Self::BmadLibrarySnapshot { .. }
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }
+                | Self::ChangesHistory { .. }
         )
     }
 }

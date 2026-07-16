@@ -32,7 +32,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 12] = [
+const READY_COMMANDS: [&str; 17] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -45,6 +45,11 @@ const READY_COMMANDS: [&str; 12] = [
     "bmad.help.latest",
     "run.create",
     "context.preview",
+    "workspace.enable_edits",
+    "changes.propose",
+    "approval.decide",
+    "rollback.request",
+    "changes.history",
 ];
 const RECOVERY_COMMANDS: [&str; 2] = ["app.get_boot_state", "workspace.list"];
 
@@ -376,16 +381,18 @@ fn execute_command(
             let _authority = state.ready_authority()?;
             preview_context(state, workspace_id, relative_paths)
         }
+        command @ (LocalCommand::EnableWorkspaceEdits { .. }
+        | LocalCommand::ProposeChanges { .. }
+        | LocalCommand::DecideApproval { .. }
+        | LocalCommand::RequestRollback { .. }
+        | LocalCommand::ChangesHistory { .. }) => {
+            crate::edits::execute_changes_command(state, request_id, accepted_at, command)
+        }
         LocalCommand::CreateSession { .. }
         | LocalCommand::SubmitTask { .. }
         | LocalCommand::CancelTask { .. } => Err(temporarily_unavailable(
             "Connected Agent sessions are not configured for this internal build.",
         )),
-        LocalCommand::DecideApproval { .. } | LocalCommand::RequestRollback { .. } => {
-            Err(temporarily_unavailable(
-                "Governed local changes are unavailable until the authority chain is ready.",
-            ))
-        }
         LocalCommand::MaterializeEvidence { .. } | LocalCommand::ExportEvidence { .. } => Err(
             temporarily_unavailable("Evidence export is not available in this build."),
         ),
@@ -980,7 +987,7 @@ fn boot_state(state: &HostState) -> BootStateProjection {
         mode,
         workspace_count: u32::try_from(state.workspace.list().len()).unwrap_or(u32::MAX),
         connected_features_available: false,
-        local_edits_available: false,
+        local_edits_available: mode == BootMode::Ready,
         recovery_message: (mode == BootMode::ReadOnlyRecovery).then(|| {
             "Local authority storage could not be verified. File changes remain blocked.".to_owned()
         }),
@@ -1054,7 +1061,7 @@ fn map_ipc_error(error: &IpcValidationError) -> LocalError {
     }
 }
 
-fn map_workspace_error(error: &WorkspaceError) -> LocalError {
+pub(crate) fn map_workspace_error(error: &WorkspaceError) -> LocalError {
     match error {
         WorkspaceError::UnsupportedRoot => invalid_request(
             "Choose a fixed local NTFS folder without reparse points or cloud placeholders.",

@@ -100,6 +100,7 @@ pub(crate) struct HostState {
     renderer_sessions: RwLock<HashMap<String, ContractId>>,
     cursors: Mutex<CursorState>,
     replies: Mutex<ReplyCache>,
+    pending_proposals: Mutex<crate::edits::PendingProposals>,
     sequence: AtomicU64,
     events: Mutex<VecDeque<ProjectionEvent>>,
 }
@@ -180,6 +181,12 @@ impl HostState {
             return Ok(Self::recovery(installation_id, Some(store)));
         }
 
+        // Interrupted effect journals are reconciled from the durable state
+        // machine before any command can start a new governed effect.
+        if crate::edits::reconcile_execution_journals(&store).is_err() {
+            return Ok(Self::recovery(installation_id, Some(store)));
+        }
+
         let Some((workspace, catalog)) = load_workspace_catalog(&store) else {
             return Ok(Self::recovery(installation_id, Some(store)));
         };
@@ -195,6 +202,7 @@ impl HostState {
             renderer_sessions: RwLock::new(HashMap::new()),
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
+            pending_proposals: Mutex::new(crate::edits::PendingProposals::default()),
             sequence: AtomicU64::new(0),
             events: Mutex::new(VecDeque::new()),
         })
@@ -215,6 +223,7 @@ impl HostState {
             renderer_sessions: RwLock::new(HashMap::new()),
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
+            pending_proposals: Mutex::new(crate::edits::PendingProposals::default()),
             sequence: AtomicU64::new(0),
             events: Mutex::new(VecDeque::new()),
         }
@@ -254,6 +263,52 @@ impl HostState {
             .as_ref()
             .ok_or(StoreError::Inconsistent)?
             .local_identity()
+    }
+
+    /// Returns the open authority store while Ready mode is proven held.
+    pub fn local_store(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+    ) -> Result<&LocalStore, LocalError> {
+        self.store.as_ref().ok_or_else(recovery_error)
+    }
+
+    pub fn insert_pending_proposal(
+        &self,
+        approval_id: String,
+        proposal: crate::edits::PendingChangesProposal,
+    ) {
+        self.pending_proposals.lock().insert(approval_id, proposal);
+    }
+
+    pub fn take_pending_proposal(
+        &self,
+        approval_id: &str,
+    ) -> Option<crate::edits::PendingChangesProposal> {
+        self.pending_proposals.lock().take(approval_id)
+    }
+
+    /// Persists an updated projection for an already-registered workspace,
+    /// for example after governed edits are enabled at a new grant epoch.
+    pub fn persist_workspace_update(
+        &self,
+        _authority: &ReadyAuthorityGuard<'_>,
+        projection: &WorkspaceProjection,
+        event_type: &str,
+        correlation_id: &ContractId,
+    ) -> Result<(), LocalError> {
+        let store = self.store.as_ref().ok_or_else(recovery_error)?;
+        let mut catalog = self.catalog.lock();
+        let mut next = catalog.value.clone();
+        let entry = next
+            .entries
+            .iter_mut()
+            .find(|entry| {
+                entry.projection.workspace_id == projection.workspace_id && !entry.revoked
+            })
+            .ok_or_else(|| not_found_error("The local workspace is not available."))?;
+        entry.projection = projection.clone();
+        persist_catalog(store, &mut catalog, next, event_type, correlation_id)
     }
 
     pub fn replay_bmad_help_run(
