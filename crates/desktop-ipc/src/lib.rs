@@ -5,6 +5,7 @@
 //! installation before a domain command is created.
 
 mod bmad;
+mod bmad_completion;
 mod bmad_help;
 mod bmad_run;
 mod envelope;
@@ -37,6 +38,13 @@ pub use bmad::{
     BmadLibrarySnapshotProjection, BmadLibrarySourceKind, BmadLibrarySourceProjection,
     BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
     MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+};
+pub use bmad_completion::{
+    decode_retained_bmad_help_completion, project_completed_bmad_help_run,
+    BmadHelpCompletedRecommendationProjection, BmadHelpEvidenceClassProjection,
+    BmadHelpNoRecommendationReasonProjection, BmadHelpReceiptStatusProjection,
+    BmadHelpReceiptSummaryInput, BmadHelpReceiptSummaryProjection, BmadHelpRetentionProjection,
+    BmadHelpRunCompletedProjection, MAX_BMAD_HELP_COMPLETED_PROJECTION_BYTES,
 };
 pub use bmad_help::{
     project_bmad_help_recommendation, BmadHelpConfidenceProjection, BmadHelpProjectionError,

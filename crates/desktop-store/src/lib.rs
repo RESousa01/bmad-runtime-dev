@@ -39,8 +39,9 @@ mod execution;
 mod migrations;
 
 pub use bmad_method::{
-    BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
-    BmadHelpRunReplayRequest, MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
+    BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
+    BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
+    MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
 };
 pub use execution::{
     EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,

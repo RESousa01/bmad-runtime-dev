@@ -1,7 +1,7 @@
 use desktop_ipc::{
-    decode_retained_bmad_help_run, deserialize_strict, project_bmad_library,
-    project_created_bmad_help_run, Admission, BmadHelpProjectionError, BmadProjectionError,
-    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
+    decode_retained_bmad_help_completion, decode_retained_bmad_help_run, deserialize_strict,
+    project_bmad_library, project_created_bmad_help_run, Admission, BmadHelpProjectionError,
+    BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
 };
 use desktop_runtime::{
     canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
@@ -575,7 +575,7 @@ fn create_new_bmad_help_run(
             run_id: run_id.clone(),
             local_identity,
             created_at: accepted_at,
-            intent: current_intent,
+            intent: current_intent.clone(),
         },
     )
     .map_err(|_| NewBmadHelpRunError::Local(bmad_help_unavailable()))?;
@@ -584,6 +584,7 @@ fn create_new_bmad_help_run(
     let projection = project_created_bmad_help_run(
         foundation.package(),
         &prepared.recommendation,
+        &current_intent,
         workspace_id.clone(),
         run_id.clone(),
         session_id.clone(),
@@ -662,27 +663,52 @@ fn latest_bmad_help_run(
         authority.enter_recovery();
         return Err(recovery_error());
     };
-    let receipt = match receipt {
-        BmadHelpRunLatest::None => {
-            drop(workspace_authority);
-            drop(authority);
-            return Ok(HostCommandData::NoBmadHelpRun);
-        }
-        BmadHelpRunLatest::LegacyProjectionUnavailable => {
-            drop(workspace_authority);
-            drop(authority);
-            return Ok(HostCommandData::BmadHelpProjectionUnavailable);
-        }
-        BmadHelpRunLatest::Retained(receipt) => receipt,
-    };
-    let Ok(execution) = bmad_help_run_execution_from_receipt(workspace_id, &receipt) else {
+    let Ok(data) = latest_bmad_help_run_data(workspace_id, receipt) else {
         drop(workspace_authority);
         authority.enter_recovery();
         return Err(recovery_error());
     };
     drop(workspace_authority);
     drop(authority);
-    Ok(execution.data)
+    Ok(data)
+}
+
+fn latest_bmad_help_run_data(
+    workspace_id: &ContractId,
+    latest: BmadHelpRunLatest,
+) -> Result<HostCommandData, BmadHelpProjectionError> {
+    match latest {
+        BmadHelpRunLatest::None => Ok(HostCommandData::NoBmadHelpRun),
+        BmadHelpRunLatest::LegacyProjectionUnavailable => {
+            Ok(HostCommandData::BmadHelpProjectionUnavailable)
+        }
+        BmadHelpRunLatest::Retained(receipt) => {
+            bmad_help_run_execution_from_receipt(workspace_id, &receipt)
+                .map(|execution| execution.data)
+        }
+        BmadHelpRunLatest::Interrupted(receipt) => decode_retained_bmad_help_run(
+            &receipt.renderer_projection,
+            workspace_id,
+            &receipt.run_id,
+            &receipt.session_id,
+        )
+        .map(HostCommandData::BmadHelpRunInterrupted),
+        BmadHelpRunLatest::Completed(completed) => {
+            decode_retained_bmad_help_run(
+                &completed.creation.renderer_projection,
+                workspace_id,
+                &completed.creation.run_id,
+                &completed.creation.session_id,
+            )?;
+            decode_retained_bmad_help_completion(
+                &completed.renderer_projection,
+                workspace_id,
+                &completed.creation.run_id,
+                &completed.creation.session_id,
+            )
+            .map(HostCommandData::BmadHelpRunCompleted)
+        }
+    }
 }
 
 fn new_host_id(prefix: &str) -> Result<ContractId, LocalError> {
@@ -1096,11 +1122,14 @@ mod tests {
     use desktop_runtime::{
         BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalErrorCode, UnixMillis,
     };
+    use desktop_store::{
+        BmadHelpRunCompletionReceipt, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
+    };
     use desktop_workspace::WorkspaceError;
 
     use super::{
-        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run, map_workspace_error,
-        revoke_workspace,
+        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
+        latest_bmad_help_run_data, map_workspace_error, revoke_workspace,
     };
     use crate::{bmad_foundation::load_bmad_foundation, state::HostState, wire::HostCommandData};
 
@@ -1137,6 +1166,74 @@ mod tests {
             .expect("persisted workspace");
         drop(authority);
         (state, storage, workspace, projection.workspace_id)
+    }
+
+    fn retained_help_receipt(
+        state: &HostState,
+        workspace_id: &str,
+        current_intent: &str,
+    ) -> Result<BmadHelpRunCreationReceipt, Box<dyn std::error::Error>> {
+        let foundation = load_bmad_foundation(foundation_path())?;
+        create_bmad_help_run(
+            state,
+            &foundation,
+            &id("request_01J00000000000000000000020"),
+            id(workspace_id),
+            1,
+            BmadHelpIntent::new(current_intent)?,
+            UnixMillis(1_000),
+        )
+        .map_err(|error| format!("Help run creation failed: {:?}", error.code))?;
+        let authority = state
+            .ready_workspace_commit()
+            .map_err(|error| format!("workspace authority failed: {:?}", error.code))?;
+        let latest = state.latest_bmad_help_run(
+            authority.authority(),
+            &id(workspace_id),
+            authority.workspace_catalog_version(),
+        )?;
+        match latest {
+            BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+            _ => Err("expected retained BMAD Help creation receipt".into()),
+        }
+    }
+
+    fn completed_projection_bytes(
+        workspace_id: &str,
+        receipt: &BmadHelpRunCreationReceipt,
+    ) -> Result<Vec<u8>, serde_json::Error> {
+        serde_json::to_vec(&serde_json::json!({
+            "schemaVersion": "bmad-help-completed.v1",
+            "runKind": "bmad_help",
+            "lifecycle": "completed",
+            "workspaceId": workspace_id,
+            "runId": receipt.run_id.as_str(),
+            "sessionId": receipt.session_id.as_str(),
+            "runnable": false,
+            "completionClaimed": true,
+            "recommendation": {
+                "recommendationKind": "recommended_capability",
+                "displayName": "Create Architecture",
+                "moduleCode": "bmm",
+                "skillName": "bmad-architecture",
+                "action": "create",
+                "evidenceClass": "user_asserted",
+                "guidanceRequired": true,
+                "rationaleSummary": "The stated architecture goal matches this planning capability.",
+                "createdAt": 3_000,
+            },
+            "receipt": {
+                "schemaVersion": "bmad-model-receipt-summary.v1",
+                "receiptId": "receipt_01J00000000000000000000020",
+                "status": "succeeded",
+                "retentionMode": "transient_no_store",
+                "region": "westeurope",
+                "inputBytes": 4_096,
+                "outputBytes": 512,
+                "startedAt": 1_500,
+                "completedAt": 2_000,
+            },
+        }))
     }
 
     #[test]
@@ -1312,8 +1409,127 @@ mod tests {
 
         assert_eq!(
             serde_json::to_value(latest).expect("latest projection"),
-            serde_json::to_value(first.data).expect("created projection")
+            serde_json::to_value(&first.data).expect("created projection")
         );
+        let value = serde_json::to_value(&first.data).expect("created projection value");
+        assert_eq!(value["value"]["currentIntent"], "BMad Help");
+    }
+
+    #[test]
+    fn latest_help_run_projects_interrupted_without_claiming_completion(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+
+        let data = latest_bmad_help_run_data(
+            &id(&workspace_id),
+            BmadHelpRunLatest::Interrupted(receipt),
+        )?;
+        let value = serde_json::to_value(data)?;
+
+        assert_eq!(value["kind"], "bmad_help_run_interrupted");
+        assert_eq!(value["value"]["lifecycle"], "created_unbound");
+        assert_eq!(value["value"]["completionClaimed"], false);
+        assert_eq!(
+            value["value"]["currentIntent"],
+            "Review architecture readiness before implementation"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn latest_help_run_strictly_decodes_the_completed_projection(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+        let renderer_projection = completed_projection_bytes(&workspace_id, &receipt)?;
+
+        let data = latest_bmad_help_run_data(
+            &id(&workspace_id),
+            BmadHelpRunLatest::Completed(BmadHelpRunCompletionReceipt {
+                creation: receipt,
+                renderer_projection,
+            }),
+        )?;
+        let value = serde_json::to_value(data)?;
+
+        assert_eq!(value["kind"], "bmad_help_run_completed");
+        assert_eq!(value["value"]["lifecycle"], "completed");
+        assert_eq!(value["value"]["completionClaimed"], true);
+        assert_eq!(
+            value["value"]["recommendation"]["recommendationKind"],
+            "recommended_capability"
+        );
+        assert_eq!(value["value"]["receipt"]["status"], "succeeded");
+        Ok(())
+    }
+
+    #[test]
+    fn latest_help_run_rejects_substituted_unknown_duplicate_and_oversized_completion_bytes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+        let valid = completed_projection_bytes(&workspace_id, &receipt)?;
+        let mut cases = Vec::new();
+
+        for (pointer, replacement) in [
+            ("/workspaceId", serde_json::json!("workspace_substituted")),
+            ("/runId", serde_json::json!("run_substituted")),
+            ("/sessionId", serde_json::json!("session_substituted")),
+        ] {
+            let mut value: serde_json::Value = serde_json::from_slice(&valid)?;
+            *value.pointer_mut(pointer).ok_or("missing fixture pointer")? = replacement;
+            cases.push(serde_json::to_vec(&value)?);
+        }
+
+        let mut unknown: serde_json::Value = serde_json::from_slice(&valid)?;
+        unknown
+            .as_object_mut()
+            .ok_or("completion fixture must be an object")?
+            .insert("proof".to_owned(), serde_json::json!("forged"));
+        cases.push(serde_json::to_vec(&unknown)?);
+
+        let text = String::from_utf8(valid.clone())?;
+        let duplicate = text.replacen(
+            "\"schemaVersion\":\"bmad-help-completed.v1\"",
+            "\"schemaVersion\":\"bmad-help-completed.v1\",\"schemaVersion\":\"bmad-help-completed.v1\"",
+            1,
+        );
+        if duplicate == text {
+            return Err("duplicate-field fixture was ineffective".into());
+        }
+        cases.push(duplicate.into_bytes());
+
+        let mut oversized = valid;
+        oversized.resize(
+            desktop_ipc::MAX_BMAD_HELP_COMPLETED_PROJECTION_BYTES + 1,
+            b' ',
+        );
+        cases.push(oversized);
+
+        for renderer_projection in cases {
+            assert!(latest_bmad_help_run_data(
+                &id(&workspace_id),
+                BmadHelpRunLatest::Completed(BmadHelpRunCompletionReceipt {
+                    creation: receipt.clone(),
+                    renderer_projection,
+                }),
+            )
+            .is_err());
+        }
+        Ok(())
     }
 
     #[test]
