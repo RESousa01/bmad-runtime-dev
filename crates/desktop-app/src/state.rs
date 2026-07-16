@@ -311,7 +311,7 @@ impl HostState {
         if *mode == BootMode::ReadOnlyRecovery {
             return self.sequence();
         }
-        bmad_model.invalidate();
+        bmad_model.invalidate(now());
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {
             mode: BootMode::ReadOnlyRecovery.as_str().to_owned(),
@@ -323,7 +323,7 @@ impl HostState {
         let mut renderer_sessions = self.renderer_sessions.write();
         let mut bmad_model = self.bmad_model.lock();
         renderer_sessions.insert(window_label.to_owned(), renderer_session_id.clone());
-        bmad_model.invalidate();
+        bmad_model.invalidate(now());
         Ok(renderer_session_id)
     }
 
