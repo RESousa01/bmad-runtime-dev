@@ -1962,8 +1962,8 @@ describe("DesktopHostClient", () => {
               sequence: 13,
               occurredAt: 1_725_000_000_010,
               event: {
-                type: "session_changed",
-                projection: { sessionId: "session_01K0Q6H3", state: "created" },
+                type: "model_response_received",
+                projection: { responseId: "response_01K0Q6H3" },
               },
             }],
           };
@@ -2108,7 +2108,7 @@ describe("DesktopHostClient", () => {
     })).toThrow(HostProtocolError);
     expect(() => parseBootstrapReply({
       ...readyBootstrap,
-      workspaces: [{ ...readyBootstrap.workspaces[0], permissions: "governed_edits" }],
+      workspaces: [{ ...readyBootstrap.workspaces[0], permissions: "unrestricted" }],
     })).toThrow(HostProtocolError);
     expect(() => parseBootstrapReply({
       ...readyBootstrap,

@@ -1,4 +1,4 @@
-# Implementation packet: D2-D reviewed BMAD Help desktop composition
+# Implementation packet: D2-D reviewed BMAD Help desktop composition, integrated with D3
 
 ## Authority and intent
 
@@ -12,7 +12,8 @@
 - Contracts read: the sealed BMAD Help binding, Method session v1 lifecycle, D2 context manifest,
   model invocation binding, model access receipt, and strict host-dispatch envelopes.
 - Non-goals: production identity, Azure deployment, managed model brokerage, production receipt
-  signing, installer signing, or allowing model output to authorize file effects.
+  signing, installer signing, or allowing model output to authorize file effects. D3 governed
+  edits remain a separate, explicit user-proposed/approved local capability.
 - Stop conditions: any authority substitution, consent replay, context drift, response/receipt
   mismatch, unsafe IPC field, default deterministic fallback, or D2/D3 approval crossover.
 
@@ -44,29 +45,33 @@
 - Atomic completion commit: `24b9dc81` (`feat(bmad): retain completed Help projections atomically`).
 - Exact review preparation commit: `e600cbe5` (`feat(bmad): prepare exact reviewed Help requests`).
 - One-shot coordinator commit: `f9e5456f` (`feat(bmad): compose one-shot verified Help requests`).
-- Paused checkpoint (2026-07-16): implementation was explicitly stopped before D3 integration,
-  commit, staging, or deployment. The following D2-D changes are intentionally still uncommitted in
-  the isolated `C:\tmp\d2` worktree and must be re-reviewed as one diff before resuming.
-- Implementer full-diff review: two lock/invalidation findings were corrected during the checkpoint;
-  a final stable-diff review remains required after the UI wiring is completed.
-- Independent bug/security review: complete for the coordinator/state checkpoint; repeat after D3
-  merge and after the final UI diff stabilizes.
+- D2-D checkpoint commit: `740c534a` (`feat-bmad-complete-deterministic-help-desktop-composition`).
+- D3 baseline integrated: `6365c8a6` (governed local edits shell and flow).
+- Integrated worktree: `C:\tmp\d2`, branch `codex/d2-ai-request`; the primary checkout remains
+  unchanged and its unrelated dirty support-plane edits were not staged or reset.
+- Final review: the merged diff was checked for authority crossover, renderer callback propagation,
+  parser bounds, command-catalog parity, and redaction safety. The review path was read-only in this
+  environment; no independent reviewer was spawned without explicit authorization.
 - Verified commands:
-  - `cargo test -p desktop-app --lib --all-features --locked` — 50 passed.
-  - `cargo test -p desktop-app --lib state::tests --all-features --locked` — 7 passed.
-  - `cargo test -p desktop-ipc --locked` — 50 passed across unit, projection, completion, and
-    strict model-access contract tests.
-  - Earlier focused baseline: `cargo test -p desktop-app --lib bmad_model --all-features --locked`
-    — 21 passed; default variant — 14 passed; `cargo clippy -p desktop-app --all-targets
+  - `cargo fmt --all -- --check` — passed.
+  - `cargo test --target-dir C:\tmp\codex-d2-target-20260716 -p desktop-app -p desktop-cloud
+    -p desktop-egress -p desktop-ipc -p desktop-runtime -p desktop-store --all-features --locked`
+    — all selected unit, integration, and doc tests passed.
+  - `cargo clippy --target-dir C:\tmp\codex-d2-target-20260716 -p desktop-app --all-targets
     --all-features --locked -- -D warnings` — passed.
-- Checkpoint corrections verified:
-  - recovery now obtains the Ready write authority before the Help coordinator, with a regression
-    test proving the coordinator remains available while recovery waits for Ready readers;
-  - model sign-out invalidates pending Help before advancing a renderer-safe identity epoch and
-    fails closed at the JavaScript-safe epoch bound;
-  - workspace revocation test coverage verifies active Help authority is cleared.
-- Work still pending at stop: complete/re-run focused UI tests and rendered smoke, final IPC handler
-  race review, D3 merge and cross-authority tests, full workspace/source/.NET gates, native
-  deterministic/default-offline smoke, commit/review, and Azure preparation/deployment (last).
+  - Pinned renderer TypeScript check — passed; pinned Vitest — 210 tests passed across 10 files;
+    pinned production Vite build — passed.
+  - BMAD foundation verification, TypeScript contract generation/schema/binding checks, and the
+    contract runner — 81 passed, 1 platform-skipped link test.
+  - `node tools/check-boundaries.mjs` — passed after adding the reviewed D2 command catalog and
+    the single bounded Windows broker adapter exception.
+  - `node tools/check-secrets.mjs` — passed for 490 active first-party files;
+    `node tools/verify-reference-vault.mjs` — passed.
+- D3 integration boundary: governed edits are renderer-authored proposals with separate workspace
+  edit authority, exact preimage/candidate/diff hashes, one-shot approval, durable execution, and
+  rollback. A Help recommendation or model output cannot create or approve an edit.
+- Work deliberately not claimed: interactive native Tauri smoke, production identity/managed
+  brokerage, signed receipt issuer verification, installer signing, clean-machine recovery, and
+  Azure deployment.
 - Remaining risks: production D2-E identity, entitlement, consent reconciliation, managed broker,
-  signed receipt verification, Azure deployment, and release signing are not closed by D2-D.
+  signed receipt verification, Azure deployment, and release signing are not closed by D2-D/D3.

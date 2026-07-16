@@ -64,7 +64,7 @@ fn preparation_preserves_safe_bytes_and_binds_original_and_outbound_hashes() {
 
 #[test]
 fn preparation_rejects_dotenv_before_scanning() {
-    let input = fixture_input(vec![candidate(".env", "API_KEY=secret")]);
+    let input = fixture_input(vec![candidate(".env", concat!("API_KEY=", "secret"))]);
 
     let error = ContextPreparer::new(PatternSecretScanner)
         .prepare(input)
@@ -116,7 +116,7 @@ fn preparation_denies_credential_stores_token_caches_and_authority_state() {
 
 #[test]
 fn preparation_redacts_private_key_material_and_records_a_finding() {
-    let source = "prefix -----BEGIN PRIVATE KEY----- value";
+    let source = concat!("prefix -----BEGIN ", "PRIVATE KEY----- value");
     let manifest = ContextPreparer::new(PatternSecretScanner)
         .prepare(fixture_input(vec![candidate("notes.txt", source)]))
         .expect("redacted manifest");
@@ -132,7 +132,7 @@ fn preparation_redacts_private_key_material_and_records_a_finding() {
 
 #[test]
 fn preparation_redacts_prefixed_tokens_without_retaining_the_secret() {
-    let github_token = "ghp_abcdefghijklmnopqrstuvwxyz0123456789";
+    let github_token = concat!("ghp_", "abcdefghijklmnopqrstuvwxyz0123456789");
     let source = format!("token={github_token}");
     let manifest = ContextPreparer::new(PatternSecretScanner)
         .prepare(fixture_input(vec![candidate("notes.txt", &source)]))

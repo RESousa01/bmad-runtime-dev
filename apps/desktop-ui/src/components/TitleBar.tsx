@@ -15,12 +15,17 @@ export function TitleBar({ isInert = false }: { isInert?: boolean }) {
   }
 
   return (
-    <header className="title-bar" data-tauri-drag-region inert={isInert}>
-      <div className="brand-lockup" data-tauri-drag-region>
+    <header
+      aria-label="Sapphirus application"
+      className="title-bar"
+      data-tauri-drag-region
+      inert={isInert}
+    >
+      <div className="brand-lockup title-bar__brand" data-tauri-drag-region>
         <BrandMark size={23} />
         <span>Sapphirus</span>
       </div>
-      <div aria-label="Window controls" className="window-controls">
+      <div aria-label="Window controls" className="window-controls title-bar__controls">
         <Button
           aria-label="Minimize window"
           className="window-control"

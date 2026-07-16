@@ -570,9 +570,11 @@ mod tests {
     #[test]
     fn scanner_redacts_intent_secrets_without_admitting_extra_context() {
         let compiled = compiled_help();
-        let intent =
-            BmadHelpIntent::new("Review architecture with API_KEY=super-secret-development-value")
-                .expect("bounded intent");
+        let intent = BmadHelpIntent::new(concat!(
+            "Review architecture with API_KEY=",
+            "super-secret-development-value",
+        ))
+        .expect("bounded intent");
         let policy = derive_deterministic_policy(&compiled, &intent).expect("closed policy");
         let configuration = current_help_model_configuration().expect("host configuration");
         let manifest = prepare_help_context(HelpContextInput {

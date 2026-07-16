@@ -13,6 +13,7 @@
 mod bmad;
 mod command;
 mod domain;
+mod edits;
 mod error;
 mod hash;
 mod ids;
@@ -76,6 +77,11 @@ pub use domain::{
     PatchOperation, PatchSet, RollbackClass, SpecConsumptionRecord, SpecConsumptionRecordDraft,
     WindowsPatchCandidate, WindowsPatchCandidateDraft, WorkspaceTarget, HARD_MAX_CHANGED_BYTES,
     HARD_MAX_CHANGED_FILES,
+};
+pub use edits::{
+    build_changes_candidate, build_changes_review, ChangesProposalBinding, ChangesProposalKind,
+    ChangesReviewProjection, EditsError, FileChangeReview, ObservedPreimage,
+    PreparedChangesProposal, ProposedFileChange, CHANGES_REVIEW_SCHEMA,
 };
 pub use error::{LocalError, LocalErrorCode, LocalResult};
 pub use hash::{

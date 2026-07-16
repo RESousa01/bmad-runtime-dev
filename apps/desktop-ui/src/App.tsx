@@ -19,6 +19,7 @@ import {
 import {
   getDefaultHostRuntime,
   getSafeHostMessage,
+  type ApprovalChoice,
   type DesktopHostClient,
   HostCapabilityError,
   HostCommandError,
@@ -26,6 +27,7 @@ import {
   type HostRuntime,
   type WorkspaceProjection,
 } from "./lib/hostClient";
+import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
   BmadLibrarySnapshot,
   BmadLibraryUiState,
@@ -107,6 +109,10 @@ export function App({
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
   const [bmadHelpState, setBmadHelpState] = useState<BmadRequestState>(initialBmadRequestState);
   const [modelAuthStatus, setModelAuthStatus] = useState<ModelAuthStatusProjection | null>(null);
+  const [changesFlow, setChangesFlow] = useState<GovernedChangesUiState | null>(null);
+  const [changesError, setChangesError] = useState<string | null>(null);
+  const [enableEditsBusy, setEnableEditsBusy] = useState(false);
+  const changesGenerationRef = useRef(0);
   const inspectorIsOverlay = useMediaQuery("(max-width: 1050px)");
   const sessionsIsOverlay = useMediaQuery("(max-width: 820px)");
   const workspaceActionBusyRef = useRef(false);
@@ -132,7 +138,9 @@ export function App({
   const workspaceDescription = hostRuntime.kind === "browser_demo"
     ? "Preview workspace · no local access"
     : activeWorkspace
-      ? "Local workspace · Read only"
+      ? activeWorkspace.permissions === "governed_edits"
+        ? "Local workspace · Governed edits"
+        : "Local workspace · Read only"
       : "Choose one from Workspaces";
   const hostStatusLabel = (() => {
     switch (hostRuntime.kind) {
@@ -945,6 +953,174 @@ export function App({
     });
   }
 
+  const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
+    && (["workspace.enable_edits", "changes.propose", "approval.decide", "rollback.request"] as const)
+      .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
+  const editsEnabled = activeWorkspace?.permissions === "governed_edits";
+  const canEnableEdits = governedEditsCommandsAvailable
+    && activeWorkspace !== null
+    && activeWorkspace.permissions === "read_only"
+    && !enableEditsBusy;
+  const changesState: GovernedChangesUiState = (() => {
+    if (hostRuntime.kind === "browser_demo") {
+      return {
+        kind: "unavailable",
+        reason: "Governed edits require the signed Windows desktop host. This browser view is for visual QA only.",
+      };
+    }
+    if (!governedEditsCommandsAvailable || hostRuntime.kind !== "ready") {
+      return {
+        kind: "unavailable",
+        reason: "Governed local edits are unavailable in the current host mode.",
+      };
+    }
+    if (!activeWorkspace) {
+      return {
+        kind: "unavailable",
+        reason: "Choose a local workspace before proposing changes.",
+      };
+    }
+    if (!editsEnabled) {
+      return {
+        kind: "unavailable",
+        reason: "This workspace is read only. Allow governed edits to review and apply exact, checkpointed file changes.",
+      };
+    }
+    return changesFlow ?? { kind: "idle" };
+  })();
+
+  function resetChangesFlow() {
+    changesGenerationRef.current += 1;
+    setChangesFlow(null);
+    setChangesError(null);
+  }
+
+  function handleChangesFailure(client: DesktopHostClient, error: unknown, sequence: number) {
+    if (
+      error instanceof HostCommandError
+      && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+    ) {
+      markReadOnlyRecovery(client, sequence);
+      return;
+    }
+    setChangesError(getSafeHostMessage(error));
+  }
+
+  async function enableGovernedEdits() {
+    if (hostRuntime.kind !== "ready" || !activeWorkspace || !canEnableEdits) {
+      return;
+    }
+    const client = hostRuntime.client;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const generation = ++changesGenerationRef.current;
+    setEnableEditsBusy(true);
+    setChangesError(null);
+    try {
+      const enabled = await client.enableWorkspaceEdits(activeWorkspace);
+      if (generation !== changesGenerationRef.current) {
+        return;
+      }
+      setHostWorkspaces((current) => [
+        enabled,
+        ...current.filter(({ workspaceId }) => workspaceId !== enabled.workspaceId),
+      ]);
+      setActiveWorkspaceId(enabled.workspaceId);
+      setChangesFlow({ kind: "idle" });
+    } catch (error) {
+      if (generation === changesGenerationRef.current) {
+        handleChangesFailure(client, error, sequence);
+      }
+    } finally {
+      if (generation === changesGenerationRef.current) {
+        setEnableEditsBusy(false);
+      }
+    }
+  }
+
+  async function proposeGovernedChange(relativePath: string, content: string) {
+    if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
+      return;
+    }
+    const client = hostRuntime.client;
+    const workspace = activeWorkspace;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const generation = ++changesGenerationRef.current;
+    setChangesFlow({ kind: "preparing" });
+    setChangesError(null);
+    try {
+      const review = await client.proposeChanges(workspace.workspaceId, workspace.grantEpoch, [
+        { change: "set_content", relativePath, content },
+      ]);
+      if (generation === changesGenerationRef.current) {
+        setChangesFlow({ kind: "review", busy: false, review });
+      }
+    } catch (error) {
+      if (generation === changesGenerationRef.current) {
+        setChangesFlow({ kind: "idle" });
+        handleChangesFailure(client, error, sequence);
+      }
+    }
+  }
+
+  async function decideGovernedChange(choice: ApprovalChoice) {
+    if (hostRuntime.kind !== "ready" || changesState.kind !== "review") {
+      return;
+    }
+    const client = hostRuntime.client;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const review = changesState.review;
+    const generation = ++changesGenerationRef.current;
+    setChangesFlow({ kind: "review", busy: true, review });
+    setChangesError(null);
+    try {
+      const decision = await client.decideApproval(review, choice);
+      if (generation !== changesGenerationRef.current) {
+        return;
+      }
+      if (decision.disposition === "applied" && decision.execution) {
+        setChangesFlow({ kind: "applied", busy: false, execution: decision.execution });
+      } else if (decision.disposition === "discarded") {
+        setChangesFlow({ kind: "discarded" });
+      } else {
+        setChangesFlow({ kind: "idle" });
+      }
+    } catch (error) {
+      if (generation === changesGenerationRef.current) {
+        // The host consumes a pending proposal on any decision attempt, so a
+        // failed apply requires a fresh review.
+        setChangesFlow({ kind: "idle" });
+        handleChangesFailure(client, error, sequence);
+      }
+    }
+  }
+
+  async function undoGovernedChange(executionId: string) {
+    if (hostRuntime.kind !== "ready" || changesState.kind !== "applied") {
+      return;
+    }
+    const client = hostRuntime.client;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const generation = ++changesGenerationRef.current;
+    setChangesFlow({ kind: "applied", busy: true, execution: changesState.execution });
+    setChangesError(null);
+    try {
+      const result = await client.requestRollback(executionId);
+      if (generation !== changesGenerationRef.current) {
+        return;
+      }
+      if (result.kind === "review") {
+        setChangesFlow({ kind: "review", busy: false, review: result.value });
+      } else {
+        setChangesFlow({ kind: "undo_unavailable", value: result.value });
+      }
+    } catch (error) {
+      if (generation === changesGenerationRef.current) {
+        setChangesFlow({ kind: "idle" });
+        handleChangesFailure(client, error, sequence);
+      }
+    }
+  }
+
   async function selectWorkspace() {
     if (hostRuntime.kind !== "ready" || !canSelectWorkspace || workspaceActionBusyRef.current) {
       return;
@@ -989,6 +1165,9 @@ export function App({
       return;
     }
     setWorkspaceActionError(null);
+    if (workspaceId !== activeWorkspaceId) {
+      resetChangesFlow();
+    }
     setActiveWorkspaceId(workspaceId);
   }
 
@@ -1051,26 +1230,28 @@ export function App({
       <div className="app-surface" inert={workspacePanelOpen}>
         <TitleBar isInert={workbenchIsInert} />
         <div className="workbench">
-          <GlobalRail
-            activeView={activeView}
-            isInert={workbenchIsInert}
-            onAccount={() => openUtilityPanel("account")}
-            onNavigate={selectNavigation}
-            onSettings={() => openUtilityPanel("settings")}
-          />
-          <SessionRail
-            isInert={inspectorIsModal}
-            isOpen={sessionRailOpen}
-            isOverlay={sessionsIsOverlay}
-            isSessionCreationEnabled={false}
-            onClose={() => setSessionRailOpen(false)}
-            onNewSession={() => undefined}
-            onSelect={selectSession}
-            selectedId={selectedSessionId}
-            sessions={sessions}
-            workspaceDescription={workspaceDescription}
-            workspaceName={workspaceName}
-          />
+          <div aria-label="Workspace navigation" className="desktop-sidebar" role="group">
+            <GlobalRail
+              activeView={activeView}
+              isInert={workbenchIsInert}
+              onAccount={() => openUtilityPanel("account")}
+              onNavigate={selectNavigation}
+              onSettings={() => openUtilityPanel("settings")}
+            />
+            <SessionRail
+              isInert={inspectorIsModal}
+              isOpen={sessionRailOpen}
+              isOverlay={sessionsIsOverlay}
+              isSessionCreationEnabled={false}
+              onClose={() => setSessionRailOpen(false)}
+              onNewSession={() => undefined}
+              onSelect={selectSession}
+              selectedId={selectedSessionId}
+              sessions={sessions}
+              workspaceDescription={workspaceDescription}
+              workspaceName={workspaceName}
+            />
+          </div>
           {activeView === "explorer" ? (
             <WorkspaceExplorer
               availabilityMessage={explorerAvailabilityMessage}
@@ -1122,27 +1303,33 @@ export function App({
             bmadHelpState={bmadHelpState}
             bmadModelDevelopmentOnly={modelAuthStatus?.developmentOnly ?? false}
             bmadLibraryState={bmadLibraryState}
+            changesPanel={{
+              canEnableEdits,
+              enableEditsBusy,
+              errorMessage: changesError,
+              onDecide: (choice) => void decideGovernedChange(choice),
+              onEnableEdits: () => void enableGovernedEdits(),
+              onPropose: (relativePath, content) => void proposeGovernedChange(relativePath, content),
+              onStartNewProposal: resetChangesFlow,
+              onUndo: (executionId) => void undoGovernedChange(executionId),
+              state: changesState,
+            }}
             contextPreview={contextPreview}
             contextProvenance={contextProvenance}
-            interactionDisabled
             isInert={sessionsIsModal}
             isOpen={inspectorOpen}
             isOverlay={inspectorIsOverlay}
             methodLibraryAvailable={methodLibraryAvailable}
-            onApply={() => undefined}
             onBmadApprove={approveBmadContext}
             onBmadCancel={cancelBmadContext}
             onBmadSend={sendBmadRequest}
             onClose={() => setInspectorOpen(false)}
-            onDiscard={() => undefined}
-            onRevise={() => undefined}
             onReloadMethodLibrary={() => {
               if (methodLibraryClient) {
                 void loadMethodLibrary(methodLibraryClient);
               }
             }}
             onTabChange={setInspectorTab}
-            proposalState={proposalState}
             selectedTab={inspectorTab}
           />
         </div>

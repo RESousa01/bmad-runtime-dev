@@ -763,16 +763,26 @@ describe("Sapphirus desktop workbench", () => {
   it("uses the approved vocabulary while clearly blocking preview-only effects", async () => {
     render(<App />);
 
+    expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Workspace navigation" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
+    expect(screen.getByRole("complementary", { name: "Sessions" })).toBeTruthy();
+    expect(screen.getByRole("main")).toBeTruthy();
+    expect(screen.getByRole("complementary", { name: "Inspector" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "New session" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Add a safe workspace scan" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Review changes" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Apply changes" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByRole("button", { name: "Review context" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Revise" }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: "Discard" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getAllByText("Preview demo").length).toBeGreaterThan(0);
+    // Governed edits stay honestly unavailable in the browser preview: no
+    // Apply/Revise/Discard control exists without a real reviewed proposal.
+    expect(screen.queryByRole("button", { name: "Apply changes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Revise" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Discard" })).toBeNull();
+    expect(screen.getAllByText("No proposed changes").length).toBeGreaterThan(0);
     expect((await screen.findAllByText("Browser preview")).length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(/Governed edits require the signed Windows desktop host/i)).length,
+    ).toBeGreaterThan(0);
 
     expect(screen.queryByText(/^Chat$/i)).toBeNull();
     expect(screen.queryByText(/^Command$/i)).toBeNull();

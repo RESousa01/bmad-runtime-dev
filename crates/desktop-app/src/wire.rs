@@ -4,7 +4,8 @@ use desktop_ipc::{
     BmadHelpTerminalProjection, BmadLibrarySnapshotProjection, ModelAuthStatusProjection,
 };
 use desktop_runtime::{
-    CommandReceipt, ContractId, LocalError, ProjectionEvent, ProjectionSnapshot,
+    ChangesReviewProjection, CommandReceipt, ContractId, LocalError, ProjectionEvent,
+    ProjectionSnapshot, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use desktop_workspace::{
     BmadScanProjection, EntryKind, SearchMatch, TextPreview, WorkspaceProjection,
@@ -120,6 +121,89 @@ pub enum HostCommandData {
     NoBmadHelpRun,
     BmadHelpProjectionUnavailable,
     ContextPreview(ContextPreviewProjection),
+    WorkspaceEditsEnabled(desktop_workspace::WorkspaceProjection),
+    ChangesReview(ChangesReviewWire),
+    ChangesDecision(ChangesDecisionWire),
+    ChangesUndoUnavailable(ChangesUndoUnavailableWire),
+    ChangesHistory(ChangesHistoryWire),
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesReviewWire {
+    pub approval_id: ContractId,
+    pub displayed_diff_hash: Sha256Digest,
+    pub review: ChangesReviewProjection,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesDecisionWire {
+    pub approval_id: ContractId,
+    pub disposition: String,
+    pub execution: Option<ChangesExecutionWire>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesExecutionWire {
+    pub execution_id: ContractId,
+    pub checkpoint_id: ContractId,
+    pub completed_at: UnixMillis,
+    pub undoable: bool,
+    pub files: Vec<AppliedFileWire>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppliedFileWire {
+    pub relative_path: RelativeWorkspacePath,
+    pub operation: String,
+    pub exists: bool,
+    pub content_hash: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesUndoUnavailableWire {
+    pub execution_id: ContractId,
+    pub reason: String,
+    pub conflicts: Vec<UndoConflictWire>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UndoConflictWire {
+    pub relative_path: RelativeWorkspacePath,
+    pub expected_exists: bool,
+    pub current_exists: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesHistoryWire {
+    pub workspace_id: ContractId,
+    pub entries: Vec<ChangesHistoryEntryWire>,
+    pub open_journals: Vec<OpenJournalWire>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesHistoryEntryWire {
+    pub execution_id: String,
+    pub journal_state: String,
+    pub file_count: u32,
+    pub completed_at: String,
+    pub undoable: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenJournalWire {
+    pub journal_id: String,
+    pub execution_id: String,
+    pub state: String,
+    pub updated_at: String,
 }
 
 #[derive(Clone, Debug, Serialize)]

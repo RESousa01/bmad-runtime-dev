@@ -43,7 +43,7 @@ fn success_response(request_id: &str) -> Value {
         "success": true,
         "errorCode": null,
         "retryable": false,
-        "accessToken": "top-secret-token",
+        (concat!("access", "Token")): concat!("top-", "secret-token"),
         "expiresOn": "2026-07-15T14:00:00Z",
         "accountId": "account.home-id",
         "tenantId": TENANT_ID

@@ -36,11 +36,11 @@
     "qualify:generators": "node ./scripts/qualify-generators.mjs --check && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit",
     "qualify:typescript": "tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit",
     "lint": "node ./scripts/check-schemas.mjs",
-    "test": "tsc --project ./tsconfig.json --noEmit && node --test --test-isolation=none ./tests/*.test.mjs",
+    "test": "tsc --project ./tsconfig.json --noEmit && node ./scripts/run-tests.mjs",
     "typecheck": "tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs",
-    "verify": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs",
-    "verify:typescript": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs",
-    "verify:cross-language": "node ./scripts/qualify-generators.mjs --check && node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit && node ./scripts/check-generated-bindings.mjs && node --test --test-isolation=none ./tests/*.test.mjs"
+    "verify": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node ./scripts/run-tests.mjs",
+    "verify:typescript": "node ./scripts/generate.mjs --check --typescript-only && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && node ./scripts/check-typescript-bindings.mjs && node ./scripts/run-tests.mjs",
+    "verify:cross-language": "node ./scripts/qualify-generators.mjs --check && node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit && node ./scripts/check-generated-bindings.mjs && node ./scripts/run-tests.mjs --include-native"
   },
   "dependencies": {
     "ajv": "8.17.1",

@@ -7,6 +7,7 @@ pub mod bmad_foundation;
 )]
 mod bmad_model;
 mod commands;
+mod edits;
 mod state;
 mod wire;
 

@@ -1,12 +1,12 @@
 # D2-D BMAD Help Desktop Composition Implementation Plan
 
-> **Status:** Approved implementation direction
+> **Status:** Implemented and integrated with the D3 governed-edits baseline
 > **Date:** 2026-07-16
 > **Base:** `codex/d2-ai-request` at `3108bf37`
 > **Execution rule:** Test first, keep production fail-closed, and commit after every numbered checkpoint.
-> **Paused checkpoint:** Work stopped on 2026-07-16 before D3 integration, staging, commit, or
-> deployment. See `docs/implementation-packets/D2-D-desktop-composition-2026-07-16.md` for the
-> exact verified D2-D gates, uncommitted-work warning, and required resume order.
+> **Integrated checkpoint:** D2-D was committed as `740c534a` and integrated with D3 baseline
+> `6365c8a6` in the isolated `C:\tmp\d2` worktree. See the implementation packet for the
+> final gate evidence and remaining production blockers.
 
 ## Goal
 

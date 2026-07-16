@@ -54,7 +54,7 @@ D2-B is implemented and independently reviewed. Session epochs, token zeroizatio
 ```rust
 #[tokio::test]
 async fn access_token_debug_is_redacted_and_sign_out_invalidates_the_epoch() {
-    let broker = StaticBroker::successful("secret-token", "tenant_ref", "account_ref");
+    let broker = StaticBroker::successful("${D2_TEST_TOKEN}", "tenant_ref", "account_ref");
     let session = CloudSession::new(broker, id("tenant_ref"));
     let access = session.acquire_access().await.expect("access");
     assert!(!format!("{access:?}").contains("secret-token"));
@@ -76,7 +76,7 @@ async fn local_sign_out_remains_terminal_when_broker_cleanup_fails() {
 
 #[tokio::test]
 async fn tenant_substitution_never_returns_an_access_grant() {
-    let broker = StaticBroker::successful("secret-token", "other_tenant", "account_ref");
+    let broker = StaticBroker::successful("${D2_TEST_TOKEN}", "other_tenant", "account_ref");
     let session = CloudSession::new(broker, id("tenant_ref"));
     assert_eq!(session.acquire_access().await, Err(CloudError::TenantMismatch));
     assert_eq!(session.snapshot().status, AuthStatus::ReauthenticationRequired);

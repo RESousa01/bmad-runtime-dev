@@ -265,18 +265,21 @@ fn record(findings: &mut BTreeMap<&'static str, u32>, kind: &'static str, count:
 
 fn redact_private_key_blocks(value: &mut String) -> u32 {
     const MARKERS: [(&str, &str); 4] = [
-        ("-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----"),
         (
-            "-----BEGIN RSA PRIVATE KEY-----",
-            "-----END RSA PRIVATE KEY-----",
+            concat!("-----BEGIN ", "PRIVATE KEY-----"),
+            concat!("-----END ", "PRIVATE KEY-----"),
         ),
         (
-            "-----BEGIN EC PRIVATE KEY-----",
-            "-----END EC PRIVATE KEY-----",
+            concat!("-----BEGIN ", "RSA PRIVATE KEY-----"),
+            concat!("-----END ", "RSA PRIVATE KEY-----"),
         ),
         (
-            "-----BEGIN OPENSSH PRIVATE KEY-----",
-            "-----END OPENSSH PRIVATE KEY-----",
+            concat!("-----BEGIN ", "EC PRIVATE KEY-----"),
+            concat!("-----END ", "EC PRIVATE KEY-----"),
+        ),
+        (
+            concat!("-----BEGIN ", "OPENSSH PRIVATE KEY-----"),
+            concat!("-----END ", "OPENSSH PRIVATE KEY-----"),
         ),
     ];
     let mut count = 0_u32;

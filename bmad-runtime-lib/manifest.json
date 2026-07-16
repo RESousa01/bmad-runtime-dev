@@ -1,18 +1,18 @@
 {
     "library": "sapphirus-bmad-runtime-obsidian-vault-v6.17-dual-delivery-architecture-contracts",
     "created_at_utc": "2026-07-09T00:00:00+00:00",
-    "updated_at_utc": "2026-07-13T10:15:35Z",
+    "updated_at_utc": "2026-07-16T08:53:19Z",
     "metrics": {
         "markdown_files": 105,
         "markdown_lines": 45685,
-        "markdown_bytes": 2629294
+        "markdown_bytes": 2611738
     },
     "files": [
         {
             "name": "00 - Common Rules and Product Shape.md",
             "lines": 471,
-            "bytes": 31307,
-            "sha256": "98a7fdee8d8e6d8446716a06d4d70dd12db6c3b22fab8eb63c37eaf0b326b3f3"
+            "bytes": 31025,
+            "sha256": "09dfe571031b723047213223bfe568e19e88d9c56c164a81cf4e80d709fe9424"
         },
         {
             "name": "01 - First Build - Executable Vertical Slice.md",
@@ -41,14 +41,14 @@
         {
             "name": "05 - Preserved Source Context.md",
             "lines": 4430,
-            "bytes": 209998,
-            "sha256": "2262e2251a8ed32d0023b7a46acf6ee5df839ffae254549c4c88a251bde18389"
+            "bytes": 205574,
+            "sha256": "0bcffe53eabd00630e25e974b25fdc812d8cbb5f29e979f9e1a9f0cecbea2b5e"
         },
         {
             "name": "06 - Preserved Critical Review.md",
             "lines": 289,
-            "bytes": 32253,
-            "sha256": "0eb60a8532def5ef25a0a8e8d504133c6320966fa2e97e3ef45df18d325c3757"
+            "bytes": 31967,
+            "sha256": "8151102c01b786b332518f8ddf3b1f48e246db216c3ac140b492e0b6e91d819c"
         },
         {
             "name": "07 - Source Coverage Matrix.md",
@@ -83,26 +83,26 @@
         {
             "name": "11 - Runtime API Control Plane.md",
             "lines": 700,
-            "bytes": 33979,
-            "sha256": "0d19aa0c249c0abc8eccafa13814df4049dc2e89568e434b47b350a4c6c211b1"
+            "bytes": 33326,
+            "sha256": "599667048464caffa73748d34c767e3fea018580ef56392905c3dc3a2a65f805"
         },
         {
             "name": "12 - Run Orchestrator and Agent Kernel.md",
             "lines": 747,
-            "bytes": 38743,
-            "sha256": "b0fa498be62c216e4b7ca443c4ce1cb182b3a323aed47c31f56260f0779f685a"
+            "bytes": 38026,
+            "sha256": "0447614172c8d82a4091ae0bc59f0223917113952782674cfcac715d8d1e60f1"
         },
         {
             "name": "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
             "lines": 753,
-            "bytes": 40314,
-            "sha256": "a281c3b0ac96c6a9fe1c07338caaa4ea10fe4fb26aca0c3b834ebf715e1c9dc2"
+            "bytes": 39620,
+            "sha256": "b4e37d442f7f9423853c489bfc5c93ad82bb602d57d70911ff056d1f337db172"
         },
         {
             "name": "14 - Builder Studio and SkillOps.md",
             "lines": 812,
-            "bytes": 46057,
-            "sha256": "7625bc7a5fb246a7a4c2ec2b09f3aa67d570517c0f7e2446a11533ecb1c7f8bd"
+            "bytes": 45338,
+            "sha256": "82a689940d2aa880986420c45b572ad948d994ea29a09ad42fb5401401ba0005"
         },
         {
             "name": "15 - Artifact Creator and Presentation Adapter.md",
@@ -119,20 +119,20 @@
         {
             "name": "17 - Workspace Intelligence and Context Packs.md",
             "lines": 688,
-            "bytes": 34346,
-            "sha256": "cf7012aeedbf78f3938f0890f6a2b26e312fef49542edf75f076b061ed53a25e"
+            "bytes": 33682,
+            "sha256": "64921f986d6c0eeaf259d6810a022e425e01a1973f220ee757383e1e09fed184"
         },
         {
             "name": "18 - Model Gateway and Microsoft Foundry.md",
             "lines": 781,
-            "bytes": 41100,
-            "sha256": "b3d4aa1bb8033e759c373cdde244b2c7f85f7de6c2209e0b0ba2f8adf77b1692"
+            "bytes": 40382,
+            "sha256": "cfd9764976a80dde6be65f92d078417087dcb0652feec935a5ee95b9dffb00d0"
         },
         {
             "name": "19 - Airlock Policy and Approvals.md",
             "lines": 766,
-            "bytes": 35921,
-            "sha256": "2feeceff20b996bb8522f8140618cf14d8f4ec3996e32d703d61558a9dae8a15"
+            "bytes": 35193,
+            "sha256": "6270719cf832ede1aa3e487ca0a65f9925b98b2f8b253d2b1a6d675a11b35c55"
         },
         {
             "name": "20 - Execution Lanes and Container App Jobs.md",
@@ -143,38 +143,38 @@
         {
             "name": "21 - Trace, Evidence, and Observability.md",
             "lines": 643,
-            "bytes": 29936,
-            "sha256": "2ee4232c07de482c23567786de09002ba1a78cfadb00e4742386cdf1464d793f"
+            "bytes": 29317,
+            "sha256": "c720b1e764993b72b44304e5570d91502f1001f626f5cfc4e411ead8c4049f36"
         },
         {
             "name": "22 - Data Model - SQL and Blob.md",
             "lines": 696,
-            "bytes": 30534,
-            "sha256": "282fe261695ef4db6a06cfefd8bb4fae9af3ce5d246354939b953d1fe3516cf9"
+            "bytes": 29883,
+            "sha256": "1504d5651c24631773ebcc002d9d37e96e8c0543d9988f45f30470330451f722"
         },
         {
             "name": "23 - Security, Identity, and Secrets.md",
             "lines": 715,
-            "bytes": 37181,
-            "sha256": "7d1b797e58ee540d3027132025cf4a813f9e190c705bce4d1970e625fd2bd2a0"
+            "bytes": 36478,
+            "sha256": "facb9020064684b1cd984c90c724061815c4f4a65993ec34786b8cdf64789cd0"
         },
         {
             "name": "24 - Operator Console and Operations.md",
             "lines": 656,
-            "bytes": 30607,
-            "sha256": "e6c97b9572e77c955c2c6ce046e2fd96605b8cbcd57f4c39b89107049188cc8a"
+            "bytes": 30014,
+            "sha256": "50928de39569f06e3bea28f6fd6c35eb3a8bae2e6dcad4a7a2aa6ffefcd04e80"
         },
         {
             "name": "25 - OpenAPI, Schemas, and Generated Clients.md",
             "lines": 726,
-            "bytes": 36753,
-            "sha256": "20bf27147855259a2b8abab4a0e74b8d1dd07bf923949ae1f13197f3155d3051"
+            "bytes": 36168,
+            "sha256": "3e14965250fd61e4a7e3133a8ccbffa599e8ec065f3866d75921929e0b6d5460"
         },
         {
             "name": "26 - Frontend Design System.md",
             "lines": 777,
-            "bytes": 41011,
-            "sha256": "7411d6075bbbbf4c5610b043c56970a53f1e2686be4bf5f0db1410eeced70827"
+            "bytes": 40430,
+            "sha256": "78acb7d559a9838fd49145abe5200a3e5de50ae45536f6dbe1de5715d612f6f4"
         },
         {
             "name": "27 - Testing, Validation, and Replay.md",
@@ -191,8 +191,8 @@
         {
             "name": "29 - Concurrency, Transactions, and Failures.md",
             "lines": 649,
-            "bytes": 31720,
-            "sha256": "678d4e3d84198e4ae2936b0c1d8cec1088bbcd8b665a9b06f116438be7882ebd"
+            "bytes": 31131,
+            "sha256": "c96fc5b760fe645ab5dc3766fb45538122f7bc5913b425d829c89e8b593ed85a"
         },
         {
             "name": "30 - Implementation Epics and Backlog.md",
@@ -221,8 +221,8 @@
         {
             "name": "34 - Canonical Object Model.md",
             "lines": 510,
-            "bytes": 39728,
-            "sha256": "a1783ae7b4c12bb9265a3fa8c7ddc92920dc968e46aac95fabe62430ad24e2d7"
+            "bytes": 39471,
+            "sha256": "58e80563feca3f5385a36503d049a62483bb27e62d93c4f6df853c91396fb6fa"
         },
         {
             "name": "35 - Source Alignment Notes.md",
@@ -269,8 +269,8 @@
         {
             "name": "42 - Migrations, Retention, and Cleanup.md",
             "lines": 390,
-            "bytes": 19987,
-            "sha256": "10135dc1af1904e5c59986676d8839304ab6f40237c4a679a9299df6260408df"
+            "bytes": 19641,
+            "sha256": "587185b9e9f7ae83d232dd93d7f05e633c74c08a9c0a3da39521feac147f005a"
         },
         {
             "name": "43 - Product UX Flows and Wireframe Notes.md",
@@ -299,14 +299,14 @@
         {
             "name": "47 - Database DDL Starter.md",
             "lines": 507,
-            "bytes": 22822,
-            "sha256": "e68ec6d9a814dbe1b3c6276cd7fedf9e7285278262adf3a4fcb7cd9a6c336a6d"
+            "bytes": 22437,
+            "sha256": "12740beb3e755ee6c88dd616883e95c9b3f10b1f7ff09f05cad0830de6be939c"
         },
         {
             "name": "48 - Blob Storage Layout.md",
             "lines": 380,
-            "bytes": 20396,
-            "sha256": "9349fcee0132795f8504a6a9b186dc77b37948612749530de1fcae729521c667"
+            "bytes": 20052,
+            "sha256": "9fe481b81e5e71d7e25bbb9a6524675ce0f4106e94896d7a7ac9e0bed0ded95e"
         },
         {
             "name": "49 - Detailed Component Build Checklists.md",
@@ -317,56 +317,56 @@
         {
             "name": "50 - V4 Full Library Audit.md",
             "lines": 64,
-            "bytes": 3437,
-            "sha256": "55c0bbf6d7d5c9e8ba7cbe275e4029e6368d60bc3eaea84beba5885cde830c9a"
+            "bytes": 3376,
+            "sha256": "43e135c8be6f5871b75cca455e1bc4a299793094e2d6a1edd038ce05a608827d"
         },
         {
             "name": "51 - Master Implementation Sequence.md",
             "lines": 296,
-            "bytes": 22529,
-            "sha256": "d1bf830c707f1e1510531fe314ece2c5232cbeff828a121b473567d91315d2d2"
+            "bytes": 22468,
+            "sha256": "f9a021769d04850d7f86ab3737254d97fd4664b25770ca31ed6a7fa9d170ce13"
         },
         {
             "name": "52 - API, Event, Table, and Blob Ownership.md",
             "lines": 135,
-            "bytes": 11339,
-            "sha256": "333f706fe63556862b995bb4b1914e8e80f6b5283d379eda5a80b512f735d8d7"
+            "bytes": 11246,
+            "sha256": "ec690c91a981af31e3a81935ce91360e1844c28e615c3340bffe047bf58deb22"
         },
         {
             "name": "53 - Event Taxonomy and Stream Protocol.md",
             "lines": 204,
-            "bytes": 8977,
-            "sha256": "b49e93f8d8b3097b8c8052797650ded265ee14eb84832322f39648cbfc73b774"
+            "bytes": 8906,
+            "sha256": "bb9e4d947bcf3072e5be39f766c1115243e627e3bca0d77892b3f861505a1a8e"
         },
         {
             "name": "54 - State Machine Reference.md",
             "lines": 508,
-            "bytes": 15688,
-            "sha256": "446f72d0994483428efd49297e23e3dce85ad0b95a47d617db7521397627e9fd"
+            "bytes": 15671,
+            "sha256": "3dae9c23fdf282305282db4f9604cf2a66cf35491bf3d956a9941ed0f27d54bc"
         },
         {
             "name": "55 - Airlock Policy Rulebook.md",
             "lines": 101,
-            "bytes": 5131,
-            "sha256": "983ecee9e072d238d48efb073de05d97481fae2b6f667a4daf74ff171d022d87"
+            "bytes": 5067,
+            "sha256": "f7d926f8465a82ea80ca4a8b36a19970e08397dba246d7baea25f356865c1d72"
         },
         {
             "name": "56 - Worker Manifest Protocol.md",
             "lines": 115,
-            "bytes": 4877,
-            "sha256": "67538b89071c1f48e1457d6abee6bcfa9eca5a7d0237dd3cb5c8b2cf464c6e56"
+            "bytes": 4810,
+            "sha256": "7b60c8483d6a8f9c0981e3453ce55e63575b27892b2ce0acd5a082867f64f5f2"
         },
         {
             "name": "57 - Replay Fixture Library Plan.md",
             "lines": 79,
-            "bytes": 4689,
-            "sha256": "c968b05cff7e4c953c197a4330fea9909c3beaab1c08b78b48e88d35daba6b36"
+            "bytes": 4641,
+            "sha256": "494731f44653ef2fb1cf1b74abc9af7b5c57f4bc08b12a044eae5358228d492f"
         },
         {
             "name": "58 - Risk Register and Mitigation Plan.md",
             "lines": 103,
-            "bytes": 11017,
-            "sha256": "b746f12316a8289e51563bdfc0066c1674bfa193a03a6029ef0914eadb6a4723"
+            "bytes": 10944,
+            "sha256": "e65db19f6072d104aa1e735571d77a8968b35fd304b0addd8c371fd36945c9b0"
         },
         {
             "name": "59 - Definition of Done by Component.md",
@@ -377,68 +377,68 @@
         {
             "name": "60 - External Platform References and Verification Sources.md",
             "lines": 120,
-            "bytes": 17920,
-            "sha256": "052c8212e4a921dd7cfe85e5dca1e9429527cd1ad5acbde63f0d45c0ba86b79f"
+            "bytes": 17862,
+            "sha256": "2f9c40ce8135bbb7b5174fce24265f9808942f039d5992b62bbcd172e7168398"
         },
         {
             "name": "61 - First Vertical Slice User Stories.md",
             "lines": 169,
-            "bytes": 7822,
-            "sha256": "b315040f5bb1799c5e8092a5e392fe39aefeacbf48a3fcc01ab4daad4082b308"
+            "bytes": 7725,
+            "sha256": "46bc0435e30a1b5155702aafb3f7846027efef8e98fa73cf9827d298e572c8e9"
         },
         {
             "name": "62 - Component Interview Prompts.md",
             "lines": 56,
-            "bytes": 3269,
-            "sha256": "1f4c5bc651f6befb575387bfa71b04ae7cd6da3dcdc3325773977534196a7f32"
+            "bytes": 3220,
+            "sha256": "3614bae78a91eefdff4ddb296bdb020fb42c5d8ff799e806604ac8db73bcb943"
         },
         {
             "name": "63 - Backend Port Interfaces.md",
             "lines": 231,
-            "bytes": 9554,
-            "sha256": "8606b5e6231c1eb1e2aace480b890db8bc79ca781ea84f5b7997e7272e9e7ec0"
+            "bytes": 9461,
+            "sha256": "2f680d1a18284b0c4370f32d7086b121dbe471816f1593772b1730db77626ff1"
         },
         {
             "name": "64 - JSON Schema Contract Examples.md",
             "lines": 136,
-            "bytes": 4628,
-            "sha256": "be3519e898b7fd51834c31eb4851bbd2bf7124d5d4eb5fbf91d43a49f3238d70"
+            "bytes": 4513,
+            "sha256": "158a53f0f771062f10505e70502912f4a867fda02a0a9b596045aa9ccd2a9d8e"
         },
         {
             "name": "65 - SQL Migration and Index Plan.md",
             "lines": 117,
-            "bytes": 4898,
-            "sha256": "9980f1cbc5fef3c31f9ccee86b1360e7f8aff902f4895e54f9e6f5feb0b1995c"
+            "bytes": 4814,
+            "sha256": "93ae8a2a16b507a653e95d17e200a98b5c193dff7e6244ca6cf3ab0e97bae0b3"
         },
         {
             "name": "66 - Frontend Component Specification.md",
             "lines": 171,
-            "bytes": 14135,
-            "sha256": "24aace88f1ef2763276b4cc47cc92f060fcc68d467053e7b3ab9bf0d8a30f5bb"
+            "bytes": 14067,
+            "sha256": "8eb95b78e592da80d3d2194dd94dedb8b8fecc29b64e6be9cc0ae63f270316f4"
         },
         {
             "name": "67 - Azure IaC Module Specification.md",
             "lines": 103,
-            "bytes": 6036,
-            "sha256": "bb652c843e2ddcc0915f10e45d84558242ae5800783ec26456e9de2004259a52"
+            "bytes": 5965,
+            "sha256": "f5b05202e3aacd61b8a1baba44eb52daf11737d06df9e456acfdd185516efd5a"
         },
         {
             "name": "68 - Security Test Case Catalog.md",
             "lines": 106,
-            "bytes": 5608,
-            "sha256": "bae2ae5fc8360d79b919b87056bd11cf117a253ccba33a9b9ca8b62eb7ba8bd2"
+            "bytes": 5532,
+            "sha256": "f9250248a7b01e09d5a2ae5ddc88ba4bcbb37c7da4016388c5f6f25ec6742ffb"
         },
         {
             "name": "69 - BMAD Validation Rules.md",
             "lines": 246,
-            "bytes": 17934,
-            "sha256": "9a0a5cb1eb93953e56f88b8013acb17f0c0f70518e0313ac47754aaa311fce1c"
+            "bytes": 17786,
+            "sha256": "17ddf3779fbcf09544a5e8888d775157f911eb73a8d210369696ff2fcf88d131"
         },
         {
             "name": "70 - Presentation Adapter Mapping Workbook.md",
             "lines": 78,
-            "bytes": 2612,
-            "sha256": "8a679689e5b645252a44f7d152204bde685e3931693fea0e5b8420cdacf18790"
+            "bytes": 2541,
+            "sha256": "c66d44ba80a7ebc93c3ebfbdd9301565ad4847c38b84d8bb46fd9c37fc774926"
         },
         {
             "name": "71 - Backlog Story Template and Ready Rules.md",
@@ -455,20 +455,20 @@
         {
             "name": "73 - Verification Register.md",
             "lines": 127,
-            "bytes": 16325,
-            "sha256": "8bb3949f3610da9bb8db1526d0022fff96d3f47f98823f302db8af197d582778"
+            "bytes": 16237,
+            "sha256": "2ee88c5cfa38e785da12c89532e038aff38f74f2a584a50a33b655c56f763e14"
         },
         {
             "name": "74 - Targeted Corrections.md",
             "lines": 77,
-            "bytes": 5186,
-            "sha256": "0ad99f76cc1e18affb0cc1180936b3d2b7780846e21793ff3391ff70e8a08ba8"
+            "bytes": 5121,
+            "sha256": "359bd2c4b19fee97c9a7eb03a7c3097ff7e5180d6b8a2cfc3b45dfa0f87e4a78"
         },
         {
             "name": "75 - Library Validation Protocol.md",
             "lines": 122,
-            "bytes": 7357,
-            "sha256": "69741384dad1b72a88f5aa28caff9b4366d1b2cd16e8edf9479835ae70981017"
+            "bytes": 7254,
+            "sha256": "99c87bc81c48d384262b6aa3fab58a1daf6bfb082947a47aa431d1c797d93223"
         },
         {
             "name": "76 - Current Stack Baseline.md",
@@ -497,20 +497,20 @@
         {
             "name": "80 - Modern Engineering Methods.md",
             "lines": 89,
-            "bytes": 7942,
-            "sha256": "e23e4258f62a9d17e767b8f076787f8af0651ce177e4c2e6f2157d6285e47806"
+            "bytes": 7895,
+            "sha256": "a1637041f17b2c53e2d77b32cfe826a25a0e1aff156ae3319d7f3aed43e5a12f"
         },
         {
             "name": "81 - Modernization Spike Backlog.md",
             "lines": 197,
-            "bytes": 11865,
-            "sha256": "24d858b9cf2c13ed00695595726420c5cf54eb4f36bc304b1867e7db5915374c"
+            "bytes": 11786,
+            "sha256": "656c416b9cd3a4801081ccd2b187a467a9c75dc590ef0bc734fb1ae2ad568297"
         },
         {
             "name": "82 - Current Technology Decision Summary.md",
             "lines": 78,
-            "bytes": 6949,
-            "sha256": "8ba7ede4123e65bc511a79c1a9f8f6029c0017bf9f617d191202f697ecc12ae1"
+            "bytes": 6917,
+            "sha256": "09c5ab44b3f7d5c286e293e79d02134d17f1287e22b58c9abdf7dc61312f1c42"
         },
         {
             "name": "83 - BMAD Source Code Review - Method and Builder.md",
@@ -617,14 +617,14 @@
         {
             "name": "Library Quality Report.md",
             "lines": 96,
-            "bytes": 10055,
-            "sha256": "b5ba1170bba33c09120dbf90e414ea259b88ba73abff8ebaba5a3931ccfbab6e"
+            "bytes": 9993,
+            "sha256": "933d8fa55b37b18a3395ecd1646f3194b3394547b6ce8c2212c0beffe28ed647"
         },
         {
             "name": "Start Here.md",
             "lines": 104,
-            "bytes": 13730,
-            "sha256": "ee592cba52e162f50f547b44cca724be673a7e7ed59248a0789a3c710c14e0be"
+            "bytes": 13673,
+            "sha256": "8dbe61cae17c7094a24a18cc590228f85f0d69679d123ba2b1a0b37645eca0cb"
         },
         {
             "name": "Technology Baseline Fact Check.md",
