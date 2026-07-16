@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "sapphirus.living-knowledge-manifest.v1",
+  "files": [
+    {
+      "path": "current/00-current-product-state.md",
+      "bytes": 942,
+      "sha256": "ea40ca8552e25a80282430a1b2afb7051668305b58695579ecc4e209b3867987"
+    },
+    {
+      "path": "current/01-architecture-and-ownership.md",
+      "bytes": 740,
+      "sha256": "7ddbb390d4af28b7718d69544ca551bbe02fba0712e03332c956098b2337c874"
+    },
+    {
+      "path": "current/02-capability-matrix.md",
+      "bytes": 801,
+      "sha256": "e2e34bce35bae9d96a2ea5743d7159e7186d77ef628d8c0184e63ba6ebca4ab1"
+    },
+    {
+      "path": "current/03-security-and-trust.md",
+      "bytes": 812,
+      "sha256": "412b40c41bd7c081e39704155dd86ce897977d15cd20f9a905ee6802d01d480c"
+    },
+    {
+      "path": "current/04-contracts-and-persistence.md",
+      "bytes": 682,
+      "sha256": "1423fbca59aa4acd473b0afe699dbae27d525464eb3a71872766ddec636eacd3"
+    },
+    {
+      "path": "current/05-toolchain-and-dependencies.md",
+      "bytes": 798,
+      "sha256": "e533508c5cf87afef2a00e572e05b76e103a661ef4ebd3089328bd0c826f86de"
+    },
+    {
+      "path": "current/06-verification-and-release-readiness.md",
+      "bytes": 720,
+      "sha256": "2614df641b4736162ce8ab82b2591f0ddba63bbf207436509275bb93a3012588"
+    },
+    {
+      "path": "current/07-risks-roadmap-and-open-decisions.md",
+      "bytes": 736,
+      "sha256": "3c177e83947d0e58f580e48c74a44284904ec0628fb082a0eba565e551528c60"
+    },
+    {
+      "path": "evidence/claims.json",
+      "bytes": 7849,
+      "sha256": "b5325be13a5c23099d8e0c1767aefacfefe23cbb405047eb9058a3fcb9949c17"
+    },
+    {
+      "path": "evidence/note-catalog.json",
+      "bytes": 28534,
+      "sha256": "0b7c56434f19318e9255c94141b734ff06ea30a3ad26e2afd9ae6067b1b62071"
+    },
+    {
+      "path": "evidence/pins.json",
+      "bytes": 1414,
+      "sha256": "8060708faa0335eea9e47d87aafe350dfc66cbeb7981e67826d10245bcc9d737"
+    },
+    {
+      "path": "evidence/sources.json",
+      "bytes": 5672,
+      "sha256": "537cd60d2bf7326a389cb9e4d534bf83819ab7a8d58571eb491c564c91d422cb"
+    }
+  ]
+}

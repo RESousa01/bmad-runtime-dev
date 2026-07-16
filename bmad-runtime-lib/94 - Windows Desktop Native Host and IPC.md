@@ -13,7 +13,7 @@ section: "Windows Desktop Runtime"
 order: 94
 vault_role: "desktop-native-host-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 updated_on: 2026-07-10
 ---
 

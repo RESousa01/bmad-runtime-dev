@@ -196,6 +196,42 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
             result.errors,
         )
 
+    def test_legacy_status_current_is_rejected(self) -> None:
+        self.write_minimum_registries()
+        (self.vault / "Legacy.md").write_text(
+            "---\nstatus: current\n---\n\n# Legacy\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "Legacy.md: legacy root note cannot declare status current",
+            result.errors,
+        )
+
+    def test_living_manifest_rejects_stale_file_set(self) -> None:
+        self.write_minimum_registries()
+        manifest_path = self.vault / "knowledge-base" / "manifest.json"
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": "sapphirus.living-knowledge-manifest.v1",
+                    "files": [],
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "knowledge-base/manifest.json: file set mismatch",
+            result.errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

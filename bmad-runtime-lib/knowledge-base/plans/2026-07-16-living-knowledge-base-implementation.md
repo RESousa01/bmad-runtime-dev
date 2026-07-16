@@ -271,6 +271,7 @@ git commit -m "feat(vault): detect knowledge authority drift"
 - Modify: `bmad-runtime-lib/Start Here.md`
 - Modify: `bmad-runtime-lib/75 - Library Validation Protocol.md`
 - Modify: `bmad-runtime-lib/Library Quality Report.md`
+- Modify: root Markdown frontmatter currently declaring `status: current`, except preserved-verbatim evidence
 - Modify: `bmad-runtime-lib/manifest.json`
 - Modify: `docs/provenance/vault-validation.json`
 
@@ -295,6 +296,8 @@ Keep legacy root-manifest semantics unchanged and add a separate `knowledge-base
 - [ ] **Step 4: Migrate human entrypoints**
 
 Make `Start Here.md` route first to `knowledge-base/current/00-current-product-state.md`, label the numbered root library as legacy/supporting evidence, update the validation protocol with exact local commands, and add a dated quality-report entry. Do not alter `.obsidian/workspace.json`.
+
+Replace misleading root `status: current` values with `source-evidence`, `supporting-reference`, or `legacy-reference` according to `note-catalog.json`. Leave preserved-verbatim note bytes unchanged. Validation must reject a future non-preserved root note that reintroduces `status: current`.
 
 - [ ] **Step 5: Regenerate integrity records**
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -225,11 +226,75 @@ def _validate_authority_locations(vault_root: Path, result: ValidationResult) ->
         )
     for path in candidates:
         text = path.read_text(encoding="utf-8-sig")
+        relative = path.relative_to(vault_root).as_posix()
         if _frontmatter_value(text, "authority") == "current":
-            relative = path.relative_to(vault_root).as_posix()
             result.errors.append(
                 f"{relative}: current authority is allowed only in knowledge-base/current"
             )
+        if (
+            path.parent == vault_root
+            and path.name != "06 - Preserved Critical Review.md"
+            and _frontmatter_value(text, "status") == "current"
+        ):
+            result.errors.append(
+                f"{relative}: legacy root note cannot declare status current"
+            )
+
+
+def living_manifest_files(vault_root: Path) -> list[Path]:
+    """Return the closed set covered by the living-layer manifest."""
+
+    knowledge_root = vault_root / "knowledge-base"
+    files: list[Path] = []
+    for relative in ("current", "evidence"):
+        directory = knowledge_root / relative
+        if directory.is_dir():
+            files.extend(path for path in directory.rglob("*") if path.is_file())
+    return sorted(files, key=lambda path: path.relative_to(knowledge_root).as_posix())
+
+
+def living_manifest_document(vault_root: Path) -> dict[str, Any]:
+    """Build the deterministic living-layer manifest document."""
+
+    knowledge_root = vault_root / "knowledge-base"
+    records = []
+    for path in living_manifest_files(vault_root):
+        payload = path.read_bytes()
+        records.append(
+            {
+                "path": path.relative_to(knowledge_root).as_posix(),
+                "bytes": len(payload),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
+    return {
+        "schemaVersion": "sapphirus.living-knowledge-manifest.v1",
+        "files": records,
+    }
+
+
+def _validate_living_manifest(vault_root: Path, result: ValidationResult) -> None:
+    path = vault_root / "knowledge-base" / "manifest.json"
+    try:
+        actual = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        result.errors.append("knowledge-base/manifest.json is missing")
+        return
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        result.errors.append(f"knowledge-base/manifest.json is invalid ({exc})")
+        return
+    expected = living_manifest_document(vault_root)
+    actual_paths = {
+        record.get("path")
+        for record in actual.get("files", [])
+        if isinstance(record, dict)
+    } if isinstance(actual, dict) and isinstance(actual.get("files"), list) else set()
+    expected_paths = {record["path"] for record in expected["files"]}
+    if actual_paths != expected_paths:
+        result.errors.append("knowledge-base/manifest.json: file set mismatch")
+        return
+    if actual != expected:
+        result.errors.append("knowledge-base/manifest.json: content hash or size mismatch")
 
 
 def _repository_path(
@@ -397,4 +462,5 @@ def validate_living_knowledge(
         _validate_pins(repository_root, pin_records, result)
     _validate_current_notes(vault_root, claim_ids, result)
     _validate_authority_locations(vault_root, result)
+    _validate_living_manifest(vault_root, result)
     return result

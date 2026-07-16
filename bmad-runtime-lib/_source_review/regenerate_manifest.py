@@ -8,9 +8,12 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from living_knowledge import living_manifest_document
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "manifest.json"
+LIVING_MANIFEST = ROOT / "knowledge-base" / "manifest.json"
 
 
 def main() -> None:
@@ -52,6 +55,11 @@ def main() -> None:
     }
     MANIFEST.write_text(
         json.dumps(output, indent=4, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    LIVING_MANIFEST.write_text(
+        json.dumps(living_manifest_document(ROOT), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
         newline="\n",
     )

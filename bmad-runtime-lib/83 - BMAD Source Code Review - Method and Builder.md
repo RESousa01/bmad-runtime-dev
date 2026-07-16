@@ -10,7 +10,7 @@ section: "Source and Research"
 order: 83
 vault_role: "source-review"
 project: Sapphirus BMAD Runtime
-status: current
+status: source-evidence
 reviewed_on: 2026-07-09
 source_archives:
   - "C:\\Users\\rodrigocsousa\\source\\bmad-runtime-dev\\BMAD-METHOD-main.zip"

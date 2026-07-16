@@ -9,7 +9,7 @@ tags:
   - vault/source-and-research
 section: "Source and Research"
 order: 89
-status: current
+status: source-evidence
 reviewed_on: 2026-07-09
 source_reviews:
   - "83 - BMAD Source Code Review - Method and Builder"

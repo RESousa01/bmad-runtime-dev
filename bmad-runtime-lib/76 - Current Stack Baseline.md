@@ -10,7 +10,7 @@ order: 76
 vault_role: "readable-note"
 project: Sapphirus BMAD Runtime
 type: v6-modern-stack-baseline
-status: current
+status: legacy-reference
 validated_on: 2026-07-09
 ---
 

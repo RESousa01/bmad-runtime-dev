@@ -167,21 +167,19 @@ def main() -> int:
 
     # V6.17 dual-delivery authority checks. These catch terminology that would
     # silently reintroduce the retired single-runtime or proposed-file model.
-    required_authorities = {
-        "93 - Split Web and Windows Desktop Architecture Plans.md": "status: current",
-        "94 - Windows Desktop Native Host and IPC.md": "status: current",
-        "95 - Windows Local Workspace and Execution.md": "status: current",
-        "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md": "status: current",
-        "97 - Windows Desktop Security and Trust Model.md": "status: current",
-        "98 - Azure Support Plane for Windows Desktop.md": "status: current",
-        "99 - Dual-Delivery Contract and Conformance Specification.md": "status: current",
+    required_legacy_evidence = {
+        "93 - Split Web and Windows Desktop Architecture Plans.md",
+        "94 - Windows Desktop Native Host and IPC.md",
+        "95 - Windows Local Workspace and Execution.md",
+        "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",
+        "97 - Windows Desktop Security and Trust Model.md",
+        "98 - Azure Support Plane for Windows Desktop.md",
+        "99 - Dual-Delivery Contract and Conformance Specification.md",
     }
-    for name, marker in required_authorities.items():
+    for name in required_legacy_evidence:
         path = ROOT / name
         if not path.exists():
-            errors.append(f"{name}: required V6.17 authority document is missing")
-        elif marker not in path.read_text(encoding="utf-8-sig"):
-            errors.append(f"{name}: required marker {marker!r} is missing")
+            errors.append(f"{name}: required V6.17 legacy evidence document is missing")
 
     retired_patterns = {
         "retired desktop identity document title": r"Desktop Identity, Licensing, Model Access, Sync, and Privacy",

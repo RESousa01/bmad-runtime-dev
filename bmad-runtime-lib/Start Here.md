@@ -10,22 +10,25 @@ section: "Vault Home"
 order: 0
 vault_role: "home"
 project: Sapphirus BMAD Runtime
-status: current
-updated_on: 2026-07-10
+status: supporting-reference
+updated_on: 2026-07-16
 ---
 
 # Start Here - Sapphirus BMAD Runtime Vault
 
-This vault is the implementation handbook for Sapphirus/BMAD Runtime: a chat-first, BMAD-native, governed agentic product with Airlock approvals, evidence, rollback, and package/artifact workflows. It now has two explicit delivery models: a cloud-managed web application and a Windows-installed local-first application.
+The current, evidence-backed product authority begins at [Current Product State](knowledge-base/current/00-current-product-state.md). Its companion notes separate implemented facts, verified external facts, decisions, plans, worktree candidates, history, and unknowns.
 
-The current delivery-model authority is [[93 - Split Web and Windows Desktop Architecture Plans]]. Shared BMAD and governance semantics do not make workspace or execution authority interchangeable between the two products.
+The numbered root notes are preserved legacy or supporting evidence. Their historical plans and architecture proposals remain useful research material, but opening one does not make it current. [note-catalog.json](knowledge-base/evidence/note-catalog.json) records the authority class of every root note, and [claims.json](knowledge-base/evidence/claims.json) records the evidence behind current assertions.
 
-The numeric prefixes are still present for stable ordering, but the filenames now use readable human titles. In Obsidian, start here and follow the links by purpose rather than decoding old machine-style names.
+The living knowledge layer is intentionally optional to product builds, tests, runtime, packaging, and CI. It is validated offline and anchored to an explicit repository commit and research cutoff.
 
 ## Read First
 
 | Need | Start with |
 |---|---|
+| Know what is true in the product now | [Current Product State](knowledge-base/current/00-current-product-state.md) |
+| Understand claim classes and evidence | [Evidence and Claim Policy](knowledge-base/current/01-evidence-and-claim-policy.md) |
+| See delivery decisions and open questions | [Decisions, Risks, and Open Questions](knowledge-base/current/07-decisions-risks-and-open-questions.md) |
 | Understand the product shape | [[00 - Common Rules and Product Shape|Common Rules and Product Shape]] |
 | Understand the BMAD Method and Builder foundation | [[100 - BMAD Method and Builder Deep Comprehension Audit|BMAD Method and Builder Deep Comprehension Audit]] |
 | Choose the web or Windows delivery model | [[93 - Split Web and Windows Desktop Architecture Plans|Split Web and Windows Desktop Architecture Plans]] |

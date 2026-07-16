@@ -10,14 +10,22 @@ order: 999
 vault_role: "readable-note"
 project: Sapphirus BMAD Runtime
 type: v6-quality-report
-status: current
-generated_on: 2026-07-09
-patch: v6.18-bmad-foundation-semantic-audit
+status: supporting-reference
+generated_on: 2026-07-16
+patch: living-knowledge-v1
 ---
 
 
 
 # Library Quality Report
+
+## 2026-07-16 living knowledge authority
+
+- Added a current authority layer under `knowledge-base/current`, with every substantive assertion linked to a closed claim registry.
+- Added source, claim, note-catalog, and repository-pin registries under `knowledge-base/evidence`; external facts use official primary sources and repository facts use implementation plus test/check evidence.
+- Reclassified misleading root `status: current` notes as legacy, source, or supporting evidence. The preserved critical review remains explicitly current as source context, not product authority.
+- Added deterministic root and living manifests plus offline validation for catalog coverage, evidence depth, pin drift, authority location, and stale file sets.
+- Product builds, tests, runtime, packaging, and CI remain independent of this optional reference vault.
 
 ## V6.18 BMAD foundation semantic audit
 
