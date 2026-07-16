@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::unwrap_used)]
+
 use desktop_ipc::{
     project_bmad_help_approved, project_bmad_help_approved_lifecycle, project_bmad_help_cancelled,
     project_bmad_help_review, project_bmad_help_terminal, project_model_auth_status, Admission,
@@ -34,7 +36,7 @@ fn context(allowed_commands: &[&str]) -> Result<IpcValidationContext, Box<dyn st
     })
 }
 
-fn envelope(command: &str, payload: Value) -> Vec<u8> {
+fn envelope(command: &str, payload: &Value) -> Vec<u8> {
     serde_json::to_vec(&json!({
         "schemaVersion": "desktop-ipc-command.v1",
         "requestId": "request_test",
@@ -99,7 +101,7 @@ fn exact_commands() -> [(&'static str, Value, bool); 8] {
 fn exact_eight_commands_are_capability_gated_and_correctly_classified(
 ) -> Result<(), Box<dyn std::error::Error>> {
     for (command, payload, mutating) in exact_commands() {
-        let bytes = envelope(command, payload.clone());
+        let bytes = envelope(command, &payload);
         let validated = CommandEnvelopeValidator::parse(&bytes, &context(&[command])?)?;
         assert_eq!(validated.command().name(), command);
         assert_eq!(validated.command().is_mutating(), mutating, "{command}");
@@ -139,7 +141,7 @@ fn every_payload_is_closed_against_renderer_authority_fields(
                 Value::String("renderer_owned".to_owned()),
             );
             let error = CommandEnvelopeValidator::parse(
-                &envelope(command, Value::Object(fields)),
+                &envelope(command, &Value::Object(fields)),
                 &context(&[command])?,
             )
             .unwrap_err();
@@ -169,7 +171,7 @@ fn workspace_epochs_hashes_and_decision_ids_are_bounded() -> Result<(), Box<dyn 
             .1;
         payload["workspaceGrantEpoch"] = json!(0);
         assert!(matches!(
-            CommandEnvelopeValidator::parse(&envelope(command, payload), &context(&[command])?),
+            CommandEnvelopeValidator::parse(&envelope(command, &payload), &context(&[command])?),
             Err(IpcValidationError::InvalidPayload)
         ));
     }
@@ -182,7 +184,7 @@ fn workspace_epochs_hashes_and_decision_ids_are_bounded() -> Result<(), Box<dyn 
             .1;
         payload["manifestHash"] = json!("not-a-sha256-digest");
         assert!(matches!(
-            CommandEnvelopeValidator::parse(&envelope(command, payload), &context(&[command])?),
+            CommandEnvelopeValidator::parse(&envelope(command, &payload), &context(&[command])?),
             Err(IpcValidationError::InvalidPayload)
         ));
     }
@@ -195,7 +197,7 @@ fn workspace_epochs_hashes_and_decision_ids_are_bounded() -> Result<(), Box<dyn 
             .1;
         payload["decisionId"] = json!("");
         assert!(matches!(
-            CommandEnvelopeValidator::parse(&envelope(command, payload), &context(&[command])?),
+            CommandEnvelopeValidator::parse(&envelope(command, &payload), &context(&[command])?),
             Err(IpcValidationError::InvalidPayload)
         ));
     }
@@ -216,7 +218,7 @@ fn help_review_mutations_reject_ambiguous_replay() -> Result<(), Box<dyn std::er
             .expect("command fixture")
             .1;
         let validated =
-            CommandEnvelopeValidator::parse(&envelope(command, payload), &context(&[command])?)?;
+            CommandEnvelopeValidator::parse(&envelope(command, &payload), &context(&[command])?)?;
         let gate = RequestGate::new(AdmissionPolicy::default());
         assert_eq!(gate.admit(&validated, UnixMillis(10_000))?, Admission::New);
         assert!(matches!(
@@ -240,7 +242,7 @@ fn local_context_preview_still_rejects_a_model_target() -> Result<(), Box<dyn st
         },
     });
     assert!(matches!(
-        CommandEnvelopeValidator::parse(&envelope(command, payload), &context(&[command])?),
+        CommandEnvelopeValidator::parse(&envelope(command, &payload), &context(&[command])?),
         Err(IpcValidationError::InvalidPayload)
     ));
     Ok(())
@@ -373,8 +375,7 @@ fn review_projection_contains_exact_inert_bytes_but_no_authority_hashes(
 }
 
 #[test]
-fn review_projection_rejects_count_drift_and_oversized_exact_bytes(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn review_projection_rejects_count_drift_and_oversized_exact_bytes() {
     let base = || BmadHelpReviewInput {
         workspace_id: id("workspace_test").expect("workspace id"),
         workspace_grant_epoch: 1,
@@ -418,7 +419,6 @@ fn review_projection_rejects_count_drift_and_oversized_exact_bytes(
     absolute_path.items[0].outbound_byte_count = 21;
     absolute_path.total_outbound_bytes = 21;
     assert!(project_bmad_help_review(absolute_path).is_err());
-    Ok(())
 }
 
 #[test]

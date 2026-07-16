@@ -768,16 +768,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "desktop-egress"
-version = "0.1.0-beta.1"
-dependencies = [
- "desktop-runtime",
- "parking_lot",
- "serde",
- "thiserror 2.0.17",
-]
-
-[[package]]
 name = "desktop-execution"
 version = "0.1.0-beta.1"
 dependencies = [
