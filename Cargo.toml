@@ -8,6 +8,7 @@ members = [
   "crates/desktop-execution",
   "crates/desktop-store",
   "crates/desktop-cloud",
+  "crates/desktop-egress",
   "crates/desktop-update",
   "tests/generator-qualification/rust",
   "tests/conformance/rust",
