@@ -1,5 +1,9 @@
 # D2-A Egress and Consent Core Implementation Plan
 
+## Completion checkpoint — 2026-07-15
+
+D2-A is implemented and independently reviewed. Exact prepared-context attestations, expanded secret-path denial, terminal cancellation, atomic single-use consent, and sealed consumption capabilities all pass the focused tests, compile-fail proofs, strict Clippy, formatting, and the Rust workspace gate excluding the separately blocked Tauri packaging crate. The task checklist below is retained as the historical implementation script.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a pure Rust crate that prepares exact outbound context manifests, exposes sanitized review projections, and authorizes one model invocation through an atomic single-use consent decision.

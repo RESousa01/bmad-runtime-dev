@@ -54,10 +54,11 @@ pub use help_binding::{
     BmadTrustedHelpModelProfileData,
 };
 pub use help_materialization::{
-    BmadArtifactClassification, BmadArtifactReference, BmadCanonicalAdvanceResult,
-    BmadCanonicalHelpRecords, BmadContentReference, BmadHelpEvidenceClass, BmadHelpEvidenceToken,
-    BmadHelpMaterializer, BmadHelpNoRecommendationReason, BmadHelpRecordIds,
-    BmadMethodHelpRecommendation, BmadVerifiedHelpProposal,
+    validate_bmad_help_proposal_schema, BmadArtifactClassification, BmadArtifactReference,
+    BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadContentReference,
+    BmadHelpEvidenceClass, BmadHelpEvidenceToken, BmadHelpMaterializer,
+    BmadHelpNoRecommendationReason, BmadHelpRecordIds, BmadMethodHelpRecommendation,
+    BmadVerifiedHelpProposal,
 };
 pub use help_run::{
     BmadHostInputReplacement, BmadLoadedMethodPackage, BmadQualifiedHelpSource,

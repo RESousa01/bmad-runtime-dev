@@ -1,6 +1,11 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 pub mod bmad_foundation;
+#[allow(
+    dead_code,
+    reason = "the Checkpoint 3 bridge is consumed by the Checkpoint 5 coordinator"
+)]
+mod bmad_model;
 mod commands;
 mod edits;
 mod state;

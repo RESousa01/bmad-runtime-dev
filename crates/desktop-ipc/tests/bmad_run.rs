@@ -8,8 +8,8 @@ use desktop_ipc::{
 };
 use desktop_runtime::{
     sha256_bytes, BmadCatalogAvailability, BmadEntrypointKind, BmadHelpActionKey,
-    BmadHelpConfidence, BmadHelpRecommendation, BmadHelpSourceRef, BmadLoadedPackage,
-    BmadLoadedSkill, ContractId, LocalCommand, UnixMillis,
+    BmadHelpConfidence, BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
+    BmadLoadedPackage, BmadLoadedSkill, ContractId, LocalCommand, UnixMillis,
 };
 use serde_json::{json, Value};
 
@@ -92,6 +92,10 @@ fn recommendation() -> BmadHelpRecommendation {
     }
 }
 
+fn intent() -> BmadHelpIntent {
+    BmadHelpIntent::new("Help me choose the next planning step").expect("bounded Help intent")
+}
+
 fn package() -> BmadLoadedPackage {
     BmadLoadedPackage {
         package_name: "bmad-method".to_owned(),
@@ -120,6 +124,7 @@ fn created_projection() -> desktop_ipc::BmadHelpRunCreatedProjection {
     project_created_bmad_help_run(
         &package(),
         &recommendation(),
+        &intent(),
         id("workspace_1"),
         id("run_1"),
         id("session_1"),
@@ -361,6 +366,7 @@ fn created_help_run_projection_is_exact_inert_and_disclosure_safe() {
     let projection = project_created_bmad_help_run(
         &package(),
         &internal,
+        &intent(),
         id("workspace_1"),
         id("run_1"),
         id("session_1"),
@@ -378,6 +384,7 @@ fn created_help_run_projection_is_exact_inert_and_disclosure_safe() {
         keys,
         BTreeSet::from([
             "completionClaimed",
+            "currentIntent",
             "lifecycle",
             "recommendation",
             "runId",
@@ -394,6 +401,7 @@ fn created_help_run_projection_is_exact_inert_and_disclosure_safe() {
     assert_eq!(value["workspaceId"], "workspace_1");
     assert_eq!(value["runId"], "run_1");
     assert_eq!(value["sessionId"], "session_1");
+    assert_eq!(value["currentIntent"], intent().as_str());
     assert_eq!(value["runnable"], false);
     assert_eq!(value["completionClaimed"], false);
     assert_eq!(
@@ -435,6 +443,7 @@ fn created_help_run_projection_rejects_completion_or_unsafe_recommendations() {
     assert!(project_created_bmad_help_run(
         &package(),
         &completed,
+        &intent(),
         id("workspace_1"),
         id("run_1"),
         id("session_1"),
@@ -446,6 +455,7 @@ fn created_help_run_projection_rejects_completion_or_unsafe_recommendations() {
     assert!(project_created_bmad_help_run(
         &package(),
         &unsafe_reason,
+        &intent(),
         id("workspace_1"),
         id("run_1"),
         id("session_1"),

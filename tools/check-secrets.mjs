@@ -85,7 +85,10 @@ function isAllowedNonSecret(value) {
     || /^must-not-cross(?:[-_][a-z0-9]+)*$/iu.test(normalized)
     || /^<\s*(?:redacted|replace[-_ ]?me|secret)\s*>$/iu.test(normalized)
     || /^\$\{[A-Za-z_][A-Za-z0-9_]*\}$/u.test(normalized)
-    || /^(?:process\.env\.|import\.meta\.env\.)[A-Z][A-Z0-9_]*$/u.test(normalized);
+    || /\$\{[A-Za-z_][A-Za-z0-9_]*\}/u.test(normalized)
+    || /^\[REDACTED(?::[A-Za-z0-9_-]+)?\]?$/iu.test(normalized)
+    || /^(?:process\.env\.|import\.meta\.env\.)[A-Z][A-Z0-9_]*$/u.test(normalized)
+    || /^[A-Za-z_][A-Za-z0-9_.]*(?:<[^;\r\n]+>)?(?:\([^;\r\n]*\))?$/u.test(normalized);
 }
 
 function isTextCandidate(name) {

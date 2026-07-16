@@ -27,6 +27,7 @@
     "rust:clippy": "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
     "rust:test": "cargo test --workspace --all-features --locked",
     "desktop:dev": "pnpm exec tauri dev --config crates/desktop-app/tauri.conf.json",
+    "desktop:dev:deterministic": "pnpm exec tauri dev --config crates/desktop-app/tauri.conf.json --features deterministic-help",
     "desktop:build": "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json",
     "verify:boundaries": "node tools/check-boundaries.mjs",
     "verify:source": "pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",

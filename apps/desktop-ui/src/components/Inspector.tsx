@@ -2,7 +2,8 @@ import { Button, Tab, TabList, TabPanel, Tabs } from "@sapphirus/ui";
 import { FileCode2, ShieldCheck, X } from "lucide-react";
 import type { InspectorTab } from "../data/demo";
 import type { ContextPreviewProjection } from "../lib/hostClient";
-import type { BmadHelpUiState, BmadLibraryUiState } from "../lib/bmadProjection";
+import type { BmadLibraryUiState } from "../lib/bmadProjection";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { WorkspaceProjectionProvenance } from "../lib/workspaceReadSource";
 import { containModalPanelFocus, useModalPanelFocus } from "../lib/panelFocus";
 import { BmadHelpCard } from "./BmadHelpCard";
@@ -21,7 +22,8 @@ const inspectorTabs: Array<{ accessibleLabel: string; id: InspectorTab; label: s
 ];
 
 export interface InspectorProps {
-  bmadHelpState: BmadHelpUiState;
+  bmadHelpState: BmadRequestState;
+  bmadModelDevelopmentOnly: boolean;
   bmadLibraryState: BmadLibraryUiState;
   changesPanel: GovernedChangesPanelProps;
   contextPreview: ContextPreviewProjection | null;
@@ -30,6 +32,9 @@ export interface InspectorProps {
   isOpen: boolean;
   isOverlay: boolean;
   methodLibraryAvailable: boolean;
+  onBmadApprove: () => void;
+  onBmadCancel: () => void;
+  onBmadSend: () => void;
   onClose: () => void;
   onReloadMethodLibrary: () => void;
   onTabChange: (tab: InspectorTab) => void;
@@ -114,6 +119,7 @@ function ContextPanel({
 
 export function Inspector({
   bmadHelpState,
+  bmadModelDevelopmentOnly,
   bmadLibraryState,
   changesPanel,
   contextPreview,
@@ -122,6 +128,9 @@ export function Inspector({
   isOpen,
   isOverlay,
   methodLibraryAvailable,
+  onBmadApprove,
+  onBmadCancel,
+  onBmadSend,
   onClose,
   onReloadMethodLibrary,
   onTabChange,
@@ -197,7 +206,13 @@ export function Inspector({
         {methodLibraryAvailable ? (
           <TabPanel id="method">
             <div className="method-library-panel">
-              <BmadHelpCard state={bmadHelpState} />
+              <BmadHelpCard
+                developmentOnly={bmadModelDevelopmentOnly}
+                onApprove={onBmadApprove}
+                onCancel={onBmadCancel}
+                onSend={onBmadSend}
+                state={bmadHelpState}
+              />
               <BmadLibraryPanel
                 onReload={onReloadMethodLibrary}
                 state={bmadLibraryState}

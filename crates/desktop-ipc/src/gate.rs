@@ -42,6 +42,7 @@ struct GateState {
 #[derive(Debug, Eq, PartialEq)]
 enum MutationIdentity {
     DurableHelpRun,
+    OneShot,
     Fingerprint(Sha256Digest),
 }
 
@@ -96,6 +97,16 @@ impl RequestGate {
             desktop_runtime::LocalCommand::CreateBmadHelpRun { .. }
         ) {
             Some(MutationIdentity::DurableHelpRun)
+        } else if matches!(
+            &envelope.command,
+            desktop_runtime::LocalCommand::ModelAuthSignIn
+                | desktop_runtime::LocalCommand::ModelAuthSignOut
+                | desktop_runtime::LocalCommand::PrepareBmadHelpReview { .. }
+                | desktop_runtime::LocalCommand::ApproveBmadHelpReview { .. }
+                | desktop_runtime::LocalCommand::CancelBmadHelpReview { .. }
+                | desktop_runtime::LocalCommand::SubmitBmadHelpReview { .. }
+        ) {
+            Some(MutationIdentity::OneShot)
         } else {
             Some(MutationIdentity::Fingerprint(command_fingerprint(
                 envelope,

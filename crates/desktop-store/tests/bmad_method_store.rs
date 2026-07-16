@@ -14,9 +14,15 @@ use desktop_runtime::{
     MethodSession, MethodSessionRepository, MethodSessionService, MethodState, MethodStepTable,
     MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData, Sha256Digest, UnixMillis,
 };
-use desktop_store::{EvidenceAppend, KeyProtector, LocalStore, PayloadRef, StoreError};
+use desktop_store::{
+    BmadHelpRunCreateRequest, BmadHelpRunLatest, EvidenceAppend, KeyProtector, LocalStore,
+    PayloadRef, StoreError,
+};
 use serde_json::{json, Value};
 use std::sync::{Arc, Barrier};
+
+const COMPLETED_RENDERER_PROJECTION: &[u8] = br#"{"schemaVersion":"sapphirus.bmad-help-completed-projection.v1","lifecycle":"completed","recommendation":{"kind":"recommended_capability","displayName":"Create Architecture"},"receipt":{"status":"succeeded","region":"westeurope","retention":"transient_no_store"}}"#;
+const CREATED_RENDERER_PROJECTION: &[u8] = br#"{"schemaVersion":"bmad-help-run.v1","runKind":"bmad_help","lifecycle":"created_unbound","workspaceId":"workspace_01J77777777777777777777777","runId":"run_01J77777777777777777777777","sessionId":"session_01J77777777777777777777777","runnable":false,"completionClaimed":false}"#;
 
 #[derive(Debug)]
 struct TestProtector;
@@ -185,7 +191,8 @@ fn assert_no_help_finalization_residue(
         connection.query_row(
             "SELECT COUNT(*) FROM payloads
              WHERE kind IN ('bmad_help_raw_proposal',
-                            'bmad_help_canonical_recommendation')",
+                            'bmad_help_canonical_recommendation',
+                            'bmad_help_completed_renderer_projection')",
             [],
             |row| row.get::<_, u64>(0),
         )?,
@@ -197,7 +204,8 @@ fn assert_no_help_finalization_residue(
             "SELECT COUNT(*) FROM evidence_events
              WHERE stream_id = 'bmad-method:' || ?1
                AND event_type IN ('bmad.help.proposal.retained',
-                                  'bmad.help.recommendation.retained')",
+                                  'bmad.help.recommendation.retained',
+                                  'bmad.help.completed_projection.retained')",
             session_id,
         )?,
         0
@@ -210,6 +218,7 @@ fn assert_no_help_finalization_residue(
              WHERE e.stream_id = 'bmad-method:' || ?1
                AND e.event_type IN ('bmad.help.proposal.retained',
                                     'bmad.help.recommendation.retained',
+                                    'bmad.help.completed_projection.retained',
                                     'bmad.method.result_accepted')",
             session_id,
         )?,
@@ -657,10 +666,7 @@ fn help_evidence_token(
 fn advancing_help_records(
     store: &LocalStore,
 ) -> Result<(MethodSession, BmadCanonicalHelpRecords), Box<dyn std::error::Error>> {
-    let base = compiled_help();
-    let token = help_evidence_token(&base);
-    let compiled = base.with_evidence_allowlist(vec![token.clone()])?;
-    let mut session = MethodSession::create(CreateMethodSession {
+    let session = MethodSession::create(CreateMethodSession {
         session_id: id("session_01J77777777777777777777777"),
         owner_scope_ref: id("ownerscope_01J77777777777777777777777"),
         project_id: id("project_01J77777777777777777777777"),
@@ -675,6 +681,16 @@ fn advancing_help_records(
         created_at: UnixMillis(1_000),
     })?;
     store.create_method_session(&session)?;
+    advancing_help_records_from_created(store, session)
+}
+
+fn advancing_help_records_from_created(
+    store: &LocalStore,
+    mut session: MethodSession,
+) -> Result<(MethodSession, BmadCanonicalHelpRecords), Box<dyn std::error::Error>> {
+    let base = compiled_help();
+    let token = help_evidence_token(&base);
+    let compiled = base.with_evidence_allowlist(vec![token.clone()])?;
     session.bind_capability(
         1,
         compiled.exact_binding().clone(),
@@ -744,6 +760,10 @@ fn advancing_help_records(
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "one atomic-lineage fixture asserts every proposal, recommendation, completed projection, checkpoint, evidence, and outbox binding"
+)]
 fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lineage(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
@@ -757,6 +777,7 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
         &session.session_id(),
         session.version(),
         &records,
+        COMPLETED_RENDERER_PROJECTION,
         UnixMillis(6_000),
     )?;
 
@@ -778,13 +799,14 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
     let payload_rows = {
         let mut statement = connection.prepare(
             "SELECT content_hash, kind, schema_version, byte_count, key_version
-             FROM payloads WHERE kind IN (?1, ?2) ORDER BY kind",
+             FROM payloads WHERE kind IN (?1, ?2, ?3) ORDER BY kind",
         )?;
         let rows = statement
             .query_map(
                 [
                     "bmad_help_raw_proposal",
                     "bmad_help_canonical_recommendation",
+                    "bmad_help_completed_renderer_projection",
                 ],
                 |row| {
                     Ok(PayloadRef {
@@ -799,7 +821,7 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
             .collect::<Result<Vec<_>, _>>()?;
         rows
     };
-    assert_eq!(payload_rows.len(), 2);
+    assert_eq!(payload_rows.len(), 3);
     let retained = payload_rows
         .iter()
         .map(|payload| Ok((payload.kind.clone(), store.get_payload(payload)?)))
@@ -808,6 +830,10 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
     assert_eq!(
         retained["bmad_help_canonical_recommendation"],
         recommendation
+    );
+    assert_eq!(
+        retained["bmad_help_completed_renderer_projection"],
+        COMPLETED_RENDERER_PROJECTION
     );
     assert_eq!(
         payload_rows
@@ -826,16 +852,25 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
         "sapphirus.bmad-method-help-recommendation.v1"
     );
     assert_eq!(
+        payload_rows
+            .iter()
+            .find(|payload| payload.kind == "bmad_help_completed_renderer_projection")
+            .expect("completed renderer projection payload")
+            .schema_version,
+        "sapphirus.bmad-help-completed-projection.v1"
+    );
+    assert_eq!(
         relation_count(
             &connection,
             "SELECT COUNT(*) FROM evidence_events
              WHERE stream_id = 'bmad-method:' || ?1
                AND event_type IN ('bmad.help.proposal.retained',
                                   'bmad.help.recommendation.retained',
+                                  'bmad.help.completed_projection.retained',
                                   'bmad.method.result_accepted')",
             &session.session_id(),
         )?,
-        3
+        4
     );
     drop(connection);
     drop(store);
@@ -846,6 +881,75 @@ fn help_finalization_atomically_retains_distinct_proposal_and_recommendation_lin
         .expect("restored completed Help session");
     assert_eq!(restored, completed);
 
+    Ok(())
+}
+
+#[test]
+fn completed_help_projection_is_authenticated_and_recovers_after_restart(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    store.append_transition(
+        "workspace_catalog",
+        "local",
+        1,
+        r#"{"schemaVersion":"workspace-catalog.v1","entries":[{"workspaceId":"workspace_01J77777777777777777777777","grantEpoch":7,"revoked":false}]}"#,
+        &EvidenceAppend {
+            stream_id: "workspace:catalog".to_owned(),
+            event_type: "workspace.granted".to_owned(),
+            payload_hash: sha256_bytes(b"workspace catalog v1").to_string(),
+            payload_ref: None,
+            correlation_id: "request_workspace_catalog_seed".to_owned(),
+            causation_id: None,
+            redaction_level: "metadata".to_owned(),
+            retention_class: "evidence".to_owned(),
+        },
+    )?;
+    let identity = store.local_identity()?;
+    let candidate = MethodSession::create(CreateMethodSession {
+        session_id: id("session_01J77777777777777777777777"),
+        owner_scope_ref: identity.owner_scope_ref().clone(),
+        project_id: id("project_01J77777777777777777777777"),
+        run_id: id("run_01J77777777777777777777777"),
+        authority_ref: identity.authority_ref()?,
+        created_at: UnixMillis(1_000),
+    })?;
+    let created = store.create_bmad_help_run(
+        &candidate,
+        &BmadHelpRunCreateRequest {
+            request_id: id("request_01J77777777777777777777777"),
+            project_id: id("project_01J77777777777777777777777"),
+            workspace_id: id("workspace_01J77777777777777777777777"),
+            workspace_grant_epoch: 7,
+            workspace_catalog_version: 1,
+            workspace_root_identity_hash: sha256_bytes(b"workspace root"),
+            capability_catalog_hash: sha256_bytes(b"catalog"),
+            foundation_binding_hash: sha256_bytes(b"foundation"),
+            intent_hash: sha256_bytes(b"intent"),
+            renderer_projection: CREATED_RENDERER_PROJECTION.to_vec(),
+            accepted_at: UnixMillis(1_000),
+        },
+    )?;
+    let (advancing, records) = advancing_help_records_from_created(&store, candidate)?;
+    store.finalize_bmad_help(
+        &advancing.scope(),
+        &advancing.session_id(),
+        advancing.version(),
+        &records,
+        COMPLETED_RENDERER_PROJECTION,
+        UnixMillis(6_000),
+    )?;
+    drop(store);
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    reopened.verify_integrity()?;
+    let latest = reopened.latest_bmad_help_run(&id("workspace_01J77777777777777777777777"), 1)?;
+    let BmadHelpRunLatest::Completed(completed) = latest else {
+        return Err("expected durable completed Help projection".into());
+    };
+    assert_eq!(completed.creation.session_id, created.session_id);
+    assert_eq!(completed.creation.scope, created.scope);
+    assert_eq!(completed.renderer_projection, COMPLETED_RENDERER_PROJECTION);
     Ok(())
 }
 
@@ -892,6 +996,7 @@ fn stale_help_finalization_leaves_no_authoritative_residue(
             &advancing.session_id(),
             advancing.version() + 1,
             &records,
+            COMPLETED_RENDERER_PROJECTION,
             UnixMillis(6_000),
         ),
         Err(StoreError::StateConflict)
@@ -935,6 +1040,7 @@ fn conflicting_registered_help_payload_metadata_leaves_finalization_unadvanced(
             &advancing.session_id(),
             advancing.version(),
             &records,
+            COMPLETED_RENDERER_PROJECTION,
             UnixMillis(6_000),
         ),
         Err(StoreError::Inconsistent)
@@ -992,6 +1098,7 @@ fn relational_help_finalization_failure_rolls_back_all_authoritative_rows(
             &advancing.session_id(),
             advancing.version(),
             &records,
+            COMPLETED_RENDERER_PROJECTION,
             UnixMillis(6_000),
         ),
         Err(StoreError::Sqlite(_))
@@ -1021,6 +1128,7 @@ fn restart_integrity_rejects_missing_swapped_and_metadata_drifted_help_records(
             &advancing.session_id(),
             advancing.version(),
             &records,
+            COMPLETED_RENDERER_PROJECTION,
             UnixMillis(6_000),
         )?;
         let database_path = store.database_path();
@@ -1118,6 +1226,7 @@ fn restart_integrity_rejects_reserved_help_events_with_wrong_payload_metadata(
         &advancing.session_id(),
         advancing.version(),
         &records,
+        COMPLETED_RENDERER_PROJECTION,
         UnixMillis(6_000),
     )?;
     let checkpoint = completed.resume().expect("canonical Help checkpoint");

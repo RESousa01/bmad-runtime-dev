@@ -4,11 +4,17 @@ import type {
   BmadHelpConfidence,
   BmadHelpRecommendationProjection,
   BmadHelpRunCreatedProjection,
-  BmadHelpUiState,
 } from "../lib/bmadProjection";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
+import { BmadHelpResultCard } from "./BmadHelpResultCard";
+import { ContextEgressReview } from "./ContextEgressReview";
 
 export interface BmadHelpCardProps {
-  readonly state: BmadHelpUiState;
+  readonly developmentOnly?: boolean;
+  readonly onApprove?: () => void;
+  readonly onCancel?: () => void;
+  readonly onSend?: () => void;
+  readonly state: BmadRequestState;
 }
 
 function availabilityLabel(availability: BmadAvailability): string {
@@ -115,6 +121,7 @@ function ReadyHelpRun({ run }: { readonly run: BmadHelpRunCreatedProjection }) {
       <div className="bmad-help-card__run-status" role="status">
         <strong>Created</strong>
         <span>Unbound</span>
+        <span className="sr-only">Created · Unbound</span>
         <span>No model request</span>
         <span>Execution unavailable</span>
       </div>
@@ -127,39 +134,104 @@ function ReadyHelpRun({ run }: { readonly run: BmadHelpRunCreatedProjection }) {
   );
 }
 
-function HelpBody({ state }: BmadHelpCardProps) {
+function HelpBody({
+  developmentOnly = false,
+  onApprove = () => undefined,
+  onCancel = () => undefined,
+  onSend = () => undefined,
+  state,
+}: BmadHelpCardProps) {
   switch (state.kind) {
-    case "no_evidence":
+    case "idle":
+      if (state.run) {
+        return <ReadyHelpRun run={state.run} />;
+      }
       return (
         <div className="bmad-help-card__empty">
           <strong>No recommendation yet</strong>
           <p>No active governed session is available to ground a next step.</p>
         </div>
       );
-    case "loading":
+    case "creating":
       return (
         <p aria-live="polite" role="status">
-          Finding a source-grounded recommendation…
+          {state.activity === "recovering"
+            ? "Checking for a retained Method recommendation…"
+            : "Preparing an exact Method request review…"}
         </p>
       );
-    case "legacy_projection_unavailable":
+    case "review_required":
+    case "approving":
+    case "approved":
+    case "submitting":
+      return (
+        <>
+          {state.runProjection ? <ReadyHelpRun run={state.runProjection} /> : null}
+          <ContextEgressReview
+            onApprove={onApprove}
+            onCancel={onCancel}
+            onSend={onSend}
+            phase={state.kind}
+            review={state.review}
+          />
+        </>
+      );
+    case "completed":
+      return (
+        <BmadHelpResultCard
+          developmentOnly={developmentOnly}
+          result={state.result}
+        />
+      );
+    case "interrupted":
+      return (
+        <div className="bmad-help-card__empty" role="alert">
+          <strong>Request interrupted</strong>
+          <p>This Method request cannot be resumed or sent again. Start a fresh review.</p>
+        </div>
+      );
+    case "terminal":
+      return (
+        <div className="bmad-help-card__empty" role="status">
+          <strong>{state.reason === "cancelled" ? "Review cancelled" : "Review ended"}</strong>
+          <p>
+            {state.reason === "consent_expired"
+              ? "The context approval expired. Start a fresh review before sending."
+              : state.reason === "authority_changed"
+                ? "The active authority changed. Start a fresh review before sending."
+                : state.reason === "failed"
+                  ? "The request failed closed. Start a fresh review to try again."
+                  : "No request was sent."}
+          </p>
+        </div>
+      );
     case "unavailable":
       return <p role="alert">{state.message}</p>;
-    case "ready":
-      return <ReadyHelpRun run={state.run} />;
   }
 }
 
-export function BmadHelpCard({ state }: BmadHelpCardProps) {
+export function BmadHelpCard({
+  developmentOnly = false,
+  onApprove = () => undefined,
+  onCancel = () => undefined,
+  onSend = () => undefined,
+  state,
+}: BmadHelpCardProps) {
   const headingId = useId();
   return (
     <article
-      aria-busy={state.kind === "loading" || undefined}
+      aria-busy={state.kind === "creating" || state.kind === "approving" || state.kind === "submitting" || undefined}
       aria-labelledby={headingId}
       className="bmad-help-card"
     >
       <h2 id={headingId}>Suggested next step</h2>
-      <HelpBody state={state} />
+      <HelpBody
+        developmentOnly={developmentOnly}
+        onApprove={onApprove}
+        onCancel={onCancel}
+        onSend={onSend}
+        state={state}
+      />
     </article>
   );
 }

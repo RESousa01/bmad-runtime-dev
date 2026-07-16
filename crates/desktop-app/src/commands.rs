@@ -1,7 +1,16 @@
+use desktop_egress::{ContextClassification, ContextReviewProjection, RetentionMode};
 use desktop_ipc::{
-    decode_retained_bmad_help_run, deserialize_strict, project_bmad_library,
-    project_created_bmad_help_run, Admission, BmadHelpProjectionError, BmadProjectionError,
-    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
+    decode_retained_bmad_help_completion, decode_retained_bmad_help_run, deserialize_strict,
+    project_bmad_help_approved, project_bmad_help_approved_lifecycle, project_bmad_help_cancelled,
+    project_bmad_help_review, project_bmad_help_terminal, project_bmad_library,
+    project_created_bmad_help_run, project_model_auth_status, Admission, BmadHelpApprovalInput,
+    BmadHelpApprovedLifecycleInput, BmadHelpCancellationInput,
+    BmadHelpContextClassificationProjection, BmadHelpModelAccessProjectionError,
+    BmadHelpProjectionError, BmadHelpRetentionProjection, BmadHelpReviewExclusionInput,
+    BmadHelpReviewInput, BmadHelpReviewItemInput, BmadHelpReviewRedactionInput,
+    BmadHelpSecretFindingInput, BmadHelpTerminalInput, BmadHelpTerminalReasonProjection,
+    BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
+    ModelAuthModeProjection, ModelAuthStatusInput, ModelAuthStatusKindProjection,
 };
 use desktop_runtime::{
     canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
@@ -19,6 +28,12 @@ use tauri_plugin_dialog::DialogExt as _;
 use ulid::Ulid;
 
 use crate::bmad_foundation::BmadLoadedFoundation;
+use crate::bmad_model::config::{current_help_model_configuration, HelpModelMode};
+use crate::bmad_model::coordinator::{
+    ApproveBmadHelpReviewInput, BmadHelpCoordinatorError, BmadHelpInMemoryLifecycle,
+    BmadHelpTerminalReason, CancelBmadHelpReviewInput, PrepareBmadHelpReviewInput,
+    SubmitBmadHelpReviewInput,
+};
 use crate::state::{
     conflict_error, invalid_request, not_found_error, now, recovery_error, resource_limit_error,
     temporarily_unavailable, unauthorized_error, DirectoryCursor, HostState, ReadyAuthorityGuard,
@@ -32,7 +47,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 17] = [
+const READY_COMMANDS: [&str; 24] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -42,6 +57,13 @@ const READY_COMMANDS: [&str; 17] = [
     "workspace.search",
     "bmad.scan",
     "bmad.library.snapshot",
+    "model.auth.status",
+    "model.auth.sign_in",
+    "model.auth.sign_out",
+    "bmad.help.prepare",
+    "bmad.help.approve",
+    "bmad.help.cancel",
+    "bmad.help.submit",
     "bmad.help.latest",
     "run.create",
     "context.preview",
@@ -117,6 +139,20 @@ fn supported_commands(boot_mode: BootMode) -> Vec<String> {
         .iter()
         .map(|command| (*command).to_owned())
         .collect()
+}
+
+fn should_cache_reply(command: &LocalCommand) -> bool {
+    command.is_mutating()
+        && !matches!(
+            command,
+            LocalCommand::CreateBmadHelpRun { .. }
+                | LocalCommand::ModelAuthSignIn
+                | LocalCommand::ModelAuthSignOut
+                | LocalCommand::PrepareBmadHelpReview { .. }
+                | LocalCommand::ApproveBmadHelpReview { .. }
+                | LocalCommand::CancelBmadHelpReview { .. }
+                | LocalCommand::SubmitBmadHelpReview { .. }
+        )
 }
 
 #[tauri::command]
@@ -204,13 +240,12 @@ pub(crate) fn host_dispatch(
     }
 
     let (_, command) = envelope.into_command();
-    let cache_reply =
-        command.is_mutating() && !matches!(&command, LocalCommand::CreateBmadHelpRun { .. });
+    let cache_reply = should_cache_reply(&command);
     let result = execute_command(
         &app,
         &state,
         &foundation,
-        &context.renderer_session_id,
+        &renderer_authority,
         &request_id,
         accepted_at,
         command,
@@ -300,11 +335,15 @@ pub(crate) fn host_projection_events(
     reply
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the host dispatcher keeps the closed command-to-handler mapping visible at one boundary"
+)]
 fn execute_command(
     app: &tauri::AppHandle,
     state: &HostState,
     foundation: &BmadLoadedFoundation,
-    renderer_session_id: &ContractId,
+    renderer_session: &RendererSessionGuard<'_>,
     request_id: &ContractId,
     accepted_at: UnixMillis,
     command: LocalCommand,
@@ -320,7 +359,13 @@ fn execute_command(
             workspace_id,
             cursor,
             limit,
-        } => list_workspace_entries(state, renderer_session_id, workspace_id, cursor, limit),
+        } => list_workspace_entries(
+            state,
+            renderer_session.session_id(),
+            workspace_id,
+            cursor,
+            limit,
+        ),
         LocalCommand::ReadWorkspaceText {
             workspace_id,
             relative_path,
@@ -370,6 +415,63 @@ fn execute_command(
                 operation_id: Some(created.operation_id),
             });
         }
+        LocalCommand::ModelAuthStatus => model_auth_status_data(state),
+        LocalCommand::ModelAuthSignIn => Err(model_sign_in_unavailable()),
+        LocalCommand::ModelAuthSignOut => {
+            state.sign_out_model()?;
+            model_auth_status_data(state)
+        }
+        LocalCommand::PrepareBmadHelpReview {
+            workspace_id,
+            workspace_grant_epoch,
+        } => prepare_bmad_help_review(
+            state,
+            foundation,
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            accepted_at,
+        ),
+        LocalCommand::ApproveBmadHelpReview {
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+        } => approve_bmad_help_review(
+            state,
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+            accepted_at,
+        ),
+        LocalCommand::CancelBmadHelpReview {
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+            decision_id,
+        } => cancel_bmad_help_review(
+            state,
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+            decision_id,
+            accepted_at,
+        ),
+        LocalCommand::SubmitBmadHelpReview {
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+            decision_id,
+        } => submit_bmad_help_review(
+            state,
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            manifest_hash,
+            decision_id,
+            accepted_at,
+        ),
         LocalCommand::LatestBmadHelpRun {
             workspace_id,
             workspace_grant_epoch,
@@ -402,6 +504,320 @@ fn execute_command(
         accepted_at,
         operation_id: None,
     })
+}
+
+fn model_auth_status_data(state: &HostState) -> Result<HostCommandData, LocalError> {
+    let configuration = current_help_model_configuration().map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The model-access configuration could not be verified.",
+            false,
+        )
+    })?;
+    let (status, mode, development_only) = match configuration.mode {
+        HelpModelMode::Offline => (
+            ModelAuthStatusKindProjection::Unavailable,
+            ModelAuthModeProjection::Offline,
+            false,
+        ),
+        #[cfg(feature = "deterministic-help")]
+        HelpModelMode::DeterministicDevelopment => (
+            ModelAuthStatusKindProjection::DevelopmentReady,
+            ModelAuthModeProjection::DeterministicDevelopment,
+            true,
+        ),
+    };
+    project_model_auth_status(ModelAuthStatusInput {
+        status,
+        mode,
+        auth_epoch: state.model_auth_epoch(),
+        development_only,
+        destination_label: configuration.destination_label.to_owned(),
+    })
+    .map(HostCommandData::ModelAuthStatus)
+    .map_err(map_bmad_model_projection_error)
+}
+
+fn model_sign_in_unavailable() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::IdentityUnavailable,
+        "Interactive model sign-in is unavailable in this desktop composition.",
+        false,
+    )
+}
+
+fn prepare_bmad_help_review(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    created_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let review = state
+        .bmad_model
+        .lock()
+        .prepare(
+            state,
+            &authority,
+            &workspace_authority,
+            foundation,
+            PrepareBmadHelpReviewInput {
+                renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                created_at,
+            },
+        )
+        .map_err(map_bmad_model_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    project_review_for_renderer(review).map(HostCommandData::BmadHelpReview)
+}
+
+fn approve_bmad_help_review(
+    state: &HostState,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+    approved_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let approved = state
+        .bmad_model
+        .lock()
+        .approve(
+            state,
+            &authority,
+            &workspace_authority,
+            ApproveBmadHelpReviewInput {
+                renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                approved_at,
+            },
+        )
+        .map_err(map_bmad_model_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    if !approved.send_eligible {
+        return Err(map_bmad_model_projection_error(
+            BmadHelpModelAccessProjectionError::Unavailable,
+        ));
+    }
+    project_bmad_help_approved(BmadHelpApprovalInput {
+        manifest_hash: approved.manifest_hash,
+        decision_id: approved.decision_id,
+        expires_at: approved.expires_at,
+    })
+    .map(HostCommandData::BmadHelpApproved)
+    .map_err(map_bmad_model_projection_error)
+}
+
+fn cancel_bmad_help_review(
+    state: &HostState,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    cancelled_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    state
+        .bmad_model
+        .lock()
+        .cancel(
+            state,
+            &authority,
+            &workspace_authority,
+            CancelBmadHelpReviewInput {
+                renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                decision_id: decision_id.clone(),
+                cancelled_at,
+            },
+        )
+        .map_err(map_bmad_model_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::BmadHelpCancelled(
+        project_bmad_help_cancelled(BmadHelpCancellationInput {
+            manifest_hash,
+            decision_id,
+        }),
+    ))
+}
+
+fn submit_bmad_help_review(
+    state: &HostState,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    submitted_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let completed = state
+        .bmad_model
+        .lock()
+        .submit(
+            state,
+            &authority,
+            &workspace_authority,
+            SubmitBmadHelpReviewInput {
+                renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                decision_id,
+                submitted_at,
+            },
+        )
+        .map_err(map_bmad_model_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::BmadHelpRunCompleted(completed))
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "the renderer projection explicitly maps and validates every D2 review field"
+)]
+fn project_review_for_renderer(
+    review: crate::bmad_model::coordinator::BmadHelpReviewProjection,
+) -> Result<desktop_ipc::BmadHelpReviewProjection, LocalError> {
+    let crate::bmad_model::coordinator::BmadHelpReviewProjection {
+        renderer_session_id: _,
+        workspace_id,
+        workspace_grant_epoch,
+        workspace_catalog_version: _,
+        run_id,
+        session_id,
+        destination_label,
+        development_only,
+        consent_disclosure,
+        consent_disclosure_hash: _,
+        context,
+    } = review;
+    let ContextReviewProjection {
+        manifest_hash,
+        purpose,
+        model_role: _,
+        provider_profile_hash: _,
+        model_profile_hash: _,
+        deployment_hash: _,
+        region,
+        retention_mode,
+        expires_at,
+        items,
+        exclusions,
+        secret_findings,
+        total_outbound_bytes,
+        total_token_estimate,
+        redaction_limitation,
+    } = context;
+    let labels: std::collections::HashMap<ContractId, RelativeWorkspacePath> = items
+        .iter()
+        .map(|item| (item.client_item_id.clone(), item.relative_label.clone()))
+        .collect();
+    let items = items
+        .into_iter()
+        .map(|item| BmadHelpReviewItemInput {
+            relative_label: item.relative_label,
+            semantic_role: item.semantic_role,
+            language: item.language,
+            outbound_byte_count: item.outbound_byte_count,
+            token_estimate: item.token_estimate,
+            classification: match item.classification {
+                ContextClassification::Public => BmadHelpContextClassificationProjection::Public,
+                ContextClassification::Internal => {
+                    BmadHelpContextClassificationProjection::Internal
+                }
+                ContextClassification::Confidential => {
+                    BmadHelpContextClassificationProjection::Confidential
+                }
+            },
+            redactions: item
+                .redactions
+                .into_iter()
+                .map(|redaction| BmadHelpReviewRedactionInput {
+                    kind: redaction.kind,
+                    occurrence_count: redaction.occurrence_count,
+                })
+                .collect(),
+            outbound_content: item.outbound_content,
+        })
+        .collect();
+    let exclusions = exclusions
+        .into_iter()
+        .map(|exclusion| BmadHelpReviewExclusionInput {
+            relative_label: exclusion.relative_label,
+            reason: exclusion.reason,
+        })
+        .collect();
+    let secret_findings = secret_findings
+        .into_iter()
+        .map(|finding| {
+            let relative_label = labels
+                .get(&finding.client_item_id)
+                .cloned()
+                .ok_or_else(|| {
+                    map_bmad_model_projection_error(BmadHelpModelAccessProjectionError::Unavailable)
+                })?;
+            Ok(BmadHelpSecretFindingInput {
+                relative_label,
+                kind: finding.kind,
+                occurrence_count: finding.occurrence_count,
+            })
+        })
+        .collect::<Result<Vec<_>, LocalError>>()?;
+    let retention_mode = match retention_mode {
+        RetentionMode::TransientNoStore => BmadHelpRetentionProjection::TransientNoStore,
+    };
+    project_bmad_help_review(BmadHelpReviewInput {
+        workspace_id,
+        workspace_grant_epoch,
+        run_id,
+        session_id,
+        destination_label,
+        development_only,
+        consent_disclosure,
+        manifest_hash,
+        purpose,
+        region,
+        retention_mode,
+        expires_at,
+        items,
+        exclusions,
+        secret_findings,
+        total_outbound_bytes,
+        total_token_estimate,
+        redaction_limitation,
+    })
+    .map_err(map_bmad_model_projection_error)
 }
 
 fn read_workspace_text(
@@ -509,6 +925,39 @@ fn create_bmad_help_run(
     Ok(result)
 }
 
+#[cfg(test)]
+pub(crate) fn create_bmad_help_run_for_test(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    request_id: &ContractId,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+    current_intent: BmadHelpIntent,
+    accepted_at: UnixMillis,
+) -> Result<BmadHelpRunCreationReceipt, LocalError> {
+    create_bmad_help_run(
+        state,
+        foundation,
+        request_id,
+        workspace_id.clone(),
+        workspace_grant_epoch,
+        current_intent,
+        accepted_at,
+    )?;
+    let authority = state.ready_workspace_commit()?;
+    let latest = state
+        .latest_bmad_help_run(
+            authority.authority(),
+            workspace_id,
+            authority.workspace_catalog_version(),
+        )
+        .map_err(|_| recovery_error())?;
+    match latest {
+        BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+        _ => Err(recovery_error()),
+    }
+}
+
 fn bmad_help_run_fingerprint(
     foundation: &BmadLoadedFoundation,
     current_intent: &BmadHelpIntent,
@@ -582,7 +1031,7 @@ fn create_new_bmad_help_run(
             run_id: run_id.clone(),
             local_identity,
             created_at: accepted_at,
-            intent: current_intent,
+            intent: current_intent.clone(),
         },
     )
     .map_err(|_| NewBmadHelpRunError::Local(bmad_help_unavailable()))?;
@@ -591,6 +1040,7 @@ fn create_new_bmad_help_run(
     let projection = project_created_bmad_help_run(
         foundation.package(),
         &prepared.recommendation,
+        &current_intent,
         workspace_id.clone(),
         run_id.clone(),
         session_id.clone(),
@@ -660,6 +1110,16 @@ fn latest_bmad_help_run(
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
+    if let Some(lifecycle) = state.bmad_model.lock().snapshot_for_workspace(workspace_id) {
+        let data = in_memory_bmad_help_data(workspace_id, lifecycle);
+        drop(workspace_authority);
+        if let Ok(data) = data {
+            drop(authority);
+            return Ok(data);
+        }
+        authority.enter_recovery();
+        return Err(recovery_error());
+    }
     let Ok(receipt) = state.latest_bmad_help_run(
         authority.authority(),
         workspace_id,
@@ -669,27 +1129,104 @@ fn latest_bmad_help_run(
         authority.enter_recovery();
         return Err(recovery_error());
     };
-    let receipt = match receipt {
-        BmadHelpRunLatest::None => {
-            drop(workspace_authority);
-            drop(authority);
-            return Ok(HostCommandData::NoBmadHelpRun);
-        }
-        BmadHelpRunLatest::LegacyProjectionUnavailable => {
-            drop(workspace_authority);
-            drop(authority);
-            return Ok(HostCommandData::BmadHelpProjectionUnavailable);
-        }
-        BmadHelpRunLatest::Retained(receipt) => receipt,
-    };
-    let Ok(execution) = bmad_help_run_execution_from_receipt(workspace_id, &receipt) else {
+    let Ok(data) = latest_bmad_help_run_data(workspace_id, receipt) else {
         drop(workspace_authority);
         authority.enter_recovery();
         return Err(recovery_error());
     };
     drop(workspace_authority);
     drop(authority);
-    Ok(execution.data)
+    Ok(data)
+}
+
+fn in_memory_bmad_help_data(
+    workspace_id: &ContractId,
+    lifecycle: BmadHelpInMemoryLifecycle,
+) -> Result<HostCommandData, LocalError> {
+    match lifecycle {
+        BmadHelpInMemoryLifecycle::ReviewRequired(review) => {
+            project_review_for_renderer(review).map(HostCommandData::BmadHelpReview)
+        }
+        BmadHelpInMemoryLifecycle::Approved { review, approval } => {
+            if !approval.send_eligible {
+                return Err(map_bmad_model_projection_error(
+                    BmadHelpModelAccessProjectionError::Unavailable,
+                ));
+            }
+            let review = project_review_for_renderer(review)?;
+            let approval = project_bmad_help_approved(BmadHelpApprovalInput {
+                manifest_hash: approval.manifest_hash,
+                decision_id: approval.decision_id,
+                expires_at: approval.expires_at,
+            })
+            .map_err(map_bmad_model_projection_error)?;
+            Ok(HostCommandData::BmadHelpApprovedLifecycle(
+                project_bmad_help_approved_lifecycle(BmadHelpApprovedLifecycleInput {
+                    review,
+                    approval,
+                }),
+            ))
+        }
+        BmadHelpInMemoryLifecycle::Completed(completed) => {
+            Ok(HostCommandData::BmadHelpRunCompleted(completed))
+        }
+        BmadHelpInMemoryLifecycle::Terminal(reason) => {
+            let reason = match reason {
+                BmadHelpTerminalReason::Cancelled => BmadHelpTerminalReasonProjection::Cancelled,
+                BmadHelpTerminalReason::ConsentExpired => {
+                    BmadHelpTerminalReasonProjection::ConsentExpired
+                }
+                BmadHelpTerminalReason::ConsentConsumed => {
+                    BmadHelpTerminalReasonProjection::ConsentConsumed
+                }
+                BmadHelpTerminalReason::Failed => BmadHelpTerminalReasonProjection::Failed,
+            };
+            Ok(HostCommandData::BmadHelpTerminal(
+                project_bmad_help_terminal(BmadHelpTerminalInput {
+                    workspace_id: workspace_id.clone(),
+                    reason,
+                }),
+            ))
+        }
+    }
+}
+
+fn latest_bmad_help_run_data(
+    workspace_id: &ContractId,
+    latest: BmadHelpRunLatest,
+) -> Result<HostCommandData, BmadHelpProjectionError> {
+    match latest {
+        BmadHelpRunLatest::None => Ok(HostCommandData::NoBmadHelpRun),
+        BmadHelpRunLatest::LegacyProjectionUnavailable => {
+            Ok(HostCommandData::BmadHelpProjectionUnavailable)
+        }
+        BmadHelpRunLatest::Retained(receipt) => {
+            bmad_help_run_execution_from_receipt(workspace_id, &receipt)
+                .map(|execution| execution.data)
+        }
+        BmadHelpRunLatest::Interrupted(receipt) => decode_retained_bmad_help_run(
+            &receipt.renderer_projection,
+            workspace_id,
+            &receipt.run_id,
+            &receipt.session_id,
+        )
+        .map(HostCommandData::BmadHelpRunInterrupted),
+        BmadHelpRunLatest::Completed(completed) => {
+            decode_retained_bmad_help_run(
+                &completed.creation.renderer_projection,
+                workspace_id,
+                &completed.creation.run_id,
+                &completed.creation.session_id,
+            )?;
+            decode_retained_bmad_help_completion(
+                &completed.renderer_projection,
+                workspace_id,
+                &completed.creation.run_id,
+                &completed.creation.session_id,
+            )
+            .map(HostCommandData::BmadHelpRunCompleted)
+        }
+    }
 }
 
 fn new_host_id(prefix: &str) -> Result<ContractId, LocalError> {
@@ -808,8 +1345,11 @@ fn revoke_workspace(
         authority.enter_recovery();
         return Err(recovery_error());
     };
+    state.bmad_model.lock().invalidate(now());
     state.record_event(ProjectionEventKind::WorkspaceChanged { workspace_id });
-    Ok(HostCommandData::WorkspaceRevoked(projection))
+    let data = HostCommandData::WorkspaceRevoked(projection);
+    drop(authority);
+    Ok(data)
 }
 
 fn list_workspace_entries(
@@ -1061,6 +1601,69 @@ fn map_ipc_error(error: &IpcValidationError) -> LocalError {
     }
 }
 
+fn map_bmad_model_projection_error(_error: BmadHelpModelAccessProjectionError) -> LocalError {
+    LocalError::new(
+        LocalErrorCode::IntegrityFailure,
+        "The model-access state could not be projected safely.",
+        false,
+    )
+}
+
+fn map_bmad_model_error(error: BmadHelpCoordinatorError) -> LocalError {
+    match error {
+        BmadHelpCoordinatorError::SupportPlaneOffline => LocalError::new(
+            LocalErrorCode::SupportPlaneOffline,
+            "Model support is offline in this desktop composition.",
+            true,
+        ),
+        BmadHelpCoordinatorError::Unauthorized => unauthorized_error(),
+        BmadHelpCoordinatorError::Conflict => {
+            conflict_error("The Help request state changed; start a fresh review.")
+        }
+        BmadHelpCoordinatorError::Integrity => LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The Help request binding could not be verified.",
+            false,
+        ),
+        BmadHelpCoordinatorError::Recovery => recovery_error(),
+        BmadHelpCoordinatorError::ConsentExpired => LocalError::new(
+            LocalErrorCode::ConsentExpired,
+            "The context approval expired; start a fresh review.",
+            false,
+        ),
+        BmadHelpCoordinatorError::ConsentBindingMismatch => LocalError::new(
+            LocalErrorCode::ConsentBindingMismatch,
+            "The displayed context no longer matches the pending approval.",
+            false,
+        ),
+        BmadHelpCoordinatorError::ConsentAlreadyConsumed => LocalError::new(
+            LocalErrorCode::ConsentAlreadyConsumed,
+            "That approval is no longer available; start a fresh review.",
+            false,
+        ),
+        BmadHelpCoordinatorError::TransportFailed => LocalError::new(
+            LocalErrorCode::TransportFailed,
+            "The reviewed request could not be delivered; start a fresh review before retrying.",
+            false,
+        ),
+        BmadHelpCoordinatorError::ResponseBindingMismatch => LocalError::new(
+            LocalErrorCode::ResponseBindingMismatch,
+            "The model response did not match the reviewed request.",
+            false,
+        ),
+        BmadHelpCoordinatorError::InvalidModelOutput => LocalError::new(
+            LocalErrorCode::InvalidModelOutput,
+            "The model response was not a valid Help result.",
+            false,
+        ),
+        BmadHelpCoordinatorError::ReceiptInvalid => LocalError::new(
+            LocalErrorCode::ReceiptInvalid,
+            "The model-access receipt could not be verified.",
+            false,
+        ),
+    }
+}
+
 pub(crate) fn map_workspace_error(error: &WorkspaceError) -> LocalError {
     match error {
         WorkspaceError::UnsupportedRoot => invalid_request(
@@ -1101,15 +1704,23 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use desktop_runtime::{
-        BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalErrorCode, UnixMillis,
+        sha256_bytes, BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalCommand,
+        LocalErrorCode, UnixMillis,
+    };
+    use desktop_store::{
+        BmadHelpRunCompletionReceipt, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
     };
     use desktop_workspace::WorkspaceError;
 
     use super::{
-        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run, map_workspace_error,
-        revoke_workspace,
+        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
+        latest_bmad_help_run_data, map_bmad_model_error, map_workspace_error,
+        model_auth_status_data, prepare_bmad_help_review, revoke_workspace, should_cache_reply,
     };
-    use crate::{bmad_foundation::load_bmad_foundation, state::HostState, wire::HostCommandData};
+    use crate::{
+        bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
+        state::HostState, wire::HostCommandData,
+    };
 
     fn foundation_path() -> std::path::PathBuf {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation")
@@ -1144,6 +1755,74 @@ mod tests {
             .expect("persisted workspace");
         drop(authority);
         (state, storage, workspace, projection.workspace_id)
+    }
+
+    fn retained_help_receipt(
+        state: &HostState,
+        workspace_id: &str,
+        current_intent: &str,
+    ) -> Result<BmadHelpRunCreationReceipt, Box<dyn std::error::Error>> {
+        let foundation = load_bmad_foundation(foundation_path())?;
+        create_bmad_help_run(
+            state,
+            &foundation,
+            &id("request_01J00000000000000000000020"),
+            id(workspace_id),
+            1,
+            BmadHelpIntent::new(current_intent)?,
+            UnixMillis(1_000),
+        )
+        .map_err(|error| format!("Help run creation failed: {:?}", error.code))?;
+        let authority = state
+            .ready_workspace_commit()
+            .map_err(|error| format!("workspace authority failed: {:?}", error.code))?;
+        let latest = state.latest_bmad_help_run(
+            authority.authority(),
+            &id(workspace_id),
+            authority.workspace_catalog_version(),
+        )?;
+        match latest {
+            BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+            _ => Err("expected retained BMAD Help creation receipt".into()),
+        }
+    }
+
+    fn completed_projection_bytes(
+        workspace_id: &str,
+        receipt: &BmadHelpRunCreationReceipt,
+    ) -> Result<Vec<u8>, serde_json::Error> {
+        serde_json::to_vec(&serde_json::json!({
+            "schemaVersion": "bmad-help-completed.v1",
+            "runKind": "bmad_help",
+            "lifecycle": "completed",
+            "workspaceId": workspace_id,
+            "runId": receipt.run_id.as_str(),
+            "sessionId": receipt.session_id.as_str(),
+            "runnable": false,
+            "completionClaimed": true,
+            "recommendation": {
+                "recommendationKind": "recommended_capability",
+                "displayName": "Create Architecture",
+                "moduleCode": "bmm",
+                "skillName": "bmad-architecture",
+                "action": "create",
+                "evidenceClass": "user_asserted",
+                "guidanceRequired": true,
+                "rationaleSummary": "The stated architecture goal matches this planning capability.",
+                "createdAt": 3_000,
+            },
+            "receipt": {
+                "schemaVersion": "bmad-model-receipt-summary.v1",
+                "receiptId": "receipt_01J00000000000000000000020",
+                "status": "succeeded",
+                "retentionMode": "transient_no_store",
+                "region": "westeurope",
+                "inputBytes": 4_096,
+                "outputBytes": 512,
+                "startedAt": 1_500,
+                "completedAt": 2_000,
+            },
+        }))
     }
 
     #[test]
@@ -1319,8 +1998,127 @@ mod tests {
 
         assert_eq!(
             serde_json::to_value(latest).expect("latest projection"),
-            serde_json::to_value(first.data).expect("created projection")
+            serde_json::to_value(&first.data).expect("created projection")
         );
+        let value = serde_json::to_value(&first.data).expect("created projection value");
+        assert_eq!(value["value"]["currentIntent"], "BMad Help");
+    }
+
+    #[test]
+    fn latest_help_run_projects_interrupted_without_claiming_completion(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+
+        let data =
+            latest_bmad_help_run_data(&id(&workspace_id), BmadHelpRunLatest::Interrupted(receipt))?;
+        let value = serde_json::to_value(data)?;
+
+        assert_eq!(value["kind"], "bmad_help_run_interrupted");
+        assert_eq!(value["value"]["lifecycle"], "created_unbound");
+        assert_eq!(value["value"]["completionClaimed"], false);
+        assert_eq!(
+            value["value"]["currentIntent"],
+            "Review architecture readiness before implementation"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn latest_help_run_strictly_decodes_the_completed_projection(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+        let renderer_projection = completed_projection_bytes(&workspace_id, &receipt)?;
+
+        let data = latest_bmad_help_run_data(
+            &id(&workspace_id),
+            BmadHelpRunLatest::Completed(BmadHelpRunCompletionReceipt {
+                creation: receipt,
+                renderer_projection,
+            }),
+        )?;
+        let value = serde_json::to_value(data)?;
+
+        assert_eq!(value["kind"], "bmad_help_run_completed");
+        assert_eq!(value["value"]["lifecycle"], "completed");
+        assert_eq!(value["value"]["completionClaimed"], true);
+        assert_eq!(
+            value["value"]["recommendation"]["recommendationKind"],
+            "recommended_capability"
+        );
+        assert_eq!(value["value"]["receipt"]["status"], "succeeded");
+        Ok(())
+    }
+
+    #[test]
+    fn latest_help_run_rejects_substituted_unknown_duplicate_and_oversized_completion_bytes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let receipt = retained_help_receipt(
+            &state,
+            &workspace_id,
+            "Review architecture readiness before implementation",
+        )?;
+        let valid = completed_projection_bytes(&workspace_id, &receipt)?;
+        let mut cases = Vec::new();
+
+        for (pointer, replacement) in [
+            ("/workspaceId", serde_json::json!("workspace_substituted")),
+            ("/runId", serde_json::json!("run_substituted")),
+            ("/sessionId", serde_json::json!("session_substituted")),
+        ] {
+            let mut value: serde_json::Value = serde_json::from_slice(&valid)?;
+            *value
+                .pointer_mut(pointer)
+                .ok_or("missing fixture pointer")? = replacement;
+            cases.push(serde_json::to_vec(&value)?);
+        }
+
+        let mut unknown: serde_json::Value = serde_json::from_slice(&valid)?;
+        unknown
+            .as_object_mut()
+            .ok_or("completion fixture must be an object")?
+            .insert("proof".to_owned(), serde_json::json!("forged"));
+        cases.push(serde_json::to_vec(&unknown)?);
+
+        let text = String::from_utf8(valid.clone())?;
+        let duplicate = text.replacen(
+            "\"schemaVersion\":\"bmad-help-completed.v1\"",
+            "\"schemaVersion\":\"bmad-help-completed.v1\",\"schemaVersion\":\"bmad-help-completed.v1\"",
+            1,
+        );
+        if duplicate == text {
+            return Err("duplicate-field fixture was ineffective".into());
+        }
+        cases.push(duplicate.into_bytes());
+
+        let mut oversized = valid;
+        oversized.resize(
+            desktop_ipc::MAX_BMAD_HELP_COMPLETED_PROJECTION_BYTES + 1,
+            b' ',
+        );
+        cases.push(oversized);
+
+        for renderer_projection in cases {
+            assert!(latest_bmad_help_run_data(
+                &id(&workspace_id),
+                BmadHelpRunLatest::Completed(BmadHelpRunCompletionReceipt {
+                    creation: receipt.clone(),
+                    renderer_projection,
+                }),
+            )
+            .is_err());
+        }
+        Ok(())
     }
 
     #[test]
@@ -1388,5 +2186,164 @@ mod tests {
             stale_state.boot_mode(),
             crate::wire::BootMode::ReadOnlyRecovery
         );
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn workspace_revocation_invalidates_an_active_help_review() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let now = crate::state::now();
+        create_bmad_help_run(
+            &state,
+            &foundation,
+            &id("request_01J00000000000000000000030"),
+            id(&workspace_id),
+            1,
+            BmadHelpIntent::new("Review architecture readiness").expect("bounded intent"),
+            now,
+        )
+        .expect("retained Help run");
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        prepare_bmad_help_review(
+            &state,
+            &foundation,
+            &renderer,
+            id(&workspace_id),
+            1,
+            UnixMillis(now.0 + 1),
+        )
+        .expect("prepared Help review");
+        assert!(state.bmad_model.lock().has_active_review());
+        drop(renderer);
+
+        revoke_workspace(
+            &state,
+            &id("request_01J00000000000000000000031"),
+            id(&workspace_id),
+        )
+        .expect("workspace revoked");
+
+        assert!(!state.bmad_model.lock().has_active_review());
+    }
+
+    #[test]
+    fn model_access_mutations_never_enter_the_general_reply_cache() {
+        let workspace_id = id("workspace_01J00000000000000000000000");
+        let manifest_hash = sha256_bytes(b"review manifest");
+        let decision_id = id("decision_01J00000000000000000000000");
+        for command in [
+            LocalCommand::ModelAuthSignIn,
+            LocalCommand::ModelAuthSignOut,
+            LocalCommand::PrepareBmadHelpReview {
+                workspace_id: workspace_id.clone(),
+                workspace_grant_epoch: 1,
+            },
+            LocalCommand::ApproveBmadHelpReview {
+                workspace_id: workspace_id.clone(),
+                workspace_grant_epoch: 1,
+                manifest_hash,
+            },
+            LocalCommand::CancelBmadHelpReview {
+                workspace_id: workspace_id.clone(),
+                workspace_grant_epoch: 1,
+                manifest_hash,
+                decision_id: decision_id.clone(),
+            },
+            LocalCommand::SubmitBmadHelpReview {
+                workspace_id,
+                workspace_grant_epoch: 1,
+                manifest_hash,
+                decision_id,
+            },
+        ] {
+            assert!(!should_cache_reply(&command), "{}", command.name());
+        }
+        assert!(should_cache_reply(&LocalCommand::SelectWorkspace));
+    }
+
+    #[test]
+    fn coordinator_failures_map_to_exact_safe_d2_codes() {
+        let cases = [
+            (
+                BmadHelpCoordinatorError::SupportPlaneOffline,
+                LocalErrorCode::SupportPlaneOffline,
+            ),
+            (
+                BmadHelpCoordinatorError::Unauthorized,
+                LocalErrorCode::Unauthorized,
+            ),
+            (BmadHelpCoordinatorError::Conflict, LocalErrorCode::Conflict),
+            (
+                BmadHelpCoordinatorError::Integrity,
+                LocalErrorCode::IntegrityFailure,
+            ),
+            (
+                BmadHelpCoordinatorError::Recovery,
+                LocalErrorCode::RecoveryRequired,
+            ),
+            (
+                BmadHelpCoordinatorError::ConsentExpired,
+                LocalErrorCode::ConsentExpired,
+            ),
+            (
+                BmadHelpCoordinatorError::ConsentBindingMismatch,
+                LocalErrorCode::ConsentBindingMismatch,
+            ),
+            (
+                BmadHelpCoordinatorError::ConsentAlreadyConsumed,
+                LocalErrorCode::ConsentAlreadyConsumed,
+            ),
+            (
+                BmadHelpCoordinatorError::TransportFailed,
+                LocalErrorCode::TransportFailed,
+            ),
+            (
+                BmadHelpCoordinatorError::ResponseBindingMismatch,
+                LocalErrorCode::ResponseBindingMismatch,
+            ),
+            (
+                BmadHelpCoordinatorError::InvalidModelOutput,
+                LocalErrorCode::InvalidModelOutput,
+            ),
+            (
+                BmadHelpCoordinatorError::ReceiptInvalid,
+                LocalErrorCode::ReceiptInvalid,
+            ),
+        ];
+        for (source, expected) in cases {
+            let mapped = map_bmad_model_error(source);
+            assert_eq!(mapped.code, expected);
+            assert!(!mapped.safe_message.is_empty());
+            assert!(mapped.correlation_id.is_none());
+        }
+    }
+
+    #[test]
+    fn auth_status_reports_only_the_explicit_build_composition() {
+        let (state, _storage, _workspace, _workspace_id) = ready_workspace_state();
+        let value = serde_json::to_value(
+            model_auth_status_data(&state).expect("safe auth status projection"),
+        )
+        .expect("auth status serializes");
+        assert_eq!(value["kind"], "model_auth_status");
+        assert_eq!(value["value"]["authEpoch"], 1);
+        assert_eq!(value["value"]["signInAvailable"], false);
+        assert_eq!(value["value"]["signOutAvailable"], true);
+        #[cfg(feature = "deterministic-help")]
+        {
+            assert_eq!(value["value"]["status"], "development_ready");
+            assert_eq!(value["value"]["mode"], "deterministic_development");
+            assert_eq!(value["value"]["developmentOnly"], true);
+        }
+        #[cfg(not(feature = "deterministic-help"))]
+        {
+            assert_eq!(value["value"]["status"], "unavailable");
+            assert_eq!(value["value"]["mode"], "offline");
+            assert_eq!(value["value"]["developmentOnly"], false);
+        }
     }
 }

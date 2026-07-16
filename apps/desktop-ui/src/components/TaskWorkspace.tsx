@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { ProposalState } from "../data/demo";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
 import { BrandMark } from "./BrandMark";
 import { StageRail, type TaskStage } from "./StageRail";
 
@@ -28,14 +29,14 @@ export interface TaskWorkspaceProps {
   isNewSession: boolean;
   isReadOnlyRecovery: boolean;
   methodGuidanceAvailable: boolean;
-  methodGuidanceBusy: boolean;
+  methodGuidanceState: BmadRequestState;
   methodLibraryAvailable: boolean;
   onOpenMethodLibrary: () => void;
   onOpenInspector: () => void;
   onOpenSessions: () => void;
   onReviewContext: () => void;
   onReviewChanges: () => void;
-  onTaskSubmitted: (intent: string) => Promise<void>;
+  onReviewRequest: (intent: string) => Promise<void>;
   proposalState: ProposalState;
   sessionTitle: string;
   workspaceName: string;
@@ -58,31 +59,33 @@ export function TaskWorkspace({
   isNewSession,
   isReadOnlyRecovery,
   methodGuidanceAvailable,
-  methodGuidanceBusy,
+  methodGuidanceState,
   methodLibraryAvailable,
   onOpenMethodLibrary,
   onOpenInspector,
   onOpenSessions,
   onReviewContext,
   onReviewChanges,
-  onTaskSubmitted,
+  onReviewRequest,
   proposalState,
   sessionTitle,
   workspaceName,
 }: TaskWorkspaceProps) {
   const [draft, setDraft] = useState("");
   const [submittedTask, setSubmittedTask] = useState<string | null>(null);
-  const [hasMethodGuidanceSubmission, setHasMethodGuidanceSubmission] = useState(false);
-  const [guidanceStatus, setGuidanceStatus] = useState<
-    "idle" | "submitting" | "created"
-  >("idle");
   const currentStage = getCurrentStage(proposalState, isNewSession && !submittedTask);
-  const methodGuidanceView = methodGuidanceAvailable || hasMethodGuidanceSubmission;
-  const guidanceSubmitting = methodGuidanceBusy || guidanceStatus === "submitting";
-  const checkingRetainedGuidance = guidanceSubmitting
-    && submittedTask === null
-    && guidanceStatus === "idle";
-  const composerDisabled = !methodGuidanceAvailable || guidanceSubmitting;
+  const methodGuidanceView = methodGuidanceAvailable
+    || submittedTask !== null
+    || methodGuidanceState.kind !== "idle";
+  const guidancePending = methodGuidanceState.kind === "creating"
+    || methodGuidanceState.kind === "review_required"
+    || methodGuidanceState.kind === "approving"
+    || methodGuidanceState.kind === "approved"
+    || methodGuidanceState.kind === "submitting";
+  const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
+    && methodGuidanceState.activity === "recovering";
+  const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
+  const composerDisabled = !methodGuidanceAvailable || guidancePending || failedSubmission;
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,20 +98,7 @@ export function TaskWorkspace({
     }
     setSubmittedTask(value);
     setDraft("");
-    if (methodGuidanceAvailable) {
-      setHasMethodGuidanceSubmission(true);
-      setGuidanceStatus("submitting");
-    }
-    try {
-      await onTaskSubmitted(value);
-      if (methodGuidanceAvailable) {
-        setGuidanceStatus("created");
-      }
-    } catch {
-      if (methodGuidanceAvailable) {
-        setGuidanceStatus("idle");
-      }
-    }
+    await onReviewRequest(value).catch(() => undefined);
   }
 
   const showProposal = !methodGuidanceView && (!isNewSession || submittedTask !== null);
@@ -185,7 +175,7 @@ export function TaskWorkspace({
           <strong>{methodGuidanceView ? "Local Method guidance" : "Internal preview"}</strong>
           <span>
             {methodGuidanceView
-              ? "Submitting an intent creates a local, unbound Method session. It does not contact a model or change workspace files."
+              ? "Reviewing an intent creates an inert local Method run and prepares the exact outbound context. Nothing is sent until you approve context and choose Send request."
               : "Agent tasks and local changes are not enabled in this build. The proposal below is demonstration content only."}
           </span>
         </div>
@@ -200,35 +190,72 @@ export function TaskWorkspace({
                 </div>
               </article>
             ) : null}
-            {guidanceSubmitting ? (
+            {methodGuidanceState.kind === "creating" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar">
                   <BrandMark size={22} />
                 </div>
                 <div>
                   <span className="message__label">
-                    {checkingRetainedGuidance ? "Checking · Local only" : "Creating · Local only"}
+                    {checkingRetainedGuidance ? "Checking · Local only" : "Preparing · Local only"}
                   </span>
                   <p>
                     {checkingRetainedGuidance
-                      ? "Checking for a retained local Method session without contacting a model or changing the workspace…"
-                      : "Creating the local Method session without a model request or workspace change…"}
+                      ? "Checking for a retained Method result without sending a model request or changing the workspace…"
+                      : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request…"}
                   </p>
                 </div>
               </article>
-            ) : guidanceStatus === "created" ? (
+            ) : methodGuidanceState.kind === "review_required"
+              || methodGuidanceState.kind === "approving"
+              || methodGuidanceState.kind === "approved" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar">
                   <BrandMark size={22} />
                 </div>
                 <div>
-                  <span className="message__label">Created · Unbound</span>
+                  <span className="message__label">
+                    {methodGuidanceState.kind === "review_required"
+                      ? "Review required · Nothing sent"
+                      : methodGuidanceState.kind === "approving"
+                        ? "Approving · Nothing sent"
+                        : "Approved · Ready to send"}
+                  </span>
                   <p>
-                    A local Method session was created. It remains unbound: no model request was
-                    made and no workspace change was proposed. Review the source-grounded
-                    recommendation in the Method inspector.
+                    Inspect the exact context and continue in the Method inspector. Approval alone
+                    does not contact the model.
                   </p>
                 </div>
+              </article>
+            ) : methodGuidanceState.kind === "submitting" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Sending · One shot</span><p>Sending the approved exact context once…</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "completed" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Completed · Verified</span><p>Review the canonical recommendation and safe receipt in the Method inspector.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "interrupted" ? (
+              <article className="message message--agent message--compact" role="alert">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Interrupted · Cannot resume</span><p>Start a fresh review; this request cannot be sent again.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "terminal" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Review ended</span><p>No request authority remains. Start a fresh review when ready.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "unavailable" ? (
+              <article className="message message--agent message--compact" role="alert">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Request unavailable</span><p>{methodGuidanceState.message}</p></div>
+              </article>
+            ) : methodGuidanceState.run ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Created · Unbound</span><p>A retained local Method run is available in the Method inspector. No model request was made.</p></div>
               </article>
             ) : submittedTask ? null : (
               <section className="empty-session" aria-labelledby="empty-session-title">
@@ -237,8 +264,8 @@ export function TaskWorkspace({
                 </div>
                 <h2 id="empty-session-title">What do you want Method guidance for?</h2>
                 <p>
-                  Describe your intent to create a local, unbound session and review a
-                  source-grounded recommendation. No model or execution capability is attached.
+                  Describe your intent to create an inert local run and review the exact context.
+                  Nothing is sent until you separately approve and send the request.
                 </p>
               </section>
             )}
@@ -396,23 +423,24 @@ export function TaskWorkspace({
               <span className="status-dot status-dot--preview" /> {hostStatusLabel}
             </span>
             <Button
-              aria-label={methodGuidanceView ? "Request Method guidance" : "Send task"}
+              aria-label={methodGuidanceView ? "Review request" : "Send task"}
               isDisabled={composerDisabled || !draft.trim()}
-              size="icon"
+              size={methodGuidanceView ? "small" : "icon"}
               type="submit"
               variant="secondary"
             >
               <Send aria-hidden="true" size={18} />
+              {methodGuidanceView ? "Review request" : null}
             </Button>
           </div>
         </div>
         <p className="composer__availability" id="task-composer-availability">
           {methodGuidanceView
-            ? guidanceSubmitting
+            ? methodGuidanceState.kind === "creating"
               ? checkingRetainedGuidance
-                ? "Checking for a retained local Method session. No model request or workspace change is being made."
-                : "Creating the local Method session. No model request or workspace change is being made."
-              : "Creates a local, unbound Method session. No model request or workspace change is performed."
+                ? "Checking for a retained local Method result. No model request or workspace change is being made."
+                : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request."
+              : "Creates an inert local run and prepares exact outbound context. Nothing is sent until you approve context and choose Send request."
             : "Preview only — submitting tasks and applying changes require a later governed capability build."}
         </p>
       </form>

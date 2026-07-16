@@ -1,142 +1,261 @@
 use std::collections::HashSet;
 
 use desktop_runtime::{
-    canonical_hash, sha256_bytes, CanonicalHashError, ContractId, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis,
+    canonical_hash, sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-const SCHEMA_VERSION: u32 = 1;
+const MANIFEST_SCHEMA: &str = "sapphirus.context-egress-manifest.v1";
+const MAX_MANIFEST_LIFETIME_MS: u64 = 15 * 60 * 1_000;
+const HARD_MAX_CONTEXT_ITEMS: u32 = 128;
+const HARD_MAX_CONTEXT_BYTES: u64 = 4 * 1024 * 1024;
+const HARD_MAX_TOKEN_ESTIMATE: u64 = 1_000_000;
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ContextClassification {
-    Workspace,
-    UserProvided,
-    Generated,
+    Public,
+    Internal,
+    Confidential,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RetentionMode {
     TransientNoStore,
-    Persistent,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressLimits {
+    pub maximum_context_items: u32,
+    pub maximum_context_bytes: u64,
+    pub maximum_token_estimate: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RedactionRecord {
     pub kind: String,
-    pub count: u64,
+    pub occurrence_count: u32,
 }
 
-pub type SecretFinding = RedactionRecord;
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecretFinding {
+    pub client_item_id: ContractId,
+    pub kind: String,
+    pub occurrence_count: u32,
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct PreparedContextItem {
-    pub item_id: ContractId,
+#[serde(rename_all = "camelCase")]
+pub struct ContextExclusion {
     pub relative_label: RelativeWorkspacePath,
-    pub classification: ContextClassification,
-    pub original_content: String,
-    pub outbound_content: String,
-    pub original_byte_count: u64,
-    pub outbound_byte_count: u64,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct PreparedContextItemDraft {
+    pub client_item_id: ContractId,
+    pub relative_label: RelativeWorkspacePath,
+    pub semantic_role: String,
+    pub language: Option<String>,
     pub original_content_hash: Sha256Digest,
     pub outbound_content_hash: Sha256Digest,
-    pub token_count: u64,
+    pub original_byte_count: u64,
+    pub outbound_byte_count: u64,
+    pub token_estimate: u64,
+    pub classification: ContextClassification,
     pub redactions: Vec<RedactionRecord>,
+    pub outbound_content: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct EgressLimits {
-    pub maximum_items: u64,
-    pub maximum_context_bytes: u64,
-    pub maximum_tokens: u64,
+/// Context prepared by the crate-owned scanner. Its private attestation makes
+/// original-source metadata immutable to safe downstream code.
+///
+/// ```compile_fail
+/// # use desktop_egress::PreparedContextItem;
+/// fn forge(item: PreparedContextItem) -> PreparedContextItem {
+///     PreparedContextItem { original_byte_count: 0, ..item }
+/// }
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreparedContextItem {
+    pub client_item_id: ContractId,
+    pub relative_label: RelativeWorkspacePath,
+    pub semantic_role: String,
+    pub language: Option<String>,
+    pub original_content_hash: Sha256Digest,
+    pub outbound_content_hash: Sha256Digest,
+    pub original_byte_count: u64,
+    pub outbound_byte_count: u64,
+    pub token_estimate: u64,
+    pub classification: ContextClassification,
+    pub redactions: Vec<RedactionRecord>,
+    pub outbound_content: String,
+    preparation_attestation: Sha256Digest,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+impl PreparedContextItem {
+    pub(crate) fn seal(draft: PreparedContextItemDraft) -> Result<Self, EgressError> {
+        let preparation_attestation = canonical_hash("prepared-context-item", 1, &draft)
+            .map_err(|_| EgressError::CanonicalHash)?;
+        Ok(Self {
+            client_item_id: draft.client_item_id,
+            relative_label: draft.relative_label,
+            semantic_role: draft.semantic_role,
+            language: draft.language,
+            original_content_hash: draft.original_content_hash,
+            outbound_content_hash: draft.outbound_content_hash,
+            original_byte_count: draft.original_byte_count,
+            outbound_byte_count: draft.outbound_byte_count,
+            token_estimate: draft.token_estimate,
+            classification: draft.classification,
+            redactions: draft.redactions,
+            outbound_content: draft.outbound_content,
+            preparation_attestation,
+        })
+    }
+
+    fn attestation_draft(&self) -> PreparedContextItemDraft {
+        PreparedContextItemDraft {
+            client_item_id: self.client_item_id.clone(),
+            relative_label: self.relative_label.clone(),
+            semantic_role: self.semantic_role.clone(),
+            language: self.language.clone(),
+            original_content_hash: self.original_content_hash,
+            outbound_content_hash: self.outbound_content_hash,
+            original_byte_count: self.original_byte_count,
+            outbound_byte_count: self.outbound_byte_count,
+            token_estimate: self.token_estimate,
+            classification: self.classification,
+            redactions: self.redactions.clone(),
+            outbound_content: self.outbound_content.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ContextEgressManifestDraft {
-    pub schema_version: u32,
+    pub schema_version: String,
+    pub tenant_ref: ContractId,
+    pub project_ref: ContractId,
+    pub run_ref: ContractId,
+    pub purpose: String,
+    pub model_role: String,
+    pub canonical_output_schema_id: ContractId,
+    pub canonical_output_schema_hash: Sha256Digest,
+    pub provider_profile_hash: Sha256Digest,
+    pub model_profile_hash: Sha256Digest,
+    pub deployment_hash: Sha256Digest,
+    pub policy_hash: Sha256Digest,
+    pub region: String,
+    pub retention_mode: RetentionMode,
     pub created_at: UnixMillis,
     pub expires_at: UnixMillis,
-    pub items: Vec<PreparedContextItem>,
-    pub total_byte_count: u64,
-    pub total_token_count: u64,
     pub limits: EgressLimits,
-    pub retention_mode: RetentionMode,
+    pub items: Vec<PreparedContextItem>,
+    pub exclusions: Vec<ContextExclusion>,
+    pub secret_findings: Vec<SecretFinding>,
+    pub total_outbound_bytes: u64,
+    pub total_token_estimate: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ContextEgressManifest {
+    #[serde(flatten)]
     pub draft: ContextEgressManifestDraft,
     pub manifest_hash: Sha256Digest,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ContextReviewProjection {
-    pub manifest_hash: Sha256Digest,
-    pub items: Vec<ContextReviewItem>,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ContextReviewItem {
-    pub item_id: ContractId,
+    pub client_item_id: ContractId,
     pub relative_label: RelativeWorkspacePath,
+    pub semantic_role: String,
+    pub language: Option<String>,
+    pub outbound_content_hash: Sha256Digest,
+    pub outbound_byte_count: u64,
+    pub token_estimate: u64,
+    pub classification: ContextClassification,
+    pub redactions: Vec<RedactionRecord>,
     pub outbound_content: String,
 }
 
-#[derive(Debug, Error)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ContextReviewProjection {
+    pub manifest_hash: Sha256Digest,
+    pub purpose: String,
+    pub model_role: String,
+    pub provider_profile_hash: Sha256Digest,
+    pub model_profile_hash: Sha256Digest,
+    pub deployment_hash: Sha256Digest,
+    pub region: String,
+    pub retention_mode: RetentionMode,
+    pub expires_at: UnixMillis,
+    pub items: Vec<ContextReviewItem>,
+    pub exclusions: Vec<ContextExclusion>,
+    pub secret_findings: Vec<SecretFinding>,
+    pub total_outbound_bytes: u64,
+    pub total_token_estimate: u64,
+    pub redaction_limitation: String,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Error, PartialEq)]
 pub enum EgressError {
-    #[error("the manifest schema version is unsupported")]
-    UnsupportedSchemaVersion,
-    #[error("the manifest must contain at least one item")]
-    EmptyItems,
-    #[error("manifest item identifiers must be unique")]
-    DuplicateItemId,
-    #[error("manifest creation must precede expiry")]
-    InvalidTimeRange,
-    #[error("context bytes, counts, or hashes drifted")]
+    #[error("context bytes, counts, or hashes drifted from the manifest")]
     ContextDrift,
-    #[error("manifest limits must all be positive")]
-    InvalidLimits,
-    #[error("only transient no-store retention is supported")]
-    UnsupportedRetention,
-    #[error("sealed manifest integrity check failed")]
+    #[error("the context manifest integrity hash is invalid")]
     ManifestIntegrity,
-    #[error("canonical manifest hashing failed: {0}")]
-    Hash(#[from] CanonicalHashError),
+    #[error("the context manifest lifetime is invalid")]
+    InvalidLifetime,
+    #[error("the context manifest shape is invalid")]
+    InvalidManifest,
+    #[error("a context item identifier is duplicated")]
+    DuplicateContextItem,
+    #[error("the context exceeds its approved budget")]
+    ContextBudgetExceeded,
+    #[error("the context label is denied by egress policy")]
+    DeniedContextLabel,
+    #[error("the model invocation binding is invalid")]
+    InvalidInvocationBinding,
+    #[error("the consent decision integrity hash is invalid")]
+    DecisionIntegrity,
+    #[error("the consent decision does not match the exact invocation binding")]
+    DecisionBindingMismatch,
+    #[error("the consent decision identifier already exists")]
+    DecisionAlreadyExists,
+    #[error("the consent decision is unknown")]
+    DecisionUnknown,
+    #[error("the consent decision has expired")]
+    DecisionExpired,
+    #[error("the consent decision was already consumed")]
+    DecisionAlreadyConsumed,
+    #[error("the consent decision was cancelled")]
+    DecisionCancelled,
+    #[error("canonical hashing failed")]
+    CanonicalHash,
 }
-
-impl PartialEq for EgressError {
-    fn eq(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (
-                Self::UnsupportedSchemaVersion,
-                Self::UnsupportedSchemaVersion
-            ) | (Self::EmptyItems, Self::EmptyItems)
-                | (Self::DuplicateItemId, Self::DuplicateItemId)
-                | (Self::InvalidTimeRange, Self::InvalidTimeRange)
-                | (Self::ContextDrift, Self::ContextDrift)
-                | (Self::InvalidLimits, Self::InvalidLimits)
-                | (Self::UnsupportedRetention, Self::UnsupportedRetention)
-                | (Self::ManifestIntegrity, Self::ManifestIntegrity)
-        )
-    }
-}
-
-impl Eq for EgressError {}
 
 impl ContextEgressManifestDraft {
-    /// Validates and seals the complete outbound context draft.
+    /// Validates and seals the exact outbound context.
     ///
     /// # Errors
     ///
-    /// Returns an [`EgressError`] when the draft violates the manifest policy
-    /// or cannot be canonically hashed.
+    /// Returns [`EgressError`] when manifest shape, lifetime, budgets, item
+    /// identity, or exact outbound bytes are invalid.
     pub fn seal(self) -> Result<ContextEgressManifest, EgressError> {
         validate_manifest(&self)?;
-        let manifest_hash = canonical_hash("context-egress-manifest", SCHEMA_VERSION, &self)?;
+        let manifest_hash = canonical_hash("context-egress-manifest", 1, &self)
+            .map_err(|_| EgressError::CanonicalHash)?;
         Ok(ContextEgressManifest {
             draft: self,
             manifest_hash,
@@ -145,15 +264,16 @@ impl ContextEgressManifestDraft {
 }
 
 impl ContextEgressManifest {
-    /// Revalidates the draft and verifies its integrity hash.
+    /// Revalidates manifest semantics and its canonical integrity hash.
     ///
     /// # Errors
     ///
-    /// Returns an [`EgressError`] when the draft is invalid or its sealed hash
-    /// no longer matches.
+    /// Returns [`EgressError`] when semantics, exact outbound bytes, or the
+    /// integrity hash no longer match.
     pub fn verify(&self) -> Result<(), EgressError> {
         validate_manifest(&self.draft)?;
-        let actual = canonical_hash("context-egress-manifest", SCHEMA_VERSION, &self.draft)?;
+        let actual = canonical_hash("context-egress-manifest", 1, &self.draft)
+            .map_err(|_| EgressError::CanonicalHash)?;
         if actual != self.manifest_hash {
             return Err(EgressError::ManifestIntegrity);
         }
@@ -164,70 +284,152 @@ impl ContextEgressManifest {
     pub fn review_projection(&self) -> ContextReviewProjection {
         ContextReviewProjection {
             manifest_hash: self.manifest_hash,
+            purpose: self.draft.purpose.clone(),
+            model_role: self.draft.model_role.clone(),
+            provider_profile_hash: self.draft.provider_profile_hash,
+            model_profile_hash: self.draft.model_profile_hash,
+            deployment_hash: self.draft.deployment_hash,
+            region: self.draft.region.clone(),
+            retention_mode: self.draft.retention_mode,
+            expires_at: self.draft.expires_at,
             items: self
                 .draft
                 .items
                 .iter()
                 .map(|item| ContextReviewItem {
-                    item_id: item.item_id.clone(),
+                    client_item_id: item.client_item_id.clone(),
                     relative_label: item.relative_label.clone(),
+                    semantic_role: item.semantic_role.clone(),
+                    language: item.language.clone(),
+                    outbound_content_hash: item.outbound_content_hash,
+                    outbound_byte_count: item.outbound_byte_count,
+                    token_estimate: item.token_estimate,
+                    classification: item.classification,
+                    redactions: item.redactions.clone(),
                     outbound_content: item.outbound_content.clone(),
                 })
                 .collect(),
+            exclusions: self.draft.exclusions.clone(),
+            secret_findings: self.draft.secret_findings.clone(),
+            total_outbound_bytes: self.draft.total_outbound_bytes,
+            total_token_estimate: self.draft.total_token_estimate,
+            redaction_limitation:
+                "Redaction reduces risk but cannot prove that every secret was detected.".to_owned(),
         }
     }
 }
 
 fn validate_manifest(draft: &ContextEgressManifestDraft) -> Result<(), EgressError> {
-    if draft.schema_version != SCHEMA_VERSION {
-        return Err(EgressError::UnsupportedSchemaVersion);
-    }
-    if draft.items.is_empty() {
-        return Err(EgressError::EmptyItems);
-    }
-    if draft.created_at >= draft.expires_at {
-        return Err(EgressError::InvalidTimeRange);
-    }
-    if draft.limits.maximum_items == 0
-        || draft.limits.maximum_context_bytes == 0
-        || draft.limits.maximum_tokens == 0
+    if draft.schema_version != MANIFEST_SCHEMA
+        || !is_safe_label(&draft.purpose, 128)
+        || !is_safe_label(&draft.model_role, 128)
+        || !is_safe_region(&draft.region)
+        || draft.items.is_empty()
     {
-        return Err(EgressError::InvalidLimits);
-    }
-    if draft.retention_mode != RetentionMode::TransientNoStore {
-        return Err(EgressError::UnsupportedRetention);
-    }
-    if draft.items.len() as u64 > draft.limits.maximum_items {
-        return Err(EgressError::InvalidLimits);
+        return Err(EgressError::InvalidManifest);
     }
 
-    let mut item_ids = HashSet::with_capacity(draft.items.len());
+    let lifetime = draft
+        .expires_at
+        .0
+        .checked_sub(draft.created_at.0)
+        .ok_or(EgressError::InvalidLifetime)?;
+    if lifetime == 0 || lifetime > MAX_MANIFEST_LIFETIME_MS {
+        return Err(EgressError::InvalidLifetime);
+    }
+    validate_limits(&draft.limits)?;
+    if draft.items.len() > draft.limits.maximum_context_items as usize {
+        return Err(EgressError::ContextBudgetExceeded);
+    }
+
+    let mut identifiers = HashSet::with_capacity(draft.items.len());
     let mut total_bytes = 0_u64;
     let mut total_tokens = 0_u64;
     for item in &draft.items {
-        if !item_ids.insert(item.item_id.clone()) {
-            return Err(EgressError::DuplicateItemId);
+        if !identifiers.insert(&item.client_item_id) {
+            return Err(EgressError::DuplicateContextItem);
         }
-        if item.original_byte_count != item.original_content.len() as u64
-            || item.outbound_byte_count != item.outbound_content.len() as u64
-            || item.original_content_hash != sha256_bytes(item.original_content.as_bytes())
-            || item.outbound_content_hash != sha256_bytes(item.outbound_content.as_bytes())
-        {
-            return Err(EgressError::ContextDrift);
-        }
+        validate_item(item)?;
         total_bytes = total_bytes
             .checked_add(item.outbound_byte_count)
-            .ok_or(EgressError::ContextDrift)?;
+            .ok_or(EgressError::ContextBudgetExceeded)?;
         total_tokens = total_tokens
-            .checked_add(item.token_count)
-            .ok_or(EgressError::ContextDrift)?;
+            .checked_add(item.token_estimate)
+            .ok_or(EgressError::ContextBudgetExceeded)?;
     }
-    if draft.total_byte_count != total_bytes
-        || draft.total_token_count != total_tokens
-        || total_bytes > draft.limits.maximum_context_bytes
-        || total_tokens > draft.limits.maximum_tokens
+
+    if total_bytes != draft.total_outbound_bytes || total_tokens != draft.total_token_estimate {
+        return Err(EgressError::ContextDrift);
+    }
+    if total_bytes > draft.limits.maximum_context_bytes
+        || total_tokens > draft.limits.maximum_token_estimate
+    {
+        return Err(EgressError::ContextBudgetExceeded);
+    }
+    if draft
+        .exclusions
+        .iter()
+        .any(|entry| !is_safe_label(&entry.reason, 128))
+        || draft.secret_findings.iter().any(|finding| {
+            !identifiers.contains(&finding.client_item_id)
+                || !is_safe_label(&finding.kind, 64)
+                || finding.occurrence_count == 0
+        })
+    {
+        return Err(EgressError::InvalidManifest);
+    }
+    Ok(())
+}
+
+fn validate_limits(limits: &EgressLimits) -> Result<(), EgressError> {
+    if limits.maximum_context_items == 0
+        || limits.maximum_context_items > HARD_MAX_CONTEXT_ITEMS
+        || limits.maximum_context_bytes == 0
+        || limits.maximum_context_bytes > HARD_MAX_CONTEXT_BYTES
+        || limits.maximum_token_estimate == 0
+        || limits.maximum_token_estimate > HARD_MAX_TOKEN_ESTIMATE
+    {
+        return Err(EgressError::InvalidManifest);
+    }
+    Ok(())
+}
+
+fn validate_item(item: &PreparedContextItem) -> Result<(), EgressError> {
+    if !is_safe_label(&item.semantic_role, 128)
+        || item
+            .language
+            .as_deref()
+            .is_some_and(|language| !is_safe_label(language, 64))
+        || item
+            .redactions
+            .iter()
+            .any(|redaction| !is_safe_label(&redaction.kind, 64) || redaction.occurrence_count == 0)
+    {
+        return Err(EgressError::InvalidManifest);
+    }
+    let content_bytes = u64::try_from(item.outbound_content.len())
+        .map_err(|_| EgressError::ContextBudgetExceeded)?;
+    if content_bytes != item.outbound_byte_count
+        || sha256_bytes(item.outbound_content.as_bytes()) != item.outbound_content_hash
     {
         return Err(EgressError::ContextDrift);
     }
+    let actual_attestation = canonical_hash("prepared-context-item", 1, &item.attestation_draft())
+        .map_err(|_| EgressError::CanonicalHash)?;
+    if actual_attestation != item.preparation_attestation {
+        return Err(EgressError::ContextDrift);
+    }
     Ok(())
+}
+
+fn is_safe_label(value: &str, maximum_bytes: usize) -> bool {
+    !value.is_empty()
+        && value.len() <= maximum_bytes
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
+}
+
+fn is_safe_region(value: &str) -> bool {
+    (3..=64).contains(&value.len()) && value.bytes().all(|byte| byte.is_ascii_lowercase())
 }

@@ -67,6 +67,30 @@ pub enum LocalCommand {
         workspace_grant_epoch: u64,
         current_intent: BmadHelpIntent,
     },
+    ModelAuthStatus,
+    ModelAuthSignIn,
+    ModelAuthSignOut,
+    PrepareBmadHelpReview {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
+    ApproveBmadHelpReview {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        manifest_hash: Sha256Digest,
+    },
+    CancelBmadHelpReview {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        manifest_hash: Sha256Digest,
+        decision_id: ContractId,
+    },
+    SubmitBmadHelpReview {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        manifest_hash: Sha256Digest,
+        decision_id: ContractId,
+    },
     LatestBmadHelpRun {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
@@ -130,6 +154,13 @@ impl LocalCommand {
             Self::ScanBmad { .. } => "bmad.scan",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
             Self::CreateBmadHelpRun { .. } => "run.create",
+            Self::ModelAuthStatus => "model.auth.status",
+            Self::ModelAuthSignIn => "model.auth.sign_in",
+            Self::ModelAuthSignOut => "model.auth.sign_out",
+            Self::PrepareBmadHelpReview { .. } => "bmad.help.prepare",
+            Self::ApproveBmadHelpReview { .. } => "bmad.help.approve",
+            Self::CancelBmadHelpReview { .. } => "bmad.help.cancel",
+            Self::SubmitBmadHelpReview { .. } => "bmad.help.submit",
             Self::LatestBmadHelpRun { .. } => "bmad.help.latest",
             Self::PreviewContext { .. } => "context.preview",
             Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
@@ -156,6 +187,7 @@ impl LocalCommand {
                 | Self::SearchWorkspace { .. }
                 | Self::ScanBmad { .. }
                 | Self::BmadLibrarySnapshot { .. }
+                | Self::ModelAuthStatus
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }
                 | Self::ChangesHistory { .. }

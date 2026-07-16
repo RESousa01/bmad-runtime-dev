@@ -5,7 +5,9 @@
 //! installation before a domain command is created.
 
 mod bmad;
+mod bmad_completion;
 mod bmad_help;
+mod bmad_model_access;
 mod bmad_run;
 mod envelope;
 mod gate;
@@ -38,9 +40,28 @@ pub use bmad::{
     BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
     MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
+pub use bmad_completion::{
+    decode_retained_bmad_help_completion, project_completed_bmad_help_run,
+    BmadHelpCompletedRecommendationProjection, BmadHelpEvidenceClassProjection,
+    BmadHelpNoRecommendationReasonProjection, BmadHelpReceiptStatusProjection,
+    BmadHelpReceiptSummaryInput, BmadHelpReceiptSummaryProjection, BmadHelpRetentionProjection,
+    BmadHelpRunCompletedProjection, MAX_BMAD_HELP_COMPLETED_PROJECTION_BYTES,
+};
 pub use bmad_help::{
     project_bmad_help_recommendation, BmadHelpConfidenceProjection, BmadHelpProjectionError,
     BmadHelpRecommendationProjection, MAX_BMAD_HELP_RECOMMENDATION_BYTES,
+};
+pub use bmad_model_access::{
+    project_bmad_help_approved, project_bmad_help_approved_lifecycle, project_bmad_help_cancelled,
+    project_bmad_help_review, project_bmad_help_terminal, project_model_auth_status,
+    BmadHelpApprovalInput, BmadHelpApprovedLifecycleInput, BmadHelpApprovedLifecycleProjection,
+    BmadHelpApprovedProjection, BmadHelpCancellationInput, BmadHelpCancelledProjection,
+    BmadHelpContextClassificationProjection, BmadHelpModelAccessProjectionError,
+    BmadHelpReviewExclusionInput, BmadHelpReviewInput, BmadHelpReviewItemInput,
+    BmadHelpReviewProjection, BmadHelpReviewRedactionInput, BmadHelpSecretFindingInput,
+    BmadHelpTerminalInput, BmadHelpTerminalProjection, BmadHelpTerminalReasonProjection,
+    ModelAuthModeProjection, ModelAuthStatusInput, ModelAuthStatusKindProjection,
+    ModelAuthStatusProjection, MAX_BMAD_HELP_REVIEW_PROJECTION_BYTES,
 };
 pub use bmad_run::{
     decode_retained_bmad_help_run, project_created_bmad_help_run, BmadHelpRunCreatedProjection,

@@ -178,6 +178,13 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.search"
             | "bmad.scan"
             | "bmad.library.snapshot"
+            | "model.auth.status"
+            | "model.auth.sign_in"
+            | "model.auth.sign_out"
+            | "bmad.help.prepare"
+            | "bmad.help.approve"
+            | "bmad.help.cancel"
+            | "bmad.help.submit"
             | "bmad.help.latest"
             | "run.create"
             | "context.preview"
@@ -310,9 +317,33 @@ struct LatestBmadHelpRunPayload {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadHelpWorkspacePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct WorkspaceEpochPayload {
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadHelpManifestPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadHelpDecisionPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
 }
 
 #[derive(Deserialize)]
@@ -353,6 +384,22 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             })
         }
         "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
+        "model.auth.status" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::ModelAuthStatus)
+        }
+        "model.auth.sign_in" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::ModelAuthSignIn)
+        }
+        "model.auth.sign_out" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::ModelAuthSignOut)
+        }
+        "bmad.help.prepare" => parse_bmad_help_prepare(payload),
+        "bmad.help.approve" => parse_bmad_help_approve(payload),
+        "bmad.help.cancel" => parse_bmad_help_cancel(payload),
+        "bmad.help.submit" => parse_bmad_help_submit(payload),
         "bmad.help.latest" => parse_bmad_help_latest(payload),
         "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
@@ -430,20 +477,64 @@ fn parse_propose_changes(payload: Value) -> Result<LocalCommand, IpcValidationEr
 
 fn parse_bmad_help_latest(payload: Value) -> Result<LocalCommand, IpcValidationError> {
     let input: LatestBmadHelpRunPayload = parse_payload(payload)?;
-    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
-        return Err(IpcValidationError::InvalidPayload);
-    }
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
     Ok(LocalCommand::LatestBmadHelpRun {
         workspace_id: input.workspace_id,
         workspace_grant_epoch: input.workspace_grant_epoch,
     })
 }
 
-fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {
-    let input: CreateBmadRunPayload = parse_payload(payload)?;
-    if input.workspace_grant_epoch == 0 || input.workspace_grant_epoch > MAX_SAFE_JSON_INTEGER {
+fn parse_bmad_help_prepare(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadHelpWorkspacePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(LocalCommand::PrepareBmadHelpReview {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+    })
+}
+
+fn parse_bmad_help_approve(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadHelpManifestPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(LocalCommand::ApproveBmadHelpReview {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        manifest_hash: input.manifest_hash,
+    })
+}
+
+fn parse_bmad_help_cancel(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadHelpDecisionPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(LocalCommand::CancelBmadHelpReview {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        manifest_hash: input.manifest_hash,
+        decision_id: input.decision_id,
+    })
+}
+
+fn parse_bmad_help_submit(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadHelpDecisionPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(LocalCommand::SubmitBmadHelpReview {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        manifest_hash: input.manifest_hash,
+        decision_id: input.decision_id,
+    })
+}
+
+fn validate_workspace_grant_epoch(epoch: u64) -> Result<(), IpcValidationError> {
+    if epoch == 0 || epoch > MAX_SAFE_JSON_INTEGER {
         return Err(IpcValidationError::InvalidPayload);
     }
+    Ok(())
+}
+
+fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: CreateBmadRunPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
     let BmadRunKindPayload::BmadHelp = input.run_kind;
     let current_intent = BmadHelpIntent::new(input.current_intent)
         .map_err(|_| IpcValidationError::InvalidPayload)?;

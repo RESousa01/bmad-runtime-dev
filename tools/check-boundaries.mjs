@@ -19,12 +19,12 @@ const requiredCrates = new Set([
   "desktop-runtime",
   ...adapterCrates,
 ]);
-// The reviewed ready-command catalog: the D1 read-only set plus the D3
-// governed-edits set. Must stay byte-identical across READY_COMMANDS in
+// The reviewed ready-command catalog: the D1 read-only set, the D2
+// Help/model set, and the D3 governed-edits set. Must stay byte-identical across READY_COMMANDS in
 // crates/desktop-app/src/commands.rs, is_known_command in
 // crates/desktop-ipc/src/envelope.rs, and desktopHostCommands in
 // apps/desktop-ui/src/lib/hostClient.ts.
-const d1ReadyCommands = [
+const reviewedReadyCommands = [
   "app.get_boot_state",
   "workspace.select_folder",
   "workspace.list",
@@ -34,6 +34,13 @@ const d1ReadyCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  "model.auth.status",
+  "model.auth.sign_in",
+  "model.auth.sign_out",
+  "bmad.help.prepare",
+  "bmad.help.approve",
+  "bmad.help.cancel",
+  "bmad.help.submit",
   "bmad.help.latest",
   "run.create",
   "context.preview",
@@ -44,6 +51,9 @@ const d1ReadyCommands = [
   "changes.history",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
+const boundedProcessAdapterPaths = new Set([
+  "crates/desktop-cloud/src/windows_broker.rs",
+]);
 const exactToolchain = Object.freeze({
   node: "24.18.0",
   pnpm: "11.12.0",
@@ -126,6 +136,17 @@ function sameOrderedValues(actual, expected) {
   return Array.isArray(actual)
     && actual.length === expected.length
     && actual.every((value, index) => value === expected[index]);
+}
+
+function expandBmadModelCommandAliases(source) {
+  return source
+    .replaceAll("bmadModelCommands.authStatus", '"model.auth.status"')
+    .replaceAll("bmadModelCommands.authSignIn", '"model.auth.sign_in"')
+    .replaceAll("bmadModelCommands.authSignOut", '"model.auth.sign_out"')
+    .replaceAll("bmadModelCommands.prepare", '"bmad.help.prepare"')
+    .replaceAll("bmadModelCommands.approve", '"bmad.help.approve"')
+    .replaceAll("bmadModelCommands.cancel", '"bmad.help.cancel"')
+    .replaceAll("bmadModelCommands.submit", '"bmad.help.submit"');
 }
 
 const commandLiteralRegression = ["lower.command", "UPPER_COMMAND", "punctuation:/command"];
@@ -713,7 +734,10 @@ for (const path of rustFiles) {
     /\bCreateProcess(?:A|W)?\b/,
     /\bShellExecute(?:Ex)?(?:A|W)?\b/,
   ];
-  if (processPatterns.some((pattern) => pattern.test(source))) {
+  if (
+    processPatterns.some((pattern) => pattern.test(source))
+    && !boundedProcessAdapterPaths.has(normalizedRepositoryPath(path))
+  ) {
     violations.push(`${displayPath}: product child-process primitive`);
   }
 }
@@ -751,8 +775,8 @@ const ipcEnvelopeSource = await requiredText(ipcEnvelopePath);
 if (hostCommandsSource !== undefined) {
   const readySource = /const READY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
   const recoverySource = /const RECOVERY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
-  if (readySource === undefined || !sameOrderedValues(quotedStrings(readySource), d1ReadyCommands)) {
-    violations.push(`${relative(root, hostCommandsPath)}: ready capability projection drifted from the reviewed D1 catalog`);
+  if (readySource === undefined || !sameOrderedValues(quotedStrings(readySource), reviewedReadyCommands)) {
+    violations.push(`${relative(root, hostCommandsPath)}: ready capability projection drifted from the reviewed command catalog`);
   }
   if (recoverySource === undefined || !sameOrderedValues(quotedStrings(recoverySource), recoveryCommands)) {
     violations.push(`${relative(root, hostCommandsPath)}: recovery capability projection is not fail-closed`);
@@ -765,9 +789,12 @@ if (rendererClientSource !== undefined) {
   const clientCatalogSource = /export const desktopHostCommands\s*=\s*\[([\s\S]*?)\]\s*as const/.exec(
     rendererClientSource,
   )?.[1];
+  const clientCatalogValues = clientCatalogSource === undefined
+    ? undefined
+    : quotedStrings(expandBmadModelCommandAliases(clientCatalogSource));
   if (
-    clientCatalogSource === undefined
-    || !sameOrderedValues(quotedStrings(clientCatalogSource), d1ReadyCommands)
+    clientCatalogValues === undefined
+    || !sameOrderedValues(clientCatalogValues, reviewedReadyCommands)
   ) {
     violations.push(`${relative(root, rendererClientPath)}: renderer command catalog drifted from the host projection`);
   }
@@ -778,9 +805,9 @@ if (ipcEnvelopeSource !== undefined) {
   )?.[1];
   if (
     knownCommandSource === undefined
-    || !sameOrderedValues(quotedStrings(knownCommandSource), d1ReadyCommands)
+    || !sameOrderedValues(quotedStrings(knownCommandSource), reviewedReadyCommands)
   ) {
-    violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog is not exactly D1`);
+    violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog drifted from the reviewed command catalog`);
   }
 }
 

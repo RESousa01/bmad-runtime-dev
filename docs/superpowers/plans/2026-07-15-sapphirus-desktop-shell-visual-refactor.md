@@ -85,7 +85,7 @@ This palette characterization is intentionally green before implementation. The 
 
 - [ ] **Step 2: Run the focused test and confirm the initial contract**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- styles.visual-contract.test.ts`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- styles.visual-contract.test.ts`
 Expected: PASS with the current palette values.
 
 - [ ] **Step 3: Add shell landmark assertions**
@@ -102,12 +102,12 @@ expect(screen.getByLabelText("Inspector")).toBeInTheDocument();
 
 - [ ] **Step 4: Run shell and accessibility regressions**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`
 Expected: all existing App tests plus the new shell assertions pass.
 
 - [ ] **Step 5: Checkpoint the task**
 
-Run: `git diff -- apps/desktop-ui/src/styles.visual-contract.test.ts apps/desktop-ui/src/App.test.tsx`  
+Run: `git diff -- apps/desktop-ui/src/styles.visual-contract.test.ts apps/desktop-ui/src/App.test.tsx`
 Expected: only palette/landmark tests; no production behavior changes.
 
 ## Task 2: Refine the stable shell, title bar, global navigation, and sessions
@@ -129,7 +129,7 @@ Render `App` and assert that the selected Agent navigation item exposes `aria-cu
 
 - [ ] **Step 2: Verify the focused test fails for the missing structure**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`
 Expected: FAIL only on the new structural grouping assertion.
 
 - [ ] **Step 3: Add presentation-only markup hooks**
@@ -174,12 +174,12 @@ Provide visible hover, selected, pressed, focus-visible, disabled, overlay-open,
 
 - [ ] **Step 6: Run focused regressions**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`
 Expected: PASS, including drawer inert/modal and accessibility tests.
 
 - [ ] **Step 7: Checkpoint the task**
 
-Run: `git diff --check` and `git diff -- apps/desktop-ui/src/components/TitleBar.tsx apps/desktop-ui/src/components/GlobalRail.tsx apps/desktop-ui/src/components/SessionRail.tsx apps/desktop-ui/src/styles.css`  
+Run: `git diff --check` and `git diff -- apps/desktop-ui/src/components/TitleBar.tsx apps/desktop-ui/src/components/GlobalRail.tsx apps/desktop-ui/src/components/SessionRail.tsx apps/desktop-ui/src/styles.css`
 Expected: no whitespace errors and no business-logic changes.
 
 ## Task 3: Refine the task workspace, messages, review content, and composer
@@ -200,7 +200,7 @@ Assert that Method guidance preserves one main heading, the local-only notice, a
 
 - [ ] **Step 2: Run the focused tests before markup changes**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- TaskWorkspace.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- TaskWorkspace.test.tsx`
 Expected: existing behavior passes; any new presentation-region assertion fails until the hooks are added.
 
 - [ ] **Step 3: Add presentation wrappers without moving state**
@@ -223,7 +223,7 @@ Do not change any color token values or capability copy.
 
 - [ ] **Step 5: Run focused behavior and accessibility tests**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- TaskWorkspace.test.tsx App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- TaskWorkspace.test.tsx App.test.tsx`
 Expected: PASS with no duplicate submission, capability, recovery, or accessibility regression.
 
 - [ ] **Step 6: Checkpoint the task**
@@ -252,7 +252,7 @@ Assert that ready Help retains the four textual status facts, the recommendation
 
 - [ ] **Step 2: Verify focused tests pass before presentation changes**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- BmadHelpCard.test.tsx BmadLibraryPanel.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- BmadHelpCard.test.tsx BmadLibraryPanel.test.tsx`
 Expected: PASS, establishing the content baseline.
 
 - [ ] **Step 3: Add presentation-only inspector hooks**
@@ -265,7 +265,7 @@ Implement a sticky compact tab strip, consistent section headings, calm callouts
 
 - [ ] **Step 5: Run inspector and BMAD tests**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx BmadHelpCard.test.tsx BmadLibraryPanel.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx BmadHelpCard.test.tsx BmadLibraryPanel.test.tsx`
 Expected: PASS, including keyboard tab changes, inert HTML-like content, maximum-bound wrapping content, and axe checks.
 
 - [ ] **Step 6: Checkpoint the task**
@@ -291,7 +291,7 @@ Assert Explorer retains its Local workspace header, Files/Search/BMAD tabs, boun
 
 - [ ] **Step 2: Run the focused tests**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`
 Expected: PASS before visual markup changes.
 
 - [ ] **Step 3: Add consistent presentation hooks**
@@ -304,7 +304,7 @@ Align the Explorer header with the task header, refine Files/Search/BMAD tabs an
 
 - [ ] **Step 5: Run behavior and accessibility regressions**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx`
 Expected: PASS, including stale request suppression, workspace recovery, dialog focus, responsive drawers, and both axe scans.
 
 - [ ] **Step 6: Checkpoint the task**
@@ -336,7 +336,7 @@ Remove superseded declarations rather than appending contradictory overrides.
 
 - [ ] **Step 2: Verify overlay behavior in tests**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx -t "responsive drawers"`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- App.test.tsx -t "responsive drawers"`
 Expected: PASS with closed drawers inert and open drawers modal.
 
 - [ ] **Step 3: Complete compact density, reduced motion, and forced colors**
@@ -345,7 +345,7 @@ Ensure compact density reduces spacing without shrinking interactive hit areas b
 
 - [ ] **Step 4: Re-run the palette contract**
 
-Run: `pnpm --filter @sapphirus/desktop-ui test -- styles.visual-contract.test.ts`  
+Run: `pnpm --filter @sapphirus/desktop-ui test -- styles.visual-contract.test.ts`
 Expected: PASS; existing color values remain unchanged.
 
 - [ ] **Step 5: Run the complete renderer gate**
@@ -363,7 +363,7 @@ Expected: all UI tests pass, TypeScript exits 0, lint exits 0, and Vite produces
 
 - [ ] **Step 6: Checkpoint the task**
 
-Run: `git diff --check` and `git status --short -- apps/desktop-ui packages/ui docs/superpowers`  
+Run: `git diff --check` and `git status --short -- apps/desktop-ui packages/ui docs/superpowers`
 Expected: no `packages/ui/src/tokens.css` change and no unrelated paths.
 
 ## Task 7: Visual QA and final verification
