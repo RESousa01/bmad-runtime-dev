@@ -43,8 +43,8 @@
     },
     {
       "path": "evidence/claims.json",
-      "bytes": 7849,
-      "sha256": "b5325be13a5c23099d8e0c1767aefacfefe23cbb405047eb9058a3fcb9949c17"
+      "bytes": 8611,
+      "sha256": "e9f80830f81e2c037f33b9044f4ec9fd7165aea904e75e7a877ec1921abc5f5b"
     },
     {
       "path": "evidence/note-catalog.json",

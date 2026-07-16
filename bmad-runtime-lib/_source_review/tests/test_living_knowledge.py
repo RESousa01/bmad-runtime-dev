@@ -27,6 +27,9 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding="utf-8", newline="\n")
 
     def write_minimum_registries(self, claim_id: str = "KB-CORE-001") -> None:
+        (self.repo / "README.md").write_text(
+            "# Fixture\n", encoding="utf-8", newline="\n"
+        )
         self.write_json(
             "claims.json",
             {
@@ -40,6 +43,7 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
                         "confidence": "high",
                         "sourceIds": ["SRC-REPO-001"],
                         "observedAt": "2026-07-16",
+                        "revalidateBy": "2099-01-01",
                         "limitations": "Fixture only.",
                         "supersedes": [],
                         "singleSourceException": "Fixture uses one local source.",
@@ -147,7 +151,47 @@ class LivingKnowledgeValidationTests(unittest.TestCase):
         result = validate_living_knowledge(self.vault, self.repo)
 
         self.assertIn(
-            "claims.json: claim 'KB-CORE-001' requires two sources or singleSourceException",
+            "claims.json: claim 'KB-CORE-001' requires two distinct sources or singleSourceException",
+            result.errors,
+        )
+
+    def test_repository_source_locator_must_exist(self) -> None:
+        self.write_minimum_registries()
+        (self.repo / "README.md").unlink()
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "sources.json: source 'SRC-REPO-001' locator does not exist",
+            result.errors,
+        )
+
+    def test_claim_revalidation_deadline_is_enforced(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        claims["claims"][0]["revalidateBy"] = "2000-01-01"
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "claims.json: claim 'KB-CORE-001' revalidation is overdue",
+            result.errors,
+        )
+
+    def test_duplicate_sources_do_not_count_as_corroboration(self) -> None:
+        self.write_minimum_registries()
+        claims_path = self.vault / "knowledge-base" / "evidence" / "claims.json"
+        claims = json.loads(claims_path.read_text(encoding="utf-8"))
+        claims["claims"][0]["sourceIds"] = ["SRC-REPO-001", "SRC-REPO-001"]
+        claims["claims"][0]["singleSourceException"] = ""
+        claims_path.write_text(json.dumps(claims), encoding="utf-8", newline="\n")
+
+        result = validate_living_knowledge(self.vault, self.repo)
+
+        self.assertIn(
+            "claims.json: claim 'KB-CORE-001' requires two distinct sources or singleSourceException",
             result.errors,
         )
 

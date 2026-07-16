@@ -7,8 +7,10 @@ import json
 import hashlib
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 SCHEMA_VERSION = "sapphirus.living-knowledge.v1"
@@ -79,8 +81,11 @@ def _records(
     return records
 
 
-def _validate_sources(records: list[Any], result: ValidationResult) -> set[str]:
+def _validate_sources(
+    records: list[Any], repository_root: Path, result: ValidationResult
+) -> dict[str, dict[str, Any]]:
     identifiers: set[str] = set()
+    valid_records: dict[str, dict[str, Any]] = {}
     for record in records:
         if not isinstance(record, dict):
             result.errors.append("sources.json: source records must be objects")
@@ -97,11 +102,37 @@ def _validate_sources(records: list[Any], result: ValidationResult) -> set[str]:
                 result.errors.append(
                     f"sources.json: source {identifier!r} requires {field_name}"
                 )
-    return identifiers
+        source_type = record.get("type")
+        locator = record.get("locator")
+        if source_type == "repository" and isinstance(locator, str):
+            target = _repository_path(
+                repository_root, locator, identifier, result, registry="sources.json"
+            )
+            if target is not None and not target.is_file():
+                result.errors.append(
+                    f"sources.json: source {identifier!r} locator does not exist"
+                )
+            commit = record.get("repositoryCommit")
+            if not isinstance(commit, str) or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+                result.errors.append(
+                    f"sources.json: source {identifier!r} requires repositoryCommit"
+                )
+        elif source_type == "external_official" and isinstance(locator, str):
+            parsed = urlparse(locator)
+            if parsed.scheme != "https" or not parsed.netloc:
+                result.errors.append(
+                    f"sources.json: source {identifier!r} requires an HTTPS locator"
+                )
+        elif source_type not in {"repository", "external_official"}:
+            result.errors.append(
+                f"sources.json: source {identifier!r} has invalid type"
+            )
+        valid_records[identifier] = record
+    return valid_records
 
 
 def _validate_claims(
-    records: list[Any], source_ids: set[str], result: ValidationResult
+    records: list[Any], sources: dict[str, dict[str, Any]], result: ValidationResult
 ) -> set[str]:
     identifiers: set[str] = set()
     for record in records:
@@ -134,7 +165,7 @@ def _validate_claims(
             result.errors.append(
                 f"claims.json: claim {identifier!r} has invalid confidence"
             )
-        for field_name in ("statement", "observedAt", "limitations"):
+        for field_name in ("statement", "observedAt", "revalidateBy", "limitations"):
             if not isinstance(record.get(field_name), str) or not record[field_name].strip():
                 result.errors.append(
                     f"claims.json: claim {identifier!r} requires {field_name}"
@@ -146,16 +177,42 @@ def _validate_claims(
             )
         else:
             for source_id in linked_sources:
-                if source_id not in source_ids:
+                if source_id not in sources:
                     result.errors.append(
                         f"claims.json: claim {identifier!r} references unknown source {source_id!r}"
                     )
             exception = record.get("singleSourceException")
-            if len(linked_sources) < 2 and (
+            if len(set(linked_sources)) < 2 and (
                 not isinstance(exception, str) or not exception.strip()
             ):
                 result.errors.append(
-                    f"claims.json: claim {identifier!r} requires two sources or singleSourceException"
+                    f"claims.json: claim {identifier!r} requires two distinct sources or singleSourceException"
+                )
+            if record.get("classification") == "VERIFIED_EXTERNAL_FACT":
+                official_count = len(
+                    {
+                        source_id
+                        for source_id in linked_sources
+                        if sources.get(source_id, {}).get("type") == "external_official"
+                    }
+                )
+                if official_count < 2 and (
+                    not isinstance(exception, str) or not exception.strip()
+                ):
+                    result.errors.append(
+                        f"claims.json: external claim {identifier!r} requires two official sources or singleSourceException"
+                    )
+        deadline = record.get("revalidateBy")
+        try:
+            parsed_deadline = date.fromisoformat(deadline)
+        except (TypeError, ValueError):
+            result.errors.append(
+                f"claims.json: claim {identifier!r} has invalid revalidateBy"
+            )
+        else:
+            if parsed_deadline < date.today():
+                result.errors.append(
+                    f"claims.json: claim {identifier!r} revalidation is overdue"
                 )
         if not isinstance(record.get("supersedes"), list):
             result.errors.append(
@@ -298,15 +355,19 @@ def _validate_living_manifest(vault_root: Path, result: ValidationResult) -> Non
 
 
 def _repository_path(
-    repository_root: Path, relative: Any, pin_id: Any, result: ValidationResult
+    repository_root: Path,
+    relative: Any,
+    pin_id: Any,
+    result: ValidationResult,
+    registry: str = "pins.json",
 ) -> Path | None:
     if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
-        result.errors.append(f"pins.json: pin {pin_id} has invalid path")
+        result.errors.append(f"{registry}: pin {pin_id} has invalid path")
         return None
     root = repository_root.resolve()
     candidate = (root / relative).resolve()
     if not candidate.is_relative_to(root):
-        result.errors.append(f"pins.json: pin {pin_id} path escapes repository root")
+        result.errors.append(f"{registry}: pin {pin_id} path escapes repository root")
         return None
     return candidate
 
@@ -434,7 +495,7 @@ def validate_living_knowledge(
         "sources",
         result,
     ) if "sources.json" in documents else []
-    source_ids = _validate_sources(source_records, result)
+    sources = _validate_sources(source_records, repository_root, result)
 
     claim_records = _records(
         documents.get("claims.json", {}),
@@ -442,7 +503,7 @@ def validate_living_knowledge(
         "claims",
         result,
     ) if "claims.json" in documents else []
-    claim_ids = _validate_claims(claim_records, source_ids, result)
+    claim_ids = _validate_claims(claim_records, sources, result)
 
     if "note-catalog.json" in documents:
         catalog_records = _records(
