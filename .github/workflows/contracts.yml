@@ -83,8 +83,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $dotnet restore tests/conformance/dotnet/Sapphirus.Contracts.Conformance.Tests.csproj --locked-mode
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - run: pnpm contracts:verify:cross-language
-      - run: pnpm contracts:verify:cross-language
+      - name: Verify cross-language generators
+        shell: pwsh
+        run: |
+          # setup-dotnet injects DOTNET_MULTILEVEL_LOOKUP into the job env, which the
+          # native codegen injection gate rejects. Scrub it in-process so the spawned
+          # node generators inherit the reviewed environment. Run twice for determinism.
+          Remove-Item Env:\DOTNET_MULTILEVEL_LOOKUP -ErrorAction SilentlyContinue
+          pnpm contracts:verify:cross-language
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm contracts:verify:cross-language
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - run: cargo test --workspace --all-features --locked
