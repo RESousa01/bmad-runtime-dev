@@ -73,7 +73,7 @@ function HelpActionRow({ helpAction }: { readonly helpAction: BmadHelpActionProj
       </div>
       <p>{helpAction.description}</p>
       {helpAction.menuCode === null ? <span>No menu code</span> : <span>Menu code {helpAction.menuCode}</span>}
-      {helpAction.requiredGuidance ? <span>Required by Method guidance</span> : null}
+      {helpAction.requiredGuidance ? <span>Required by BMAD guidance</span> : null}
       {helpAction.expectedArtifacts.length > 0 ? (
         <p>Expected artifacts: {helpAction.expectedArtifacts.join(", ")}</p>
       ) : (
@@ -229,7 +229,7 @@ function ReadyLibrary({ projection }: { readonly projection: BmadLibraryProjecti
       </section>
 
       <section aria-labelledby={agentsHeadingId} className="bmad-library-section">
-        <h3 id={agentsHeadingId}>Method agents</h3>
+        <h3 id={agentsHeadingId}>Agents</h3>
         {projection.methodAgents.length > 0 ? (
           <ul>
             {projection.methodAgents.map((agent) => (
@@ -239,7 +239,7 @@ function ReadyLibrary({ projection }: { readonly projection: BmadLibraryProjecti
               />
             ))}
           </ul>
-        ) : <p>No Method agents available.</p>}
+        ) : <p>No agents available.</p>}
       </section>
 
       <InternalIdentifiers projection={projection} />
@@ -253,23 +253,25 @@ export function BmadLibraryPanel({ onReload, state }: BmadLibraryPanelProps) {
 
   switch (state.kind) {
     case "idle":
-      body = <p>No Method library projection requested.</p>;
+      body = <p>No skills and agents catalog requested.</p>;
       break;
     case "loading":
-      body = <p aria-live="polite" role="status">Loading Method library…</p>;
+      body = <p aria-live="polite" role="status">Loading skills and agents catalog…</p>;
       break;
-    case "unavailable":
+    case "unavailable": {
+      const message = state.message.trim() || "The skills and agents catalog is unavailable.";
       body = (
         <div>
-          <p role="alert">{state.message}</p>
+          <p role="alert">{message}</p>
           {state.retryable && onReload ? (
             <Button onPress={onReload} size="small" variant="secondary">
-              Reload Method library
+              Reload skills and agents
             </Button>
           ) : null}
         </div>
       );
       break;
+    }
     case "ready":
       body = <ReadyLibrary projection={state.projection} />;
       break;
@@ -281,7 +283,7 @@ export function BmadLibraryPanel({ onReload, state }: BmadLibraryPanelProps) {
       aria-labelledby={headingId}
       className="bmad-library-panel"
     >
-      <h2 id={headingId}>Method library</h2>
+      <h2 id={headingId}>BMAD library</h2>
       {body}
     </section>
   );

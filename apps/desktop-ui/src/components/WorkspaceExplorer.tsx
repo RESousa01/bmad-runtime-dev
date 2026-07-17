@@ -194,6 +194,7 @@ function TreeRows({
 }
 
 export interface WorkspaceExplorerProps {
+  asPanel?: boolean;
   availabilityMessage: string;
   isInert?: boolean;
   onContextReview: (
@@ -205,12 +206,14 @@ export interface WorkspaceExplorerProps {
 }
 
 export function WorkspaceExplorer({
+  asPanel = false,
   availabilityMessage,
   isInert = false,
   onContextReview,
   source,
   workspaceName,
 }: WorkspaceExplorerProps) {
+  const Root = asPanel ? "section" : "main";
   const [activeSection, setActiveSection] = useState<ExplorerSection>("files");
   const [bmad, setBmad] = useState<BmadScanProjection | null>(null);
   const [bmadBusy, setBmadBusy] = useState(false);
@@ -598,7 +601,10 @@ export function WorkspaceExplorer({
       : `${searchResults.length} ${searchResults.length === 1 ? "match" : "matches"} found.`;
 
   return (
-    <main className="workspace-explorer" inert={isInert}>
+    <Root
+      className={`workspace-explorer ${asPanel ? "workspace-explorer--panel" : ""}`}
+      inert={isInert}
+    >
       <header className="workspace-explorer__header">
         <div>
           <span>Local workspace</span>
@@ -869,6 +875,6 @@ export function WorkspaceExplorer({
           </footer>
         </>
       )}
-    </main>
+    </Root>
   );
 }

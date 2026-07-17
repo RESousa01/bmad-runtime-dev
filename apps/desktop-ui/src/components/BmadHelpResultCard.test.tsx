@@ -77,6 +77,24 @@ describe("BmadHelpResultCard", () => {
     expect(screen.getByText("No catalog evidence matched the reviewed intent.")).toBeTruthy();
   });
 
+  it("describes unavailable guidance as a BMAD skill dependency", () => {
+    render(
+      <BmadHelpResultCard
+        developmentOnly={false}
+        result={{
+          ...completed,
+          recommendation: {
+            recommendationKind: "no_recommendation",
+            reasonCode: "dependency_unavailable",
+            createdAt: Date.UTC(2026, 6, 16, 12, 1),
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("A required BMAD skill dependency was unavailable.")).toBeTruthy();
+  });
+
   it("has no automatically detectable accessibility violations", async () => {
     const { container } = render(<BmadHelpResultCard developmentOnly result={completed} />);
     expect((await axe.run(container)).violations).toEqual([]);

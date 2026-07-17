@@ -80,11 +80,13 @@ impl PendingProposals {
 
 /// Bridges the D3 engine's file port onto the governed workspace broker.
 /// Each call revalidates the grant at the pinned epoch; the target hash is
-/// recomputed from live authority facts so root or epoch drift fails closed.
+/// revalidated against live authority facts while the exact reviewed target
+/// hash remains pinned for execution and rollback.
 struct GovernedWorkspaceIo<'a> {
     broker: &'a WorkspaceBroker,
     workspace_id: String,
     grant_epoch: u64,
+    workspace_target_hash: Sha256Digest,
 }
 
 impl GovernedWorkspaceIo<'_> {
@@ -96,11 +98,9 @@ impl GovernedWorkspaceIo<'_> {
         if binding.grant_epoch != self.grant_epoch {
             return Err(WorkspaceIoError::CapabilityRevoked);
         }
-        let root_identity = Sha256Digest::parse(&binding.root_identity_hash)
+        Sha256Digest::parse(&binding.root_identity_hash)
             .map_err(|_| WorkspaceIoError::Unavailable)?;
-        let target = workspace_target(&self.workspace_id, self.grant_epoch, root_identity)
-            .map_err(|_| WorkspaceIoError::Unavailable)?;
-        canonical_hash("workspace-target", 1, &target).map_err(|_| WorkspaceIoError::Unavailable)
+        Ok(self.workspace_target_hash)
     }
 }
 
@@ -334,6 +334,7 @@ fn workspace_target(
     workspace_id: &str,
     grant_epoch: u64,
     root_identity_hash: Sha256Digest,
+    base_checkpoint_id: ContractId,
 ) -> Result<WorkspaceTarget, LocalError> {
     let workspace_capability_id =
         ContractId::new(workspace_id).map_err(|_| invalid_request("Unknown local workspace."))?;
@@ -357,9 +358,20 @@ fn workspace_target(
         grant_epoch,
         root_identity_hash,
         filesystem_capability_hash,
-        base_checkpoint_id: ContractId::new(GENESIS_CHECKPOINT_ID).map_err(|_| recovery_error())?,
+        base_checkpoint_id,
         workspace_manifest_hash,
     })
+}
+
+fn latest_completed_checkpoint(
+    store: &LocalStore,
+    scope: &WorkspaceEditsScope,
+) -> Result<ContractId, LocalError> {
+    let checkpoint = store
+        .latest_completed_checkpoint(scope.workspace_id.as_str(), scope.grant_epoch)
+        .map_err(|_| recovery_error())?
+        .unwrap_or_else(|| GENESIS_CHECKPOINT_ID.to_owned());
+    ContractId::new(checkpoint).map_err(|_| recovery_error())
 }
 
 fn executor_audience(installation_id: &ContractId) -> NativePatchEngineAudience {
@@ -485,10 +497,12 @@ fn changes_proposal_binding(
         .map_err(|_| recovery_error())?;
     let authority_ref = identity.authority_ref().map_err(|_| recovery_error())?;
     let owner_scope_ref = identity.owner_scope_ref().clone();
+    let store = state.local_store(authority)?;
     let target = workspace_target(
         scope.workspace_id.as_str(),
         scope.grant_epoch,
         scope.root_identity_hash,
+        latest_completed_checkpoint(store, scope)?,
     )?;
     let mutable_inputs = vec![MutableInputBinding {
         input_kind: InputKind::WorkspaceManifest,
@@ -742,7 +756,6 @@ fn issue_single_use_authorization(
     authority: &ReadyAuthorityGuard<'_>,
     approval_id: &ContractId,
     pending: &PendingChangesProposal,
-    scope: &WorkspaceEditsScope,
     accepted_at: UnixMillis,
 ) -> Result<
     (
@@ -776,13 +789,9 @@ fn issue_single_use_authorization(
         )
         .as_bytes(),
     );
-    let target = workspace_target(
-        scope.workspace_id.as_str(),
-        scope.grant_epoch,
-        scope.root_identity_hash,
-    )?;
     let workspace_target_hash =
-        canonical_hash("workspace-target", 1, &target).map_err(|_| recovery_error())?;
+        canonical_hash("workspace-target", 1, &candidate.draft.workspace_target)
+            .map_err(|_| recovery_error())?;
     let mutable_input_set_hash = canonical_hash(
         "mutable-input-set",
         1,
@@ -849,14 +858,8 @@ fn apply_pending(
     let workspace_id =
         ContractId::new(pending.workspace_id.clone()).map_err(|_| recovery_error())?;
     let scope = authorize_edits_scope(state, &workspace_id, pending.workspace_grant_epoch)?;
-    let (spec, consumption, execution_id) = issue_single_use_authorization(
-        state,
-        authority,
-        approval_id,
-        pending,
-        &scope,
-        accepted_at,
-    )?;
+    let (spec, consumption, execution_id) =
+        issue_single_use_authorization(state, authority, approval_id, pending, accepted_at)?;
     let candidate = &pending.prepared.candidate;
 
     let store = state.local_store(authority)?;
@@ -875,6 +878,12 @@ fn apply_pending(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        workspace_target_hash: canonical_hash(
+            "workspace-target",
+            1,
+            &candidate.draft.workspace_target,
+        )
+        .map_err(|_| recovery_error())?,
     };
     let execution_store = DurableExecutionStore {
         store,
@@ -963,6 +972,7 @@ fn request_rollback(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        workspace_target_hash: checkpoint.workspace_target_hash,
     };
     let plan = plan_rollback(
         &effect_io,
@@ -1172,7 +1182,10 @@ mod tests {
 
     use desktop_runtime::{ApprovalChoice, ContractId, ProposedFileChange, RelativeWorkspacePath};
 
-    use super::{decide_approval, propose_changes, request_rollback};
+    use super::{
+        authorize_edits_scope, changes_proposal_binding, decide_approval, propose_changes,
+        request_rollback,
+    };
     use crate::state::{now, HostState};
     use crate::wire::{ChangesReviewWire, HostCommandData};
 
@@ -1297,6 +1310,21 @@ mod tests {
             fs::read_to_string(fixture.workspace_root.join("created.rs"))?,
             "pub fn created() {}\n"
         );
+
+        let authority = fixture
+            .state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let scope =
+            authorize_edits_scope(&fixture.state, &fixture.workspace_id, fixture.grant_epoch)
+                .map_err(|error| error.safe_message)?;
+        let next_binding = changes_proposal_binding(&fixture.state, &authority, &scope, now())
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(
+            next_binding.workspace_target.base_checkpoint_id,
+            execution.checkpoint_id
+        );
+        drop(authority);
 
         // A second decision against the same approval fails closed.
         let replay = apply(&fixture, &review, "request_replay");

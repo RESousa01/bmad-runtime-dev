@@ -9,7 +9,6 @@ members = [
   "crates/desktop-execution",
   "crates/desktop-store",
   "crates/desktop-cloud",
-  "crates/desktop-egress",
   "crates/desktop-update",
   "tests/generator-qualification/rust",
   "tests/conformance/rust",
@@ -17,7 +16,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-beta.1"
+version = "0.1.0"
 edition = "2021"
 rust-version = "1.97.0"
 license = "LicenseRef-Proprietary"

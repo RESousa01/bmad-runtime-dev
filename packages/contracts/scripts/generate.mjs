@@ -648,6 +648,98 @@ for (const [relativePath, content] of bmadFixtureSet.files) {
   add(relativePath, content);
 }
 
+const modelContextConsentFixture = {
+  schemaVersion: "sapphirus.model-context-consent.v1",
+  decisionId: "decision_01J00000000000000000000000",
+  requestId: "request_01J00000000000000000000000",
+  invocationId: "invoke_01J00000000000000000000000",
+  deliveryModel: "windows_local",
+  tenantHash: "sha256:" + "1".repeat(64),
+  subjectHash: "sha256:" + "2".repeat(64),
+  registrationId: "dreg_01J00000000000000000000000",
+  installationPublicKeyHash: "sha256:" + "3".repeat(64),
+  entitlementLeaseId: "lease_01J00000000000000000000000",
+  entitlementLeaseHash: "sha256:" + "4".repeat(64),
+  tenantPolicyId: "policy_01J00000000000000000000000",
+  tenantPolicyVersion: 7,
+  tenantPolicyHash: "sha256:" + "5".repeat(64),
+  purpose: "bmad_help",
+  modelRole: "planner",
+  canonicalOutputSchemaId: "sapphirus.bmad-method-help-proposal.v1",
+  canonicalOutputSchemaHash: "sha256:" + "6".repeat(64),
+  manifestHash: "sha256:" + "7".repeat(64),
+  invocationBindingHash: "sha256:" + "8".repeat(64),
+  consumptionHash: "sha256:" + "9".repeat(64),
+  consentDisclosureHash: "sha256:" + "a".repeat(64),
+  providerProfileHash: "sha256:" + "b".repeat(64),
+  modelProfileHash: "sha256:" + "c".repeat(64),
+  modelCapabilityHash: "sha256:" + "d".repeat(64),
+  deploymentHash: "sha256:" + "e".repeat(64),
+  region: "westeurope",
+  retentionMode: "transient_no_store",
+  budgetClass: "interactive-standard",
+  issuedAt: "2026-07-16T10:00:00.000Z",
+  notBefore: "2026-07-16T10:00:00.000Z",
+  expiresAt: "2026-07-16T10:05:00.000Z",
+  nonceHash: "sha256:" + "f".repeat(64),
+  consentEnvelopeHash: "sha256:" + "0".repeat(64),
+  proof: {
+    proofType: "installation_signature",
+    algorithm: "ES256",
+    keyId: "installation-key-2026-07",
+    signedPayloadHash: "sha256:" + "0".repeat(64),
+    signature: "ZXhhbXBsZS1kZXZpY2Utc2lnbmF0dXJl",
+  },
+};
+add("fixtures/valid/model-context-consent.json", stableJson(modelContextConsentFixture));
+
+const modelAccessReceiptFixture = {
+  schemaVersion: "sapphirus.model-access-receipt.v1",
+  receiptId: "receipt_01J00000000000000000000000",
+  requestId: modelContextConsentFixture.requestId,
+  requestHash: modelContextConsentFixture.tenantHash,
+  resultHash: modelContextConsentFixture.subjectHash,
+  deliveryModel: "windows_local",
+  tenantHash: modelContextConsentFixture.tenantHash,
+  subjectHash: modelContextConsentFixture.subjectHash,
+  registrationId: modelContextConsentFixture.registrationId,
+  manifestHash: modelContextConsentFixture.manifestHash,
+  invocationBindingHash: modelContextConsentFixture.invocationBindingHash,
+  consumptionHash: modelContextConsentFixture.consumptionHash,
+  consentEnvelopeHash: modelContextConsentFixture.consentEnvelopeHash,
+  consentDisclosureHash: modelContextConsentFixture.consentDisclosureHash,
+  providerProfileHash: modelContextConsentFixture.providerProfileHash,
+  modelProfileHash: modelContextConsentFixture.modelProfileHash,
+  modelCapabilityHash: modelContextConsentFixture.modelCapabilityHash,
+  deploymentHash: modelContextConsentFixture.deploymentHash,
+  canonicalOutputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+  canonicalOutputSchemaHash: modelContextConsentFixture.canonicalOutputSchemaHash,
+  providerSchemaProjectionHash: modelContextConsentFixture.installationPublicKeyHash,
+  credentialBindingHash: modelContextConsentFixture.entitlementLeaseHash,
+  retentionMode: "transient_no_store",
+  region: "westeurope",
+  inputBytes: 8421,
+  outputBytes: 1200,
+  usage: { inputTokens: 2100, outputTokens: 300, costMicrounits: 7200, currency: "EUR" },
+  retryCount: 0,
+  fallbackEvents: [],
+  providerRequestId: "provider-request-opaque",
+  startedAt: "2026-07-16T10:00:01.000Z",
+  completedAt: "2026-07-16T10:00:02.000Z",
+  terminalStatus: "succeeded",
+  receiptHash: modelContextConsentFixture.tenantPolicyHash,
+  proof: {
+    proofType: "support_plane_signature",
+    algorithm: "ES256",
+    issuer: "https://support.sapphirus.example/",
+    audience: "sapphirus-desktop",
+    keyId: "model-receipt-key-2026-07",
+    signedPayloadHash: modelContextConsentFixture.tenantPolicyHash,
+    signature: "ZXhhbXBsZS1zdXBwb3J0LXBsYW5lLXNpZ25hdHVyZQ",
+  },
+};
+add("fixtures/valid/model-access-receipt.json", stableJson(modelAccessReceiptFixture));
+
 const catalog = [
   ["valid/windows-local-candidate.json", "candidate-action.schema.json", true, null],
   ["valid/approved-execution-spec.json", "approved-execution-spec.schema.json", true, null],
@@ -659,6 +751,8 @@ const catalog = [
   ["valid/contract-error.json", "contract-error.schema.json", true, null],
   ["valid/package-compatibility.json", "package-compatibility.schema.json", true, null],
   ["valid/remote-job-handoff.json", "remote-job-handoff.schema.json", true, null],
+  ["valid/model-context-consent.json", "model-context-consent.schema.json", true, null],
+  ["valid/model-access-receipt.json", "model-access-receipt.schema.json", true, null],
   ["invalid/unknown-discriminator.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/authority-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/workspace-target-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
@@ -955,6 +1049,8 @@ const typescriptSchemaTargets = [
   "evidence-event",
   "execution-result-manifest",
   "filesystem-capability",
+  "model-access-receipt",
+  "model-context-consent",
   "package-compatibility",
   "remote-job-handoff",
   "spec-consumption",
@@ -1095,6 +1191,14 @@ export type {
   SapphirusFilesystemCapabilityV1 as FilesystemCapabilitySnapshot,
 } from "./schema/filesystem-capability.js";
 export type {
+  SapphirusModelAccessReceiptV1 as ModelAccessReceipt,
+  SupportPlaneProof,
+} from "./schema/model-access-receipt.js";
+export type {
+  SapphirusModelContextConsentV1 as ModelContextConsent,
+  InstallationProof,
+} from "./schema/model-context-consent.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {
@@ -1143,6 +1247,10 @@ const validatorIds = {
   validateDurableObject: "https://schemas.sapphirus.dev/v1/durable-object.schema.json",
   validateFilesystemCapability:
     "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json",
+  validateModelAccessReceipt:
+    "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
+  validateModelContextConsent:
+    "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
   validateContractError: "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
   validatePackageCompatibility:
     "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json",
@@ -1343,6 +1451,8 @@ import {
   validateEvidenceEvent,
   validateExecutionResultManifest,
   validateFilesystemCapability,
+  validateModelAccessReceipt,
+  validateModelContextConsent,
   validatePackageCompatibility,
   validateRemoteJobHandoff,
   validateSpecConsumption,
@@ -1365,6 +1475,8 @@ export const CONTRACT_VALIDATORS = Object.freeze({
   "evidence-event": validateEvidenceEvent,
   "execution-result-manifest": validateExecutionResultManifest,
   "filesystem-capability": validateFilesystemCapability,
+  "model-access-receipt": validateModelAccessReceipt,
+  "model-context-consent": validateModelContextConsent,
   "package-compatibility": validatePackageCompatibility,
   "remote-job-handoff": validateRemoteJobHandoff,
   "spec-consumption": validateSpecConsumption,
@@ -1538,6 +1650,8 @@ export type ContractKind =
   | "evidence-event"
   | "execution-result-manifest"
   | "filesystem-capability"
+  | "model-access-receipt"
+  | "model-context-consent"
   | "package-compatibility"
   | "remote-job-handoff"
   | "spec-consumption";

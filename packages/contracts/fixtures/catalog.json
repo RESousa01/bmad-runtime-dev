@@ -60,6 +60,18 @@
     "reasonCode": null
   },
   {
+    "file": "valid/model-context-consent.json",
+    "schema": "model-context-consent.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-receipt.json",
+    "schema": "model-access-receipt.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
     "file": "invalid/unknown-discriminator.json",
     "schema": "candidate-action.schema.json",
     "valid": false,

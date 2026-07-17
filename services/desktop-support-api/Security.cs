@@ -139,12 +139,7 @@ public static class RequestGuards
         return true;
     }
 
-    public static bool IsRegistrationId(string? value) =>
-        value is not null
-        && value.Length == 31
-        && value.StartsWith("dreg_", StringComparison.Ordinal)
-        && value.AsSpan(5).ToArray().All(character =>
-            character is >= '0' and <= '9' or >= 'a' and <= 'f');
+    public static bool IsRegistrationId(string? value) => ContractIds.Is(value, "dreg");
 
     public static bool ValidateDeviceRegistration(
         DeviceRegistrationRequest request,
@@ -180,8 +175,13 @@ public static class RequestGuards
             || request.Items.Length is < 1 or > MaximumContextItems
             || !IsSha256(request.CanonicalOutputSchemaHash)
             || !IsSha256(request.LocalEgressManifestHash)
-            || !IsSha256(request.ConsentReceiptHash))
+            || request.Consent is null)
         {
+            return false;
+        }
+        if (!ValidateConsentBinding(request))
+        {
+            errorCode = "consent_binding_mismatch";
             return false;
         }
         int totalBytes = 0;
@@ -230,6 +230,65 @@ public static class RequestGuards
             return false;
         }
         return true;
+    }
+
+    private static bool ValidateConsentBinding(ModelAccessRequest request)
+    {
+        ModelContextConsent consent = request.Consent;
+        ModelContextConsentProof? proof = consent.Proof;
+        return consent.SchemaVersion == "sapphirus.model-context-consent.v1"
+            && consent.DeliveryModel == "windows_local"
+            && string.Equals(consent.RequestId, request.RequestId, StringComparison.Ordinal)
+            && string.Equals(consent.RegistrationId, request.RegistrationId, StringComparison.Ordinal)
+            && string.Equals(consent.Purpose, request.Purpose, StringComparison.Ordinal)
+            && string.Equals(consent.ModelRole, request.ModelRole, StringComparison.Ordinal)
+            && string.Equals(
+                consent.CanonicalOutputSchemaId,
+                request.CanonicalOutputSchemaId,
+                StringComparison.Ordinal)
+            && string.Equals(
+                consent.CanonicalOutputSchemaHash,
+                request.CanonicalOutputSchemaHash,
+                StringComparison.Ordinal)
+            && string.Equals(consent.ManifestHash, request.LocalEgressManifestHash, StringComparison.Ordinal)
+            && string.Equals(consent.RetentionMode, request.RetentionMode, StringComparison.Ordinal)
+            && string.Equals(consent.BudgetClass, request.BudgetClass, StringComparison.Ordinal)
+            && IsBounded(consent.DecisionId, 8, 128)
+            && IsBounded(consent.InvocationId, 8, 128)
+            && IsBounded(consent.EntitlementLeaseId, 8, 128)
+            && IsBounded(consent.TenantPolicyId, 8, 128)
+            && consent.TenantPolicyVersion is >= 1 and <= 9007199254740991
+            && IsBounded(consent.Region, 1, 64)
+            && consent.IssuedAt != default
+            && consent.NotBefore != default
+            && consent.ExpiresAt != default
+            && consent.IssuedAt <= consent.NotBefore
+            && consent.NotBefore < consent.ExpiresAt
+            && IsSha256(consent.TenantHash)
+            && IsSha256(consent.SubjectHash)
+            && IsSha256(consent.InstallationPublicKeyHash)
+            && IsSha256(consent.EntitlementLeaseHash)
+            && IsSha256(consent.TenantPolicyHash)
+            && IsSha256(consent.InvocationBindingHash)
+            && IsSha256(consent.ConsumptionHash)
+            && IsSha256(consent.ConsentDisclosureHash)
+            && IsSha256(consent.ProviderProfileHash)
+            && IsSha256(consent.ModelProfileHash)
+            && IsSha256(consent.ModelCapabilityHash)
+            && IsSha256(consent.DeploymentHash)
+            && IsSha256(consent.NonceHash)
+            && IsSha256(consent.ConsentEnvelopeHash)
+            && proof is not null
+            && proof.ProofType == "installation_signature"
+            && proof.Algorithm == "ES256"
+            && IsBounded(proof.KeyId, 1, 128)
+            && string.Equals(
+                proof.SignedPayloadHash,
+                consent.ConsentEnvelopeHash,
+                StringComparison.Ordinal)
+            && IsBounded(proof.Signature, 16, 2048)
+            && proof.Signature.All(character =>
+                char.IsAsciiLetterOrDigit(character) || character is '_' or '-');
     }
 
     public static string ComputeContextManifestHash(ModelAccessRequest request)
@@ -348,31 +407,103 @@ internal static class ModelResultGuards
         ModelAccessReceipt receipt,
         string expectedRegion,
         int payloadBytes) =>
-        receipt.SchemaVersion == "desktop-model-access-receipt.v1"
+        receipt.SchemaVersion == "sapphirus.model-access-receipt.v1"
         && IsReceiptId(receipt.ReceiptId)
+        && string.Equals(receipt.RequestId, request.RequestId, StringComparison.Ordinal)
         && string.Equals(
             receipt.RequestHash,
             RequestGuards.Fingerprint(request),
             StringComparison.Ordinal)
         && string.Equals(receipt.ResultHash, result.PayloadHash, StringComparison.Ordinal)
+        && receipt.DeliveryModel == "windows_local"
+        && string.Equals(receipt.TenantHash, request.Consent.TenantHash, StringComparison.Ordinal)
+        && string.Equals(receipt.SubjectHash, request.Consent.SubjectHash, StringComparison.Ordinal)
+        && string.Equals(receipt.RegistrationId, request.RegistrationId, StringComparison.Ordinal)
         && string.Equals(
-            receipt.LocalEgressManifestHash,
+            receipt.ManifestHash,
             request.LocalEgressManifestHash,
             StringComparison.Ordinal)
         && string.Equals(
-            receipt.ConsentReceiptHash,
-            request.ConsentReceiptHash,
+            receipt.InvocationBindingHash,
+            request.Consent.InvocationBindingHash,
             StringComparison.Ordinal)
-        && RequestGuards.IsSha256(receipt.ModelProfileHash)
+        && string.Equals(
+            receipt.ConsumptionHash,
+            request.Consent.ConsumptionHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ConsentEnvelopeHash,
+            request.Consent.ConsentEnvelopeHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ConsentDisclosureHash,
+            request.Consent.ConsentDisclosureHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ProviderProfileHash,
+            request.Consent.ProviderProfileHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ModelProfileHash,
+            request.Consent.ModelProfileHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.ModelCapabilityHash,
+            request.Consent.ModelCapabilityHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.DeploymentHash,
+            request.Consent.DeploymentHash,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.CanonicalOutputSchemaId,
+            request.CanonicalOutputSchemaId,
+            StringComparison.Ordinal)
+        && string.Equals(
+            receipt.CanonicalOutputSchemaHash,
+            request.CanonicalOutputSchemaHash,
+            StringComparison.Ordinal)
+        && RequestGuards.IsSha256(receipt.ProviderSchemaProjectionHash)
+        && RequestGuards.IsSha256(receipt.CredentialBindingHash)
         && string.Equals(receipt.RetentionMode, request.RetentionMode, StringComparison.Ordinal)
         && expectedRegion is { Length: >= 1 and <= 128 }
         && string.Equals(receipt.Region, expectedRegion, StringComparison.Ordinal)
         && receipt.InputBytes == request.Items.Sum(item => item.ByteCount)
         && receipt.OutputBytes == payloadBytes
+        && receipt.Usage is not null
+        && receipt.Usage.InputTokens >= 0
+        && receipt.Usage.OutputTokens >= 0
+        && receipt.Usage.CostMicrounits >= 0
+        && receipt.Usage.Currency is { Length: 3 }
+        && receipt.Usage.Currency.All(character => character is >= 'A' and <= 'Z')
+        && receipt.RetryCount is >= 0 and <= 32
+        && receipt.FallbackEvents is { Length: <= 16 }
+        && receipt.FallbackEvents.All(eventItem =>
+            eventItem is not null
+            && eventItem.Sequence is >= 1 and <= 16
+            && RequestGuards.IsSha256(eventItem.FromProfileHash)
+            && RequestGuards.IsSha256(eventItem.ToProfileHash)
+            && RequestGuards.IsSha256(eventItem.PolicyTransitionHash))
+        && (receipt.ProviderRequestId is null
+            || receipt.ProviderRequestId is { Length: >= 1 and <= 2048 })
         && receipt.StartedAt != default
         && receipt.CompletedAt != default
         && receipt.StartedAt <= receipt.CompletedAt
-        && receipt.Status == "succeeded";
+        && receipt.TerminalStatus == "succeeded"
+        && RequestGuards.IsSha256(receipt.ReceiptHash)
+        && receipt.Proof is not null
+        && receipt.Proof.ProofType == "support_plane_signature"
+        && receipt.Proof.Algorithm == "ES256"
+        && receipt.Proof.Issuer is { Length: >= 8 and <= 2048 }
+        && receipt.Proof.Audience is { Length: >= 1 and <= 256 }
+        && receipt.Proof.KeyId is { Length: >= 1 and <= 128 }
+        && string.Equals(
+            receipt.Proof.SignedPayloadHash,
+            receipt.ReceiptHash,
+            StringComparison.Ordinal)
+        && receipt.Proof.Signature is { Length: >= 16 and <= 2048 }
+        && receipt.Proof.Signature.All(character =>
+            char.IsAsciiLetterOrDigit(character) || character is '_' or '-');
 
     private static bool TryValidatePayload(string? payload, out int payloadBytes)
     {
@@ -435,11 +566,7 @@ internal static class ModelResultGuards
         return true;
     }
 
-    private static bool IsReceiptId(string? value) =>
-        value is { Length: 40 }
-        && value.StartsWith("receipt_", StringComparison.Ordinal)
-        && value.AsSpan(8).ToArray().All(character =>
-            character is >= '0' and <= '9' or >= 'a' and <= 'f');
+    private static bool IsReceiptId(string? value) => ContractIds.Is(value, "receipt");
 
     private static string HashBytes(ReadOnlySpan<byte> value) =>
         "sha256:" + Convert.ToHexStringLower(SHA256.HashData(value));

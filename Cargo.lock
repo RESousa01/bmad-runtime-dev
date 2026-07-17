@@ -699,7 +699,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-airlock"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "serde",
@@ -708,7 +708,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-app"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "desktop-airlock",
@@ -735,7 +735,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-cloud"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "desktop-egress",
@@ -758,7 +758,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-egress"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "parking_lot",
@@ -769,7 +769,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-execution"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "serde",
@@ -778,7 +778,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-ipc"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "serde",
@@ -788,7 +788,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-runtime"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "hex",
@@ -802,7 +802,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-store"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "aes-gcm",
  "desktop-runtime",
@@ -823,7 +823,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-update"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "semver",
  "serde",
@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "desktop-workspace"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "ignore",
@@ -3411,7 +3411,7 @@ dependencies = [
 
 [[package]]
 name = "sapphirus-contracts-conformance"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "jsonschema",
@@ -3424,7 +3424,7 @@ dependencies = [
 
 [[package]]
 name = "sapphirus-generator-qualification"
-version = "0.1.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "jsonschema",

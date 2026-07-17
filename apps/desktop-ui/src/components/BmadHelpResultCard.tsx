@@ -35,7 +35,7 @@ function reasonLabel(value: BmadHelpNoRecommendationReason): string {
   switch (value) {
     case "catalog_evidence_absent": return "No catalog evidence matched the reviewed intent.";
     case "completion_evidence_ambiguous": return "The reviewed completion evidence was ambiguous.";
-    case "dependency_unavailable": return "A required Method dependency was unavailable.";
+    case "dependency_unavailable": return "A required BMAD skill dependency was unavailable.";
   }
 }
 

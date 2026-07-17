@@ -24,7 +24,7 @@ const recommendation: BmadHelpRecommendationProjection = {
     packageName: "bmad-method",
     packageVersion: "6.10.0",
   },
-  reason: "A bounded artifact match suggests this Method step.",
+  reason: "A bounded artifact match suggests this BMAD skill.",
   requiredGuidance: true,
   expectedArtifacts: ["architecture", "decision record"],
   availability: "dependency_unavailable",
@@ -126,7 +126,7 @@ describe("BmadHelpCard", () => {
     expect(screen.getByText(recommendation.reason)).toBeTruthy();
     expect(screen.getByText("architecture")).toBeTruthy();
     expect(screen.getByText("decision record")).toBeTruthy();
-    expect(screen.getByText("Required by Method guidance")).toBeTruthy();
+    expect(screen.getByText("Required by BMAD skill guidance")).toBeTruthy();
     expect(screen.getByText("This guidance does not grant platform permission.")).toBeTruthy();
     expect(screen.getByText("Dependency unavailable")).toBeTruthy();
     expect(screen.getByText("bmad_dependency_unavailable")).toBeTruthy();
@@ -159,7 +159,7 @@ describe("BmadHelpCard", () => {
 
     expect(screen.getByRole("status")).toHaveProperty(
       "textContent",
-      expect.stringContaining("Preparing an exact Method request review"),
+      expect.stringContaining("Preparing a BMAD Help request review"),
     );
     expect(screen.queryByText("Architecture")).toBeNull();
   });
@@ -185,8 +185,8 @@ describe("BmadHelpCard", () => {
   });
 
   it.each([
-    "The Method catalog is unavailable.",
-    "Method configuration is unavailable.",
+    "The BMAD skill catalog is unavailable.",
+    "BMAD configuration is unavailable.",
     "The selected dependency is unavailable.",
     "The source prompt is unavailable.",
   ])("renders bounded unavailable state: %s", (message) => {
@@ -210,7 +210,7 @@ describe("BmadHelpCard", () => {
     );
 
     expect(screen.getByText("No expected artifacts recorded.")).toBeTruthy();
-    expect(screen.getByText("Optional Method guidance")).toBeTruthy();
+    expect(screen.getByText("Optional BMAD skill guidance")).toBeTruthy();
     expect(screen.getByText("Available")).toBeTruthy();
     expect(screen.getByText("No blockers reported.")).toBeTruthy();
   });

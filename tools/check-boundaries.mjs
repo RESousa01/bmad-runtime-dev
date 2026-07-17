@@ -23,7 +23,7 @@ const requiredCrates = new Set([
 // Help/model set, and the D3 governed-edits set. Must stay byte-identical across READY_COMMANDS in
 // crates/desktop-app/src/commands.rs, is_known_command in
 // crates/desktop-ipc/src/envelope.rs, and desktopHostCommands in
-// apps/desktop-ui/src/lib/hostClient.ts.
+// apps/desktop-ui/src/lib/hostClient/contracts.ts.
 const reviewedReadyCommands = [
   "app.get_boot_state",
   "workspace.select_folder",
@@ -368,6 +368,14 @@ if (rootPackage) {
   ) {
     violations.push("package.json: BMAD foundation verification gate is missing or drifted");
   }
+  if (
+    rootPackage.scripts?.["desktop:build"]
+    !== "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json --features deterministic-help"
+  ) {
+    violations.push(
+      "package.json: the offline desktop installer must include deterministic local Help",
+    );
+  }
   const sourceVerification = rootPackage.scripts?.["verify:source"];
   if (typeof sourceVerification !== "string") {
     violations.push("package.json: verify:source is missing");
@@ -461,6 +469,49 @@ for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-
     violations.push(
       `${relative(root, workflowPath)}: native workflow is missing the organization-controlled freeze gate`,
     );
+  }
+}
+
+const releaseDryRunPath = join(root, ".github", "workflows", "release-dry-run.yml");
+const releaseDryRunSource = await requiredText(releaseDryRunPath);
+if (releaseDryRunSource !== undefined) {
+  for (const [pattern, message] of [
+    [
+      /\.\/tools\/qualify-windows-installer\.ps1\s*$/mu,
+      "must execute the repository-owned Windows installer lifecycle verifier",
+    ],
+    [
+      /-InstallerPath target\/release\/bundle\/nsis\/Sapphirus_0\.1\.0_x64-setup\.exe\s*$/mu,
+      "must qualify the exact current-product NSIS artifact",
+    ],
+    [
+      /-ExpectedVersion 0\.1\.0\s*$/mu,
+      "must bind installer qualification to the current product version",
+    ],
+    [
+      /\$\{\{ runner\.temp \}\}\/sapphirus-installer-qualification\.json\s*$/mu,
+      "must upload the installer lifecycle evidence",
+    ],
+  ]) {
+    if (!pattern.test(releaseDryRunSource)) {
+      violations.push(`${relative(root, releaseDryRunPath)}: ${message}`);
+    }
+  }
+}
+
+const installerQualificationPath = join(root, "tools", "qualify-windows-installer.ps1");
+const installerQualificationSource = await requiredText(installerQualificationPath);
+if (installerQualificationSource !== undefined) {
+  for (const [pattern, message] of [
+    [/Get-AuthenticodeSignature/u, "must record Authenticode status"],
+    [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
+    [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
+    [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
+    [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
+  ]) {
+    if (!pattern.test(installerQualificationSource)) {
+      violations.push(`${relative(root, installerQualificationPath)}: ${message}`);
+    }
   }
 }
 
@@ -768,7 +819,15 @@ for (const rendererRoot of rendererRoots) {
 
 const hostCommandsPath = join(root, "crates", "desktop-app", "src", "commands.rs");
 const hostCommandsSource = await requiredText(hostCommandsPath);
-const rendererClientPath = join(root, "apps", "desktop-ui", "src", "lib", "hostClient.ts");
+const rendererClientPath = join(
+  root,
+  "apps",
+  "desktop-ui",
+  "src",
+  "lib",
+  "hostClient",
+  "contracts.ts",
+);
 const rendererClientSource = await requiredText(rendererClientPath);
 const ipcEnvelopePath = join(root, "crates", "desktop-ipc", "src", "envelope.rs");
 const ipcEnvelopeSource = await requiredText(ipcEnvelopePath);
@@ -871,6 +930,19 @@ if (config) {
   }
   if (config.build?.frontendDist !== "../../apps/desktop-ui/dist") {
     violations.push(`${relative(root, configPath)}: production frontendDist is not the reviewed renderer output`);
+  }
+  const expectedBeforeDevCommand =
+    "pnpm --filter @sapphirus/desktop-ui dev --host 127.0.0.1";
+  const expectedBeforeBuildCommand = "pnpm --filter @sapphirus/desktop-ui build";
+  if (config.build?.beforeDevCommand !== expectedBeforeDevCommand) {
+    violations.push(
+      `${relative(root, configPath)}: beforeDevCommand must stay in the repository workspace`,
+    );
+  }
+  if (config.build?.beforeBuildCommand !== expectedBeforeBuildCommand) {
+    violations.push(
+      `${relative(root, configPath)}: beforeBuildCommand must stay in the repository workspace`,
+    );
   }
   if (containsReferenceVault(config)) {
     violations.push(`${relative(root, configPath)}: production configuration references the reference vault`);

@@ -3,6 +3,7 @@ import {
   FilePlus2,
   FileX2,
   PencilLine,
+  RefreshCw,
   ShieldAlert,
   ShieldCheck,
   Trash2,
@@ -12,9 +13,11 @@ import { useId, useState } from "react";
 import type {
   ApprovalChoice,
   ChangesExecutionProjection,
+  ChangesHistoryProjection,
   ChangesReviewEnvelopeProjection,
   ChangesReviewFileProjection,
   ChangesUndoUnavailableProjection,
+  ProposedChange,
 } from "../lib/hostClient";
 
 export type GovernedChangesUiState =
@@ -30,12 +33,78 @@ export interface GovernedChangesPanelProps {
   canEnableEdits: boolean;
   enableEditsBusy: boolean;
   errorMessage: string | null;
+  history: ChangesHistoryProjection | null;
+  historyBusy: boolean;
   onDecide: (choice: ApprovalChoice) => void;
   onEnableEdits: () => void;
-  onPropose: (relativePath: string, content: string) => void;
+  onRefreshHistory: () => void;
+  onPropose: (changes: readonly ProposedChange[]) => void;
   onStartNewProposal: () => void;
   onUndo: (executionId: string) => void;
   state: GovernedChangesUiState;
+}
+
+function ChangeHistory({
+  history,
+  historyBusy,
+  onRefreshHistory,
+  onUndo,
+}: {
+  history: ChangesHistoryProjection | null;
+  historyBusy: boolean;
+  onRefreshHistory: () => void;
+  onUndo: (executionId: string) => void;
+}) {
+  return (
+    <section aria-labelledby="change-history-heading" className="changes-history">
+      <div className="inspector-section-heading">
+        <h2 id="change-history-heading">Change history</h2>
+        <Button
+          aria-label="Refresh history"
+          isDisabled={historyBusy}
+          onPress={onRefreshHistory}
+          size="small"
+          variant="quiet"
+        >
+          <RefreshCw aria-hidden="true" size={15} />
+          {historyBusy ? "Refreshing…" : "Refresh"}
+        </Button>
+      </div>
+      {history?.openJournals.length ? (
+        <div className="changes-error" role="alert">
+          <ShieldAlert aria-hidden="true" size={16} />
+          {history.openJournals.length} change journal{history.openJournals.length === 1 ? "" : "s"}
+          {" require recovery review."}
+        </div>
+      ) : null}
+      {history === null ? (
+        <p className="changes-composer__hint">Refresh to load durable changes for this workspace.</p>
+      ) : history.entries.length === 0 ? (
+        <p className="changes-composer__hint">No applied changes have been recorded yet.</p>
+      ) : (
+        <div aria-label="Applied change history" className="changes-history__list" role="list">
+          {history.entries.map((entry) => (
+            <div className="changes-history__row" key={entry.executionId} role="listitem">
+              <div>
+                <strong>{entry.fileCount} {entry.fileCount === 1 ? "file" : "files"} · {entry.journalState}</strong>
+                <time dateTime={entry.completedAt}>{entry.completedAt}</time>
+              </div>
+              <Button
+                aria-label="Undo historical change"
+                isDisabled={historyBusy || !entry.undoable}
+                onPress={() => onUndo(entry.executionId)}
+                size="small"
+                variant="secondary"
+              >
+                <Undo2 aria-hidden="true" size={14} />
+                Undo
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 function operationLabel(operation: ChangesReviewFileProjection["operation"]): string {
@@ -61,13 +130,38 @@ function ProposalComposer({
   onPropose,
 }: {
   disabled: boolean;
-  onPropose: (relativePath: string, content: string) => void;
+  onPropose: (changes: readonly ProposedChange[]) => void;
 }) {
+  const operationFieldId = useId();
   const pathFieldId = useId();
   const contentFieldId = useId();
+  const [operation, setOperation] = useState<ProposedChange["change"]>("set_content");
   const [relativePath, setRelativePath] = useState("");
   const [content, setContent] = useState("");
-  const submitDisabled = disabled || relativePath.trim().length === 0;
+  const [changes, setChanges] = useState<ProposedChange[]>([]);
+  const normalizedPath = relativePath.trim();
+  const duplicatePath = changes.some((change) => change.relativePath === normalizedPath);
+  const currentChange = normalizedPath.length === 0 || duplicatePath
+    ? null
+    : operation === "delete"
+      ? { change: "delete" as const, relativePath: normalizedPath }
+      : { change: "set_content" as const, relativePath: normalizedPath, content };
+  const addDisabled = disabled || currentChange === null || changes.length >= 20;
+  const submitDisabled = disabled || (changes.length === 0 && currentChange === null)
+    || (normalizedPath.length > 0 && duplicatePath);
+
+  const resetCurrentChange = () => {
+    setOperation("set_content");
+    setRelativePath("");
+    setContent("");
+  };
+
+  const addCurrentChange = () => {
+    if (!addDisabled && currentChange !== null) {
+      setChanges((current) => [...current, currentChange]);
+      resetCurrentChange();
+    }
+  };
 
   return (
     <form
@@ -75,7 +169,7 @@ function ProposalComposer({
       onSubmit={(event) => {
         event.preventDefault();
         if (!submitDisabled) {
-          onPropose(relativePath.trim(), content);
+          onPropose(currentChange === null ? changes : [...changes, currentChange]);
         }
       }}
     >
@@ -84,9 +178,19 @@ function ProposalComposer({
         <span>Governed local edit</span>
       </div>
       <p className="changes-composer__hint">
-        Enter a workspace-relative file path and its complete proposed content. The host
-        observes the current file, and nothing changes until you review and apply.
+        Compose up to 20 workspace-relative create, modify, or delete operations. The host
+        observes every current file, and nothing changes until you review and apply.
       </p>
+      <label htmlFor={operationFieldId}>Change operation</label>
+      <select
+        disabled={disabled}
+        id={operationFieldId}
+        onChange={(event) => setOperation(event.target.value as ProposedChange["change"])}
+        value={operation}
+      >
+        <option value="set_content">Create or replace content</option>
+        <option value="delete">Delete file</option>
+      </select>
       <label htmlFor={pathFieldId}>Relative path</label>
       <input
         autoComplete="off"
@@ -98,18 +202,69 @@ function ProposalComposer({
         type="text"
         value={relativePath}
       />
-      <label htmlFor={contentFieldId}>Proposed content</label>
-      <textarea
-        disabled={disabled}
-        id={contentFieldId}
-        onChange={(event) => setContent(event.target.value)}
-        rows={10}
-        spellCheck={false}
-        value={content}
-      />
+      {operation === "set_content" ? (
+        <>
+          <label htmlFor={contentFieldId}>Proposed content</label>
+          <textarea
+            disabled={disabled}
+            id={contentFieldId}
+            onChange={(event) => setContent(event.target.value)}
+            rows={10}
+            spellCheck={false}
+            value={content}
+          />
+        </>
+      ) : (
+        <p className="changes-composer__warning">
+          Delete is exact and fail-closed: the host will reject the proposal if the file changes
+          before approval.
+        </p>
+      )}
+      {duplicatePath ? (
+        <p className="changes-composer__warning" role="alert">
+          Each relative path can appear only once in a proposal.
+        </p>
+      ) : null}
+      <Button
+        isDisabled={addDisabled}
+        onPress={addCurrentChange}
+        size="large"
+        type="button"
+        variant="secondary"
+      >
+        <FilePlus2 aria-hidden="true" size={17} />
+        Add file change
+      </Button>
+      {changes.length > 0 ? (
+        <div aria-label="Draft file changes" className="changes-draft-list" role="list">
+          {changes.map((change) => (
+            <div className="changes-draft-row" key={change.relativePath} role="listitem">
+              {change.change === "delete"
+                ? <FileX2 aria-hidden="true" size={16} />
+                : <PencilLine aria-hidden="true" size={16} />}
+              <code>{change.relativePath}</code>
+              <span>{change.change === "delete" ? "Delete" : "Set content"}</span>
+              <Button
+                aria-label={`Remove ${change.relativePath}`}
+                isDisabled={disabled}
+                onPress={() => setChanges((current) => current.filter(
+                  (candidate) => candidate.relativePath !== change.relativePath,
+                ))}
+                size="small"
+                type="button"
+                variant="quiet"
+              >
+                <Trash2 aria-hidden="true" size={14} />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <Button isDisabled={submitDisabled} size="large" type="submit" variant="primary">
         <PencilLine aria-hidden="true" size={17} />
-        Review changes
+        {changes.length === 0
+          ? "Review changes"
+          : `Review ${changes.length + (currentChange === null ? 0 : 1)} file changes`}
       </Button>
     </form>
   );
@@ -154,8 +309,11 @@ export function GovernedChangesPanel({
   canEnableEdits,
   enableEditsBusy,
   errorMessage,
+  history,
+  historyBusy,
   onDecide,
   onEnableEdits,
+  onRefreshHistory,
   onPropose,
   onStartNewProposal,
   onUndo,
@@ -196,6 +354,12 @@ export function GovernedChangesPanel({
       <>
         <ProposalComposer disabled={state.kind === "preparing"} onPropose={onPropose} />
         {errorBanner}
+        <ChangeHistory
+          history={history}
+          historyBusy={historyBusy}
+          onRefreshHistory={onRefreshHistory}
+          onUndo={onUndo}
+        />
       </>
     );
   }
@@ -297,6 +461,12 @@ export function GovernedChangesPanel({
           </Button>
         </div>
         {errorBanner}
+        <ChangeHistory
+          history={history}
+          historyBusy={historyBusy}
+          onRefreshHistory={onRefreshHistory}
+          onUndo={onUndo}
+        />
       </>
     );
   }

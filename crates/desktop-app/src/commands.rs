@@ -2,7 +2,7 @@ use desktop_egress::{ContextClassification, ContextReviewProjection, RetentionMo
 use desktop_ipc::{
     decode_retained_bmad_help_completion, decode_retained_bmad_help_run, deserialize_strict,
     project_bmad_help_approved, project_bmad_help_approved_lifecycle, project_bmad_help_cancelled,
-    project_bmad_help_review, project_bmad_help_terminal, project_bmad_library,
+    project_bmad_help_review, project_bmad_help_terminal, project_bmad_library_with_activations,
     project_created_bmad_help_run, project_model_auth_status, Admission, BmadHelpApprovalInput,
     BmadHelpApprovedLifecycleInput, BmadHelpCancellationInput,
     BmadHelpContextClassificationProjection, BmadHelpModelAccessProjectionError,
@@ -843,12 +843,17 @@ fn bmad_library_snapshot(
     scope: BmadLibraryProjectionScope,
     cursor: Option<&str>,
 ) -> Result<HostCommandData, LocalError> {
-    project_bmad_library(
+    #[cfg(feature = "deterministic-help")]
+    let activations = &[("core", "bmad-help")][..];
+    #[cfg(not(feature = "deterministic-help"))]
+    let activations = &[][..];
+    project_bmad_library_with_activations(
         foundation.package(),
         foundation.catalog(),
         foundation.roster(),
         scope,
         cursor,
+        activations,
     )
     .map(HostCommandData::BmadLibrarySnapshot)
     .map_err(map_bmad_projection_error)
@@ -1841,6 +1846,29 @@ mod tests {
         assert_eq!(projection.installed_skills.len(), 2);
         assert_eq!(projection.help_actions.len(), 2);
         assert_eq!(projection.method_agents.len(), 6);
+        #[cfg(feature = "deterministic-help")]
+        {
+            let help = projection
+                .installed_skills
+                .iter()
+                .find(|skill| skill.skill_name == "bmad-help")
+                .expect("projected Help skill");
+            let help_action = projection
+                .help_actions
+                .iter()
+                .find(|action| action.skill_name == "bmad-help")
+                .expect("projected Help action");
+            assert_eq!(
+                help.availability,
+                desktop_ipc::BmadProjectionAvailability::Available
+            );
+            assert_eq!(
+                help_action.availability,
+                desktop_ipc::BmadProjectionAvailability::Available
+            );
+            assert!(help.blocker_codes.is_empty());
+            assert!(help_action.blocker_codes.is_empty());
+        }
         let serialized = serde_json::to_string(&data).expect("wire projection");
         for forbidden in [
             "sha256:",

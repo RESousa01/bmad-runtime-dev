@@ -17,7 +17,6 @@ import type { ReadonlyWorkspaceSource } from "./lib/workspaceReadSource";
 
 const digestA = `sha256:${"a".repeat(64)}`;
 const digestB = `sha256:${"b".repeat(64)}`;
-const digestC = `sha256:${"c".repeat(64)}`;
 
 function successfulReply(requestId: string, data: unknown, sequence = 18) {
   return {
@@ -460,6 +459,7 @@ async function bmadHelpRuntime({
   holdCreate = false,
   holdLatestWorkspaceId = null,
   latestRuns = {},
+  modelStatus = "development_ready",
   workspaces = recoveryBootstrap.workspaces,
 }: {
   createOutcome?: "success" | "failure" | "recovery" | "renderer_expired";
@@ -467,6 +467,7 @@ async function bmadHelpRuntime({
   holdCreate?: boolean;
   holdLatestWorkspaceId?: string | null;
   latestRuns?: Readonly<Record<string, BmadHelpLatestFixture>>;
+  modelStatus?: "development_ready" | "unavailable";
   workspaces?: BootstrapReply["workspaces"];
 } = {}): Promise<{
   runtime: HostRuntime;
@@ -541,16 +542,17 @@ async function bmadHelpRuntime({
       return bmadReply(envelope.requestId, {
         kind: "model_auth_status",
         value: {
-          status: "development_ready",
-          mode: "deterministic_development",
+          status: modelStatus,
+          mode: modelStatus === "development_ready" ? "deterministic_development" : "offline",
           authEpoch: 5,
-          developmentOnly: true,
+          developmentOnly: modelStatus === "development_ready",
           destinationLabel: "Deterministic local model",
           signInAvailable: false,
           signOutAvailable: true,
         },
-      });
-    }
+  });
+}
+
     if (envelope.command === "bmad.help.latest") {
       const workspaceId = envelope.payload.workspaceId!;
       if (workspaceId === holdLatestWorkspaceId) {
@@ -586,8 +588,8 @@ async function bmadHelpRuntime({
             safeMessage: createOutcome === "recovery"
               ? "Workspace authority needs recovery."
               : createOutcome === "renderer_expired"
-                ? "The renderer session expired. Method guidance was not created."
-                : "Method guidance could not be created. Nothing was changed.",
+                ? "The renderer session expired. BMAD Help was not created."
+                : "BMAD Help could not be created. Nothing was changed.",
             retryable: createOutcome === "failure" || createOutcome === "renderer_expired",
             correlationId: envelope.requestId,
           },
@@ -685,7 +687,7 @@ async function bmadHelpRuntime({
 
 async function readyMethodGuidanceComposer(): Promise<HTMLTextAreaElement> {
   const composer = await screen.findByLabelText<HTMLTextAreaElement>(
-    "Describe what you want Method guidance for",
+    "Describe what you want skill guidance for",
   );
   await waitFor(() => expect(composer).toHaveProperty("disabled", false));
   return composer;
@@ -760,26 +762,34 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.getByRole("heading", { name: "New workspace" })).toBeTruthy();
   });
 
-  it("uses the approved vocabulary while clearly blocking preview-only effects", async () => {
+  it("starts on current-product onboarding without seeded demo sessions or effects", async () => {
+    const user = userEvent.setup();
     render(<App />);
 
+    await screen.findAllByText("Browser preview");
+
     expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
-    expect(screen.getByRole("group", { name: "Workspace navigation" })).toBeTruthy();
-    expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
-    expect(screen.getByRole("complementary", { name: "Sessions" })).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Sidebar" })).toBeTruthy();
+    expect(screen.getByRole("complementary", { name: "Task navigation" })).toBeTruthy();
     expect(screen.getByRole("main")).toBeTruthy();
-    expect(screen.getByRole("complementary", { name: "Inspector" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "New session" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Add a safe workspace scan" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Review changes" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Review context" })).toBeTruthy();
-    // Governed edits stay honestly unavailable in the browser preview: no
-    // Apply/Revise/Discard control exists without a real reviewed proposal.
+    expect(screen.queryByRole("complementary", { name: /Files|Changes|Run details|Skills and agents/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "New task" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "New task" })).toBeTruthy();
+    expect(screen.queryByText("Add a safe workspace scan")).toBeNull();
+    expect(screen.queryByText("Refactor config loader")).toBeNull();
+    expect(screen.queryByText("Demo response")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Review changes" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Changes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Run details" })).toBeTruthy();
+    // Governed edits stay fail-closed without a real reviewed proposal.
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    expect(screen.getByRole("heading", { name: "Changes" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Apply changes" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Revise" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Discard" })).toBeNull();
-    expect(screen.getAllByText("No proposed changes").length).toBeGreaterThan(0);
-    expect((await screen.findAllByText("Browser preview")).length).toBeGreaterThan(0);
+    expect(screen.getByText("No proposed changes")).toBeTruthy();
+    expect(screen.getAllByText("Browser preview").length).toBeGreaterThan(0);
     expect(
       (await screen.findAllByText(/Governed edits require the signed Windows desktop host/i)).length,
     ).toBeGreaterThan(0);
@@ -798,18 +808,17 @@ describe("Sapphirus desktop workbench", () => {
     render(<App />);
     await screen.findAllByText("Browser preview");
 
-    const workspaceTrigger = screen.getByRole("button", { name: "Workspaces" });
+    const workspaceTrigger = screen.getByRole("button", { name: /Manage workspace/ });
     await user.click(workspaceTrigger);
 
     expect(screen.getByRole("dialog", { name: "Local workspaces" })).toBeTruthy();
     const closeButton = screen.getByRole("button", { name: "Close workspaces" });
     expect(document.activeElement).toBe(closeButton);
-    expect(document.querySelector(".app-surface")?.hasAttribute("inert")).toBe(true);
+    expect(document.querySelector(".task-shell-layout__main")?.hasAttribute("inert")).toBe(true);
     expect(screen.getAllByText("bmad-runtime-dev").length).toBeGreaterThan(0);
     expect(screen.getByText(/absolute paths never enter renderer state/i)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Choose local workspace" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
-    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     expect((screen.getByRole("button", { name: /remove workspace bmad-runtime-dev/i }) as HTMLButtonElement).disabled)
       .toBe(true);
 
@@ -820,7 +829,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(document.activeElement).toBe(workspaceTrigger);
   });
 
-  it("keeps responsive drawers inert while closed and modal while open", async () => {
+  it("keeps responsive task navigation and Files drawer inert while closed and modal while open", async () => {
     const originalMatchMedia = window.matchMedia;
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -837,34 +846,31 @@ describe("Sapphirus desktop workbench", () => {
     const view = render(<App />);
     try {
       await screen.findAllByText("Browser preview");
-      const inspector = document.querySelector<HTMLElement>(".inspector")!;
-      const sessions = document.querySelector<HTMLElement>(".session-rail")!;
-      expect(inspector.getAttribute("aria-hidden")).toBe("true");
-      expect(inspector.hasAttribute("inert")).toBe(true);
-      expect(sessions.getAttribute("aria-hidden")).toBe("true");
-      expect(sessions.hasAttribute("inert")).toBe(true);
+      const taskNavigation = document.querySelector<HTMLElement>(".task-shell-layout__sidebar")!;
+      expect(taskNavigation.getAttribute("role")).toBe("dialog");
+      expect(taskNavigation.getAttribute("aria-label")).toBe("Task navigation");
+      expect(taskNavigation.getAttribute("aria-hidden")).toBe("true");
+      expect(taskNavigation.hasAttribute("inert")).toBe(true);
 
-      const inspectorTrigger = screen.getByRole("button", { name: "Open inspector" });
-      await user.click(inspectorTrigger);
-      expect(inspector.getAttribute("aria-hidden")).toBeNull();
-      expect(inspector.getAttribute("aria-modal")).toBe("true");
-      expect(inspector.hasAttribute("inert")).toBe(false);
-      expect(screen.getByRole("navigation", { name: "Primary", hidden: true }).hasAttribute("inert"))
+      const navigationTrigger = screen.getByRole("button", { name: "Open task navigation" });
+      await user.click(navigationTrigger);
+      expect(screen.getByRole("dialog", { name: "Task navigation" })).toBe(taskNavigation);
+      expect(taskNavigation.getAttribute("aria-modal")).toBe("true");
+      expect(taskNavigation.hasAttribute("inert")).toBe(false);
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close task navigation" }));
+
+      await user.keyboard("{Escape}");
+      expect(taskNavigation.getAttribute("aria-hidden")).toBe("true");
+
+      const filesTrigger = screen.getByRole("button", { name: "Attach files" });
+      await user.click(filesTrigger);
+      const filesDrawer = screen.getByRole("dialog", { name: "Files" });
+      expect(filesDrawer.getAttribute("aria-modal")).toBe("true");
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close Files" }));
+      expect(screen.getByRole("main", { hidden: true }).closest(".task-shell-layout__main")?.hasAttribute("inert"))
         .toBe(true);
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close inspector" }));
-
       await user.keyboard("{Escape}");
-      expect(inspector.getAttribute("aria-hidden")).toBe("true");
-      expect(document.activeElement).toBe(inspectorTrigger);
-
-      const sessionsTrigger = screen.getByRole("button", { name: "Open sessions" });
-      await user.click(sessionsTrigger);
-      expect(sessions.getAttribute("aria-hidden")).toBeNull();
-      expect(sessions.getAttribute("aria-modal")).toBe("true");
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close sessions" }));
-      await user.keyboard("{Escape}");
-      expect(sessions.getAttribute("aria-hidden")).toBe("true");
-      expect(document.activeElement).toBe(sessionsTrigger);
+      expect(screen.queryByRole("dialog", { name: "Files" })).toBeNull();
     } finally {
       view.unmount();
       Object.defineProperty(window, "matchMedia", {
@@ -874,7 +880,7 @@ describe("Sapphirus desktop workbench", () => {
     }
   });
 
-  it("moves focus into the non-modal settings dialog and returns it on close", async () => {
+  it("moves focus into the modal settings dialog and returns it on close", async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findAllByText("Browser preview");
@@ -882,7 +888,7 @@ describe("Sapphirus desktop workbench", () => {
 
     await user.click(settingsTrigger);
     const settingsDialog = screen.getByRole("dialog", { name: "Settings" });
-    expect(settingsDialog.getAttribute("aria-modal")).toBeNull();
+    expect(settingsDialog.getAttribute("aria-modal")).toBe("true");
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close settings" }));
 
     await user.click(screen.getByRole("button", { name: "Close settings" }));
@@ -890,12 +896,30 @@ describe("Sapphirus desktop workbench", () => {
     expect(document.activeElement).toBe(settingsTrigger);
   });
 
-  it("provides an interactive but unmistakable browser-demo Explorer", async () => {
+  it("deep-links the agent control to Skills and agents and restores focus", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Browser preview");
+
+    const agentTrigger = screen.getByRole("button", { name: "Agent and model settings" });
+    await user.click(agentTrigger);
+    const agentRegion = screen.getByRole("region", { name: "Agent and model" });
+    await user.click(within(agentRegion).getByRole("button", { name: "Open settings" }));
+
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Skills and agents" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("heading", { name: "Skills and agents" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Close settings" }));
+    await waitFor(() => expect(document.activeElement).toBe(agentTrigger));
+  });
+
+  it("provides an interactive but unmistakable browser-demo Files drawer", async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findAllByText("Browser preview");
 
-    await user.click(screen.getByRole("button", { name: "Explorer" }));
+    await user.click(screen.getByRole("button", { name: "Attach files" }));
     expect(await screen.findByRole("heading", { name: "bmad-runtime-dev" })).toBeTruthy();
     expect(screen.getByText("Browser demo data")).toBeTruthy();
     expect(screen.getByText(/No folder, host grant, or local file has been read/i)).toBeTruthy();
@@ -909,26 +933,26 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("checkbox", { name: "Include README.md in context" }));
     await user.click(screen.getByRole("button", { name: "Review context" }));
 
-    expect(await screen.findByRole("heading", { name: "Review selected context" })).toBeTruthy();
-    expect(screen.getByText(/Browser demo data · 1 item/)).toBeTruthy();
-    expect(screen.getByText("No model request")).toBeTruthy();
-    expect(screen.getAllByText(digestA).length).toBeGreaterThan(0);
-    expect(screen.getByText(digestC)).toBeTruthy();
-    expect(screen.getByText("No request sent")).toBeTruthy();
-
-    await user.click(screen.getByRole("tab", { name: "Search" }));
-    await user.type(screen.getByRole("searchbox", { name: "Search visible text" }), "governed");
-    await user.click(screen.getByRole("button", { name: "Search" }));
-    expect((await screen.findAllByText(/governed Windows workspace companion/i)).length)
-      .toBeGreaterThan(0);
-
-    await user.click(screen.getByRole("tab", { name: "BMAD" }));
-    expect(screen.getByText("Builder Build draft")).toBeTruthy();
-    expect(screen.getByText("Inactive draft")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Files" })).toBeNull();
+    expect(screen.getByText("Local context preview")).toBeTruthy();
+    expect(screen.getByText("README.md")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/[A-Z]:\\/);
   });
 
-  it("renders read surfaces and exact context review only from validated host projections", async () => {
+  it("returns focus to the task action after closing a side-by-side drawer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Browser preview");
+
+    const attachFiles = screen.getByRole("button", { name: "Attach files" });
+    await user.click(attachFiles);
+    await user.click(screen.getByRole("button", { name: "Close Files" }));
+
+    await waitFor(() => expect(document.activeElement).toBe(attachFiles));
+  });
+
+  it("renders read surfaces and local context preview only from validated host projections", async () => {
     const { runtime, invoke } = await readyD1Runtime();
     const user = userEvent.setup();
     render(
@@ -938,7 +962,7 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("button", { name: "Explorer" }));
+    await user.click(await screen.findByRole("button", { name: "Attach files" }));
     expect(await screen.findByText("Validated local projection")).toBeTruthy();
     expect(screen.queryByText(/Browser demo data/i)).toBeNull();
     await user.click(await screen.findByRole("button", { name: /README\.md/i }));
@@ -949,9 +973,9 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("checkbox", { name: "Include README.md in context" }));
     await user.click(screen.getByRole("button", { name: "Review context" }));
 
-    expect(await screen.findByRole("heading", { name: "Review selected context" })).toBeTruthy();
-    expect(screen.getByText(/Validated local projection · 1 item/)).toBeTruthy();
-    expect(screen.getByText(digestB)).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Files" })).toBeNull();
+    expect(screen.getByText("Local context preview")).toBeTruthy();
+    expect(screen.getByText("README.md")).toBeTruthy();
     const dispatchedCommands = invoke.mock.calls
       .filter(([command]) => command === "host_dispatch")
       .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
@@ -979,7 +1003,7 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
     await screen.findAllByText("primary-workspace");
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
     const primaryRow = within(dialog).getByText("primary-workspace")
       .closest<HTMLElement>(".workspace-panel__row")!;
@@ -1028,7 +1052,7 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
     await screen.findAllByText("primary-workspace");
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
     const remove = screen.getByRole("button", { name: "Remove workspace primary-workspace" });
     await user.click(remove);
@@ -1053,7 +1077,7 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
     await screen.findAllByText("primary-workspace");
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
     await user.click(screen.getByRole("button", { name: "Remove workspace primary-workspace" }));
 
@@ -1074,7 +1098,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(await screen.findByRole("status")).toHaveProperty("textContent", expect.stringContaining("Read-only recovery"));
     expect(screen.getAllByText("opaque-workspace-name").length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     expect(screen.getByText(/workspace changes are blocked/i)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Choose local workspace" }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: /remove workspace opaque-workspace-name/i }) as HTMLButtonElement).disabled)
@@ -1173,22 +1197,27 @@ describe("Sapphirus desktop workbench", () => {
     expect((await screen.findAllByText("refreshed-workspace")).length).toBeGreaterThan(0);
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     expect((screen.getByRole("button", { name: "Choose local workspace" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("changes preview inspector sections with keyboard-accessible tabs", async () => {
+  it("opens each task-scoped context surface through its canonical drawer trigger", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("tab", { name: "Context" }));
-    expect(screen.getByRole("heading", { name: "Context review" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "No context selected" })).toBeTruthy();
-    expect(screen.queryByText(/3,440 tokens/)).toBeNull();
+    await screen.findAllByText("Browser preview");
+    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    expect(screen.getByRole("heading", { name: "Files" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close Files" }));
 
-    await user.click(screen.getByRole("tab", { name: "Evidence" }));
-    expect(screen.getByRole("heading", { name: "Evidence" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "No evidence yet" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    expect(screen.getByRole("heading", { name: "Changes" })).toBeTruthy();
+    expect(screen.getByText("No proposed changes")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+
+    await user.click(screen.getByRole("button", { name: "Run details" }));
+    expect(screen.getByRole("heading", { name: "Run details" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "No run details yet" })).toBeTruthy();
   });
 
   it("restores the latest retained Help run for the exact active workspace grant", async () => {
@@ -1210,7 +1239,7 @@ describe("Sapphirus desktop workbench", () => {
         && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
       expect(latestCalls).toHaveLength(1);
     });
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
 
     expect(await screen.findByText("Restored Method guidance")).toBeTruthy();
     expect(screen.getByText("Created")).toBeTruthy();
@@ -1229,7 +1258,7 @@ describe("Sapphirus desktop workbench", () => {
 
   it("blocks Help creation until the retained run lookup finishes", async () => {
     const workspace = recoveryBootstrap.workspaces[0]!;
-    const { runtime, releaseLatest } = await bmadHelpRuntime({
+    const { runtime, invoke, releaseLatest } = await bmadHelpRuntime({
       holdLatestWorkspaceId: workspace.workspaceId,
     });
     render(
@@ -1239,8 +1268,14 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
+    await waitFor(() => {
+      const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
+      expect(latestCalls).toHaveLength(1);
+    });
+
     const composer = await screen.findByLabelText(
-      "Describe what you want Method guidance for",
+      "Describe what you want skill guidance for",
     );
     expect(composer).toHaveProperty("disabled", true);
     expect(
@@ -1269,18 +1304,18 @@ describe("Sapphirus desktop workbench", () => {
         && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
       expect(latestCalls).toHaveLength(1);
     });
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
 
     const legacyWarning = (await screen.findAllByRole("alert"))[0]!;
     expect(legacyWarning).toHaveProperty(
       "textContent",
-      expect.stringContaining("retained Method session"),
+      expect.stringContaining("retained BMAD Help session"),
     );
     expect(legacyWarning).toHaveProperty(
       "textContent",
-      expect.stringContaining("You can create a new local Method session"),
+      expect.stringContaining("You can create a new local skill-guidance session"),
     );
-    const composer = screen.getByLabelText("Describe what you want Method guidance for");
+    const composer = screen.getByLabelText("Describe what you want skill guidance for");
     expect(composer).toHaveProperty("disabled", false);
     expect(screen.queryByText(/^Created$/)).toBeNull();
 
@@ -1291,6 +1326,34 @@ describe("Sapphirus desktop workbench", () => {
     expect(invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
       && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create"))
       .toHaveLength(1);
+  });
+
+  it("keeps the composer closed and creates no Help run when model access is unavailable", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ modelStatus: "unavailable" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      const commands = invoke.mock.calls
+        .filter(([command]) => command === "host_dispatch")
+        .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
+      expect(commands).toContain("model.auth.status");
+    });
+    expect(screen.getByRole("textbox")).toHaveProperty("disabled", true);
+    await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
+    expect(await within(screen.getByRole("region", { name: "Agent and model" })).findByText("Model access unavailable")).toBeTruthy();
+    fireEvent.submit(screen.getByRole("form", { name: "Task composer" }));
+
+    const commands = invoke.mock.calls
+      .filter(([command]) => command === "host_dispatch")
+      .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
+    expect(commands).not.toContain("run.create");
+    expect(commands).not.toContain("bmad.help.prepare");
   });
 
   it("creates one truthful unbound Help run from the exact submitted intent", async () => {
@@ -1382,21 +1445,22 @@ describe("Sapphirus desktop workbench", () => {
         && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
       expect(createCalls).toHaveLength(1);
     });
-    await user.click(screen.getByRole("button", { name: "Method library" }));
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
 
     expect((await screen.findAllByRole("alert"))[0]).toHaveProperty(
       "textContent",
-      expect.stringContaining("Method guidance could not be created. Nothing was changed."),
+      expect.stringContaining("BMAD Help could not be created. Nothing was changed."),
     );
     expect(screen.queryByText("Created · Unbound")).toBeNull();
     expect(screen.queryByText(/^Created$/)).toBeNull();
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(
-      screen.getByLabelText("Describe what you want Method guidance for"),
-    ).toHaveProperty("disabled", true);
+      screen.getByLabelText("Describe what you want skill guidance for"),
+    ).toHaveProperty("disabled", false);
+    expect(screen.getByLabelText("Describe what you want skill guidance for"))
+      .toHaveProperty("value", "Recommend a safe next step");
     const createCalls = () => invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
       && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
-    fireEvent.submit(document.querySelector<HTMLFormElement>(".composer")!);
     expect(createCalls()).toHaveLength(1);
   });
 
@@ -1417,11 +1481,14 @@ describe("Sapphirus desktop workbench", () => {
       "Recommend a safe next step",
     );
     await user.click(screen.getByRole("button", { name: "Review request" }));
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText("Describe what you want Method guidance for"),
-      ).toHaveProperty("disabled", true);
-    });
+    expect((await screen.findAllByRole("alert"))[0]).toHaveProperty(
+      "textContent",
+      expect.stringContaining("The renderer session expired. BMAD Help was not created."),
+    );
+    expect(screen.getByLabelText("Describe what you want skill guidance for"))
+      .toHaveProperty("disabled", false);
+    expect(screen.getByLabelText("Describe what you want skill guidance for"))
+      .toHaveProperty("value", "Recommend a safe next step");
 
     const dispatches = invoke.mock.calls
       .filter(([command]) => command === "host_dispatch")
@@ -1472,7 +1539,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.queryByText(/^Created$/)).toBeNull();
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(
-      screen.getByLabelText("Describe what you want Method guidance for"),
+      screen.getByLabelText("Describe what you want skill guidance for"),
     ).toHaveProperty("disabled", false);
   });
 
@@ -1494,7 +1561,7 @@ describe("Sapphirus desktop workbench", () => {
 
     expect((await screen.findAllByText("Read-only recovery")).length).toBeGreaterThan(0);
     expect(
-      screen.getByLabelText("Describe what you want Method guidance for"),
+      screen.getByLabelText("Describe a task"),
     ).toHaveProperty("disabled", true);
     expect(screen.queryByText("Created · Unbound")).toBeNull();
   });
@@ -1530,12 +1597,12 @@ describe("Sapphirus desktop workbench", () => {
     );
 
     await screen.findAllByText("primary-workspace");
-    await user.click(screen.getByRole("button", { name: "Workspaces" }));
+    await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     await user.click(screen.getByRole("button", {
       name: "Switch to workspace secondary-workspace",
     }));
     await user.click(screen.getByRole("button", { name: "Close workspaces" }));
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Current secondary guidance")).toBeTruthy();
 
     await act(async () => {
@@ -1556,12 +1623,12 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
-    const trigger = await screen.findByRole("button", { name: "Method library" });
+    const trigger = await screen.findByRole("button", { name: "Skills and agents" });
     await user.click(trigger);
-    expect(await screen.findByRole("heading", { name: "Method library" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Skills and agents" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Installed skills" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Available actions" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Method agents" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Agents" })).toBeTruthy();
     expect(screen.getByText("Create Architecture")).toBeTruthy();
     expect(screen.getByText("Winston")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Suggested next step" })).toBeTruthy();
@@ -1577,12 +1644,8 @@ describe("Sapphirus desktop workbench", () => {
       command: "bmad.library.snapshot",
       payload: { scope: "installed_method", cursor: null },
     });
-    const methodTab = screen.getByRole("tab", { name: "Method library" });
-    methodTab.focus();
-    await user.keyboard("{ArrowLeft}");
-    expect(screen.getByRole("tab", { name: "Evidence" }).getAttribute("aria-selected")).toBe("true");
-    await user.keyboard("{ArrowRight}");
-    expect(methodTab.getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByRole("heading", { name: "Skills and agents" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Close Skills and agents" })).toBeTruthy();
     const accessibility = await axe.run(container, {
       rules: { "color-contrast": { enabled: false } },
     });
@@ -1592,16 +1655,14 @@ describe("Sapphirus desktop workbench", () => {
   it("does not fabricate a Method library in browser preview or recovery", async () => {
     const browser = render(<App />);
     await screen.findAllByText("Browser preview");
-    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
-    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
     browser.unmount();
 
     const runtime = await recoveryRuntime();
     render(<App hostRuntimeLoader={async () => runtime} />);
     await screen.findAllByText("Read-only recovery");
-    expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
-    expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
   });
 
@@ -1615,7 +1676,7 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
     releaseInvalidation();
     expect(await screen.findByText("Review Architecture")).toBeTruthy();
@@ -1628,6 +1689,22 @@ describe("Sapphirus desktop workbench", () => {
     });
   });
 
+  it("moves focus from Settings into Skills and agents and restores the stable trigger", async () => {
+    const { runtime } = await bmadLibraryRuntime();
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+
+    const settingsTrigger = await screen.findByRole("button", { name: "Settings" });
+    await user.click(settingsTrigger);
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(screen.getByRole("button", { name: "Open Skills and agents" }));
+
+    expect(screen.getByRole("heading", { name: "Skills and agents" })).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close Skills and agents" }));
+    await user.click(screen.getByRole("button", { name: "Close Skills and agents" }));
+    await waitFor(() => expect(document.activeElement).toBe(settingsTrigger));
+  });
+
   it("re-establishes an expired renderer session before retrying the Method snapshot", async () => {
     const { runtime, invoke } = await bmadLibraryRuntime({ expireFirstSession: true });
     const user = userEvent.setup();
@@ -1638,11 +1715,14 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap")).toHaveLength(2);
+      expect(screen.queryByRole("heading", { name: "Skills and agents" })).toBeNull();
+    });
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
 
-    const bootstrapCalls = invoke.mock.calls.filter(([command]) => command === "host_bootstrap");
-    expect(bootstrapCalls).toHaveLength(2);
     const snapshotCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
       && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.library.snapshot");
     expect(snapshotCalls).toHaveLength(2);
@@ -1665,14 +1745,13 @@ describe("Sapphirus desktop workbench", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "Method library" })).toBeNull();
-      expect(screen.queryByRole("tab", { name: "Method library" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     });
     expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
     expect(screen.queryByText("Read-only recovery")).toBeNull();
-    expect(screen.getByRole("button", { name: "Explorer" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
   });
 
   it("ignores a stale projection poll that completes after renderer rebind", async () => {
@@ -1691,7 +1770,12 @@ describe("Sapphirus desktop workbench", () => {
     await waitFor(() => {
       expect(invoke.mock.calls.some(([command]) => command === "host_projection_events")).toBe(true);
     });
-    await user.click(await screen.findByRole("button", { name: "Method library" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap")).toHaveLength(2);
+      expect(screen.queryByRole("heading", { name: "Skills and agents" })).toBeNull();
+    });
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
 
     await act(async () => {
@@ -1702,6 +1786,9 @@ describe("Sapphirus desktop workbench", () => {
       expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
       expect(screen.getByText("Create Architecture")).toBeTruthy();
     });
+    const snapshotCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.library.snapshot");
+    expect(snapshotCalls).toHaveLength(2);
     expect(screen.queryByText("Host unavailable")).toBeNull();
   });
 
@@ -1717,11 +1804,11 @@ describe("Sapphirus desktop workbench", () => {
     expect(results.violations).toEqual([]);
   });
 
-  it("has no automated accessibility violations in the populated Explorer state", async () => {
+  it("has no automated accessibility violations in the populated Files drawer", async () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
     await screen.findAllByText("Browser preview");
-    await user.click(screen.getByRole("button", { name: "Explorer" }));
+    await user.click(screen.getByRole("button", { name: "Attach files" }));
     await screen.findByRole("button", { name: /README\.md/i });
     const results = await axe.run(container, {
       rules: {

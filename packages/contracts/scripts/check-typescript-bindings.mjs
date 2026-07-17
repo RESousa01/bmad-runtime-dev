@@ -24,6 +24,8 @@ const schemaTargets = [
   "evidence-event",
   "execution-result-manifest",
   "filesystem-capability",
+  "model-access-receipt",
+  "model-context-consent",
   "package-compatibility",
   "remote-job-handoff",
   "spec-consumption",
@@ -100,6 +102,8 @@ for (const symbol of [
   "EvidenceEvent",
   "ContractError",
   "FilesystemCapabilitySnapshot",
+  "ModelAccessReceipt",
+  "ModelContextConsent",
   "PackageCompatibility",
   "RemoteJobHandoff",
 ]) {

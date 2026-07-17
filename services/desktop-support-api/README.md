@@ -1,7 +1,7 @@
 # Desktop Support API
 
-This directory is a frozen, non-integrated D2 support-plane scaffold. No service is deployed or
-called by the current D1 desktop slice. When the lane is explicitly resumed, the API is intended to
+This directory is an undeployed D2 support-plane implementation seam. No service is called by the
+current deterministic/offline desktop path. When production composition is added, the API is intended to
 authenticate and license `windows_local` clients, broker transient no-store model calls, and return
 signed policy/release metadata. It must never accept local paths, expose file or command routes,
 create local proposals, or apply local changes.
@@ -18,7 +18,17 @@ the ASP.NET Development environment. Production composition must replace them wi
 managed-identity Foundry access, and purpose-specific HSM signing providers.
 
 Device registrations are tenant-and-subject partitioned and revocation is retained for the process
-lifetime. The current request contract carries only an opaque consent receipt hash and omits the
-signed receipt fields needed to bind model, deployment, region, and profile. Consequently the
-default consent verifier returns `consent_binding_unavailable` and model calls do not reach a broker.
-This is intentional until the canonical contract and a device-bound verifier are implemented.
+lifetime. The request now carries the canonical device-signed consent envelope and the response uses
+the canonical support-plane receipt shape, including exact request, manifest, consumption, profile,
+deployment, schema, region, retention, usage, and proof bindings. The default consent verifier still
+returns `consent_binding_unavailable`: production composition must provide installation-key proof
+verification and a durable single-use consumption store before any model broker can be reached.
+Development-only proof material is structural test evidence and is not a production signature.
+The development broker returns unsigned completion evidence to a separate receipt signer; production
+composition must preserve that separation when replacing both adapters.
+
+For local restart/replay testing only, `Sapphirus__DevelopmentConsentStorePath` may name a fully
+qualified directory while the host runs in `Development`. The adapter atomically creates one marker
+per subject, registration, and consumption hash, stores only a subject hash plus bounded authority
+metadata, and treats interrupted writes as consumed. The setting is rejected outside Development;
+production still requires a transactional shared store.

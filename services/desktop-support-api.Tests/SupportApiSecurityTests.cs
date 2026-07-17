@@ -699,8 +699,12 @@ public sealed class SupportApiSecurityTests
             DesktopScopes.ModelInvoke,
             request,
             "idem-noncooperative-timeout-model");
-        Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
-        Assert.Equal(2, broker.CallCount);
+        Assert.Equal(HttpStatusCode.Conflict, retry.StatusCode);
+        await AssertSafeProblemAsync(
+            retry,
+            "consent_already_consumed",
+            HttpStatusCode.Conflict);
+        Assert.Equal(1, broker.CallCount);
     }
 
     [Fact]
@@ -927,8 +931,8 @@ public sealed class SupportApiSecurityTests
             valid with { Receipt = receipt with { ReceiptId = "invalid-receipt" } },
             valid with { Receipt = receipt with { RequestHash = Hash("different-request") } },
             valid with { Receipt = receipt with { ResultHash = Hash("different-result") } },
-            valid with { Receipt = receipt with { LocalEgressManifestHash = Hash("different-manifest") } },
-            valid with { Receipt = receipt with { ConsentReceiptHash = Hash("different-consent") } },
+            valid with { Receipt = receipt with { ManifestHash = Hash("different-manifest") } },
+            valid with { Receipt = receipt with { ConsentEnvelopeHash = Hash("different-consent") } },
             valid with { Receipt = receipt with { ModelProfileHash = "invalid-profile-hash" } },
             valid with { Receipt = receipt with { RetentionMode = "stored" } },
             valid with { Receipt = receipt with { Region = "different-region" } },
@@ -941,7 +945,7 @@ public sealed class SupportApiSecurityTests
                     StartedAt = receipt.CompletedAt.AddSeconds(1),
                 },
             },
-            valid with { Receipt = receipt with { Status = "failed" } },
+            valid with { Receipt = receipt with { TerminalStatus = "failed" } },
         ];
 
         foreach (ModelAccessResult result in malformed)
@@ -1102,6 +1106,37 @@ public sealed class SupportApiSecurityTests
     }
 
     [Fact]
+    public async Task Verified_consent_can_be_consumed_only_once_across_idempotency_keys()
+    {
+        TestContextConsentConsumptionStore consumptionStore = new();
+        await using SupportApiFactory factory = new(consentConsumptionStore: consumptionStore);
+        using HttpClient client = factory.CreateSecureClient();
+        DeviceRegistrationResponse registration = await RegisterAsync(client, SubjectA);
+        ModelAccessRequest request = CreateModelRequest(registration.RegistrationId, "review this file");
+
+        using HttpResponseMessage first = await SendJsonAsync(
+            client,
+            HttpMethod.Post,
+            "/desktop/v1/model-access/calls",
+            SubjectA,
+            DesktopScopes.ModelInvoke,
+            request,
+            "idem-consent-first");
+        using HttpResponseMessage replay = await SendJsonAsync(
+            client,
+            HttpMethod.Post,
+            "/desktop/v1/model-access/calls",
+            SubjectA,
+            DesktopScopes.ModelInvoke,
+            request,
+            "idem-consent-second");
+
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, replay.StatusCode);
+        await AssertSafeProblemAsync(replay, "consent_already_consumed", HttpStatusCode.Conflict);
+    }
+
+    [Fact]
     public async Task Duplicate_nested_json_members_are_rejected()
     {
         await using SupportApiFactory factory = new(consentVerified: true);
@@ -1188,7 +1223,7 @@ public sealed class SupportApiSecurityTests
             "https://schemas.sapphirus.invalid/model-plan.v1",
             "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             ValidHash,
-            ValidHash,
+            CreateModelRequest("dreg_aaaaaaaaaaaaaaaaaaaaaaaaaa", "hello Ï€").Consent,
             [item],
             "transient_no_store",
             "interactive");
@@ -1352,6 +1387,9 @@ public sealed class SupportApiSecurityTests
             await response.Content.ReadFromJsonAsync<DeviceRegistrationResponse>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(registration);
+        Assert.Matches(
+            "^dreg_[0-9A-HJKMNP-TV-Z]{26}$",
+            registration!.RegistrationId);
         return registration!;
     }
 
@@ -1366,6 +1404,48 @@ public sealed class SupportApiSecurityTests
             Encoding.UTF8.GetByteCount(content),
             "source",
             content);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        ModelContextConsent consent = new(
+            "sapphirus.model-context-consent.v1",
+            "decision_12345678",
+            "request_12345678",
+            "invoke_12345678",
+            "windows_local",
+            Hash("tenant"),
+            Hash("subject"),
+            registrationId,
+            Hash("installation-key"),
+            "lease_12345678",
+            Hash("entitlement-lease"),
+            "policy_12345678",
+            1,
+            Hash("tenant-policy"),
+            "plan_changes",
+            "planning",
+            "https://schemas.sapphirus.invalid/model-plan.v1",
+            Hash("model-plan-schema"),
+            ValidHash,
+            Hash("invocation-binding"),
+            Hash("consumption"),
+            Hash("consent-disclosure"),
+            Hash("provider-profile"),
+            Hash("model-profile"),
+            Hash("model-capability"),
+            Hash("deployment"),
+            "test-region",
+            "transient_no_store",
+            "interactive",
+            now,
+            now,
+            now.AddMinutes(5),
+            Hash("consent-nonce"),
+            Hash("consent-envelope"),
+            new ModelContextConsentProof(
+                "installation_signature",
+                "ES256",
+                "test-installation-key",
+                Hash("consent-envelope"),
+                "ZXhhbXBsZS1kZXZpY2Utc2lnbmF0dXJl"));
         ModelAccessRequest unbound = new(
             "desktop-model-access-request.v1",
             "request_12345678",
@@ -1376,13 +1456,17 @@ public sealed class SupportApiSecurityTests
             "https://schemas.sapphirus.invalid/model-plan.v1",
             Hash("model-plan-schema"),
             ValidHash,
-            Hash("local-consent-receipt"),
+            consent,
             [item],
             "transient_no_store",
             "interactive");
         return unbound with
         {
             LocalEgressManifestHash = RequestGuards.ComputeContextManifestHash(unbound),
+            Consent = consent with
+            {
+                ManifestHash = RequestGuards.ComputeContextManifestHash(unbound),
+            },
         };
     }
 
@@ -1483,21 +1567,50 @@ public sealed class SupportApiSecurityTests
         string payload = "{\"summary\":\"completed\"}")
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        string receiptHash = Hash($"receipt:{request.RequestId}:{payload}");
         ModelAccessReceipt receipt = new(
-            "desktop-model-access-receipt.v1",
-            "receipt_" + Guid.NewGuid().ToString("N"),
+            "sapphirus.model-access-receipt.v1",
+            "receipt_" + Guid.NewGuid().ToString("N").ToUpperInvariant(),
+            request.RequestId,
             RequestGuards.Fingerprint(request),
             Hash(payload),
+            "windows_local",
+            request.Consent.TenantHash,
+            request.Consent.SubjectHash,
+            request.RegistrationId,
             request.LocalEgressManifestHash,
-            request.ConsentReceiptHash,
-            Hash("test-profile"),
+            request.Consent.InvocationBindingHash,
+            request.Consent.ConsumptionHash,
+            request.Consent.ConsentEnvelopeHash,
+            request.Consent.ConsentDisclosureHash,
+            request.Consent.ProviderProfileHash,
+            request.Consent.ModelProfileHash,
+            request.Consent.ModelCapabilityHash,
+            request.Consent.DeploymentHash,
+            request.CanonicalOutputSchemaId,
+            request.CanonicalOutputSchemaHash,
+            Hash("schema-projection"),
+            Hash("credential-binding"),
             "transient_no_store",
             "test-region",
             request.Items.Sum(item => item.ByteCount),
             Encoding.UTF8.GetByteCount(payload),
+            new ModelAccessUsage(0, 0, 0, "EUR"),
+            0,
+            [],
+            null,
             now,
             now,
-            "succeeded");
+            "succeeded",
+            receiptHash,
+            new ModelAccessReceiptProof(
+                "support_plane_signature",
+                "ES256",
+                "https://support.test.invalid/",
+                "sapphirus-desktop-tests",
+                "test-model-receipt-key",
+                receiptHash,
+                "dGVzdC1zdXBwb3J0LXBsYW5lLXNpZ25hdHVyZQ"));
         return new ModelAccessResult(
             "desktop-model-access-result.v1",
             request.RequestId,
@@ -1535,6 +1648,7 @@ public sealed class SupportApiSecurityTests
         IModelAccessBroker? modelAccessBroker = null,
         ISignedPolicyService? signedPolicyService = null,
         IContextConsentVerifier? contextConsentVerifier = null,
+        IContextConsentConsumptionStore? consentConsumptionStore = null,
         IModelCallIdempotencyStore? modelCallIdempotencyStore = null,
         IDeviceRegistry? deviceRegistry = null,
         int connectedOperationTimeoutSeconds = 120) : WebApplicationFactory<Program>
@@ -1579,6 +1693,16 @@ public sealed class SupportApiSecurityTests
                     services.RemoveAll<IModelAccessBroker>();
                     services.AddSingleton(modelAccessBroker);
                 }
+                if (consentConsumptionStore is not null)
+                {
+                    services.RemoveAll<IContextConsentConsumptionStore>();
+                    services.AddSingleton(consentConsumptionStore);
+                }
+                else if (consentVerified)
+                {
+                    services.RemoveAll<IContextConsentConsumptionStore>();
+                    services.AddSingleton<IContextConsentConsumptionStore, TestContextConsentConsumptionStore>();
+                }
                 if (signedPolicyService is not null)
                 {
                     services.RemoveAll<ISignedPolicyService>();
@@ -1612,6 +1736,25 @@ public sealed class SupportApiSecurityTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return ValueTask.FromResult(ContextConsentVerification.Verified);
+        }
+    }
+
+    private sealed class TestContextConsentConsumptionStore : IContextConsentConsumptionStore
+    {
+        private readonly HashSet<string> _consumed = new(StringComparer.Ordinal);
+
+        public ValueTask<ContextConsentConsumption> ConsumeAsync(
+            ContextConsentConsumptionRequest request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (_consumed)
+            {
+                return ValueTask.FromResult(
+                    _consumed.Add(request.SubjectPartition + "\0" + request.ConsumptionHash)
+                        ? ContextConsentConsumption.Consumed
+                        : ContextConsentConsumption.AlreadyConsumed);
+            }
         }
     }
 

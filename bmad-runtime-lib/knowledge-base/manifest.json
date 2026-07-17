@@ -3,48 +3,48 @@
   "files": [
     {
       "path": "current/00-current-product-state.md",
-      "bytes": 942,
-      "sha256": "ea40ca8552e25a80282430a1b2afb7051668305b58695579ecc4e209b3867987"
+      "bytes": 994,
+      "sha256": "38a7b9f1ee07ab0d4c46bf62c1b18496c735ce845765233dac6f03d557f273d5"
     },
     {
       "path": "current/01-architecture-and-ownership.md",
       "bytes": 740,
-      "sha256": "7ddbb390d4af28b7718d69544ca551bbe02fba0712e03332c956098b2337c874"
+      "sha256": "400514dcf8669d42687a496b520be3270d5fa936544246fdbf9c318affc2328a"
     },
     {
       "path": "current/02-capability-matrix.md",
-      "bytes": 801,
-      "sha256": "e2e34bce35bae9d96a2ea5743d7159e7186d77ef628d8c0184e63ba6ebca4ab1"
+      "bytes": 1667,
+      "sha256": "a462b55c3490a5a6af8937fd054a4260100925e99a76d09c8e882ec8ad4afb74"
     },
     {
       "path": "current/03-security-and-trust.md",
       "bytes": 812,
-      "sha256": "412b40c41bd7c081e39704155dd86ce897977d15cd20f9a905ee6802d01d480c"
+      "sha256": "7b6ff6dffdfa9200f27df1f99888f77cb73842182952f1edfd2de5f6f0774274"
     },
     {
       "path": "current/04-contracts-and-persistence.md",
       "bytes": 682,
-      "sha256": "1423fbca59aa4acd473b0afe699dbae27d525464eb3a71872766ddec636eacd3"
+      "sha256": "cab1fc3ba9352845a99c3dd974e18fdde15588572b1342ac9fa51ee27e6f0219"
     },
     {
       "path": "current/05-toolchain-and-dependencies.md",
       "bytes": 798,
-      "sha256": "e533508c5cf87afef2a00e572e05b76e103a661ef4ebd3089328bd0c826f86de"
+      "sha256": "2d162024a0d456180f8ea3eaa65061414b0c982a8e063cd1d470391ea239dde2"
     },
     {
       "path": "current/06-verification-and-release-readiness.md",
-      "bytes": 720,
-      "sha256": "2614df641b4736162ce8ab82b2591f0ddba63bbf207436509275bb93a3012588"
+      "bytes": 876,
+      "sha256": "4da217a88b0e203312ba343f7e2ea22d855c4713c69cbc74fefc567c346d8507"
     },
     {
       "path": "current/07-risks-roadmap-and-open-decisions.md",
-      "bytes": 736,
-      "sha256": "3c177e83947d0e58f580e48c74a44284904ec0628fb082a0eba565e551528c60"
+      "bytes": 909,
+      "sha256": "8e9aec20563de86307f89e0efb541d77a3a5299e4da9fac2afb198ac03b08428"
     },
     {
       "path": "evidence/claims.json",
-      "bytes": 11618,
-      "sha256": "391cbb9ad7e1937cd9ce63048bcd288c6a8b37d31a41a1d77783ed990320a321"
+      "bytes": 11870,
+      "sha256": "3d476b919ae2516d61f512c0e838d54a58781a21c6d278643258aef13efdb7a7"
     },
     {
       "path": "evidence/note-catalog.json",
@@ -59,7 +59,7 @@
     {
       "path": "evidence/sources.json",
       "bytes": 5672,
-      "sha256": "537cd60d2bf7326a389cb9e4d534bf83819ab7a8d58571eb491c564c91d422cb"
+      "sha256": "6c4565358d1edb9d3dd56f08ce5018c4239ff649ba1de6c210a46e498828e64d"
     }
   ]
 }

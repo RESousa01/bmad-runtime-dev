@@ -7,17 +7,21 @@ be Authenticode-signed for organization distribution; signing evidence remains d
 React/WebView2 renderer is a typed presentation client and never receives generic filesystem,
 process, token, database, or updater authority.
 
-The current source slice covers D1 reads and the first D3 governed-edits vertical. Reads: typed
+The current source slice covers D1 reads, deterministic local BMAD Help, and the governed D3
+edits vertical. Reads: typed
 native folder-selection IPC; opaque local-workspace listing, switching, and access revocation;
 bounded tree/read/search projections; BMAD inspection; and exact context review. Edits: explicit
 per-workspace `GovernedEdits` enablement at a fresh grant epoch; host-observed proposed changes;
 an exact review projection whose canonical hash the approval decision binds; durable single-use
 spec consumption; checkpointed, journaled, atomic UTF-8 patch application with postimage
 verification; governed `Undo changes` through a fresh reviewed rollback proposal; and boot-time
-journal reconciliation that fails closed to manual review. The pinned Rust workspace is compiled
-and tested on Windows; packaged, signed installer validation is still outstanding. Agent
-submission, sign-in, model access, and command execution remain unintegrated; proposals currently
-originate from the renderer's review flow, not from a model.
+journal reconciliation that fails closed to manual review. The deterministic Help adapter creates
+an inert local review and one-shot consent flow without contacting a provider. Production model
+brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
+on Windows; the offline NSIS installer has local install, launch, prior-version upgrade, exact
+BMAD-resource, uninstall, and residue evidence. Authenticode signing, timestamping, and an
+independent clean-machine release run remain outstanding. Governed proposals currently originate
+from the renderer's review flow, not from a model.
 
 ## Repository map
 

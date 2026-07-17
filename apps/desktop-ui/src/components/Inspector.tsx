@@ -18,7 +18,7 @@ const inspectorTabs: Array<{ accessibleLabel: string; id: InspectorTab; label: s
   { accessibleLabel: "Changes", id: "changes", label: "Changes" },
   { accessibleLabel: "Logs", id: "logs", label: "Logs" },
   { accessibleLabel: "Evidence", id: "evidence", label: "Evidence" },
-  { accessibleLabel: "Method library", id: "method", label: "Method" },
+  { accessibleLabel: "Skills and agents", id: "method", label: "Skills & agents" },
 ];
 
 export interface InspectorProps {
@@ -180,14 +180,14 @@ export function Inspector({
         <TabPanel id="logs">
           <div className="log-panel">
             <div className="inspector-section-heading">
-              <h2>Preview log</h2>
-              <span>Demonstration events</span>
+              <h2>Activity log</h2>
+              <span>Current session</span>
             </div>
-            <ol>
-              <li><time>10:41:55</time><span>Demo workspace state rendered</span></li>
-              <li><time>10:41:56</time><span>Demo context rendered</span></li>
-              <li><time>10:42:07</time><span>Demo proposal rendered</span></li>
-            </ol>
+            <div className="inspector-empty-state inspector-empty-state--inline">
+              <ShieldCheck aria-hidden="true" size={24} />
+              <h3>No activity yet</h3>
+              <p>Governed actions from this session will appear here when activity projection is available.</p>
+            </div>
           </div>
         </TabPanel>
         <TabPanel id="evidence">
@@ -199,7 +199,7 @@ export function Inspector({
             <div className="inspector-empty-state inspector-empty-state--inline">
               <ShieldCheck aria-hidden="true" size={24} />
               <h3>No evidence yet</h3>
-              <p>This internal preview has not created a governed local action or evidence record.</p>
+              <p>No governed local action has created an evidence record in this workspace yet.</p>
             </div>
           </div>
         </TabPanel>

@@ -128,12 +128,14 @@ function readyState(
 }
 
 describe("BmadLibraryPanel", () => {
-  it("keeps installed skills, available actions, and Method agents separate", () => {
+  it("presents installed skills, available actions, and agents as separate catalog sections", () => {
     render(<BmadLibraryPanel state={readyState()} />);
 
     const skills = screen.getByRole("region", { name: "Installed skills" });
     const actions = screen.getByRole("region", { name: "Available actions" });
-    const agents = screen.getByRole("region", { name: "Method agents" });
+    const agents = screen.getByRole("region", { name: "Agents" });
+
+    expect(screen.getByRole("heading", { level: 2, name: "BMAD library" })).toBeTruthy();
 
     expect(within(skills).getByText("Create Architecture")).toBeTruthy();
     expect(within(skills).queryByText("Architecture")).toBeNull();
@@ -225,14 +227,17 @@ describe("BmadLibraryPanel", () => {
 
     expect(screen.getByText("No installed skills available.")).toBeTruthy();
     expect(screen.getByText("No available actions.")).toBeTruthy();
-    expect(screen.getByText("No Method agents available.")).toBeTruthy();
+    expect(screen.getByText("No agents available.")).toBeTruthy();
   });
 
-  it("supports loading and unavailable projection states", () => {
-    const { rerender } = render(<BmadLibraryPanel state={{ kind: "loading" }} />);
+  it("uses skills and agents catalog language for loading, fallback errors, and reload", () => {
+    const { rerender } = render(<BmadLibraryPanel state={{ kind: "idle" }} />);
+    expect(screen.getByText("No skills and agents catalog requested.")).toBeTruthy();
+
+    rerender(<BmadLibraryPanel state={{ kind: "loading" }} />);
     expect(screen.getByRole("status")).toHaveProperty(
       "textContent",
-      expect.stringContaining("Loading Method library"),
+      expect.stringContaining("Loading skills and agents catalog"),
     );
 
     const onReload = vi.fn();
@@ -241,16 +246,16 @@ describe("BmadLibraryPanel", () => {
         onReload={onReload}
         state={{
           kind: "unavailable",
-          message: "The Method catalog is unavailable.",
+          message: "",
           retryable: true,
         }}
       />,
     );
     expect(screen.getByRole("alert")).toHaveProperty(
       "textContent",
-      expect.stringContaining("The Method catalog is unavailable."),
+      expect.stringContaining("The skills and agents catalog is unavailable."),
     );
-    expect(screen.getByRole("button", { name: "Reload Method library" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reload skills and agents" })).toBeTruthy();
   });
 
   it("shows textual availability without execution, installation, or activation affordances", () => {

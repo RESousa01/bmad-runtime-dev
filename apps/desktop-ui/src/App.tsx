@@ -1,18 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GlobalRail } from "./components/GlobalRail";
-import { Inspector } from "./components/Inspector";
-import { SessionRail } from "./components/SessionRail";
+import { BmadHelpCard } from "./components/BmadHelpCard";
+import { BmadLibraryPanel } from "./components/BmadLibraryPanel";
+import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
-import { UtilityPanel } from "./components/UtilityPanel";
+import { UtilityPanel, type SettingsPage } from "./components/UtilityPanel";
 import { WorkspacePanel } from "./components/WorkspacePanel";
 import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
 import {
-  initialSessions,
+  AppShellLayout,
+  DRAWER_OVERLAY_QUERY,
+  SIDEBAR_OVERLAY_QUERY,
+} from "./components/redesign/AppShellLayout";
+import { AppSidebar } from "./components/redesign/AppSidebar";
+import {
+  ContextDrawer,
+  type ContextDrawerKind,
+} from "./components/redesign/ContextDrawer";
+import { NoWorkspaceState } from "./components/redesign/NoWorkspaceState";
+import "./components/redesign/app-shell.css";
+import "./components/redesign/context-drawer.css";
+import "./components/redesign/sidebar.css";
+import "./components/redesign/task-surface.css";
+import "./components/redesign/utility-panel.css";
+import "./components/redesign/design-polish.css";
+import {
   type DensityPreference,
-  type InspectorTab,
-  type PrimaryView,
-  type ProposalState,
   type SessionSummary,
   type ThemePreference,
 } from "./data/demo";
@@ -24,7 +37,9 @@ import {
   HostCapabilityError,
   HostCommandError,
   type ContextPreviewProjection,
+  type ChangesHistoryProjection,
   type HostRuntime,
+  type ProposedChange,
   type WorkspaceProjection,
 } from "./lib/hostClient";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
@@ -48,10 +63,10 @@ import {
 } from "./lib/workspaceReadSource";
 import { useMediaQuery } from "./lib/useMediaQuery";
 
-const fallbackSession: SessionSummary = {
-  id: "scan",
-  title: "Add a safe workspace scan",
-  updatedAt: "10:42 AM",
+const initialProductSession: SessionSummary = {
+  id: "new-0",
+  title: "New task",
+  updatedAt: "Now",
 };
 
 const browserDemoWorkspace: WorkspaceProjection = {
@@ -63,9 +78,12 @@ const browserDemoWorkspace: WorkspaceProjection = {
 };
 
 const retainedHelpProjectionUnavailableMessage =
-  "A retained Method session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local Method session for this workspace grant.";
+  "A retained BMAD Help session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local skill-guidance session for this workspace grant.";
 
 type HostUiRuntime = HostRuntime | { kind: "loading" };
+
+export type PrimaryRoute = { kind: "task"; taskId: string | null };
+export type AppModalKind = "workspace-manager" | "settings" | "account" | null;
 
 export interface AppProps {
   hostRuntimeLoader?: () => Promise<HostRuntime>;
@@ -87,37 +105,43 @@ export function App({
   hostRuntimeLoader = getDefaultHostRuntime,
   projectionPollIntervalMs = 1_500,
 }: AppProps = {}) {
-  const [activeView, setActiveView] = useState<PrimaryView>("agent");
+  const [primaryRoute, setPrimaryRoute] = useState<PrimaryRoute>({
+    kind: "task",
+    taskId: initialProductSession.id,
+  });
   const [density, setDensity] = useState<DensityPreference>("comfortable");
-  const [inspectorOpen, setInspectorOpen] = useState(false);
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("changes");
-  const [proposalState, setProposalState] = useState<ProposalState>("ready");
-  const [selectedSessionId, setSelectedSessionId] = useState("scan");
-  const sessions = initialSessions;
-  const [sessionRailOpen, setSessionRailOpen] = useState(false);
+  const [sessions, setSessions] = useState<SessionSummary[]>([initialProductSession]);
+  const [contextDrawer, setContextDrawer] = useState<ContextDrawerKind | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>("dark");
-  const [utilityPanel, setUtilityPanel] = useState<"account" | "settings" | null>(null);
+  const [appModal, setAppModal] = useState<AppModalKind>(null);
+  const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsPage>("general");
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
-  const [workspacePanelOpen, setWorkspacePanelOpen] = useState(false);
   const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
   const [workspaceRemovalBusyId, setWorkspaceRemovalBusyId] = useState<string | null>(null);
   const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null);
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
-  const [contextProvenance, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
+  const [, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
   const [bmadHelpState, setBmadHelpState] = useState<BmadRequestState>(initialBmadRequestState);
   const [modelAuthStatus, setModelAuthStatus] = useState<ModelAuthStatusProjection | null>(null);
   const [changesFlow, setChangesFlow] = useState<GovernedChangesUiState | null>(null);
   const [changesError, setChangesError] = useState<string | null>(null);
+  const [changesHistory, setChangesHistory] = useState<ChangesHistoryProjection | null>(null);
+  const [changesHistoryBusy, setChangesHistoryBusy] = useState(false);
   const [enableEditsBusy, setEnableEditsBusy] = useState(false);
   const changesGenerationRef = useRef(0);
-  const inspectorIsOverlay = useMediaQuery("(max-width: 1050px)");
-  const sessionsIsOverlay = useMediaQuery("(max-width: 820px)");
+  const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
+  const sidebarIsOverlay = useMediaQuery(SIDEBAR_OVERLAY_QUERY);
   const workspaceActionBusyRef = useRef(false);
   const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
   const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
+  const pendingUtilityReturnFocusRef = useRef<HTMLElement | null>(null);
+  const contextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
+  const pendingContextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
+  const focusContextDrawerOnOpenRef = useRef(false);
   const hostBindingGenerationRef = useRef(0);
   const bmadProjectionGenerationRef = useRef(0);
   const bmadLibraryRequestedRef = useRef(false);
@@ -125,9 +149,12 @@ export function App({
   const bmadHelpCreationRef = useRef<Promise<void> | null>(null);
   const bmadHelpOperationRef = useRef<"approve" | "cancel" | "submit" | null>(null);
   const bmadHelpStateRef = useRef<BmadRequestState>(initialBmadRequestState);
+  const workspaceAuthorityKeyRef = useRef("");
+  const sessionSequenceRef = useRef(0);
 
+  const selectedSessionId = primaryRoute.taskId ?? initialProductSession.id;
   const selectedSession = useMemo(
-    () => sessions.find((session) => session.id === selectedSessionId) ?? fallbackSession,
+    () => sessions.find((session) => session.id === selectedSessionId) ?? initialProductSession,
     [selectedSessionId, sessions],
   );
   const isNewSession = selectedSession.id.startsWith("new-");
@@ -136,12 +163,12 @@ export function App({
     ?? null;
   const workspaceName = activeWorkspace?.displayName ?? "No local workspace selected";
   const workspaceDescription = hostRuntime.kind === "browser_demo"
-    ? "Preview workspace · no local access"
+    ? "Sample data · Read only"
     : activeWorkspace
       ? activeWorkspace.permissions === "governed_edits"
-        ? "Local workspace · Governed edits"
-        : "Local workspace · Read only"
-      : "Choose one from Workspaces";
+        ? "Governed edits"
+        : "Read only"
+      : "Choose a workspace";
   const hostStatusLabel = (() => {
     switch (hostRuntime.kind) {
       case "loading": return "Verifying local host";
@@ -162,6 +189,15 @@ export function App({
     ? hostRuntime.client
     : null;
   const methodLibraryAvailable = methodLibraryClient !== null;
+  const skillsAgentsStatusLabel = !methodLibraryAvailable
+    ? "Unavailable"
+    : bmadLibraryState.kind === "ready"
+      ? "Loaded"
+      : bmadLibraryState.kind === "loading"
+        ? "Loading"
+        : bmadLibraryState.kind === "unavailable"
+          ? "Unavailable"
+          : "Not loaded";
   const methodGuidanceClient = hostRuntime.kind === "ready"
     && activeWorkspace !== null
     && activeWorkspace.grantEpoch >= 1
@@ -182,10 +218,52 @@ export function App({
     ? hostRuntime.client
     : null;
   const methodGuidanceAvailable = methodGuidanceClient !== null;
-  const methodGuidanceBindingKey = hostRuntime.kind === "ready"
+  const methodRequestAvailable = methodGuidanceClient !== null
+    && modelAuthStatus?.status === "development_ready";
+  const methodRequestInFlight = bmadHelpState.kind === "creating"
+    || bmadHelpState.kind === "review_required"
+    || bmadHelpState.kind === "approving"
+    || bmadHelpState.kind === "approved"
+    || bmadHelpState.kind === "submitting";
+  const modelAccess = (() => {
+    if (hostRuntime.kind === "browser_demo") {
+      return {
+        detail: "No local folder, consent grant, or model request is active.",
+        label: "No model access",
+      };
+    }
+    if (modelAuthStatus?.status === "development_ready") {
+      return {
+        detail: `${modelAuthStatus.mode === "deterministic_development" ? "Deterministic development" : "Offline"} · review required`,
+        label: modelAuthStatus.destinationLabel || "Development model",
+      };
+    }
+    if (hostRuntime.kind === "loading") {
+      return { detail: "Waiting for the signed desktop host.", label: "Checking access" };
+    }
+    if (methodGuidanceClient !== null && modelAuthStatus === null) {
+      return { detail: "The desktop host is verifying the current model authorization.", label: "Checking model access" };
+    }
+    return {
+      detail: methodLibraryAvailable
+        ? "The host catalog can be opened without creating a model request."
+        : "No model request or skills catalog capability is active.",
+      label: "Model access unavailable",
+    };
+  })();
+  const methodStatusLabel = methodRequestAvailable
+    ? "Model ready"
+    : methodGuidanceAvailable
+      ? "Local only"
+    : hostRuntime.kind === "browser_demo"
+      ? "Demo only"
+      : "Unavailable";
+  const workspaceAuthorityKey = hostRuntime.kind === "ready"
     || hostRuntime.kind === "read_only_recovery"
     ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
     : hostRuntime.kind;
+  const methodGuidanceBindingKey = workspaceAuthorityKey;
+  workspaceAuthorityKeyRef.current = workspaceAuthorityKey;
   const workspaceSource = useMemo(() => {
     if (hostRuntime.kind === "browser_demo") {
       return browserDemoWorkspaceSource;
@@ -343,10 +421,21 @@ export function App({
     setBmadHelpState(next);
   }, []);
 
-  function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
-    hostBindingGenerationRef.current += 1;
+  const invalidateWorkspaceBoundUi = useCallback(() => {
+    changesGenerationRef.current += 1;
+    setChangesFlow(null);
+    setChangesError(null);
+    setChangesHistory(null);
+    setChangesHistoryBusy(false);
+    setEnableEditsBusy(false);
     setContextPreview(null);
     setContextProvenance(null);
+    setContextDrawer(null);
+  }, []);
+
+  function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
+    hostBindingGenerationRef.current += 1;
+    invalidateWorkspaceBoundUi();
     clearMethodLibraryProjection();
     clearBmadHelpProjection();
     setHostRuntime((current) => {
@@ -376,8 +465,7 @@ export function App({
 
   function markHostUnavailable(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"]) {
     hostBindingGenerationRef.current += 1;
-    setContextPreview(null);
-    setContextProvenance(null);
+    invalidateWorkspaceBoundUi();
     clearMethodLibraryProjection();
     clearBmadHelpProjection();
     setHostRuntime((current) => {
@@ -397,28 +485,84 @@ export function App({
   }
 
   function dismissWorkspacePanel() {
-    setWorkspacePanelOpen(false);
+    setAppModal(null);
     const returnFocus = workspaceReturnFocusRef.current;
     workspaceReturnFocusRef.current = null;
     window.requestAnimationFrame(() => returnFocus?.focus());
   }
 
-  function openUtilityPanel(mode: "account" | "settings") {
-    utilityReturnFocusRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
-    setWorkspacePanelOpen(false);
-    setUtilityPanel(mode);
+  function openUtilityPanel(
+    mode: "account" | "settings",
+    settingsPage: SettingsPage = "general",
+    returnFocusTarget: HTMLElement | null = null,
+  ) {
+    const activeElement = document.activeElement;
+    utilityReturnFocusRef.current = returnFocusTarget
+      ?? (activeElement instanceof HTMLElement
+        && activeElement !== document.body
+        && activeElement !== document.documentElement
+        ? activeElement
+        : null);
+    setContextDrawer(null);
+    setMobileSidebarOpen(false);
+    if (mode === "settings") setUtilitySettingsPage(settingsPage);
+    setAppModal(mode);
   }
 
   function dismissUtilityPanel(restoreFocus = true) {
-    setUtilityPanel(null);
-    const returnFocus = utilityReturnFocusRef.current;
+    pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
+    setAppModal(null);
     utilityReturnFocusRef.current = null;
-    if (restoreFocus) {
-      window.requestAnimationFrame(() => returnFocus?.isConnected && returnFocus.focus());
-    }
   }
+
+  function openContextDrawer(
+    kind: Exclude<ContextDrawerKind, null>,
+    returnFocusTarget: HTMLElement | null = null,
+    focusDrawerOnOpen = false,
+  ) {
+    const activeElement = document.activeElement;
+    contextDrawerReturnFocusRef.current = returnFocusTarget
+      ?? (activeElement instanceof HTMLElement
+        && activeElement !== document.body
+        && activeElement !== document.documentElement
+        ? activeElement
+        : null);
+    focusContextDrawerOnOpenRef.current = focusDrawerOnOpen;
+    setContextDrawer(kind);
+  }
+
+  function dismissContextDrawer(restoreFocus = true) {
+    pendingContextDrawerReturnFocusRef.current = restoreFocus
+      ? contextDrawerReturnFocusRef.current
+      : null;
+    contextDrawerReturnFocusRef.current = null;
+    focusContextDrawerOnOpenRef.current = false;
+    setContextDrawer(null);
+  }
+
+  useEffect(() => {
+    if (appModal !== null) return;
+    const returnFocus = pendingUtilityReturnFocusRef.current;
+    pendingUtilityReturnFocusRef.current = null;
+    if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
+      returnFocus.focus();
+    }
+  }, [appModal]);
+
+  useEffect(() => {
+    if (contextDrawer !== null) {
+      if (focusContextDrawerOnOpenRef.current) {
+        focusContextDrawerOnOpenRef.current = false;
+        document.querySelector<HTMLElement>(".context-drawer__close")?.focus();
+      }
+      return;
+    }
+    const returnFocus = pendingContextDrawerReturnFocusRef.current;
+    pendingContextDrawerReturnFocusRef.current = null;
+    if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
+      returnFocus.focus();
+    }
+  }, [contextDrawer]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -457,14 +601,14 @@ export function App({
   }, [hostRuntimeLoader]);
 
   useEffect(() => {
-    setContextPreview(null);
-    setContextProvenance(null);
-  }, [activeWorkspaceId]);
+    invalidateWorkspaceBoundUi();
+    setMobileSidebarOpen(false);
+  }, [invalidateWorkspaceBoundUi, workspaceAuthorityKey]);
 
   useEffect(() => {
     clearMethodLibraryProjection();
     if (!methodLibraryClient) {
-      setInspectorTab((current) => current === "method" ? "changes" : current);
+      setContextDrawer((current) => current === "methods" ? null : current);
     }
   }, [activeWorkspaceId, clearMethodLibraryProjection, methodLibraryClient]);
 
@@ -684,72 +828,49 @@ export function App({
     document.documentElement.dataset.density = density;
   }, [density]);
 
-  useEffect(() => {
-    const closeTransientPanels = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      setInspectorOpen(false);
-      setSessionRailOpen(false);
-      dismissUtilityPanel();
-      dismissWorkspacePanel();
-    };
-    window.addEventListener("keydown", closeTransientPanels);
-    return () => window.removeEventListener("keydown", closeTransientPanels);
-  }, []);
-
-  function selectNavigation(view: PrimaryView) {
-    setActiveView(view);
-    dismissUtilityPanel(false);
-    if (view === "workspaces") {
-      workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-      setWorkspacePanelOpen(true);
-      setInspectorOpen(false);
-      return;
-    }
-    setWorkspacePanelOpen(false);
-    if (view === "explorer") {
-      setInspectorOpen(false);
-      setSessionRailOpen(false);
-      return;
-    }
-    if (view === "agent") {
-      return;
-    }
-    const mappedTab: Partial<Record<PrimaryView, InspectorTab>> = {
-      changes: "changes",
-      activity: "evidence",
-    };
-    const nextTab = mappedTab[view];
-    if (nextTab) {
-      setInspectorTab(nextTab);
-      setSessionRailOpen(false);
-      setInspectorOpen(true);
-    }
-  }
-
   function selectSession(id: string) {
-    setSelectedSessionId(id);
-    setActiveView("agent");
-    setProposalState(id.startsWith("new-") ? "discarded" : "ready");
-    setSessionRailOpen(false);
+    if (!sessions.some((session) => session.id === id)) {
+      return;
+    }
+    setPrimaryRoute({ kind: "task", taskId: id });
+    setContextDrawer(null);
+    setMobileSidebarOpen(false);
   }
 
-  function reviewChanges() {
-    setInspectorTab("changes");
-    setSessionRailOpen(false);
-    setInspectorOpen(true);
+  function startNewSession() {
+    if (methodRequestInFlight) {
+      return;
+    }
+    sessionSequenceRef.current += 1;
+    const session: SessionSummary = {
+      id: `new-${sessionSequenceRef.current}`,
+      title: "New task",
+      updatedAt: "Now",
+    };
+    bmadHelpGenerationRef.current += 1;
+    bmadHelpCreationRef.current = null;
+    bmadHelpOperationRef.current = null;
+    bmadHelpStateRef.current = initialBmadRequestState;
+    setBmadHelpState(initialBmadRequestState);
+    setContextPreview(null);
+    setContextProvenance(null);
+    setSessions([session]);
+    setPrimaryRoute({ kind: "task", taskId: session.id });
+    setContextDrawer(null);
+    setMobileSidebarOpen(false);
   }
 
   function openMethodLibrary() {
     if (!methodLibraryClient) {
       return;
     }
-    setInspectorTab("method");
-    setSessionRailOpen(false);
-    setInspectorOpen(true);
+    const openingFromUtility = appModal !== null;
+    const returnFocus = openingFromUtility ? utilityReturnFocusRef.current : null;
+    if (openingFromUtility) {
+      dismissUtilityPanel(false);
+    }
+    openContextDrawer("methods", returnFocus, openingFromUtility);
+    setMobileSidebarOpen(false);
     if (!bmadLibraryRequestedRef.current) {
       void loadMethodLibrary(methodLibraryClient);
     }
@@ -760,14 +881,15 @@ export function App({
       return bmadHelpCreationRef.current;
     }
     if (
-      !methodGuidanceAvailable
+      !methodRequestAvailable
       || !methodGuidanceClient
       || !activeWorkspace
       || !modelAuthStatus
+      || modelAuthStatus.status !== "development_ready"
       || bmadHelpOperationRef.current !== null
     ) {
       return Promise.reject(
-        new HostCapabilityError("Method guidance is unavailable for the active workspace grant."),
+        new HostCapabilityError("Skill guidance is unavailable for the active workspace grant."),
       );
     }
 
@@ -788,7 +910,7 @@ export function App({
         );
         if (generation !== bmadHelpGenerationRef.current) {
           throw new HostCapabilityError(
-            "The Method guidance result no longer belongs to the active workspace grant.",
+            "The skill-guidance result no longer belongs to the active workspace grant.",
           );
         }
         const review = await client.prepareBmadHelp(
@@ -800,7 +922,7 @@ export function App({
           || modelAuthStatus.status !== "development_ready"
         ) {
           throw new HostCapabilityError(
-            "The Method request authority changed before review opened.",
+            "The request authority changed before review opened.",
           );
         }
         const next = applyBmadEvent({
@@ -817,11 +939,10 @@ export function App({
           },
         });
         if (next.kind !== "review_required") {
-          throw new HostCapabilityError("The prepared Method request failed closed.");
+          throw new HostCapabilityError("The prepared skill-guidance request failed closed.");
         }
-        setInspectorTab("method");
-        setSessionRailOpen(false);
-        setInspectorOpen(true);
+        openContextDrawer("methods");
+        setMobileSidebarOpen(false);
         if (!bmadLibraryRequestedRef.current) {
           void loadMethodLibrary(client);
         }
@@ -954,7 +1075,7 @@ export function App({
   }
 
   const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
-    && (["workspace.enable_edits", "changes.propose", "approval.decide", "rollback.request"] as const)
+    && (["workspace.enable_edits", "changes.propose", "approval.decide", "rollback.request", "changes.history"] as const)
       .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
   const editsEnabled = activeWorkspace?.permissions === "governed_edits";
   const canEnableEdits = governedEditsCommandsAvailable
@@ -995,6 +1116,43 @@ export function App({
     setChangesError(null);
   }
 
+  async function refreshChangesHistory() {
+    if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
+      return;
+    }
+    const client = hostRuntime.client;
+    const workspace = activeWorkspace;
+    const authorityKey = workspaceAuthorityKey;
+    const generation = changesGenerationRef.current;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    setChangesHistoryBusy(true);
+    setChangesError(null);
+    try {
+      const history = await client.changesHistory(workspace.workspaceId, workspace.grantEpoch);
+      if (
+        generation === changesGenerationRef.current
+        && workspaceAuthorityKeyRef.current === authorityKey
+        && hostRuntime.kind === "ready"
+      ) {
+        setChangesHistory(history);
+      }
+    } catch (error) {
+      if (
+        generation === changesGenerationRef.current
+        && workspaceAuthorityKeyRef.current === authorityKey
+      ) {
+        handleChangesFailure(client, error, sequence);
+      }
+    } finally {
+      if (
+        generation === changesGenerationRef.current
+        && workspaceAuthorityKeyRef.current === authorityKey
+      ) {
+        setChangesHistoryBusy(false);
+      }
+    }
+  }
+
   function handleChangesFailure(client: DesktopHostClient, error: unknown, sequence: number) {
     if (
       error instanceof HostCommandError
@@ -1026,6 +1184,7 @@ export function App({
       ]);
       setActiveWorkspaceId(enabled.workspaceId);
       setChangesFlow({ kind: "idle" });
+      setChangesHistory(null);
     } catch (error) {
       if (generation === changesGenerationRef.current) {
         handleChangesFailure(client, error, sequence);
@@ -1037,7 +1196,7 @@ export function App({
     }
   }
 
-  async function proposeGovernedChange(relativePath: string, content: string) {
+  async function proposeGovernedChange(changes: readonly ProposedChange[]) {
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
     }
@@ -1048,9 +1207,11 @@ export function App({
     setChangesFlow({ kind: "preparing" });
     setChangesError(null);
     try {
-      const review = await client.proposeChanges(workspace.workspaceId, workspace.grantEpoch, [
-        { change: "set_content", relativePath, content },
-      ]);
+      const review = await client.proposeChanges(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        changes,
+      );
       if (generation === changesGenerationRef.current) {
         setChangesFlow({ kind: "review", busy: false, review });
       }
@@ -1079,6 +1240,7 @@ export function App({
       }
       if (decision.disposition === "applied" && decision.execution) {
         setChangesFlow({ kind: "applied", busy: false, execution: decision.execution });
+        setChangesHistory(null);
       } else if (decision.disposition === "discarded") {
         setChangesFlow({ kind: "discarded" });
       } else {
@@ -1095,13 +1257,15 @@ export function App({
   }
 
   async function undoGovernedChange(executionId: string) {
-    if (hostRuntime.kind !== "ready" || changesState.kind !== "applied") {
+    if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
     }
     const client = hostRuntime.client;
     const sequence = hostRuntime.bootstrap.projectionSequence;
     const generation = ++changesGenerationRef.current;
-    setChangesFlow({ kind: "applied", busy: true, execution: changesState.execution });
+    setChangesFlow(changesState.kind === "applied"
+      ? { kind: "applied", busy: true, execution: changesState.execution }
+      : { kind: "preparing" });
     setChangesError(null);
     try {
       const result = await client.requestRollback(executionId);
@@ -1167,6 +1331,7 @@ export function App({
     setWorkspaceActionError(null);
     if (workspaceId !== activeWorkspaceId) {
       resetChangesFlow();
+      setChangesHistory(null);
     }
     setActiveWorkspaceId(workspaceId);
   }
@@ -1220,163 +1385,220 @@ export function App({
     }
   }
 
-  const inspectorIsModal = inspectorIsOverlay && inspectorOpen;
-  const sessionsIsModal = sessionsIsOverlay && sessionRailOpen;
-  const workbenchIsInert = inspectorIsModal || sessionsIsModal;
-  const hasOverlayScrim = workbenchIsInert || workspacePanelOpen;
+  function openWorkspaceManager() {
+    workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    setContextDrawer(null);
+    setMobileSidebarOpen(false);
+    setAppModal("workspace-manager");
+  }
 
-  return (
-    <div className="app-shell">
-      <div className="app-surface" inert={workspacePanelOpen}>
-        <TitleBar isInert={workbenchIsInert} />
-        <div className="workbench">
-          <div aria-label="Workspace navigation" className="desktop-sidebar" role="group">
-            <GlobalRail
-              activeView={activeView}
-              isInert={workbenchIsInert}
-              onAccount={() => openUtilityPanel("account")}
-              onNavigate={selectNavigation}
-              onSettings={() => openUtilityPanel("settings")}
-            />
-            <SessionRail
-              isInert={inspectorIsModal}
-              isOpen={sessionRailOpen}
-              isOverlay={sessionsIsOverlay}
-              isSessionCreationEnabled={false}
-              onClose={() => setSessionRailOpen(false)}
-              onNewSession={() => undefined}
-              onSelect={selectSession}
-              selectedId={selectedSessionId}
-              sessions={sessions}
-              workspaceDescription={workspaceDescription}
-              workspaceName={workspaceName}
-            />
-          </div>
-          {activeView === "explorer" ? (
-            <WorkspaceExplorer
-              availabilityMessage={explorerAvailabilityMessage}
-              isInert={workbenchIsInert}
-              key={`${workspaceSource?.provenance ?? "unavailable"}:${activeWorkspaceId ?? "none"}`}
-              onContextReview={(projection, provenance) => {
-                setContextPreview(projection);
-                setContextProvenance(provenance);
-                setInspectorTab("context");
-                setSessionRailOpen(false);
-                setInspectorOpen(true);
-              }}
-              source={workspaceSource}
-              workspaceName={workspaceName}
-            />
-          ) : (
-            <TaskWorkspace
-              hostStatusLabel={hostStatusLabel}
-              interactionDisabled
-              isInert={workbenchIsInert}
-              isNewSession={isNewSession}
-              isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
-              key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
-              methodGuidanceAvailable={methodGuidanceAvailable}
-              methodGuidanceState={bmadHelpState}
-              methodLibraryAvailable={methodLibraryAvailable}
-              onOpenMethodLibrary={openMethodLibrary}
-              onOpenInspector={() => {
-                setSessionRailOpen(false);
-                setInspectorOpen(true);
-              }}
-              onOpenSessions={() => {
-                setInspectorOpen(false);
-                setSessionRailOpen(true);
-              }}
-              onReviewContext={() => {
-                setInspectorTab("context");
-                setSessionRailOpen(false);
-                setInspectorOpen(true);
-              }}
-              onReviewChanges={reviewChanges}
-              onReviewRequest={reviewBmadRequest}
-              proposalState={proposalState}
-              sessionTitle={selectedSession.title}
-              workspaceName={workspaceName}
-            />
-          )}
-          <Inspector
-            bmadHelpState={bmadHelpState}
-            bmadModelDevelopmentOnly={modelAuthStatus?.developmentOnly ?? false}
-            bmadLibraryState={bmadLibraryState}
-            changesPanel={{
-              canEnableEdits,
-              enableEditsBusy,
-              errorMessage: changesError,
-              onDecide: (choice) => void decideGovernedChange(choice),
-              onEnableEdits: () => void enableGovernedEdits(),
-              onPropose: (relativePath, content) => void proposeGovernedChange(relativePath, content),
-              onStartNewProposal: resetChangesFlow,
-              onUndo: (executionId) => void undoGovernedChange(executionId),
-              state: changesState,
-            }}
-            contextPreview={contextPreview}
-            contextProvenance={contextProvenance}
-            isInert={sessionsIsModal}
-            isOpen={inspectorOpen}
-            isOverlay={inspectorIsOverlay}
-            methodLibraryAvailable={methodLibraryAvailable}
-            onBmadApprove={approveBmadContext}
-            onBmadCancel={cancelBmadContext}
-            onBmadSend={sendBmadRequest}
-            onClose={() => setInspectorOpen(false)}
-            onReloadMethodLibrary={() => {
+  function openWorkspaceManagerFromUtilityPanel() {
+    const returnFocus = utilityReturnFocusRef.current;
+    utilityReturnFocusRef.current = null;
+    workspaceReturnFocusRef.current = returnFocus;
+    setContextDrawer(null);
+    setMobileSidebarOpen(false);
+    setAppModal("workspace-manager");
+  }
+
+  const shellOverlayOpen = appModal !== null
+    || (drawerIsOverlay && contextDrawer !== null)
+    || (sidebarIsOverlay && mobileSidebarOpen);
+
+  const drawer = contextDrawer ? (
+    <ContextDrawer
+      kind={contextDrawer}
+      onClose={dismissContextDrawer}
+      presentation={drawerIsOverlay ? "overlay" : "pane"}
+    >
+      {contextDrawer === "files" ? (
+        <WorkspaceExplorer
+          asPanel
+          availabilityMessage={explorerAvailabilityMessage}
+          key={`${workspaceSource?.provenance ?? "unavailable"}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`}
+          onContextReview={(projection, provenance) => {
+            setContextPreview(projection);
+            setContextProvenance(provenance);
+            dismissContextDrawer();
+          }}
+          source={workspaceSource}
+          workspaceName={workspaceName}
+        />
+      ) : contextDrawer === "changes" ? (
+        <GovernedChangesPanel
+          canEnableEdits={canEnableEdits}
+          enableEditsBusy={enableEditsBusy}
+          errorMessage={changesError}
+          history={changesHistory}
+          historyBusy={changesHistoryBusy}
+          onDecide={(choice) => void decideGovernedChange(choice)}
+          onEnableEdits={() => void enableGovernedEdits()}
+          onRefreshHistory={() => void refreshChangesHistory()}
+          onPropose={(changes) => void proposeGovernedChange(changes)}
+          onStartNewProposal={resetChangesFlow}
+          onUndo={(executionId) => void undoGovernedChange(executionId)}
+          state={changesState}
+        />
+      ) : contextDrawer === "methods" ? (
+        <div className="method-library-panel">
+          <BmadHelpCard
+            developmentOnly={modelAuthStatus?.developmentOnly ?? false}
+            onApprove={approveBmadContext}
+            onCancel={cancelBmadContext}
+            onSend={sendBmadRequest}
+            state={bmadHelpState}
+          />
+          <BmadLibraryPanel
+            onReload={() => {
               if (methodLibraryClient) {
                 void loadMethodLibrary(methodLibraryClient);
               }
             }}
-            onTabChange={setInspectorTab}
-            selectedTab={inspectorTab}
+            state={bmadLibraryState}
           />
         </div>
-      </div>
-      {hasOverlayScrim ? (
-        <button
-          aria-label="Close open panel"
-          className={`panel-scrim ${workspacePanelOpen ? "workspace-scrim" : ""}`}
-          onClick={() => {
-            if (workspacePanelOpen) {
+      ) : (
+        <section aria-label="Task run timeline" className="run-details-panel">
+          {bmadHelpState.kind === "idle" && changesFlow === null ? (
+            <div className="run-details-panel__empty">
+              <h3>No run details yet</h3>
+              <p>Skill-guidance and governed-change progress appears here. Open Skills and agents for exact context reviews and safe model receipts.</p>
+            </div>
+          ) : (
+            <dl className="run-details-panel__summary">
+              <div><dt>Skill guidance</dt><dd>{bmadHelpState.kind.replaceAll("_", " ")}</dd></div>
+              <div><dt>Changes</dt><dd>{changesState.kind.replaceAll("_", " ")}</dd></div>
+            </dl>
+          )}
+          <div className="run-details-panel__scope" role="note">
+            <strong>Local task scope</strong>
+            <span>{workspaceName} · {hostStatusLabel}</span>
+          </div>
+        </section>
+      )}
+    </ContextDrawer>
+  ) : undefined;
+
+  const modal = appModal === "workspace-manager" ? (
+    <WorkspacePanel
+      activeWorkspaceId={activeWorkspace?.workspaceId ?? null}
+      busyWorkspaceId={workspaceRemovalBusyId}
+      canActivate={canActivateWorkspace}
+      canRemove={canRemoveWorkspace}
+      canSelect={canSelectWorkspace}
+      isSelecting={workspaceSelectionBusy}
+      mode={hostRuntime.kind}
+      onActivate={activateWorkspace}
+      onClose={dismissWorkspacePanel}
+      onRemove={(workspaceId) => void removeWorkspace(workspaceId)}
+      onSelect={() => void selectWorkspace()}
+      workspaceError={workspaceActionError}
+      workspaces={hostWorkspaces}
+    />
+  ) : appModal === "settings" || appModal === "account" ? (
+    <UtilityPanel
+      agentStatusLabel={methodStatusLabel}
+      density={density}
+      initialSettingsPage={utilitySettingsPage}
+      key={`${appModal}:${utilitySettingsPage}`}
+      mode={appModal}
+      modelAccessDetail={modelAccess.detail}
+      modelAccessLabel={modelAccess.label}
+      onClose={() => dismissUtilityPanel()}
+      onDensityChange={setDensity}
+      onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
+      onOpenSkillsAndAgents={openMethodLibrary}
+      onThemeChange={setTheme}
+      runtimeLabel={hostStatusLabel}
+      skillsAgentsAvailable={methodLibraryAvailable}
+      skillsAgentsStatusLabel={skillsAgentsStatusLabel}
+      theme={theme}
+      workspaceDetail={workspaceDescription}
+      workspaceLabel={workspaceName}
+    />
+  ) : undefined;
+
+  return (
+    <div className="app-shell">
+      <TitleBar isInert={shellOverlayOpen} />
+      <div className="workbench workbench--task-shell">
+        <AppShellLayout
+          drawer={drawer}
+          main={activeWorkspace ? (
+            <TaskWorkspace
+              canAttachFiles={workspaceSource !== null}
+              contextPreview={contextPreview}
+              hostStatusLabel={hostStatusLabel}
+              interactionDisabled={!methodRequestAvailable}
+              isBrowserDemo={hostRuntime.kind === "browser_demo"}
+              isNewSession={isNewSession}
+              isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
+              key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
+              methodGuidanceAvailable={methodRequestAvailable}
+              methodGuidanceState={bmadHelpState}
+              methodLibraryAvailable={methodLibraryAvailable}
+              modelAccessDetail={modelAccess.detail}
+              modelAccessLabel={modelAccess.label}
+              onAttachFiles={() => {
+                setMobileSidebarOpen(false);
+                openContextDrawer("files");
+              }}
+              onOpenAgentSettings={(returnFocusTarget) => openUtilityPanel("settings", "skills-agents", returnFocusTarget)}
+              onOpenChanges={() => {
+                setMobileSidebarOpen(false);
+                openContextDrawer("changes");
+              }}
+              onOpenMethodLibrary={openMethodLibrary}
+              onOpenRunDetails={() => {
+                setMobileSidebarOpen(false);
+                openContextDrawer("run-details");
+              }}
+              onOpenSidebar={() => {
+                setContextDrawer(null);
+                setMobileSidebarOpen(true);
+              }}
+              onReviewRequest={reviewBmadRequest}
+              sessionTitle={selectedSession.title}
+              workspaceName={workspaceName}
+            />
+          ) : (
+            <main className="task-shell-empty">
+              <NoWorkspaceState
+                copy={explorerAvailabilityMessage}
+                mode={hostRuntime.kind}
+                onOpenWorkspace={() => void selectWorkspace()}
+              />
+            </main>
+          )}
+          mobileSidebarOpen={mobileSidebarOpen}
+          modal={modal}
+          onCloseDrawer={dismissContextDrawer}
+          onCloseModal={() => {
+            if (appModal === "workspace-manager") {
               dismissWorkspacePanel();
             } else {
-              setInspectorOpen(false);
-              setSessionRailOpen(false);
+              dismissUtilityPanel();
             }
           }}
-          type="button"
+          onCloseSidebar={() => setMobileSidebarOpen(false)}
+          sidebar={(
+            <AppSidebar
+              canCreateTask={hostRuntime.kind === "ready" && activeWorkspace !== null && !methodRequestInFlight}
+              onNewTask={startNewSession}
+              onOpenAccount={() => openUtilityPanel("account")}
+              onOpenSettings={() => openUtilityPanel("settings")}
+              onOpenWorkspaceManager={openWorkspaceManager}
+              onSelectTask={selectSession}
+              selectedTaskId={activeWorkspace ? selectedSessionId : null}
+              tasks={activeWorkspace ? sessions : []}
+              workspaceLabel={activeWorkspace?.displayName ?? "No workspace"}
+              workspaceStatus={workspaceDescription}
+            />
+          )}
         />
-      ) : null}
-      {utilityPanel ? (
-        <UtilityPanel
-          density={density}
-          key={utilityPanel}
-          mode={utilityPanel}
-          onClose={() => dismissUtilityPanel()}
-          onDensityChange={setDensity}
-          onThemeChange={setTheme}
-          theme={theme}
-        />
-      ) : null}
-      {workspacePanelOpen ? (
-        <WorkspacePanel
-          activeWorkspaceId={activeWorkspace?.workspaceId ?? null}
-          busyWorkspaceId={workspaceRemovalBusyId}
-          canActivate={canActivateWorkspace}
-          canRemove={canRemoveWorkspace}
-          canSelect={canSelectWorkspace}
-          isSelecting={workspaceSelectionBusy}
-          mode={hostRuntime.kind}
-          onActivate={activateWorkspace}
-          onClose={dismissWorkspacePanel}
-          onRemove={(workspaceId) => void removeWorkspace(workspaceId)}
-          onSelect={() => void selectWorkspace()}
-          workspaceError={workspaceActionError}
-          workspaces={hostWorkspaces}
-        />
-      ) : null}
+      </div>
     </div>
   );
 }

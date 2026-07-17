@@ -90,9 +90,9 @@
     },
     {
       "id": "KB-CAP-002",
-      "statement": "BMAD Help has sealed local materialization and durable retained-run evidence, while the projected run remains non-runnable without production D2 integration.",
+      "statement": "BMAD Help has a deterministic user-facing path with sealed local materialization, durable retained-run evidence, and renderer integration; production managed-model execution remains unavailable.",
       "classification": "IMPLEMENTED_FACT",
-      "implementationStatus": "implemented_not_product_integrated",
+      "implementationStatus": "implemented",
       "confidence": "high",
       "sourceIds": [
         "SRC-REPO-011",
@@ -101,7 +101,7 @@
       ],
       "observedAt": "2026-07-16",
       "revalidateBy": "2026-10-16",
-      "limitations": "No live managed model call or production receipt verification is claimed.",
+      "limitations": "The deterministic path does not claim a live managed-model call or production receipt verification.",
       "supersedes": [],
       "singleSourceException": "",
       "subject": "capability.bmad-help"
@@ -143,7 +143,7 @@
     },
     {
       "id": "KB-RELEASE-001",
-      "statement": "Bundling is configured for NSIS, but signing and clean-machine install, launch, upgrade, and uninstall proof are outstanding.",
+      "statement": "Bundling is configured for NSIS, but no installer built from the evidence commit is signed, timestamped, and proven through clean-machine install, launch, upgrade, and uninstall.",
       "classification": "IMPLEMENTED_FACT",
       "implementationStatus": "blocked",
       "confidence": "high",
@@ -160,9 +160,9 @@
     },
     {
       "id": "KB-CONTRACT-001",
-      "statement": "Canonical JSON Schema contracts generate and validate TypeScript, Rust, and C# boundaries through pinned tooling.",
+      "statement": "Canonical JSON Schema contracts generate TypeScript, Rust, and C# boundaries through pinned tooling, but the evidence commit fails cross-language qualification because its Cargo bootstrap lock digest was not requalified.",
       "classification": "IMPLEMENTED_FACT",
-      "implementationStatus": "implemented",
+      "implementationStatus": "blocked",
       "confidence": "high",
       "sourceIds": [
         "SRC-REPO-015",
@@ -170,7 +170,7 @@
       ],
       "observedAt": "2026-07-16",
       "revalidateBy": "2026-10-16",
-      "limitations": "Future schema families still require qualification and conformance evidence.",
+      "limitations": "The generators and language-specific conformance suites pass; the failing bootstrap digest gate still blocks a fully green baseline.",
       "supersedes": [],
       "singleSourceException": "",
       "subject": "contracts.cross-language-generation"

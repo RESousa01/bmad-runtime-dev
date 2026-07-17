@@ -1,6 +1,6 @@
 {
   "name": "sapphirus-desktop",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0",
   "private": true,
   "description": "Governed, local-authority AI workspace for Windows.",
   "packageManager": "pnpm@11.12.0",
@@ -28,7 +28,7 @@
     "rust:test": "cargo test --workspace --all-features --locked",
     "desktop:dev": "pnpm exec tauri dev --config crates/desktop-app/tauri.conf.json",
     "desktop:dev:deterministic": "pnpm exec tauri dev --config crates/desktop-app/tauri.conf.json --features deterministic-help",
-    "desktop:build": "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json",
+    "desktop:build": "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json --features deterministic-help",
     "verify:boundaries": "node tools/check-boundaries.mjs",
     "verify:source": "pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",
     "verify": "pnpm verify:source",

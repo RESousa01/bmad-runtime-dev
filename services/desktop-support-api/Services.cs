@@ -18,6 +18,7 @@ public sealed class SupportPlaneOptions
     public int ConnectedOperationTimeoutSeconds { get; init; } = 120;
     public bool DevelopmentSigningEnabled { get; init; }
     public bool DevelopmentModelEnabled { get; init; }
+    public string DevelopmentConsentStorePath { get; init; } = "";
     public Guid TenantId { get; private set; }
     public Guid ApprovedDesktopClient { get; private set; }
 
@@ -52,10 +53,18 @@ public sealed class SupportPlaneOptions
                 "Sapphirus configuration must name one Entra tenant, API audience, approved desktop client, release channel, and bounded idempotency policy.");
         }
         if (!environment.IsDevelopment()
-            && (DevelopmentSigningEnabled || DevelopmentModelEnabled))
+            && (DevelopmentSigningEnabled
+                || DevelopmentModelEnabled
+                || !string.IsNullOrWhiteSpace(DevelopmentConsentStorePath)))
         {
             throw new InvalidOperationException(
                 "Development signing and model adapters cannot run outside Development.");
+        }
+        if (!string.IsNullOrWhiteSpace(DevelopmentConsentStorePath)
+            && !Path.IsPathFullyQualified(DevelopmentConsentStorePath))
+        {
+            throw new InvalidOperationException(
+                "The development consent store path must be fully qualified.");
         }
         TenantId = tenantId;
         ApprovedDesktopClient = approvedDesktopClient;
@@ -310,8 +319,9 @@ public sealed class MemoryDeviceRegistry : IDeviceRegistry
     {
         cancellationToken.ThrowIfCancellationRequested();
         string stableInput = $"{subject}:{request.InstallationPublicKeyHash}";
-        string registrationId = "dreg_" + Convert.ToHexStringLower(
-            SHA256.HashData(Encoding.UTF8.GetBytes(stableInput)))[..26];
+        string registrationId = ContractIds.FromEntropy(
+            "dreg",
+            SHA256.HashData(Encoding.UTF8.GetBytes(stableInput)));
         (string Subject, string RegistrationId) key = (subject, registrationId);
         while (true)
         {
@@ -929,6 +939,29 @@ public interface IModelAccessBroker
         CancellationToken cancellationToken);
 }
 
+public sealed record UnsignedModelAccessResult(
+    string OutputSchemaId,
+    string PayloadJson,
+    string PayloadHash,
+    string SchemaProjectionHash,
+    string CredentialBindingHash,
+    ModelAccessUsage Usage,
+    int RetryCount,
+    ModelFallbackEvent[] FallbackEvents,
+    string? ProviderRequestId,
+    DateTimeOffset StartedAt,
+    DateTimeOffset CompletedAt,
+    string TerminalStatus);
+
+public interface IModelReceiptSigner
+{
+    Task<ModelAccessResult> SignAsync(
+        string subject,
+        ModelAccessRequest request,
+        UnsignedModelAccessResult result,
+        CancellationToken cancellationToken);
+}
+
 public enum ContextConsentVerification
 {
     Verified,
@@ -950,10 +983,9 @@ public interface IContextConsentVerifier
 }
 
 /// <summary>
-/// The current wire shape carries only an opaque consent receipt hash. Without the signed receipt
-/// fields, deployment/model/region/profile binding, or device proof, the service cannot validate
-/// that the user approved these bytes. The default therefore fails closed until the canonical
-/// contract and a verifier are implemented.
+/// The canonical consent envelope is present and structurally bound to the exact request. The
+/// default still fails closed because installation-key signature verification and durable
+/// single-use consumption have no production provider until the external key resources exist.
 /// </summary>
 public sealed class UnavailableContextConsentVerifier : IContextConsentVerifier
 {
@@ -966,9 +998,90 @@ public sealed class UnavailableContextConsentVerifier : IContextConsentVerifier
     }
 }
 
-public sealed class DevelopmentModelAccessBroker(SupportPlaneOptions options) : IModelAccessBroker
+public sealed class DevelopmentModelReceiptSigner(SupportPlaneOptions options) : IModelReceiptSigner
 {
-    public Task<ModelAccessResult> CompleteAsync(
+    public Task<ModelAccessResult> SignAsync(
+        string subject,
+        ModelAccessRequest request,
+        UnsignedModelAccessResult result,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!options.DevelopmentSigningEnabled)
+        {
+            throw new InvalidOperationException(
+                "A production model-receipt signing provider is not configured.");
+        }
+        string recomputedResultHash = Hash(result.PayloadJson);
+        if (!string.Equals(recomputedResultHash, result.PayloadHash, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The unsigned model result did not match its declared payload hash.");
+        }
+        string requestHash = RequestGuards.Fingerprint(request);
+        string receiptHash = Hash(
+            $"development-receipt:{requestHash}:{result.PayloadHash}:{request.Consent.ConsentEnvelopeHash}");
+        ModelAccessReceipt receipt = new(
+            "sapphirus.model-access-receipt.v1",
+            ContractIds.FromEntropy("receipt", RandomNumberGenerator.GetBytes(16)),
+            request.RequestId,
+            requestHash,
+            result.PayloadHash,
+            "windows_local",
+            request.Consent.TenantHash,
+            request.Consent.SubjectHash,
+            request.RegistrationId,
+            request.LocalEgressManifestHash,
+            request.Consent.InvocationBindingHash,
+            request.Consent.ConsumptionHash,
+            request.Consent.ConsentEnvelopeHash,
+            request.Consent.ConsentDisclosureHash,
+            request.Consent.ProviderProfileHash,
+            request.Consent.ModelProfileHash,
+            request.Consent.ModelCapabilityHash,
+            request.Consent.DeploymentHash,
+            request.CanonicalOutputSchemaId,
+            request.CanonicalOutputSchemaHash,
+            result.SchemaProjectionHash,
+            result.CredentialBindingHash,
+            request.RetentionMode,
+            options.Region,
+            request.Items.Sum(item => item.ByteCount),
+            Encoding.UTF8.GetByteCount(result.PayloadJson),
+            result.Usage,
+            result.RetryCount,
+            result.FallbackEvents,
+            result.ProviderRequestId,
+            result.StartedAt,
+            result.CompletedAt,
+            result.TerminalStatus,
+            receiptHash,
+            new ModelAccessReceiptProof(
+                "support_plane_signature",
+                "ES256",
+                "https://development.invalid/",
+                options.Audience,
+                "development-model-receipt-key",
+                receiptHash,
+                "ZGV2ZWxvcG1lbnQtb25seS1uby10cnVzdA"));
+        return Task.FromResult(new ModelAccessResult(
+            "desktop-model-access-result.v1",
+            request.RequestId,
+            result.OutputSchemaId,
+            result.PayloadJson,
+            result.PayloadHash,
+            receipt));
+    }
+
+    private static string Hash(string value) => "sha256:" + Convert.ToHexStringLower(
+        SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+}
+
+public sealed class DevelopmentModelAccessBroker(
+    SupportPlaneOptions options,
+    IModelReceiptSigner receiptSigner) : IModelAccessBroker
+{
+    public async Task<ModelAccessResult> CompleteAsync(
         string subject,
         ModelAccessRequest request,
         CancellationToken cancellationToken)
@@ -985,30 +1098,22 @@ public sealed class DevelopmentModelAccessBroker(SupportPlaneOptions options) : 
             steps = new[] { "Understand context", "Plan changes", "Review before applying" },
             proposedChanges = Array.Empty<object>(),
         });
-        string requestHash = Hash(JsonSerializer.Serialize(request));
         string resultHash = Hash(payload);
-        ModelAccessReceipt receipt = new(
-            "desktop-model-access-receipt.v1",
-            "receipt_" + Guid.NewGuid().ToString("N"),
-            requestHash,
-            resultHash,
-            request.LocalEgressManifestHash,
-            request.ConsentReceiptHash,
-            Hash($"development-profile:{subject}"),
-            "transient_no_store",
-            options.Region,
-            request.Items.Sum(item => item.ByteCount),
-            Encoding.UTF8.GetByteCount(payload),
-            startedAt,
-            DateTimeOffset.UtcNow,
-            "succeeded");
-        return Task.FromResult(new ModelAccessResult(
-            "desktop-model-access-result.v1",
-            request.RequestId,
+        UnsignedModelAccessResult unsigned = new(
             request.CanonicalOutputSchemaId,
             payload,
             resultHash,
-            receipt));
+            Hash("development-schema-projection"),
+            Hash($"development-credential-binding:{subject}"),
+            new ModelAccessUsage(0, 0, 0, "EUR"),
+            0,
+            [],
+            null,
+            startedAt,
+            DateTimeOffset.UtcNow,
+            "succeeded");
+        return await receiptSigner.SignAsync(subject, request, unsigned, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private static string Hash(string value) => "sha256:" + Convert.ToHexStringLower(

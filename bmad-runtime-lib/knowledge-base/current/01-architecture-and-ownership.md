@@ -1,7 +1,7 @@
 ---
 title: "Architecture and Ownership"
 authority: current
-repository_commit: 982887595caaade305fdd886909c6785c48d5e16
+repository_commit: f18ef124a6e61754391b793a1b37a8a0f67491ab
 research_cutoff: 2026-07-16
 claim_ids: [KB-ARCH-001, KB-ARCH-002, KB-VAULT-001, KB-ROADMAP-001]
 ---

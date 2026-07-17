@@ -78,6 +78,8 @@ const productionRoots = Object.freeze([
   ["evidence-event.schema.json", "EvidenceEvent"],
   ["execution-result-manifest.schema.json", "ExecutionResultManifest"],
   ["filesystem-capability.schema.json", "FilesystemCapabilitySnapshot"],
+  ["model-access-receipt.schema.json", "ModelAccessReceipt"],
+  ["model-context-consent.schema.json", "ModelContextConsent"],
   ["package-compatibility.schema.json", "PackageCompatibility"],
   ["remote-job-handoff.schema.json", "RemoteJobHandoff"],
   ["spec-consumption.schema.json", "SpecConsumptionRecord"],
@@ -100,7 +102,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071",
+    sha256: "03809774e043010e28fa7997c8f3e2a008dc634cbbe13fba0371de3971bafe70",
     status: "reviewed",
   },
   dotnetTools: {

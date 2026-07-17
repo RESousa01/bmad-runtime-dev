@@ -77,8 +77,14 @@ builder.Services.AddSingleton<IModelCallIdempotencyStore>(_ =>
         TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
         TimeProvider.System));
 builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
+builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
 builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
 builder.Services.AddSingleton<IContextConsentVerifier, UnavailableContextConsentVerifier>();
+builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
+    builder.Environment.IsDevelopment()
+        && !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
+        ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)
+        : new UnavailableContextConsentConsumptionStore());
 
 WebApplication app = builder.Build();
 app.UseExceptionHandler();
@@ -275,6 +281,7 @@ desktop.MapPost("/model-access/calls", async (
         IDeviceRegistry registry,
         IModelAccessBroker broker,
         IContextConsentVerifier consentVerifier,
+        IContextConsentConsumptionStore consentConsumptionStore,
         IModelCallIdempotencyStore idempotency,
         SupportPlaneOptions configuration,
         CancellationToken cancellationToken) =>
@@ -341,7 +348,27 @@ desktop.MapPost("/model-access/calls", async (
                 subject,
                 key,
                 RequestGuards.Fingerprint(request),
-                token => broker.CompleteAsync(subject, request, token),
+                async token =>
+                {
+                    ContextConsentConsumption consumption = await consentConsumptionStore.ConsumeAsync(
+                        new ContextConsentConsumptionRequest(
+                            subject,
+                            request.RegistrationId,
+                            request.Consent.DecisionId,
+                            request.RequestId,
+                            request.Consent.ConsumptionHash,
+                            DateTimeOffset.UtcNow),
+                        token);
+                    if (consumption == ContextConsentConsumption.Unavailable)
+                    {
+                        throw new ContextConsentConsumptionUnavailableException();
+                    }
+                    if (consumption == ContextConsentConsumption.AlreadyConsumed)
+                    {
+                        throw new ContextConsentAlreadyConsumedException();
+                    }
+                    return await broker.CompleteAsync(subject, request, token).ConfigureAwait(false);
+                },
                 (completed, token) => registry.CommitModelResultIfActiveAsync(
                         device,
                         request,
@@ -373,6 +400,22 @@ desktop.MapPost("/model-access/calls", async (
                     "device_registration_unavailable",
                     StatusCodes.Status403Forbidden),
                 statusCode: StatusCodes.Status403Forbidden);
+        }
+        catch (ContextConsentAlreadyConsumedException)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "consent_already_consumed",
+                    StatusCodes.Status409Conflict),
+                statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (ContextConsentConsumptionUnavailableException)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "consent_consumption_unavailable",
+                    StatusCodes.Status503ServiceUnavailable),
+                statusCode: StatusCodes.Status503ServiceUnavailable);
         }
         catch (OperationCanceledException) when (
             device.RevocationToken.IsCancellationRequested

@@ -17,4 +17,12 @@
   <ItemGroup>
     <ProjectReference Include="../desktop-support-api/Sapphirus.DesktopSupportApi.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="../../packages/contracts/fixtures/valid/model-context-consent.json"
+             Link="ContractFixtures/model-context-consent.json"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../packages/contracts/fixtures/valid/model-access-receipt.json"
+             Link="ContractFixtures/model-access-receipt.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

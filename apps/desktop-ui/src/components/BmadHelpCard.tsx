@@ -86,8 +86,8 @@ function ReadyRecommendation({
           <dd>
             <span>
               {recommendation.requiredGuidance
-                ? "Required by Method guidance"
-                : "Optional Method guidance"}
+                ? "Required by BMAD skill guidance"
+                : "Optional BMAD skill guidance"}
             </span>
             <span>This guidance does not grant platform permission.</span>
           </dd>
@@ -126,7 +126,7 @@ function ReadyHelpRun({ run }: { readonly run: BmadHelpRunCreatedProjection }) {
         <span>Execution unavailable</span>
       </div>
       <p>
-        This local Method session is source-grounded but has no model or execution
+        This local BMAD Help session is source-grounded but has no model or execution
         binding. It cannot change the workspace or claim completion.
       </p>
       <ReadyRecommendation recommendation={run.recommendation} />
@@ -156,8 +156,8 @@ function HelpBody({
       return (
         <p aria-live="polite" role="status">
           {state.activity === "recovering"
-            ? "Checking for a retained Method recommendation…"
-            : "Preparing an exact Method request review…"}
+            ? "Checking for a retained BMAD Help recommendation…"
+            : "Preparing a BMAD Help request review…"}
         </p>
       );
     case "review_required":
@@ -187,7 +187,7 @@ function HelpBody({
       return (
         <div className="bmad-help-card__empty" role="alert">
           <strong>Request interrupted</strong>
-          <p>This Method request cannot be resumed or sent again. Start a fresh review.</p>
+          <p>This BMAD Help request cannot be resumed or sent again. Start a fresh review.</p>
         </div>
       );
     case "terminal":
