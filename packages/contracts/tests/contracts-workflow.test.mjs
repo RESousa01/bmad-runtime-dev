@@ -19,8 +19,8 @@ function stepSource(name) {
 }
 
 test("native generator restore and verification share an isolated Cargo home", () => {
-  const isolatedCargoHome = "CARGO_HOME: ${{ runner.temp }}\\sapphirus-contract-cargo-home";
+  const isolatedCargoHome = /\n        env:\n          CARGO_HOME: \$\{\{ runner\.temp \}\}\\sapphirus-contract-cargo-home\n/u;
 
-  assert.ok(stepSource("Restore reviewed cargo-typify generator").includes(isolatedCargoHome));
-  assert.ok(stepSource("Verify cross-language generators").includes(isolatedCargoHome));
+  assert.match(stepSource("Restore reviewed cargo-typify generator"), isolatedCargoHome);
+  assert.match(stepSource("Verify cross-language generators"), isolatedCargoHome);
 });

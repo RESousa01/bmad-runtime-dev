@@ -35,6 +35,12 @@ const baseline = JSON.parse(await readFile(
 ));
 const clone = () => structuredClone(baseline);
 
+async function createContractCodegenTemp(prefix) {
+  const temporaryRoot = path.join(repositoryRoot, "target", "contract-codegen");
+  await mkdir(temporaryRoot, { recursive: true });
+  return mkdtemp(path.join(temporaryRoot, prefix));
+}
+
 async function copyTree(sourceRoot, destinationRoot) {
   await mkdir(destinationRoot, { recursive: true });
   const entries = await readdir(sourceRoot, { withFileTypes: true });
@@ -261,7 +267,7 @@ test("cargo-typify identity normalization ignores only declared PE build metadat
 });
 
 test("native preflight rejects a byte-tampered repo-local cargo-typify before probing it", async () => {
-  const temporaryRoot = await mkdtemp(path.join(repositoryRoot, "target", "contract-codegen", "identity-test-"));
+  const temporaryRoot = await createContractCodegenTemp("identity-test-");
   try {
     const executable = path.join(temporaryRoot, "cargo-typify.exe");
     await copyFile(
@@ -467,12 +473,7 @@ test("genuine native preflight cannot load inherited PowerShell modules", {
 });
 
 test("native preflight rejects a tampered expanded Corvus closure before probing it", async () => {
-  const temporaryRoot = await mkdtemp(path.join(
-    repositoryRoot,
-    "target",
-    "contract-codegen",
-    "tampered-corvus-",
-  ));
+  const temporaryRoot = await createContractCodegenTemp("tampered-corvus-");
   const trustedPackageRoot = path.join(
     process.env.USERPROFILE,
     ".nuget",
