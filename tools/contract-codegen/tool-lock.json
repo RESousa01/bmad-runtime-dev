@@ -147,7 +147,16 @@
   },
   "stagingPolicy": {
     "strategy": "internal-$defs-bundle-v1",
-    "runRoots": ["target/contract-codegen/run-a", "target/contract-codegen/run-b"],
+    "runRoots": ["target/c/a", "target/c/b"],
+    "modeDirectories": {
+      "production": "p",
+      "qualification": "q"
+    },
+    "dotnetOutputPathLengths": {
+      "production": 86,
+      "qualification": 89
+    },
+    "outputPathLengthStrategy": "fixed-absolute-corvus-output-root-v1",
     "transformVersion": "internal-$defs-bundle-v1",
     "documentRootKeywordsRemoved": ["$id", "$schema", "$defs"],
     "nestedScopeKeywordsRejected": ["$id", "$schema", "$defs"],

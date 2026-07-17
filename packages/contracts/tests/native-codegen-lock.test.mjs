@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import {
   assertNoInheritedNativeToolInjection,
   assertInternalReferenceClosure,
+  canonicalDotnetOutputRoot,
   findOptionalNullableProperties,
   normalizedPortableExecutableSha256,
   partitionOptionalNullableRoot,
@@ -62,6 +63,28 @@ async function withEnvironment(name, value, operation) {
 
 test("native codegen lock accepts the reviewed exact configuration", () => {
   assert.doesNotThrow(() => validateToolLock(clone()));
+});
+
+test("Corvus staging fixes the absolute output-root length across checkout paths", () => {
+  const shortRoot = path.join("C:\\", "w", "a", "p");
+  const longerRoot = path.join("C:\\", "worktrees", "sapphirus", "a", "p");
+  for (const mode of ["production", "qualification"]) {
+    const expectedLength = baseline.stagingPolicy.dotnetOutputPathLengths[mode];
+    const shortOutput = canonicalDotnetOutputRoot(shortRoot, mode, baseline.stagingPolicy);
+    const longerOutput = canonicalDotnetOutputRoot(longerRoot, mode, baseline.stagingPolicy);
+    assert.equal(shortOutput.length, expectedLength);
+    assert.equal(longerOutput.length, expectedLength);
+    assert.match(path.basename(shortOutput), /^dotnet-+$/u);
+    assert.match(path.basename(longerOutput), /^dotnet-+$/u);
+  }
+  assert.throws(
+    () => canonicalDotnetOutputRoot(
+      path.join("C:\\", "x".repeat(100)),
+      "production",
+      baseline.stagingPolicy,
+    ),
+    /CONTRACT_GENERATOR_NONDETERMINISTIC/u,
+  );
 });
 
 test("native codegen lock rejects unknown and missing nested fields", () => {

@@ -24,8 +24,8 @@
     "dotnet": "Corvus.Json.Cli@5.1.0",
     "dotnetRuntime": "Corvus.Text.Json@5.1.0"
   },
-  "toolLockSha256": "sha256:92dc66e66e9478cc194c48e36ce3b44c2d714f142c9828e0aa2dff1b0cc794d7",
-  "generationConfigSha256": "sha256:8a8d513d10db7585cdc4379ae6f6e929b86446108ff53a94c17e7d0a1d3a40a9",
+  "toolLockSha256": "sha256:89bb4f400ee7ed107d24a86aca30c55cc677210f93ff2abf3a8ddaa78e31d684",
+  "generationConfigSha256": "sha256:7ce2978794c2de0725b425d8e45d5581937ad105ff60e333cd7c3b1da914bd5b",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
