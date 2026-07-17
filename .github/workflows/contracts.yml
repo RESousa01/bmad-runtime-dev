@@ -34,6 +34,8 @@ jobs:
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: pnpm/action-setup@v4
         with:
           version: 11.12.0
@@ -60,7 +62,15 @@ jobs:
         with:
           global-json-file: global.json
       - run: pnpm install --frozen-lockfile
-      - run: cargo install --locked --version 0.6.1 --root target/contract-tools cargo-typify
+      - name: Restore reviewed cargo-typify generator
+        shell: pwsh
+        run: |
+          # cargo install is not byte-reproducible across hosts (Rust embeds absolute
+          # build paths), so restore the reviewed prebuilt generator whose identity is
+          # pinned in tool-lock.json instead of recompiling it. See
+          # tools/contract-codegen/vendor/README.md.
+          node tools/contract-codegen/native-generator.mjs restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify pinned native generator identities
         shell: pwsh
         run: |
