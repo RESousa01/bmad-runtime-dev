@@ -10,7 +10,7 @@ section: "Source and Research"
 order: 86
 vault_role: "source-review"
 project: "Sapphirus BMAD Runtime"
-status: current
+status: source-evidence
 reviewed_on: 2026-07-09
 review_revision: "V6.16"
 source_archives:

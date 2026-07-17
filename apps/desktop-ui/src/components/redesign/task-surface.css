@@ -1,0 +1,330 @@
+.task-kicker {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.task-header__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.task-header__actions .sapphirus-button {
+  white-space: nowrap;
+}
+
+.attached-context {
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 0 2px 10px;
+}
+
+.attached-context__heading {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  gap: 6px;
+}
+
+.attached-context__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.attached-context__chips li {
+  background: var(--color-surface-selected);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  max-width: min(100%, 280px);
+  overflow: hidden;
+  padding: 5px 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attached-context__note {
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.composer__input-row > .sapphirus-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.composer__input-row > .sapphirus-button.sapphirus-button--quiet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 7px;
+  flex: 0 0 auto;
+  min-height: 32px;
+  min-width: max-content;
+  overflow: hidden;
+  padding-inline: 9px;
+}
+
+.composer {
+  position: relative;
+}
+
+.agent-control {
+  position: relative;
+}
+
+.agent-control__trigger.sapphirus-button {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 7px;
+  color: var(--color-text-soft);
+  gap: 7px;
+  max-width: 250px;
+  padding-inline: 9px;
+}
+
+.agent-control__trigger[aria-expanded="true"] {
+  background: var(--color-surface-selected);
+  border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 45%);
+}
+
+.agent-control__summary {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  max-width: 112px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-control__popover {
+  background: color-mix(in srgb, var(--color-surface-raised), var(--color-chrome) 20%);
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  bottom: 42px;
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  gap: 8px;
+  left: 0;
+  padding: 9px;
+  position: absolute;
+  width: min(310px, calc(100vw - 48px));
+  z-index: 80;
+}
+
+.agent-control__popover > header {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 4px 8px;
+}
+
+.agent-control__eyebrow {
+  color: var(--color-text-muted);
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.agent-control__popover h2 {
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.agent-control__menu {
+  display: grid;
+  margin: 0;
+}
+
+.agent-control__menu > div {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1.2fr);
+  min-height: 42px;
+  padding: 7px 5px;
+}
+
+.agent-control__menu dt {
+  color: var(--color-text-soft);
+  font-size: 0.6875rem;
+}
+
+.agent-control__menu dd {
+  color: var(--color-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  margin: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-control__status {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: 0.625rem;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.agent-control__details {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+}
+
+.agent-control__details > div {
+  align-items: center;
+  border-top: 1px solid var(--color-border-subtle);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  padding: 10px 2px;
+}
+
+.agent-control__details dt {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 0.6875rem;
+  gap: 7px;
+}
+
+.agent-control__details dd {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  min-width: 0;
+}
+
+.agent-control__details dd strong {
+  font-size: 0.71875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-control__details dd span {
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  line-height: 1.4;
+}
+
+.agent-control__settings.sapphirus-button {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.run-details-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.run-details-panel__empty {
+  align-content: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  display: grid;
+  justify-items: center;
+  min-height: 210px;
+  padding: 28px;
+  text-align: center;
+}
+
+.run-details-panel__empty h3 {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.run-details-panel__empty p,
+.run-details-panel__scope span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
+
+.run-details-panel__summary {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.run-details-panel__summary > div,
+.run-details-panel__scope {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+}
+
+.run-details-panel__summary dt {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+}
+
+.run-details-panel__summary dd,
+.run-details-panel__scope strong {
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.run-details-panel__scope span {
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .task-header {
+    row-gap: 10px;
+  }
+
+  .task-header__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .task-title-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .task-title-row .preview-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .composer__input-row {
+    flex-wrap: wrap;
+  }
+
+  .composer__input-row textarea {
+    flex-basis: 100%;
+    order: -1;
+  }
+}

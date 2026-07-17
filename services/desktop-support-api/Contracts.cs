@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Sapphirus.DesktopSupportApi;
 
 public sealed record BootstrapResponse(
@@ -67,6 +69,50 @@ public sealed record ModelContextItem(
     string Classification,
     string Content);
 
+public sealed record ModelContextConsentProof(
+    string ProofType,
+    string Algorithm,
+    string KeyId,
+    string SignedPayloadHash,
+    string Signature);
+
+public sealed record ModelContextConsent(
+    string SchemaVersion,
+    string DecisionId,
+    string RequestId,
+    string InvocationId,
+    string DeliveryModel,
+    string TenantHash,
+    string SubjectHash,
+    string RegistrationId,
+    string InstallationPublicKeyHash,
+    string EntitlementLeaseId,
+    string EntitlementLeaseHash,
+    string TenantPolicyId,
+    long TenantPolicyVersion,
+    string TenantPolicyHash,
+    string Purpose,
+    string ModelRole,
+    string CanonicalOutputSchemaId,
+    string CanonicalOutputSchemaHash,
+    string ManifestHash,
+    string InvocationBindingHash,
+    string ConsumptionHash,
+    string ConsentDisclosureHash,
+    string ProviderProfileHash,
+    string ModelProfileHash,
+    string ModelCapabilityHash,
+    string DeploymentHash,
+    string Region,
+    string RetentionMode,
+    string BudgetClass,
+    [property: JsonConverter(typeof(UtcInstantJsonConverter))] DateTimeOffset IssuedAt,
+    [property: JsonConverter(typeof(UtcInstantJsonConverter))] DateTimeOffset NotBefore,
+    [property: JsonConverter(typeof(UtcInstantJsonConverter))] DateTimeOffset ExpiresAt,
+    string NonceHash,
+    string ConsentEnvelopeHash,
+    ModelContextConsentProof Proof);
+
 public sealed record ModelAccessRequest(
     string SchemaVersion,
     string RequestId,
@@ -77,10 +123,14 @@ public sealed record ModelAccessRequest(
     string CanonicalOutputSchemaId,
     string CanonicalOutputSchemaHash,
     string LocalEgressManifestHash,
-    string ConsentReceiptHash,
+    ModelContextConsent Consent,
     ModelContextItem[] Items,
     string RetentionMode,
-    string BudgetClass);
+    string BudgetClass)
+{
+    [JsonIgnore]
+    public string ConsentReceiptHash => Consent.ConsentEnvelopeHash;
+}
 
 public sealed record ModelAccessResult(
     string SchemaVersion,
@@ -90,21 +140,63 @@ public sealed record ModelAccessResult(
     string PayloadHash,
     ModelAccessReceipt Receipt);
 
+public sealed record ModelAccessUsage(
+    long InputTokens,
+    long OutputTokens,
+    long CostMicrounits,
+    string Currency);
+
+public sealed record ModelFallbackEvent(
+    int Sequence,
+    string FromProfileHash,
+    string ToProfileHash,
+    string PolicyTransitionHash);
+
+public sealed record ModelAccessReceiptProof(
+    string ProofType,
+    string Algorithm,
+    string Issuer,
+    string Audience,
+    string KeyId,
+    string SignedPayloadHash,
+    string Signature);
+
 public sealed record ModelAccessReceipt(
     string SchemaVersion,
     string ReceiptId,
+    string RequestId,
     string RequestHash,
     string ResultHash,
-    string LocalEgressManifestHash,
-    string ConsentReceiptHash,
+    string DeliveryModel,
+    string TenantHash,
+    string SubjectHash,
+    string RegistrationId,
+    string ManifestHash,
+    string InvocationBindingHash,
+    string ConsumptionHash,
+    string ConsentEnvelopeHash,
+    string ConsentDisclosureHash,
+    string ProviderProfileHash,
     string ModelProfileHash,
+    string ModelCapabilityHash,
+    string DeploymentHash,
+    string CanonicalOutputSchemaId,
+    string CanonicalOutputSchemaHash,
+    string ProviderSchemaProjectionHash,
+    string CredentialBindingHash,
     string RetentionMode,
     string Region,
     int InputBytes,
     int OutputBytes,
-    DateTimeOffset StartedAt,
-    DateTimeOffset CompletedAt,
-    string Status);
+    ModelAccessUsage Usage,
+    int RetryCount,
+    ModelFallbackEvent[] FallbackEvents,
+    string? ProviderRequestId,
+    [property: JsonConverter(typeof(UtcInstantJsonConverter))] DateTimeOffset StartedAt,
+    [property: JsonConverter(typeof(UtcInstantJsonConverter))] DateTimeOffset CompletedAt,
+    string TerminalStatus,
+    string ReceiptHash,
+    ModelAccessReceiptProof Proof);
 
 public sealed record ReleaseResponse(
     string SchemaVersion,
@@ -113,4 +205,3 @@ public sealed record ReleaseResponse(
     string Architecture,
     string ArtifactSha256,
     string MetadataSignature);
-

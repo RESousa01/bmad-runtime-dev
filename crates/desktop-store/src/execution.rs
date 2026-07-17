@@ -560,6 +560,36 @@ impl LocalStore {
         Ok(rows)
     }
 
+    /// Returns the newest completed checkpoint for one exact workspace grant.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the workspace identifier is invalid or
+    /// `SQLite` cannot complete the query.
+    pub fn latest_completed_checkpoint(
+        &self,
+        workspace_id: &str,
+        workspace_grant_epoch: u64,
+    ) -> Result<Option<String>, StoreError> {
+        validate_label(workspace_id)?;
+        self.connection
+            .lock()
+            .query_row(
+                "SELECT r.checkpoint_id
+                 FROM execution_results r
+                 JOIN effect_journals j ON j.journal_id = r.journal_id
+                 WHERE j.workspace_id = ?1
+                   AND j.workspace_grant_epoch = ?2
+                   AND j.state = 'completed'
+                 ORDER BY r.rowid DESC
+                 LIMIT 1",
+                params![workspace_id, workspace_grant_epoch],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(StoreError::from)
+    }
+
     pub(crate) fn verify_execution_integrity(&self) -> Result<(), StoreError> {
         let connection = self.connection.lock();
         let mut statement = connection.prepare(

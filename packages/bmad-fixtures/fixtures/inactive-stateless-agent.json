@@ -7,9 +7,9 @@
   "executionProfile": "direct",
   "activationState": "not_active",
   "builderActions": [
-    "Build",
-    "Edit",
-    "Analyze"
+    "create_rebuild",
+    "edit",
+    "analyze"
   ],
   "scriptExecution": "blocked",
   "networkAccess": "blocked",

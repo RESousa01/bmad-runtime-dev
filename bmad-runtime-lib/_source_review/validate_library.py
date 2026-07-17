@@ -9,9 +9,15 @@ import re
 import sys
 from pathlib import Path
 
+from living_knowledge import validate_living_knowledge
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
+
+
+def canonical_markdown_bytes(payload: bytes) -> bytes:
+    return payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
 
 
 def unquote(value: str) -> str:
@@ -165,21 +171,19 @@ def main() -> int:
 
     # V6.17 dual-delivery authority checks. These catch terminology that would
     # silently reintroduce the retired single-runtime or proposed-file model.
-    required_authorities = {
-        "93 - Split Web and Windows Desktop Architecture Plans.md": "status: current",
-        "94 - Windows Desktop Native Host and IPC.md": "status: current",
-        "95 - Windows Local Workspace and Execution.md": "status: current",
-        "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md": "status: current",
-        "97 - Windows Desktop Security and Trust Model.md": "status: current",
-        "98 - Azure Support Plane for Windows Desktop.md": "status: current",
-        "99 - Dual-Delivery Contract and Conformance Specification.md": "status: current",
+    required_legacy_evidence = {
+        "93 - Split Web and Windows Desktop Architecture Plans.md",
+        "94 - Windows Desktop Native Host and IPC.md",
+        "95 - Windows Local Workspace and Execution.md",
+        "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",
+        "97 - Windows Desktop Security and Trust Model.md",
+        "98 - Azure Support Plane for Windows Desktop.md",
+        "99 - Dual-Delivery Contract and Conformance Specification.md",
     }
-    for name, marker in required_authorities.items():
+    for name in required_legacy_evidence:
         path = ROOT / name
         if not path.exists():
-            errors.append(f"{name}: required V6.17 authority document is missing")
-        elif marker not in path.read_text(encoding="utf-8-sig"):
-            errors.append(f"{name}: required marker {marker!r} is missing")
+            errors.append(f"{name}: required V6.17 legacy evidence document is missing")
 
     retired_patterns = {
         "retired desktop identity document title": r"Desktop Identity, Licensing, Model Access, Sync, and Privacy",
@@ -207,7 +211,7 @@ def main() -> int:
         total_lines = 0
         total_bytes = 0
         for path in files:
-            payload = path.read_bytes()
+            payload = canonical_markdown_bytes(path.read_bytes())
             line_count = len(payload.decode("utf-8-sig").splitlines())
             byte_count = len(payload)
             total_lines += line_count
@@ -231,6 +235,10 @@ def main() -> int:
         manifest_verified = not any(item.startswith("manifest.json:") for item in errors)
     except (FileNotFoundError, KeyError, TypeError, json.JSONDecodeError) as exc:
         errors.append(f"manifest.json: invalid or unreadable ({exc})")
+
+    living_result = validate_living_knowledge(ROOT, ROOT.parent)
+    errors.extend(living_result.errors)
+    warnings.extend(living_result.warnings)
 
     print(
         json.dumps(

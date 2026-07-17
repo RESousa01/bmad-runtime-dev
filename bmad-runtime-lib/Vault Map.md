@@ -10,7 +10,7 @@ section: "Vault Home"
 order: 1
 vault_role: "map-of-content"
 project: Sapphirus BMAD Runtime
-status: current
+status: supporting-reference
 updated_on: 2026-07-10
 ---
 

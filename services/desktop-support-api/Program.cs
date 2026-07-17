@@ -13,6 +13,8 @@ options.Validate(builder.Environment);
 
 builder.Services.Configure<JsonOptions>(json =>
 {
+    json.SerializerOptions.AllowDuplicateProperties = false;
+    json.SerializerOptions.PropertyNameCaseInsensitive = false;
     json.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     json.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
 });
@@ -65,14 +67,24 @@ builder.Services.AddRateLimiter(rateLimiter =>
 
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton<IDeviceRegistry, MemoryDeviceRegistry>();
-builder.Services.AddSingleton<IReceiptStore, MemoryReceiptStore>();
 builder.Services.AddSingleton<IIdempotencyStore>(_ => new MemoryIdempotencyStore(
     options.IdempotencyMaximumEntries,
     TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
     TimeProvider.System));
+builder.Services.AddSingleton<IModelCallIdempotencyStore>(_ =>
+    new MemoryModelCallIdempotencyStore(
+        options.IdempotencyMaximumEntries,
+        TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
+        TimeProvider.System));
 builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
+builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
 builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
 builder.Services.AddSingleton<IContextConsentVerifier, UnavailableContextConsentVerifier>();
+builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
+    builder.Environment.IsDevelopment()
+        && !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
+        ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)
+        : new UnavailableContextConsentConsumptionStore());
 
 WebApplication app = builder.Build();
 app.UseExceptionHandler();
@@ -156,6 +168,7 @@ desktop.MapPost("/entitlements/leases", async (
         IDeviceRegistry registry,
         ISignedPolicyService signer,
         IIdempotencyStore idempotency,
+        SupportPlaneOptions configuration,
         CancellationToken cancellationToken) =>
     {
         string? key = RequestGuards.IdempotencyKey(context.Request);
@@ -166,11 +179,11 @@ desktop.MapPost("/entitlements/leases", async (
             return Results.BadRequest(RequestGuards.SafeProblem("request_invalid"));
         }
         string subject = ScopeAuthorization.SubjectPartition(context.User);
-        RegisteredDevice? device = await registry.FindAsync(
+        ActiveDeviceRegistration? device = await registry.FindActiveAsync(
             subject,
             request.RegistrationId,
             cancellationToken);
-        if (device is null || !device.IsActive)
+        if (device is null)
         {
             return Results.Json(
                 RequestGuards.SafeProblem(
@@ -178,20 +191,88 @@ desktop.MapPost("/entitlements/leases", async (
                     StatusCodes.Status403Forbidden),
                 statusCode: StatusCodes.Status403Forbidden);
         }
-        SignedEntitlementLease lease = await idempotency.ExecuteAsync(
-            subject,
-            key,
-            RequestGuards.Fingerprint(request),
-            () => signer.CreateLeaseAsync(subject, request.RegistrationId, cancellationToken),
-            cancellationToken);
-        return Results.Ok(lease);
+        using CancellationTokenSource operationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                device.RevocationToken);
+        operationCancellation.CancelAfter(
+            TimeSpan.FromSeconds(configuration.ConnectedOperationTimeoutSeconds));
+        try
+        {
+            SignedEntitlementLease lease = await idempotency.ExecuteAsync(
+                subject,
+                key,
+                RequestGuards.Fingerprint(request),
+                async () =>
+                {
+                    SignedEntitlementLease created = await CancellableOperation.WaitAsync(
+                        signer.CreateLeaseAsync(
+                            subject,
+                            request.RegistrationId,
+                            operationCancellation.Token),
+                        operationCancellation.Token);
+                    return await registry.CommitLeaseIfActiveAsync(
+                        device,
+                        created,
+                        operationCancellation.Token);
+                },
+                operationCancellation.Token);
+            return Results.Ok(lease);
+        }
+        catch (DeviceRegistrationRevokedException)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "device_registration_unavailable",
+                    StatusCodes.Status403Forbidden),
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+        catch (OperationCanceledException) when (
+            device.RevocationToken.IsCancellationRequested
+            && !cancellationToken.IsCancellationRequested)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "device_registration_unavailable",
+                    StatusCodes.Status403Forbidden),
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "connected_operation_timeout",
+                    StatusCodes.Status504GatewayTimeout),
+                statusCode: StatusCodes.Status504GatewayTimeout);
+        }
     })
     .RequireAuthorization(DesktopScopes.Access);
 
 desktop.MapGet("/policy/current", async (
         ISignedPolicyService signer,
+        SupportPlaneOptions configuration,
         CancellationToken cancellationToken) =>
-    Results.Ok(await signer.CurrentPolicyAsync(cancellationToken)))
+    {
+        using CancellationTokenSource operationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        operationCancellation.CancelAfter(
+            TimeSpan.FromSeconds(configuration.ConnectedOperationTimeoutSeconds));
+        try
+        {
+            SignedDesktopPolicy policy = await CancellableOperation.WaitAsync(
+                signer.CurrentPolicyAsync(operationCancellation.Token),
+                operationCancellation.Token);
+            return Results.Ok(policy);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "connected_operation_timeout",
+                    StatusCodes.Status504GatewayTimeout),
+                statusCode: StatusCodes.Status504GatewayTimeout);
+        }
+    })
     .RequireAuthorization(DesktopScopes.Access);
 
 desktop.MapPost("/model-access/calls", async (
@@ -200,8 +281,9 @@ desktop.MapPost("/model-access/calls", async (
         IDeviceRegistry registry,
         IModelAccessBroker broker,
         IContextConsentVerifier consentVerifier,
-        IReceiptStore receipts,
-        IIdempotencyStore idempotency,
+        IContextConsentConsumptionStore consentConsumptionStore,
+        IModelCallIdempotencyStore idempotency,
+        SupportPlaneOptions configuration,
         CancellationToken cancellationToken) =>
     {
         string? key = RequestGuards.IdempotencyKey(context.Request);
@@ -217,11 +299,11 @@ desktop.MapPost("/model-access/calls", async (
             return Results.BadRequest(RequestGuards.SafeProblem(errorCode));
         }
         string subject = ScopeAuthorization.SubjectPartition(context.User);
-        RegisteredDevice? device = await registry.FindAsync(
+        ActiveDeviceRegistration? device = await registry.FindActiveAsync(
             subject,
             request.RegistrationId,
             cancellationToken);
-        if (device is null || !device.IsActive)
+        if (device is null)
         {
             return Results.Json(
                 RequestGuards.SafeProblem(
@@ -229,44 +311,130 @@ desktop.MapPost("/model-access/calls", async (
                     StatusCodes.Status403Forbidden),
                 statusCode: StatusCodes.Status403Forbidden);
         }
-        ContextConsentVerification consent = await consentVerifier.VerifyAsync(
-            new ContextConsentVerificationRequest(
+        using CancellationTokenSource operationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                device.RevocationToken);
+        operationCancellation.CancelAfter(
+            TimeSpan.FromSeconds(configuration.ConnectedOperationTimeoutSeconds));
+        try
+        {
+            ContextConsentVerification consent = await CancellableOperation.WaitAsync(
+                consentVerifier.VerifyAsync(
+                    new ContextConsentVerificationRequest(
+                        subject,
+                        device.Registration,
+                        request,
+                        recomputedManifestHash),
+                    operationCancellation.Token).AsTask(),
+                operationCancellation.Token);
+            if (consent == ContextConsentVerification.Unavailable)
+            {
+                return Results.Json(
+                    RequestGuards.SafeProblem(
+                        "consent_binding_unavailable",
+                        StatusCodes.Status503ServiceUnavailable),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+            if (consent != ContextConsentVerification.Verified)
+            {
+                return Results.Json(
+                    RequestGuards.SafeProblem(
+                        "consent_binding_rejected",
+                        StatusCodes.Status403Forbidden),
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+            ModelCallIdempotencyResult execution = await idempotency.ExecuteAsync(
                 subject,
-                device,
-                request,
-                recomputedManifestHash),
-            cancellationToken);
-        if (consent == ContextConsentVerification.Unavailable)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "consent_binding_unavailable",
-                    StatusCodes.Status503ServiceUnavailable),
-                statusCode: StatusCodes.Status503ServiceUnavailable);
+                key,
+                RequestGuards.Fingerprint(request),
+                async token =>
+                {
+                    ContextConsentConsumption consumption = await consentConsumptionStore.ConsumeAsync(
+                        new ContextConsentConsumptionRequest(
+                            subject,
+                            request.RegistrationId,
+                            request.Consent.DecisionId,
+                            request.RequestId,
+                            request.Consent.ConsumptionHash,
+                            DateTimeOffset.UtcNow),
+                        token);
+                    if (consumption == ContextConsentConsumption.Unavailable)
+                    {
+                        throw new ContextConsentConsumptionUnavailableException();
+                    }
+                    if (consumption == ContextConsentConsumption.AlreadyConsumed)
+                    {
+                        throw new ContextConsentAlreadyConsumedException();
+                    }
+                    return await broker.CompleteAsync(subject, request, token).ConfigureAwait(false);
+                },
+                (completed, token) => registry.CommitModelResultIfActiveAsync(
+                        device,
+                        request,
+                        completed,
+                        configuration.Region,
+                        token),
+                operationCancellation.Token);
+            if (execution.PriorCompletion is ModelCallCompletionMarker completion)
+            {
+                return Results.Json(
+                    new
+                    {
+                        type = "https://errors.sapphirus.invalid/model_call_already_completed",
+                        title = "The model call already completed.",
+                        status = StatusCodes.Status409Conflict,
+                        code = "model_call_already_completed",
+                        receiptId = completion.ReceiptId,
+                        requestHash = completion.RequestHash,
+                        resultHash = completion.ResultHash,
+                    },
+                    statusCode: StatusCodes.Status409Conflict);
+            }
+            return Results.Ok(execution.Result);
         }
-        if (consent != ContextConsentVerification.Verified)
+        catch (DeviceRegistrationRevokedException)
         {
             return Results.Json(
                 RequestGuards.SafeProblem(
-                    "consent_binding_rejected",
+                    "device_registration_unavailable",
                     StatusCodes.Status403Forbidden),
                 statusCode: StatusCodes.Status403Forbidden);
         }
-        ModelAccessResult result = await idempotency.ExecuteAsync(
-            subject,
-            key,
-            RequestGuards.Fingerprint(request),
-            async () =>
-            {
-                ModelAccessResult completed = await broker.CompleteAsync(
-                    subject,
-                    request,
-                    cancellationToken);
-                await receipts.AddAsync(subject, completed.Receipt, cancellationToken);
-                return completed;
-            },
-            cancellationToken);
-        return Results.Ok(result);
+        catch (ContextConsentAlreadyConsumedException)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "consent_already_consumed",
+                    StatusCodes.Status409Conflict),
+                statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (ContextConsentConsumptionUnavailableException)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "consent_consumption_unavailable",
+                    StatusCodes.Status503ServiceUnavailable),
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (OperationCanceledException) when (
+            device.RevocationToken.IsCancellationRequested
+            && !cancellationToken.IsCancellationRequested)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "device_registration_unavailable",
+                    StatusCodes.Status403Forbidden),
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return Results.Json(
+                RequestGuards.SafeProblem(
+                    "connected_operation_timeout",
+                    StatusCodes.Status504GatewayTimeout),
+                statusCode: StatusCodes.Status504GatewayTimeout);
+        }
     })
     .RequireAuthorization(DesktopScopes.ModelInvoke)
     .DisableAntiforgery();
@@ -274,11 +442,14 @@ desktop.MapPost("/model-access/calls", async (
 desktop.MapGet("/model-access/receipts/{receiptId}", async (
         string receiptId,
         HttpContext context,
-        IReceiptStore receipts,
+        IDeviceRegistry registry,
         CancellationToken cancellationToken) =>
     {
         string subject = ScopeAuthorization.SubjectPartition(context.User);
-        ModelAccessReceipt? receipt = await receipts.GetAsync(subject, receiptId, cancellationToken);
+        ModelAccessReceipt? receipt = await registry.GetReceiptAsync(
+            subject,
+            receiptId,
+            cancellationToken);
         return receipt is null ? Results.NotFound() : Results.Ok(receipt);
     })
     .RequireAuthorization(DesktopScopes.ModelInvoke);

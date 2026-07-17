@@ -511,6 +511,25 @@ enum ParsedHelpProposal {
 fn parse_proposal(bytes: &[u8]) -> Result<ParsedHelpProposal, BmadKernelError> {
     let value =
         crate::strict_json::parse_strict_json_value(bytes).map_err(|_| proposal_invalid())?;
+    parse_proposal_value(&value)
+}
+
+/// Validates one already-parsed BMAD Help proposal against the generated
+/// contract and the runtime's shared semantic shape rules.
+///
+/// This validator intentionally accepts either closed proposal branch without
+/// consulting a compiled catalog or evidence allowlist. Exact catalog and
+/// evidence authority remain the materializer's responsibility.
+///
+/// # Errors
+///
+/// Returns [`BmadKernelErrorCode::HelpProposalInvalid`] for structural or
+/// semantic drift.
+pub fn validate_bmad_help_proposal_schema(value: &Value) -> Result<(), BmadKernelError> {
+    parse_proposal_value(value).map(drop)
+}
+
+fn parse_proposal_value(value: &Value) -> Result<ParsedHelpProposal, BmadKernelError> {
     serde_json::from_value::<generated_contracts::MethodHelpProposal>(value.clone())
         .map_err(|_| proposal_invalid())?;
     let object = value.as_object().ok_or_else(proposal_invalid)?;

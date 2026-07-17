@@ -2,7 +2,8 @@ import { Button, Tab, TabList, TabPanel, Tabs } from "@sapphirus/ui";
 import { FileCode2, ShieldCheck, X } from "lucide-react";
 import type { InspectorTab } from "../data/demo";
 import type { ContextPreviewProjection } from "../lib/hostClient";
-import type { BmadHelpUiState, BmadLibraryUiState } from "../lib/bmadProjection";
+import type { BmadLibraryUiState } from "../lib/bmadProjection";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { WorkspaceProjectionProvenance } from "../lib/workspaceReadSource";
 import { containModalPanelFocus, useModalPanelFocus } from "../lib/panelFocus";
 import { BmadHelpCard } from "./BmadHelpCard";
@@ -17,11 +18,12 @@ const inspectorTabs: Array<{ accessibleLabel: string; id: InspectorTab; label: s
   { accessibleLabel: "Changes", id: "changes", label: "Changes" },
   { accessibleLabel: "Logs", id: "logs", label: "Logs" },
   { accessibleLabel: "Evidence", id: "evidence", label: "Evidence" },
-  { accessibleLabel: "Method library", id: "method", label: "Method" },
+  { accessibleLabel: "Skills and agents", id: "method", label: "Skills & agents" },
 ];
 
 export interface InspectorProps {
-  bmadHelpState: BmadHelpUiState;
+  bmadHelpState: BmadRequestState;
+  bmadModelDevelopmentOnly: boolean;
   bmadLibraryState: BmadLibraryUiState;
   changesPanel: GovernedChangesPanelProps;
   contextPreview: ContextPreviewProjection | null;
@@ -30,6 +32,9 @@ export interface InspectorProps {
   isOpen: boolean;
   isOverlay: boolean;
   methodLibraryAvailable: boolean;
+  onBmadApprove: () => void;
+  onBmadCancel: () => void;
+  onBmadSend: () => void;
   onClose: () => void;
   onReloadMethodLibrary: () => void;
   onTabChange: (tab: InspectorTab) => void;
@@ -114,6 +119,7 @@ function ContextPanel({
 
 export function Inspector({
   bmadHelpState,
+  bmadModelDevelopmentOnly,
   bmadLibraryState,
   changesPanel,
   contextPreview,
@@ -122,6 +128,9 @@ export function Inspector({
   isOpen,
   isOverlay,
   methodLibraryAvailable,
+  onBmadApprove,
+  onBmadCancel,
+  onBmadSend,
   onClose,
   onReloadMethodLibrary,
   onTabChange,
@@ -171,14 +180,14 @@ export function Inspector({
         <TabPanel id="logs">
           <div className="log-panel">
             <div className="inspector-section-heading">
-              <h2>Preview log</h2>
-              <span>Demonstration events</span>
+              <h2>Activity log</h2>
+              <span>Current session</span>
             </div>
-            <ol>
-              <li><time>10:41:55</time><span>Demo workspace state rendered</span></li>
-              <li><time>10:41:56</time><span>Demo context rendered</span></li>
-              <li><time>10:42:07</time><span>Demo proposal rendered</span></li>
-            </ol>
+            <div className="inspector-empty-state inspector-empty-state--inline">
+              <ShieldCheck aria-hidden="true" size={24} />
+              <h3>No activity yet</h3>
+              <p>Governed actions from this session will appear here when activity projection is available.</p>
+            </div>
           </div>
         </TabPanel>
         <TabPanel id="evidence">
@@ -190,14 +199,20 @@ export function Inspector({
             <div className="inspector-empty-state inspector-empty-state--inline">
               <ShieldCheck aria-hidden="true" size={24} />
               <h3>No evidence yet</h3>
-              <p>This internal preview has not created a governed local action or evidence record.</p>
+              <p>No governed local action has created an evidence record in this workspace yet.</p>
             </div>
           </div>
         </TabPanel>
         {methodLibraryAvailable ? (
           <TabPanel id="method">
             <div className="method-library-panel">
-              <BmadHelpCard state={bmadHelpState} />
+              <BmadHelpCard
+                developmentOnly={bmadModelDevelopmentOnly}
+                onApprove={onBmadApprove}
+                onCancel={onBmadCancel}
+                onSend={onBmadSend}
+                state={bmadHelpState}
+              />
               <BmadLibraryPanel
                 onReload={onReloadMethodLibrary}
                 state={bmadLibraryState}

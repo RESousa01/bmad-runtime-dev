@@ -1,88 +1,106 @@
 import { Button } from "@sapphirus/ui";
 import {
-  ArrowRight,
-  BookmarkCheck,
+  Bot,
   ChevronDown,
-  FileText,
+  ChevronRight,
+  FileCode2,
+  History,
   Library,
   ListChecks,
   Menu,
-  MoreVertical,
-  PanelRightOpen,
   Paperclip,
-  Pin,
   Send,
   ShieldAlert,
-  ShieldCheck,
-  WifiOff,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import type { ProposalState } from "../data/demo";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
+import type { ContextPreviewProjection } from "../lib/hostClient";
 import { BrandMark } from "./BrandMark";
-import { StageRail, type TaskStage } from "./StageRail";
 
 export interface TaskWorkspaceProps {
+  canAttachFiles: boolean;
+  contextPreview: ContextPreviewProjection | null;
   hostStatusLabel: string;
   interactionDisabled: boolean;
+  isBrowserDemo: boolean;
   isInert?: boolean;
   isNewSession: boolean;
   isReadOnlyRecovery: boolean;
   methodGuidanceAvailable: boolean;
-  methodGuidanceBusy: boolean;
+  methodGuidanceState: BmadRequestState;
   methodLibraryAvailable: boolean;
+  modelAccessDetail: string;
+  modelAccessLabel: string;
+  onAttachFiles: () => void;
+  onOpenAgentSettings: (returnFocusTarget: HTMLElement | null) => void;
+  onOpenChanges: () => void;
   onOpenMethodLibrary: () => void;
-  onOpenInspector: () => void;
-  onOpenSessions: () => void;
-  onReviewContext: () => void;
-  onReviewChanges: () => void;
-  onTaskSubmitted: (intent: string) => Promise<void>;
-  proposalState: ProposalState;
+  onOpenRunDetails: () => void;
+  onOpenSidebar: () => void;
+  onReviewRequest: (intent: string) => Promise<void>;
   sessionTitle: string;
   workspaceName: string;
 }
 
-function getCurrentStage(proposalState: ProposalState, isNewSession: boolean): TaskStage {
-  if (isNewSession) {
-    return "Context";
-  }
-  if (proposalState === "discarded") {
-    return "Plan";
-  }
-  return "Review";
-}
-
 export function TaskWorkspace({
+  canAttachFiles,
+  contextPreview,
   hostStatusLabel,
   interactionDisabled,
+  isBrowserDemo,
   isInert = false,
   isNewSession,
   isReadOnlyRecovery,
   methodGuidanceAvailable,
-  methodGuidanceBusy,
+  methodGuidanceState,
   methodLibraryAvailable,
+  modelAccessDetail,
+  modelAccessLabel,
+  onAttachFiles,
+  onOpenAgentSettings,
+  onOpenChanges,
   onOpenMethodLibrary,
-  onOpenInspector,
-  onOpenSessions,
-  onReviewContext,
-  onReviewChanges,
-  onTaskSubmitted,
-  proposalState,
+  onOpenRunDetails,
+  onOpenSidebar,
+  onReviewRequest,
   sessionTitle,
   workspaceName,
 }: TaskWorkspaceProps) {
+  const agentControlRef = useRef<HTMLDivElement>(null);
+  const [agentControlOpen, setAgentControlOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [submittedTask, setSubmittedTask] = useState<string | null>(null);
-  const [hasMethodGuidanceSubmission, setHasMethodGuidanceSubmission] = useState(false);
-  const [guidanceStatus, setGuidanceStatus] = useState<
-    "idle" | "submitting" | "created"
-  >("idle");
-  const currentStage = getCurrentStage(proposalState, isNewSession && !submittedTask);
-  const methodGuidanceView = methodGuidanceAvailable || hasMethodGuidanceSubmission;
-  const guidanceSubmitting = methodGuidanceBusy || guidanceStatus === "submitting";
-  const checkingRetainedGuidance = guidanceSubmitting
-    && submittedTask === null
-    && guidanceStatus === "idle";
-  const composerDisabled = !methodGuidanceAvailable || guidanceSubmitting;
+  const methodGuidanceView = methodGuidanceAvailable
+    || submittedTask !== null
+    || methodGuidanceState.kind !== "idle";
+  const guidancePending = methodGuidanceState.kind === "creating"
+    || methodGuidanceState.kind === "review_required"
+    || methodGuidanceState.kind === "approving"
+    || methodGuidanceState.kind === "approved"
+    || methodGuidanceState.kind === "submitting";
+  const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
+    && methodGuidanceState.activity === "recovering";
+  const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
+  const composerDisabled = interactionDisabled || !methodGuidanceAvailable || guidancePending || failedSubmission;
+
+  function closeAgentControl(restoreFocus = false) {
+    const trigger = agentControlRef.current?.querySelector<HTMLButtonElement>(".agent-control__trigger");
+    setAgentControlOpen(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => trigger?.isConnected && trigger.focus());
+    }
+  }
+
+  useEffect(() => {
+    if (!agentControlOpen) return undefined;
+    function closeOnOutsidePointer(event: PointerEvent) {
+      if (!agentControlRef.current?.contains(event.target as Node)) {
+        setAgentControlOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, [agentControlOpen]);
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,34 +111,23 @@ export function TaskWorkspace({
     if (!value) {
       return;
     }
-    setSubmittedTask(value);
-    setDraft("");
-    if (methodGuidanceAvailable) {
-      setHasMethodGuidanceSubmission(true);
-      setGuidanceStatus("submitting");
-    }
     try {
-      await onTaskSubmitted(value);
-      if (methodGuidanceAvailable) {
-        setGuidanceStatus("created");
-      }
+      await onReviewRequest(value);
+      setSubmittedTask(value);
+      setDraft("");
     } catch {
-      if (methodGuidanceAvailable) {
-        setGuidanceStatus("idle");
-      }
+      setDraft(value);
     }
   }
-
-  const showProposal = !methodGuidanceView && (!isNewSession || submittedTask !== null);
 
   return (
     <main className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""}`} inert={isInert}>
       <header className="task-header">
         <div className="task-header__workspace">
           <Button
-            aria-label="Open sessions"
+            aria-label="Open task navigation"
             className="mobile-panel-button"
-            onPress={onOpenSessions}
+            onPress={onOpenSidebar}
             size="icon"
             variant="quiet"
           >
@@ -134,39 +141,30 @@ export function TaskWorkspace({
           </span>
         </div>
         <div className="task-header__actions">
+          <Button onPress={onOpenChanges} size="small" variant="quiet">
+            <ListChecks aria-hidden="true" size={16} />
+            Changes
+          </Button>
+          <Button onPress={onOpenRunDetails} size="small" variant="quiet">
+            <History aria-hidden="true" size={16} />
+            Run details
+          </Button>
           {methodLibraryAvailable ? (
             <Button
-              aria-label="Method library"
+              aria-label="Skills and agents"
               className="method-library-trigger"
               onPress={onOpenMethodLibrary}
               size="small"
               variant="secondary"
             >
               <Library aria-hidden="true" size={16} />
-              Method library
+              Skills and agents
             </Button>
           ) : null}
-          <Button aria-label="Pin session" isDisabled size="icon" variant="quiet">
-            <Pin aria-hidden="true" size={17} />
-          </Button>
-          <Button aria-label="More session actions" isDisabled size="icon" variant="quiet">
-            <MoreVertical aria-hidden="true" size={17} />
-          </Button>
-          <Button
-            aria-label="Open inspector"
-            className="mobile-inspector-button"
-            onPress={onOpenInspector}
-            size="icon"
-            variant="quiet"
-          >
-            <PanelRightOpen aria-hidden="true" size={18} />
-          </Button>
         </div>
         <div className="task-title-row">
-          <h1>{isNewSession && !submittedTask ? "New session" : sessionTitle}</h1>
-          <span className="preview-badge">
-            {methodGuidanceView ? "Method guidance" : "Preview demo"}
-          </span>
+          <span className="task-kicker">Task</span>
+          <h1>{isNewSession && !submittedTask ? "New task" : sessionTitle}</h1>
         </div>
       </header>
 
@@ -181,14 +179,16 @@ export function TaskWorkspace({
       ) : null}
 
       <div className="task-scroll-region">
-        <div className="preview-notice" role="note">
-          <strong>{methodGuidanceView ? "Local Method guidance" : "Internal preview"}</strong>
-          <span>
-            {methodGuidanceView
-              ? "Submitting an intent creates a local, unbound Method session. It does not contact a model or change workspace files."
-              : "Agent tasks and local changes are not enabled in this build. The proposal below is demonstration content only."}
-          </span>
-        </div>
+        {!isBrowserDemo ? (
+          <div className="preview-notice" role="note">
+            <strong>{methodGuidanceView ? "Local skill guidance" : "Current local product"}</strong>
+            <span>
+              {methodGuidanceView
+                ? "Reviewing an intent creates an inert local BMAD Help run and prepares the exact outbound context. Nothing is sent until you approve context and choose Send request."
+                : "This workspace is open locally. Files and governed changes remain available; model-backed skill guidance stays disabled until access is ready."}
+            </span>
+          </div>
+        ) : null}
         {methodGuidanceView ? (
           <>
             {submittedTask ? (
@@ -200,165 +200,148 @@ export function TaskWorkspace({
                 </div>
               </article>
             ) : null}
-            {guidanceSubmitting ? (
+            {methodGuidanceState.kind === "creating" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar">
                   <BrandMark size={22} />
                 </div>
                 <div>
                   <span className="message__label">
-                    {checkingRetainedGuidance ? "Checking · Local only" : "Creating · Local only"}
+                    {checkingRetainedGuidance ? "Checking · Local only" : "Preparing · Local only"}
                   </span>
                   <p>
                     {checkingRetainedGuidance
-                      ? "Checking for a retained local Method session without contacting a model or changing the workspace…"
-                      : "Creating the local Method session without a model request or workspace change…"}
+                      ? "Checking for retained skill guidance without sending a model request or changing the workspace…"
+                      : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request…"}
                   </p>
                 </div>
               </article>
-            ) : guidanceStatus === "created" ? (
+            ) : methodGuidanceState.kind === "review_required"
+              || methodGuidanceState.kind === "approving"
+              || methodGuidanceState.kind === "approved" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar">
                   <BrandMark size={22} />
                 </div>
                 <div>
-                  <span className="message__label">Created · Unbound</span>
+                  <span className="message__label">
+                    {methodGuidanceState.kind === "review_required"
+                      ? "Review required · Nothing sent"
+                      : methodGuidanceState.kind === "approving"
+                        ? "Approving · Nothing sent"
+                        : "Approved · Ready to send"}
+                  </span>
                   <p>
-                    A local Method session was created. It remains unbound: no model request was
-                    made and no workspace change was proposed. Review the source-grounded
-                    recommendation in the Method inspector.
+                    Inspect the exact context in Skills and agents. Approval alone
+                    does not contact the model.
                   </p>
                 </div>
+              </article>
+            ) : methodGuidanceState.kind === "submitting" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Sending · One shot</span><p>Sending the approved exact context once…</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "completed" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Completed · Verified</span><p>Review the canonical recommendation and safe receipt in Skills and agents.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "interrupted" ? (
+              <article className="message message--agent message--compact" role="alert">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Interrupted · Cannot resume</span><p>Start a fresh review; this request cannot be sent again.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "terminal" ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Review ended</span><p>No request authority remains. Start a fresh review when ready.</p></div>
+              </article>
+            ) : methodGuidanceState.kind === "unavailable" ? (
+              <article className="message message--agent message--compact" role="alert">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Request unavailable</span><p>{methodGuidanceState.message}</p></div>
+              </article>
+            ) : methodGuidanceState.run ? (
+              <article className="message message--agent message--compact" role="status">
+                <div className="message__avatar"><BrandMark size={22} /></div>
+                <div><span className="message__label">Created · Unbound</span><p>A retained local BMAD Help run is available in Skills and agents. No model request was made.</p></div>
               </article>
             ) : submittedTask ? null : (
               <section className="empty-session" aria-labelledby="empty-session-title">
                 <div className="empty-session__mark">
                   <BrandMark size={31} />
                 </div>
-                <h2 id="empty-session-title">What do you want Method guidance for?</h2>
+                <h2 id="empty-session-title">What do you want skill guidance for?</h2>
                 <p>
-                  Describe your intent to create a local, unbound session and review a
-                  source-grounded recommendation. No model or execution capability is attached.
+                  Describe your intent to create an inert local run and review the exact context.
+                  Nothing is sent until you separately approve and send the request.
                 </p>
               </section>
             )}
-          </>
-        ) : showProposal ? (
-          <>
-            {submittedTask ? (
-              <article className="message message--user">
-                <div className="message__avatar message__avatar--user">You</div>
-                <div>
-                  <p>{submittedTask}</p>
-                  <time>Now</time>
-                </div>
-              </article>
-            ) : null}
-            <article className="message message--agent">
-              <div className="message__avatar">
-                <BrandMark size={22} />
-              </div>
-              <div>
-                <span className="message__label">Demo response</span>
-                <p>
-                  This preview shows how the Agent could present a safe workspace scan that
-                  respects ignore rules and size limits, with tests and concise documentation.
-                </p>
-                <time>10:42 AM</time>
-              </div>
-            </article>
-
-            <StageRail current={currentStage} />
-
-            <section className="review-summary" aria-labelledby="review-heading">
-              {proposalState === "discarded" ? (
-                <>
-                  <h2 id="review-heading">Proposal discarded</h2>
-                  <p>No files were changed. Describe a new approach whenever you’re ready.</p>
-                </>
-              ) : (
-                <>
-                  <h2 id="review-heading">Ready for review</h2>
-                  <p>
-                    The scan is read-only, honors ignore rules, and enforces size limits. Tests
-                    cover exclusions, boundaries, and invalid paths.
-                  </p>
-                </>
-              )}
-
-              {proposalState !== "discarded" ? (
-                <>
-                  <div className="impact-divider" />
-                  <h3>Impact</h3>
-                  <div className="impact-grid">
-                    <div>
-                      <FileText aria-hidden="true" size={23} />
-                      <span>2 files</span>
-                    </div>
-                    <div>
-                      <WifiOff aria-hidden="true" size={23} />
-                      <span>No network</span>
-                    </div>
-                    <div>
-                      <BookmarkCheck aria-hidden="true" size={23} />
-                      <span>No files written</span>
-                    </div>
-                    <div>
-                      <ShieldCheck aria-hidden="true" size={23} />
-                      <span>Low risk</span>
-                    </div>
-                  </div>
-                  <div className="review-summary__action">
-                    <Button onPress={onReviewChanges} size="large" variant="primary">
-                      Review changes
-                      <ArrowRight aria-hidden="true" size={17} />
-                    </Button>
-                  </div>
-                </>
-              ) : null}
-            </section>
-
-            {proposalState === "ready" ? (
-              <article className="message message--agent message--compact">
-                <div className="message__avatar">
-                  <BrandMark size={22} />
-                </div>
-                <div>
-                  <p>
-                    Review the demonstration changes in the inspector. Applying them is disabled in this build.
-                  </p>
-                  <time>10:42 AM</time>
-                </div>
-              </article>
-            ) : null}
           </>
         ) : (
           <section className="empty-session" aria-labelledby="empty-session-title">
             <div className="empty-session__mark">
               <BrandMark size={31} />
             </div>
-            <h2 id="empty-session-title">What would you like to work on?</h2>
+            <h2 id="empty-session-title">
+              {isBrowserDemo ? "Explore Sapphirus safely" : "What would you like to work on?"}
+            </h2>
             <p>
-              Ask the Agent to inspect your local workspace, explain code, create a plan, or
-              propose a focused change.
+              {isBrowserDemo
+                ? "Browse the included sample project structure and explore the desktop task flow."
+                : methodGuidanceAvailable
+                  ? "Ask the Agent to inspect your local workspace, explain code, create a plan, or prepare skill-guided work."
+                  : "Use Files to inspect local context or Changes to review governed workspace activity. Agent requests stay disabled until model access is ready."}
             </p>
           </section>
         )}
       </div>
 
-      <form className="composer" onSubmit={submitTask}>
+      <form
+        aria-label="Task composer"
+        className="composer"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && agentControlOpen) {
+            event.preventDefault();
+            closeAgentControl(true);
+          }
+        }}
+        onSubmit={submitTask}
+      >
+        {contextPreview && contextPreview.items.length > 0 ? (
+          <section className="attached-context" aria-labelledby="attached-context-title">
+            <div className="attached-context__heading" id="attached-context-title">
+              <FileCode2 aria-hidden="true" size={15} />
+              Local context preview
+            </div>
+            <ul className="attached-context__chips">
+              {contextPreview.items.map((item) => (
+                <li key={item.relativePath} title={item.relativePath}>
+                  {item.relativePath}
+                </li>
+              ))}
+            </ul>
+            <p className="attached-context__note">
+              Reviewed locally. Files are not included in a model request unless they appear in the exact request review.
+            </p>
+          </section>
+        ) : null}
         <div className="composer__input-row">
           <Button
-            aria-label="Attach context"
-            isDisabled={interactionDisabled || methodGuidanceView}
-            size="icon"
+            aria-label="Attach files"
+            isDisabled={!canAttachFiles}
+            onPress={onAttachFiles}
+            size="small"
             variant="quiet"
           >
             <Paperclip aria-hidden="true" size={19} />
+            Attach files
           </Button>
           <label className="sr-only" htmlFor="task-composer">
             {methodGuidanceView
-              ? "Describe what you want Method guidance for"
+              ? "Describe what you want skill guidance for"
               : "Describe a task"}
           </label>
           <textarea
@@ -367,53 +350,91 @@ export function TaskWorkspace({
             disabled={composerDisabled}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={methodGuidanceView
-              ? "Describe your intent for Method guidance…"
+              ? "Describe your intent for skill guidance…"
               : "Describe a task, ask a question, or request a review…"}
             rows={2}
             value={draft}
           />
         </div>
         <div className="composer__toolbar">
-          <label>
-            <span className="sr-only">Mode</span>
-            <select
-              defaultValue={methodGuidanceView ? "method" : "agent"}
-              disabled={interactionDisabled || methodGuidanceView}
-              key={methodGuidanceView ? "method" : "agent"}
-            >
-              <option value={methodGuidanceView ? "method" : "agent"}>
-                {methodGuidanceView ? "Method guidance" : "Agent"}
-              </option>
-            </select>
-            <ChevronDown aria-hidden="true" size={14} />
-          </label>
-          <div className="composer__right">
-            <Button onPress={onReviewContext} size="small" variant="secondary">
-              <ListChecks aria-hidden="true" size={15} />
-              Review context
-            </Button>
-            <span className="connection-state">
-              <span className="status-dot status-dot--preview" /> {hostStatusLabel}
-            </span>
+          <div className="agent-control" ref={agentControlRef}>
             <Button
-              aria-label={methodGuidanceView ? "Request Method guidance" : "Send task"}
+              aria-expanded={agentControlOpen}
+              aria-controls="agent-model-access"
+              aria-label="Agent and model settings"
+              className="agent-control__trigger"
+              onPress={() => setAgentControlOpen((open) => !open)}
+              size="small"
+              variant="quiet"
+            >
+              <Bot aria-hidden="true" size={15} />
+              <span>Agent</span>
+              <span className="agent-control__summary">
+                {methodGuidanceView ? "BMAD Help" : modelAccessLabel}
+              </span>
+              <ChevronDown aria-hidden="true" size={14} />
+            </Button>
+            {agentControlOpen ? (
+              <section
+                aria-label="Agent and model"
+                className="agent-control__popover"
+                id="agent-model-access"
+                role="region"
+              >
+                <header>
+                  <h2>Agent configuration</h2>
+                  <span className="agent-control__status">
+                    <span
+                      className={`status-dot ${methodGuidanceAvailable ? "" : "status-dot--warning"}`}
+                    />
+                    {methodGuidanceAvailable ? "Available" : isBrowserDemo ? "Read only" : "Unavailable"}
+                  </span>
+                </header>
+                <dl className="agent-control__menu">
+                  <div><dt>Agent capability</dt><dd>BMAD Help</dd></div>
+                  <div><dt>Model access</dt><dd title={modelAccessDetail}>{modelAccessLabel}</dd></div>
+                  <div><dt>Request policy</dt><dd>Review before send</dd></div>
+                </dl>
+                <Button
+                  className="agent-control__settings"
+                  onPress={() => {
+                    const trigger = agentControlRef.current?.querySelector<HTMLButtonElement>(".agent-control__trigger");
+                    closeAgentControl();
+                    trigger?.focus();
+                    onOpenAgentSettings(trigger ?? null);
+                  }}
+                  size="small"
+                  variant="secondary"
+                >
+                  Open settings
+                  <ChevronRight aria-hidden="true" size={15} />
+                </Button>
+              </section>
+            ) : null}
+          </div>
+          <div className="composer__right">
+            <Button
+              aria-label={methodGuidanceView ? "Review request" : "Send task"}
               isDisabled={composerDisabled || !draft.trim()}
-              size="icon"
+              size={methodGuidanceView ? "small" : "icon"}
               type="submit"
               variant="secondary"
             >
               <Send aria-hidden="true" size={18} />
+              {methodGuidanceView ? "Review request" : null}
             </Button>
           </div>
         </div>
         <p className="composer__availability" id="task-composer-availability">
-          {methodGuidanceView
-            ? guidanceSubmitting
+          {isBrowserDemo
+            ? "Read only: sample data only. No access to your device or a model."
+            : methodGuidanceView
+            ? methodGuidanceState.kind === "creating"
               ? checkingRetainedGuidance
-                ? "Checking for a retained local Method session. No model request or workspace change is being made."
-                : "Creating the local Method session. No model request or workspace change is being made."
-              : "Creates a local, unbound Method session. No model request or workspace change is performed."
-            : "Preview only — submitting tasks and applying changes require a later governed capability build."}
+                ? "Checking for retained local skill guidance. No model request or workspace change is being made."
+                : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request."
+              : "Creates an inert local run and prepares exact outbound context. Nothing is sent until you approve context and choose Send request."
+            : "This local workspace remains available for Files and governed Changes. Model-backed skill guidance is unavailable until access is ready."}
         </p>
       </form>
     </main>

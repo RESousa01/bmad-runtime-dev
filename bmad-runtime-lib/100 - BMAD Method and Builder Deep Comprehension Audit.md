@@ -12,7 +12,7 @@ section: "Source and Research"
 order: 100
 vault_role: "current-source-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: source-evidence
 reviewed_on: 2026-07-10
 source_method_version: 6.10.0
 source_builder_package_version: 2.1.0

@@ -1,8 +1,8 @@
 # Sapphirus Desktop Shell Visual Refactor Design
 
-**Date:** 2026-07-15  
-**Status:** Approved for implementation planning  
-**Scope:** `apps/desktop-ui` and presentation-only shared UI adjustments  
+**Date:** 2026-07-15
+**Status:** Approved for implementation planning
+**Scope:** `apps/desktop-ui` and presentation-only shared UI adjustments
 **Reference:** `Prototype design improvement.zip`, especially the supplied full desktop workbench view
 
 ## Decision
@@ -286,22 +286,22 @@ The refactor is accepted when:
 
 ### Large stylesheet regression surface
 
-**Risk:** The existing renderer stylesheet is extensive, and additive overrides could create breakpoint conflicts.  
+**Risk:** The existing renderer stylesheet is extensive, and additive overrides could create breakpoint conflicts.
 **Mitigation:** Refactor by component responsibility, remove superseded rules, verify each breakpoint, and prefer a small set of non-color layout variables over repeated values.
 
 ### Behavior regression from markup changes
 
-**Risk:** Re-grouping controls can disturb accessible semantics, focus handling, or tests.  
+**Risk:** Re-grouping controls can disturb accessible semantics, focus handling, or tests.
 **Mitigation:** Preserve semantic elements, roles, labels, event ownership, and focus utilities; keep markup changes presentation-driven and run focused tests after each shell slice.
 
 ### Prototype imitation over product truth
 
-**Risk:** Literal copying could introduce colors, controls, or states that Sapphirus does not support.  
+**Risk:** Literal copying could introduce colors, controls, or states that Sapphirus does not support.
 **Mitigation:** Treat the prototype as a hierarchy and composition reference only. Existing tokens and product capability projections remain authoritative.
 
 ### Dirty worktree interference
 
-**Risk:** Existing backend and infrastructure changes could be accidentally mixed into the visual refactor.  
+**Risk:** Existing backend and infrastructure changes could be accidentally mixed into the visual refactor.
 **Mitigation:** Limit edits and validation to the renderer and justified shared presentation files, inspect diffs by path, and do not modify unrelated work.
 
 ## Approved direction summary

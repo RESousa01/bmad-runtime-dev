@@ -7,9 +7,9 @@
   "executionProfile": "inline",
   "activationState": "not_active",
   "builderActions": [
-    "Build",
-    "Edit",
-    "Analyze"
+    "build",
+    "edit",
+    "analyze"
   ],
   "scriptExecution": "blocked",
   "networkAccess": "blocked",

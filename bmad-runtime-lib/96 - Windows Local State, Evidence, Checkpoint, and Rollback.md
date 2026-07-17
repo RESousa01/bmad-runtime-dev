@@ -13,7 +13,7 @@ section: "Windows Desktop Runtime"
 order: 96
 vault_role: "desktop-local-state-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 updated_on: 2026-07-10
 ---
 
@@ -317,4 +317,3 @@ Release requires a demonstrated recovery path for every nonterminal journal stat
 
 - [Windows CryptProtectData](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata)
 - [CNG DPAPI](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-dpapi)
-

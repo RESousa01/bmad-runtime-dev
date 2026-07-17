@@ -152,9 +152,10 @@ fn replay_request(request: &BmadHelpRunCreateRequest) -> BmadHelpRunReplayReques
 fn retained_latest(latest: BmadHelpRunLatest) -> Result<BmadHelpRunCreationReceipt, StoreError> {
     match latest {
         BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
-        BmadHelpRunLatest::None | BmadHelpRunLatest::LegacyProjectionUnavailable => {
-            Err(StoreError::Inconsistent)
-        }
+        BmadHelpRunLatest::None
+        | BmadHelpRunLatest::LegacyProjectionUnavailable
+        | BmadHelpRunLatest::Interrupted(_)
+        | BmadHelpRunLatest::Completed(_) => Err(StoreError::Inconsistent),
     }
 }
 

@@ -19,12 +19,12 @@ const requiredCrates = new Set([
   "desktop-runtime",
   ...adapterCrates,
 ]);
-// The reviewed ready-command catalog: the D1 read-only set plus the D3
-// governed-edits set. Must stay byte-identical across READY_COMMANDS in
+// The reviewed ready-command catalog: the D1 read-only set, the D2
+// Help/model set, and the D3 governed-edits set. Must stay byte-identical across READY_COMMANDS in
 // crates/desktop-app/src/commands.rs, is_known_command in
 // crates/desktop-ipc/src/envelope.rs, and desktopHostCommands in
-// apps/desktop-ui/src/lib/hostClient.ts.
-const d1ReadyCommands = [
+// apps/desktop-ui/src/lib/hostClient/contracts.ts.
+const reviewedReadyCommands = [
   "app.get_boot_state",
   "workspace.select_folder",
   "workspace.list",
@@ -34,6 +34,13 @@ const d1ReadyCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  "model.auth.status",
+  "model.auth.sign_in",
+  "model.auth.sign_out",
+  "bmad.help.prepare",
+  "bmad.help.approve",
+  "bmad.help.cancel",
+  "bmad.help.submit",
   "bmad.help.latest",
   "run.create",
   "context.preview",
@@ -44,6 +51,9 @@ const d1ReadyCommands = [
   "changes.history",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
+const boundedProcessAdapterPaths = new Set([
+  "crates/desktop-cloud/src/windows_broker.rs",
+]);
 const exactToolchain = Object.freeze({
   node: "24.18.0",
   pnpm: "11.12.0",
@@ -126,6 +136,17 @@ function sameOrderedValues(actual, expected) {
   return Array.isArray(actual)
     && actual.length === expected.length
     && actual.every((value, index) => value === expected[index]);
+}
+
+function expandBmadModelCommandAliases(source) {
+  return source
+    .replaceAll("bmadModelCommands.authStatus", '"model.auth.status"')
+    .replaceAll("bmadModelCommands.authSignIn", '"model.auth.sign_in"')
+    .replaceAll("bmadModelCommands.authSignOut", '"model.auth.sign_out"')
+    .replaceAll("bmadModelCommands.prepare", '"bmad.help.prepare"')
+    .replaceAll("bmadModelCommands.approve", '"bmad.help.approve"')
+    .replaceAll("bmadModelCommands.cancel", '"bmad.help.cancel"')
+    .replaceAll("bmadModelCommands.submit", '"bmad.help.submit"');
 }
 
 const commandLiteralRegression = ["lower.command", "UPPER_COMMAND", "punctuation:/command"];
@@ -347,6 +368,14 @@ if (rootPackage) {
   ) {
     violations.push("package.json: BMAD foundation verification gate is missing or drifted");
   }
+  if (
+    rootPackage.scripts?.["desktop:build"]
+    !== "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json --features deterministic-help"
+  ) {
+    violations.push(
+      "package.json: the offline desktop installer must include deterministic local Help",
+    );
+  }
   const sourceVerification = rootPackage.scripts?.["verify:source"];
   if (typeof sourceVerification !== "string") {
     violations.push("package.json: verify:source is missing");
@@ -440,6 +469,49 @@ for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-
     violations.push(
       `${relative(root, workflowPath)}: native workflow is missing the organization-controlled freeze gate`,
     );
+  }
+}
+
+const releaseDryRunPath = join(root, ".github", "workflows", "release-dry-run.yml");
+const releaseDryRunSource = await requiredText(releaseDryRunPath);
+if (releaseDryRunSource !== undefined) {
+  for (const [pattern, message] of [
+    [
+      /\.\/tools\/qualify-windows-installer\.ps1\s*$/mu,
+      "must execute the repository-owned Windows installer lifecycle verifier",
+    ],
+    [
+      /-InstallerPath target\/release\/bundle\/nsis\/Sapphirus_0\.1\.0_x64-setup\.exe\s*$/mu,
+      "must qualify the exact current-product NSIS artifact",
+    ],
+    [
+      /-ExpectedVersion 0\.1\.0\s*$/mu,
+      "must bind installer qualification to the current product version",
+    ],
+    [
+      /\$\{\{ runner\.temp \}\}\/sapphirus-installer-qualification\.json\s*$/mu,
+      "must upload the installer lifecycle evidence",
+    ],
+  ]) {
+    if (!pattern.test(releaseDryRunSource)) {
+      violations.push(`${relative(root, releaseDryRunPath)}: ${message}`);
+    }
+  }
+}
+
+const installerQualificationPath = join(root, "tools", "qualify-windows-installer.ps1");
+const installerQualificationSource = await requiredText(installerQualificationPath);
+if (installerQualificationSource !== undefined) {
+  for (const [pattern, message] of [
+    [/Get-AuthenticodeSignature/u, "must record Authenticode status"],
+    [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
+    [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
+    [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
+    [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
+  ]) {
+    if (!pattern.test(installerQualificationSource)) {
+      violations.push(`${relative(root, installerQualificationPath)}: ${message}`);
+    }
   }
 }
 
@@ -713,7 +785,10 @@ for (const path of rustFiles) {
     /\bCreateProcess(?:A|W)?\b/,
     /\bShellExecute(?:Ex)?(?:A|W)?\b/,
   ];
-  if (processPatterns.some((pattern) => pattern.test(source))) {
+  if (
+    processPatterns.some((pattern) => pattern.test(source))
+    && !boundedProcessAdapterPaths.has(normalizedRepositoryPath(path))
+  ) {
     violations.push(`${displayPath}: product child-process primitive`);
   }
 }
@@ -744,15 +819,23 @@ for (const rendererRoot of rendererRoots) {
 
 const hostCommandsPath = join(root, "crates", "desktop-app", "src", "commands.rs");
 const hostCommandsSource = await requiredText(hostCommandsPath);
-const rendererClientPath = join(root, "apps", "desktop-ui", "src", "lib", "hostClient.ts");
+const rendererClientPath = join(
+  root,
+  "apps",
+  "desktop-ui",
+  "src",
+  "lib",
+  "hostClient",
+  "contracts.ts",
+);
 const rendererClientSource = await requiredText(rendererClientPath);
 const ipcEnvelopePath = join(root, "crates", "desktop-ipc", "src", "envelope.rs");
 const ipcEnvelopeSource = await requiredText(ipcEnvelopePath);
 if (hostCommandsSource !== undefined) {
   const readySource = /const READY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
   const recoverySource = /const RECOVERY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
-  if (readySource === undefined || !sameOrderedValues(quotedStrings(readySource), d1ReadyCommands)) {
-    violations.push(`${relative(root, hostCommandsPath)}: ready capability projection drifted from the reviewed D1 catalog`);
+  if (readySource === undefined || !sameOrderedValues(quotedStrings(readySource), reviewedReadyCommands)) {
+    violations.push(`${relative(root, hostCommandsPath)}: ready capability projection drifted from the reviewed command catalog`);
   }
   if (recoverySource === undefined || !sameOrderedValues(quotedStrings(recoverySource), recoveryCommands)) {
     violations.push(`${relative(root, hostCommandsPath)}: recovery capability projection is not fail-closed`);
@@ -765,9 +848,12 @@ if (rendererClientSource !== undefined) {
   const clientCatalogSource = /export const desktopHostCommands\s*=\s*\[([\s\S]*?)\]\s*as const/.exec(
     rendererClientSource,
   )?.[1];
+  const clientCatalogValues = clientCatalogSource === undefined
+    ? undefined
+    : quotedStrings(expandBmadModelCommandAliases(clientCatalogSource));
   if (
-    clientCatalogSource === undefined
-    || !sameOrderedValues(quotedStrings(clientCatalogSource), d1ReadyCommands)
+    clientCatalogValues === undefined
+    || !sameOrderedValues(clientCatalogValues, reviewedReadyCommands)
   ) {
     violations.push(`${relative(root, rendererClientPath)}: renderer command catalog drifted from the host projection`);
   }
@@ -778,9 +864,9 @@ if (ipcEnvelopeSource !== undefined) {
   )?.[1];
   if (
     knownCommandSource === undefined
-    || !sameOrderedValues(quotedStrings(knownCommandSource), d1ReadyCommands)
+    || !sameOrderedValues(quotedStrings(knownCommandSource), reviewedReadyCommands)
   ) {
-    violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog is not exactly D1`);
+    violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog drifted from the reviewed command catalog`);
   }
 }
 
@@ -844,6 +930,19 @@ if (config) {
   }
   if (config.build?.frontendDist !== "../../apps/desktop-ui/dist") {
     violations.push(`${relative(root, configPath)}: production frontendDist is not the reviewed renderer output`);
+  }
+  const expectedBeforeDevCommand =
+    "pnpm --filter @sapphirus/desktop-ui dev --host 127.0.0.1";
+  const expectedBeforeBuildCommand = "pnpm --filter @sapphirus/desktop-ui build";
+  if (config.build?.beforeDevCommand !== expectedBeforeDevCommand) {
+    violations.push(
+      `${relative(root, configPath)}: beforeDevCommand must stay in the repository workspace`,
+    );
+  }
+  if (config.build?.beforeBuildCommand !== expectedBeforeBuildCommand) {
+    violations.push(
+      `${relative(root, configPath)}: beforeBuildCommand must stay in the repository workspace`,
+    );
   }
   if (containsReferenceVault(config)) {
     violations.push(`${relative(root, configPath)}: production configuration references the reference vault`);

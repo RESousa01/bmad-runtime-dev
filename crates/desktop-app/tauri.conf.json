@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Sapphirus",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0",
   "identifier": "com.sapphirus.desktop",
   "mainBinaryName": "sapphirus",
   "build": {
-    "beforeDevCommand": "pnpm --dir ../.. --filter @sapphirus/desktop-ui dev --host 127.0.0.1",
-    "beforeBuildCommand": "pnpm --dir ../.. --filter @sapphirus/desktop-ui build",
+    "beforeDevCommand": "pnpm --filter @sapphirus/desktop-ui dev --host 127.0.0.1",
+    "beforeBuildCommand": "pnpm --filter @sapphirus/desktop-ui build",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../../apps/desktop-ui/dist",
     "removeUnusedCommands": true
@@ -44,7 +44,7 @@
     "longDescription": "Sapphirus is an organization-managed Windows desktop workbench for bounded local workspace inspection and context review.",
     "windows": {
       "webviewInstallMode": {
-        "type": "embedBootstrapper",
+        "type": "offlineInstaller",
         "silent": true
       },
       "nsis": {

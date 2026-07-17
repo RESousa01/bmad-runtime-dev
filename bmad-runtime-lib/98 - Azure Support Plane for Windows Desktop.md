@@ -15,7 +15,7 @@ section: "Windows Desktop Runtime"
 order: 98
 vault_role: "desktop-azure-support-plane-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 updated_on: 2026-07-10
 ---
 

@@ -26,7 +26,11 @@ export function useModalPanelFocus(active: boolean): RefObject<HTMLElement | nul
     transitionRef.current = transition;
     if (active && !wasActiveRef.current) {
       const activeElement = document.activeElement;
-      returnFocusRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+      returnFocusRef.current = activeElement instanceof HTMLElement
+        && activeElement !== document.body
+        && activeElement !== document.documentElement
+        ? activeElement
+        : null;
       window.requestAnimationFrame(() => {
         const panel = panelRef.current;
         if (transitionRef.current === transition && panel) {

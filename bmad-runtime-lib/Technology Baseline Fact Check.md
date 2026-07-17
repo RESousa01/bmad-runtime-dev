@@ -11,7 +11,7 @@ section: "Source and Research"
 order: 2
 vault_role: "research-summary"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 validated_on: 2026-07-09
 source_file: "C:/Users/rodrigocsousa/Downloads/compass_artifact_wf-8c0d551b-935b-4042-94c5-151ddf638398_text_markdown.md"
 ---

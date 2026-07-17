@@ -27,8 +27,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
       - run: pnpm desktop:build
+      - name: Qualify installer lifecycle
+        shell: pwsh
+        run: >-
+          ./tools/qualify-windows-installer.ps1
+          -InstallerPath target/release/bundle/nsis/Sapphirus_0.1.0_x64-setup.exe
+          -ExpectedVersion 0.1.0
+          -InstallRoot "${{ runner.temp }}\\sapphirus-installer-qualification"
+          -EvidencePath "${{ runner.temp }}\\sapphirus-installer-qualification.json"
       - uses: actions/upload-artifact@v4
         with:
           name: internal-test-installer
-          path: target/release/bundle/nsis/*
+          path: |
+            target/release/bundle/nsis/*
+            ${{ runner.temp }}/sapphirus-installer-qualification.json
           if-no-files-found: error

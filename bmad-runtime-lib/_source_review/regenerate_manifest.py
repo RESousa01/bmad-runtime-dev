@@ -8,9 +8,16 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from living_knowledge import living_manifest_document
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "manifest.json"
+LIVING_MANIFEST = ROOT / "knowledge-base" / "manifest.json"
+
+
+def canonical_markdown_bytes(payload: bytes) -> bytes:
+    return payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
 
 
 def main() -> None:
@@ -25,7 +32,7 @@ def main() -> None:
     total_lines = 0
     total_bytes = 0
     for path in sorted(ROOT.glob("*.md"), key=lambda item: item.name.casefold()):
-        payload = path.read_bytes()
+        payload = canonical_markdown_bytes(path.read_bytes())
         line_count = len(payload.decode("utf-8-sig").splitlines())
         byte_count = len(payload)
         total_lines += line_count
@@ -52,6 +59,11 @@ def main() -> None:
     }
     MANIFEST.write_text(
         json.dumps(output, indent=4, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    LIVING_MANIFEST.write_text(
+        json.dumps(living_manifest_document(ROOT), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
         newline="\n",
     )

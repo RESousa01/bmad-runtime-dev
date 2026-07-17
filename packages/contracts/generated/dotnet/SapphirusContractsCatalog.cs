@@ -321,6 +321,38 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>modelAccessReceipt</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt ModelAccessReceiptValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessReceiptValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>modelContextConsent</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent ModelContextConsentValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelContextConsentValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>packageCompatibility</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility PackageCompatibilityValue
@@ -870,6 +902,16 @@ public readonly partial struct SapphirusContractsCatalog
         public const string MethodSessionValue = "methodSession";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessReceiptValue"/>.
+        /// </summary>
+        public const string ModelAccessReceiptValue = "modelAccessReceipt";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
+        /// </summary>
+        public const string ModelContextConsentValue = "modelContextConsent";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="PackageCompatibilityValue"/>.
         /// </summary>
         public const string PackageCompatibilityValue = "packageCompatibility";
@@ -963,6 +1005,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="MethodSessionValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodSessionValueUtf8 => "methodSession"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessReceiptValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessReceiptValueUtf8 => "modelAccessReceipt"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelContextConsentValueUtf8 => "modelContextConsent"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="PackageCompatibilityValue"/>.
@@ -1066,6 +1118,16 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> MethodSessionValue => "methodSession"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelAccessReceiptValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessReceiptValue => "modelAccessReceipt"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelContextConsentValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelContextConsentValue => "modelContextConsent"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="PackageCompatibilityValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> PackageCompatibilityValue => "packageCompatibility"u8;
@@ -1166,6 +1228,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="MethodSessionValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodSessionValue => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x6D, 0x65, 0x74, 0x68, 0x6F, 0x64, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6F, 0x6E, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelAccessReceiptValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessReceiptValue => [0x45, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelContextConsentValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelContextConsentValue => [0x55, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x43, 0x6F, 0x6E, 0x74, 0x65, 0x78, 0x74, 0x43, 0x6F, 0x6E, 0x73, 0x65, 0x6E, 0x74, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="PackageCompatibilityValue"/>.

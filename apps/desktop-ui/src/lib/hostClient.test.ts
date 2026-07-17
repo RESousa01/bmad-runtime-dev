@@ -13,6 +13,13 @@ import type {
   BmadHelpRunCreatedProjection,
   BmadLibrarySnapshot,
 } from "./bmadProjection";
+import type {
+  BmadHelpApprovedProjection,
+  BmadHelpCancelledProjection,
+  BmadHelpContextReviewProjection,
+  BmadHelpRunCompletedProjection,
+  ModelAuthStatusProjection,
+} from "./bmadModelProjection";
 
 const readyBootstrap: BootstrapReply = {
   schemaVersion: "desktop-bootstrap.v1",
@@ -58,6 +65,13 @@ const helpBootstrap: BootstrapReply = {
   ...d1Bootstrap,
   supportedCommands: [
     ...d1Bootstrap.supportedCommands,
+    "model.auth.status",
+    "model.auth.sign_in",
+    "model.auth.sign_out",
+    "bmad.help.prepare",
+    "bmad.help.approve",
+    "bmad.help.cancel",
+    "bmad.help.submit",
     "bmad.help.latest",
     "run.create",
   ],
@@ -67,6 +81,16 @@ const firstCursor = "cursor_01ARZ3NDEKTSV4RRFFQ69G5FAV";
 const secondCursor = "cursor_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const digestA = `sha256:${"a".repeat(64)}`;
 const digestB = `sha256:${"b".repeat(64)}`;
+
+const modelAuthStatus: ModelAuthStatusProjection = {
+  status: "development_ready",
+  mode: "deterministic_development",
+  authEpoch: 5,
+  developmentOnly: true,
+  destinationLabel: "Deterministic local model",
+  signInAvailable: false,
+  signOutAvailable: true,
+};
 
 const bmadLibrarySnapshot: BmadLibrarySnapshot = {
   schemaVersion: "bmad-library-snapshot.v1",
@@ -131,6 +155,7 @@ const bmadHelpRun: BmadHelpRunCreatedProjection = {
   workspaceId: "workspace_01K0Q6H3",
   runId: "run_01K0Q6H3",
   sessionId: "session_01K0Q6H3",
+  currentIntent: "Help me choose the next Method step",
   runnable: false,
   completionClaimed: false,
   recommendation: {
@@ -151,6 +176,85 @@ const bmadHelpRun: BmadHelpRunCreatedProjection = {
     availability: "capability_disabled",
     blockerCodes: ["bmad_capability_disabled"],
     completionClaimed: false,
+  },
+};
+
+const bmadHelpReview: BmadHelpContextReviewProjection = {
+  workspaceId: bmadHelpRun.workspaceId,
+  workspaceGrantEpoch: 3,
+  runId: bmadHelpRun.runId,
+  sessionId: bmadHelpRun.sessionId,
+  destinationLabel: "Deterministic local model",
+  developmentOnly: true,
+  consentDisclosure: "Send the exact reviewed context once for this Help request.",
+  manifestHash: digestA,
+  purpose: "bmad_help",
+  region: "localdev",
+  retentionMode: "transient_no_store",
+  expiresAt: 1_725_000_300_000,
+  items: [{
+    relativeLabel: "method/current-intent.txt",
+    semanticRole: "current_intent",
+    language: "text",
+    outboundByteCount: 35,
+    tokenEstimate: 9,
+    classification: "internal",
+    redactions: [],
+    outboundContent: "Help me choose the next Method step",
+  }],
+  exclusions: [{ relativeLabel: "secrets/.env", reason: "Secret-bearing input excluded" }],
+  secretFindings: [{
+    relativeLabel: "method/current-intent.txt",
+    kind: "example_secret",
+    occurrenceCount: 1,
+  }],
+  totalOutboundBytes: 35,
+  totalTokenEstimate: 9,
+  redactionLimitation: "Redaction reduces risk but cannot prove every secret was detected.",
+};
+
+const bmadHelpApproval: BmadHelpApprovedProjection = {
+  manifestHash: digestA,
+  decisionId: "decision_01K0Q6H3",
+  expiresAt: 1_725_000_200_000,
+  sendEligible: true,
+};
+
+const bmadHelpCancelled: BmadHelpCancelledProjection = {
+  manifestHash: digestA,
+  decisionId: bmadHelpApproval.decisionId,
+};
+
+const bmadHelpCompleted: BmadHelpRunCompletedProjection = {
+  schemaVersion: "bmad-help-completed.v1",
+  runKind: "bmad_help",
+  lifecycle: "completed",
+  workspaceId: bmadHelpRun.workspaceId,
+  runId: bmadHelpRun.runId,
+  sessionId: bmadHelpRun.sessionId,
+  runnable: false,
+  completionClaimed: true,
+  recommendation: {
+    recommendationKind: "recommended_capability",
+    displayName: "Create Architecture",
+    moduleCode: "bmm",
+    skillName: "bmad-architecture",
+    action: "create",
+    evidenceClass: "user_asserted",
+    guidanceRequired: true,
+    rationaleSummary: "The reviewed intent explicitly asks for architecture readiness.",
+    createdAt: 1_725_000_001_200,
+  },
+  receipt: {
+    schemaVersion: "bmad-model-receipt-summary.v1",
+    receiptId: "receipt_01K0Q6H3",
+    status: "succeeded",
+    retentionMode: "transient_no_store",
+    region: "localdev",
+    inputBytes: 512,
+    outputBytes: 256,
+    startedAt: 1_725_000_001_000,
+    completedAt: 1_725_000_001_100,
   },
 };
 
@@ -231,6 +335,95 @@ describe("DesktopHostClient", () => {
     });
   });
 
+  it("uses the exact closed auth, review, approval, cancel, submit, and completed contracts", async () => {
+    let request = 0;
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") return helpBootstrap;
+      const envelope = JSON.parse(String(args?.body)) as { command: string; requestId: string };
+      const responses = {
+        "model.auth.status": { kind: "model_auth_status", value: modelAuthStatus },
+        "model.auth.sign_in": { kind: "model_auth_status", value: modelAuthStatus },
+        "model.auth.sign_out": {
+          kind: "model_auth_status",
+          value: { ...modelAuthStatus, authEpoch: modelAuthStatus.authEpoch + 1 },
+        },
+        "bmad.help.prepare": { kind: "bmad_help_review", value: bmadHelpReview },
+        "bmad.help.approve": { kind: "bmad_help_approved", value: bmadHelpApproval },
+        "bmad.help.cancel": { kind: "bmad_help_cancelled", value: bmadHelpCancelled },
+        "bmad.help.submit": { kind: "bmad_help_run_completed", value: bmadHelpCompleted },
+        "bmad.help.latest": { kind: "bmad_help_run_completed", value: bmadHelpCompleted },
+      } as const;
+      const data = responses[envelope.command as keyof typeof responses];
+      return successfulReply(envelope.requestId, data, 13);
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      now: () => 1_725_000_000_000,
+      requestId: () => `request_model_${request += 1}`,
+    });
+    await client.bootstrap();
+
+    await expect(client.modelAuthStatus()).resolves.toEqual(modelAuthStatus);
+    await expect(client.modelAuthSignIn()).resolves.toEqual(modelAuthStatus);
+    await expect(client.modelAuthSignOut()).resolves.toEqual({
+      ...modelAuthStatus,
+      authEpoch: modelAuthStatus.authEpoch + 1,
+    });
+    await expect(client.prepareBmadHelp(bmadHelpRun.workspaceId, 3)).resolves.toEqual(bmadHelpReview);
+    await expect(client.approveBmadHelp(bmadHelpRun.workspaceId, 3, digestA)).resolves
+      .toEqual(bmadHelpApproval);
+    await expect(client.cancelBmadHelp(
+      bmadHelpRun.workspaceId,
+      3,
+      digestA,
+      bmadHelpApproval.decisionId,
+    )).resolves.toEqual(bmadHelpCancelled);
+    await expect(client.submitBmadHelp(
+      bmadHelpRun.workspaceId,
+      3,
+      digestA,
+      bmadHelpApproval.decisionId,
+    )).resolves.toEqual(bmadHelpCompleted);
+    await expect(client.latestBmadHelpRun(bmadHelpRun.workspaceId, 3)).resolves.toEqual({
+      kind: "completed",
+      result: bmadHelpCompleted,
+    });
+
+    const envelopes = invoke.mock.calls.slice(1).map(([, args]) =>
+      JSON.parse(String(args?.body)) as { command: string; payload: unknown }
+    );
+    expect(envelopes.map(({ command }) => command)).toEqual([
+      "model.auth.status",
+      "model.auth.sign_in",
+      "model.auth.sign_out",
+      "bmad.help.prepare",
+      "bmad.help.approve",
+      "bmad.help.cancel",
+      "bmad.help.submit",
+      "bmad.help.latest",
+    ]);
+    expect(envelopes.map(({ payload }) => payload)).toEqual([
+      {},
+      {},
+      {},
+      { workspaceId: bmadHelpRun.workspaceId, workspaceGrantEpoch: 3 },
+      { workspaceId: bmadHelpRun.workspaceId, workspaceGrantEpoch: 3, manifestHash: digestA },
+      {
+        workspaceId: bmadHelpRun.workspaceId,
+        workspaceGrantEpoch: 3,
+        manifestHash: digestA,
+        decisionId: bmadHelpApproval.decisionId,
+      },
+      {
+        workspaceId: bmadHelpRun.workspaceId,
+        workspaceGrantEpoch: 3,
+        manifestHash: digestA,
+        decisionId: bmadHelpApproval.decisionId,
+      },
+      { workspaceId: bmadHelpRun.workspaceId, workspaceGrantEpoch: 3 },
+    ]);
+  });
+
   it("loads the latest retained Help run through an exact read-only envelope", async () => {
     const invoke = vi.fn<TauriInvoke>(async (command, args) => {
       if (command === "host_bootstrap") {
@@ -269,6 +462,56 @@ describe("DesktopHostClient", () => {
         },
       }),
     });
+  });
+
+  it.each([
+    [
+      "review",
+      { kind: "bmad_help_review", value: bmadHelpReview },
+      { kind: "review", review: bmadHelpReview },
+    ],
+    [
+      "approved lifecycle",
+      {
+        kind: "bmad_help_approved_lifecycle",
+        value: { review: bmadHelpReview, approval: bmadHelpApproval },
+      },
+      { kind: "approved", review: bmadHelpReview, approval: bmadHelpApproval },
+    ],
+    [
+      "terminal lifecycle",
+      {
+        kind: "bmad_help_terminal",
+        value: {
+          workspaceId: bmadHelpRun.workspaceId,
+          reason: "consent_consumed",
+          resumable: false,
+          sendEligible: false,
+        },
+      },
+      {
+        kind: "terminal",
+        terminal: {
+          workspaceId: bmadHelpRun.workspaceId,
+          reason: "consent_consumed",
+          resumable: false,
+          sendEligible: false,
+        },
+      },
+    ],
+  ])("loads the exact latest %s projection", async (_name, data, expected) => {
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") return helpBootstrap;
+      const envelope = JSON.parse(String(args?.body)) as { requestId: string };
+      return successfulReply(envelope.requestId, data, 13);
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      requestId: () => "request_bmad_help_latest_lifecycle",
+    });
+    await client.bootstrap();
+
+    await expect(client.latestBmadHelpRun(bmadHelpRun.workspaceId, 3)).resolves.toEqual(expected);
   });
 
   it("returns null only for the exact no-retained-Help-run reply", async () => {
@@ -334,6 +577,8 @@ describe("DesktopHostClient", () => {
     ["lifecycle", { ...bmadHelpRun, lifecycle: "running" }],
     ["runnable state", { ...bmadHelpRun, runnable: true }],
     ["completion state", { ...bmadHelpRun, completionClaimed: true }],
+    ["missing current intent", (({ currentIntent: _, ...run }) => run)(bmadHelpRun)],
+    ["unsafe current intent", { ...bmadHelpRun, currentIntent: "unsafe\u0000intent" }],
     ["recommendation completion", {
       ...bmadHelpRun,
       recommendation: { ...bmadHelpRun.recommendation, completionClaimed: true },

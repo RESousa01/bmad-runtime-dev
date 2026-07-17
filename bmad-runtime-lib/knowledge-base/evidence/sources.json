@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "sapphirus.living-knowledge.v1",
+  "sources": [
+    {"id":"SRC-REPO-001","type":"repository","authority":"primary","locator":"README.md","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-002","type":"repository","authority":"primary","locator":"crates/desktop-app/tauri.conf.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-003","type":"repository","authority":"primary","locator":"crates/desktop-app/src/lib.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-004","type":"repository","authority":"primary","locator":"docs/implementation-packets/D0-D1-source-hardening-2026-07-13.md","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-005","type":"repository","authority":"primary","locator":"package.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-006","type":"repository","authority":"primary","locator":"crates/desktop-workspace/src/lib.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-007","type":"repository","authority":"primary","locator":"apps/desktop-ui/src/lib/hostClient.test.ts","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-008","type":"repository","authority":"primary","locator":"crates/desktop-app/src/edits.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-009","type":"repository","authority":"primary","locator":"apps/desktop-ui/src/App.test.tsx","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-010","type":"repository","authority":"primary","locator":"crates/desktop-store/tests/execution_store.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-011","type":"repository","authority":"primary","locator":"crates/desktop-runtime/tests/bmad_help_materialization.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-012","type":"repository","authority":"primary","locator":"crates/desktop-store/tests/bmad_help_run_store.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-013","type":"repository","authority":"primary","locator":"services/desktop-support-api/README.md","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-014","type":"repository","authority":"primary","locator":"services/desktop-support-api/Program.cs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-015","type":"repository","authority":"primary","locator":"packages/contracts/package.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-016","type":"repository","authority":"primary","locator":"packages/contracts/schema-lock.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-017","type":"repository","authority":"primary","locator":"Cargo.toml","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-018","type":"repository","authority":"primary","locator":"global.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-019","type":"repository","authority":"primary","locator":"apps/desktop-ui/package.json","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-020","type":"repository","authority":"primary","locator":".nvmrc","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-021","type":"repository","authority":"primary","locator":"crates/desktop-store/src/lib.rs","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-REPO-022","type":"repository","authority":"primary","locator":"docs/superpowers/specs/2026-07-15-d2-real-ai-request-path-design.md","retrievedAt":"2026-07-16","repositoryCommit":"f18ef124a6e61754391b793a1b37a8a0f67491ab"},
+    {"id":"SRC-OFFICIAL-001","type":"external_official","authority":"primary","locator":"https://nodejs.org/en/blog/release/v24.18.0","retrievedAt":"2026-07-16","repositoryCommit":""},
+    {"id":"SRC-OFFICIAL-002","type":"external_official","authority":"primary","locator":"https://nodejs.org/en/download/archive/v24.18.0","retrievedAt":"2026-07-16","repositoryCommit":""},
+    {"id":"SRC-OFFICIAL-003","type":"external_official","authority":"primary","locator":"https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/","retrievedAt":"2026-07-16","repositoryCommit":""},
+    {"id":"SRC-OFFICIAL-004","type":"external_official","authority":"primary","locator":"https://react.dev/versions","retrievedAt":"2026-07-16","repositoryCommit":""},
+    {"id":"SRC-OFFICIAL-005","type":"external_official","authority":"primary","locator":"https://vite.dev/blog/announcing-vite8-1","retrievedAt":"2026-07-16","repositoryCommit":""},
+    {"id":"SRC-OFFICIAL-006","type":"external_official","authority":"primary","locator":"https://vite.dev/releases","retrievedAt":"2026-07-16","repositoryCommit":""}
+  ]
+}

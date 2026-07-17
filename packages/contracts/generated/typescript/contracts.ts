@@ -108,6 +108,14 @@ export type {
   SapphirusFilesystemCapabilityV1 as FilesystemCapabilitySnapshot,
 } from "./schema/filesystem-capability.js";
 export type {
+  SapphirusModelAccessReceiptV1 as ModelAccessReceipt,
+  SupportPlaneProof,
+} from "./schema/model-access-receipt.js";
+export type {
+  SapphirusModelContextConsentV1 as ModelContextConsent,
+  InstallationProof,
+} from "./schema/model-context-consent.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {

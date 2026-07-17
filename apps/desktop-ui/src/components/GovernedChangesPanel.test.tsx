@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   ChangesExecutionProjection,
+  ChangesHistoryProjection,
   ChangesReviewEnvelopeProjection,
 } from "../lib/hostClient";
 import {
@@ -52,6 +53,18 @@ const appliedExecution: ChangesExecutionProjection = {
   }],
 };
 
+const changesHistory: ChangesHistoryProjection = {
+  workspaceId: "workspace_01J00000000000000000000000",
+  entries: [{
+    executionId: appliedExecution.executionId,
+    journalState: "completed",
+    fileCount: 1,
+    completedAt: "2026-07-17T12:00:00Z",
+    undoable: true,
+  }],
+  openJournals: [],
+};
+
 function createProps(
   overrides: Partial<GovernedChangesPanelProps> = {},
 ): GovernedChangesPanelProps {
@@ -61,9 +74,12 @@ function createProps(
     errorMessage: null,
     onDecide: vi.fn(),
     onEnableEdits: vi.fn(),
+    onRefreshHistory: vi.fn(),
     onPropose: vi.fn(),
     onStartNewProposal: vi.fn(),
     onUndo: vi.fn(),
+    history: null,
+    historyBusy: false,
     state: { kind: "idle" },
     ...overrides,
   };
@@ -89,7 +105,7 @@ describe("GovernedChangesPanel", () => {
     expect(screen.queryByRole("button", { name: "Allow governed edits" })).toBeNull();
   });
 
-  it("submits a trimmed proposal from the composer", () => {
+  it("submits a trimmed set-content proposal from the composer", () => {
     const props = createProps({ state: { kind: "idle" } });
     render(<GovernedChangesPanel {...props} />);
     fireEvent.change(screen.getByLabelText("Relative path"), {
@@ -99,7 +115,45 @@ describe("GovernedChangesPanel", () => {
       target: { value: "pub fn created() {}\n" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Review changes" }));
-    expect(props.onPropose).toHaveBeenCalledWith("src/new.rs", "pub fn created() {}\n");
+    expect(props.onPropose).toHaveBeenCalledWith([{
+      change: "set_content",
+      relativePath: "src/new.rs",
+      content: "pub fn created() {}\n",
+    }]);
+  });
+
+  it("authors one bounded review containing set-content and delete operations", () => {
+    const props = createProps({ state: { kind: "idle" } });
+    render(<GovernedChangesPanel {...props} />);
+
+    fireEvent.change(screen.getByLabelText("Relative path"), {
+      target: { value: "src/updated.rs" },
+    });
+    fireEvent.change(screen.getByLabelText("Proposed content"), {
+      target: { value: "pub fn updated() {}\n" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add file change" }));
+
+    fireEvent.change(screen.getByLabelText("Change operation"), {
+      target: { value: "delete" },
+    });
+    fireEvent.change(screen.getByLabelText("Relative path"), {
+      target: { value: "src/obsolete.rs" },
+    });
+    expect(screen.queryByLabelText("Proposed content")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add file change" }));
+
+    expect(screen.getByText("src/updated.rs")).toBeTruthy();
+    expect(screen.getByText("src/obsolete.rs")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Review 2 file changes" }));
+    expect(props.onPropose).toHaveBeenCalledWith([
+      {
+        change: "set_content",
+        relativePath: "src/updated.rs",
+        content: "pub fn updated() {}\n",
+      },
+      { change: "delete", relativePath: "src/obsolete.rs" },
+    ]);
   });
 
   it("renders the exact reviewed content and binds each decision", () => {
@@ -140,6 +194,18 @@ describe("GovernedChangesPanel", () => {
     expect(screen.getByRole("heading", { name: "Changes applied" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Undo changes" }));
     expect(props.onUndo).toHaveBeenCalledWith(appliedExecution.executionId);
+  });
+
+  it("surfaces persistent change history and can request undo from it", () => {
+    const props = createProps({ history: changesHistory, state: { kind: "idle" } });
+    render(<GovernedChangesPanel {...props} />);
+
+    expect(screen.getByRole("heading", { name: "Change history" })).toBeTruthy();
+    expect(screen.getByText("1 file · completed")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Undo historical change" }));
+    expect(props.onUndo).toHaveBeenCalledWith(appliedExecution.executionId);
+    fireEvent.click(screen.getByRole("button", { name: "Refresh history" }));
+    expect(props.onRefreshHistory).toHaveBeenCalledTimes(1);
   });
 
   it("explains undo conflicts without offering an effect", () => {

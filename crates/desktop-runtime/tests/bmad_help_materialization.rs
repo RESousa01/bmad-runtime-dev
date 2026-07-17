@@ -1,14 +1,15 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    canonical_hash, sha256_bytes, AuthorityRef, BmadArtifactClassification, BmadArtifactReference,
-    BmadCanonicalAdvanceResult, BmadCatalogBuilder, BmadHelpBindingCompiler, BmadHelpCatalogSource,
-    BmadHelpEvidenceClass, BmadHelpEvidenceToken, BmadHelpMaterializer, BmadHelpRecordIds,
-    BmadKernelErrorCode, BmadLoadedMethodPackage, BmadLocationClass, BmadMethodHelpRecommendation,
-    BmadPackageLoader, BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
-    BmadTrustedHelpModelProfile, BmadTrustedHelpModelProfileData, BmadVerifiedHelpProposal,
-    ContractId, CreateMethodSession, MethodAdvanceRequest, MethodContextDecision, MethodErrorCode,
-    MethodSession, MethodState, MethodVerifiedAdvanceResult, Sha256Digest, UnixMillis,
+    canonical_hash, sha256_bytes, validate_bmad_help_proposal_schema, AuthorityRef,
+    BmadArtifactClassification, BmadArtifactReference, BmadCanonicalAdvanceResult,
+    BmadCatalogBuilder, BmadHelpBindingCompiler, BmadHelpCatalogSource, BmadHelpEvidenceClass,
+    BmadHelpEvidenceToken, BmadHelpMaterializer, BmadHelpRecordIds, BmadKernelErrorCode,
+    BmadLoadedMethodPackage, BmadLocationClass, BmadMethodHelpRecommendation, BmadPackageLoader,
+    BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, BmadTrustedHelpModelProfile,
+    BmadTrustedHelpModelProfileData, BmadVerifiedHelpProposal, ContractId, CreateMethodSession,
+    MethodAdvanceRequest, MethodContextDecision, MethodErrorCode, MethodSession, MethodState,
+    MethodVerifiedAdvanceResult, Sha256Digest, UnixMillis,
 };
 use serde_json::{json, Value};
 
@@ -650,6 +651,72 @@ fn materializer_rejects_structural_text_catalog_and_token_substitution() {
                 session.checkpoints().len()
             ),
             before
+        );
+    }
+}
+
+#[test]
+fn bmad_help_proposal_schema_accepts_both_closed_branches() {
+    let compiled = compiled_help();
+    for value in [
+        json!({
+            "proposalKind": "recommended_capability",
+            "capabilityKey": capability_value(&compiled, 0),
+            "evidenceTokenIds": ["evidence_01J00000000000000000000000"],
+            "rationaleSummary": "The reviewed architecture intent matches this capability."
+        }),
+        json!({
+            "proposalKind": "no_recommendation",
+            "reasonCode": "catalog_evidence_absent"
+        }),
+    ] {
+        validate_bmad_help_proposal_schema(&value).expect("valid closed Help proposal branch");
+    }
+}
+
+#[test]
+fn bmad_help_proposal_schema_rejects_structural_and_semantic_drift() {
+    let compiled = compiled_help();
+    let valid = json!({
+        "proposalKind": "recommended_capability",
+        "capabilityKey": capability_value(&compiled, 0),
+        "evidenceTokenIds": ["evidence_01J00000000000000000000000"],
+        "rationaleSummary": "The reviewed architecture intent matches this capability."
+    });
+    let mut unknown = valid.clone();
+    unknown["transition"] = json!("completed");
+    let mut missing = valid.clone();
+    missing
+        .as_object_mut()
+        .expect("proposal object")
+        .remove("rationaleSummary");
+    let mut duplicate = valid.clone();
+    duplicate["evidenceTokenIds"] = json!([
+        "evidence_01J00000000000000000000000",
+        "evidence_01J00000000000000000000000"
+    ]);
+    let mut unsafe_text = valid.clone();
+    unsafe_text["rationaleSummary"] = json!("unsafe \u{202e} text");
+    let mut malformed_capability = valid;
+    malformed_capability["capabilityKey"]["packageVersionId"] = json!("bad id with spaces");
+
+    for value in [
+        unknown,
+        missing,
+        json!({
+            "proposalKind": "no_recommendation",
+            "reasonCode": "invented_reason"
+        }),
+        duplicate,
+        unsafe_text,
+        malformed_capability,
+        json!(["not", "an", "object"]),
+    ] {
+        assert_eq!(
+            validate_bmad_help_proposal_schema(&value)
+                .expect_err("invalid Help proposal schema")
+                .code(),
+            BmadKernelErrorCode::HelpProposalInvalid
         );
     }
 }

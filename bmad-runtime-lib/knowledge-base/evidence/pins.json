@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "sapphirus.living-knowledge.v1",
+  "pins": [
+    {
+      "id": "node",
+      "mode": "exact_text",
+      "path": ".nvmrc",
+      "selector": null,
+      "expected": "24.18.0"
+    },
+    {
+      "id": "pnpm",
+      "mode": "json_path",
+      "path": "package.json",
+      "selector": ["packageManager"],
+      "expected": "pnpm@11.12.0"
+    },
+    {
+      "id": "typescript",
+      "mode": "json_path",
+      "path": "package.json",
+      "selector": ["devDependencies", "typescript"],
+      "expected": "7.0.2"
+    },
+    {
+      "id": "dotnet-sdk",
+      "mode": "json_path",
+      "path": "global.json",
+      "selector": ["sdk", "version"],
+      "expected": "10.0.302"
+    },
+    {
+      "id": "rust",
+      "mode": "regex",
+      "path": "Cargo.toml",
+      "selector": "rust-version\\s*=\\s*\"([^\"]+)\"",
+      "expected": "1.97.0"
+    },
+    {
+      "id": "tauri",
+      "mode": "regex",
+      "path": "Cargo.toml",
+      "selector": "tauri\\s*=\\s*\\{\\s*version\\s*=\\s*\"=([^\"]+)\"",
+      "expected": "2.11.5"
+    },
+    {
+      "id": "react",
+      "mode": "json_path",
+      "path": "apps/desktop-ui/package.json",
+      "selector": ["dependencies", "react"],
+      "expected": "19.2.7"
+    },
+    {
+      "id": "vite",
+      "mode": "json_path",
+      "path": "apps/desktop-ui/package.json",
+      "selector": ["devDependencies", "vite"],
+      "expected": "8.1.4"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
+  "title": "sapphirus.model-context-consent.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "decisionId",
+    "requestId",
+    "invocationId",
+    "deliveryModel",
+    "tenantHash",
+    "subjectHash",
+    "registrationId",
+    "installationPublicKeyHash",
+    "entitlementLeaseId",
+    "entitlementLeaseHash",
+    "tenantPolicyId",
+    "tenantPolicyVersion",
+    "tenantPolicyHash",
+    "purpose",
+    "modelRole",
+    "canonicalOutputSchemaId",
+    "canonicalOutputSchemaHash",
+    "manifestHash",
+    "invocationBindingHash",
+    "consumptionHash",
+    "consentDisclosureHash",
+    "providerProfileHash",
+    "modelProfileHash",
+    "modelCapabilityHash",
+    "deploymentHash",
+    "region",
+    "retentionMode",
+    "budgetClass",
+    "issuedAt",
+    "notBefore",
+    "expiresAt",
+    "nonceHash",
+    "consentEnvelopeHash",
+    "proof"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.model-context-consent.v1" },
+    "decisionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "deliveryModel": { "const": "windows_local" },
+    "tenantHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "registrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "installationPublicKeyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "entitlementLeaseId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "entitlementLeaseHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "tenantPolicyId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "tenantPolicyVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "tenantPolicyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "purpose": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "modelRole": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "canonicalOutputSchemaId": { "$ref": "#/$defs/CanonicalSchemaId" },
+    "canonicalOutputSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "invocationBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consumptionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentDisclosureHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "providerProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelCapabilityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deploymentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "region": { "$ref": "#/$defs/Region" },
+    "retentionMode": { "const": "transient_no_store" },
+    "budgetClass": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "issuedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "notBefore": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "expiresAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "nonceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentEnvelopeHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "proof": { "$ref": "#/$defs/InstallationProof" }
+  },
+  "$defs": {
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "Region": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "InstallationProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proofType",
+        "algorithm",
+        "keyId",
+        "signedPayloadHash",
+        "signature"
+      ],
+      "properties": {
+        "proofType": { "const": "installation_signature" },
+        "algorithm": { "const": "ES256" },
+        "keyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "signedPayloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "signature": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 2048,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

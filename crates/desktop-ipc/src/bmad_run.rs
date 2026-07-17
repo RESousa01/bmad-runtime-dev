@@ -1,4 +1,4 @@
-use desktop_runtime::{BmadHelpRecommendation, BmadLoadedPackage, ContractId};
+use desktop_runtime::{BmadHelpIntent, BmadHelpRecommendation, BmadLoadedPackage, ContractId};
 use serde::{Deserialize, Serialize};
 
 use crate::bmad::{
@@ -40,6 +40,7 @@ pub struct BmadHelpRunCreatedProjection {
     workspace_id: ContractId,
     run_id: ContractId,
     session_id: ContractId,
+    current_intent: String,
     runnable: bool,
     completion_claimed: bool,
     recommendation: BmadHelpRecommendationProjection,
@@ -146,6 +147,7 @@ struct RetainedBmadHelpRunCreatedProjection {
     workspace_id: ContractId,
     run_id: ContractId,
     session_id: ContractId,
+    current_intent: String,
     runnable: bool,
     completion_claimed: bool,
     recommendation: RetainedBmadHelpRecommendationProjection,
@@ -161,6 +163,7 @@ struct RetainedBmadHelpRunCreatedProjection {
 pub fn project_created_bmad_help_run(
     package: &BmadLoadedPackage,
     recommendation: &BmadHelpRecommendation,
+    current_intent: &BmadHelpIntent,
     workspace_id: ContractId,
     run_id: ContractId,
     session_id: ContractId,
@@ -172,6 +175,7 @@ pub fn project_created_bmad_help_run(
         workspace_id,
         run_id,
         session_id,
+        current_intent: current_intent.as_str().to_owned(),
         runnable: false,
         completion_claimed: false,
         recommendation: project_bmad_help_recommendation(package, recommendation)?,
@@ -212,6 +216,7 @@ pub fn decode_retained_bmad_help_run(
     if retained.workspace_id != *expected_workspace_id
         || retained.run_id != *expected_run_id
         || retained.session_id != *expected_session_id
+        || BmadHelpIntent::new(retained.current_intent.clone()).is_err()
         || retained.runnable
         || retained.completion_claimed
         || !valid_retained_recommendation(&retained.recommendation)
@@ -226,10 +231,18 @@ pub fn decode_retained_bmad_help_run(
         workspace_id: retained.workspace_id,
         run_id: retained.run_id,
         session_id: retained.session_id,
+        current_intent: retained.current_intent,
         runnable: false,
         completion_claimed: false,
         recommendation: restore_recommendation(retained.recommendation),
     })
+}
+
+impl BmadHelpRunCreatedProjection {
+    #[must_use]
+    pub fn current_intent(&self) -> &str {
+        &self.current_intent
+    }
 }
 
 fn valid_retained_recommendation(value: &RetainedBmadHelpRecommendationProjection) -> bool {

@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
+  "title": "sapphirus.model-access-receipt.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "receiptId",
+    "requestId",
+    "requestHash",
+    "resultHash",
+    "deliveryModel",
+    "tenantHash",
+    "subjectHash",
+    "registrationId",
+    "manifestHash",
+    "invocationBindingHash",
+    "consumptionHash",
+    "consentEnvelopeHash",
+    "consentDisclosureHash",
+    "providerProfileHash",
+    "modelProfileHash",
+    "modelCapabilityHash",
+    "deploymentHash",
+    "canonicalOutputSchemaId",
+    "canonicalOutputSchemaHash",
+    "providerSchemaProjectionHash",
+    "credentialBindingHash",
+    "retentionMode",
+    "region",
+    "inputBytes",
+    "outputBytes",
+    "usage",
+    "retryCount",
+    "fallbackEvents",
+    "providerRequestId",
+    "startedAt",
+    "completedAt",
+    "terminalStatus",
+    "receiptHash",
+    "proof"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.model-access-receipt.v1" },
+    "receiptId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "requestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deliveryModel": { "const": "windows_local" },
+    "tenantHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "registrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "invocationBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consumptionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentEnvelopeHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentDisclosureHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "providerProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelCapabilityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deploymentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "canonicalOutputSchemaId": { "$ref": "#/$defs/CanonicalSchemaId" },
+    "canonicalOutputSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "providerSchemaProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "credentialBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "retentionMode": { "const": "transient_no_store" },
+    "region": { "$ref": "#/$defs/Region" },
+    "inputBytes": { "$ref": "#/$defs/SafeSize" },
+    "outputBytes": { "$ref": "#/$defs/SafeSize" },
+    "usage": { "$ref": "#/$defs/Usage" },
+    "retryCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 32
+    },
+    "fallbackEvents": {
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/FallbackEvent" }
+    },
+    "providerRequestId": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+        { "type": "null" }
+      ]
+    },
+    "startedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "completedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "terminalStatus": {
+      "enum": [
+        "succeeded",
+        "refused",
+        "incomplete",
+        "failed"
+      ]
+    },
+    "receiptHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "proof": { "$ref": "#/$defs/SupportPlaneProof" }
+  },
+  "$defs": {
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "Region": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "SafeSize": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "Usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputTokens",
+        "outputTokens",
+        "costMicrounits",
+        "currency"
+      ],
+      "properties": {
+        "inputTokens": { "$ref": "#/$defs/SafeSize" },
+        "outputTokens": { "$ref": "#/$defs/SafeSize" },
+        "costMicrounits": { "$ref": "#/$defs/SafeSize" },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      }
+    },
+    "FallbackEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "fromProfileHash",
+        "toProfileHash",
+        "policyTransitionHash"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "fromProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "toProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "policyTransitionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "SupportPlaneProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proofType",
+        "algorithm",
+        "issuer",
+        "audience",
+        "keyId",
+        "signedPayloadHash",
+        "signature"
+      ],
+      "properties": {
+        "proofType": { "const": "support_plane_signature" },
+        "algorithm": { "const": "ES256" },
+        "issuer": { "type": "string", "minLength": 8, "maxLength": 2048 },
+        "audience": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "keyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "signedPayloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "signature": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 2048,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

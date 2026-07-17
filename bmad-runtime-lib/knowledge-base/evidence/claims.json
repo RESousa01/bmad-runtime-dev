@@ -1,0 +1,305 @@
+{
+  "schemaVersion": "sapphirus.living-knowledge.v1",
+  "claims": [
+    {
+      "id": "KB-SCOPE-001",
+      "statement": "The implemented product at the evidence commit is an internal Windows desktop workspace.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-002"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Does not claim signed distribution or pilot readiness.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "product.delivery-scope"
+    },
+    {
+      "id": "KB-ARCH-001",
+      "statement": "desktop-app is the Windows-local composition and lifecycle authority.",
+      "classification": "ARCHITECTURE_DECISION",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-003"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Authenticode signing remains a separate release gate.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "architecture.desktop-authority"
+    },
+    {
+      "id": "KB-ARCH-002",
+      "statement": "The React renderer is a bounded presentation client without generic filesystem, process, token, database, or updater authority.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-004",
+        "SRC-REPO-007"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "This does not prove every future IPC command preserves the boundary.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "architecture.renderer-boundary"
+    },
+    {
+      "id": "KB-VAULT-001",
+      "statement": "bmad-runtime-lib is optional reference context and is not a product build, test, runtime, package, or CI authority.",
+      "classification": "ARCHITECTURE_DECISION",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-005"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "The optional vault-check development command may inspect it explicitly.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "architecture.reference-vault-boundary"
+    },
+    {
+      "id": "KB-CAP-001",
+      "statement": "D1 selected-workspace reads and bounded projections are implemented.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-006",
+        "SRC-REPO-007"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "The claim is bounded to the committed read surface.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "capability.workspace-read"
+    },
+    {
+      "id": "KB-CAP-002",
+      "statement": "BMAD Help has a deterministic user-facing path with sealed local materialization, durable retained-run evidence, and renderer integration; production managed-model execution remains unavailable.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-011",
+        "SRC-REPO-012",
+        "SRC-REPO-013"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "The deterministic path does not claim a live managed-model call or production receipt verification.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "capability.bmad-help"
+    },
+    {
+      "id": "KB-CAP-003",
+      "statement": "The first D3 governed local-edits vertical is implemented across host composition, durable execution state, and renderer review flows.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-008",
+        "SRC-REPO-009",
+        "SRC-REPO-010"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Command execution and signed distribution remain out of scope.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "capability.governed-edits"
+    },
+    {
+      "id": "KB-CLOUD-001",
+      "statement": "The Desktop Support API is a non-integrated support-plane scaffold whose default consent path fails closed before model brokerage.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "scaffolded",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-013",
+        "SRC-REPO-014"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Development-only seams are not production managed-identity evidence.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "capability.desktop-support-api"
+    },
+    {
+      "id": "KB-RELEASE-001",
+      "statement": "Bundling is configured for NSIS, but no installer built from the evidence commit is signed, timestamped, and proven through clean-machine install, launch, upgrade, and uninstall.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "blocked",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-002"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "A local unsigned artifact does not establish reproducible signed release readiness.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "release.desktop-packaging"
+    },
+    {
+      "id": "KB-CONTRACT-001",
+      "statement": "Canonical JSON Schema contracts generate TypeScript, Rust, and C# boundaries through pinned tooling, but the evidence commit fails cross-language qualification because its Cargo bootstrap lock digest was not requalified.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "blocked",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-015",
+        "SRC-REPO-016"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "The generators and language-specific conformance suites pass; the failing bootstrap digest gate still blocks a fully green baseline.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "contracts.cross-language-generation"
+    },
+    {
+      "id": "KB-DATA-001",
+      "statement": "Windows-local durable authority uses the Rust host with SQLite and encrypted content-addressed payload storage.",
+      "classification": "ARCHITECTURE_DECISION",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-003",
+        "SRC-REPO-010",
+        "SRC-REPO-021"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Device-owner and rollback-to-an-older-coherent-store threats are not eliminated by local encryption.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "data.windows-local-authority"
+    },
+    {
+      "id": "KB-TOOL-001",
+      "statement": "The evidence commit pins Node 24.18.0, pnpm 11.12.0, TypeScript 7.0.2, Rust 1.97.0, Tauri 2.11.5, React 19.2.7, Vite 8.1.4, and .NET SDK 10.0.302.",
+      "classification": "IMPLEMENTED_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-005",
+        "SRC-REPO-017",
+        "SRC-REPO-018",
+        "SRC-REPO-019",
+        "SRC-REPO-020"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Project pins are not automatically claims that each version is the newest available release.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "toolchain.repository-pins"
+    },
+    {
+      "id": "KB-TOOL-002",
+      "statement": "Node 24.18.0 was published by Node.js as an LTS release.",
+      "classification": "VERIFIED_EXTERNAL_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-OFFICIAL-001",
+        "SRC-OFFICIAL-002"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Support status must be revalidated after the recorded cutoff.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "toolchain.node-lifecycle"
+    },
+    {
+      "id": "KB-TOOL-003",
+      "statement": "TypeScript 7.0 does not expose a public programmatic API, so application CLI use and compiler-API consumers require separate treatment.",
+      "classification": "VERIFIED_EXTERNAL_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-OFFICIAL-003",
+        "SRC-REPO-005"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "The external API status may change in a later TypeScript release.",
+      "supersedes": [],
+      "singleSourceException": "The official TypeScript announcement is the canonical statement; the repository pin independently proves local applicability but is not a second external authority.",
+      "subject": "toolchain.typescript-api",
+      "singleSourceExceptionReviewedAt": "2026-07-16"
+    },
+    {
+      "id": "KB-TOOL-004",
+      "statement": "React 19.2.7 is an official React 19.2 patch and is the renderer pin at the evidence commit.",
+      "classification": "VERIFIED_EXTERNAL_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-OFFICIAL-004",
+        "SRC-REPO-019"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "This does not assert ecosystem-wide compatibility beyond repository verification.",
+      "supersedes": [],
+      "singleSourceException": "React's official versions page is the canonical patch listing; the repository manifest independently proves the local pin.",
+      "subject": "toolchain.react-release",
+      "singleSourceExceptionReviewedAt": "2026-07-16"
+    },
+    {
+      "id": "KB-TOOL-005",
+      "statement": "Vite 8.1 is a supported release line and the renderer pins Vite 8.1.4.",
+      "classification": "VERIFIED_EXTERNAL_FACT",
+      "implementationStatus": "implemented",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-OFFICIAL-005",
+        "SRC-OFFICIAL-006",
+        "SRC-REPO-019"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "Patch currency must be revalidated after the research cutoff.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "toolchain.vite-release"
+    },
+    {
+      "id": "KB-ROADMAP-001",
+      "statement": "The web-managed delivery remains a deferred product option; it is not an implemented authority at the evidence commit.",
+      "classification": "ARCHITECTURE_DECISION",
+      "implementationStatus": "planned",
+      "confidence": "high",
+      "sourceIds": [
+        "SRC-REPO-001",
+        "SRC-REPO-022"
+      ],
+      "observedAt": "2026-07-16",
+      "revalidateBy": "2026-10-16",
+      "limitations": "A future accepted product decision may reactivate web delivery under separate authority.",
+      "supersedes": [],
+      "singleSourceException": "",
+      "subject": "roadmap.web-managed-delivery"
+    }
+  ]
+}

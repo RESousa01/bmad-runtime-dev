@@ -19,6 +19,8 @@ export type ContractKind =
   | "evidence-event"
   | "execution-result-manifest"
   | "filesystem-capability"
+  | "model-access-receipt"
+  | "model-context-consent"
   | "package-compatibility"
   | "remote-job-handoff"
   | "spec-consumption";

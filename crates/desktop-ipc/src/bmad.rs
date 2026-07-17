@@ -189,6 +189,26 @@ pub fn project_bmad_library(
     scope: BmadLibraryProjectionScope,
     cursor: Option<&str>,
 ) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
+    project_bmad_library_with_activations(package, catalog, roster, scope, cursor, &[])
+}
+
+/// Produces the bounded Method-library projection with an explicit
+/// product-owned availability overlay. The sealed catalog remains immutable;
+/// overlays can only promote exact structurally eligible installed skills.
+///
+/// # Errors
+///
+/// Returns [`BmadProjectionError::Unavailable`] for duplicate, unknown, or
+/// structurally ineligible activations in addition to the baseline projection
+/// failures.
+pub fn project_bmad_library_with_activations(
+    package: &BmadLoadedPackage,
+    catalog: &BmadCatalog,
+    roster: &BmadAgentRoster,
+    scope: BmadLibraryProjectionScope,
+    cursor: Option<&str>,
+    activations: &[(&str, &str)],
+) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
     if cursor.is_some() {
         return Err(BmadProjectionError::Gap);
     }
@@ -199,6 +219,7 @@ pub fn project_bmad_library(
     {
         return Err(BmadProjectionError::Unavailable);
     }
+    let activated = validated_activations(catalog, activations)?;
     let projection = BmadLibrarySnapshotProjection {
         schema_version: "bmad-library-snapshot.v1".to_owned(),
         scope,
@@ -210,13 +231,23 @@ pub fn project_bmad_library(
         installed_skills: catalog
             .installed_skills
             .iter()
-            .map(project_installed_skill)
+            .map(|skill| {
+                project_installed_skill(
+                    skill,
+                    activated.contains(&(skill.module_code.as_str(), skill.skill_name.as_str())),
+                )
+            })
             .collect::<Result<_, _>>()?,
         help_actions: catalog
             .help_actions
             .iter()
             .filter(|action| action.skill_name != "_meta")
-            .map(project_help_action)
+            .map(|action| {
+                project_help_action(
+                    action,
+                    activated.contains(&(action.module_code.as_str(), action.skill_name.as_str())),
+                )
+            })
             .collect::<Result<_, _>>()?,
         method_agents: roster
             .agents
@@ -235,13 +266,32 @@ pub fn project_bmad_library(
     Ok(projection)
 }
 
+fn validated_activations<'a>(
+    catalog: &BmadCatalog,
+    activations: &[(&'a str, &'a str)],
+) -> Result<BTreeSet<(&'a str, &'a str)>, BmadProjectionError> {
+    let mut activated = BTreeSet::new();
+    for &(module_code, skill_name) in activations {
+        let eligible = catalog.installed_skills.iter().any(|skill| {
+            skill.module_code == module_code
+                && skill.skill_name == skill_name
+                && skill.structurally_eligible
+        });
+        if !eligible || !activated.insert((module_code, skill_name)) {
+            return Err(BmadProjectionError::Unavailable);
+        }
+    }
+    Ok(activated)
+}
+
 fn project_installed_skill(
     skill: &BmadInstalledSkillRecord,
+    activated: bool,
 ) -> Result<BmadInstalledSkillProjection, BmadProjectionError> {
     if skill.actions.len() > MAX_ACTIONS_PER_SKILL {
         return Err(BmadProjectionError::Unavailable);
     }
-    let availability = if skill.capability_enabled {
+    let availability = if skill.capability_enabled || activated {
         BmadCatalogAvailability::Available
     } else {
         BmadCatalogAvailability::CapabilityDisabled
@@ -268,6 +318,7 @@ fn project_installed_skill(
 
 fn project_help_action(
     action: &BmadHelpAction,
+    activated: bool,
 ) -> Result<BmadHelpActionProjection, BmadProjectionError> {
     if action.expected_outputs.len() > MAX_EXPECTED_ARTIFACTS {
         return Err(BmadProjectionError::Unavailable);
@@ -293,9 +344,20 @@ fn project_help_action(
             .iter()
             .map(|artifact| bounded_text(artifact, MAX_IDENTIFIER_BYTES))
             .collect::<Result<_, _>>()?,
-        availability: project_availability(action.availability),
-        blocker_codes: blocker_codes(action.availability),
+        availability: project_availability(activated_availability(action.availability, activated)),
+        blocker_codes: blocker_codes(activated_availability(action.availability, activated)),
     })
+}
+
+const fn activated_availability(
+    availability: BmadCatalogAvailability,
+    activated: bool,
+) -> BmadCatalogAvailability {
+    if activated && matches!(availability, BmadCatalogAvailability::CapabilityDisabled) {
+        BmadCatalogAvailability::Available
+    } else {
+        availability
+    }
 }
 
 fn project_agent(agent: &BmadAgentRecord) -> Result<BmadAgentProjection, BmadProjectionError> {

@@ -29,7 +29,7 @@ const nativeCodegenPath = fileURLToPath(import.meta.url);
 export const repositoryRoot = path.resolve(packageRoot, "..", "..");
 const toolLockPath = path.join(repositoryRoot, "tools", "contract-codegen", "tool-lock.json");
 const manifestPath = path.join(repositoryRoot, ".config", "dotnet-tools.json");
-const targetRoot = path.join(repositoryRoot, "target", "contract-codegen");
+const targetRoot = path.join(repositoryRoot, "target", "c");
 const maximumOutputBytes = 1_048_576;
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const trustedPowerShellPath = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
@@ -78,6 +78,8 @@ const productionRoots = Object.freeze([
   ["evidence-event.schema.json", "EvidenceEvent"],
   ["execution-result-manifest.schema.json", "ExecutionResultManifest"],
   ["filesystem-capability.schema.json", "FilesystemCapabilitySnapshot"],
+  ["model-access-receipt.schema.json", "ModelAccessReceipt"],
+  ["model-context-consent.schema.json", "ModelContextConsent"],
   ["package-compatibility.schema.json", "PackageCompatibility"],
   ["remote-job-handoff.schema.json", "RemoteJobHandoff"],
   ["spec-consumption.schema.json", "SpecConsumptionRecord"],
@@ -100,7 +102,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071",
+    sha256: "03809774e043010e28fa7997c8f3e2a008dc634cbbe13fba0371de3971bafe70",
     status: "reviewed",
   },
   dotnetTools: {
@@ -254,6 +256,28 @@ export function stableJson(value) {
 
 export function sha256(value) {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
+}
+
+export function canonicalDotnetOutputRoot(runRoot, mode, stagingPolicy) {
+  if (!path.isAbsolute(runRoot) || !["production", "qualification"].includes(mode)) {
+    fail(FAILURE_CODES.nondeterministic, "Corvus staging requires an absolute reviewed run root.");
+  }
+  const targetLength = stagingPolicy?.dotnetOutputPathLengths?.[mode];
+  if (!Number.isSafeInteger(targetLength) || targetLength <= 0) {
+    fail(FAILURE_CODES.nondeterministic, "Corvus staging output length is not reviewed.");
+  }
+  const directoryLength = targetLength - runRoot.length - path.sep.length;
+  if (directoryLength < "dotnet".length) {
+    fail(
+      FAILURE_CODES.nondeterministic,
+      `The checkout path is too long for the reviewed ${mode} Corvus staging root.`,
+    );
+  }
+  const outputRoot = path.join(runRoot, "dotnet".padEnd(directoryLength, "-"));
+  if (outputRoot.length !== targetLength) {
+    fail(FAILURE_CODES.nondeterministic, "Corvus staging output length could not be fixed.");
+  }
+  return outputRoot;
 }
 
 function requireBufferRange(buffer, offset, length, label) {
@@ -609,11 +633,16 @@ export function validateToolLock(lock) {
     ["typescriptOutput", "rustOutput", "dotnetOutput", "dotnetNamespace"],
     FAILURE_CODES.lock, "qualification invocation");
   assertExactKeys(lock.stagingPolicy, [
-    "strategy", "runRoots", "transformVersion", "documentRootKeywordsRemoved",
+    "strategy", "runRoots", "modeDirectories", "dotnetOutputPathLengths",
+    "outputPathLengthStrategy", "transformVersion", "documentRootKeywordsRemoved",
     "nestedScopeKeywordsRejected", "unsupportedReferenceKeywordsRejected",
     "definitionExtraction", "optionalNullablePresenceTransform", "productionOptionalNullablePolicy",
     "declaredReferencesOnly", "rejectDefinitionCollisions", "rejectSourceSetDrift",
   ], FAILURE_CODES.lock, "stagingPolicy");
+  assertExactKeys(lock.stagingPolicy.modeDirectories, ["production", "qualification"],
+    FAILURE_CODES.lock, "stagingPolicy modeDirectories");
+  assertExactKeys(lock.stagingPolicy.dotnetOutputPathLengths, ["production", "qualification"],
+    FAILURE_CODES.lock, "stagingPolicy dotnetOutputPathLengths");
   assertExactKeys(lock.normalizationPolicy, [
     "encoding", "decode", "lineEndings", "terminalLineFeedCount", "pathOrder", "rejectNul",
     "rejectEmbeddedBom", "rejectRunPathLeaks",
@@ -796,7 +825,10 @@ export function validateToolLock(lock) {
   }, FAILURE_CODES.lock, "invocation configuration");
   equalJson(lock.stagingPolicy, {
     strategy: "internal-$defs-bundle-v1",
-    runRoots: ["target/contract-codegen/run-a", "target/contract-codegen/run-b"],
+    runRoots: ["target/c/a", "target/c/b"],
+    modeDirectories: { production: "p", qualification: "q" },
+    dotnetOutputPathLengths: { production: 86, qualification: 89 },
+    outputPathLengthStrategy: "fixed-absolute-corvus-output-root-v1",
     transformVersion: "internal-$defs-bundle-v1",
     documentRootKeywordsRemoved: ["$id", "$schema", "$defs"],
     nestedScopeKeywordsRejected: ["$id", "$schema", "$defs"],
@@ -1977,8 +2009,13 @@ function compareTrees(left, right, label) {
 }
 
 async function runOneGeneration(preflight, mode, runName, bundleSource, rustBundleSource) {
+  const runIndex = runName === "run-a" ? 0 : runName === "run-b" ? 1 : -1;
+  if (runIndex < 0) fail(FAILURE_CODES.parity, `Unsupported native run ${runName}.`);
+  const reviewedRunRoot = repositoryPath(preflight.lock.stagingPolicy.runRoots[runIndex]);
+  assertContained(targetRoot, reviewedRunRoot, FAILURE_CODES.parity);
+  const modeDirectory = preflight.lock.stagingPolicy.modeDirectories[mode];
   const runRoot = await safeRepositoryDestination(
-    assertContained(targetRoot, path.join(targetRoot, runName, mode)),
+    assertContained(targetRoot, path.join(reviewedRunRoot, modeDirectory)),
     `${mode} ${runName} staging root`,
     FAILURE_CODES.parity,
   );
@@ -1986,7 +2023,11 @@ async function runOneGeneration(preflight, mode, runName, bundleSource, rustBund
   const input = path.join(runRoot, "input", `${mode}.schema.json`);
   const rustInput = path.join(runRoot, "input", `${mode}.rust.schema.json`);
   const rustRoot = path.join(runRoot, "rust");
-  const dotnetRoot = path.join(runRoot, "dotnet");
+  const dotnetRoot = canonicalDotnetOutputRoot(
+    runRoot,
+    mode,
+    preflight.lock.stagingPolicy,
+  );
   await mkdir(path.dirname(input), { recursive: true });
   await mkdir(rustRoot, { recursive: true });
   await mkdir(dotnetRoot, { recursive: true });

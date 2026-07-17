@@ -12,7 +12,7 @@ section: "Architecture Contracts"
 order: 93
 vault_role: "delivery-model-authority"
 project: Sapphirus BMAD Runtime
-status: current
+status: legacy-reference
 updated_on: 2026-07-10
 ---
 

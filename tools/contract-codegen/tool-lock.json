@@ -3,7 +3,7 @@
   "lockStatus": "reviewed_bootstrap",
   "bootstrapLocks": {
     "pnpm": { "file": "pnpm-lock.yaml", "sha256": "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12", "status": "reviewed" },
-    "cargo": { "file": "Cargo.lock", "sha256": "03ba69718d4998793112dab704e54866da611542b10fb125c9b0d3e5b5f97071", "status": "reviewed" },
+    "cargo": { "file": "Cargo.lock", "sha256": "03809774e043010e28fa7997c8f3e2a008dc634cbbe13fba0371de3971bafe70", "status": "reviewed" },
     "dotnetTools": { "file": ".config/dotnet-tools.json", "sha256": "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20", "status": "reviewed" },
     "dotnetPackages": { "file": "tests/generator-qualification/dotnet/packages.lock.json", "sha256": "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872", "status": "reviewed" }
   },
@@ -27,6 +27,8 @@
         { "file": "evidence-event.schema.json", "id": "https://schemas.sapphirus.dev/v2/evidence-event.schema.json", "typeName": "EvidenceEvent" },
         { "file": "execution-result-manifest.schema.json", "id": "https://schemas.sapphirus.dev/v1/execution-result-manifest.schema.json", "typeName": "ExecutionResultManifest" },
         { "file": "filesystem-capability.schema.json", "id": "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json", "typeName": "FilesystemCapabilitySnapshot" },
+        { "file": "model-access-receipt.schema.json", "id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json", "typeName": "ModelAccessReceipt" },
+        { "file": "model-context-consent.schema.json", "id": "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json", "typeName": "ModelContextConsent" },
         { "file": "package-compatibility.schema.json", "id": "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json", "typeName": "PackageCompatibility" },
         { "file": "remote-job-handoff.schema.json", "id": "https://schemas.sapphirus.dev/v1/remote-job-handoff.schema.json", "typeName": "RemoteJobHandoff" },
         { "file": "spec-consumption.schema.json", "id": "https://schemas.sapphirus.dev/v1/spec-consumption.schema.json", "typeName": "SpecConsumptionRecord" }
@@ -145,7 +147,16 @@
   },
   "stagingPolicy": {
     "strategy": "internal-$defs-bundle-v1",
-    "runRoots": ["target/contract-codegen/run-a", "target/contract-codegen/run-b"],
+    "runRoots": ["target/c/a", "target/c/b"],
+    "modeDirectories": {
+      "production": "p",
+      "qualification": "q"
+    },
+    "dotnetOutputPathLengths": {
+      "production": 86,
+      "qualification": 89
+    },
+    "outputPathLengthStrategy": "fixed-absolute-corvus-output-root-v1",
     "transformVersion": "internal-$defs-bundle-v1",
     "documentRootKeywordsRemoved": ["$id", "$schema", "$defs"],
     "nestedScopeKeywordsRejected": ["$id", "$schema", "$defs"],

@@ -1,11 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{
-    canonical_hash, canonical_hash_without_field, canonical_json_bytes, BmadCanonicalHelpRecords,
-    ContractId, DesktopLocalIdentity, MethodAdvanceDisposition, MethodAdvanceReceipt,
-    MethodAdvanceRequest, MethodArtifactExpectation, MethodArtifactProvenance, MethodError,
-    MethodErrorCode, MethodEvidenceClass, MethodExactBinding, MethodPersistenceEvent,
-    MethodSession, MethodSessionRepository, MethodSessionScope, Sha256Digest, UnixMillis,
+    canonical_hash, canonical_hash_without_field, canonical_json_bytes, deserialize_strict_json,
+    BmadCanonicalHelpRecords, ContractId, DesktopLocalIdentity, MethodAdvanceDisposition,
+    MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactExpectation,
+    MethodArtifactProvenance, MethodError, MethodErrorCode, MethodEvidenceClass,
+    MethodExactBinding, MethodPersistenceEvent, MethodSession, MethodSessionRepository,
+    MethodSessionScope, Sha256Digest, UnixMillis,
 };
 use rusqlite::{params, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
@@ -25,8 +26,12 @@ const HELP_RAW_PROPOSAL_KIND: &str = "bmad_help_raw_proposal";
 const HELP_RAW_PROPOSAL_SCHEMA: &str = "sapphirus.bmad-method-help-proposal.v1";
 const HELP_CANONICAL_RECOMMENDATION_KIND: &str = "bmad_help_canonical_recommendation";
 const HELP_CANONICAL_RECOMMENDATION_SCHEMA: &str = "sapphirus.bmad-method-help-recommendation.v1";
+const HELP_COMPLETED_RENDERER_PROJECTION_KIND: &str = "bmad_help_completed_renderer_projection";
+const HELP_COMPLETED_RENDERER_PROJECTION_SCHEMA: &str =
+    "sapphirus.bmad-help-completed-projection.v1";
 const HELP_RAW_PROPOSAL_EVENT: &str = "bmad.help.proposal.retained";
 const HELP_CANONICAL_RECOMMENDATION_EVENT: &str = "bmad.help.recommendation.retained";
+const HELP_COMPLETED_RENDERER_PROJECTION_EVENT: &str = "bmad.help.completed_projection.retained";
 const METHOD_RESULT_ACCEPTED_EVENT: &str = "bmad.method.result_accepted";
 const HELP_RUN_RENDERER_PROJECTION_KIND: &str = "bmad_help_run_renderer_projection";
 const HELP_RUN_RENDERER_PROJECTION_SCHEMA: &str = "sapphirus.bmad-help-run-renderer-projection.v1";
@@ -36,6 +41,7 @@ const HELP_RUN_CREATE_PURPOSE: &str = "bmad-help-run-create-request";
 const HELP_RUN_PROJECTION_BINDING_PURPOSE: &str = "bmad-help-run-projection-binding";
 const MAX_SAFE_JSON_INTEGER: u64 = 9_007_199_254_740_991;
 pub const MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES: usize = 66_560;
+pub const MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES: usize = 66_560;
 type CheckpointKey = (String, u64);
 type CheckpointIdentity = (String, String);
 type ExpectedCheckpoints = BTreeMap<CheckpointKey, CheckpointIdentity>;
@@ -152,6 +158,14 @@ pub struct BmadHelpRunCreationReceipt {
     pub accepted_at: UnixMillis,
     pub replayed: bool,
     pub renderer_projection: Vec<u8>,
+    pub scope: MethodSessionScope,
+    pub intent_hash: Sha256Digest,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadHelpRunCompletionReceipt {
+    pub creation: BmadHelpRunCreationReceipt,
+    pub renderer_projection: Vec<u8>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -159,6 +173,8 @@ pub enum BmadHelpRunLatest {
     None,
     LegacyProjectionUnavailable,
     Retained(BmadHelpRunCreationReceipt),
+    Interrupted(BmadHelpRunCreationReceipt),
+    Completed(BmadHelpRunCompletionReceipt),
 }
 
 #[derive(Serialize)]
@@ -469,6 +485,8 @@ impl LocalStore {
             accepted_at: request.accepted_at,
             replayed: false,
             renderer_projection: request.renderer_projection.clone(),
+            scope: candidate.scope(),
+            intent_hash: request.intent_hash,
         })
     }
 
@@ -510,7 +528,10 @@ impl LocalStore {
         replayed: bool,
     ) -> Result<BmadHelpRunCreationReceipt, StoreError> {
         match self.authenticate_help_run(identity, stored, replayed)? {
-            BmadHelpRunLatest::Retained(receipt) => Ok(receipt),
+            BmadHelpRunLatest::Retained(receipt) | BmadHelpRunLatest::Interrupted(receipt) => {
+                Ok(receipt)
+            }
+            BmadHelpRunLatest::Completed(receipt) => Ok(receipt.creation),
             BmadHelpRunLatest::None | BmadHelpRunLatest::LegacyProjectionUnavailable => {
                 Err(StoreError::Inconsistent)
             }
@@ -552,14 +573,85 @@ impl LocalStore {
         let Some(renderer_projection) = renderer_projection else {
             return Ok(BmadHelpRunLatest::LegacyProjectionUnavailable);
         };
-        Ok(BmadHelpRunLatest::Retained(BmadHelpRunCreationReceipt {
+        let creation = BmadHelpRunCreationReceipt {
             request_id: parse_contract_id(&stored.request_id)?,
             session_id,
-            run_id: scope.run_id,
+            run_id: scope.run_id.clone(),
             accepted_at: UnixMillis(stored.accepted_at),
             replayed,
             renderer_projection,
-        }))
+            scope,
+            intent_hash: Sha256Digest::parse(&stored.intent_hash)
+                .map_err(|_| StoreError::Inconsistent)?,
+        };
+        match session.state() {
+            desktop_runtime::MethodState::Created => Ok(BmadHelpRunLatest::Retained(creation)),
+            desktop_runtime::MethodState::Completed => {
+                let renderer_projection = self.load_bmad_help_completion_projection(&session)?;
+                Ok(BmadHelpRunLatest::Completed(BmadHelpRunCompletionReceipt {
+                    creation,
+                    renderer_projection,
+                }))
+            }
+            _ => Ok(BmadHelpRunLatest::Interrupted(creation)),
+        }
+    }
+
+    fn load_bmad_help_completion_projection(
+        &self,
+        session: &MethodSession,
+    ) -> Result<Vec<u8>, StoreError> {
+        let checkpoint = session.resume().ok_or(StoreError::Inconsistent)?;
+        let stream_id = format!("bmad-method:{}", session.session_id().as_str());
+        let rows = {
+            let connection = self.connection.lock();
+            let mut statement = connection.prepare(
+                "SELECT e.payload_hash, p.kind, p.schema_version, p.byte_count, p.key_version,
+                        e.payload_ref, e.correlation_id, e.causation_id
+                 FROM evidence_events e
+                 JOIN payloads p ON p.content_hash = e.payload_hash
+                 WHERE e.stream_id = ?1 AND e.event_type = ?2
+                 ORDER BY e.sequence",
+            )?;
+            let collected = statement
+                .query_map(
+                    params![stream_id, HELP_COMPLETED_RENDERER_PROJECTION_EVENT],
+                    |row| {
+                        Ok((
+                            PayloadRef {
+                                content_hash: row.get(0)?,
+                                kind: row.get(1)?,
+                                schema_version: row.get(2)?,
+                                byte_count: row.get(3)?,
+                                key_version: row.get(4)?,
+                            },
+                            row.get::<_, Option<String>>(5)?,
+                            row.get::<_, String>(6)?,
+                            row.get::<_, Option<String>>(7)?,
+                        ))
+                    },
+                )?
+                .collect::<Result<Vec<_>, _>>()?;
+            collected
+        };
+        let [(payload, retained_ref, correlation_id, causation_id)] = rows.as_slice() else {
+            return Err(StoreError::Inconsistent);
+        };
+        if payload.kind != HELP_COMPLETED_RENDERER_PROJECTION_KIND
+            || payload.schema_version != HELP_COMPLETED_RENDERER_PROJECTION_SCHEMA
+            || payload.byte_count == 0
+            || payload.byte_count
+                > u64::try_from(MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES)
+                    .map_err(|_| StoreError::Inconsistent)?
+            || retained_ref.as_deref() != Some(payload_uri(payload)?.as_str())
+            || correlation_id != checkpoint.invocation_id.as_str()
+            || causation_id.as_deref() != Some(checkpoint.checkpoint_id.as_str())
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let bytes = self.get_payload(payload)?;
+        validate_completion_projection(&bytes)?;
+        Ok(bytes)
     }
 
     /// Atomically finalizes one verified BMAD Help proposal into canonical Method lineage.
@@ -573,15 +665,21 @@ impl LocalStore {
     /// Returns [`StoreError::StateConflict`] for stale aggregate authority and an integrity
     /// error when the sealed records do not exactly match their hashes, content reference,
     /// or the authoritative advancing session loaded by the store.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one immediate transaction keeps all Help payload, projection, checkpoint, evidence, and outbox writes visibly ordered"
+    )]
     pub fn finalize_bmad_help(
         &self,
         scope: &MethodSessionScope,
         session_id: &ContractId,
         expected_version: u64,
         records: &BmadCanonicalHelpRecords,
+        completed_renderer_projection: &[u8],
         recorded_at: UnixMillis,
     ) -> Result<MethodSession, StoreError> {
         validate_help_finalization_records(records)?;
+        validate_completion_projection(completed_renderer_projection)?;
         let authoritative = self
             .load_method_session(scope, session_id)?
             .ok_or(StoreError::Inconsistent)?;
@@ -614,6 +712,11 @@ impl LocalStore {
             HELP_CANONICAL_RECOMMENDATION_SCHEMA,
             records.recommendation_bytes(),
         )?;
+        let completed_projection = self.prepare_payload(
+            HELP_COMPLETED_RENDERER_PROJECTION_KIND,
+            HELP_COMPLETED_RENDERER_PROJECTION_SCHEMA,
+            completed_renderer_projection,
+        )?;
         let state = self.prepare_payload(
             METHOD_STATE_KIND,
             METHOD_STATE_SCHEMA,
@@ -621,6 +724,7 @@ impl LocalStore {
         )?;
         let raw_payload_ref = payload_uri(&raw_proposal)?;
         let recommendation_payload_ref = payload_uri(&recommendation)?;
+        let completed_projection_payload_ref = payload_uri(&completed_projection)?;
         let state_payload_ref = payload_uri(&state)?;
         let stream_id = format!("bmad-method:{}", session_id.as_str());
         let correlation_id = checkpoint.invocation_id.to_string();
@@ -631,6 +735,7 @@ impl LocalStore {
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
         register_payload_in_transaction(&transaction, &raw_proposal, &occurred_at)?;
         register_payload_in_transaction(&transaction, &recommendation, &occurred_at)?;
+        register_payload_in_transaction(&transaction, &completed_projection, &occurred_at)?;
         register_payload_in_transaction(&transaction, &state, &occurred_at)?;
         update_method_projection(
             &transaction,
@@ -657,6 +762,16 @@ impl LocalStore {
                 event_type: HELP_CANONICAL_RECOMMENDATION_EVENT.to_owned(),
                 payload_hash: recommendation.content_hash.clone(),
                 payload_ref: Some(recommendation_payload_ref),
+                correlation_id: correlation_id.clone(),
+                causation_id: causation_id.clone(),
+                redaction_level: "summary".to_owned(),
+                retention_class: "authority".to_owned(),
+            },
+            EvidenceAppend {
+                stream_id: stream_id.clone(),
+                event_type: HELP_COMPLETED_RENDERER_PROJECTION_EVENT.to_owned(),
+                payload_hash: completed_projection.content_hash.clone(),
+                payload_ref: Some(completed_projection_payload_ref),
                 correlation_id: correlation_id.clone(),
                 causation_id: causation_id.clone(),
                 redaction_level: "summary".to_owned(),
@@ -731,6 +846,18 @@ fn validate_help_finalization_records(
         || canonical_data.recommendation_content_ref != *recommendation_ref
         || canonical_data.received_at != canonical.received_at
     {
+        return Err(StoreError::Inconsistent);
+    }
+    Ok(())
+}
+
+fn validate_completion_projection(bytes: &[u8]) -> Result<(), StoreError> {
+    if bytes.is_empty() || bytes.len() > MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES {
+        return Err(StoreError::Inconsistent);
+    }
+    let value: serde_json::Value =
+        deserialize_strict_json(bytes).map_err(|_| StoreError::Inconsistent)?;
+    if !value.is_object() {
         return Err(StoreError::Inconsistent);
     }
     Ok(())
@@ -2244,7 +2371,7 @@ fn load_help_finalization_evidence_rows(
                 (SELECT COUNT(*) FROM outbox o WHERE o.event_id = e.event_id)
          FROM evidence_events e
          LEFT JOIN payloads p ON p.content_hash = e.payload_hash
-         WHERE e.event_type IN (?1, ?2, ?3)
+         WHERE e.event_type IN (?1, ?2, ?3, ?4)
          ORDER BY e.stream_id, e.sequence, p.kind, p.schema_version",
     )?;
     let rows = statement
@@ -2252,6 +2379,7 @@ fn load_help_finalization_evidence_rows(
             params![
                 HELP_RAW_PROPOSAL_EVENT,
                 HELP_CANONICAL_RECOMMENDATION_EVENT,
+                HELP_COMPLETED_RENDERER_PROJECTION_EVENT,
                 METHOD_RESULT_ACCEPTED_EVENT,
             ],
             |row| {
@@ -2358,6 +2486,15 @@ fn verify_help_finalization_rows(
                     return Err(StoreError::Inconsistent);
                 }
             }
+            HELP_COMPLETED_RENDERER_PROJECTION_EVENT => {
+                if payload.kind != HELP_COMPLETED_RENDERER_PROJECTION_KIND
+                    || payload.schema_version != HELP_COMPLETED_RENDERER_PROJECTION_SCHEMA
+                    || payload.content_hash != desktop_runtime::sha256_bytes(&bytes).to_string()
+                {
+                    return Err(StoreError::Inconsistent);
+                }
+                validate_completion_projection(&bytes)?;
+            }
             METHOD_RESULT_ACCEPTED_EVENT => {
                 if payload != &lineage.completed_state_payload {
                     return Err(StoreError::Inconsistent);
@@ -2366,7 +2503,7 @@ fn verify_help_finalization_rows(
             _ => return Err(StoreError::Inconsistent),
         }
     }
-    if matched.len() != expected.len().saturating_mul(3) {
+    if matched.len() != expected.len().saturating_mul(4) {
         return Err(StoreError::Inconsistent);
     }
     Ok(())
