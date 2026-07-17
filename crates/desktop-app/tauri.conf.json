@@ -38,7 +38,7 @@
       "../../packages/bmad-foundation/runtime-manifest.json": "bmad-foundation/runtime-manifest.json",
       "../../packages/bmad-foundation/semantic-source-ledger.json": "bmad-foundation/semantic-source-ledger.json"
     },
-    "createUpdaterArtifacts": false,
+    "createUpdaterArtifacts": true,
     "category": "DeveloperTool",
     "shortDescription": "Read-only AI workspace companion for internal organization use.",
     "longDescription": "Sapphirus is an organization-managed Windows desktop workbench for bounded local workspace inspection and context review.",

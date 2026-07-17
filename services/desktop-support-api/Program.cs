@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Sapphirus.DesktopSupportApi;
+using Sapphirus.DesktopSupportApi.Configuration;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 SupportPlaneOptions options = builder.Configuration
@@ -66,25 +67,31 @@ builder.Services.AddRateLimiter(rateLimiter =>
 });
 
 builder.Services.AddSingleton(options);
-builder.Services.AddSingleton<IDeviceRegistry, MemoryDeviceRegistry>();
-builder.Services.AddSingleton<IIdempotencyStore>(_ => new MemoryIdempotencyStore(
-    options.IdempotencyMaximumEntries,
-    TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
-    TimeProvider.System));
-builder.Services.AddSingleton<IModelCallIdempotencyStore>(_ =>
-    new MemoryModelCallIdempotencyStore(
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IDeviceRegistry, MemoryDeviceRegistry>();
+    builder.Services.AddSingleton<IIdempotencyStore>(_ => new MemoryIdempotencyStore(
         options.IdempotencyMaximumEntries,
         TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
         TimeProvider.System));
-builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
-builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
-builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
-builder.Services.AddSingleton<IContextConsentVerifier, UnavailableContextConsentVerifier>();
-builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
-    builder.Environment.IsDevelopment()
-        && !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
+    builder.Services.AddSingleton<IModelCallIdempotencyStore>(_ =>
+        new MemoryModelCallIdempotencyStore(
+            options.IdempotencyMaximumEntries,
+            TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
+            TimeProvider.System));
+    builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
+    builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
+    builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
+    builder.Services.AddSingleton<IContextConsentVerifier, UnavailableContextConsentVerifier>();
+    builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
+        !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
         ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)
         : new UnavailableContextConsentConsumptionStore());
+}
+else
+{
+    builder.AddProductionComposition(options);
+}
 
 WebApplication app = builder.Build();
 app.UseExceptionHandler();

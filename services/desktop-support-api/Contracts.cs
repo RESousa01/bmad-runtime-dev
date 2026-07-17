@@ -11,11 +11,13 @@ public sealed record BootstrapResponse(
     DateTimeOffset ServerTime);
 
 public sealed record DeviceRegistrationRequest(
+    string SchemaVersion,
+    string InstallationPublicKey,
     string InstallationPublicKeyHash,
     string ClientRelease,
     string Platform,
     string Architecture,
-    string TenantPolicyVersion);
+    long TenantPolicyVersion);
 
 public sealed record DeviceRegistrationResponse(
     string SchemaVersion,
@@ -50,7 +52,8 @@ public sealed record SignedEntitlementLease(
 
 public sealed record SignedDesktopPolicy(
     string SchemaVersion,
-    string PolicyVersion,
+    string PolicyId,
+    long PolicyVersion,
     string PolicyHash,
     bool SystemBrowserFallbackAllowed,
     int MaximumContextBytes,

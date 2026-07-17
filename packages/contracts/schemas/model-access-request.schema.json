@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-access-request.schema.json",
+  "title": "sapphirus.model-access-request.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "deliveryModel",
+    "registrationId",
+    "purpose",
+    "modelRole",
+    "canonicalOutputSchemaId",
+    "canonicalOutputSchemaHash",
+    "localEgressManifestHash",
+    "consent",
+    "items",
+    "retentionMode",
+    "budgetClass"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "desktop-model-access-request.v1" },
+    "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "deliveryModel": { "const": "windows_local" },
+    "registrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "purpose": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "modelRole": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "canonicalOutputSchemaId": { "$ref": "#/$defs/CanonicalSchemaId" },
+    "canonicalOutputSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "localEgressManifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consent": {
+      "$ref": "./model-context-consent.schema.json"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/ContextItem" }
+    },
+    "retentionMode": { "const": "transient_no_store" },
+    "budgetClass": { "type": "string", "minLength": 1, "maxLength": 64 }
+  },
+  "$defs": {
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "ContextItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientItemId",
+        "relativeLabel",
+        "semanticRole",
+        "language",
+        "contentHash",
+        "byteCount",
+        "classification",
+        "content"
+      ],
+      "properties": {
+        "clientItemId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "relativeLabel": { "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath" },
+        "semanticRole": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "language": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "byteCount": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+        "classification": { "enum": ["public", "internal", "confidential", "restricted"] },
+        "content": { "type": "string", "maxLength": 4194304 }
+      }
+    }
+  }
+}

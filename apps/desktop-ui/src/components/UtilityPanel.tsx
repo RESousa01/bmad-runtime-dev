@@ -2,6 +2,7 @@ import { Button } from "@sapphirus/ui";
 import {
   Check,
   ChevronRight,
+  Download,
   FolderKanban,
   LockKeyhole,
   Monitor,
@@ -26,6 +27,7 @@ export interface UtilityPanelProps {
   modelAccessLabel: string;
   onClose: () => void;
   onDensityChange: (density: DensityPreference) => void;
+  onInstallAppUpdate: () => void;
   onManageWorkspaces: () => void;
   onOpenSkillsAndAgents: () => void;
   onThemeChange: (theme: ThemePreference) => void;
@@ -33,6 +35,8 @@ export interface UtilityPanelProps {
   skillsAgentsAvailable: boolean;
   skillsAgentsStatusLabel: string;
   theme: ThemePreference;
+  updateBusy: boolean;
+  updateStatusLabel: string;
   workspaceDetail: string;
   workspaceLabel: string;
 }
@@ -52,6 +56,7 @@ export function UtilityPanel({
   modelAccessLabel,
   onClose,
   onDensityChange,
+  onInstallAppUpdate,
   onManageWorkspaces,
   onOpenSkillsAndAgents,
   onThemeChange,
@@ -59,6 +64,8 @@ export function UtilityPanel({
   skillsAgentsAvailable,
   skillsAgentsStatusLabel,
   theme,
+  updateBusy,
+  updateStatusLabel,
   workspaceDetail,
   workspaceLabel,
 }: UtilityPanelProps) {
@@ -131,6 +138,10 @@ export function UtilityPanel({
                     <em>{runtimeLabel}</em>
                   </div>
                   <div className="settings-row">
+                    <span><strong>App updates</strong><small>Checks the signed release channel and installs an eligible update.</small></span>
+                    <em>{updateStatusLabel}</em>
+                  </div>
+                  <div className="settings-row">
                     <span><strong>Request policy</strong><small>Exact context must be reviewed and approved first.</small></span>
                     <em>Review before send</em>
                   </div>
@@ -139,6 +150,9 @@ export function UtilityPanel({
                     <LockKeyhole aria-hidden="true" size={18} />
                   </div>
                 </div>
+                <Button className="settings-pane__action" isDisabled={updateBusy} onPress={onInstallAppUpdate} variant="secondary">
+                  <Download aria-hidden="true" size={16} /> {updateBusy ? "Checking for updates" : "Check for updates"}
+                </Button>
               </section>
             ) : settingsPage === "appearance" ? (
               <section aria-labelledby="settings-appearance-title">

@@ -55,6 +55,10 @@ the Vite web-asset build. It does not read or execute imported context-vault con
 unconditional Windows CI gate with pinned Rust and .NET tools. Desktop packaging remains a manual
 native CI job guarded by the organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` setting.
 
+Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update feed and
+`SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled
+when either build-time value is absent; private signing keys are never embedded in the app.
+
 The planned internal deployment is single-tenant and uses organization-managed identity, policy,
 and signed packages. No Docker, local server, local model, or GPU is required on employee
 workstations.

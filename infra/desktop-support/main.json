@@ -1,0 +1,762 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.1-experimental",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+    "_EXPERIMENTAL_FEATURES_ENABLED": [
+      "Asserts"
+    ],
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "8155367770107476827"
+    }
+  },
+  "parameters": {
+    "namePrefix": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 18,
+      "metadata": {
+        "description": "Short, lowercase deployment name used to build globally unique resource names."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Azure region in which the desktop support plane is deployed."
+      }
+    },
+    "deployApi": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Deploy the support API after the infrastructure image has been published."
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Immutable support API container image including its sha256 digest. Required when deployApi is true."
+      }
+    },
+    "entraAuthority": {
+      "type": "string",
+      "metadata": {
+        "description": "Microsoft Entra tenant-specific API authority. The common authority is not accepted."
+      }
+    },
+    "entraAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "Microsoft Entra application ID URI expected in desktop access tokens."
+      }
+    },
+    "sqlAdministratorObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Object ID of the Entra group that administers the Azure SQL logical server."
+      }
+    },
+    "sqlAdministratorLogin": {
+      "type": "string",
+      "metadata": {
+        "description": "Display name of the Entra group that administers the Azure SQL logical server."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure OpenAI model name made available to the transient model broker."
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Pinned Azure OpenAI model version."
+      }
+    },
+    "releaseChannel": {
+      "type": "string",
+      "defaultValue": "beta",
+      "allowedValues": [
+        "beta",
+        "stable"
+      ]
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Deployment-wide resource tags."
+      }
+    }
+  },
+  "variables": {
+    "suffix": "[uniqueString(subscription().id, resourceGroup().id, parameters('namePrefix'))]",
+    "compactPrefix": "[toLower(replace(parameters('namePrefix'), '-', ''))]",
+    "identityName": "[format('{0}-api-id', parameters('namePrefix'))]",
+    "environmentName": "[format('{0}-env', parameters('namePrefix'))]",
+    "apiName": "[format('{0}-api', parameters('namePrefix'))]",
+    "registryName": "[take(format('{0}{1}cr', variables('compactPrefix'), variables('suffix')), 50)]",
+    "vaultName": "[take(format('{0}-{1}-kv', variables('compactPrefix'), variables('suffix')), 24)]",
+    "configurationName": "[take(format('{0}-{1}-cfg', variables('compactPrefix'), variables('suffix')), 50)]",
+    "sqlServerName": "[take(format('{0}-{1}-sql', variables('compactPrefix'), variables('suffix')), 63)]",
+    "openAiName": "[take(format('{0}-{1}-aoai', variables('compactPrefix'), variables('suffix')), 64)]",
+    "workspaceName": "[format('{0}-logs', parameters('namePrefix'))]",
+    "insightsName": "[format('{0}-insights', parameters('namePrefix'))]",
+    "networkName": "[format('{0}-vnet', parameters('namePrefix'))]",
+    "signingKeyName": "desktop-policy-es256",
+    "subnets": {
+      "containerApps": "10.42.0.0/23",
+      "privateEndpoints": "10.42.2.0/24"
+    },
+    "roleIds": {
+      "acrPull": "7f951dda-4ed3-4680-a7ca-43fe172d538d",
+      "appConfigurationDataReader": "516239f1-63e1-4d78-a4de-a74fb236a071",
+      "cognitiveServicesOpenAiUser": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd",
+      "keyVaultCryptoUser": "12338af0-0e69-4776-bea7-57ae8d297424"
+    },
+    "privateLinkTargets": [
+      {
+        "name": "registry",
+        "resourceId": "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]",
+        "groupId": "registry",
+        "zone": "privatelink.azurecr.io"
+      },
+      {
+        "name": "vault",
+        "resourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('vaultName'))]",
+        "groupId": "vault",
+        "zone": "privatelink.vaultcore.azure.net"
+      },
+      {
+        "name": "configuration",
+        "resourceId": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('configurationName'))]",
+        "groupId": "configurationStores",
+        "zone": "privatelink.azconfig.io"
+      },
+      {
+        "name": "sql",
+        "resourceId": "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]",
+        "groupId": "sqlServer",
+        "zone": "privatelink.database.windows.net"
+      },
+      {
+        "name": "openai",
+        "resourceId": "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName'))]",
+        "groupId": "account",
+        "zone": "privatelink.openai.azure.com"
+      }
+    ]
+  },
+  "resources": {
+    "network": {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2024-05-01",
+      "name": "[variables('networkName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.42.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "container-apps",
+            "properties": {
+              "addressPrefix": "[variables('subnets').containerApps]",
+              "delegations": [
+                {
+                  "name": "Microsoft.App.environments",
+                  "properties": {
+                    "serviceName": "Microsoft.App/environments"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "private-endpoints",
+            "properties": {
+              "addressPrefix": "[variables('subnets').privateEndpoints]",
+              "privateEndpointNetworkPolicies": "Disabled"
+            }
+          }
+        ]
+      }
+    },
+    "containerAppsSubnet": {
+      "existing": true,
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/{1}', variables('networkName'), 'container-apps')]",
+      "dependsOn": [
+        "network"
+      ]
+    },
+    "privateEndpointsSubnet": {
+      "existing": true,
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/{1}', variables('networkName'), 'private-endpoints')]",
+      "dependsOn": [
+        "network"
+      ]
+    },
+    "identity": {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[variables('identityName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]"
+    },
+    "logWorkspace": {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2023-09-01",
+      "name": "[variables('workspaceName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "retentionInDays": 30,
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "sku": {
+        "name": "PerGB2018"
+      }
+    },
+    "applicationInsights": {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('insightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]",
+        "DisableLocalAuth": true,
+        "IngestionMode": "LogAnalytics",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "dependsOn": [
+        "logWorkspace"
+      ]
+    },
+    "registry": {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2025-04-01",
+      "name": "[variables('registryName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "Premium"
+      },
+      "properties": {
+        "adminUserEnabled": false,
+        "anonymousPullEnabled": false,
+        "dataEndpointEnabled": false,
+        "publicNetworkAccess": "Disabled",
+        "zoneRedundancy": "Disabled"
+      }
+    },
+    "vault": {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2024-11-01",
+      "name": "[variables('vaultName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "tenantId": "[subscription().tenantId]",
+        "enableRbacAuthorization": true,
+        "enablePurgeProtection": true,
+        "enableSoftDelete": true,
+        "softDeleteRetentionInDays": 90,
+        "publicNetworkAccess": "Disabled",
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        }
+      }
+    },
+    "signingKey": {
+      "type": "Microsoft.KeyVault/vaults/keys",
+      "apiVersion": "2024-11-01",
+      "name": "[format('{0}/{1}', variables('vaultName'), variables('signingKeyName'))]",
+      "properties": {
+        "attributes": {
+          "enabled": true,
+          "exportable": false
+        },
+        "curveName": "P-256",
+        "keyOps": [
+          "sign",
+          "verify"
+        ],
+        "kty": "EC"
+      },
+      "dependsOn": [
+        "vault"
+      ]
+    },
+    "configuration": {
+      "type": "Microsoft.AppConfiguration/configurationStores",
+      "apiVersion": "2024-06-01",
+      "name": "[variables('configurationName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "standard"
+      },
+      "properties": {
+        "disableLocalAuth": true,
+        "enablePurgeProtection": true,
+        "publicNetworkAccess": "Disabled",
+        "softDeleteRetentionInDays": 7
+      }
+    },
+    "sqlServer": {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[variables('sqlServerName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "administrators": {
+          "administratorType": "ActiveDirectory",
+          "azureADOnlyAuthentication": true,
+          "login": "[parameters('sqlAdministratorLogin')]",
+          "principalType": "Group",
+          "sid": "[parameters('sqlAdministratorObjectId')]",
+          "tenantId": "[subscription().tenantId]"
+        },
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Disabled",
+        "restrictOutboundNetworkAccess": "Enabled",
+        "version": "12.0"
+      }
+    },
+    "sqlDatabase": {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[format('{0}/{1}', variables('sqlServerName'), 'desktop-support')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "GP_S_Gen5_1",
+        "tier": "GeneralPurpose",
+        "family": "Gen5",
+        "capacity": 1
+      },
+      "properties": {
+        "autoPauseDelay": 60,
+        "minCapacity": "[json('0.5')]",
+        "readScale": "Disabled",
+        "requestedBackupStorageRedundancy": "Geo",
+        "zoneRedundant": false
+      },
+      "dependsOn": [
+        "sqlServer"
+      ]
+    },
+    "openAi": {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2025-12-01",
+      "name": "[variables('openAiName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "kind": "OpenAI",
+      "sku": {
+        "name": "S0"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "customSubDomainName": "[variables('openAiName')]",
+        "disableLocalAuth": true,
+        "dynamicThrottlingEnabled": true,
+        "publicNetworkAccess": "Disabled",
+        "networkAcls": {
+          "defaultAction": "Deny"
+        }
+      }
+    },
+    "modelDeployment": {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2024-10-01",
+      "name": "[format('{0}/{1}', variables('openAiName'), 'desktop-planning')]",
+      "sku": {
+        "name": "Standard",
+        "capacity": 10
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "[parameters('modelName')]",
+          "version": "[parameters('modelVersion')]"
+        },
+        "raiPolicyName": "Microsoft.DefaultV2",
+        "versionUpgradeOption": "NoAutoUpgrade"
+      },
+      "dependsOn": [
+        "openAi"
+      ]
+    },
+    "environment": {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2026-01-01",
+      "name": "[variables('environmentName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "azure-monitor"
+        },
+        "infrastructureSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('networkName'), 'container-apps')]",
+        "publicNetworkAccess": "Enabled",
+        "zoneRedundant": false
+      },
+      "dependsOn": [
+        "network"
+      ]
+    },
+    "api": {
+      "condition": "[parameters('deployApi')]",
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2026-01-01",
+      "name": "[variables('apiName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')))]": {}
+        }
+      },
+      "properties": {
+        "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "allowInsecure": false,
+            "external": true,
+            "targetPort": 8080,
+            "transport": "http2"
+          },
+          "registries": [
+            {
+              "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
+              "server": "[reference('registry').loginServer]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "desktop-support-api",
+              "image": "[parameters('containerImage')]",
+              "env": [
+                {
+                  "name": "ASPNETCORE_HTTP_PORTS",
+                  "value": "8080"
+                },
+                {
+                  "name": "ASPNETCORE_ENVIRONMENT",
+                  "value": "Production"
+                },
+                {
+                  "name": "Sapphirus__Authority",
+                  "value": "[parameters('entraAuthority')]"
+                },
+                {
+                  "name": "Sapphirus__Audience",
+                  "value": "[parameters('entraAudience')]"
+                },
+                {
+                  "name": "Sapphirus__Region",
+                  "value": "[parameters('location')]"
+                },
+                {
+                  "name": "Sapphirus__ReleaseChannel",
+                  "value": "[parameters('releaseChannel')]"
+                },
+                {
+                  "name": "Sapphirus__ManagedIdentityClientId",
+                  "value": "[reference('identity').clientId]"
+                },
+                {
+                  "name": "Sapphirus__AppConfigurationEndpoint",
+                  "value": "[reference('configuration').endpoint]"
+                },
+                {
+                  "name": "Sapphirus__KeyVaultUri",
+                  "value": "[reference('vault').vaultUri]"
+                },
+                {
+                  "name": "Sapphirus__SigningKeyName",
+                  "value": "[variables('signingKeyName')]"
+                },
+                {
+                  "name": "Sapphirus__SqlServer",
+                  "value": "[reference('sqlServer').fullyQualifiedDomainName]"
+                },
+                {
+                  "name": "Sapphirus__SqlDatabase",
+                  "value": "desktop-support"
+                },
+                {
+                  "name": "Sapphirus__ModelEndpoint",
+                  "value": "[reference('openAi').endpoint]"
+                },
+                {
+                  "name": "Sapphirus__ModelDeployment",
+                  "value": "desktop-planning"
+                },
+                {
+                  "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                  "value": "[reference('applicationInsights').ConnectionString]"
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 10,
+            "rules": [
+              {
+                "name": "http-concurrency",
+                "http": {
+                  "metadata": {
+                    "concurrentRequests": "50"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "dependsOn": [
+        "acrPull",
+        "appConfigurationReader",
+        "applicationInsights",
+        "configuration",
+        "environment",
+        "identity",
+        "modelDeployment",
+        "modelUser",
+        "openAi",
+        "privateDnsZoneGroups",
+        "registry",
+        "signingKey",
+        "signingRole",
+        "sqlDatabase",
+        "sqlServer",
+        "vault"
+      ]
+    },
+    "acrPull": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]",
+      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), variables('roleIds').acrPull)]",
+      "properties": {
+        "principalId": "[reference('identity').principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIds').acrPull)]"
+      },
+      "dependsOn": [
+        "identity",
+        "registry"
+      ]
+    },
+    "appConfigurationReader": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('configurationName'))]",
+      "name": "[guid(resourceId('Microsoft.AppConfiguration/configurationStores', variables('configurationName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), variables('roleIds').appConfigurationDataReader)]",
+      "properties": {
+        "principalId": "[reference('identity').principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIds').appConfigurationDataReader)]"
+      },
+      "dependsOn": [
+        "configuration",
+        "identity"
+      ]
+    },
+    "signingRole": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.KeyVault/vaults', variables('vaultName'))]",
+      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('vaultName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), variables('roleIds').keyVaultCryptoUser)]",
+      "properties": {
+        "principalId": "[reference('identity').principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIds').keyVaultCryptoUser)]"
+      },
+      "dependsOn": [
+        "identity",
+        "vault"
+      ]
+    },
+    "modelUser": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName'))]",
+      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), variables('roleIds').cognitiveServicesOpenAiUser)]",
+      "properties": {
+        "principalId": "[reference('identity').principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIds').cognitiveServicesOpenAiUser)]"
+      },
+      "dependsOn": [
+        "identity",
+        "openAi"
+      ]
+    },
+    "privateDnsZones": {
+      "copy": {
+        "name": "privateDnsZones",
+        "count": "[length(variables('privateLinkTargets'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2024-06-01",
+      "name": "[variables('privateLinkTargets')[copyIndex()].zone]",
+      "location": "global",
+      "tags": "[parameters('tags')]",
+      "dependsOn": [
+        "configuration",
+        "openAi",
+        "registry",
+        "sqlServer",
+        "vault"
+      ]
+    },
+    "privateDnsLinks": {
+      "copy": {
+        "name": "privateDnsLinks",
+        "count": "[length(variables('privateLinkTargets'))]"
+      },
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2024-06-01",
+      "name": "[format('{0}/{1}', variables('privateLinkTargets')[copyIndex()].zone, format('{0}-{1}-link', parameters('namePrefix'), variables('privateLinkTargets')[copyIndex()].name))]",
+      "location": "global",
+      "properties": {
+        "registrationEnabled": false,
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('networkName'))]"
+        }
+      },
+      "dependsOn": [
+        "configuration",
+        "network",
+        "openAi",
+        "[format('privateDnsZones[{0}]', copyIndex())]",
+        "registry",
+        "sqlServer",
+        "vault"
+      ]
+    },
+    "privateEndpoints": {
+      "copy": {
+        "name": "privateEndpoints",
+        "count": "[length(variables('privateLinkTargets'))]"
+      },
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}-{1}-pe', parameters('namePrefix'), variables('privateLinkTargets')[copyIndex()].name)]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "subnet": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('networkName'), 'private-endpoints')]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "[format('{0}-connection', variables('privateLinkTargets')[copyIndex()].name)]",
+            "properties": {
+              "groupIds": [
+                "[variables('privateLinkTargets')[copyIndex()].groupId]"
+              ],
+              "privateLinkServiceId": "[variables('privateLinkTargets')[copyIndex()].resourceId]"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "configuration",
+        "network",
+        "openAi",
+        "registry",
+        "sqlServer",
+        "vault"
+      ]
+    },
+    "privateDnsZoneGroups": {
+      "copy": {
+        "name": "privateDnsZoneGroups",
+        "count": "[length(variables('privateLinkTargets'))]"
+      },
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/{1}', format('{0}-{1}-pe', parameters('namePrefix'), variables('privateLinkTargets')[copyIndex()].name), 'default')]",
+      "properties": {
+        "privateDnsZoneConfigs": [
+          {
+            "name": "[variables('privateLinkTargets')[copyIndex()].name]",
+            "properties": {
+              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateLinkTargets')[copyIndex()].zone)]"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "configuration",
+        "openAi",
+        "[format('privateDnsLinks[{0}]', copyIndex())]",
+        "[format('privateDnsZones[{0}]', copyIndex())]",
+        "[format('privateEndpoints[{0}]', copyIndex())]",
+        "registry",
+        "sqlServer",
+        "vault"
+      ]
+    }
+  },
+  "outputs": {
+    "apiFqdn": {
+      "type": "string",
+      "value": "[if(parameters('deployApi'), reference('api').configuration.ingress.fqdn, '')]"
+    },
+    "apiManagedIdentityObjectId": {
+      "type": "string",
+      "value": "[reference('identity').principalId]"
+    },
+    "sqlServerFqdn": {
+      "type": "string",
+      "value": "[reference('sqlServer').fullyQualifiedDomainName]"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "value": "desktop-support"
+    },
+    "registryLoginServer": {
+      "type": "string",
+      "value": "[reference('registry').loginServer]"
+    }
+  },
+  "asserts": {
+    "immutableApiImage": "[or(not(parameters('deployApi')), and(contains(parameters('containerImage'), '@sha256:'), greaterOrEquals(length(parameters('containerImage')), 80)))]"
+  }
+}

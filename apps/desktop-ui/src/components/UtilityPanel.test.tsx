@@ -8,6 +8,7 @@ import { UtilityPanel } from "./UtilityPanel";
 function renderSettings(initialSettingsPage?: "general" | "appearance" | "skills-agents" | "workspace") {
   const onManageWorkspaces = vi.fn();
   const onOpenSkillsAndAgents = vi.fn();
+  const onInstallAppUpdate = vi.fn();
   render(
     <UtilityPanel
       density="comfortable"
@@ -19,17 +20,20 @@ function renderSettings(initialSettingsPage?: "general" | "appearance" | "skills
       modelAccessLabel="Development model"
       onClose={vi.fn()}
       onDensityChange={vi.fn()}
+      onInstallAppUpdate={onInstallAppUpdate}
       onManageWorkspaces={onManageWorkspaces}
       onOpenSkillsAndAgents={onOpenSkillsAndAgents}
       onThemeChange={vi.fn()}
       runtimeLabel="Local host ready"
       theme="dark"
+      updateBusy={false}
+      updateStatusLabel="Ready to check"
       skillsAgentsStatusLabel="Loaded"
       workspaceDetail="Governed edits"
       workspaceLabel="bmad-runtime-dev"
     />,
   );
-  return { onManageWorkspaces, onOpenSkillsAndAgents };
+  return { onInstallAppUpdate, onManageWorkspaces, onOpenSkillsAndAgents };
 }
 
 describe("UtilityPanel settings", () => {
@@ -60,7 +64,9 @@ describe("UtilityPanel settings", () => {
 
   it("routes real settings actions through callbacks", async () => {
     const user = userEvent.setup();
-    const { onManageWorkspaces, onOpenSkillsAndAgents } = renderSettings();
+    const { onInstallAppUpdate, onManageWorkspaces, onOpenSkillsAndAgents } = renderSettings();
+
+    await user.click(screen.getByRole("button", { name: "Check for updates" }));
 
     await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     await user.click(screen.getByRole("button", { name: "Open Skills and agents" }));
@@ -69,6 +75,7 @@ describe("UtilityPanel settings", () => {
 
     expect(onOpenSkillsAndAgents).toHaveBeenCalledOnce();
     expect(onManageWorkspaces).toHaveBeenCalledOnce();
+    expect(onInstallAppUpdate).toHaveBeenCalledOnce();
   });
 
   it("can deep-link directly to Skills and agents from the agent control", () => {

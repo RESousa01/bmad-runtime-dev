@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/desktop-entitlement-lease.schema.json",
+  "title": "sapphirus.desktop-entitlement-lease.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "leaseId",
+    "registrationId",
+    "subjectHash",
+    "deliveryModel",
+    "issuedAt",
+    "notBefore",
+    "expiresAt",
+    "offlineGraceEndsAt",
+    "features",
+    "tenantPolicyHash",
+    "minimumClientVersion",
+    "keyId",
+    "signature"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "desktop-entitlement-lease.v1" },
+    "leaseId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "registrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deliveryModel": { "const": "windows_local" },
+    "issuedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "notBefore": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "expiresAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "offlineGraceEndsAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "features": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 64,
+        "pattern": "^[a-z0-9_-]+$"
+      }
+    },
+    "tenantPolicyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "minimumClientVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9A-Za-z.+-]+$"
+    },
+    "keyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "signature": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 2048,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}

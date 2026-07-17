@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/desktop-device-registration.schema.json",
+  "title": "sapphirus.desktop-device-registration.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "installationPublicKey",
+    "installationPublicKeyHash",
+    "clientRelease",
+    "platform",
+    "architecture",
+    "tenantPolicyVersion"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "desktop-device-registration.v1" },
+    "installationPublicKey": {
+      "type": "string",
+      "minLength": 80,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "installationPublicKeyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "clientRelease": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9A-Za-z.+-]+$"
+    },
+    "platform": { "const": "windows" },
+    "architecture": { "enum": ["x64", "arm64"] },
+    "tenantPolicyVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    }
+  }
+}

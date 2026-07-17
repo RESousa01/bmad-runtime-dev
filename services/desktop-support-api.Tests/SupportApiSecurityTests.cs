@@ -29,6 +29,10 @@ public sealed class SupportApiSecurityTests
     private const string SubjectB = "55555555-5555-5555-5555-555555555555";
     private const string ValidHash =
         "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    private const string InstallationPublicKey =
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbAS8_dPcjzdYutR-ZVr8kwBsm8PLq3nVCufbv0IrJY_PjRzLuCE1BsBTqhuAddhYYvXJEz8kEs03YhmxFqMgpQ";
+    private const string InstallationPublicKeyHash =
+        "sha256:2e881a93d84bef45453b26df9f5e2fc6d1cf3d9370fbfd0cd1189acb5bd588c7";
 
     [Fact]
     public async Task Unauthenticated_request_is_challenged_instead_of_failing_rate_partition()
@@ -86,12 +90,14 @@ public sealed class SupportApiSecurityTests
         using HttpClient client = factory.CreateSecureClient();
         string body = $$"""
             {
-              "installationPublicKeyHash": "{{ValidHash}}",
+              "schemaVersion": "desktop-device-registration.v1",
+              "installationPublicKey": "{{InstallationPublicKey}}",
+              "installationPublicKeyHash": "{{InstallationPublicKeyHash}}",
               "clientRelease": "0.1.0-beta.1",
               "platform": "windows",
               "architecture": "x64",
               "architecture": "x64",
-              "tenantPolicyVersion": "development-1"
+              "tenantPolicyVersion": 1
             }
             """;
 
@@ -115,11 +121,13 @@ public sealed class SupportApiSecurityTests
         using HttpClient client = factory.CreateSecureClient();
         string body = $$"""
             {
-              "InstallationPublicKeyHash": "{{ValidHash}}",
+              "SchemaVersion": "desktop-device-registration.v1",
+              "InstallationPublicKey": "{{InstallationPublicKey}}",
+              "InstallationPublicKeyHash": "{{InstallationPublicKeyHash}}",
               "ClientRelease": "0.1.0-beta.1",
               "Platform": "windows",
               "Architecture": "x64",
-              "TenantPolicyVersion": "development-1"
+              "TenantPolicyVersion": 1
             }
             """;
 
@@ -134,6 +142,20 @@ public sealed class SupportApiSecurityTests
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         await AssertSafeProblemAsync(response, "request_invalid", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Registration_rejects_malformed_or_mismatched_installation_public_keys()
+    {
+        DeviceRegistrationRequest valid = CreateDeviceRegistrationRequest();
+
+        Assert.True(RequestGuards.ValidateDeviceRegistration(valid, out _));
+        Assert.False(RequestGuards.ValidateDeviceRegistration(
+            valid with { InstallationPublicKey = valid.InstallationPublicKey + "=" },
+            out _));
+        Assert.False(RequestGuards.ValidateDeviceRegistration(
+            valid with { InstallationPublicKeyHash = ValidHash },
+            out _));
     }
 
     [Fact]
@@ -215,12 +237,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("device-operation-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "development-1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration? operationLease = await registry.FindActiveAsync(
             subject,
@@ -261,12 +278,7 @@ public sealed class SupportApiSecurityTests
     public async Task Device_operation_lease_cannot_cross_registry_authority()
     {
         const string subject = "cross-registry-subject";
-        DeviceRegistrationRequest request = new(
-            Hash("cross-registry-key"),
-            "0.1.0-beta.1",
-            "windows",
-            "x64",
-            "development-1");
+        DeviceRegistrationRequest request = CreateDeviceRegistrationRequest();
         MemoryDeviceRegistry first = new();
         MemoryDeviceRegistry second = new();
         DeviceRegistrationResponse firstRegistration = await first.RegisterAsync(
@@ -294,12 +306,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("throwing-callback-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "development-1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration? operationLease = await registry.FindActiveAsync(
             subject,
@@ -325,12 +332,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("blocking-callback-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "development-1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration? operationLease = await registry.FindActiveAsync(
             subject,
@@ -795,12 +797,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("receipt-commit-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "development-1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration? operationLease = await registry.FindActiveAsync(
             subject,
@@ -847,12 +844,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("receipt-uniqueness-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "policy-v1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration operationLease = Assert.IsType<ActiveDeviceRegistration>(
             await registry.FindActiveAsync(
@@ -901,12 +893,7 @@ public sealed class SupportApiSecurityTests
         MemoryDeviceRegistry registry = new();
         DeviceRegistrationResponse registration = await registry.RegisterAsync(
             subject,
-            new DeviceRegistrationRequest(
-                Hash("malformed-result-key"),
-                "0.1.0-beta.1",
-                "windows",
-                "x64",
-                "policy-v1"),
+            CreateDeviceRegistrationRequest(),
             TestContext.Current.CancellationToken);
         ActiveDeviceRegistration operationLease = Assert.IsType<ActiveDeviceRegistration>(
             await registry.FindActiveAsync(
@@ -1369,12 +1356,7 @@ public sealed class SupportApiSecurityTests
         HttpClient client,
         string subject)
     {
-        DeviceRegistrationRequest request = new(
-            Hash("installation-key"),
-            "0.1.0-beta.1",
-            "windows",
-            "x64",
-            "development-1");
+        DeviceRegistrationRequest request = CreateDeviceRegistrationRequest();
         using HttpResponseMessage response = await SendJsonAsync(
             client,
             HttpMethod.Post,
@@ -1392,6 +1374,15 @@ public sealed class SupportApiSecurityTests
             registration!.RegistrationId);
         return registration!;
     }
+
+    private static DeviceRegistrationRequest CreateDeviceRegistrationRequest() => new(
+        "desktop-device-registration.v1",
+        InstallationPublicKey,
+        InstallationPublicKeyHash,
+        "0.1.0-beta.1",
+        "windows",
+        "x64",
+        1);
 
     private static ModelAccessRequest CreateModelRequest(string registrationId, string content)
     {
@@ -1947,7 +1938,8 @@ public sealed class SupportApiSecurityTests
             _completed.TrySetResult(true);
             return new SignedDesktopPolicy(
                 "desktop-policy.v1",
-                "test-policy-v1",
+                "policy_01J00000000000000000000000",
+                1,
                 Hash("test-policy"),
                 false,
                 512 * 1024,

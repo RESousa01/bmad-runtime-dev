@@ -147,11 +147,72 @@ public static class RequestGuards
     {
         errorCode = "request_invalid";
         return request is not null
+            && request.SchemaVersion == "desktop-device-registration.v1"
+            && TryGetInstallationPublicKeyHash(
+                request.InstallationPublicKey,
+                out string installationPublicKeyHash)
             && IsSha256(request.InstallationPublicKeyHash)
+            && string.Equals(
+                installationPublicKeyHash,
+                request.InstallationPublicKeyHash,
+                StringComparison.Ordinal)
             && IsBounded(request.ClientRelease, 1, 64)
-            && IsBounded(request.Platform, 1, 32)
-            && IsBounded(request.Architecture, 1, 32)
-            && IsBounded(request.TenantPolicyVersion, 1, 128);
+            && request.Platform == "windows"
+            && request.Architecture is "x64" or "arm64"
+            && request.TenantPolicyVersion is >= 1 and <= 9007199254740991;
+    }
+
+    public static bool TryGetInstallationPublicKeyHash(
+        string? encodedPublicKey,
+        out string installationPublicKeyHash)
+    {
+        installationPublicKeyHash = "";
+        if (encodedPublicKey is null
+            || encodedPublicKey.Length is < 80 or > 512
+            || encodedPublicKey.Any(
+                character => !char.IsAsciiLetterOrDigit(character)
+                    && character is not '-' and not '_'))
+        {
+            return false;
+        }
+
+        try
+        {
+            byte[] subjectPublicKeyInfo = DecodeBase64Url(encodedPublicKey);
+            using ECDsa key = ECDsa.Create();
+            key.ImportSubjectPublicKeyInfo(subjectPublicKeyInfo, out int bytesRead);
+            ECParameters parameters = key.ExportParameters(false);
+            if (bytesRead != subjectPublicKeyInfo.Length
+                || parameters.Curve.Oid.Value != ECCurve.NamedCurves.nistP256.Oid.Value
+                || parameters.Q.X is not { Length: 32 }
+                || parameters.Q.Y is not { Length: 32 })
+            {
+                return false;
+            }
+            installationPublicKeyHash = HashBytes(subjectPublicKeyInfo);
+            return true;
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
+    private static byte[] DecodeBase64Url(string value)
+    {
+        string padded = value.Replace('-', '+').Replace('_', '/');
+        padded += (padded.Length % 4) switch
+        {
+            0 => "",
+            2 => "==",
+            3 => "=",
+            _ => throw new FormatException("Invalid base64url length."),
+        };
+        return Convert.FromBase64String(padded);
     }
 
     public static bool ValidateModelRequest(

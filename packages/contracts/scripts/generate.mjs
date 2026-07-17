@@ -693,6 +693,85 @@ const modelContextConsentFixture = {
 };
 add("fixtures/valid/model-context-consent.json", stableJson(modelContextConsentFixture));
 
+const desktopDeviceRegistrationFixture = {
+  schemaVersion: "desktop-device-registration.v1",
+  installationPublicKey:
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbAS8_dPcjzdYutR-ZVr8kwBsm8PLq3nVCufbv0IrJY_PjRzLuCE1BsBTqhuAddhYYvXJEz8kEs03YhmxFqMgpQ",
+  installationPublicKeyHash:
+    "sha256:2e881a93d84bef45453b26df9f5e2fc6d1cf3d9370fbfd0cd1189acb5bd588c7",
+  clientRelease: "0.1.0-beta.1",
+  platform: "windows",
+  architecture: "x64",
+  tenantPolicyVersion: modelContextConsentFixture.tenantPolicyVersion,
+};
+add(
+  "fixtures/valid/desktop-device-registration.json",
+  stableJson(desktopDeviceRegistrationFixture),
+);
+
+const desktopPolicyFixture = {
+  schemaVersion: "desktop-policy.v1",
+  policyId: modelContextConsentFixture.tenantPolicyId,
+  policyVersion: modelContextConsentFixture.tenantPolicyVersion,
+  policyHash: modelContextConsentFixture.tenantPolicyHash,
+  systemBrowserFallbackAllowed: false,
+  maximumContextBytes: 524288,
+  maximumContextItems: 64,
+  allowedRegions: ["westeurope"],
+  keyId: "desktop-policy-key-2026-07",
+  signature: "ZXhhbXBsZS1kZXNrdG9wLXBvbGljeS1zaWduYXR1cmU",
+};
+add("fixtures/valid/desktop-policy.json", stableJson(desktopPolicyFixture));
+
+const desktopEntitlementLeaseFixture = {
+  schemaVersion: "desktop-entitlement-lease.v1",
+  leaseId: modelContextConsentFixture.entitlementLeaseId,
+  registrationId: modelContextConsentFixture.registrationId,
+  subjectHash: modelContextConsentFixture.subjectHash,
+  deliveryModel: "windows_local",
+  issuedAt: "2026-07-16T10:00:00.000Z",
+  notBefore: "2026-07-16T10:00:00.000Z",
+  expiresAt: "2026-07-17T10:00:00.000Z",
+  offlineGraceEndsAt: "2026-07-20T10:00:00.000Z",
+  features: ["local_runtime", "model_access"],
+  tenantPolicyHash: modelContextConsentFixture.tenantPolicyHash,
+  minimumClientVersion: "0.1.0-beta.1",
+  keyId: "desktop-policy-key-2026-07",
+  signature: "ZXhhbXBsZS1lbnRpdGxlbWVudC1sZWFzZS1zaWduYXR1cmU",
+};
+add(
+  "fixtures/valid/desktop-entitlement-lease.json",
+  stableJson(desktopEntitlementLeaseFixture),
+);
+
+const modelAccessRequestFixture = {
+  schemaVersion: "desktop-model-access-request.v1",
+  requestId: modelContextConsentFixture.requestId,
+  deliveryModel: "windows_local",
+  registrationId: modelContextConsentFixture.registrationId,
+  purpose: modelContextConsentFixture.purpose,
+  modelRole: modelContextConsentFixture.modelRole,
+  canonicalOutputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+  canonicalOutputSchemaHash: modelContextConsentFixture.canonicalOutputSchemaHash,
+  localEgressManifestHash: modelContextConsentFixture.manifestHash,
+  consent: modelContextConsentFixture,
+  items: [
+    {
+      clientItemId: "ctx_01J00000000000000000000000",
+      relativeLabel: "src/lib.rs",
+      semanticRole: "source",
+      language: "rust",
+      contentHash: "sha256:" + "1".repeat(64),
+      byteCount: 13,
+      classification: "confidential",
+      content: "fn main() {}\n",
+    },
+  ],
+  retentionMode: "transient_no_store",
+  budgetClass: modelContextConsentFixture.budgetClass,
+};
+add("fixtures/valid/model-access-request.json", stableJson(modelAccessRequestFixture));
+
 const modelAccessReceiptFixture = {
   schemaVersion: "sapphirus.model-access-receipt.v1",
   receiptId: "receipt_01J00000000000000000000000",
@@ -740,6 +819,44 @@ const modelAccessReceiptFixture = {
 };
 add("fixtures/valid/model-access-receipt.json", stableJson(modelAccessReceiptFixture));
 
+const modelAccessResultFixture = {
+  schemaVersion: "desktop-model-access-result.v1",
+  requestId: modelContextConsentFixture.requestId,
+  outputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+  payloadJson: "{\"summary\":\"Review the selected context.\"}",
+  payloadHash: modelAccessReceiptFixture.resultHash,
+  receipt: modelAccessReceiptFixture,
+};
+add("fixtures/valid/model-access-result.json", stableJson(modelAccessResultFixture));
+
+const registrationUnknownProperty = structuredClone(desktopDeviceRegistrationFixture);
+registrationUnknownProperty.deviceName = "must-not-cross-boundary";
+add(
+  "fixtures/invalid/desktop-registration-unknown-property.json",
+  stableJson(registrationUnknownProperty),
+);
+
+const registrationMalformedPublicKey = structuredClone(desktopDeviceRegistrationFixture);
+registrationMalformedPublicKey.installationPublicKey += "=";
+add(
+  "fixtures/invalid/desktop-registration-malformed-public-key.json",
+  stableJson(registrationMalformedPublicKey),
+);
+
+const requestUnsafeRelativeLabel = structuredClone(modelAccessRequestFixture);
+requestUnsafeRelativeLabel.items[0].relativeLabel = "../secrets.txt";
+add(
+  "fixtures/invalid/model-access-request-unsafe-relative-label.json",
+  stableJson(requestUnsafeRelativeLabel),
+);
+
+const consentMalformedSignature = structuredClone(modelContextConsentFixture);
+consentMalformedSignature.proof.signature += "=";
+add(
+  "fixtures/invalid/model-context-consent-malformed-signature.json",
+  stableJson(consentMalformedSignature),
+);
+
 const catalog = [
   ["valid/windows-local-candidate.json", "candidate-action.schema.json", true, null],
   ["valid/approved-execution-spec.json", "approved-execution-spec.schema.json", true, null],
@@ -751,8 +868,17 @@ const catalog = [
   ["valid/contract-error.json", "contract-error.schema.json", true, null],
   ["valid/package-compatibility.json", "package-compatibility.schema.json", true, null],
   ["valid/remote-job-handoff.json", "remote-job-handoff.schema.json", true, null],
+  ["valid/desktop-device-registration.json", "desktop-device-registration.schema.json", true, null],
+  ["valid/desktop-policy.json", "desktop-policy.schema.json", true, null],
+  ["valid/desktop-entitlement-lease.json", "desktop-entitlement-lease.schema.json", true, null],
   ["valid/model-context-consent.json", "model-context-consent.schema.json", true, null],
+  ["valid/model-access-request.json", "model-access-request.schema.json", true, null],
   ["valid/model-access-receipt.json", "model-access-receipt.schema.json", true, null],
+  ["valid/model-access-result.json", "model-access-result.schema.json", true, null],
+  ["invalid/desktop-registration-unknown-property.json", "desktop-device-registration.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/desktop-registration-malformed-public-key.json", "desktop-device-registration.schema.json", false, "PATTERN_MISMATCH"],
+  ["invalid/model-access-request-unsafe-relative-label.json", "model-access-request.schema.json", false, "PATTERN_MISMATCH"],
+  ["invalid/model-context-consent-malformed-signature.json", "model-context-consent.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/unknown-discriminator.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/authority-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/workspace-target-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
@@ -1191,9 +1317,25 @@ export type {
   SapphirusFilesystemCapabilityV1 as FilesystemCapabilitySnapshot,
 } from "./schema/filesystem-capability.js";
 export type {
+  SapphirusDesktopDeviceRegistrationV1 as DesktopDeviceRegistration,
+} from "./schema/desktop-device-registration.js";
+export type {
+  SapphirusDesktopEntitlementLeaseV1 as DesktopEntitlementLease,
+} from "./schema/desktop-entitlement-lease.js";
+export type {
+  SapphirusDesktopPolicyV1 as DesktopPolicy,
+} from "./schema/desktop-policy.js";
+export type {
+  SapphirusModelAccessRequestV1 as ModelAccessRequest,
+  ContextItem as ModelContextItem,
+} from "./schema/model-access-request.js";
+export type {
   SapphirusModelAccessReceiptV1 as ModelAccessReceipt,
   SupportPlaneProof,
 } from "./schema/model-access-receipt.js";
+export type {
+  SapphirusModelAccessResultV1 as ModelAccessResult,
+} from "./schema/model-access-result.js";
 export type {
   SapphirusModelContextConsentV1 as ModelContextConsent,
   InstallationProof,
@@ -1247,8 +1389,18 @@ const validatorIds = {
   validateDurableObject: "https://schemas.sapphirus.dev/v1/durable-object.schema.json",
   validateFilesystemCapability:
     "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json",
+  validateDesktopDeviceRegistration:
+    "https://schemas.sapphirus.dev/v1/desktop-device-registration.schema.json",
+  validateDesktopEntitlementLease:
+    "https://schemas.sapphirus.dev/v1/desktop-entitlement-lease.schema.json",
+  validateDesktopPolicy:
+    "https://schemas.sapphirus.dev/v1/desktop-policy.schema.json",
+  validateModelAccessRequest:
+    "https://schemas.sapphirus.dev/v1/model-access-request.schema.json",
   validateModelAccessReceipt:
     "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
+  validateModelAccessResult:
+    "https://schemas.sapphirus.dev/v1/model-access-result.schema.json",
   validateModelContextConsent:
     "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
   validateContractError: "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
@@ -1451,7 +1603,12 @@ import {
   validateEvidenceEvent,
   validateExecutionResultManifest,
   validateFilesystemCapability,
+  validateDesktopDeviceRegistration,
+  validateDesktopEntitlementLease,
+  validateDesktopPolicy,
+  validateModelAccessRequest,
   validateModelAccessReceipt,
+  validateModelAccessResult,
   validateModelContextConsent,
   validatePackageCompatibility,
   validateRemoteJobHandoff,
@@ -1475,7 +1632,12 @@ export const CONTRACT_VALIDATORS = Object.freeze({
   "evidence-event": validateEvidenceEvent,
   "execution-result-manifest": validateExecutionResultManifest,
   "filesystem-capability": validateFilesystemCapability,
+  "desktop-device-registration": validateDesktopDeviceRegistration,
+  "desktop-entitlement-lease": validateDesktopEntitlementLease,
+  "desktop-policy": validateDesktopPolicy,
+  "model-access-request": validateModelAccessRequest,
   "model-access-receipt": validateModelAccessReceipt,
+  "model-access-result": validateModelAccessResult,
   "model-context-consent": validateModelContextConsent,
   "package-compatibility": validatePackageCompatibility,
   "remote-job-handoff": validateRemoteJobHandoff,

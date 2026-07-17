@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-access-result.schema.json",
+  "title": "sapphirus.model-access-result.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "outputSchemaId",
+    "payloadJson",
+    "payloadHash",
+    "receipt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "desktop-model-access-result.v1" },
+    "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "outputSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "payloadJson": { "type": "string", "minLength": 2, "maxLength": 1048576 },
+    "payloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "receipt": { "$ref": "./model-access-receipt.schema.json" }
+  }
+}

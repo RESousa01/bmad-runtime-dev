@@ -42,6 +42,7 @@ import {
   type ProposedChange,
   type WorkspaceProjection,
 } from "./lib/hostClient";
+import { installAppUpdate } from "./lib/appUpdate";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
   BmadLibrarySnapshot,
@@ -117,6 +118,8 @@ export function App({
   const [appModal, setAppModal] = useState<AppModalKind>(null);
   const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsPage>("general");
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
+  const [appUpdateStatus, setAppUpdateStatus] = useState("Ready to check");
+  const [appUpdateBusy, setAppUpdateBusy] = useState(false);
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
@@ -513,6 +516,26 @@ export function App({
     pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
     setAppModal(null);
     utilityReturnFocusRef.current = null;
+  }
+
+  async function runAppUpdate() {
+    if (appUpdateBusy) return;
+    setAppUpdateBusy(true);
+    setAppUpdateStatus("Checking");
+    try {
+      const result = await installAppUpdate();
+      if (result.state === "disabled") {
+        setAppUpdateStatus("Managed by your organization");
+      } else if (result.state === "current") {
+        setAppUpdateStatus(`Current · ${result.version}`);
+      } else {
+        setAppUpdateStatus(`Installing · ${result.version}`);
+      }
+    } catch {
+      setAppUpdateStatus("Update failed");
+    } finally {
+      setAppUpdateBusy(false);
+    }
   }
 
   function openContextDrawer(
@@ -1508,6 +1531,7 @@ export function App({
       modelAccessLabel={modelAccess.label}
       onClose={() => dismissUtilityPanel()}
       onDensityChange={setDensity}
+      onInstallAppUpdate={() => void runAppUpdate()}
       onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
       onOpenSkillsAndAgents={openMethodLibrary}
       onThemeChange={setTheme}
@@ -1515,6 +1539,8 @@ export function App({
       skillsAgentsAvailable={methodLibraryAvailable}
       skillsAgentsStatusLabel={skillsAgentsStatusLabel}
       theme={theme}
+      updateBusy={appUpdateBusy}
+      updateStatusLabel={appUpdateStatus}
       workspaceDetail={workspaceDescription}
       workspaceLabel={workspaceName}
     />

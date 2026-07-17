@@ -117,11 +117,12 @@ public sealed class ModelAuthorityContractTests
         RegisteredDevice device = new(
             "subject",
             request.RegistrationId,
+            "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbAS8_dPcjzdYutR-ZVr8kwBsm8PLq3nVCufbv0IrJY_PjRzLuCE1BsBTqhuAddhYYvXJEz8kEs03YhmxFqMgpQ",
             request.Consent.InstallationPublicKeyHash,
             "0.1.0-beta.1",
             "windows",
             "x64",
-            "policy-v1",
+            1,
             now,
             DeviceRegistrationState.Active,
             null);

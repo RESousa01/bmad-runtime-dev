@@ -9,6 +9,7 @@ mod bmad_model;
 mod commands;
 mod edits;
 mod state;
+mod update;
 mod wire;
 
 use tauri::Manager as _;
@@ -27,6 +28,7 @@ pub struct StartupError;
 pub fn run() -> Result<(), StartupError> {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let foundation_root = app
                 .path()
@@ -77,6 +79,7 @@ pub fn run() -> Result<(), StartupError> {
             commands::host_dispatch,
             commands::host_projection_snapshot,
             commands::host_projection_events,
+            update::install_app_update,
         ])
         .run(tauri::generate_context!())
         .map_err(|_| StartupError)

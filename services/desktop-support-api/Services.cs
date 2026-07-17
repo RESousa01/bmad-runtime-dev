@@ -126,11 +126,12 @@ public enum DeviceRevocationOutcome
 public sealed record RegisteredDevice(
     string Subject,
     string RegistrationId,
+    string InstallationPublicKey,
     string InstallationPublicKeyHash,
     string ClientRelease,
     string Platform,
     string Architecture,
-    string TenantPolicyVersion,
+    long TenantPolicyVersion,
     DateTimeOffset CreatedAt,
     DeviceRegistrationState State,
     DateTimeOffset? RevokedAt)
@@ -318,7 +319,19 @@ public sealed class MemoryDeviceRegistry : IDeviceRegistry
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string stableInput = $"{subject}:{request.InstallationPublicKeyHash}";
+        if (!RequestGuards.TryGetInstallationPublicKeyHash(
+            request.InstallationPublicKey,
+            out string installationPublicKeyHash)
+            || !string.Equals(
+                installationPublicKeyHash,
+                request.InstallationPublicKeyHash,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The installation public key is invalid.",
+                nameof(request));
+        }
+        string stableInput = $"{subject}:{installationPublicKeyHash}";
         string registrationId = ContractIds.FromEntropy(
             "dreg",
             SHA256.HashData(Encoding.UTF8.GetBytes(stableInput)));
@@ -336,7 +349,7 @@ public sealed class MemoryDeviceRegistry : IDeviceRegistry
                 }
                 if (!string.Equals(
                     existing.InstallationPublicKeyHash,
-                    request.InstallationPublicKeyHash,
+                    installationPublicKeyHash,
                     StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException(
@@ -348,7 +361,8 @@ public sealed class MemoryDeviceRegistry : IDeviceRegistry
             RegisteredDevice registration = new(
                 subject,
                 registrationId,
-                request.InstallationPublicKeyHash,
+                request.InstallationPublicKey,
+                installationPublicKeyHash,
                 request.ClientRelease,
                 request.Platform,
                 request.Architecture,
@@ -882,7 +896,8 @@ public sealed class DevelopmentSignedPolicyService(SupportPlaneOptions options) 
         EnsureEnabled();
         SignedDesktopPolicy policy = new(
             "desktop-policy.v1",
-            "development-1",
+            "policy_01J00000000000000000000000",
+            1,
             Hash("development-policy"),
             true,
             512 * 1024,
