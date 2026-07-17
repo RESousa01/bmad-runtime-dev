@@ -8,6 +8,11 @@
 // instead of `cargo install`. This script keeps that vendored artifact in
 // lock-step with tools/contract-codegen/tool-lock.json.
 //
+// The preflight also checks for the cargo-typify source archive (.crate file) in
+// CARGO_HOME/registry/cache, which cargo would normally place there during
+// `cargo install`. The restore command populates this path so the preflight
+// check passes even when cargo install is skipped.
+//
 // Usage:
 //   node tools/contract-codegen/native-generator.mjs verify    # check vendor vs lock (default)
 //   node tools/contract-codegen/native-generator.mjs restore   # place vendor into target/contract-tools
@@ -24,6 +29,12 @@ const vendorRoot = path.join(here, "vendor");
 const toolLockPath = path.join(here, "tool-lock.json");
 const vendorExeName = "cargo-typify-0.6.1-x86_64-pc-windows-msvc.exe";
 const vendorMetaName = "crates2.json";
+const vendorCrateName = "cargo-typify-0.6.1.crate";
+// Canonical sparse-registry cache directory name for crates.io (Rust 1.65+).
+// findCargoArchive in native-codegen.mjs scans all subdirectories, so the name
+// just needs to be consistent; using the standard name avoids ambiguity if
+// cargo later populates the same directory.
+const cargoRegistryDir = "index.crates.io-6f17d22bba15001f";
 
 function fail(message) {
   process.stderr.write(`native-generator: ${message}\n`);
@@ -57,8 +68,10 @@ async function loadRustLock() {
 async function assertVendorMatchesLock(rust) {
   const vendorExe = path.join(vendorRoot, vendorExeName);
   const vendorMeta = path.join(vendorRoot, vendorMetaName);
+  const vendorCrate = path.join(vendorRoot, vendorCrateName);
   const exeBytes = await readFile(vendorExe);
   const metaBytes = await readFile(vendorMeta);
+  const crateBytes = await readFile(vendorCrate);
 
   const exeRaw = rawSha256(exeBytes);
   const exeRawExpected = await readChecksum(`${vendorExe}.sha256`);
@@ -81,7 +94,16 @@ async function assertVendorMatchesLock(rust) {
   if (metaRaw !== rust.installMetadata.sha256) {
     fail(`vendored ${vendorMetaName} raw sha256 ${metaRaw} != lock ${rust.installMetadata.sha256}.`);
   }
-  return { exeBytes, metaBytes };
+
+  const crateRaw = rawSha256(crateBytes);
+  const crateRawExpected = await readChecksum(`${vendorCrate}.sha256`);
+  if (crateRaw !== crateRawExpected) {
+    fail(`vendored ${vendorCrateName} raw sha256 ${crateRaw} != checksum file ${crateRawExpected}.`);
+  }
+  if (crateRaw !== rust.packageSha256) {
+    fail(`vendored ${vendorCrateName} raw sha256 ${crateRaw} != lock ${rust.packageSha256}.`);
+  }
+  return { exeBytes, metaBytes, crateBytes };
 }
 
 async function verify() {
@@ -101,8 +123,22 @@ async function restore() {
   await mkdir(path.dirname(targetMeta), { recursive: true });
   await copyFile(path.join(vendorRoot, vendorExeName), targetExe);
   await copyFile(path.join(vendorRoot, vendorMetaName), targetMeta);
+
+  // The native preflight (preflightNativeTools) also checks for the source
+  // archive in CARGO_HOME/registry/cache/<registry>/. Populate this path so the
+  // check passes when cargo install was skipped in favour of a prebuilt binary.
+  const userProfile = process.env.USERPROFILE ?? process.env.HOME ?? "";
+  const cargoHome = process.env.CARGO_HOME
+    ?? (userProfile !== "" ? path.join(userProfile, ".cargo") : "");
+  if (cargoHome === "" || !path.isAbsolute(cargoHome)) {
+    fail("CARGO_HOME or USERPROFILE/HOME must resolve to an absolute path to restore the cargo registry cache.");
+  }
+  const registryCacheDir = path.join(cargoHome, "registry", "cache", cargoRegistryDir);
+  await mkdir(registryCacheDir, { recursive: true });
+  await copyFile(path.join(vendorRoot, vendorCrateName), path.join(registryCacheDir, vendorCrateName));
+
   process.stdout.write(
-    `native-generator: restored reviewed cargo-typify to ${rust.resolvedExecutable} and ${rust.installMetadata.path}.\n`,
+    `native-generator: restored reviewed cargo-typify to ${rust.resolvedExecutable}, ${rust.installMetadata.path}, and CARGO_HOME/registry/cache/${cargoRegistryDir}/${vendorCrateName}.\n`,
   );
 }
 
