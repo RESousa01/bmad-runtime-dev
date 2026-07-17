@@ -64,6 +64,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Restore reviewed cargo-typify generator
         shell: pwsh
+        env:
+          CARGO_HOME: ${{ runner.temp }}\sapphirus-contract-cargo-home
         run: |
           # cargo install is not byte-reproducible across hosts (Rust embeds absolute
           # build paths), so restore the reviewed prebuilt generator whose identity is
@@ -95,6 +97,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify cross-language generators
         shell: pwsh
+        env:
+          CARGO_HOME: ${{ runner.temp }}\sapphirus-contract-cargo-home
         run: |
           # setup-dotnet injects DOTNET_MULTILEVEL_LOOKUP into the job env, which the
           # native codegen injection gate rejects. Scrub it in-process so the spawned
