@@ -1,0 +1,67 @@
+[
+  {
+    "sequence": 1,
+    "occurredAt": 1752796800000,
+    "event": { "type": "boot_state_changed", "projection": { "mode": "ready" } }
+  },
+  {
+    "sequence": 2,
+    "occurredAt": 1752796800001,
+    "event": { "type": "workspace_changed", "projection": { "workspaceId": "workspace-001" } }
+  },
+  {
+    "sequence": 3,
+    "occurredAt": 1752796800002,
+    "event": {
+      "type": "session_changed",
+      "projection": { "sessionId": "session-001", "state": "active" }
+    }
+  },
+  {
+    "sequence": 4,
+    "occurredAt": 1752796800003,
+    "event": {
+      "type": "approval_required",
+      "projection": {
+        "approvalId": "approval-001",
+        "candidateHash": "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      }
+    }
+  },
+  {
+    "sequence": 5,
+    "occurredAt": 1752796800004,
+    "event": {
+      "type": "execution_state_changed",
+      "projection": { "executionId": "execution-001", "state": "running" }
+    }
+  },
+  {
+    "sequence": 6,
+    "occurredAt": 1752796800005,
+    "event": {
+      "type": "checkpoint_changed",
+      "projection": { "checkpointId": "checkpoint-001", "rollbackAvailable": true }
+    }
+  },
+  {
+    "sequence": 7,
+    "occurredAt": 1752796800006,
+    "event": { "type": "evidence_changed", "projection": { "streamId": "evidence-stream-001" } }
+  },
+  {
+    "sequence": 8,
+    "occurredAt": 1752796800007,
+    "event": { "type": "connectivity_changed", "projection": { "state": "offline" } }
+  },
+  {
+    "sequence": 9,
+    "occurredAt": 1752796800008,
+    "event": { "type": "update_state_changed", "projection": { "state": "idle" } }
+  },
+  {
+    "sequence": 10,
+    "occurredAt": 1752796800009,
+    "event": { "type": "bmad.projection_changed", "projection": { "scope": "library" } }
+  }
+]
