@@ -85,7 +85,7 @@ impl PendingProposals {
 /// Each call revalidates the grant at the pinned epoch; the target hash is
 /// revalidated against live authority facts while the exact reviewed target
 /// hash remains pinned for execution and rollback.
-struct GovernedWorkspaceIo<'a> {
+pub(crate) struct GovernedWorkspaceIo<'a> {
     broker: &'a WorkspaceBroker,
     workspace_id: String,
     grant_epoch: u64,
@@ -93,6 +93,24 @@ struct GovernedWorkspaceIo<'a> {
 }
 
 impl GovernedWorkspaceIo<'_> {
+    #[allow(
+        dead_code,
+        reason = "the recovery-only constructor is consumed by the Task 4 command boundary"
+    )]
+    pub(crate) fn new<'a>(
+        broker: &'a WorkspaceBroker,
+        workspace_id: &ContractId,
+        grant_epoch: u64,
+        workspace_target_hash: Sha256Digest,
+    ) -> GovernedWorkspaceIo<'a> {
+        GovernedWorkspaceIo {
+            broker,
+            workspace_id: workspace_id.to_string(),
+            grant_epoch,
+            workspace_target_hash,
+        }
+    }
+
     fn current_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError> {
         let binding = self
             .broker
@@ -1275,7 +1293,6 @@ pub(crate) fn reconcile_execution_journals(store: &LocalStore) -> Result<(), Sto
                     )),
                 )?;
             }
-            "recovery_required" | "manual_review" => {}
             "restoring" => {
                 store.update_effect_journal(
                     &journal.journal_id,
@@ -1428,7 +1445,7 @@ mod tests {
             candidate_hash: candidate_hash.clone(),
             manifest_hash: unique_test_hash(index * 10 + 3),
             entry_count: 0,
-            checkpoint_json: br#"{}"#.to_vec(),
+            checkpoint_json: br"{}".to_vec(),
         })?;
         store.create_effect_journal(
             &EffectJournalUpsert {

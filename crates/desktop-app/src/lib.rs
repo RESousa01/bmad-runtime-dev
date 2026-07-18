@@ -8,6 +8,11 @@ pub mod bmad_foundation;
 mod bmad_model;
 mod commands;
 mod edits;
+#[allow(
+    dead_code,
+    reason = "the Task 3 recovery host composition is consumed by the Task 4 command boundary"
+)]
+mod recovery;
 mod state;
 mod update;
 mod wire;
