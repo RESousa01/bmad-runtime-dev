@@ -11,7 +11,8 @@ use std::collections::{HashMap, VecDeque};
 
 use desktop_execution::{
     plan_rollback, EffectJournal, ExecutionError, ExecutionRequest, ExecutionStore, JournalState,
-    LocalCheckpoint, LocalExecutionResult, PatchExecutor, WorkspaceFileIo, WorkspaceIoError,
+    LocalCheckpoint, LocalExecutionResult, PatchExecutor, WorkspaceFileIo,
+    WorkspaceFileObservation, WorkspaceIoError,
 };
 use desktop_runtime::{
     build_changes_candidate, build_changes_review, canonical_hash, sha256_bytes, ApprovalChoice,
@@ -25,7 +26,9 @@ use desktop_store::{
     EffectJournalRow, EffectJournalUpsert, EvidenceAppend, ExecutionCheckpointAppend,
     ExecutionResultAppend, ExecutionResultRow, LocalStore, StoreError,
 };
-use desktop_workspace::{PreimageObservation, WorkspaceBroker, WorkspaceError};
+use desktop_workspace::{
+    GovernedRecoveryTransaction, PreimageObservation, WorkspaceBroker, WorkspaceError,
+};
 use ulid::Ulid;
 
 use crate::state::{
@@ -125,6 +128,33 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             .map_err(map_broker_error)
     }
 
+    fn observe_recovery_file(
+        &self,
+        path: &RelativeWorkspacePath,
+    ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+        let observation = self
+            .broker
+            .observe_preimage(&self.workspace_id, self.grant_epoch, path.as_str())
+            .map_err(map_broker_error)?;
+        map_recovery_observation(path, observation)
+    }
+
+    fn with_recovery_transaction(
+        &self,
+        transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+    ) -> Result<(), WorkspaceIoError> {
+        let workspace_target_hash = self.current_target_hash()?;
+        self.broker
+            .with_governed_recovery(&self.workspace_id, self.grant_epoch, |broker_transaction| {
+                let scoped = ScopedRecoveryWorkspaceIo {
+                    transaction: broker_transaction,
+                    workspace_target_hash,
+                };
+                transaction(&scoped)
+            })
+            .map_err(map_broker_error)?
+    }
+
     fn create_utf8_durable(
         &self,
         path: &RelativeWorkspacePath,
@@ -170,6 +200,106 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             )
             .map_err(map_broker_error)
     }
+}
+
+struct ScopedRecoveryWorkspaceIo<'transaction, 'scope> {
+    transaction: &'transaction GovernedRecoveryTransaction<'scope>,
+    workspace_target_hash: Sha256Digest,
+}
+
+impl WorkspaceFileIo for ScopedRecoveryWorkspaceIo<'_, '_> {
+    fn workspace_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError> {
+        Ok(self.workspace_target_hash)
+    }
+
+    fn read_file(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_file_identity_hash: Option<Sha256Digest>,
+    ) -> Result<Option<Vec<u8>>, WorkspaceIoError> {
+        let observation = self.observe_recovery_file(path)?;
+        if expected_file_identity_hash.is_some()
+            && expected_file_identity_hash != observation.file_identity_hash
+        {
+            return Err(WorkspaceIoError::CapabilityRevoked);
+        }
+        Ok(observation.content)
+    }
+
+    fn observe_recovery_file(
+        &self,
+        path: &RelativeWorkspacePath,
+    ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+        let observation = self
+            .transaction
+            .observe_preimage(path.as_str())
+            .map_err(map_broker_error)?;
+        map_recovery_observation(path, observation)
+    }
+
+    fn create_utf8_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        content: &str,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .create_utf8_durable(path.as_str(), content)
+            .map_err(map_broker_error)
+    }
+
+    fn replace_utf8_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_content_hash: Sha256Digest,
+        expected_file_identity_hash: Sha256Digest,
+        content: &str,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .replace_utf8_durable(
+                path.as_str(),
+                &expected_content_hash.to_string(),
+                &expected_file_identity_hash.to_string(),
+                content,
+            )
+            .map_err(map_broker_error)
+    }
+
+    fn delete_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_content_hash: Sha256Digest,
+        expected_file_identity_hash: Sha256Digest,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .delete_durable(
+                path.as_str(),
+                &expected_content_hash.to_string(),
+                &expected_file_identity_hash.to_string(),
+            )
+            .map_err(map_broker_error)
+    }
+}
+
+fn map_recovery_observation(
+    expected_path: &RelativeWorkspacePath,
+    observation: PreimageObservation,
+) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+    if observation.relative_path != expected_path.as_str()
+        || observation.exists != observation.content.is_some()
+        || observation.exists != observation.file_identity_hash.is_some()
+    {
+        return Err(WorkspaceIoError::Unavailable);
+    }
+    let file_identity_hash = observation
+        .file_identity_hash
+        .as_deref()
+        .map(Sha256Digest::parse)
+        .transpose()
+        .map_err(|_| WorkspaceIoError::Unavailable)?;
+    Ok(WorkspaceFileObservation {
+        content: observation.content.map(String::into_bytes),
+        file_identity_hash,
+    })
 }
 
 fn map_broker_error(error: WorkspaceError) -> WorkspaceIoError {

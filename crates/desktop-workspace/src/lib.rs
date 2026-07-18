@@ -4,7 +4,7 @@ mod bmad_snapshot;
 mod governed_io;
 
 pub use bmad_snapshot::{read_bmad_source_snapshot, BmadSnapshotError};
-pub use governed_io::{PreimageObservation, MAX_GOVERNED_FILE_BYTES};
+pub use governed_io::{GovernedRecoveryTransaction, PreimageObservation, MAX_GOVERNED_FILE_BYTES};
 
 use ignore::WalkBuilder;
 use parking_lot::{RwLock, RwLockReadGuard};

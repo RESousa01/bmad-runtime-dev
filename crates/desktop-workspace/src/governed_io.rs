@@ -43,7 +43,127 @@ struct VerifiedFile {
     metadata_hash: String,
 }
 
+/// Broker-owned recovery scope which retains the exact governed grant and its
+/// revocation barrier across final observation and every durable effect.
+pub struct GovernedRecoveryTransaction<'a> {
+    broker: &'a WorkspaceBroker,
+    authority: parking_lot::RwLockReadGuard<'a, ()>,
+    grant: WorkspaceGrant,
+}
+
+impl GovernedRecoveryTransaction<'_> {
+    /// Reobserves one path with its broker-owned file identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] when the path, root, or retained grant fails
+    /// revalidation.
+    pub fn observe_preimage(
+        &self,
+        relative_path: &str,
+    ) -> Result<PreimageObservation, WorkspaceError> {
+        revalidate_root(&self.grant)?;
+        let observation = observe_preimage_for_grant(&self.grant, relative_path)?;
+        self.broker
+            .ensure_grant_current(&self.authority, &self.grant)?;
+        Ok(observation)
+    }
+
+    /// Creates a durably flushed UTF-8 file in the retained recovery scope.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] when validation or the durable create fails.
+    pub fn create_utf8_durable(
+        &self,
+        relative_path: &str,
+        content: &str,
+    ) -> Result<(), WorkspaceError> {
+        revalidate_root(&self.grant)?;
+        create_utf8_for_grant(&self.grant, relative_path, content)?;
+        self.broker
+            .ensure_grant_current(&self.authority, &self.grant)
+    }
+
+    /// Replaces an exact identity-bound preimage in the retained scope.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] when validation or replacement fails.
+    pub fn replace_utf8_durable(
+        &self,
+        relative_path: &str,
+        expected_content_hash: &str,
+        expected_file_identity_hash: &str,
+        content: &str,
+    ) -> Result<(), WorkspaceError> {
+        revalidate_root(&self.grant)?;
+        replace_utf8_for_grant(
+            &self.grant,
+            relative_path,
+            expected_content_hash,
+            expected_file_identity_hash,
+            content,
+        )?;
+        self.broker
+            .ensure_grant_current(&self.authority, &self.grant)
+    }
+
+    /// Deletes an exact identity-bound preimage in the retained scope.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] when validation or deletion fails.
+    pub fn delete_durable(
+        &self,
+        relative_path: &str,
+        expected_content_hash: &str,
+        expected_file_identity_hash: &str,
+    ) -> Result<(), WorkspaceError> {
+        revalidate_root(&self.grant)?;
+        delete_for_grant(
+            &self.grant,
+            relative_path,
+            expected_content_hash,
+            expected_file_identity_hash,
+        )?;
+        self.broker
+            .ensure_grant_current(&self.authority, &self.grant)
+    }
+}
+
 impl WorkspaceBroker {
+    /// Runs final recovery validation and effects while retaining one exact
+    /// governed grant and the broker's revocation barrier.
+    ///
+    /// The nested result keeps broker scope failures distinct from the
+    /// caller's closed recovery-domain result.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] when the exact governed scope cannot be
+    /// acquired or revalidated.
+    pub fn with_governed_recovery<T, E>(
+        &self,
+        workspace_id: &str,
+        expected_grant_epoch: u64,
+        operation: impl FnOnce(&GovernedRecoveryTransaction<'_>) -> Result<T, E>,
+    ) -> Result<Result<T, E>, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let transaction = GovernedRecoveryTransaction {
+            broker: self,
+            authority,
+            grant,
+        };
+        let result = operation(&transaction);
+        revalidate_root(&transaction.grant)?;
+        transaction
+            .broker
+            .ensure_grant_current(&transaction.authority, &transaction.grant)?;
+        Ok(result)
+    }
+
     /// Enables governed edits for an active grant and advances its epoch.
     ///
     /// The epoch bump invalidates every proposal, spec, and authority binding
@@ -93,34 +213,7 @@ impl WorkspaceBroker {
     ) -> Result<PreimageObservation, WorkspaceError> {
         let authority = self.revocation_barrier.read();
         let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
-        let normalized = validate_effect_path(relative_path)?;
-        let observation = match resolve_existing(&grant.root, &normalized) {
-            Ok(path) => {
-                let verified = open_verified_file(&path)?;
-                let content = String::from_utf8(verified.content)
-                    .map_err(|_| WorkspaceError::UnsupportedText)?;
-                PreimageObservation {
-                    relative_path: normalized,
-                    exists: true,
-                    content: Some(content),
-                    content_hash: Some(verified.content_hash),
-                    file_identity_hash: Some(verified.file_identity_hash),
-                    metadata_hash: Some(verified.metadata_hash),
-                }
-            }
-            Err(WorkspaceError::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => {
-                resolve_existing_parent(&grant.root, &normalized)?;
-                PreimageObservation {
-                    relative_path: normalized,
-                    exists: false,
-                    content: None,
-                    content_hash: None,
-                    file_identity_hash: None,
-                    metadata_hash: None,
-                }
-            }
-            Err(error) => return Err(error),
-        };
+        let observation = observe_preimage_for_grant(&grant, relative_path)?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(observation)
     }
@@ -181,27 +274,7 @@ impl WorkspaceBroker {
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
         let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
-        let normalized = validate_effect_path(relative_path)?;
-        validate_governed_content(content)?;
-        let parent = resolve_existing_parent(&grant.root, &normalized)?;
-        let leaf = leaf_segment(&normalized)?;
-        let target = parent.join(leaf);
-
-        let mut file = match OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&target)
-        {
-            Ok(file) => file,
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
-                return Err(WorkspaceError::AlreadyExists);
-            }
-            Err(error) => return Err(WorkspaceError::Io(error)),
-        };
-        file.write_all(content.as_bytes())?;
-        file.sync_all()?;
-        drop(file);
-        flush_directory(&parent)?;
+        create_utf8_for_grant(&grant, relative_path, content)?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(())
     }
@@ -227,34 +300,13 @@ impl WorkspaceBroker {
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
         let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
-        let normalized = validate_effect_path(relative_path)?;
-        validate_governed_content(content)?;
-        if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
-            return Err(WorkspaceError::StalePreimage);
-        }
-        let target = resolve_existing(&grant.root, &normalized)?;
-        let parent = target
-            .parent()
-            .ok_or(WorkspaceError::InvalidRelativePath)?
-            .to_path_buf();
-
-        // The verification handle denies concurrent writers but shares delete
-        // access, so the atomic same-volume rename below can supersede the file
-        // while the verified preimage is still pinned.
-        let verified = open_verified_file(&target)?;
-        if verified.content_hash != expected_content_hash
-            || verified.file_identity_hash != expected_file_identity_hash
-        {
-            return Err(WorkspaceError::StalePreimage);
-        }
-
-        let temp = write_temp_sibling(&parent, content)?;
-        if let Err(error) = fs::rename(&temp, &target) {
-            let _ = fs::remove_file(&temp);
-            return Err(WorkspaceError::Io(error));
-        }
-        drop(verified.file);
-        flush_directory(&parent)?;
+        replace_utf8_for_grant(
+            &grant,
+            relative_path,
+            expected_content_hash,
+            expected_file_identity_hash,
+            content,
+        )?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(())
     }
@@ -278,25 +330,12 @@ impl WorkspaceBroker {
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
         let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
-        let normalized = validate_effect_path(relative_path)?;
-        if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
-            return Err(WorkspaceError::StalePreimage);
-        }
-        let target = resolve_existing(&grant.root, &normalized)?;
-        let parent = target
-            .parent()
-            .ok_or(WorkspaceError::InvalidRelativePath)?
-            .to_path_buf();
-
-        let verified = open_verified_file(&target)?;
-        if verified.content_hash != expected_content_hash
-            || verified.file_identity_hash != expected_file_identity_hash
-        {
-            return Err(WorkspaceError::StalePreimage);
-        }
-        fs::remove_file(&target)?;
-        drop(verified.file);
-        flush_directory(&parent)?;
+        delete_for_grant(
+            &grant,
+            relative_path,
+            expected_content_hash,
+            expected_file_identity_hash,
+        )?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(())
     }
@@ -317,6 +356,128 @@ impl WorkspaceBroker {
         revalidate_root(&grant)?;
         Ok(grant)
     }
+}
+
+fn observe_preimage_for_grant(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+) -> Result<PreimageObservation, WorkspaceError> {
+    let normalized = validate_effect_path(relative_path)?;
+    match resolve_existing(&grant.root, &normalized) {
+        Ok(path) => {
+            let verified = open_verified_file(&path)?;
+            let content =
+                String::from_utf8(verified.content).map_err(|_| WorkspaceError::UnsupportedText)?;
+            Ok(PreimageObservation {
+                relative_path: normalized,
+                exists: true,
+                content: Some(content),
+                content_hash: Some(verified.content_hash),
+                file_identity_hash: Some(verified.file_identity_hash),
+                metadata_hash: Some(verified.metadata_hash),
+            })
+        }
+        Err(WorkspaceError::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => {
+            resolve_existing_parent(&grant.root, &normalized)?;
+            Ok(PreimageObservation {
+                relative_path: normalized,
+                exists: false,
+                content: None,
+                content_hash: None,
+                file_identity_hash: None,
+                metadata_hash: None,
+            })
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn create_utf8_for_grant(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    content: &str,
+) -> Result<(), WorkspaceError> {
+    let normalized = validate_effect_path(relative_path)?;
+    validate_governed_content(content)?;
+    let parent = resolve_existing_parent(&grant.root, &normalized)?;
+    let leaf = leaf_segment(&normalized)?;
+    let target = parent.join(leaf);
+
+    let mut file = match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&target)
+    {
+        Ok(file) => file,
+        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+            return Err(WorkspaceError::AlreadyExists);
+        }
+        Err(error) => return Err(WorkspaceError::Io(error)),
+    };
+    file.write_all(content.as_bytes())?;
+    file.sync_all()?;
+    drop(file);
+    flush_directory(&parent)
+}
+
+fn replace_utf8_for_grant(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    content: &str,
+) -> Result<(), WorkspaceError> {
+    let normalized = validate_effect_path(relative_path)?;
+    validate_governed_content(content)?;
+    if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let target = resolve_existing(&grant.root, &normalized)?;
+    let parent = target
+        .parent()
+        .ok_or(WorkspaceError::InvalidRelativePath)?
+        .to_path_buf();
+
+    // Keep the identity-verified source handle pinned through replacement.
+    let verified = open_verified_file(&target)?;
+    if verified.content_hash != expected_content_hash
+        || verified.file_identity_hash != expected_file_identity_hash
+    {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let temp = write_temp_sibling(&parent, content)?;
+    if let Err(error) = fs::rename(&temp, &target) {
+        let _ = fs::remove_file(&temp);
+        return Err(WorkspaceError::Io(error));
+    }
+    drop(verified.file);
+    flush_directory(&parent)
+}
+
+fn delete_for_grant(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+) -> Result<(), WorkspaceError> {
+    let normalized = validate_effect_path(relative_path)?;
+    if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let target = resolve_existing(&grant.root, &normalized)?;
+    let parent = target
+        .parent()
+        .ok_or(WorkspaceError::InvalidRelativePath)?
+        .to_path_buf();
+    let verified = open_verified_file(&target)?;
+    if verified.content_hash != expected_content_hash
+        || verified.file_identity_hash != expected_file_identity_hash
+    {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    fs::remove_file(&target)?;
+    drop(verified.file);
+    flush_directory(&parent)
 }
 
 fn validate_effect_path(relative_path: &str) -> Result<String, WorkspaceError> {

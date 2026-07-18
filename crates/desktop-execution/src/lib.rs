@@ -14,9 +14,12 @@ pub use model::{
     CheckpointEntry, CheckpointFileState, EffectJournal, ExecutionError, ExecutionOutcome,
     ExecutionRequest, ExecutionStore, FileObservation, JournalOperation, JournalOperationState,
     JournalState, JournalStoreError, LocalCheckpoint, LocalExecutionResult, RecoveryDisposition,
-    RecoveryPlan, ResultFileOperation, WorkspaceFileIo, WorkspaceIoError,
+    RecoveryOperation, RecoveryPlan, RecoveryReason, RecoveryRestoreResult, ResultFileOperation,
+    WorkspaceFileIo, WorkspaceFileObservation, WorkspaceIoError,
 };
-pub use rollback::{plan_recovery, plan_rollback, RollbackConflict, RollbackPlan};
+pub use rollback::{
+    plan_recovery, plan_rollback, restore_checkpoint, RollbackConflict, RollbackPlan,
+};
 
 /// Marker used by release inventory tests to assert the D3 engine has no
 /// command-execution feature compiled into its public API.
