@@ -1,8 +1,5 @@
 import { Button } from "@sapphirus/ui";
 import {
-  Bot,
-  ChevronDown,
-  ChevronRight,
   FileCode2,
   History,
   Library,
@@ -14,8 +11,17 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
+import type { BmadLibraryUiState } from "../lib/bmadProjection";
 import type { ContextPreviewProjection } from "../lib/hostClient";
 import { BrandMark } from "./BrandMark";
+import { AgentSelector } from "./composer/AgentSelector";
+import "./composer/agent-selector.css";
+
+const STARTER_INTENTS = [
+  "Explain how this workspace is structured",
+  "Review my recent changes",
+  "Plan a focused refactor",
+] as const;
 
 export interface TaskWorkspaceProps {
   canAttachFiles: boolean;
@@ -32,7 +38,9 @@ export interface TaskWorkspaceProps {
   modelAccessDetail: string;
   modelAccessLabel: string;
   onAttachFiles: () => void;
-  onOpenAgentSettings: (returnFocusTarget: HTMLElement | null) => void;
+  agentLibrary: BmadLibraryUiState;
+  attachNotice: string | null;
+  onBrowseFiles?: (() => Promise<void>) | undefined;
   onOpenChanges: () => void;
   onOpenMethodLibrary: () => void;
   onOpenRunDetails: () => void;
@@ -57,7 +65,9 @@ export function TaskWorkspace({
   modelAccessDetail,
   modelAccessLabel,
   onAttachFiles,
-  onOpenAgentSettings,
+  agentLibrary,
+  attachNotice,
+  onBrowseFiles,
   onOpenChanges,
   onOpenMethodLibrary,
   onOpenRunDetails,
@@ -66,9 +76,21 @@ export function TaskWorkspace({
   sessionTitle,
   workspaceName,
 }: TaskWorkspaceProps) {
-  const agentControlRef = useRef<HTMLDivElement>(null);
-  const [agentControlOpen, setAgentControlOpen] = useState(false);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const attachMenuRef = useRef<HTMLDivElement>(null);
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    if (!attachMenuOpen) return undefined;
+    function closeOnOutsidePointer(event: PointerEvent) {
+      if (!attachMenuRef.current?.contains(event.target as Node)) {
+        setAttachMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, [attachMenuOpen]);
   const [submittedTask, setSubmittedTask] = useState<string | null>(null);
   const methodGuidanceView = methodGuidanceAvailable
     || submittedTask !== null
@@ -82,25 +104,6 @@ export function TaskWorkspace({
     && methodGuidanceState.activity === "recovering";
   const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
   const composerDisabled = interactionDisabled || !methodGuidanceAvailable || guidancePending || failedSubmission;
-
-  function closeAgentControl(restoreFocus = false) {
-    const trigger = agentControlRef.current?.querySelector<HTMLButtonElement>(".agent-control__trigger");
-    setAgentControlOpen(false);
-    if (restoreFocus) {
-      window.requestAnimationFrame(() => trigger?.isConnected && trigger.focus());
-    }
-  }
-
-  useEffect(() => {
-    if (!agentControlOpen) return undefined;
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!agentControlRef.current?.contains(event.target as Node)) {
-        setAgentControlOpen(false);
-      }
-    }
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
-  }, [agentControlOpen]);
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -277,6 +280,23 @@ export function TaskWorkspace({
                   Describe your intent to create an inert local run and review the exact context.
                   Nothing is sent until you separately approve and send the request.
                 </p>
+                {composerDisabled ? null : (
+                  <ul aria-label="Starter intents" className="empty-session__starters">
+                    {STARTER_INTENTS.map((intent) => (
+                      <li key={intent}>
+                        <button
+                          onClick={() => {
+                            setDraft(intent);
+                            composerRef.current?.focus();
+                          }}
+                          type="button"
+                        >
+                          {intent}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
             )}
           </>
@@ -299,17 +319,7 @@ export function TaskWorkspace({
         )}
       </div>
 
-      <form
-        aria-label="Task composer"
-        className="composer"
-        onKeyDown={(event) => {
-          if (event.key === "Escape" && agentControlOpen) {
-            event.preventDefault();
-            closeAgentControl(true);
-          }
-        }}
-        onSubmit={submitTask}
-      >
+      <form aria-label="Task composer" className="composer" onSubmit={submitTask}>
         {contextPreview && contextPreview.items.length > 0 ? (
           <section className="attached-context" aria-labelledby="attached-context-title">
             <div className="attached-context__heading" id="attached-context-title">
@@ -328,17 +338,71 @@ export function TaskWorkspace({
             </p>
           </section>
         ) : null}
+        {attachNotice ? (
+          <p className="attach-notice" role="status">{attachNotice}</p>
+        ) : null}
         <div className="composer__input-row">
-          <Button
-            aria-label="Attach files"
-            isDisabled={!canAttachFiles}
-            onPress={onAttachFiles}
-            size="small"
-            variant="quiet"
-          >
-            <Paperclip aria-hidden="true" size={19} />
-            Attach files
-          </Button>
+          {onBrowseFiles ? (
+            <div
+              className="attach-menu"
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && attachMenuOpen) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setAttachMenuOpen(false);
+                }
+              }}
+              ref={attachMenuRef}
+            >
+              <Button
+                aria-label="Attach files"
+                aria-expanded={attachMenuOpen}
+                aria-haspopup="menu"
+                isDisabled={!canAttachFiles}
+                onPress={() => setAttachMenuOpen((open) => !open)}
+                size="small"
+                variant="quiet"
+              >
+                <Paperclip aria-hidden="true" size={19} />
+                Attach files
+              </Button>
+              {attachMenuOpen ? (
+                <div className="attach-menu__popover" role="menu">
+                  <button
+                    onClick={() => {
+                      setAttachMenuOpen(false);
+                      void onBrowseFiles();
+                    }}
+                    role="menuitem"
+                    type="button"
+                  >
+                    Browse files…
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAttachMenuOpen(false);
+                      onAttachFiles();
+                    }}
+                    role="menuitem"
+                    type="button"
+                  >
+                    From workspace panel
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <Button
+              aria-label="Attach files"
+              isDisabled={!canAttachFiles}
+              onPress={onAttachFiles}
+              size="small"
+              variant="quiet"
+            >
+              <Paperclip aria-hidden="true" size={19} />
+              Attach files
+            </Button>
+          )}
           <label className="sr-only" htmlFor="task-composer">
             {methodGuidanceView
               ? "Describe what you want skill guidance for"
@@ -346,72 +410,26 @@ export function TaskWorkspace({
           </label>
           <textarea
             id="task-composer"
+            ref={composerRef}
             aria-describedby="task-composer-availability"
             disabled={composerDisabled}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={methodGuidanceView
               ? "Describe your intent for skill guidance…"
               : "Describe a task, ask a question, or request a review…"}
-            rows={2}
+            rows={3}
             value={draft}
           />
         </div>
         <div className="composer__toolbar">
-          <div className="agent-control" ref={agentControlRef}>
-            <Button
-              aria-expanded={agentControlOpen}
-              aria-controls="agent-model-access"
-              aria-label="Agent and model settings"
-              className="agent-control__trigger"
-              onPress={() => setAgentControlOpen((open) => !open)}
-              size="small"
-              variant="quiet"
-            >
-              <Bot aria-hidden="true" size={15} />
-              <span>Agent</span>
-              <span className="agent-control__summary">
-                {methodGuidanceView ? "BMAD Help" : modelAccessLabel}
-              </span>
-              <ChevronDown aria-hidden="true" size={14} />
-            </Button>
-            {agentControlOpen ? (
-              <section
-                aria-label="Agent and model"
-                className="agent-control__popover"
-                id="agent-model-access"
-                role="region"
-              >
-                <header>
-                  <h2>Agent configuration</h2>
-                  <span className="agent-control__status">
-                    <span
-                      className={`status-dot ${methodGuidanceAvailable ? "" : "status-dot--warning"}`}
-                    />
-                    {methodGuidanceAvailable ? "Available" : isBrowserDemo ? "Read only" : "Unavailable"}
-                  </span>
-                </header>
-                <dl className="agent-control__menu">
-                  <div><dt>Agent capability</dt><dd>BMAD Help</dd></div>
-                  <div><dt>Model access</dt><dd title={modelAccessDetail}>{modelAccessLabel}</dd></div>
-                  <div><dt>Request policy</dt><dd>Review before send</dd></div>
-                </dl>
-                <Button
-                  className="agent-control__settings"
-                  onPress={() => {
-                    const trigger = agentControlRef.current?.querySelector<HTMLButtonElement>(".agent-control__trigger");
-                    closeAgentControl();
-                    trigger?.focus();
-                    onOpenAgentSettings(trigger ?? null);
-                  }}
-                  size="small"
-                  variant="secondary"
-                >
-                  Open settings
-                  <ChevronRight aria-hidden="true" size={15} />
-                </Button>
-              </section>
-            ) : null}
-          </div>
+          <AgentSelector
+            isBrowserDemo={isBrowserDemo}
+            library={agentLibrary}
+            methodGuidanceAvailable={methodGuidanceAvailable}
+            methodGuidanceView={methodGuidanceView}
+            modelAccessDetail={modelAccessDetail}
+            modelAccessLabel={modelAccessLabel}
+          />
           <div className="composer__right">
             <Button
               aria-label={methodGuidanceView ? "Review request" : "Send task"}

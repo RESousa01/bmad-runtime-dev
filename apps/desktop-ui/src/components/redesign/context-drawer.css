@@ -41,6 +41,43 @@
   flex: 0 0 auto;
 }
 
+.context-drawer__tabs {
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 0 10px 8px;
+}
+
+.context-drawer__tab {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  cursor: default;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 540;
+  line-height: 1;
+  padding: 6px 10px;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.context-drawer__tab:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.context-drawer__tab[aria-current="page"] {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+
+.context-drawer__tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
 .context-drawer__content {
   flex: 1 1 auto;
   min-height: 0;

@@ -7,6 +7,7 @@ export {
   workspaceReadLimits,
 } from "./hostClient/contracts";
 export type {
+  AboutProjection,
   ApprovalChoice,
   BmadActivation,
   BmadAssetKind,
@@ -32,6 +33,9 @@ export type {
   CommandEnvelope,
   ContextItemProjection,
   ContextPreviewProjection,
+  DensityPreference,
+  PreferencesProjection,
+  ThemePreference,
   DesktopHostCommand,
   HostBinding,
   LatestBmadHelpRunResult,
@@ -48,6 +52,7 @@ export type {
   WorkspaceProjection,
   WorkspaceRevocationResult,
   WorkspaceSearchMatch,
+  WorkspaceFilePick,
   WorkspaceSelection,
   WorkspaceTextProjection,
   WorkspaceTreeEntry,

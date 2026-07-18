@@ -47,8 +47,9 @@ function createProps(
     methodLibraryAvailable: true,
     modelAccessDetail: "Development connection · governed by BMAD review",
     modelAccessLabel: "Development model",
+    agentLibrary: { kind: "idle" },
+    attachNotice: null,
     onAttachFiles: vi.fn(),
-    onOpenAgentSettings: vi.fn(),
     onOpenChanges: vi.fn(),
     onOpenMethodLibrary: vi.fn(),
     onOpenRunDetails: vi.fn(),
@@ -81,23 +82,67 @@ describe("TaskWorkspace Method guidance", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("presents the BMAD-guided agent, real model status, and review policy", async () => {
+  it("presents the agent capabilities, installed agents, and review policy", async () => {
     const user = userEvent.setup();
-    const onOpenAgentSettings = vi.fn();
-    render(<TaskWorkspace {...createProps({ onOpenAgentSettings })} />);
+    render(
+      <TaskWorkspace
+        {...createProps({
+          agentLibrary: {
+            kind: "ready",
+            projection: {
+              schemaVersion: "bmad-library-snapshot.v2",
+              scope: "installed_method",
+              source: {
+                sourceKind: "sealed_foundation",
+                packageName: "bmad-method",
+                packageVersion: "6.10.0",
+              },
+              installedSkills: [],
+              helpActions: [],
+              methodAgents: [
+                {
+                  moduleCode: "bmm",
+                  agentCode: "architect",
+                  name: "Winston",
+                  title: "Architect",
+                  icon: "🏗️",
+                  team: "planning",
+                  description: "Architecture guidance",
+                  availability: "available",
+                  blockerCodes: [],
+                  menus: [],
+                },
+                {
+                  moduleCode: "bmm",
+                  agentCode: "dev",
+                  name: "Amelia",
+                  title: "Developer",
+                  icon: "💻",
+                  team: "delivery",
+                  description: "Implementation",
+                  availability: "capability_disabled",
+                  blockerCodes: ["bmad_capability_disabled"],
+                  menus: [],
+                },
+              ],
+              builderPackages: [],
+              nextCursor: null,
+            },
+          },
+        })}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
 
     const dialog = screen.getByRole("region", { name: "Agent and model" });
     expect(within(dialog).getByText("BMAD Help")).toBeTruthy();
-    expect(within(dialog).getByRole("heading", { name: "Agent configuration" })).toBeTruthy();
+    expect(within(dialog).getByText("Winston")).toBeTruthy();
+    expect(within(dialog).getByText("Amelia")).toBeTruthy();
+    expect(within(dialog).getByText("Capability disabled")).toBeTruthy();
     expect(within(dialog).getByText("Development model")).toBeTruthy();
     expect(within(dialog).getByText("Review before send")).toBeTruthy();
-
-    await user.click(within(dialog).getByRole("button", { name: "Open settings" }));
-    expect(onOpenAgentSettings).toHaveBeenCalledOnce();
-    expect(onOpenAgentSettings).toHaveBeenCalledWith(screen.getByRole("button", { name: "Agent and model settings" }));
-    expect(screen.queryByRole("region", { name: "Agent and model" })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: "Open settings" })).toBeNull();
   });
 
   it("returns focus to the Agent trigger when Escape closes its menu", async () => {
@@ -106,8 +151,7 @@ describe("TaskWorkspace Method guidance", () => {
     const trigger = screen.getByRole("button", { name: "Agent and model settings" });
 
     await user.click(trigger);
-    const openSettings = screen.getByRole("button", { name: "Open settings" });
-    openSettings.focus();
+    expect(screen.getByRole("region", { name: "Agent and model" })).toBeTruthy();
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("region", { name: "Agent and model" })).toBeNull();

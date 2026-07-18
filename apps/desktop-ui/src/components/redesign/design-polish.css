@@ -333,7 +333,7 @@
       var(--shadow-control);
     gap: 12px;
     margin-bottom: 30px;
-    max-width: 820px;
+    max-width: min(1100px, calc(100% - 24px));
     padding: 12px 14px 12px 16px;
   }
 
@@ -392,7 +392,7 @@
   }
 
   .message {
-    max-width: 820px;
+    max-width: min(1100px, calc(100% - 24px));
   }
 
   .message p {
@@ -429,7 +429,7 @@
       0 1px 0 color-mix(in srgb, var(--color-surface), transparent 35%),
       0 14px 42px rgb(1 9 18 / 0.13);
     margin: 10px auto 18px;
-    max-width: min(900px, calc(100% - 48px));
+    max-width: calc(100% - 48px);
     min-height: 132px;
     padding: 15px 16px 12px;
     transition:
@@ -575,43 +575,6 @@
     border: 1px solid var(--color-border-subtle);
     border-radius: 999px;
     padding: 5px 8px;
-  }
-
-  .agent-control__menu {
-    display: grid;
-    margin: 0;
-  }
-
-  .agent-control__menu > div {
-    align-items: center;
-    border-bottom: 1px solid var(--color-border-subtle);
-    display: grid;
-    gap: 16px;
-    grid-template-columns: minmax(0, 1fr) minmax(126px, auto);
-    min-height: 48px;
-    padding: 9px 2px;
-  }
-
-  .agent-control__menu dt {
-    color: var(--color-text-muted);
-    font-size: 0.71875rem;
-  }
-
-  .agent-control__menu dd {
-    color: var(--color-text);
-    font-size: 0.75rem;
-    font-weight: 630;
-    margin: 0;
-    overflow: hidden;
-    text-align: right;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .agent-control__settings.sapphirus-button {
-    border-radius: 9px;
-    margin-top: 13px;
-    min-height: 38px;
   }
 
   .connection-state {

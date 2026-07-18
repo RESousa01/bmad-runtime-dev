@@ -31,3 +31,6 @@ tests/generator-qualification/dotnet/bin/
 tests/generator-qualification/dotnet/obj/
 tests/conformance/dotnet/bin/
 tests/conformance/dotnet/obj/
+
+# Local Claude Code harness state
+.claude/

@@ -10,7 +10,7 @@ use ignore::WalkBuilder;
 use parking_lot::{RwLock, RwLockReadGuard};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
@@ -113,6 +113,16 @@ pub struct WorkspaceEntry {
 pub struct WorkspaceEntryPage {
     pub entries: Vec<WorkspaceEntry>,
     pub next_after: Option<String>,
+}
+
+/// Result of mapping host-picked absolute files to workspace-relative paths.
+/// Only relative wire paths and rejection counts leave the broker.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PickedFiles {
+    pub relative_paths: Vec<String>,
+    pub rejected_outside_root: u64,
+    pub rejected_unreadable: u64,
+    pub truncated: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -495,6 +505,69 @@ impl WorkspaceBroker {
         Ok(WorkspaceEntryPage {
             entries: page,
             next_after,
+        })
+    }
+
+    /// Maps host-picked absolute file paths to validated workspace-relative
+    /// wire paths, discarding anything outside the granted root.
+    ///
+    /// The absolute inputs come only from the host's own file dialog, never from
+    /// the renderer. Each candidate is canonicalized and required to be a regular
+    /// text-eligible file strictly inside the canonical root with no reparse
+    /// component; survivors are deduplicated and sorted. Counts of rejected and
+    /// unreadable candidates are returned so the host can report them without
+    /// disclosing any absolute path.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is unavailable or its root identity
+    /// changed since selection.
+    pub fn resolve_picked_files(
+        &self,
+        workspace_id: &str,
+        candidates: &[PathBuf],
+        limit: usize,
+    ) -> Result<PickedFiles, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, workspace_id)?;
+        revalidate_root(&grant)?;
+        let root = grant.root.clone();
+
+        let mut relative_paths = BTreeSet::new();
+        let mut rejected_outside_root = 0_u64;
+        let mut rejected_unreadable = 0_u64;
+        for candidate in candidates {
+            match resolve_picked_file(&root, candidate) {
+                Ok(relative) => {
+                    relative_paths.insert(relative);
+                }
+                Err(
+                    WorkspaceError::OutsideWorkspace
+                    | WorkspaceError::PathBlocked
+                    | WorkspaceError::InvalidRelativePath
+                    | WorkspaceError::UnsupportedText,
+                ) => {
+                    rejected_outside_root = rejected_outside_root.saturating_add(1);
+                }
+                Err(_) => {
+                    rejected_unreadable = rejected_unreadable.saturating_add(1);
+                }
+            }
+        }
+        self.ensure_grant_current(&authority, &grant)?;
+
+        let total = relative_paths.len();
+        let bounded_limit = limit.max(1);
+        let truncated = total > bounded_limit;
+        let relative_paths = relative_paths
+            .into_iter()
+            .take(bounded_limit)
+            .collect::<Vec<_>>();
+        Ok(PickedFiles {
+            relative_paths,
+            rejected_outside_root,
+            rejected_unreadable,
+            truncated,
         })
     }
 
@@ -941,6 +1014,33 @@ fn resolve_existing(root: &Path, relative_path: &str) -> Result<PathBuf, Workspa
     ensure_descendant(root, &canonical)?;
     reject_reparse_components(root, &canonical)?;
     Ok(canonical)
+}
+
+fn resolve_picked_file(root: &Path, candidate: &Path) -> Result<String, WorkspaceError> {
+    if !candidate.is_absolute() {
+        return Err(WorkspaceError::InvalidRelativePath);
+    }
+    let canonical = fs::canonicalize(candidate)?;
+    let metadata = fs::symlink_metadata(&canonical)?;
+    if !metadata.is_file()
+        || metadata.file_type().is_symlink()
+        || is_reparse_point(&metadata)
+        || is_cloud_placeholder(&metadata)
+    {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    // Component-wise containment: strip_prefix rejects the sibling-prefix trap
+    // (`C:\root` vs `C:\rootx`) that a raw string prefix check would accept.
+    ensure_descendant(root, &canonical)?;
+    if canonical == root {
+        return Err(WorkspaceError::InvalidRelativePath);
+    }
+    reject_reparse_components(root, &canonical)?;
+    let relative = to_relative_wire_path(root, &canonical)?;
+    if is_sensitive_relative_path(&relative) {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    Ok(relative)
 }
 
 fn ensure_descendant(root: &Path, candidate: &Path) -> Result<(), WorkspaceError> {
@@ -1654,6 +1754,69 @@ mod tests {
     }
 
     #[cfg(windows)]
+    #[test]
+    fn resolve_picked_files_keeps_only_files_inside_the_granted_root(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        fs::write(root.path().join("keep.txt"), b"inside")?;
+        fs::create_dir(root.path().join("nested"))?;
+        fs::write(root.path().join("nested").join("child.md"), b"nested")?;
+
+        // A sibling directory whose absolute path shares the root's string prefix
+        // (`root` vs `rootx`) — the classic containment trap.
+        let sibling = tempfile::Builder::new().prefix("workspacex").tempdir()?;
+        fs::write(sibling.path().join("outside.txt"), b"outside")?;
+
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_files(
+            &projection.workspace_id,
+            &[
+                root.path().join("keep.txt"),
+                root.path().join("nested").join("child.md"),
+                sibling.path().join("outside.txt"),
+                root.path().join("missing.txt"),
+                root.path().to_path_buf(),
+            ],
+            100,
+        )?;
+
+        assert_eq!(picked.relative_paths, vec!["keep.txt", "nested/child.md"]);
+        // The sibling file and the root directory itself are outside-root
+        // rejections; the missing file is an unreadable rejection.
+        assert_eq!(picked.rejected_outside_root, 2);
+        assert_eq!(picked.rejected_unreadable, 1);
+        assert!(!picked.truncated);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_picked_files_dedups_sorts_and_reports_truncation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        for name in ["b.txt", "a.txt", "c.txt"] {
+            fs::write(root.path().join(name), b"x")?;
+        }
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_files(
+            &projection.workspace_id,
+            &[
+                root.path().join("b.txt"),
+                root.path().join("b.txt"),
+                root.path().join("a.txt"),
+                root.path().join("c.txt"),
+            ],
+            2,
+        )?;
+        assert_eq!(picked.relative_paths, vec!["a.txt", "b.txt"]);
+        assert!(picked.truncated);
+        assert_eq!(picked.rejected_outside_root, 0);
+        Ok(())
+    }
+
     #[test]
     fn scope_authority_guard_rejects_zero_stale_and_mismatched_epochs(
     ) -> Result<(), Box<dyn std::error::Error>> {

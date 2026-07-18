@@ -35,10 +35,11 @@ where
 }
 pub use bmad::{
     project_bmad_library, project_bmad_library_with_activations, BmadAgentMenuProjection,
-    BmadAgentMenuTargetProjection, BmadAgentProjection, BmadHelpActionProjection,
-    BmadInstalledSkillProjection, BmadLibrarySnapshotProjection, BmadLibrarySourceKind,
-    BmadLibrarySourceProjection, BmadProjectionAvailability, BmadProjectionBlockerCode,
-    BmadProjectionError, MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+    BmadAgentMenuTargetProjection, BmadAgentProjection, BmadBuilderPackageKind,
+    BmadBuilderPackageProjection, BmadHelpActionProjection, BmadInstalledSkillProjection,
+    BmadLibrarySnapshotProjection, BmadLibrarySourceKind, BmadLibrarySourceProjection,
+    BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
+    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
 pub use bmad_completion::{
     decode_retained_bmad_help_completion, project_completed_bmad_help_run,

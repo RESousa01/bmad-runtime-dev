@@ -193,6 +193,10 @@ fn is_known_command(command: &str) -> bool {
             | "approval.decide"
             | "rollback.request"
             | "changes.history"
+            | "app.preferences.get"
+            | "app.preferences.set"
+            | "app.about"
+            | "workspace.pick_files"
     )
 }
 
@@ -219,6 +223,13 @@ struct EmptyPayload {}
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct WorkspaceIdPayload {
     workspace_id: ContractId,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PreferencesPayload {
+    theme: desktop_runtime::ThemePreference,
+    density: desktop_runtime::DensityPreference,
 }
 
 #[derive(Deserialize)]
@@ -433,7 +444,37 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 workspace_grant_epoch: input.workspace_grant_epoch,
             })
         }
+        "app.preferences.get" | "app.preferences.set" | "app.about" | "workspace.pick_files" => {
+            parse_app_command(command, payload)
+        }
         _ => parse_later_phase_command(command, payload),
+    }
+}
+
+fn parse_app_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    match command {
+        "app.preferences.get" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::GetPreferences)
+        }
+        "app.preferences.set" => {
+            let input: PreferencesPayload = parse_payload(payload)?;
+            Ok(LocalCommand::SetPreferences {
+                theme: input.theme,
+                density: input.density,
+            })
+        }
+        "app.about" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::GetAbout)
+        }
+        "workspace.pick_files" => {
+            let input: WorkspaceIdPayload = parse_payload(payload)?;
+            Ok(LocalCommand::PickWorkspaceFiles {
+                workspace_id: input.workspace_id,
+            })
+        }
+        _ => Err(IpcValidationError::UnknownCommand),
     }
 }
 
@@ -737,7 +778,7 @@ fn validate_structure(
 
 #[cfg(test)]
 mod tests {
-    use desktop_runtime::{ContractId, UnixMillis};
+    use desktop_runtime::{ContractId, LocalCommand, UnixMillis};
 
     use super::{CommandEnvelopeValidator, IpcValidationContext, IpcValidationError};
 
@@ -839,6 +880,79 @@ mod tests {
             let error = CommandEnvelopeValidator::parse(json.as_bytes(), &malicious_context).err();
             assert!(matches!(error, Some(IpcValidationError::UnknownCommand)));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn preferences_and_about_commands_parse_strictly() -> Result<(), Box<dyn std::error::Error>> {
+        let mut preferences_context = context()?;
+        preferences_context.allowed_commands.extend([
+            "app.preferences.get".to_owned(),
+            "app.preferences.set".to_owned(),
+            "app.about".to_owned(),
+        ]);
+
+        let set = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_001",
+          "command":"app.preferences.set",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"theme":"system","density":"compact"}
+        }"#;
+        let envelope = CommandEnvelopeValidator::parse(set, &preferences_context)?;
+        assert!(matches!(
+            envelope.command,
+            LocalCommand::SetPreferences {
+                theme: desktop_runtime::ThemePreference::System,
+                density: desktop_runtime::DensityPreference::Compact,
+            }
+        ));
+
+        let unknown_field = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_002",
+          "command":"app.preferences.set",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"theme":"dark","density":"compact","accent":"crimson"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(unknown_field, &preferences_context).err(),
+            Some(IpcValidationError::InvalidPayload)
+        ));
+
+        let invalid_theme = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_003",
+          "command":"app.preferences.set",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"theme":"crimson","density":"compact"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(invalid_theme, &preferences_context).err(),
+            Some(IpcValidationError::InvalidPayload)
+        ));
+
+        let about = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_004",
+          "command":"app.about",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{}
+        }"#;
+        let envelope = CommandEnvelopeValidator::parse(about, &preferences_context)?;
+        assert!(matches!(envelope.command, LocalCommand::GetAbout));
         Ok(())
     }
 

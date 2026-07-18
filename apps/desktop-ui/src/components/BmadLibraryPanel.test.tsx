@@ -10,7 +10,7 @@ import type {
 import { BmadLibraryPanel } from "./BmadLibraryPanel";
 
 const baseProjection: BmadLibraryProjection = {
-  schemaVersion: "bmad-library-snapshot.v1",
+  schemaVersion: "bmad-library-snapshot.v2",
   scope: "installed_method",
   source: {
     sourceKind: "sealed_foundation",
@@ -115,6 +115,7 @@ const baseProjection: BmadLibraryProjection = {
       })),
     },
   ],
+  builderPackages: [],
   nextCursor: null,
 };
 
@@ -184,6 +185,7 @@ describe("BmadLibraryPanel", () => {
       }],
       helpActions: [],
       methodAgents: [],
+      builderPackages: [],
     };
     const { container } = render(<BmadLibraryPanel state={readyState(projection)} />);
 
@@ -206,6 +208,7 @@ describe("BmadLibraryPanel", () => {
           }],
           helpActions: [],
           methodAgents: [],
+          builderPackages: [],
         })}
       />,
     );
@@ -221,6 +224,7 @@ describe("BmadLibraryPanel", () => {
           installedSkills: [],
           helpActions: [],
           methodAgents: [],
+          builderPackages: [],
         })}
       />,
     );

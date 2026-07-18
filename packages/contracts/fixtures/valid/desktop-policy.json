@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "desktop-policy.v1",
+  "policyId": "policy_01J00000000000000000000000",
+  "policyVersion": 7,
+  "policyHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "systemBrowserFallbackAllowed": false,
+  "maximumContextBytes": 524288,
+  "maximumContextItems": 64,
+  "allowedRegions": [
+    "westeurope"
+  ],
+  "keyId": "desktop-policy-key-2026-07",
+  "signature": "ZXhhbXBsZS1kZXNrdG9wLXBvbGljeS1zaWduYXR1cmU"
+}

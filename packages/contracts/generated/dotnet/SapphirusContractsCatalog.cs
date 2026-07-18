@@ -193,6 +193,54 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>desktopDeviceRegistration</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration DesktopDeviceRegistrationValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>desktopEntitlementLease</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease DesktopEntitlementLeaseValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>desktopPolicy</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy DesktopPolicyValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopPolicyValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>durableObject</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject DurableObjectValue
@@ -328,6 +376,38 @@ public readonly partial struct SapphirusContractsCatalog
         get
         {
             if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessReceiptValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>modelAccessRequest</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest ModelAccessRequestValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessRequestValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>modelAccessResult</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult ModelAccessResultValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessResultValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult value))
             {
                 return value;
             }
@@ -862,6 +942,21 @@ public readonly partial struct SapphirusContractsCatalog
         public const string ContractErrorValue = "contractError";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopDeviceRegistrationValue"/>.
+        /// </summary>
+        public const string DesktopDeviceRegistrationValue = "desktopDeviceRegistration";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopEntitlementLeaseValue"/>.
+        /// </summary>
+        public const string DesktopEntitlementLeaseValue = "desktopEntitlementLease";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopPolicyValue"/>.
+        /// </summary>
+        public const string DesktopPolicyValue = "desktopPolicy";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="DurableObjectValue"/>.
         /// </summary>
         public const string DurableObjectValue = "durableObject";
@@ -905,6 +1000,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="ModelAccessReceiptValue"/>.
         /// </summary>
         public const string ModelAccessReceiptValue = "modelAccessReceipt";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessRequestValue"/>.
+        /// </summary>
+        public const string ModelAccessRequestValue = "modelAccessRequest";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessResultValue"/>.
+        /// </summary>
+        public const string ModelAccessResultValue = "modelAccessResult";
 
         /// <summary>
         /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
@@ -967,6 +1072,21 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ContractErrorValueUtf8 => "contractError"u8;
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopDeviceRegistrationValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopDeviceRegistrationValueUtf8 => "desktopDeviceRegistration"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopEntitlementLeaseValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopEntitlementLeaseValueUtf8 => "desktopEntitlementLease"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="DesktopPolicyValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopPolicyValueUtf8 => "desktopPolicy"u8;
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="DurableObjectValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> DurableObjectValueUtf8 => "durableObject"u8;
@@ -1010,6 +1130,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="ModelAccessReceiptValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelAccessReceiptValueUtf8 => "modelAccessReceipt"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessRequestValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessRequestValueUtf8 => "modelAccessRequest"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelAccessResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessResultValueUtf8 => "modelAccessResult"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
@@ -1078,6 +1208,21 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ContractErrorValue => "contractError"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="DesktopDeviceRegistrationValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopDeviceRegistrationValue => "desktopDeviceRegistration"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="DesktopEntitlementLeaseValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopEntitlementLeaseValue => "desktopEntitlementLease"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="DesktopPolicyValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopPolicyValue => "desktopPolicy"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="DurableObjectValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> DurableObjectValue => "durableObject"u8;
@@ -1121,6 +1266,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the escaped UTF-8 JSON property name for <see cref="ModelAccessReceiptValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelAccessReceiptValue => "modelAccessReceipt"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelAccessRequestValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessRequestValue => "modelAccessRequest"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelAccessResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessResultValue => "modelAccessResult"u8;
 
         /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="ModelContextConsentValue"/>.
@@ -1190,6 +1345,21 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ContractErrorValue => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x63, 0x6F, 0x6E, 0x74, 0x72, 0x61, 0x63, 0x74, 0x45, 0x72, 0x72, 0x6F, 0x72, 0x22];
 
         /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="DesktopDeviceRegistrationValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopDeviceRegistrationValue => [0xB5, 0x01, 0x00, 0x00, 0x22, 0x64, 0x65, 0x73, 0x6B, 0x74, 0x6F, 0x70, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="DesktopEntitlementLeaseValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopEntitlementLeaseValue => [0x95, 0x01, 0x00, 0x00, 0x22, 0x64, 0x65, 0x73, 0x6B, 0x74, 0x6F, 0x70, 0x45, 0x6E, 0x74, 0x69, 0x74, 0x6C, 0x65, 0x6D, 0x65, 0x6E, 0x74, 0x4C, 0x65, 0x61, 0x73, 0x65, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="DesktopPolicyValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> DesktopPolicyValue => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x64, 0x65, 0x73, 0x6B, 0x74, 0x6F, 0x70, 0x50, 0x6F, 0x6C, 0x69, 0x63, 0x79, 0x22];
+
+        /// <summary>
         /// Gets the pre-baked property name blob for <see cref="DurableObjectValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> DurableObjectValue => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x64, 0x75, 0x72, 0x61, 0x62, 0x6C, 0x65, 0x4F, 0x62, 0x6A, 0x65, 0x63, 0x74, 0x22];
@@ -1233,6 +1403,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="ModelAccessReceiptValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelAccessReceiptValue => [0x45, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelAccessRequestValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessRequestValue => [0x45, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelAccessResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelAccessResultValue => [0x35, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="ModelContextConsentValue"/>.

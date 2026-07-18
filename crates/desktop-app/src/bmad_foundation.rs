@@ -78,7 +78,26 @@ pub struct BmadLoadedFoundation {
     roster: BmadAgentRoster,
     manifest_hash: Sha256Digest,
     semantic_ledger_hash: Sha256Digest,
-    inactive_builder_package_count: usize,
+    builder_packages: Vec<BmadBuilderPackageSummary>,
+}
+
+/// Kind of an installed-but-inactive Builder package.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BuilderPackageKind {
+    Agent,
+    Workflow,
+}
+
+/// Display-safe summary of a validated, inactive Builder package. No
+/// instruction content or filesystem detail is retained here.
+#[derive(Clone, Debug)]
+pub struct BmadBuilderPackageSummary {
+    pub package_name: String,
+    pub package_version: String,
+    pub package_kind: BuilderPackageKind,
+    pub display_name: String,
+    pub resource_count: usize,
+    pub descriptor_digest: Sha256Digest,
 }
 
 impl BmadLoadedFoundation {
@@ -113,8 +132,13 @@ impl BmadLoadedFoundation {
     }
 
     #[must_use]
-    pub const fn inactive_builder_package_count(&self) -> usize {
-        self.inactive_builder_package_count
+    pub fn inactive_builder_package_count(&self) -> usize {
+        self.builder_packages.len()
+    }
+
+    #[must_use]
+    pub fn builder_packages(&self) -> &[BmadBuilderPackageSummary] {
+        &self.builder_packages
     }
 }
 
@@ -227,7 +251,7 @@ pub fn load_bmad_foundation(
         &catalog,
         roster_content_hash,
     )?;
-    let inactive_builder_package_count = validate_builder_packages(&resources)?;
+    let builder_packages = validate_builder_packages(&resources)?;
 
     Ok(BmadLoadedFoundation {
         method_package,
@@ -235,7 +259,7 @@ pub fn load_bmad_foundation(
         roster,
         manifest_hash: manifest.manifest_hash,
         semantic_ledger_hash,
-        inactive_builder_package_count,
+        builder_packages,
     })
 }
 
@@ -411,20 +435,25 @@ fn load_roster(
 
 fn validate_builder_packages(
     resources: &FoundationResources,
-) -> Result<usize, BmadFoundationError> {
+) -> Result<Vec<BmadBuilderPackageSummary>, BmadFoundationError> {
     let expected = [
         (
             "normalized/builder-agent.package.json",
             "stateless_agent",
             "BuilderAgentV2Stateless",
+            BuilderPackageKind::Agent,
+            "Builder agent",
         ),
         (
             "normalized/builder-workflow.package.json",
             "simple_inline_workflow",
             "BuilderOutcomeSkillV2",
+            BuilderPackageKind::Workflow,
+            "Builder workflow",
         ),
     ];
-    for (path, kind, profile) in expected {
+    let mut summaries = Vec::with_capacity(expected.len());
+    for (path, kind, profile, package_kind, display_name) in expected {
         let package: BuilderFoundationPackage =
             deserialize_strict(required_bytes(resources, path)?)
                 .map_err(|_| BmadFoundationError::ResourceMismatch)?;
@@ -454,8 +483,16 @@ fn validate_builder_packages(
         {
             return Err(BmadFoundationError::ResourceMismatch);
         }
+        summaries.push(BmadBuilderPackageSummary {
+            package_name: package.package_name,
+            package_version: package.package_version,
+            package_kind,
+            display_name: display_name.to_owned(),
+            resource_count: package.resources.len(),
+            descriptor_digest: package.package_hash,
+        });
     }
-    Ok(expected.len())
+    Ok(summaries)
 }
 
 fn source_entry(

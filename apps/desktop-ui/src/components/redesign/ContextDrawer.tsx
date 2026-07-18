@@ -2,11 +2,7 @@ import { Button } from "@sapphirus/ui";
 import { X } from "lucide-react";
 import { useId, type ReactNode } from "react";
 
-export type ContextDrawerKind =
-  | "files"
-  | "changes"
-  | "run-details"
-  | "methods";
+export type ContextDrawerKind = "files" | "changes" | "activity" | "skills";
 
 export type ContextDrawerPresentation = "pane" | "overlay";
 
@@ -14,20 +10,29 @@ export interface ContextDrawerProps {
   children?: ReactNode;
   kind: ContextDrawerKind;
   onClose: () => void;
+  onSelectTab?: (kind: ContextDrawerKind) => void;
   presentation?: ContextDrawerPresentation;
 }
 
 const drawerTitles = {
   files: "Files",
   changes: "Changes",
-  "run-details": "Run details",
-  methods: "Skills and agents",
+  activity: "Activity",
+  skills: "Skills and agents",
 } satisfies Record<ContextDrawerKind, string>;
+
+const drawerTabs: Array<{ id: ContextDrawerKind; label: string }> = [
+  { id: "files", label: "Files" },
+  { id: "changes", label: "Changes" },
+  { id: "activity", label: "Activity" },
+  { id: "skills", label: "Skills" },
+];
 
 export function ContextDrawer({
   children,
   kind,
   onClose,
+  onSelectTab,
   presentation = "pane",
 }: ContextDrawerProps) {
   const titleId = useId();
@@ -53,6 +58,21 @@ export function ContextDrawer({
           <X aria-hidden="true" size={18} />
         </Button>
       </header>
+      {onSelectTab ? (
+        <nav aria-label="Panel views" className="context-drawer__tabs">
+          {drawerTabs.map((tab) => (
+            <button
+              {...(kind === tab.id ? { "aria-current": "page" as const } : {})}
+              className="context-drawer__tab"
+              key={tab.id}
+              onClick={() => onSelectTab(tab.id)}
+              type="button"
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
       <div className="context-drawer__content">{children}</div>
     </aside>
   );

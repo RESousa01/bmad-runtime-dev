@@ -9,7 +9,10 @@ const scanRoots = [
   "apps",
   "crates",
   "docs",
+  "helpers",
   "packages",
+  "services",
+  "tests",
   "tools",
 ];
 const rootFiles = [
@@ -37,10 +40,14 @@ const ignoredDirectories = new Set([
   "bmad-runtime-lib",
   "coverage",
   "dist",
+  "bin",
   "node_modules",
+  "obj",
   "target",
 ]);
 const textExtensions = new Set([
+  ".cs",
+  ".csproj",
   ".css",
   ".html",
   ".js",
@@ -51,6 +58,7 @@ const textExtensions = new Set([
   ".mjs",
   ".pem",
   ".properties",
+  ".props",
   ".ps1",
   ".py",
   ".rs",
@@ -59,6 +67,8 @@ const textExtensions = new Set([
   ".ts",
   ".tsx",
   ".txt",
+  ".targets",
+  ".xml",
   ".yaml",
   ".yml",
 ]);
@@ -171,8 +181,12 @@ for (const path of [...paths].sort()) {
     findings.push({ label: "invalid UTF-8 in text source", path, line: 1 });
     continue;
   }
-  if (source.includes("\0")) {
-    findings.push({ label: "NUL byte in text source", path, line: lineAt(source, source.indexOf("\0")) });
+  const prohibitedControlOffset = source.search(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u);
+  if (prohibitedControlOffset !== -1) {
+    const label = source.charCodeAt(prohibitedControlOffset) === 0
+      ? "NUL byte in text source"
+      : "C0 control byte in text source";
+    findings.push({ label, path, line: lineAt(source, prohibitedControlOffset) });
     continue;
   }
   for (const [label, pattern] of detectors) {

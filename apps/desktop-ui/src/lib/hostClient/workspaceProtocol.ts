@@ -18,6 +18,7 @@ import {
   type WorkspaceProjection,
   workspaceReadLimits,
   type WorkspaceSearchMatch,
+  type WorkspaceFilePick,
   type WorkspaceSelection,
   type WorkspaceTextProjection,
   type WorkspaceTreeEntry,
@@ -262,6 +263,56 @@ export function parseWorkspaceSelectionReply(
     selection: {
       kind: "workspace_selected",
       value: parseWorkspace(data.value),
+    },
+    sequence: parsed.sequence,
+  };
+}
+
+export function parseWorkspaceFilePickReply(
+  value: unknown,
+  requestId: string,
+): { pick: WorkspaceFilePick; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const { data } = parsed;
+  if (data.kind === "no_selection") {
+    assertExactKeys(data, ["kind"]);
+    return { pick: { kind: "no_selection" }, sequence: parsed.sequence };
+  }
+  if (data.kind !== "picked_files") {
+    return fail();
+  }
+  assertExactKeys(data, ["kind", "value"]);
+  const projection = asRecord(data.value);
+  assertExactKeys(projection, [
+    "workspaceId",
+    "relativePaths",
+    "selectedCount",
+    "rejectedOutsideRoot",
+    "rejectedUnreadable",
+    "truncated",
+  ]);
+  if (
+    !Array.isArray(projection.relativePaths) ||
+    projection.relativePaths.length > 100
+  ) {
+    return fail();
+  }
+  const relativePaths = projection.relativePaths.map(asRelativePath);
+  assertUniqueRelativePaths(relativePaths);
+  if (relativePaths.length !== asUnsignedInteger(projection.selectedCount)) {
+    return fail();
+  }
+  return {
+    pick: {
+      kind: "picked",
+      value: {
+        workspaceId: asContractId(projection.workspaceId),
+        relativePaths,
+        selectedCount: relativePaths.length,
+        rejectedOutsideRoot: asUnsignedInteger(projection.rejectedOutsideRoot),
+        rejectedUnreadable: asUnsignedInteger(projection.rejectedUnreadable),
+        truncated: asBoolean(projection.truncated),
+      },
     },
     sequence: parsed.sequence,
   };

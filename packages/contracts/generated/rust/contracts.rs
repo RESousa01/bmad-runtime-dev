@@ -20727,6 +20727,1075 @@ impl<'de> ::serde::Deserialize<'de> for ContractErrorMessage {
             })
     }
 }
+#[doc = "`DesktopDeviceRegistration`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.desktop-device-registration.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"architecture\","]
+#[doc = "    \"clientRelease\","]
+#[doc = "    \"installationPublicKey\","]
+#[doc = "    \"installationPublicKeyHash\","]
+#[doc = "    \"platform\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"tenantPolicyVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"architecture\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"x64\","]
+#[doc = "        \"arm64\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"clientRelease\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[0-9A-Za-z.+-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"installationPublicKey\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 80,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"installationPublicKeyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"platform\": {"]
+#[doc = "      \"const\": \"windows\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-device-registration.v1\""]
+#[doc = "    },"]
+#[doc = "    \"tenantPolicyVersion\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 9007199254740991.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct DesktopDeviceRegistration {
+    pub architecture: DesktopDeviceRegistrationArchitecture,
+    #[serde(rename = "clientRelease")]
+    pub client_release: DesktopDeviceRegistrationClientRelease,
+    #[serde(rename = "installationPublicKey")]
+    pub installation_public_key: DesktopDeviceRegistrationInstallationPublicKey,
+    #[serde(rename = "installationPublicKeyHash")]
+    pub installation_public_key_hash: CommonSha256,
+    pub platform: ::serde_json::Value,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "tenantPolicyVersion")]
+    pub tenant_policy_version: ::std::num::NonZeroU64,
+}
+impl DesktopDeviceRegistration {
+    pub fn builder() -> builder::DesktopDeviceRegistration {
+        Default::default()
+    }
+}
+#[doc = "`DesktopDeviceRegistrationArchitecture`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"x64\","]
+#[doc = "    \"arm64\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum DesktopDeviceRegistrationArchitecture {
+    #[serde(rename = "x64")]
+    X64,
+    #[serde(rename = "arm64")]
+    Arm64,
+}
+impl ::std::fmt::Display for DesktopDeviceRegistrationArchitecture {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::X64 => f.write_str("x64"),
+            Self::Arm64 => f.write_str("arm64"),
+        }
+    }
+}
+impl ::std::str::FromStr for DesktopDeviceRegistrationArchitecture {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "x64" => Ok(Self::X64),
+            "arm64" => Ok(Self::Arm64),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopDeviceRegistrationArchitecture {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopDeviceRegistrationArchitecture {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopDeviceRegistrationArchitecture {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`DesktopDeviceRegistrationClientRelease`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[0-9A-Za-z.+-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopDeviceRegistrationClientRelease(::std::string::String);
+impl ::std::ops::Deref for DesktopDeviceRegistrationClientRelease {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopDeviceRegistrationClientRelease> for ::std::string::String {
+    fn from(value: DesktopDeviceRegistrationClientRelease) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopDeviceRegistrationClientRelease {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[0-9A-Za-z.+-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[0-9A-Za-z.+-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopDeviceRegistrationClientRelease {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopDeviceRegistrationClientRelease {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopDeviceRegistrationClientRelease {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopDeviceRegistrationClientRelease {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopDeviceRegistrationInstallationPublicKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 80,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopDeviceRegistrationInstallationPublicKey(::std::string::String);
+impl ::std::ops::Deref for DesktopDeviceRegistrationInstallationPublicKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopDeviceRegistrationInstallationPublicKey>
+    for ::std::string::String
+{
+    fn from(value: DesktopDeviceRegistrationInstallationPublicKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopDeviceRegistrationInstallationPublicKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 80usize {
+            return Err("shorter than 80 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopDeviceRegistrationInstallationPublicKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for DesktopDeviceRegistrationInstallationPublicKey
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for DesktopDeviceRegistrationInstallationPublicKey
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopDeviceRegistrationInstallationPublicKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopEntitlementLease`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.desktop-entitlement-lease.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"expiresAt\","]
+#[doc = "    \"features\","]
+#[doc = "    \"issuedAt\","]
+#[doc = "    \"keyId\","]
+#[doc = "    \"leaseId\","]
+#[doc = "    \"minimumClientVersion\","]
+#[doc = "    \"notBefore\","]
+#[doc = "    \"offlineGraceEndsAt\","]
+#[doc = "    \"registrationId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"signature\","]
+#[doc = "    \"subjectHash\","]
+#[doc = "    \"tenantPolicyHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"expiresAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"features\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"maxLength\": 64,"]
+#[doc = "        \"minLength\": 3,"]
+#[doc = "        \"pattern\": \"^[a-z0-9_-]+$\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"issuedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"keyId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"leaseId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"minimumClientVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[0-9A-Za-z.+-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"notBefore\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"offlineGraceEndsAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"registrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-entitlement-lease.v1\""]
+#[doc = "    },"]
+#[doc = "    \"signature\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 16,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"subjectHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"tenantPolicyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct DesktopEntitlementLease {
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    #[serde(rename = "expiresAt")]
+    pub expires_at: CommonUtcInstant,
+    pub features: Vec<DesktopEntitlementLeaseFeaturesItem>,
+    #[serde(rename = "issuedAt")]
+    pub issued_at: CommonUtcInstant,
+    #[serde(rename = "keyId")]
+    pub key_id: DesktopEntitlementLeaseKeyId,
+    #[serde(rename = "leaseId")]
+    pub lease_id: CommonContractId,
+    #[serde(rename = "minimumClientVersion")]
+    pub minimum_client_version: DesktopEntitlementLeaseMinimumClientVersion,
+    #[serde(rename = "notBefore")]
+    pub not_before: CommonUtcInstant,
+    #[serde(rename = "offlineGraceEndsAt")]
+    pub offline_grace_ends_at: CommonUtcInstant,
+    #[serde(rename = "registrationId")]
+    pub registration_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub signature: DesktopEntitlementLeaseSignature,
+    #[serde(rename = "subjectHash")]
+    pub subject_hash: CommonSha256,
+    #[serde(rename = "tenantPolicyHash")]
+    pub tenant_policy_hash: CommonSha256,
+}
+impl DesktopEntitlementLease {
+    pub fn builder() -> builder::DesktopEntitlementLease {
+        Default::default()
+    }
+}
+#[doc = "`DesktopEntitlementLeaseFeaturesItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 3,"]
+#[doc = "  \"pattern\": \"^[a-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopEntitlementLeaseFeaturesItem(::std::string::String);
+impl ::std::ops::Deref for DesktopEntitlementLeaseFeaturesItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopEntitlementLeaseFeaturesItem> for ::std::string::String {
+    fn from(value: DesktopEntitlementLeaseFeaturesItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopEntitlementLeaseFeaturesItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopEntitlementLeaseFeaturesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopEntitlementLeaseFeaturesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopEntitlementLeaseFeaturesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopEntitlementLeaseFeaturesItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopEntitlementLeaseKeyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopEntitlementLeaseKeyId(::std::string::String);
+impl ::std::ops::Deref for DesktopEntitlementLeaseKeyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopEntitlementLeaseKeyId> for ::std::string::String {
+    fn from(value: DesktopEntitlementLeaseKeyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopEntitlementLeaseKeyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopEntitlementLeaseKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopEntitlementLeaseKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopEntitlementLeaseKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopEntitlementLeaseKeyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopEntitlementLeaseMinimumClientVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[0-9A-Za-z.+-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopEntitlementLeaseMinimumClientVersion(::std::string::String);
+impl ::std::ops::Deref for DesktopEntitlementLeaseMinimumClientVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopEntitlementLeaseMinimumClientVersion> for ::std::string::String {
+    fn from(value: DesktopEntitlementLeaseMinimumClientVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopEntitlementLeaseMinimumClientVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[0-9A-Za-z.+-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[0-9A-Za-z.+-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopEntitlementLeaseMinimumClientVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for DesktopEntitlementLeaseMinimumClientVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for DesktopEntitlementLeaseMinimumClientVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopEntitlementLeaseMinimumClientVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopEntitlementLeaseSignature`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 16,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopEntitlementLeaseSignature(::std::string::String);
+impl ::std::ops::Deref for DesktopEntitlementLeaseSignature {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopEntitlementLeaseSignature> for ::std::string::String {
+    fn from(value: DesktopEntitlementLeaseSignature) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopEntitlementLeaseSignature {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 16usize {
+            return Err("shorter than 16 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopEntitlementLeaseSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopEntitlementLeaseSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopEntitlementLeaseSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopEntitlementLeaseSignature {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopPolicy`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.desktop-policy.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"allowedRegions\","]
+#[doc = "    \"keyId\","]
+#[doc = "    \"maximumContextBytes\","]
+#[doc = "    \"maximumContextItems\","]
+#[doc = "    \"policyHash\","]
+#[doc = "    \"policyId\","]
+#[doc = "    \"policyVersion\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"signature\","]
+#[doc = "    \"systemBrowserFallbackAllowed\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"allowedRegions\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/DesktopPolicyRegion\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 16,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"keyId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"maximumContextBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4194304.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"maximumContextItems\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 64.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"policyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"policyId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"policyVersion\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 9007199254740991.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-policy.v1\""]
+#[doc = "    },"]
+#[doc = "    \"signature\": {"]
+#[doc = "      \"$ref\": \"#/$defs/DesktopPolicyBase64UrlSignature\""]
+#[doc = "    },"]
+#[doc = "    \"systemBrowserFallbackAllowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct DesktopPolicy {
+    #[serde(rename = "allowedRegions")]
+    pub allowed_regions: Vec<DesktopPolicyRegion>,
+    #[serde(rename = "keyId")]
+    pub key_id: DesktopPolicyKeyId,
+    #[serde(rename = "maximumContextBytes")]
+    pub maximum_context_bytes: ::std::num::NonZeroU64,
+    #[serde(rename = "maximumContextItems")]
+    pub maximum_context_items: ::std::num::NonZeroU64,
+    #[serde(rename = "policyHash")]
+    pub policy_hash: CommonSha256,
+    #[serde(rename = "policyId")]
+    pub policy_id: CommonContractId,
+    #[serde(rename = "policyVersion")]
+    pub policy_version: ::std::num::NonZeroU64,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub signature: DesktopPolicyBase64UrlSignature,
+    #[serde(rename = "systemBrowserFallbackAllowed")]
+    pub system_browser_fallback_allowed: bool,
+}
+impl DesktopPolicy {
+    pub fn builder() -> builder::DesktopPolicy {
+        Default::default()
+    }
+}
+#[doc = "`DesktopPolicyBase64UrlSignature`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 16,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopPolicyBase64UrlSignature(::std::string::String);
+impl ::std::ops::Deref for DesktopPolicyBase64UrlSignature {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopPolicyBase64UrlSignature> for ::std::string::String {
+    fn from(value: DesktopPolicyBase64UrlSignature) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopPolicyBase64UrlSignature {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 16usize {
+            return Err("shorter than 16 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopPolicyBase64UrlSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopPolicyBase64UrlSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopPolicyBase64UrlSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopPolicyBase64UrlSignature {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopPolicyKeyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopPolicyKeyId(::std::string::String);
+impl ::std::ops::Deref for DesktopPolicyKeyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopPolicyKeyId> for ::std::string::String {
+    fn from(value: DesktopPolicyKeyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopPolicyKeyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopPolicyKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopPolicyKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopPolicyKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopPolicyKeyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`DesktopPolicyRegion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z0-9-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DesktopPolicyRegion(::std::string::String);
+impl ::std::ops::Deref for DesktopPolicyRegion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DesktopPolicyRegion> for ::std::string::String {
+    fn from(value: DesktopPolicyRegion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DesktopPolicyRegion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z0-9-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z0-9-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DesktopPolicyRegion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for DesktopPolicyRegion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DesktopPolicyRegion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DesktopPolicyRegion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`DurableObject`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -33229,6 +34298,1008 @@ impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptUsageCurrency {
             })
     }
 }
+#[doc = "`ModelAccessRequest`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-request.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"budgetClass\","]
+#[doc = "    \"canonicalOutputSchemaHash\","]
+#[doc = "    \"canonicalOutputSchemaId\","]
+#[doc = "    \"consent\","]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"items\","]
+#[doc = "    \"localEgressManifestHash\","]
+#[doc = "    \"modelRole\","]
+#[doc = "    \"purpose\","]
+#[doc = "    \"registrationId\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"retentionMode\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"budgetClass\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestCanonicalSchemaId\""]
+#[doc = "    },"]
+#[doc = "    \"consent\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelContextConsent\""]
+#[doc = "    },"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"items\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessRequestContextItem\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"localEgressManifestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelRole\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"purpose\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"registrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"retentionMode\": {"]
+#[doc = "      \"const\": \"transient_no_store\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-request.v1\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequest {
+    #[serde(rename = "budgetClass")]
+    pub budget_class: ModelAccessRequestBudgetClass,
+    #[serde(rename = "canonicalOutputSchemaHash")]
+    pub canonical_output_schema_hash: CommonSha256,
+    #[serde(rename = "canonicalOutputSchemaId")]
+    pub canonical_output_schema_id: ModelAccessRequestCanonicalSchemaId,
+    pub consent: ModelContextConsent,
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    pub items: ::std::vec::Vec<ModelAccessRequestContextItem>,
+    #[serde(rename = "localEgressManifestHash")]
+    pub local_egress_manifest_hash: CommonSha256,
+    #[serde(rename = "modelRole")]
+    pub model_role: ModelAccessRequestModelRole,
+    pub purpose: ModelAccessRequestPurpose,
+    #[serde(rename = "registrationId")]
+    pub registration_id: CommonContractId,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "retentionMode")]
+    pub retention_mode: ::serde_json::Value,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl ModelAccessRequest {
+    pub fn builder() -> builder::ModelAccessRequest {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestBudgetClass`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestBudgetClass(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestBudgetClass {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestBudgetClass> for ::std::string::String {
+    fn from(value: ModelAccessRequestBudgetClass) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestBudgetClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestBudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestBudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestBudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestBudgetClass {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestCanonicalSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestCanonicalSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestCanonicalSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestCanonicalSchemaId> for ::std::string::String {
+    fn from(value: ModelAccessRequestCanonicalSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestCanonicalSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestCanonicalSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestContextItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"byteCount\","]
+#[doc = "    \"classification\","]
+#[doc = "    \"clientItemId\","]
+#[doc = "    \"content\","]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"language\","]
+#[doc = "    \"relativeLabel\","]
+#[doc = "    \"semanticRole\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"byteCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4194304.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"classification\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"public\","]
+#[doc = "        \"internal\","]
+#[doc = "        \"confidential\","]
+#[doc = "        \"restricted\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"clientItemId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"content\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4194304"]
+#[doc = "    },"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"language\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"relativeLabel\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonRelativeWorkspacePath\""]
+#[doc = "    },"]
+#[doc = "    \"semanticRole\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestContextItem {
+    #[serde(rename = "byteCount")]
+    pub byte_count: i64,
+    pub classification: ModelAccessRequestContextItemClassification,
+    #[serde(rename = "clientItemId")]
+    pub client_item_id: CommonContractId,
+    pub content: ModelAccessRequestContextItemContent,
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    pub language: ModelAccessRequestContextItemLanguage,
+    #[serde(rename = "relativeLabel")]
+    pub relative_label: CommonRelativeWorkspacePath,
+    #[serde(rename = "semanticRole")]
+    pub semantic_role: ModelAccessRequestContextItemSemanticRole,
+}
+impl ModelAccessRequestContextItem {
+    pub fn builder() -> builder::ModelAccessRequestContextItem {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestContextItemClassification`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"public\","]
+#[doc = "    \"internal\","]
+#[doc = "    \"confidential\","]
+#[doc = "    \"restricted\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessRequestContextItemClassification {
+    #[serde(rename = "public")]
+    Public,
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "confidential")]
+    Confidential,
+    #[serde(rename = "restricted")]
+    Restricted,
+}
+impl ::std::fmt::Display for ModelAccessRequestContextItemClassification {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Public => f.write_str("public"),
+            Self::Internal => f.write_str("internal"),
+            Self::Confidential => f.write_str("confidential"),
+            Self::Restricted => f.write_str("restricted"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestContextItemClassification {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "public" => Ok(Self::Public),
+            "internal" => Ok(Self::Internal),
+            "confidential" => Ok(Self::Confidential),
+            "restricted" => Ok(Self::Restricted),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestContextItemClassification {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestContextItemClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestContextItemClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelAccessRequestContextItemContent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4194304"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestContextItemContent(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestContextItemContent {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestContextItemContent> for ::std::string::String {
+    fn from(value: ModelAccessRequestContextItemContent) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestContextItemContent {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4194304usize {
+            return Err("longer than 4194304 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestContextItemContent {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestContextItemContent {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestContextItemContent {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestContextItemContent {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestContextItemLanguage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestContextItemLanguage(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestContextItemLanguage {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestContextItemLanguage> for ::std::string::String {
+    fn from(value: ModelAccessRequestContextItemLanguage) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestContextItemLanguage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestContextItemLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestContextItemLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestContextItemLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestContextItemLanguage {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestContextItemSemanticRole`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestContextItemSemanticRole(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestContextItemSemanticRole {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestContextItemSemanticRole> for ::std::string::String {
+    fn from(value: ModelAccessRequestContextItemSemanticRole) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestContextItemSemanticRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestContextItemSemanticRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestContextItemSemanticRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestContextItemSemanticRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestContextItemSemanticRole {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestModelRole`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestModelRole(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestModelRole {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestModelRole> for ::std::string::String {
+    fn from(value: ModelAccessRequestModelRole) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestModelRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestModelRole {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestPurpose`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestPurpose(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestPurpose {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestPurpose> for ::std::string::String {
+    fn from(value: ModelAccessRequestPurpose) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestPurpose {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestPurpose {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestPurpose {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestPurpose {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestPurpose {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessResult`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-result.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"outputSchemaId\","]
+#[doc = "    \"payloadHash\","]
+#[doc = "    \"payloadJson\","]
+#[doc = "    \"receipt\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"outputSchemaId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 5,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "    },"]
+#[doc = "    \"payloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"payloadJson\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1048576,"]
+#[doc = "      \"minLength\": 2"]
+#[doc = "    },"]
+#[doc = "    \"receipt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceipt\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-result.v1\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessResult {
+    #[serde(rename = "outputSchemaId")]
+    pub output_schema_id: ModelAccessResultOutputSchemaId,
+    #[serde(rename = "payloadHash")]
+    pub payload_hash: CommonSha256,
+    #[serde(rename = "payloadJson")]
+    pub payload_json: ModelAccessResultPayloadJson,
+    pub receipt: ModelAccessReceipt,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl ModelAccessResult {
+    pub fn builder() -> builder::ModelAccessResult {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessResultOutputSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessResultOutputSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessResultOutputSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessResultOutputSchemaId> for ::std::string::String {
+    fn from(value: ModelAccessResultOutputSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessResultOutputSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessResultOutputSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessResultOutputSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessResultOutputSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessResultOutputSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessResultPayloadJson`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1048576,"]
+#[doc = "  \"minLength\": 2"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessResultPayloadJson(::std::string::String);
+impl ::std::ops::Deref for ModelAccessResultPayloadJson {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessResultPayloadJson> for ::std::string::String {
+    fn from(value: ModelAccessResultPayloadJson) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessResultPayloadJson {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1048576usize {
+            return Err("longer than 1048576 characters".into());
+        }
+        if value.chars().count() < 2usize {
+            return Err("shorter than 2 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessResultPayloadJson {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessResultPayloadJson {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessResultPayloadJson {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessResultPayloadJson {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`ModelContextConsent`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -37260,6 +39331,15 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"contractError\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ContractError\""]
 #[doc = "    },"]
+#[doc = "    \"desktopDeviceRegistration\": {"]
+#[doc = "      \"$ref\": \"#/$defs/DesktopDeviceRegistration\""]
+#[doc = "    },"]
+#[doc = "    \"desktopEntitlementLease\": {"]
+#[doc = "      \"$ref\": \"#/$defs/DesktopEntitlementLease\""]
+#[doc = "    },"]
+#[doc = "    \"desktopPolicy\": {"]
+#[doc = "      \"$ref\": \"#/$defs/DesktopPolicy\""]
+#[doc = "    },"]
 #[doc = "    \"durableObject\": {"]
 #[doc = "      \"$ref\": \"#/$defs/DurableObject\""]
 #[doc = "    },"]
@@ -37286,6 +39366,12 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    },"]
 #[doc = "    \"modelAccessReceipt\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelAccessReceipt\""]
+#[doc = "    },"]
+#[doc = "    \"modelAccessRequest\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequest\""]
+#[doc = "    },"]
+#[doc = "    \"modelAccessResult\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessResult\""]
 #[doc = "    },"]
 #[doc = "    \"modelContextConsent\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelContextConsent\""]
@@ -37356,6 +39442,24 @@ pub struct SapphirusContractsCatalog {
     )]
     pub contract_error: ::std::option::Option<ContractError>,
     #[serde(
+        rename = "desktopDeviceRegistration",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub desktop_device_registration: ::std::option::Option<DesktopDeviceRegistration>,
+    #[serde(
+        rename = "desktopEntitlementLease",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub desktop_entitlement_lease: ::std::option::Option<DesktopEntitlementLease>,
+    #[serde(
+        rename = "desktopPolicy",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub desktop_policy: ::std::option::Option<DesktopPolicy>,
+    #[serde(
         rename = "durableObject",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -37410,6 +39514,18 @@ pub struct SapphirusContractsCatalog {
     )]
     pub model_access_receipt: ::std::option::Option<ModelAccessReceipt>,
     #[serde(
+        rename = "modelAccessRequest",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_request: ::std::option::Option<ModelAccessRequest>,
+    #[serde(
+        rename = "modelAccessResult",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_result: ::std::option::Option<ModelAccessResult>,
+    #[serde(
         rename = "modelContextConsent",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -37445,6 +39561,9 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             builder_authoring_object: Default::default(),
             candidate_action: Default::default(),
             contract_error: Default::default(),
+            desktop_device_registration: Default::default(),
+            desktop_entitlement_lease: Default::default(),
+            desktop_policy: Default::default(),
             durable_object: Default::default(),
             evidence_event: Default::default(),
             execution_result_manifest: Default::default(),
@@ -37454,6 +39573,8 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             method_help_recommendation: Default::default(),
             method_session: Default::default(),
             model_access_receipt: Default::default(),
+            model_access_request: Default::default(),
+            model_access_result: Default::default(),
             model_context_consent: Default::default(),
             package_compatibility: Default::default(),
             remote_job_handoff: Default::default(),
@@ -46455,6 +48576,554 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct DesktopDeviceRegistration {
+        architecture: ::std::result::Result<
+            super::DesktopDeviceRegistrationArchitecture,
+            ::std::string::String,
+        >,
+        client_release: ::std::result::Result<
+            super::DesktopDeviceRegistrationClientRelease,
+            ::std::string::String,
+        >,
+        installation_public_key: ::std::result::Result<
+            super::DesktopDeviceRegistrationInstallationPublicKey,
+            ::std::string::String,
+        >,
+        installation_public_key_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        platform: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        tenant_policy_version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for DesktopDeviceRegistration {
+        fn default() -> Self {
+            Self {
+                architecture: Err("no value supplied for architecture".to_string()),
+                client_release: Err("no value supplied for client_release".to_string()),
+                installation_public_key: Err(
+                    "no value supplied for installation_public_key".to_string()
+                ),
+                installation_public_key_hash: Err(
+                    "no value supplied for installation_public_key_hash".to_string(),
+                ),
+                platform: Err("no value supplied for platform".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                tenant_policy_version: Err(
+                    "no value supplied for tenant_policy_version".to_string()
+                ),
+            }
+        }
+    }
+    impl DesktopDeviceRegistration {
+        pub fn architecture<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopDeviceRegistrationArchitecture>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.architecture = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for architecture: {e}"));
+            self
+        }
+        pub fn client_release<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopDeviceRegistrationClientRelease>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.client_release = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for client_release: {e}"));
+            self
+        }
+        pub fn installation_public_key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopDeviceRegistrationInstallationPublicKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.installation_public_key = value.try_into().map_err(|e| {
+                format!("error converting supplied value for installation_public_key: {e}")
+            });
+            self
+        }
+        pub fn installation_public_key_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.installation_public_key_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for installation_public_key_hash: {e}")
+            });
+            self
+        }
+        pub fn platform<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.platform = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for platform: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn tenant_policy_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_policy_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for tenant_policy_version: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<DesktopDeviceRegistration> for super::DesktopDeviceRegistration {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: DesktopDeviceRegistration,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                architecture: value.architecture?,
+                client_release: value.client_release?,
+                installation_public_key: value.installation_public_key?,
+                installation_public_key_hash: value.installation_public_key_hash?,
+                platform: value.platform?,
+                schema_version: value.schema_version?,
+                tenant_policy_version: value.tenant_policy_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::DesktopDeviceRegistration> for DesktopDeviceRegistration {
+        fn from(value: super::DesktopDeviceRegistration) -> Self {
+            Self {
+                architecture: Ok(value.architecture),
+                client_release: Ok(value.client_release),
+                installation_public_key: Ok(value.installation_public_key),
+                installation_public_key_hash: Ok(value.installation_public_key_hash),
+                platform: Ok(value.platform),
+                schema_version: Ok(value.schema_version),
+                tenant_policy_version: Ok(value.tenant_policy_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct DesktopEntitlementLease {
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        expires_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        features: ::std::result::Result<
+            Vec<super::DesktopEntitlementLeaseFeaturesItem>,
+            ::std::string::String,
+        >,
+        issued_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        key_id: ::std::result::Result<super::DesktopEntitlementLeaseKeyId, ::std::string::String>,
+        lease_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        minimum_client_version: ::std::result::Result<
+            super::DesktopEntitlementLeaseMinimumClientVersion,
+            ::std::string::String,
+        >,
+        not_before: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        offline_grace_ends_at:
+            ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        registration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        signature:
+            ::std::result::Result<super::DesktopEntitlementLeaseSignature, ::std::string::String>,
+        subject_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        tenant_policy_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for DesktopEntitlementLease {
+        fn default() -> Self {
+            Self {
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                expires_at: Err("no value supplied for expires_at".to_string()),
+                features: Err("no value supplied for features".to_string()),
+                issued_at: Err("no value supplied for issued_at".to_string()),
+                key_id: Err("no value supplied for key_id".to_string()),
+                lease_id: Err("no value supplied for lease_id".to_string()),
+                minimum_client_version: Err(
+                    "no value supplied for minimum_client_version".to_string()
+                ),
+                not_before: Err("no value supplied for not_before".to_string()),
+                offline_grace_ends_at: Err(
+                    "no value supplied for offline_grace_ends_at".to_string()
+                ),
+                registration_id: Err("no value supplied for registration_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                signature: Err("no value supplied for signature".to_string()),
+                subject_hash: Err("no value supplied for subject_hash".to_string()),
+                tenant_policy_hash: Err("no value supplied for tenant_policy_hash".to_string()),
+            }
+        }
+    }
+    impl DesktopEntitlementLease {
+        pub fn delivery_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.delivery_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
+            self
+        }
+        pub fn expires_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.expires_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for expires_at: {e}"));
+            self
+        }
+        pub fn features<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::DesktopEntitlementLeaseFeaturesItem>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.features = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for features: {e}"));
+            self
+        }
+        pub fn issued_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.issued_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for issued_at: {e}"));
+            self
+        }
+        pub fn key_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopEntitlementLeaseKeyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key_id: {e}"));
+            self
+        }
+        pub fn lease_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.lease_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for lease_id: {e}"));
+            self
+        }
+        pub fn minimum_client_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopEntitlementLeaseMinimumClientVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.minimum_client_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for minimum_client_version: {e}")
+            });
+            self
+        }
+        pub fn not_before<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.not_before = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for not_before: {e}"));
+            self
+        }
+        pub fn offline_grace_ends_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.offline_grace_ends_at = value.try_into().map_err(|e| {
+                format!("error converting supplied value for offline_grace_ends_at: {e}")
+            });
+            self
+        }
+        pub fn registration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.registration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for registration_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn signature<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopEntitlementLeaseSignature>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signature = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for signature: {e}"));
+            self
+        }
+        pub fn subject_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.subject_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for subject_hash: {e}"));
+            self
+        }
+        pub fn tenant_policy_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_policy_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for tenant_policy_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<DesktopEntitlementLease> for super::DesktopEntitlementLease {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: DesktopEntitlementLease,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                delivery_model: value.delivery_model?,
+                expires_at: value.expires_at?,
+                features: value.features?,
+                issued_at: value.issued_at?,
+                key_id: value.key_id?,
+                lease_id: value.lease_id?,
+                minimum_client_version: value.minimum_client_version?,
+                not_before: value.not_before?,
+                offline_grace_ends_at: value.offline_grace_ends_at?,
+                registration_id: value.registration_id?,
+                schema_version: value.schema_version?,
+                signature: value.signature?,
+                subject_hash: value.subject_hash?,
+                tenant_policy_hash: value.tenant_policy_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::DesktopEntitlementLease> for DesktopEntitlementLease {
+        fn from(value: super::DesktopEntitlementLease) -> Self {
+            Self {
+                delivery_model: Ok(value.delivery_model),
+                expires_at: Ok(value.expires_at),
+                features: Ok(value.features),
+                issued_at: Ok(value.issued_at),
+                key_id: Ok(value.key_id),
+                lease_id: Ok(value.lease_id),
+                minimum_client_version: Ok(value.minimum_client_version),
+                not_before: Ok(value.not_before),
+                offline_grace_ends_at: Ok(value.offline_grace_ends_at),
+                registration_id: Ok(value.registration_id),
+                schema_version: Ok(value.schema_version),
+                signature: Ok(value.signature),
+                subject_hash: Ok(value.subject_hash),
+                tenant_policy_hash: Ok(value.tenant_policy_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct DesktopPolicy {
+        allowed_regions:
+            ::std::result::Result<Vec<super::DesktopPolicyRegion>, ::std::string::String>,
+        key_id: ::std::result::Result<super::DesktopPolicyKeyId, ::std::string::String>,
+        maximum_context_bytes: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        maximum_context_items: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        policy_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        policy_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        policy_version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        signature:
+            ::std::result::Result<super::DesktopPolicyBase64UrlSignature, ::std::string::String>,
+        system_browser_fallback_allowed: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for DesktopPolicy {
+        fn default() -> Self {
+            Self {
+                allowed_regions: Err("no value supplied for allowed_regions".to_string()),
+                key_id: Err("no value supplied for key_id".to_string()),
+                maximum_context_bytes: Err(
+                    "no value supplied for maximum_context_bytes".to_string()
+                ),
+                maximum_context_items: Err(
+                    "no value supplied for maximum_context_items".to_string()
+                ),
+                policy_hash: Err("no value supplied for policy_hash".to_string()),
+                policy_id: Err("no value supplied for policy_id".to_string()),
+                policy_version: Err("no value supplied for policy_version".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                signature: Err("no value supplied for signature".to_string()),
+                system_browser_fallback_allowed: Err(
+                    "no value supplied for system_browser_fallback_allowed".to_string(),
+                ),
+            }
+        }
+    }
+    impl DesktopPolicy {
+        pub fn allowed_regions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::DesktopPolicyRegion>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.allowed_regions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for allowed_regions: {e}"));
+            self
+        }
+        pub fn key_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopPolicyKeyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key_id: {e}"));
+            self
+        }
+        pub fn maximum_context_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.maximum_context_bytes = value.try_into().map_err(|e| {
+                format!("error converting supplied value for maximum_context_bytes: {e}")
+            });
+            self
+        }
+        pub fn maximum_context_items<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.maximum_context_items = value.try_into().map_err(|e| {
+                format!("error converting supplied value for maximum_context_items: {e}")
+            });
+            self
+        }
+        pub fn policy_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_hash: {e}"));
+            self
+        }
+        pub fn policy_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_id: {e}"));
+            self
+        }
+        pub fn policy_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_version: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn signature<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::DesktopPolicyBase64UrlSignature>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signature = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for signature: {e}"));
+            self
+        }
+        pub fn system_browser_fallback_allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.system_browser_fallback_allowed = value.try_into().map_err(|e| {
+                format!("error converting supplied value for system_browser_fallback_allowed: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<DesktopPolicy> for super::DesktopPolicy {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: DesktopPolicy,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                allowed_regions: value.allowed_regions?,
+                key_id: value.key_id?,
+                maximum_context_bytes: value.maximum_context_bytes?,
+                maximum_context_items: value.maximum_context_items?,
+                policy_hash: value.policy_hash?,
+                policy_id: value.policy_id?,
+                policy_version: value.policy_version?,
+                schema_version: value.schema_version?,
+                signature: value.signature?,
+                system_browser_fallback_allowed: value.system_browser_fallback_allowed?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::DesktopPolicy> for DesktopPolicy {
+        fn from(value: super::DesktopPolicy) -> Self {
+            Self {
+                allowed_regions: Ok(value.allowed_regions),
+                key_id: Ok(value.key_id),
+                maximum_context_bytes: Ok(value.maximum_context_bytes),
+                maximum_context_items: Ok(value.maximum_context_items),
+                policy_hash: Ok(value.policy_hash),
+                policy_id: Ok(value.policy_id),
+                policy_version: Ok(value.policy_version),
+                schema_version: Ok(value.schema_version),
+                signature: Ok(value.signature),
+                system_browser_fallback_allowed: Ok(value.system_browser_fallback_allowed),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct DurableObjectCandidatePointer {
         candidate_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
     }
@@ -53665,6 +56334,495 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct ModelAccessRequest {
+        budget_class:
+            ::std::result::Result<super::ModelAccessRequestBudgetClass, ::std::string::String>,
+        canonical_output_schema_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        canonical_output_schema_id: ::std::result::Result<
+            super::ModelAccessRequestCanonicalSchemaId,
+            ::std::string::String,
+        >,
+        consent: ::std::result::Result<super::ModelContextConsent, ::std::string::String>,
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        items: ::std::result::Result<
+            ::std::vec::Vec<super::ModelAccessRequestContextItem>,
+            ::std::string::String,
+        >,
+        local_egress_manifest_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_role:
+            ::std::result::Result<super::ModelAccessRequestModelRole, ::std::string::String>,
+        purpose: ::std::result::Result<super::ModelAccessRequestPurpose, ::std::string::String>,
+        registration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        retention_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessRequest {
+        fn default() -> Self {
+            Self {
+                budget_class: Err("no value supplied for budget_class".to_string()),
+                canonical_output_schema_hash: Err(
+                    "no value supplied for canonical_output_schema_hash".to_string(),
+                ),
+                canonical_output_schema_id: Err(
+                    "no value supplied for canonical_output_schema_id".to_string()
+                ),
+                consent: Err("no value supplied for consent".to_string()),
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                items: Err("no value supplied for items".to_string()),
+                local_egress_manifest_hash: Err(
+                    "no value supplied for local_egress_manifest_hash".to_string()
+                ),
+                model_role: Err("no value supplied for model_role".to_string()),
+                purpose: Err("no value supplied for purpose".to_string()),
+                registration_id: Err("no value supplied for registration_id".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                retention_mode: Err("no value supplied for retention_mode".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequest {
+        pub fn budget_class<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestBudgetClass>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.budget_class = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for budget_class: {e}"));
+            self
+        }
+        pub fn canonical_output_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_hash: {e}")
+            });
+            self
+        }
+        pub fn canonical_output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestCanonicalSchemaId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_id: {e}")
+            });
+            self
+        }
+        pub fn consent<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelContextConsent>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for consent: {e}"));
+            self
+        }
+        pub fn delivery_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.delivery_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
+            self
+        }
+        pub fn items<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelAccessRequestContextItem>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.items = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for items: {e}"));
+            self
+        }
+        pub fn local_egress_manifest_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.local_egress_manifest_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for local_egress_manifest_hash: {e}")
+            });
+            self
+        }
+        pub fn model_role<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestModelRole>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_role = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_role: {e}"));
+            self
+        }
+        pub fn purpose<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestPurpose>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.purpose = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for purpose: {e}"));
+            self
+        }
+        pub fn registration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.registration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for registration_id: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn retention_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retention_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retention_mode: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequest> for super::ModelAccessRequest {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequest,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                budget_class: value.budget_class?,
+                canonical_output_schema_hash: value.canonical_output_schema_hash?,
+                canonical_output_schema_id: value.canonical_output_schema_id?,
+                consent: value.consent?,
+                delivery_model: value.delivery_model?,
+                items: value.items?,
+                local_egress_manifest_hash: value.local_egress_manifest_hash?,
+                model_role: value.model_role?,
+                purpose: value.purpose?,
+                registration_id: value.registration_id?,
+                request_id: value.request_id?,
+                retention_mode: value.retention_mode?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequest> for ModelAccessRequest {
+        fn from(value: super::ModelAccessRequest) -> Self {
+            Self {
+                budget_class: Ok(value.budget_class),
+                canonical_output_schema_hash: Ok(value.canonical_output_schema_hash),
+                canonical_output_schema_id: Ok(value.canonical_output_schema_id),
+                consent: Ok(value.consent),
+                delivery_model: Ok(value.delivery_model),
+                items: Ok(value.items),
+                local_egress_manifest_hash: Ok(value.local_egress_manifest_hash),
+                model_role: Ok(value.model_role),
+                purpose: Ok(value.purpose),
+                registration_id: Ok(value.registration_id),
+                request_id: Ok(value.request_id),
+                retention_mode: Ok(value.retention_mode),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestContextItem {
+        byte_count: ::std::result::Result<i64, ::std::string::String>,
+        classification: ::std::result::Result<
+            super::ModelAccessRequestContextItemClassification,
+            ::std::string::String,
+        >,
+        client_item_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        content: ::std::result::Result<
+            super::ModelAccessRequestContextItemContent,
+            ::std::string::String,
+        >,
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        language: ::std::result::Result<
+            super::ModelAccessRequestContextItemLanguage,
+            ::std::string::String,
+        >,
+        relative_label:
+            ::std::result::Result<super::CommonRelativeWorkspacePath, ::std::string::String>,
+        semantic_role: ::std::result::Result<
+            super::ModelAccessRequestContextItemSemanticRole,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelAccessRequestContextItem {
+        fn default() -> Self {
+            Self {
+                byte_count: Err("no value supplied for byte_count".to_string()),
+                classification: Err("no value supplied for classification".to_string()),
+                client_item_id: Err("no value supplied for client_item_id".to_string()),
+                content: Err("no value supplied for content".to_string()),
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                language: Err("no value supplied for language".to_string()),
+                relative_label: Err("no value supplied for relative_label".to_string()),
+                semantic_role: Err("no value supplied for semantic_role".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequestContextItem {
+        pub fn byte_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.byte_count = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for byte_count: {e}"));
+            self
+        }
+        pub fn classification<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestContextItemClassification>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.classification = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for classification: {e}"));
+            self
+        }
+        pub fn client_item_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.client_item_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for client_item_id: {e}"));
+            self
+        }
+        pub fn content<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestContextItemContent>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content: {e}"));
+            self
+        }
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn language<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestContextItemLanguage>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.language = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for language: {e}"));
+            self
+        }
+        pub fn relative_label<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonRelativeWorkspacePath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.relative_label = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for relative_label: {e}"));
+            self
+        }
+        pub fn semantic_role<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestContextItemSemanticRole>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.semantic_role = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for semantic_role: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestContextItem>
+        for super::ModelAccessRequestContextItem
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestContextItem,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                byte_count: value.byte_count?,
+                classification: value.classification?,
+                client_item_id: value.client_item_id?,
+                content: value.content?,
+                content_hash: value.content_hash?,
+                language: value.language?,
+                relative_label: value.relative_label?,
+                semantic_role: value.semantic_role?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestContextItem> for ModelAccessRequestContextItem {
+        fn from(value: super::ModelAccessRequestContextItem) -> Self {
+            Self {
+                byte_count: Ok(value.byte_count),
+                classification: Ok(value.classification),
+                client_item_id: Ok(value.client_item_id),
+                content: Ok(value.content),
+                content_hash: Ok(value.content_hash),
+                language: Ok(value.language),
+                relative_label: Ok(value.relative_label),
+                semantic_role: Ok(value.semantic_role),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessResult {
+        output_schema_id:
+            ::std::result::Result<super::ModelAccessResultOutputSchemaId, ::std::string::String>,
+        payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        payload_json:
+            ::std::result::Result<super::ModelAccessResultPayloadJson, ::std::string::String>,
+        receipt: ::std::result::Result<super::ModelAccessReceipt, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessResult {
+        fn default() -> Self {
+            Self {
+                output_schema_id: Err("no value supplied for output_schema_id".to_string()),
+                payload_hash: Err("no value supplied for payload_hash".to_string()),
+                payload_json: Err("no value supplied for payload_json".to_string()),
+                receipt: Err("no value supplied for receipt".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessResult {
+        pub fn output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessResultOutputSchemaId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_schema_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_schema_id: {e}"));
+            self
+        }
+        pub fn payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_hash: {e}"));
+            self
+        }
+        pub fn payload_json<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessResultPayloadJson>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_json = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_json: {e}"));
+            self
+        }
+        pub fn receipt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceipt>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessResult> for super::ModelAccessResult {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessResult,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                output_schema_id: value.output_schema_id?,
+                payload_hash: value.payload_hash?,
+                payload_json: value.payload_json?,
+                receipt: value.receipt?,
+                request_id: value.request_id?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessResult> for ModelAccessResult {
+        fn from(value: super::ModelAccessResult) -> Self {
+            Self {
+                output_schema_id: Ok(value.output_schema_id),
+                payload_hash: Ok(value.payload_hash),
+                payload_json: Ok(value.payload_json),
+                receipt: Ok(value.receipt),
+                request_id: Ok(value.request_id),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct ModelContextConsent {
         budget_class:
             ::std::result::Result<super::ModelContextConsentBudgetClass, ::std::string::String>,
@@ -57162,6 +60320,18 @@ pub mod builder {
             ::std::option::Option<super::ContractError>,
             ::std::string::String,
         >,
+        desktop_device_registration: ::std::result::Result<
+            ::std::option::Option<super::DesktopDeviceRegistration>,
+            ::std::string::String,
+        >,
+        desktop_entitlement_lease: ::std::result::Result<
+            ::std::option::Option<super::DesktopEntitlementLease>,
+            ::std::string::String,
+        >,
+        desktop_policy: ::std::result::Result<
+            ::std::option::Option<super::DesktopPolicy>,
+            ::std::string::String,
+        >,
         durable_object: ::std::result::Result<
             ::std::option::Option<super::DurableObject>,
             ::std::string::String,
@@ -57198,6 +60368,14 @@ pub mod builder {
             ::std::option::Option<super::ModelAccessReceipt>,
             ::std::string::String,
         >,
+        model_access_request: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessRequest>,
+            ::std::string::String,
+        >,
+        model_access_result: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessResult>,
+            ::std::string::String,
+        >,
         model_context_consent: ::std::result::Result<
             ::std::option::Option<super::ModelContextConsent>,
             ::std::string::String,
@@ -57226,6 +60404,9 @@ pub mod builder {
                 builder_authoring_object: Ok(Default::default()),
                 candidate_action: Ok(Default::default()),
                 contract_error: Ok(Default::default()),
+                desktop_device_registration: Ok(Default::default()),
+                desktop_entitlement_lease: Ok(Default::default()),
+                desktop_policy: Ok(Default::default()),
                 durable_object: Ok(Default::default()),
                 evidence_event: Ok(Default::default()),
                 execution_result_manifest: Ok(Default::default()),
@@ -57235,6 +60416,8 @@ pub mod builder {
                 method_help_recommendation: Ok(Default::default()),
                 method_session: Ok(Default::default()),
                 model_access_receipt: Ok(Default::default()),
+                model_access_request: Ok(Default::default()),
+                model_access_result: Ok(Default::default()),
                 model_context_consent: Ok(Default::default()),
                 package_compatibility: Ok(Default::default()),
                 remote_job_handoff: Ok(Default::default()),
@@ -57321,6 +60504,36 @@ pub mod builder {
             self.contract_error = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for contract_error: {e}"));
+            self
+        }
+        pub fn desktop_device_registration<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::DesktopDeviceRegistration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.desktop_device_registration = value.try_into().map_err(|e| {
+                format!("error converting supplied value for desktop_device_registration: {e}")
+            });
+            self
+        }
+        pub fn desktop_entitlement_lease<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::DesktopEntitlementLease>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.desktop_entitlement_lease = value.try_into().map_err(|e| {
+                format!("error converting supplied value for desktop_entitlement_lease: {e}")
+            });
+            self
+        }
+        pub fn desktop_policy<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::DesktopPolicy>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.desktop_policy = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for desktop_policy: {e}"));
             self
         }
         pub fn durable_object<T>(mut self, value: T) -> Self
@@ -57413,6 +60626,26 @@ pub mod builder {
             });
             self
         }
+        pub fn model_access_request<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessRequest>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_request = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_request: {e}")
+            });
+            self
+        }
+        pub fn model_access_result<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessResult>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_result = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_result: {e}")
+            });
+            self
+        }
         pub fn model_context_consent<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::ModelContextConsent>>,
@@ -57468,6 +60701,9 @@ pub mod builder {
                 builder_authoring_object: value.builder_authoring_object?,
                 candidate_action: value.candidate_action?,
                 contract_error: value.contract_error?,
+                desktop_device_registration: value.desktop_device_registration?,
+                desktop_entitlement_lease: value.desktop_entitlement_lease?,
+                desktop_policy: value.desktop_policy?,
                 durable_object: value.durable_object?,
                 evidence_event: value.evidence_event?,
                 execution_result_manifest: value.execution_result_manifest?,
@@ -57477,6 +60713,8 @@ pub mod builder {
                 method_help_recommendation: value.method_help_recommendation?,
                 method_session: value.method_session?,
                 model_access_receipt: value.model_access_receipt?,
+                model_access_request: value.model_access_request?,
+                model_access_result: value.model_access_result?,
                 model_context_consent: value.model_context_consent?,
                 package_compatibility: value.package_compatibility?,
                 remote_job_handoff: value.remote_job_handoff?,
@@ -57495,6 +60733,9 @@ pub mod builder {
                 builder_authoring_object: Ok(value.builder_authoring_object),
                 candidate_action: Ok(value.candidate_action),
                 contract_error: Ok(value.contract_error),
+                desktop_device_registration: Ok(value.desktop_device_registration),
+                desktop_entitlement_lease: Ok(value.desktop_entitlement_lease),
+                desktop_policy: Ok(value.desktop_policy),
                 durable_object: Ok(value.durable_object),
                 evidence_event: Ok(value.evidence_event),
                 execution_result_manifest: Ok(value.execution_result_manifest),
@@ -57504,6 +60745,8 @@ pub mod builder {
                 method_help_recommendation: Ok(value.method_help_recommendation),
                 method_session: Ok(value.method_session),
                 model_access_receipt: Ok(value.model_access_receipt),
+                model_access_request: Ok(value.model_access_request),
+                model_access_result: Ok(value.model_access_result),
                 model_context_consent: Ok(value.model_context_consent),
                 package_compatibility: Ok(value.package_compatibility),
                 remote_job_handoff: Ok(value.remote_job_handoff),

@@ -27,6 +27,23 @@ pub enum BmadProjectionInvalidationScope {
     Library,
 }
 
+/// Renderer theme preference persisted by the local authority store.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThemePreference {
+    Light,
+    Dark,
+    System,
+}
+
+/// Renderer interface-density preference persisted by the local authority store.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DensityPreference {
+    Comfortable,
+    Compact,
+}
+
 /// Narrow desktop commands accepted by the local runtime.
 ///
 /// Notably absent: arbitrary paths, SQL, shell text, executable paths, provider
@@ -56,6 +73,9 @@ pub enum LocalCommand {
         max_results: u16,
     },
     ScanBmad {
+        workspace_id: ContractId,
+    },
+    PickWorkspaceFiles {
         workspace_id: ContractId,
     },
     BmadLibrarySnapshot {
@@ -112,6 +132,12 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
     },
+    GetPreferences,
+    SetPreferences {
+        theme: ThemePreference,
+        density: DensityPreference,
+    },
+    GetAbout,
     CreateSession {
         workspace_id: ContractId,
     },
@@ -152,6 +178,7 @@ impl LocalCommand {
             Self::ReadWorkspaceText { .. } => "workspace.read_text",
             Self::SearchWorkspace { .. } => "workspace.search",
             Self::ScanBmad { .. } => "bmad.scan",
+            Self::PickWorkspaceFiles { .. } => "workspace.pick_files",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
             Self::CreateBmadHelpRun { .. } => "run.create",
             Self::ModelAuthStatus => "model.auth.status",
@@ -166,6 +193,9 @@ impl LocalCommand {
             Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
             Self::ProposeChanges { .. } => "changes.propose",
             Self::ChangesHistory { .. } => "changes.history",
+            Self::GetPreferences => "app.preferences.get",
+            Self::SetPreferences { .. } => "app.preferences.set",
+            Self::GetAbout => "app.about",
             Self::CreateSession { .. } => "session.create",
             Self::SubmitTask { .. } => "task.submit",
             Self::CancelTask { .. } => "task.cancel",
@@ -191,6 +221,8 @@ impl LocalCommand {
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }
                 | Self::ChangesHistory { .. }
+                | Self::GetPreferences
+                | Self::GetAbout
         )
     }
 }
@@ -233,7 +265,12 @@ pub struct ProjectionEvent {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "type", content = "projection", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    content = "projection",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 pub enum ProjectionEventKind {
     BootStateChanged {
         mode: String,
@@ -294,11 +331,46 @@ pub trait RendererProjection: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApprovalChoice, BmadLibraryProjectionScope, LocalCommand};
+    use super::{ApprovalChoice, BmadLibraryProjectionScope, LocalCommand, ProjectionEventKind};
     use crate::{sha256_bytes, ContractId, RelativeWorkspacePath};
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
         Ok(ContractId::new(value)?)
+    }
+
+    /// The renderer's projection parser asserts exact camelCase keys per event
+    /// (`apps/desktop-ui/src/lib/hostClient/projectionProtocol.ts`); this pins
+    /// the host-side serialization to that contract.
+    #[test]
+    fn projection_events_serialize_with_camel_case_fields() -> Result<(), Box<dyn std::error::Error>>
+    {
+        assert_eq!(
+            serde_json::to_value(ProjectionEventKind::WorkspaceChanged {
+                workspace_id: id("workspace_1")?,
+            })?,
+            serde_json::json!({
+                "type": "workspace_changed",
+                "projection": { "workspaceId": "workspace_1" }
+            })
+        );
+        assert_eq!(
+            serde_json::to_value(ProjectionEventKind::CheckpointChanged {
+                checkpoint_id: id("checkpoint_1")?,
+                rollback_available: true,
+            })?,
+            serde_json::json!({
+                "type": "checkpoint_changed",
+                "projection": { "checkpointId": "checkpoint_1", "rollbackAvailable": true }
+            })
+        );
+        assert_eq!(
+            serde_json::to_value(ProjectionEventKind::ApprovalRequired {
+                approval_id: id("approval_1")?,
+                candidate_hash: sha256_bytes(b"candidate"),
+            })?["projection"]["approvalId"],
+            serde_json::json!("approval_1")
+        );
+        Ok(())
     }
 
     #[test]

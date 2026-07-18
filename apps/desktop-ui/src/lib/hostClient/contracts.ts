@@ -18,7 +18,7 @@ export const PROJECTION_REQUEST_SCHEMA =
 
 export const PROJECTION_REPLY_SCHEMA = "desktop-projection-reply.v1" as const;
 
-export const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v1" as const;
+export const BMAD_LIBRARY_SCHEMA = "bmad-library-snapshot.v2" as const;
 
 export const BMAD_HELP_RECOMMENDATION_SCHEMA =
   "bmad-help-recommendation.v1" as const;
@@ -57,6 +57,10 @@ export const desktopHostCommands = [
   "approval.decide",
   "rollback.request",
   "changes.history",
+  "app.preferences.get",
+  "app.preferences.set",
+  "app.about",
+  "workspace.pick_files",
 ] as const;
 
 export type DesktopHostCommand = (typeof desktopHostCommands)[number];
@@ -64,6 +68,28 @@ export type DesktopHostCommand = (typeof desktopHostCommands)[number];
 export type BootMode = "ready" | "read_only_recovery";
 
 export type WorkspacePermission = "read_only" | "governed_edits";
+
+export type ThemePreference = "light" | "dark" | "system";
+
+export type DensityPreference = "comfortable" | "compact";
+
+export interface PreferencesProjection {
+  schemaVersion: "desktop-preferences.v1";
+  theme: ThemePreference;
+  density: DensityPreference;
+  updatedAt: number | null;
+}
+
+export interface AboutProjection {
+  appVersion: string;
+  installationId: string;
+  bootMode: BootMode;
+  foundationPackageName: string;
+  foundationPackageVersion: string;
+  inactiveBuilderPackageCount: number;
+  updateConfigured: boolean;
+  updateInstallAvailable: boolean;
+}
 
 export const workspaceReadLimits = {
   contextBytes: 256 * 1024,
@@ -184,6 +210,19 @@ export interface LocalHostError {
 export type WorkspaceSelection =
   | { kind: "no_selection" }
   | { kind: "workspace_selected"; value: WorkspaceProjection };
+
+export interface PickedFilesProjection {
+  workspaceId: string;
+  relativePaths: string[];
+  selectedCount: number;
+  rejectedOutsideRoot: number;
+  rejectedUnreadable: number;
+  truncated: boolean;
+}
+
+export type WorkspaceFilePick =
+  | { kind: "no_selection" }
+  | { kind: "picked"; value: PickedFilesProjection };
 
 export interface WorkspaceRevocationResult {
   revoked: WorkspaceProjection;
@@ -430,7 +469,11 @@ export type RendererDispatchCommand =
   | "changes.propose"
   | "approval.decide"
   | "rollback.request"
-  | "changes.history";
+  | "changes.history"
+  | "app.preferences.get"
+  | "app.preferences.set"
+  | "app.about"
+  | "workspace.pick_files";
 
 export interface CommandEnvelope<
   TCommand extends RendererDispatchCommand,

@@ -2,48 +2,185 @@
   "schemaVersion": "sapphirus.contract-codegen-tool-lock.v1",
   "lockStatus": "reviewed_bootstrap",
   "bootstrapLocks": {
-    "pnpm": { "file": "pnpm-lock.yaml", "sha256": "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12", "status": "reviewed" },
-    "cargo": { "file": "Cargo.lock", "sha256": "03809774e043010e28fa7997c8f3e2a008dc634cbbe13fba0371de3971bafe70", "status": "reviewed" },
-    "dotnetTools": { "file": ".config/dotnet-tools.json", "sha256": "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20", "status": "reviewed" },
-    "dotnetPackages": { "file": "tests/generator-qualification/dotnet/packages.lock.json", "sha256": "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872", "status": "reviewed" }
+    "pnpm": {
+      "file": "pnpm-lock.yaml",
+      "sha256": "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12",
+      "status": "reviewed"
+    },
+    "cargo": {
+      "file": "Cargo.lock",
+      "sha256": "03809774e043010e28fa7997c8f3e2a008dc634cbbe13fba0371de3971bafe70",
+      "status": "reviewed"
+    },
+    "dotnetTools": {
+      "file": ".config/dotnet-tools.json",
+      "sha256": "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20",
+      "status": "reviewed"
+    },
+    "dotnetPackages": {
+      "file": "tests/generator-qualification/dotnet/packages.lock.json",
+      "sha256": "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872",
+      "status": "reviewed"
+    }
   },
   "sourceSet": {
     "production": {
       "directory": "packages/contracts/schemas",
       "roots": [
-        { "file": "approved-execution-spec.schema.json", "id": "https://schemas.sapphirus.dev/v1/approved-execution-spec.schema.json", "typeName": "ApprovedExecutionSpec" },
-        { "file": "authority-ref.schema.json", "id": "https://schemas.sapphirus.dev/v1/authority-ref.schema.json", "typeName": "AuthorityRef" },
-        { "file": "bmad-builder-authoring.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json", "typeName": "BuilderAuthoringObject" },
-        { "file": "bmad-capability-catalog.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-capability-catalog.schema.json", "typeName": "BmadCapabilityCatalog" },
-        { "file": "bmad-method-advance-result.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json", "typeName": "MethodAdvanceResult" },
-        { "file": "bmad-method-help-proposal.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json", "typeName": "MethodHelpProposal" },
-        { "file": "bmad-method-help-recommendation.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json", "typeName": "MethodHelpRecommendation" },
-        { "file": "bmad-method-session.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json", "typeName": "MethodSession" },
-        { "file": "bmad-package-descriptor.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-package-descriptor.schema.json", "typeName": "BmadPackageDescriptor" },
-        { "file": "bmad-validation-report.schema.json", "id": "https://schemas.sapphirus.dev/v1/bmad-validation-report.schema.json", "typeName": "BmadValidationReport" },
-        { "file": "candidate-action.schema.json", "id": "https://schemas.sapphirus.dev/v1/candidate-action.schema.json", "typeName": "CandidateAction" },
-        { "file": "contract-error.schema.json", "id": "https://schemas.sapphirus.dev/v1/contract-error.schema.json", "typeName": "ContractError" },
-        { "file": "durable-object.schema.json", "id": "https://schemas.sapphirus.dev/v1/durable-object.schema.json", "typeName": "DurableObject" },
-        { "file": "evidence-event.schema.json", "id": "https://schemas.sapphirus.dev/v2/evidence-event.schema.json", "typeName": "EvidenceEvent" },
-        { "file": "execution-result-manifest.schema.json", "id": "https://schemas.sapphirus.dev/v1/execution-result-manifest.schema.json", "typeName": "ExecutionResultManifest" },
-        { "file": "filesystem-capability.schema.json", "id": "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json", "typeName": "FilesystemCapabilitySnapshot" },
-        { "file": "model-access-receipt.schema.json", "id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json", "typeName": "ModelAccessReceipt" },
-        { "file": "model-context-consent.schema.json", "id": "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json", "typeName": "ModelContextConsent" },
-        { "file": "package-compatibility.schema.json", "id": "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json", "typeName": "PackageCompatibility" },
-        { "file": "remote-job-handoff.schema.json", "id": "https://schemas.sapphirus.dev/v1/remote-job-handoff.schema.json", "typeName": "RemoteJobHandoff" },
-        { "file": "spec-consumption.schema.json", "id": "https://schemas.sapphirus.dev/v1/spec-consumption.schema.json", "typeName": "SpecConsumptionRecord" }
+        {
+          "file": "approved-execution-spec.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/approved-execution-spec.schema.json",
+          "typeName": "ApprovedExecutionSpec"
+        },
+        {
+          "file": "authority-ref.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/authority-ref.schema.json",
+          "typeName": "AuthorityRef"
+        },
+        {
+          "file": "bmad-builder-authoring.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
+          "typeName": "BuilderAuthoringObject"
+        },
+        {
+          "file": "bmad-capability-catalog.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-capability-catalog.schema.json",
+          "typeName": "BmadCapabilityCatalog"
+        },
+        {
+          "file": "bmad-method-advance-result.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json",
+          "typeName": "MethodAdvanceResult"
+        },
+        {
+          "file": "bmad-method-help-proposal.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-proposal.schema.json",
+          "typeName": "MethodHelpProposal"
+        },
+        {
+          "file": "bmad-method-help-recommendation.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-method-help-recommendation.schema.json",
+          "typeName": "MethodHelpRecommendation"
+        },
+        {
+          "file": "bmad-method-session.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-method-session.schema.json",
+          "typeName": "MethodSession"
+        },
+        {
+          "file": "bmad-package-descriptor.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-package-descriptor.schema.json",
+          "typeName": "BmadPackageDescriptor"
+        },
+        {
+          "file": "bmad-validation-report.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-validation-report.schema.json",
+          "typeName": "BmadValidationReport"
+        },
+        {
+          "file": "candidate-action.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/candidate-action.schema.json",
+          "typeName": "CandidateAction"
+        },
+        {
+          "file": "contract-error.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
+          "typeName": "ContractError"
+        },
+        {
+          "file": "desktop-device-registration.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/desktop-device-registration.schema.json",
+          "typeName": "DesktopDeviceRegistration"
+        },
+        {
+          "file": "desktop-entitlement-lease.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/desktop-entitlement-lease.schema.json",
+          "typeName": "DesktopEntitlementLease"
+        },
+        {
+          "file": "desktop-policy.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/desktop-policy.schema.json",
+          "typeName": "DesktopPolicy"
+        },
+        {
+          "file": "durable-object.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/durable-object.schema.json",
+          "typeName": "DurableObject"
+        },
+        {
+          "file": "evidence-event.schema.json",
+          "id": "https://schemas.sapphirus.dev/v2/evidence-event.schema.json",
+          "typeName": "EvidenceEvent"
+        },
+        {
+          "file": "execution-result-manifest.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/execution-result-manifest.schema.json",
+          "typeName": "ExecutionResultManifest"
+        },
+        {
+          "file": "filesystem-capability.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/filesystem-capability.schema.json",
+          "typeName": "FilesystemCapabilitySnapshot"
+        },
+        {
+          "file": "model-access-receipt.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
+          "typeName": "ModelAccessReceipt"
+        },
+        {
+          "file": "model-access-request.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-request.schema.json",
+          "typeName": "ModelAccessRequest"
+        },
+        {
+          "file": "model-access-result.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-result.schema.json",
+          "typeName": "ModelAccessResult"
+        },
+        {
+          "file": "model-context-consent.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
+          "typeName": "ModelContextConsent"
+        },
+        {
+          "file": "package-compatibility.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json",
+          "typeName": "PackageCompatibility"
+        },
+        {
+          "file": "remote-job-handoff.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/remote-job-handoff.schema.json",
+          "typeName": "RemoteJobHandoff"
+        },
+        {
+          "file": "spec-consumption.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/spec-consumption.schema.json",
+          "typeName": "SpecConsumptionRecord"
+        }
       ],
       "dependencies": [
-        { "file": "common.schema.json", "id": "https://schemas.sapphirus.dev/v1/common.schema.json", "prefix": "Common" }
+        {
+          "file": "common.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/common.schema.json",
+          "prefix": "Common"
+        }
       ],
       "bundleId": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
       "rootType": "SapphirusContractsCatalog"
     },
     "qualification": {
       "directory": "tests/generator-qualification/schemas",
-      "root": { "file": "qualification.schema.json", "id": "https://schemas.sapphirus.dev/generator-qualification/v1/qualification.schema.json", "typeName": "GeneratorQualification" },
+      "root": {
+        "file": "qualification.schema.json",
+        "id": "https://schemas.sapphirus.dev/generator-qualification/v1/qualification.schema.json",
+        "typeName": "GeneratorQualification"
+      },
       "resources": [
-        { "file": "qualification-external.schema.json", "id": "https://schemas.sapphirus.dev/generator-qualification/v1/qualification-external.schema.json", "prefix": "QualificationExternal" }
+        {
+          "file": "qualification-external.schema.json",
+          "id": "https://schemas.sapphirus.dev/generator-qualification/v1/qualification-external.schema.json",
+          "prefix": "QualificationExternal"
+        }
       ],
       "bundleId": "https://schemas.sapphirus.dev/codegen/generator-qualification.schema.json",
       "rootType": "GeneratorQualification"
@@ -80,7 +217,9 @@
         "sha256": "bff12916265ca0beb4d568168b8b9e1e931211063d1a024b9294d791d77f84f9",
         "installKey": "cargo-typify 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
         "versionRequirement": "=0.6.1",
-        "bins": ["cargo-typify.exe"],
+        "bins": [
+          "cargo-typify.exe"
+        ],
         "features": [],
         "allFeatures": false,
         "noDefaultFeatures": false,
@@ -88,11 +227,27 @@
         "target": "x86_64-pc-windows-msvc",
         "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)\nbinary: rustc\ncommit-hash: 2d8144b7880597b6e6d3dfd63a9a9efae3f533d3\ncommit-date: 2026-07-07\nhost: x86_64-pc-windows-msvc\nrelease: 1.97.0\nLLVM version: 22.1.6\n"
       },
-      "versionArguments": ["typify", "--version"],
+      "versionArguments": [
+        "typify",
+        "--version"
+      ],
       "versionExitCode": 0,
       "versionOutput": "cargo-typify 0.6.1",
-      "generationArguments": ["typify", "{input}", "--output", "{output}"],
-      "installArguments": ["install", "--locked", "--version", "0.6.1", "--root", "target/contract-tools", "cargo-typify"],
+      "generationArguments": [
+        "typify",
+        "{input}",
+        "--output",
+        "{output}"
+      ],
+      "installArguments": [
+        "install",
+        "--locked",
+        "--version",
+        "0.6.1",
+        "--root",
+        "target/contract-tools",
+        "cargo-typify"
+      ],
       "compiler": "rustc@1.97.0",
       "runtimeValidator": "jsonschema@0.44.1",
       "license": "Apache-2.0"
@@ -106,11 +261,43 @@
       "packageSource": "nuget.org",
       "packageSha256": "d621eb857fcb073ebd6f59d4b820e339df8725a1a466c031f981cca2cd517343",
       "packageSha512": "CSFbHpadwPMujU7EVXBRq86B+dRFXQ+FUU57e0YGA5mQGbIoUWGpCXqTiJNR3gMaK2UnB8epeFD7AqVGPgCmLA==",
-      "versionArguments": ["version"],
+      "versionArguments": [
+        "version"
+      ],
       "versionExitCode": 1,
       "versionOutput": "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
-      "generationArguments": ["jsonschema", "{input}", "--engine", "V5", "--useSchema", "Draft202012", "--useUnixLineEndings", "true", "--optionalAsNullable", "None", "--assertFormat", "false", "--disableOptionalNamingHeuristics", "true", "--rootNamespace", "{namespace}", "--outputRootTypeName", "{rootType}", "--outputRootAccessibility", "Public", "--defaultAccessibility", "Public", "--outputPath", "{output}"],
-      "restoreArguments": ["tool", "restore", "--tool-manifest", ".config/dotnet-tools.json"],
+      "generationArguments": [
+        "jsonschema",
+        "{input}",
+        "--engine",
+        "V5",
+        "--useSchema",
+        "Draft202012",
+        "--useUnixLineEndings",
+        "true",
+        "--optionalAsNullable",
+        "None",
+        "--assertFormat",
+        "false",
+        "--disableOptionalNamingHeuristics",
+        "true",
+        "--rootNamespace",
+        "{namespace}",
+        "--outputRootTypeName",
+        "{rootType}",
+        "--outputRootAccessibility",
+        "Public",
+        "--defaultAccessibility",
+        "Public",
+        "--outputPath",
+        "{output}"
+      ],
+      "restoreArguments": [
+        "tool",
+        "restore",
+        "--tool-manifest",
+        ".config/dotnet-tools.json"
+      ],
       "sdk": "10.0.302",
       "sdkExecutable": "C:/Program Files/dotnet/dotnet.exe",
       "sdkAuthenticode": {
@@ -131,8 +318,14 @@
     }
   },
   "invocations": {
-    "rust": { "shell": false, "maximumCapturedBytes": 1048576 },
-    "dotnet": { "shell": false, "maximumCapturedBytes": 1048576 },
+    "rust": {
+      "shell": false,
+      "maximumCapturedBytes": 1048576
+    },
+    "dotnet": {
+      "shell": false,
+      "maximumCapturedBytes": 1048576
+    },
     "production": {
       "rustOutput": "packages/contracts/generated/rust/contracts.rs",
       "dotnetOutput": "packages/contracts/generated/dotnet",
@@ -147,7 +340,10 @@
   },
   "stagingPolicy": {
     "strategy": "internal-$defs-bundle-v1",
-    "runRoots": ["target/c/a", "target/c/b"],
+    "runRoots": [
+      "target/c/a",
+      "target/c/b"
+    ],
     "modeDirectories": {
       "production": "p",
       "qualification": "q"
@@ -158,9 +354,23 @@
     },
     "outputPathLengthStrategy": "fixed-absolute-corvus-output-root-v1",
     "transformVersion": "internal-$defs-bundle-v1",
-    "documentRootKeywordsRemoved": ["$id", "$schema", "$defs"],
-    "nestedScopeKeywordsRejected": ["$id", "$schema", "$defs"],
-    "unsupportedReferenceKeywordsRejected": ["$anchor", "$dynamicAnchor", "$dynamicRef", "$recursiveAnchor", "$recursiveRef"],
+    "documentRootKeywordsRemoved": [
+      "$id",
+      "$schema",
+      "$defs"
+    ],
+    "nestedScopeKeywordsRejected": [
+      "$id",
+      "$schema",
+      "$defs"
+    ],
+    "unsupportedReferenceKeywordsRejected": [
+      "$anchor",
+      "$dynamicAnchor",
+      "$dynamicRef",
+      "$recursiveAnchor",
+      "$recursiveRef"
+    ],
     "definitionExtraction": "prefix-and-promote-to-bundle-$defs",
     "optionalNullablePresenceTransform": "partition-qualification-root-oneOf-v1",
     "productionOptionalNullablePolicy": "fail-closed-v1",

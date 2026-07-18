@@ -4,7 +4,11 @@ import { BmadLibraryPanel } from "./components/BmadLibraryPanel";
 import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
-import { UtilityPanel, type SettingsPage } from "./components/UtilityPanel";
+import {
+  SettingsDialog,
+  type SettingsSection,
+} from "./components/settings/SettingsDialog";
+import "./components/settings/settings.css";
 import { WorkspacePanel } from "./components/WorkspacePanel";
 import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
 import {
@@ -18,12 +22,15 @@ import {
   type ContextDrawerKind,
 } from "./components/redesign/ContextDrawer";
 import { NoWorkspaceState } from "./components/redesign/NoWorkspaceState";
+import { ActivityPanel } from "./components/panels/ActivityPanel";
+import "./components/panels/activity-panel.css";
 import "./components/redesign/app-shell.css";
 import "./components/redesign/context-drawer.css";
 import "./components/redesign/sidebar.css";
 import "./components/redesign/task-surface.css";
 import "./components/redesign/utility-panel.css";
 import "./components/redesign/design-polish.css";
+import "./components/redesign/design-refinement.css";
 import {
   type DensityPreference,
   type SessionSummary,
@@ -32,6 +39,7 @@ import {
 import {
   getDefaultHostRuntime,
   getSafeHostMessage,
+  type AboutProjection,
   type ApprovalChoice,
   type DesktopHostClient,
   HostCapabilityError,
@@ -42,7 +50,6 @@ import {
   type ProposedChange,
   type WorkspaceProjection,
 } from "./lib/hostClient";
-import { installAppUpdate } from "./lib/appUpdate";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
   BmadLibrarySnapshot,
@@ -116,10 +123,14 @@ export function App({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>("dark");
   const [appModal, setAppModal] = useState<AppModalKind>(null);
-  const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsPage>("general");
+  const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsSection>("general");
+  const [aboutProjection, setAboutProjection] = useState<AboutProjection | null>(null);
+  const [aboutStatus, setAboutStatus] = useState<"loading" | "unavailable" | "ready">(
+    "unavailable",
+  );
+  const [preferencesNotice, setPreferencesNotice] = useState<string | null>(null);
+  const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
-  const [appUpdateStatus, setAppUpdateStatus] = useState("Ready to check");
-  const [appUpdateBusy, setAppUpdateBusy] = useState(false);
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
@@ -286,6 +297,46 @@ export function App({
     }
     return createHostWorkspaceSource(hostRuntime.client, activeWorkspace.workspaceId);
   }, [activeWorkspace, hostRuntime]);
+  const canBrowseFiles = hostRuntime.kind === "ready"
+    && activeWorkspace !== null
+    && workspaceSource !== null
+    && hostRuntime.bootstrap.supportedCommands.includes("workspace.pick_files");
+
+  async function browseAndAttachFiles() {
+    if (hostRuntime.kind !== "ready" || !activeWorkspace || !workspaceSource) {
+      return;
+    }
+    setAttachNotice(null);
+    try {
+      const pick = await hostRuntime.client.pickWorkspaceFiles(
+        activeWorkspace.workspaceId,
+      );
+      if (pick.kind === "no_selection" || pick.value.relativePaths.length === 0) {
+        const rejected = pick.kind === "picked"
+          ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
+          : 0;
+        if (rejected > 0) {
+          setAttachNotice(
+            `No files were attached. ${rejected} were outside the workspace or unreadable.`,
+          );
+        }
+        return;
+      }
+      const projection = await workspaceSource.previewContext(
+        pick.value.relativePaths,
+      );
+      setContextPreview(projection);
+      setContextProvenance(workspaceSource.provenance);
+      const skipped = pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable;
+      setAttachNotice(
+        skipped > 0
+          ? `Attached ${pick.value.selectedCount} files. ${skipped} were outside the workspace and skipped.`
+          : null,
+      );
+    } catch (error) {
+      setAttachNotice(getSafeHostMessage(error));
+    }
+  }
   const explorerAvailabilityMessage = (() => {
     switch (hostRuntime.kind) {
       case "loading":
@@ -496,7 +547,7 @@ export function App({
 
   function openUtilityPanel(
     mode: "account" | "settings",
-    settingsPage: SettingsPage = "general",
+    settingsPage: SettingsSection = "general",
     returnFocusTarget: HTMLElement | null = null,
   ) {
     const activeElement = document.activeElement;
@@ -508,34 +559,66 @@ export function App({
         : null);
     setContextDrawer(null);
     setMobileSidebarOpen(false);
-    if (mode === "settings") setUtilitySettingsPage(settingsPage);
+    setUtilitySettingsPage(mode === "settings" ? settingsPage : "general");
     setAppModal(mode);
+    void loadAboutProjection();
+  }
+
+  async function loadAboutProjection() {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("app.about")
+    ) {
+      setAboutStatus("unavailable");
+      return;
+    }
+    setAboutStatus("loading");
+    try {
+      const about = await hostRuntime.client.getAbout();
+      setAboutProjection(about);
+      setAboutStatus("ready");
+    } catch {
+      setAboutStatus("unavailable");
+    }
+  }
+
+  function persistPreferences(
+    nextTheme: ThemePreference,
+    nextDensity: DensityPreference,
+  ) {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("app.preferences.set")
+    ) {
+      setPreferencesNotice(
+        hostRuntime.kind === "browser_demo"
+          ? "Preferences are not saved in the browser demo."
+          : null,
+      );
+      return;
+    }
+    hostRuntime.client
+      .setPreferences(nextTheme, nextDensity)
+      .then(() => setPreferencesNotice(null))
+      .catch(() => {
+        setPreferencesNotice("The preference change could not be saved on this device.");
+      });
+  }
+
+  function changeTheme(nextTheme: ThemePreference) {
+    setTheme(nextTheme);
+    persistPreferences(nextTheme, density);
+  }
+
+  function changeDensity(nextDensity: DensityPreference) {
+    setDensity(nextDensity);
+    persistPreferences(theme, nextDensity);
   }
 
   function dismissUtilityPanel(restoreFocus = true) {
     pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
     setAppModal(null);
     utilityReturnFocusRef.current = null;
-  }
-
-  async function runAppUpdate() {
-    if (appUpdateBusy) return;
-    setAppUpdateBusy(true);
-    setAppUpdateStatus("Checking");
-    try {
-      const result = await installAppUpdate();
-      if (result.state === "disabled") {
-        setAppUpdateStatus("Managed by your organization");
-      } else if (result.state === "current") {
-        setAppUpdateStatus(`Current · ${result.version}`);
-      } else {
-        setAppUpdateStatus(`Installing · ${result.version}`);
-      }
-    } catch {
-      setAppUpdateStatus("Update failed");
-    } finally {
-      setAppUpdateBusy(false);
-    }
   }
 
   function openContextDrawer(
@@ -631,7 +714,7 @@ export function App({
   useEffect(() => {
     clearMethodLibraryProjection();
     if (!methodLibraryClient) {
-      setContextDrawer((current) => current === "methods" ? null : current);
+      setContextDrawer((current) => current === "skills" ? null : current);
     }
   }, [activeWorkspaceId, clearMethodLibraryProjection, methodLibraryClient]);
 
@@ -836,6 +919,29 @@ export function App({
   }, [hostRuntime, loadMethodLibrary, projectionPollIntervalMs]);
 
   useEffect(() => {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("app.preferences.get")
+    ) {
+      return;
+    }
+    let cancelled = false;
+    hostRuntime.client
+      .getPreferences()
+      .then((preferences) => {
+        if (cancelled) return;
+        setTheme(preferences.theme);
+        setDensity(preferences.density);
+      })
+      .catch(() => {
+        // Defaults stay applied; preferences remain writable later.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hostRuntime]);
+
+  useEffect(() => {
     applyThemePreference(theme);
     if (theme !== "system") {
       return;
@@ -892,7 +998,7 @@ export function App({
     if (openingFromUtility) {
       dismissUtilityPanel(false);
     }
-    openContextDrawer("methods", returnFocus, openingFromUtility);
+    openContextDrawer("skills", returnFocus, openingFromUtility);
     setMobileSidebarOpen(false);
     if (!bmadLibraryRequestedRef.current) {
       void loadMethodLibrary(methodLibraryClient);
@@ -964,7 +1070,7 @@ export function App({
         if (next.kind !== "review_required") {
           throw new HostCapabilityError("The prepared skill-guidance request failed closed.");
         }
-        openContextDrawer("methods");
+        openContextDrawer("skills");
         setMobileSidebarOpen(false);
         if (!bmadLibraryRequestedRef.current) {
           void loadMethodLibrary(client);
@@ -1100,6 +1206,7 @@ export function App({
   const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
     && (["workspace.enable_edits", "changes.propose", "approval.decide", "rollback.request", "changes.history"] as const)
       .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
+  const changesHistoryAvailable = governedEditsCommandsAvailable && activeWorkspace !== null;
   const editsEnabled = activeWorkspace?.permissions === "governed_edits";
   const canEnableEdits = governedEditsCommandsAvailable
     && activeWorkspace !== null
@@ -1434,6 +1541,7 @@ export function App({
     <ContextDrawer
       kind={contextDrawer}
       onClose={dismissContextDrawer}
+      onSelectTab={(tab) => setContextDrawer(tab)}
       presentation={drawerIsOverlay ? "overlay" : "pane"}
     >
       {contextDrawer === "files" ? (
@@ -1464,7 +1572,7 @@ export function App({
           onUndo={(executionId) => void undoGovernedChange(executionId)}
           state={changesState}
         />
-      ) : contextDrawer === "methods" ? (
+      ) : contextDrawer === "skills" ? (
         <div className="method-library-panel">
           <BmadHelpCard
             developmentOnly={modelAuthStatus?.developmentOnly ?? false}
@@ -1483,23 +1591,14 @@ export function App({
           />
         </div>
       ) : (
-        <section aria-label="Task run timeline" className="run-details-panel">
-          {bmadHelpState.kind === "idle" && changesFlow === null ? (
-            <div className="run-details-panel__empty">
-              <h3>No run details yet</h3>
-              <p>Skill-guidance and governed-change progress appears here. Open Skills and agents for exact context reviews and safe model receipts.</p>
-            </div>
-          ) : (
-            <dl className="run-details-panel__summary">
-              <div><dt>Skill guidance</dt><dd>{bmadHelpState.kind.replaceAll("_", " ")}</dd></div>
-              <div><dt>Changes</dt><dd>{changesState.kind.replaceAll("_", " ")}</dd></div>
-            </dl>
-          )}
-          <div className="run-details-panel__scope" role="note">
-            <strong>Local task scope</strong>
-            <span>{workspaceName} · {hostStatusLabel}</span>
-          </div>
-        </section>
+        <ActivityPanel
+          helpState={bmadHelpState}
+          history={changesHistory}
+          historyAvailable={changesHistoryAvailable}
+          historyBusy={changesHistoryBusy}
+          onRefreshHistory={() => void refreshChangesHistory()}
+          onUndo={(executionId) => void undoGovernedChange(executionId)}
+        />
       )}
     </ContextDrawer>
   ) : undefined;
@@ -1521,26 +1620,32 @@ export function App({
       workspaces={hostWorkspaces}
     />
   ) : appModal === "settings" || appModal === "account" ? (
-    <UtilityPanel
+    <SettingsDialog
+      about={aboutProjection}
+      aboutStatus={aboutStatus}
       agentStatusLabel={methodStatusLabel}
       density={density}
-      initialSettingsPage={utilitySettingsPage}
+      initialSection={utilitySettingsPage}
       key={`${appModal}:${utilitySettingsPage}`}
-      mode={appModal}
       modelAccessDetail={modelAccess.detail}
       modelAccessLabel={modelAccess.label}
       onClose={() => dismissUtilityPanel()}
-      onDensityChange={setDensity}
-      onInstallAppUpdate={() => void runAppUpdate()}
+      onDensityChange={changeDensity}
       onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
       onOpenSkillsAndAgents={openMethodLibrary}
-      onThemeChange={setTheme}
+      onThemeChange={changeTheme}
+      preferencesNotice={preferencesNotice}
       runtimeLabel={hostStatusLabel}
       skillsAgentsAvailable={methodLibraryAvailable}
       skillsAgentsStatusLabel={skillsAgentsStatusLabel}
       theme={theme}
-      updateBusy={appUpdateBusy}
-      updateStatusLabel={appUpdateStatus}
+      updateStatusLabel={
+        aboutProjection === null
+          ? "Managed by your organization"
+          : aboutProjection.updateConfigured
+            ? "Managed release channel"
+            : "Not configured for this build"
+      }
       workspaceDetail={workspaceDescription}
       workspaceLabel={workspaceName}
     />
@@ -1571,7 +1676,9 @@ export function App({
                 setMobileSidebarOpen(false);
                 openContextDrawer("files");
               }}
-              onOpenAgentSettings={(returnFocusTarget) => openUtilityPanel("settings", "skills-agents", returnFocusTarget)}
+              onBrowseFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
+              attachNotice={attachNotice}
+              agentLibrary={bmadLibraryState}
               onOpenChanges={() => {
                 setMobileSidebarOpen(false);
                 openContextDrawer("changes");
@@ -1579,7 +1686,7 @@ export function App({
               onOpenMethodLibrary={openMethodLibrary}
               onOpenRunDetails={() => {
                 setMobileSidebarOpen(false);
-                openContextDrawer("run-details");
+                openContextDrawer("activity");
               }}
               onOpenSidebar={() => {
                 setContextDrawer(null);

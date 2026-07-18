@@ -40,14 +40,15 @@ use crate::state::{
     RendererSessionGuard,
 };
 use crate::wire::{
-    BootMode, BootStateProjection, BootstrapReply, ContextItemProjection, ContextPreviewProjection,
-    HostCommandData, HostDispatchReply, ProjectionReply, ProjectionRequest, TreeEntryProjection,
-    WorkspaceEntriesProjection, BOOTSTRAP_SCHEMA, PROJECTION_REQUEST_SCHEMA,
+    AboutProjection, BootMode, BootStateProjection, BootstrapReply, ContextItemProjection,
+    ContextPreviewProjection, HostCommandData, HostDispatchReply, PreferencesProjection,
+    ProjectionReply, ProjectionRequest, TreeEntryProjection, WorkspaceEntriesProjection,
+    BOOTSTRAP_SCHEMA, PREFERENCES_SCHEMA, PROJECTION_REQUEST_SCHEMA,
 };
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 24] = [
+const READY_COMMANDS: [&str; 28] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -72,6 +73,10 @@ const READY_COMMANDS: [&str; 24] = [
     "approval.decide",
     "rollback.request",
     "changes.history",
+    "app.preferences.get",
+    "app.preferences.set",
+    "app.about",
+    "workspace.pick_files",
 ];
 const RECOVERY_COMMANDS: [&str; 2] = ["app.get_boot_state", "workspace.list"];
 
@@ -391,6 +396,9 @@ fn execute_command(
                 .map(HostCommandData::BmadScan)
                 .map_err(|error| map_workspace_error(&error))
         }
+        LocalCommand::PickWorkspaceFiles { workspace_id } => {
+            pick_workspace_files(app, state, workspace_id)
+        }
         LocalCommand::BmadLibrarySnapshot { scope, cursor } => {
             let _authority = state.ready_authority()?;
             bmad_library_snapshot(foundation, scope, cursor.as_deref())
@@ -490,6 +498,11 @@ fn execute_command(
         | LocalCommand::ChangesHistory { .. }) => {
             crate::edits::execute_changes_command(state, request_id, accepted_at, command)
         }
+        LocalCommand::GetPreferences => load_preferences(state),
+        LocalCommand::SetPreferences { theme, density } => {
+            save_preferences(state, request_id, theme, density, accepted_at)
+        }
+        LocalCommand::GetAbout => Ok(HostCommandData::About(about_projection(state, foundation))),
         LocalCommand::CreateSession { .. }
         | LocalCommand::SubmitTask { .. }
         | LocalCommand::CancelTask { .. } => Err(temporarily_unavailable(
@@ -847,6 +860,34 @@ fn bmad_library_snapshot(
     let activations = &[("core", "bmad-help")][..];
     #[cfg(not(feature = "deterministic-help"))]
     let activations = &[][..];
+    let builder_packages = foundation
+        .builder_packages()
+        .iter()
+        .map(|package| desktop_ipc::BmadBuilderPackageProjection {
+            package_name: package.package_name.clone(),
+            package_version: package.package_version.clone(),
+            package_kind: match package.package_kind {
+                crate::bmad_foundation::BuilderPackageKind::Agent => {
+                    desktop_ipc::BmadBuilderPackageKind::Agent
+                }
+                crate::bmad_foundation::BuilderPackageKind::Workflow => {
+                    desktop_ipc::BmadBuilderPackageKind::Workflow
+                }
+            },
+            display_name: package.display_name.clone(),
+            activation_state: "installed_inactive".to_owned(),
+            resource_count: u32::try_from(package.resource_count).unwrap_or(u32::MAX),
+            // Display fingerprint only: a short prefix cannot be replayed as a
+            // digest and keeps the sealed projection free of authority bytes.
+            descriptor_digest: package
+                .descriptor_digest
+                .hex_value()
+                .chars()
+                .take(12)
+                .collect(),
+            blocker_codes: vec!["builder_engine_gated".to_owned()],
+        })
+        .collect();
     project_bmad_library_with_activations(
         foundation.package(),
         foundation.catalog(),
@@ -854,6 +895,7 @@ fn bmad_library_snapshot(
         scope,
         cursor,
         activations,
+        builder_packages,
     )
     .map(HostCommandData::BmadLibrarySnapshot)
     .map_err(map_bmad_projection_error)
@@ -1277,6 +1319,57 @@ fn renderer_session_expired() -> LocalError {
     )
 }
 
+const MAX_PICKED_FILES: usize = 100;
+
+fn pick_workspace_files(
+    app: &tauri::AppHandle,
+    state: &HostState,
+    workspace_id: ContractId,
+) -> Result<HostCommandData, LocalError> {
+    // Confirm Ready mode and a live grant, then release the authority guard
+    // before the long-blocking dialog: holding the boot-mode read lock across
+    // user interaction would stall a concurrent recovery transition.
+    {
+        let _authority = state.ready_authority()?;
+        state
+            .workspace
+            .authority_binding(workspace_id.as_str())
+            .map_err(|error| map_workspace_error(&error))?;
+    }
+    let selected = app
+        .dialog()
+        .file()
+        .set_title("Attach files from this workspace")
+        .blocking_pick_files();
+    // Re-prove Ready mode after the dialog; the resolve call below revalidates
+    // the grant and its root identity itself.
+    let _authority = state.ready_authority()?;
+    let Some(selected) = selected else {
+        return Ok(HostCommandData::NoSelection);
+    };
+    if selected.is_empty() {
+        return Ok(HostCommandData::NoSelection);
+    }
+    let candidates = selected
+        .into_iter()
+        .filter_map(|path| path.into_path().ok())
+        .collect::<Vec<_>>();
+    let picked = state
+        .workspace
+        .resolve_picked_files(workspace_id.as_str(), &candidates, MAX_PICKED_FILES)
+        .map_err(|error| map_workspace_error(&error))?;
+    Ok(HostCommandData::PickedFiles(
+        crate::wire::PickedFilesProjection {
+            workspace_id,
+            selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
+            relative_paths: picked.relative_paths,
+            rejected_outside_root: u32::try_from(picked.rejected_outside_root).unwrap_or(u32::MAX),
+            rejected_unreadable: u32::try_from(picked.rejected_unreadable).unwrap_or(u32::MAX),
+            truncated: picked.truncated,
+        },
+    ))
+}
+
 fn select_workspace(
     app: &tauri::AppHandle,
     state: &HostState,
@@ -1526,6 +1619,83 @@ struct ContextManifestItem {
     estimated_tokens: u64,
 }
 
+const PREFERENCES_AGGREGATE: &str = "renderer_preferences";
+const PREFERENCES_AGGREGATE_ID: &str = "local";
+
+fn load_preferences(state: &HostState) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_authority()?;
+    let store = state.local_store(&authority)?;
+    let preferences = store
+        .load_aggregate(PREFERENCES_AGGREGATE, PREFERENCES_AGGREGATE_ID)
+        .map_err(|_| recovery_error())?
+        .and_then(|record| {
+            deserialize_strict::<PreferencesProjection>(record.state_json.as_bytes()).ok()
+        })
+        .filter(|preferences| preferences.schema_version == PREFERENCES_SCHEMA)
+        .unwrap_or_default();
+    Ok(HostCommandData::Preferences(preferences))
+}
+
+fn save_preferences(
+    state: &HostState,
+    request_id: &ContractId,
+    theme: desktop_runtime::ThemePreference,
+    density: desktop_runtime::DensityPreference,
+    accepted_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_authority()?;
+    let store = state.local_store(&authority)?;
+    let preferences = PreferencesProjection {
+        schema_version: PREFERENCES_SCHEMA.to_owned(),
+        theme,
+        density,
+        updated_at: Some(accepted_at),
+    };
+    let state_json = serde_json::to_string(&preferences).map_err(|_| recovery_error())?;
+    let next_version = store
+        .load_aggregate(PREFERENCES_AGGREGATE, PREFERENCES_AGGREGATE_ID)
+        .map_err(|_| recovery_error())?
+        .map_or(1, |record| record.version.saturating_add(1));
+    store
+        .append_transition(
+            PREFERENCES_AGGREGATE,
+            PREFERENCES_AGGREGATE_ID,
+            next_version,
+            &state_json,
+            &desktop_store::EvidenceAppend {
+                stream_id: "app:preferences".to_owned(),
+                event_type: "preferences.updated".to_owned(),
+                payload_hash: desktop_runtime::sha256_bytes(state_json.as_bytes()).to_string(),
+                payload_ref: None,
+                correlation_id: request_id.to_string(),
+                causation_id: None,
+                redaction_level: "metadata".to_owned(),
+                retention_class: "evidence".to_owned(),
+            },
+        )
+        .map_err(|_| {
+            temporarily_unavailable("The preference change could not be saved. Retry shortly.")
+        })?;
+    Ok(HostCommandData::Preferences(preferences))
+}
+
+fn about_projection(state: &HostState, foundation: &BmadLoadedFoundation) -> AboutProjection {
+    let update_configured = option_env!("SAPPHIRUS_UPDATE_ENDPOINT").is_some()
+        && option_env!("SAPPHIRUS_UPDATE_PUBLIC_KEY").is_some();
+    AboutProjection {
+        app_version: env!("CARGO_PKG_VERSION").to_owned(),
+        installation_id: state.installation_id().clone(),
+        boot_mode: state.boot_mode(),
+        foundation_package_name: foundation.package().package_name.clone(),
+        foundation_package_version: foundation.package().package_version.clone(),
+        inactive_builder_package_count: u32::try_from(foundation.inactive_builder_package_count())
+            .unwrap_or(u32::MAX),
+        update_configured,
+        // In-app installation stays withheld until organization signing exists.
+        update_install_available: false,
+    }
+}
+
 fn boot_state(state: &HostState) -> BootStateProjection {
     let mode = state.boot_mode();
     BootStateProjection {
@@ -1717,10 +1887,12 @@ mod tests {
     };
     use desktop_workspace::WorkspaceError;
 
+    #[cfg(feature = "deterministic-help")]
+    use super::prepare_bmad_help_review;
     use super::{
-        bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
-        latest_bmad_help_run_data, map_bmad_model_error, map_workspace_error,
-        model_auth_status_data, prepare_bmad_help_review, revoke_workspace, should_cache_reply,
+        about_projection, bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
+        latest_bmad_help_run_data, load_preferences, map_bmad_model_error, map_workspace_error,
+        model_auth_status_data, revoke_workspace, save_preferences, should_cache_reply,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
@@ -1760,6 +1932,93 @@ mod tests {
             .expect("persisted workspace");
         drop(authority);
         (state, storage, workspace, projection.workspace_id)
+    }
+
+    #[test]
+    #[expect(
+        clippy::panic,
+        reason = "a non-preferences projection must fail the test immediately"
+    )]
+    fn preferences_default_then_persist_and_reload() {
+        let (state, _storage, _workspace, _workspace_id) = ready_workspace_state();
+
+        let HostCommandData::Preferences(defaults) =
+            load_preferences(&state).expect("default preferences")
+        else {
+            panic!("expected a preferences projection");
+        };
+        assert_eq!(defaults.theme, desktop_runtime::ThemePreference::Dark);
+        assert_eq!(
+            defaults.density,
+            desktop_runtime::DensityPreference::Comfortable
+        );
+        assert!(defaults.updated_at.is_none());
+
+        let HostCommandData::Preferences(saved) = save_preferences(
+            &state,
+            &id("request_01J00000000000000000000900"),
+            desktop_runtime::ThemePreference::System,
+            desktop_runtime::DensityPreference::Compact,
+            UnixMillis(5_000),
+        )
+        .expect("saved preferences") else {
+            panic!("expected a preferences projection");
+        };
+        assert_eq!(saved.theme, desktop_runtime::ThemePreference::System);
+        assert_eq!(saved.updated_at, Some(UnixMillis(5_000)));
+
+        let HostCommandData::Preferences(reloaded) =
+            load_preferences(&state).expect("reloaded preferences")
+        else {
+            panic!("expected a preferences projection");
+        };
+        assert_eq!(reloaded.theme, desktop_runtime::ThemePreference::System);
+        assert_eq!(
+            reloaded.density,
+            desktop_runtime::DensityPreference::Compact
+        );
+
+        // A second write advances the aggregate version rather than conflicting.
+        save_preferences(
+            &state,
+            &id("request_01J00000000000000000000901"),
+            desktop_runtime::ThemePreference::Light,
+            desktop_runtime::DensityPreference::Comfortable,
+            UnixMillis(6_000),
+        )
+        .expect("second preference write");
+    }
+
+    #[test]
+    fn about_projection_serializes_camel_case_without_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, _workspace_id) = ready_workspace_state();
+        let foundation = load_bmad_foundation(foundation_path())?;
+        let about = about_projection(&state, &foundation);
+        assert!(!about.update_install_available);
+        let value = serde_json::to_value(&about)?;
+        let object = value.as_object().expect("about object");
+        for key in [
+            "appVersion",
+            "installationId",
+            "bootMode",
+            "foundationPackageName",
+            "foundationPackageVersion",
+            "inactiveBuilderPackageCount",
+            "updateConfigured",
+            "updateInstallAvailable",
+        ] {
+            assert!(object.contains_key(key), "missing key {key}");
+        }
+        assert_eq!(object.len(), 8);
+        let preferences = crate::wire::PreferencesProjection::default();
+        let preferences_value = serde_json::to_value(&preferences)?;
+        let preferences_object = preferences_value.as_object().expect("preferences object");
+        assert_eq!(
+            preferences_object.keys().collect::<Vec<_>>(),
+            vec!["schemaVersion", "theme", "density", "updatedAt"],
+        );
+        Ok(())
     }
 
     fn retained_help_receipt(
@@ -1846,6 +2105,12 @@ mod tests {
         assert_eq!(projection.installed_skills.len(), 2);
         assert_eq!(projection.help_actions.len(), 2);
         assert_eq!(projection.method_agents.len(), 6);
+        assert_eq!(projection.builder_packages.len(), 2);
+        for builder in &projection.builder_packages {
+            assert_eq!(builder.activation_state, "installed_inactive");
+            assert_eq!(builder.blocker_codes, vec!["builder_engine_gated"]);
+            assert_eq!(builder.descriptor_digest.len(), 12);
+        }
         #[cfg(feature = "deterministic-help")]
         {
             let help = projection

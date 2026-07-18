@@ -153,8 +153,33 @@ pub struct BmadLibrarySnapshotProjection {
     pub installed_skills: Vec<BmadInstalledSkillProjection>,
     pub help_actions: Vec<BmadHelpActionProjection>,
     pub method_agents: Vec<BmadAgentProjection>,
+    pub builder_packages: Vec<BmadBuilderPackageProjection>,
     pub next_cursor: Option<String>,
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BmadBuilderPackageKind {
+    Agent,
+    Workflow,
+}
+
+/// Display-only projection of an installed Builder package. Activation stays a
+/// gated local decision (Note 14); this surface can never claim authority.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BmadBuilderPackageProjection {
+    pub package_name: String,
+    pub package_version: String,
+    pub package_kind: BmadBuilderPackageKind,
+    pub display_name: String,
+    pub activation_state: String,
+    pub resource_count: u32,
+    pub descriptor_digest: String,
+    pub blocker_codes: Vec<String>,
+}
+
+const MAX_BUILDER_PACKAGES: usize = 8;
 
 #[derive(Clone, Copy, Debug, Eq, Error, PartialEq)]
 pub enum BmadProjectionError {
@@ -189,7 +214,7 @@ pub fn project_bmad_library(
     scope: BmadLibraryProjectionScope,
     cursor: Option<&str>,
 ) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
-    project_bmad_library_with_activations(package, catalog, roster, scope, cursor, &[])
+    project_bmad_library_with_activations(package, catalog, roster, scope, cursor, &[], Vec::new())
 }
 
 /// Produces the bounded Method-library projection with an explicit
@@ -208,6 +233,7 @@ pub fn project_bmad_library_with_activations(
     scope: BmadLibraryProjectionScope,
     cursor: Option<&str>,
     activations: &[(&str, &str)],
+    builder_packages: Vec<BmadBuilderPackageProjection>,
 ) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
     if cursor.is_some() {
         return Err(BmadProjectionError::Gap);
@@ -216,12 +242,20 @@ pub fn project_bmad_library_with_activations(
         || catalog.installed_skills.len() > MAX_SKILLS
         || catalog.help_actions.len() > MAX_HELP_ACTIONS
         || roster.agents.len() > MAX_AGENTS
+        || builder_packages.len() > MAX_BUILDER_PACKAGES
+        || builder_packages.iter().any(|builder| {
+            builder.activation_state != "installed_inactive"
+                || builder.package_name.len() > MAX_IDENTIFIER_BYTES
+                || builder.package_version.len() > MAX_IDENTIFIER_BYTES
+                || builder.display_name.len() > MAX_IDENTIFIER_BYTES
+                || builder.blocker_codes != ["builder_engine_gated"]
+        })
     {
         return Err(BmadProjectionError::Unavailable);
     }
     let activated = validated_activations(catalog, activations)?;
     let projection = BmadLibrarySnapshotProjection {
-        schema_version: "bmad-library-snapshot.v1".to_owned(),
+        schema_version: "bmad-library-snapshot.v2".to_owned(),
         scope,
         source: BmadLibrarySourceProjection {
             source_kind: BmadLibrarySourceKind::SealedFoundation,
@@ -254,6 +288,7 @@ pub fn project_bmad_library_with_activations(
             .iter()
             .map(project_agent)
             .collect::<Result<_, _>>()?,
+        builder_packages,
         next_cursor: None,
     };
     if serde_json::to_vec(&projection)

@@ -126,6 +126,55 @@ pub enum HostCommandData {
     ChangesDecision(ChangesDecisionWire),
     ChangesUndoUnavailable(ChangesUndoUnavailableWire),
     ChangesHistory(ChangesHistoryWire),
+    Preferences(PreferencesProjection),
+    About(AboutProjection),
+    PickedFiles(PickedFilesProjection),
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PickedFilesProjection {
+    pub workspace_id: ContractId,
+    pub relative_paths: Vec<String>,
+    pub selected_count: u32,
+    pub rejected_outside_root: u32,
+    pub rejected_unreadable: u32,
+    pub truncated: bool,
+}
+
+pub const PREFERENCES_SCHEMA: &str = "desktop-preferences.v1";
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct PreferencesProjection {
+    pub schema_version: String,
+    pub theme: desktop_runtime::ThemePreference,
+    pub density: desktop_runtime::DensityPreference,
+    pub updated_at: Option<desktop_runtime::UnixMillis>,
+}
+
+impl Default for PreferencesProjection {
+    fn default() -> Self {
+        Self {
+            schema_version: PREFERENCES_SCHEMA.to_owned(),
+            theme: desktop_runtime::ThemePreference::Dark,
+            density: desktop_runtime::DensityPreference::Comfortable,
+            updated_at: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AboutProjection {
+    pub app_version: String,
+    pub installation_id: ContractId,
+    pub boot_mode: BootMode,
+    pub foundation_package_name: String,
+    pub foundation_package_version: String,
+    pub inactive_builder_package_count: u32,
+    pub update_configured: bool,
+    pub update_install_available: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]

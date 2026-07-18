@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "desktop-device-registration.v1",
+  "installationPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbAS8_dPcjzdYutR-ZVr8kwBsm8PLq3nVCufbv0IrJY_PjRzLuCE1BsBTqhuAddhYYvXJEz8kEs03YhmxFqMgpQ",
+  "installationPublicKeyHash": "sha256:2e881a93d84bef45453b26df9f5e2fc6d1cf3d9370fbfd0cd1189acb5bd588c7",
+  "clientRelease": "0.1.0-beta.1",
+  "platform": "windows",
+  "architecture": "x64",
+  "tenantPolicyVersion": 7,
+  "deviceName": "must-not-cross-boundary"
+}

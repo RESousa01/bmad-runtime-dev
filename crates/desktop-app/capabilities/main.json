@@ -10,7 +10,6 @@
     "allow-host-dispatch",
     "allow-host-projection-snapshot",
     "allow-host-projection-events",
-    "allow-install-app-update",
     "core:window:allow-close",
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "desktop-entitlement-lease.v1",
+  "leaseId": "lease_01J00000000000000000000000",
+  "registrationId": "dreg_01J00000000000000000000000",
+  "subjectHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "deliveryModel": "windows_local",
+  "issuedAt": "2026-07-16T10:00:00.000Z",
+  "notBefore": "2026-07-16T10:00:00.000Z",
+  "expiresAt": "2026-07-17T10:00:00.000Z",
+  "offlineGraceEndsAt": "2026-07-20T10:00:00.000Z",
+  "features": [
+    "local_runtime",
+    "model_access"
+  ],
+  "tenantPolicyHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "minimumClientVersion": "0.1.0-beta.1",
+  "keyId": "desktop-policy-key-2026-07",
+  "signature": "ZXhhbXBsZS1lbnRpdGxlbWVudC1sZWFzZS1zaWduYXR1cmU"
+}

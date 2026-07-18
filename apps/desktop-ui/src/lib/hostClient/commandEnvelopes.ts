@@ -2,9 +2,11 @@ import {
   type ApprovalChoice,
   COMMAND_SCHEMA,
   type CommandEnvelope,
+  type DensityPreference,
   type HostBinding,
   type ProposedChange,
   type RendererDispatchCommand,
+  type ThemePreference,
 } from "./contracts";
 import { asContractId, asSha256, asUnsignedInteger } from "./validation";
 
@@ -39,6 +41,66 @@ export function buildWorkspaceListEnvelope(
     installationId: asContractId(binding.installationId),
     issuedAt: asUnsignedInteger(issuedAt),
     payload: {},
+  };
+}
+
+export function buildEmptyPayloadEnvelope<
+  TCommand extends "app.preferences.get" | "app.about",
+>(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  command: TCommand,
+): CommandEnvelope<TCommand, Record<string, never>> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command,
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {},
+  };
+}
+
+export function buildPreferencesUpdateEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  theme: ThemePreference,
+  density: DensityPreference,
+): CommandEnvelope<
+  "app.preferences.set",
+  { theme: ThemePreference; density: DensityPreference }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "app.preferences.set",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { theme, density },
+  };
+}
+
+export function buildWorkspaceFilePickEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+): CommandEnvelope<"workspace.pick_files", { workspaceId: string }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "workspace.pick_files",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { workspaceId: asContractId(workspaceId) },
   };
 }
 

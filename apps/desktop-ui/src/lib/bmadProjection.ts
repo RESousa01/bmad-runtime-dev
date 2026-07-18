@@ -85,13 +85,27 @@ export interface BmadMethodAgentProjection {
   readonly menus: readonly BmadAgentMenuProjection[];
 }
 
+export type BmadBuilderPackageKind = "agent" | "workflow";
+
+export interface BmadBuilderPackageProjection {
+  readonly packageName: string;
+  readonly packageVersion: string;
+  readonly packageKind: BmadBuilderPackageKind;
+  readonly displayName: string;
+  readonly activationState: "installed_inactive";
+  readonly resourceCount: number;
+  readonly descriptorDigest: string;
+  readonly blockerCodes: readonly ["builder_engine_gated"];
+}
+
 export interface BmadLibraryProjection {
-  readonly schemaVersion: "bmad-library-snapshot.v1";
+  readonly schemaVersion: "bmad-library-snapshot.v2";
   readonly scope: "installed_method";
   readonly source: BmadProjectionSource;
   readonly installedSkills: readonly BmadInstalledSkillProjection[];
   readonly helpActions: readonly BmadHelpActionProjection[];
   readonly methodAgents: readonly BmadMethodAgentProjection[];
+  readonly builderPackages: readonly BmadBuilderPackageProjection[];
   readonly nextCursor: string | null;
 }
 

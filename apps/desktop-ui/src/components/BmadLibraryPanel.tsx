@@ -193,6 +193,7 @@ function ReadyLibrary({ projection }: { readonly projection: BmadLibraryProjecti
   const skillsHeadingId = useId();
   const actionsHeadingId = useId();
   const agentsHeadingId = useId();
+  const builderHeadingId = useId();
 
   return (
     <>
@@ -241,6 +242,36 @@ function ReadyLibrary({ projection }: { readonly projection: BmadLibraryProjecti
           </ul>
         ) : <p>No agents available.</p>}
       </section>
+
+      {projection.builderPackages.length > 0 ? (
+        <section aria-labelledby={builderHeadingId} className="bmad-library-section">
+          <h3 id={builderHeadingId}>Builder (installed, inactive)</h3>
+          <ul>
+            {projection.builderPackages.map((builder) => (
+              <li
+                className="bmad-library-row"
+                key={`${builder.packageName}\u0000${builder.packageKind}`}
+              >
+                <div className="bmad-library-row__heading">
+                  <strong>{builder.displayName}</strong>
+                  <span className="bmad-availability">Inactive</span>
+                </div>
+                <p>
+                  {builder.packageName} {builder.packageVersion} ·{" "}
+                  {builder.packageKind === "agent" ? "Agent package" : "Workflow package"} ·{" "}
+                  {builder.resourceCount === 1
+                    ? "1 resource"
+                    : `${builder.resourceCount} resources`}{" "}
+                  · <code>{builder.descriptorDigest}</code>
+                </p>
+                <p className="bmad-library-row__note">
+                  Activation requires a local decision and is not yet available.
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <InternalIdentifiers projection={projection} />
     </>
