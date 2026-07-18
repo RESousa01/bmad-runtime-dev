@@ -8,8 +8,8 @@ use desktop_execution::{
 };
 use desktop_ipc::deserialize_strict;
 use desktop_runtime::{
-    canonical_hash, sha256_bytes, ContractId, LocalError, ProjectionEventKind, Sha256Digest,
-    UnixMillis,
+    canonical_hash, sha256_bytes, ContractId, LocalError, ProjectionEventKind,
+    RecoveryApprovalChoice, Sha256Digest, UnixMillis,
 };
 use desktop_store::{EffectJournalRow, EvidenceAppend, LocalStore};
 use serde::Serialize;
@@ -29,12 +29,6 @@ const MAX_PENDING_RECOVERIES: usize = 32;
 const RECOVERY_REVIEW_WINDOW_MS: u64 = 2 * 60 * 1000;
 const SAFE_MANUAL_REVIEW_REASON: &str =
     "Recovery requires manual review because its durable checkpoint is incomplete or inconsistent.";
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum RecoveryApprovalChoice {
-    Restore,
-    Cancel,
-}
 
 pub(crate) struct PendingRecovery {
     approval_id: ContractId,
@@ -774,12 +768,10 @@ mod tests {
     };
     use serde::Serialize;
 
-    use super::{
-        decide_recovery, prepare_recovery, PendingRecoveries, PendingRecovery,
-        RecoveryApprovalChoice,
-    };
+    use super::{decide_recovery, prepare_recovery, PendingRecoveries, PendingRecovery};
     use crate::state::HostState;
     use crate::wire::{ChangesRecoveryPreparedWire, HostCommandData};
+    use desktop_runtime::RecoveryApprovalChoice;
 
     struct RecoveryFixture {
         store_dir: tempfile::TempDir,

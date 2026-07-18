@@ -48,7 +48,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 28] = [
+const READY_COMMANDS: [&str; 30] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -73,6 +73,8 @@ const READY_COMMANDS: [&str; 28] = [
     "approval.decide",
     "rollback.request",
     "changes.history",
+    "changes.recovery.prepare",
+    "changes.recovery.decide",
     "app.preferences.get",
     "app.preferences.set",
     "app.about",
@@ -157,6 +159,8 @@ fn should_cache_reply(command: &LocalCommand) -> bool {
                 | LocalCommand::ApproveBmadHelpReview { .. }
                 | LocalCommand::CancelBmadHelpReview { .. }
                 | LocalCommand::SubmitBmadHelpReview { .. }
+                | LocalCommand::PrepareChangesRecovery { .. }
+                | LocalCommand::DecideChangesRecovery { .. }
         )
 }
 
@@ -498,6 +502,30 @@ fn execute_command(
         | LocalCommand::ChangesHistory { .. }) => {
             crate::edits::execute_changes_command(state, request_id, accepted_at, command)
         }
+        LocalCommand::PrepareChangesRecovery {
+            workspace_id,
+            workspace_grant_epoch,
+            journal_id,
+        } => crate::recovery::prepare_recovery(
+            state,
+            renderer_session,
+            &workspace_id,
+            workspace_grant_epoch,
+            &journal_id,
+            accepted_at,
+        ),
+        LocalCommand::DecideChangesRecovery {
+            recovery_approval_id,
+            displayed_recovery_hash,
+            choice,
+        } => crate::recovery::decide_recovery(
+            state,
+            renderer_session,
+            &recovery_approval_id,
+            displayed_recovery_hash,
+            choice,
+            accepted_at,
+        ),
         LocalCommand::GetPreferences => load_preferences(state),
         LocalCommand::SetPreferences { theme, density } => {
             save_preferences(state, request_id, theme, density, accepted_at)
@@ -1893,6 +1921,7 @@ mod tests {
         about_projection, bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
         latest_bmad_help_run_data, load_preferences, map_bmad_model_error, map_workspace_error,
         model_auth_status_data, revoke_workspace, save_preferences, should_cache_reply,
+        supported_commands,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
@@ -2556,6 +2585,46 @@ mod tests {
             assert!(!should_cache_reply(&command), "{}", command.name());
         }
         assert!(should_cache_reply(&LocalCommand::SelectWorkspace));
+    }
+
+    #[test]
+    fn recovery_capabilities_are_ready_only_and_never_reply_cached() {
+        let ready = supported_commands(crate::wire::BootMode::Ready);
+        let neighborhood = ready
+            .windows(6)
+            .find(|commands| commands[0] == "changes.propose")
+            .expect("governed changes catalog neighborhood");
+        assert_eq!(
+            neighborhood,
+            [
+                "changes.propose",
+                "approval.decide",
+                "rollback.request",
+                "changes.history",
+                "changes.recovery.prepare",
+                "changes.recovery.decide",
+            ]
+        );
+        assert_eq!(ready.len(), 30);
+        assert_eq!(
+            supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
+            ["app.get_boot_state", "workspace.list"]
+        );
+
+        for command in [
+            LocalCommand::PrepareChangesRecovery {
+                workspace_id: id("workspace_01J00000000000000000000000"),
+                workspace_grant_epoch: 1,
+                journal_id: id("journal_01J00000000000000000000000"),
+            },
+            LocalCommand::DecideChangesRecovery {
+                recovery_approval_id: id("recovery_approval_01J0000000000000"),
+                displayed_recovery_hash: sha256_bytes(b"displayed recovery"),
+                choice: desktop_runtime::RecoveryApprovalChoice::Cancel,
+            },
+        ] {
+            assert!(!should_cache_reply(&command), "{}", command.name());
+        }
     }
 
     #[test]

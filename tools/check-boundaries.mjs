@@ -49,12 +49,15 @@ const reviewedReadyCommands = [
   "approval.decide",
   "rollback.request",
   "changes.history",
+  "changes.recovery.prepare",
+  "changes.recovery.decide",
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
   "workspace.pick_files",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
+const updateBlockingRecoveryStates = ["recovery_required", "restoring", "manual_review"];
 const boundedProcessAdapterPaths = new Set([
   "crates/desktop-cloud/src/windows_broker.rs",
 ]);
@@ -981,7 +984,9 @@ for (const path of rustFiles) {
     violations.push(`${displayPath}: Tauri import outside the composition root`);
   }
   const processPatterns = [
-    /\bstd::process\b/,
+    // `abort` is a test-only no-unwind assertion helper, not a child-process
+    // capability. All other direct std::process access remains forbidden.
+    /\bstd::process(?!(?:::abort\b))/,
     /\btokio::process\b/,
     /\bCommand\s*::\s*new\b/,
     /\bCreateProcess(?:A|W)?\b/,
@@ -1033,6 +1038,24 @@ const rendererClientPath = join(
 const rendererClientSource = await requiredText(rendererClientPath);
 const ipcEnvelopePath = join(root, "crates", "desktop-ipc", "src", "envelope.rs");
 const ipcEnvelopeSource = await requiredText(ipcEnvelopePath);
+const runtimeCommandPath = join(root, "crates", "desktop-runtime", "src", "command.rs");
+const runtimeCommandSource = await requiredText(runtimeCommandPath);
+const catalogTestPath = join(
+  root,
+  "apps",
+  "desktop-ui",
+  "src",
+  "lib",
+  "hostClient",
+  "commandCatalog.test.ts",
+);
+const catalogTestSource = await requiredText(catalogTestPath);
+const editsPath = join(root, "crates", "desktop-app", "src", "edits.rs");
+const editsSource = await requiredText(editsPath);
+const storeExecutionPath = join(root, "crates", "desktop-store", "src", "execution.rs");
+const storeExecutionSource = await requiredText(storeExecutionPath);
+const updatePath = join(root, "crates", "desktop-update", "src", "lib.rs");
+const updateSource = await requiredText(updatePath);
 if (hostCommandsSource !== undefined) {
   const readySource = /const READY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
   const recoverySource = /const RECOVERY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
@@ -1044,6 +1067,21 @@ if (hostCommandsSource !== undefined) {
   }
   if (!/allowed_commands:\s*supported_commands\(state\.boot_mode\(\)\)/.test(hostCommandsSource)) {
     violations.push(`${relative(root, hostCommandsPath)}: dispatch is not bound to the current capability projection`);
+  }
+  const cachePolicySource = /fn should_cache_reply\([^)]*\)[^{]*\{([\s\S]*?)\n\}/.exec(
+    hostCommandsSource,
+  )?.[1];
+  const recoveryExcludedFromReplyCache = cachePolicySource !== undefined
+    && /LocalCommand::PrepareChangesRecovery\s*\{\s*\.\.\s*\}/u.test(cachePolicySource)
+    && /LocalCommand::DecideChangesRecovery\s*\{\s*\.\.\s*\}/u.test(cachePolicySource);
+  if (!recoveryExcludedFromReplyCache) {
+    violations.push(`${relative(root, hostCommandsPath)}: recovery commands must remain excluded from reply caching`);
+  }
+  if (
+    !/crate::recovery::prepare_recovery\([\s\S]{0,160}renderer_session/u.test(hostCommandsSource)
+    || !/crate::recovery::decide_recovery\([\s\S]{0,160}renderer_session/u.test(hostCommandsSource)
+  ) {
+    violations.push(`${relative(root, hostCommandsPath)}: recovery dispatch must pass authenticated renderer authority`);
   }
 }
 if (rendererClientSource !== undefined) {
@@ -1060,6 +1098,17 @@ if (rendererClientSource !== undefined) {
     violations.push(`${relative(root, rendererClientPath)}: renderer command catalog drifted from the host projection`);
   }
 }
+if (catalogTestSource !== undefined) {
+  const expectedCatalogSource = /expect\(desktopHostCommands\)\.toEqual\(\[([\s\S]*?)\]\);/.exec(
+    catalogTestSource,
+  )?.[1];
+  if (
+    expectedCatalogSource === undefined
+    || !sameOrderedValues(quotedStrings(expectedCatalogSource), reviewedReadyCommands)
+  ) {
+    violations.push(`${relative(root, catalogTestPath)}: tested renderer catalog drifted from the reviewed command catalog`);
+  }
+}
 if (ipcEnvelopeSource !== undefined) {
   const knownCommandSource = /fn is_known_command\([^)]*\)[^{]*\{([\s\S]*?)\n\}/.exec(
     ipcEnvelopeSource,
@@ -1069,6 +1118,53 @@ if (ipcEnvelopeSource !== undefined) {
     || !sameOrderedValues(quotedStrings(knownCommandSource), reviewedReadyCommands)
   ) {
     violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog drifted from the reviewed command catalog`);
+  }
+  const preparePayload = /struct PrepareChangesRecoveryPayload\s*\{([\s\S]*?)\n\}/.exec(
+    ipcEnvelopeSource,
+  )?.[1];
+  const decidePayload = /struct DecideChangesRecoveryPayload\s*\{([\s\S]*?)\n\}/.exec(
+    ipcEnvelopeSource,
+  )?.[1];
+  const recoveryPayloadFields = (source) => source === undefined
+    ? []
+    : [...source.matchAll(/^\s*([a-z][a-z0-9_]*):/gmu)].map((match) => match[1]);
+  if (
+    !sameOrderedValues(
+      recoveryPayloadFields(preparePayload),
+      ["workspace_id", "workspace_grant_epoch", "journal_id"],
+    )
+    || !sameOrderedValues(
+      recoveryPayloadFields(decidePayload),
+      ["recovery_approval_id", "displayed_recovery_hash", "choice"],
+    )
+  ) {
+    violations.push(`${relative(root, ipcEnvelopePath)}: recovery payload accepted fields drifted from the closed contract`);
+  }
+}
+if (runtimeCommandSource !== undefined) {
+  if (
+    !/Self::PrepareChangesRecovery\s*\{\s*\.\.\s*\}\s*=>\s*"changes\.recovery\.prepare"/u.test(runtimeCommandSource)
+    || !/Self::DecideChangesRecovery\s*\{\s*\.\.\s*\}\s*=>\s*"changes\.recovery\.decide"/u.test(runtimeCommandSource)
+    || !/Self::DecideApproval\s*\{\s*\.\.\s*\}\s*=>\s*"approval\.decide"/u.test(runtimeCommandSource)
+  ) {
+    violations.push(`${relative(root, runtimeCommandPath)}: recovery authority is not separated from ordinary approval`);
+  }
+}
+if (editsSource !== undefined) {
+  const openRecoveryProjection = /"recovery_required"\s*\|\s*"restoring"\s*\|\s*"manual_review"/u;
+  if (!openRecoveryProjection.test(editsSource)) {
+    violations.push(`${relative(root, editsPath)}: unresolved recovery journals are not all projected as open`);
+  }
+}
+if (storeExecutionSource !== undefined && updateSource !== undefined) {
+  const unresolvedRecoveryTest = /assert_eq!\(states,\s*\["recovery_required",\s*"restoring",\s*"manual_review"\]\)/u;
+  const updateBlocksOpenJournal = /if has_active_journal\s*\{[\s\S]{0,160}UpdateBlockReason::ActiveEffectJournal/u;
+  if (
+    !sameOrderedValues(updateBlockingRecoveryStates, ["recovery_required", "restoring", "manual_review"])
+    || !unresolvedRecoveryTest.test(storeExecutionSource)
+    || !updateBlocksOpenJournal.test(updateSource)
+  ) {
+    violations.push("unresolved recovery journals must remain update-blocking");
   }
 }
 

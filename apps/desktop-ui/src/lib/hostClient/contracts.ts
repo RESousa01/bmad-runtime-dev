@@ -57,6 +57,8 @@ export const desktopHostCommands = [
   "approval.decide",
   "rollback.request",
   "changes.history",
+  "changes.recovery.prepare",
+  "changes.recovery.decide",
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
@@ -470,6 +472,8 @@ export type RendererDispatchCommand =
   | "approval.decide"
   | "rollback.request"
   | "changes.history"
+  | "changes.recovery.prepare"
+  | "changes.recovery.decide"
   | "app.preferences.get"
   | "app.preferences.set"
   | "app.about"
