@@ -158,9 +158,11 @@ async function readyD1Runtime(): Promise<{ runtime: HostRuntime; invoke: ReturnT
 }
 
 async function reviewedRecoveryRuntime(options: {
+  decisionGate?: Promise<void>;
   expiresAt?: number;
   manualReasonCode?: "checkpoint_incomplete_or_inconsistent";
   now?: () => number;
+  onDecisionStarted?: () => void;
 } = {}): Promise<{
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
@@ -186,6 +188,7 @@ async function reviewedRecoveryRuntime(options: {
   };
   let request = 0;
   let sequence = 18;
+  let recoveryCompleted = false;
   const invoke = vi.fn<TauriInvoke>(async (command, args) => {
     if (command === "host_bootstrap") return bootstrap;
     const envelope = JSON.parse(String(args?.body)) as {
@@ -200,7 +203,7 @@ async function reviewedRecoveryRuntime(options: {
         value: {
           workspaceId: bootstrap.workspaces[0]!.workspaceId,
           entries: [],
-          openJournals: [{
+          openJournals: recoveryCompleted ? [] : [{
             journalId: "journal_01K0Q6H3",
             executionId: "execution_01K0Q6H3",
             state: "recovery_required",
@@ -240,6 +243,9 @@ async function reviewedRecoveryRuntime(options: {
       }, sequence);
     }
     if (envelope.command === "changes.recovery.decide") {
+      options.onDecisionStarted?.();
+      if (options.decisionGate) await options.decisionGate;
+      recoveryCompleted = envelope.payload.choice === "restore";
       return successfulReply(envelope.requestId, {
         kind: "changes_recovery_decision",
         value: {
@@ -1409,6 +1415,49 @@ describe("Sapphirus desktop workbench", () => {
         === "changes.recovery.decide";
     });
     expect(decisions).toHaveLength(0);
+  });
+
+  it("preserves an in-flight recovery decision across review expiry", async () => {
+    let releaseDecision!: () => void;
+    let markDecisionStarted!: () => void;
+    const decisionGate = new Promise<void>((resolve) => { releaseDecision = resolve; });
+    const decisionStarted = new Promise<void>((resolve) => { markDecisionStarted = resolve; });
+    const { runtime, invoke } = await reviewedRecoveryRuntime({
+      decisionGate,
+      expiresAt: Date.now() + 1_500,
+      now: () => Date.now(),
+      onDecisionStarted: markDecisionStarted,
+    });
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await screen.findAllByText("opaque-workspace-name");
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    await user.click(await screen.findByRole("button", { name: "Review recovery" }));
+    await user.click(await screen.findByRole("button", { name: "Restore checkpoint" }));
+    await decisionStarted;
+
+    await new Promise((resolve) => window.setTimeout(resolve, 1_700));
+    expect(screen.getByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
+    const restore = screen.getByRole<HTMLButtonElement>("button", { name: "Restore checkpoint" });
+    expect(restore.disabled).toBe(true);
+    await user.click(restore);
+    const dispatchCommands = () => invoke.mock.calls
+      .filter(([command, args]) => command === "host_dispatch" && args?.body)
+      .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
+    expect(dispatchCommands().filter((command) => command === "changes.recovery.prepare"))
+      .toHaveLength(1);
+    expect(dispatchCommands().filter((command) => command === "changes.recovery.decide"))
+      .toHaveLength(1);
+
+    releaseDecision();
+    await waitFor(() => expect(screen.queryByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeNull());
+    await waitFor(() => expect(
+      dispatchCommands().filter((command) => command === "changes.history"),
+    ).toHaveLength(2));
+    expect(screen.queryByRole("button", { name: "Review recovery" })).toBeNull();
   });
 
   it("renders owned manual-review copy for a closed native reason code", async () => {

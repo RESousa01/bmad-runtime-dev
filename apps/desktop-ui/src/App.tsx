@@ -1295,6 +1295,7 @@ export function App({
     const clearAtExpiry = () => {
       const remaining = recoveryReview.expiresAt - Date.now();
       if (remaining <= 0) {
+        if (recoveryDecisionRef.current) return;
         clearRecoveryReview();
         return;
       }
