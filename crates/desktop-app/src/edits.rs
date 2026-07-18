@@ -1111,7 +1111,7 @@ fn history_entry(
 /// Boot-time reconciliation of interrupted effect journals. The workspace
 /// broker restores read-only grants at startup, so no file can be observed or
 /// restored here; every disposition is decided from the durable state machine
-/// alone and anything ambiguous fails closed into `manual_review`.
+/// alone and interrupted effects remain quarantined for explicit review.
 pub(crate) fn reconcile_execution_journals(store: &LocalStore) -> Result<(), StoreError> {
     for journal in store.list_open_effect_journals()? {
         match journal.state.as_str() {
@@ -1139,24 +1139,24 @@ pub(crate) fn reconcile_execution_journals(store: &LocalStore) -> Result<(), Sto
                     &journal.journal_id,
                     "recovery_required",
                     &journal.journal_json,
-                    None,
+                    Some(&reconcile_evidence(
+                        &journal,
+                        "interrupted mid-effect; review required",
+                    )),
                 )?;
+            }
+            "recovery_required" | "manual_review" => {}
+            "restoring" => {
                 store.update_effect_journal(
                     &journal.journal_id,
                     "manual_review",
                     &journal.journal_json,
-                    Some(&reconcile_evidence(&journal, "interrupted mid-effect")),
+                    Some(&reconcile_evidence(
+                        &journal,
+                        "reviewed recovery was interrupted",
+                    )),
                 )?;
             }
-            "recovery_required" | "restoring" => {
-                store.update_effect_journal(
-                    &journal.journal_id,
-                    "manual_review",
-                    &journal.journal_json,
-                    Some(&reconcile_evidence(&journal, "recovery was interrupted")),
-                )?;
-            }
-            // `manual_review` is terminal and surfaced through history.
             _ => {}
         }
     }
@@ -1181,10 +1181,14 @@ mod tests {
     use std::fs;
 
     use desktop_runtime::{ApprovalChoice, ContractId, ProposedFileChange, RelativeWorkspacePath};
+    use desktop_store::{
+        EffectJournalUpsert, EvidenceAppend, ExecutionCheckpointAppend, ExecutionResultAppend,
+        LocalStore, StoreError,
+    };
 
     use super::{
         authorize_edits_scope, changes_proposal_binding, decide_approval, propose_changes,
-        request_rollback,
+        reconcile_execution_journals, request_rollback,
     };
     use crate::state::{now, HostState};
     use crate::wire::{ChangesReviewWire, HostCommandData};
@@ -1268,6 +1272,170 @@ mod tests {
             ApprovalChoice::Apply,
             now(),
         )
+    }
+
+    const TEST_HASH: &str =
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    fn unique_test_hash(value: usize) -> String {
+        format!("sha256:{value:064x}")
+    }
+
+    fn seed_journal(
+        store: &LocalStore,
+        index: usize,
+        target_state: &str,
+    ) -> Result<String, StoreError> {
+        let journal_id = format!("journal_boot_{index}");
+        let execution_id = format!("execution_boot_{index}");
+        let checkpoint_id = format!("checkpoint_boot_{index}");
+        let candidate_hash = unique_test_hash(index * 10 + 1);
+        let spec_hash = unique_test_hash(index * 10 + 4);
+        let consumption_hash = unique_test_hash(index * 10 + 5);
+        store.persist_execution_checkpoint(&ExecutionCheckpointAppend {
+            checkpoint_id: checkpoint_id.clone(),
+            workspace_target_hash: unique_test_hash(index * 10 + 2),
+            candidate_hash: candidate_hash.clone(),
+            manifest_hash: unique_test_hash(index * 10 + 3),
+            entry_count: 0,
+            checkpoint_json: br#"{}"#.to_vec(),
+        })?;
+        store.create_effect_journal(
+            &EffectJournalUpsert {
+                journal_id: journal_id.clone(),
+                execution_id: execution_id.clone(),
+                checkpoint_id,
+                candidate_hash,
+                spec_hash: spec_hash.clone(),
+                consumption_hash: consumption_hash.clone(),
+                workspace_id: "workspace_boot".to_owned(),
+                workspace_grant_epoch: 1,
+                state: "prepared".to_owned(),
+                journal_json: "{}".to_owned(),
+            },
+            &EvidenceAppend {
+                stream_id: format!("execution:{execution_id}"),
+                event_type: "execution.journal-created".to_owned(),
+                payload_hash: TEST_HASH.to_owned(),
+                payload_ref: None,
+                correlation_id: "test_boot_reconciliation".to_owned(),
+                causation_id: None,
+                redaction_level: "metadata".to_owned(),
+                retention_class: "evidence".to_owned(),
+            },
+        )?;
+
+        if target_state == "prepared" {
+            return Ok(journal_id);
+        }
+
+        let path = [
+            "checkpoint_durable",
+            "preconditions_verified",
+            "applying",
+            "effects_applied",
+            "postimages_verified",
+        ];
+        if target_state == "result_recorded" {
+            for state in path {
+                store.update_effect_journal(&journal_id, state, "{}", None)?;
+            }
+            store.record_execution_result(
+                &ExecutionResultAppend {
+                    execution_id: execution_id.clone(),
+                    journal_id: journal_id.clone(),
+                    checkpoint_id: format!("checkpoint_boot_{index}"),
+                    candidate_hash: unique_test_hash(index * 10 + 1),
+                    spec_hash,
+                    consumption_hash,
+                    result_hash: unique_test_hash(index * 10 + 6),
+                    result_json: "{}".to_owned(),
+                    file_count: 1,
+                    journal_json: "{}".to_owned(),
+                },
+                &EvidenceAppend {
+                    stream_id: format!("execution:{execution_id}"),
+                    event_type: "execution.result-recorded".to_owned(),
+                    payload_hash: TEST_HASH.to_owned(),
+                    payload_ref: None,
+                    correlation_id: "test_boot_reconciliation".to_owned(),
+                    causation_id: None,
+                    redaction_level: "metadata".to_owned(),
+                    retention_class: "evidence".to_owned(),
+                },
+            )?;
+        } else if target_state == "recovery_required" {
+            store.update_effect_journal(&journal_id, target_state, "{}", None)?;
+        } else if target_state == "restoring" || target_state == "manual_review" {
+            store.update_effect_journal(&journal_id, "recovery_required", "{}", None)?;
+            if target_state == "restoring" {
+                store.update_effect_journal(&journal_id, target_state, "{}", None)?;
+            } else {
+                store.update_effect_journal(&journal_id, "manual_review", "{}", None)?;
+            }
+        } else {
+            for state in path {
+                store.update_effect_journal(&journal_id, state, "{}", None)?;
+                if state == target_state {
+                    break;
+                }
+            }
+        }
+        Ok(journal_id)
+    }
+
+    #[test]
+    fn boot_reconciliation_is_metadata_only_and_preserves_reviewable_recovery(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let store_dir = tempfile::tempdir()?;
+        let workspace_dir = tempfile::tempdir()?;
+        let sentinel = workspace_dir.path().join("boot-sentinel.txt");
+        fs::write(&sentinel, "workspace must remain untouched\n")?;
+        let bytes_before = fs::read(&sentinel)?;
+        let metadata_before = fs::metadata(&sentinel)?;
+        let size_before = metadata_before.len();
+        let modified_before = metadata_before.modified()?;
+        let readonly_before = metadata_before.permissions().readonly();
+
+        let state = HostState::initialize(Some(store_dir.path().to_path_buf()))
+            .map_err(|error| error.safe_message)?;
+        let authority = state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = state
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        let transitions = [
+            ("prepared", "recovered"),
+            ("checkpoint_durable", "recovered"),
+            ("preconditions_verified", "recovered"),
+            ("result_recorded", "completed"),
+            ("applying", "recovery_required"),
+            ("effects_applied", "recovery_required"),
+            ("postimages_verified", "recovery_required"),
+            ("recovery_required", "recovery_required"),
+            ("restoring", "manual_review"),
+            ("manual_review", "manual_review"),
+        ];
+
+        for (index, (initial, expected)) in transitions.into_iter().enumerate() {
+            let journal_id = seed_journal(store, index, initial)
+                .map_err(|error| format!("failed to seed {initial}: {error:?}"))?;
+            reconcile_execution_journals(store)
+                .map_err(|error| format!("failed to reconcile {initial}: {error:?}"))?;
+            let journal = store
+                .load_effect_journal(&journal_id)?
+                .ok_or("seeded journal must remain durable")?;
+            assert_eq!(journal.state, expected, "{initial} boot disposition");
+        }
+        drop(authority);
+
+        let metadata_after = fs::metadata(&sentinel)?;
+        assert_eq!(fs::read(&sentinel)?, bytes_before);
+        assert_eq!(metadata_after.len(), size_before);
+        assert_eq!(metadata_after.modified()?, modified_before);
+        assert_eq!(metadata_after.permissions().readonly(), readonly_before);
+        Ok(())
     }
 
     #[test]

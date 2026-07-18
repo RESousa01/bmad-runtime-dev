@@ -663,7 +663,72 @@ fn execution_result_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Execut
 
 #[cfg(test)]
 mod tests {
-    use super::allowed_journal_transition;
+    use super::{allowed_journal_transition, EffectJournalUpsert, ExecutionCheckpointAppend};
+    use crate::{EvidenceAppend, KeyProtector, LocalStore, StoreError};
+
+    const TEST_HASH: &str =
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    fn unique_test_hash(value: usize) -> String {
+        format!("sha256:{value:064x}")
+    }
+
+    #[derive(Debug)]
+    struct TestProtector;
+
+    impl KeyProtector for TestProtector {
+        fn protect(&self, plaintext: &[u8]) -> Result<Vec<u8>, StoreError> {
+            Ok(plaintext.iter().map(|byte| byte ^ 0xA5).collect())
+        }
+
+        fn unprotect(&self, protected: &[u8]) -> Result<Vec<u8>, StoreError> {
+            Ok(protected.iter().map(|byte| byte ^ 0xA5).collect())
+        }
+    }
+
+    fn seed_open_journal(store: &LocalStore, index: usize, state: &str) -> Result<(), StoreError> {
+        let journal_id = format!("journal_open_{index}");
+        let execution_id = format!("execution_open_{index}");
+        let checkpoint_id = format!("checkpoint_open_{index}");
+        let candidate_hash = unique_test_hash(index * 10 + 1);
+        store.persist_execution_checkpoint(&ExecutionCheckpointAppend {
+            checkpoint_id: checkpoint_id.clone(),
+            workspace_target_hash: unique_test_hash(index * 10 + 2),
+            candidate_hash: candidate_hash.clone(),
+            manifest_hash: unique_test_hash(index * 10 + 3),
+            entry_count: 0,
+            checkpoint_json: br#"{}"#.to_vec(),
+        })?;
+        store.create_effect_journal(
+            &EffectJournalUpsert {
+                journal_id: journal_id.clone(),
+                execution_id: execution_id.clone(),
+                checkpoint_id,
+                candidate_hash,
+                spec_hash: unique_test_hash(index * 10 + 4),
+                consumption_hash: unique_test_hash(index * 10 + 5),
+                workspace_id: "workspace_open".to_owned(),
+                workspace_grant_epoch: 1,
+                state: "prepared".to_owned(),
+                journal_json: "{}".to_owned(),
+            },
+            &EvidenceAppend {
+                stream_id: format!("execution:{execution_id}"),
+                event_type: "execution.journal-created".to_owned(),
+                payload_hash: TEST_HASH.to_owned(),
+                payload_ref: None,
+                correlation_id: "test_open_journals".to_owned(),
+                causation_id: None,
+                redaction_level: "metadata".to_owned(),
+                retention_class: "evidence".to_owned(),
+            },
+        )?;
+        store.update_effect_journal(&journal_id, "recovery_required", "{}", None)?;
+        if state != "recovery_required" {
+            store.update_effect_journal(&journal_id, state, "{}", None)?;
+        }
+        Ok(())
+    }
 
     #[test]
     fn happy_path_transitions_are_allowed_in_order() {
@@ -702,12 +767,15 @@ mod tests {
     #[test]
     fn recovery_transitions_are_bounded() {
         assert!(allowed_journal_transition("applying", "recovery_required"));
+        assert!(allowed_journal_transition("recovery_required", "restoring"));
+        assert!(allowed_journal_transition("recovery_required", "recovered"));
         assert!(allowed_journal_transition(
             "recovery_required",
             "manual_review"
         ));
-        assert!(allowed_journal_transition("recovery_required", "recovered"));
         assert!(allowed_journal_transition("restoring", "recovered"));
+        assert!(allowed_journal_transition("restoring", "manual_review"));
+        assert!(!allowed_journal_transition("manual_review", "restoring"));
         assert!(allowed_journal_transition("prepared", "recovered"));
         assert!(!allowed_journal_transition("applying", "completed"));
         assert!(!allowed_journal_transition(
@@ -715,5 +783,25 @@ mod tests {
             "completed"
         ));
         assert!(!allowed_journal_transition("recovered", "restoring"));
+    }
+
+    #[test]
+    fn unresolved_recovery_journals_remain_open() -> Result<(), StoreError> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        for (index, state) in ["recovery_required", "restoring", "manual_review"]
+            .into_iter()
+            .enumerate()
+        {
+            seed_open_journal(&store, index, state)?;
+        }
+
+        let states = store
+            .list_open_effect_journals()?
+            .into_iter()
+            .map(|journal| journal.state)
+            .collect::<Vec<_>>();
+        assert_eq!(states, ["recovery_required", "restoring", "manual_review"]);
+        Ok(())
     }
 }
