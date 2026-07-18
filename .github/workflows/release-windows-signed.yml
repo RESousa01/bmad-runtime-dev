@@ -1,0 +1,172 @@
+name: Signed Windows installer qualification
+
+on:
+  workflow_dispatch:
+    inputs:
+      prior_run_id:
+        description: Trusted main-branch run containing the prior signed installer
+        required: true
+        type: string
+      prior_artifact_name:
+        description: Artifact name containing exactly one prior signed installer
+        required: true
+        type: string
+      prior_version:
+        description: Exact prior product version exercised by the upgrade test
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build-signed-installer:
+    if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
+    environment: windows-signing
+    runs-on: [self-hosted, windows, x64, sapphirus-signing]
+    outputs:
+      product_version: ${{ steps.release-metadata.outputs.product_version }}
+      installer_name: ${{ steps.release-metadata.outputs.installer_name }}
+    env:
+      SAPPHIRUS_SIGNING_CERT_THUMBPRINT: ${{ secrets.SAPPHIRUS_SIGNING_CERT_THUMBPRINT }}
+      SAPPHIRUS_TIMESTAMP_URL: ${{ vars.SAPPHIRUS_TIMESTAMP_URL }}
+      SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Assert exact protected source
+        shell: pwsh
+        run: |
+          $head = (git rev-parse --verify HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $head -ne $env:SAPPHIRUS_EXPECTED_REVISION) {
+            throw 'Signing checkout does not match the dispatched revision.'
+          }
+          if (@(git status --porcelain --untracked-files=normal).Count -ne 0) {
+            throw 'Signing checkout is not clean.'
+          }
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.12.0
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
+        with:
+          toolchain: 1.97.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:source
+      - name: Resolve and validate release metadata
+        id: release-metadata
+        shell: pwsh
+        run: |
+          $tauriVersion = [string] (Get-Content crates/desktop-app/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $rootVersion = [string] (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $rendererVersion = [string] (Get-Content apps/desktop-ui/package.json -Raw | ConvertFrom-Json).version
+          $cargoSource = Get-Content Cargo.toml -Raw
+          $cargoMatch = [regex]::Match($cargoSource, '(?ms)^\[workspace\.package\].*?^version\s*=\s*"([^"]+)"')
+          if (-not $cargoMatch.Success) {
+            throw 'Workspace product version is missing.'
+          }
+          $versions = @($tauriVersion, $rootVersion, $rendererVersion, $cargoMatch.Groups[1].Value) | Sort-Object -Unique
+          if ($versions.Count -ne 1 -or $tauriVersion -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Release versions are invalid or disagree: $($versions -join ', ')."
+          }
+          "product_version=$tauriVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "installer_name=Sapphirus_${tauriVersion}_x64-setup.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Build signed current-source installer
+        shell: pwsh
+        run: >-
+          ./tools/build-signed-windows-installer.ps1
+          -EvidencePath "${{ runner.temp }}/sapphirus-signed-build-evidence.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-current-source-candidate-${{ github.sha }}
+          path: |
+            target/release/bundle/nsis/${{ steps.release-metadata.outputs.installer_name }}
+            target/release/sapphirus.exe
+            ${{ runner.temp }}/sapphirus-signed-build-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+
+  qualify-signed-installer:
+    needs: build-signed-installer
+    if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
+    environment: windows-release-qualification
+    runs-on: [self-hosted, windows, x64, sapphirus-qualification]
+    env:
+      SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
+      SAPPHIRUS_RELEASE_VERSION: ${{ needs.build-signed-installer.outputs.product_version }}
+      SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
+      SAPPHIRUS_PRIOR_VERSION: ${{ inputs.prior_version }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-current-source-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/sapphirus-current-installer
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.prior_artifact_name }}
+          path: ${{ runner.temp }}/sapphirus-prior-installer
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.prior_run_id }}
+      - name: Resolve and bind qualification inputs
+        shell: pwsh
+        run: |
+          $currentRoot = "${{ runner.temp }}/sapphirus-current-installer"
+          $currentInstallers = @(Get-ChildItem $currentRoot -Recurse -File -Filter $env:SAPPHIRUS_INSTALLER_NAME)
+          $buildEvidenceFiles = @(Get-ChildItem $currentRoot -Recurse -File -Filter 'sapphirus-signed-build-evidence.json')
+          $priorInstallers = @(Get-ChildItem "${{ runner.temp }}/sapphirus-prior-installer" -Recurse -File -Filter '*_x64-setup.exe')
+          if ($currentInstallers.Count -ne 1 -or $buildEvidenceFiles.Count -ne 1 -or $priorInstallers.Count -ne 1) {
+            throw 'Qualification artifacts do not have the required exact shape.'
+          }
+          $buildEvidence = Get-Content $buildEvidenceFiles[0].FullName -Raw | ConvertFrom-Json
+          $currentHash = (Get-FileHash $currentInstallers[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if (
+            $buildEvidence.sourceRevision -ne $env:SAPPHIRUS_EXPECTED_REVISION -or
+            $buildEvidence.productVersion -ne $env:SAPPHIRUS_RELEASE_VERSION -or
+            $buildEvidence.installer.sha256 -ne $currentHash
+          ) {
+            throw 'Signed candidate does not match its source-bound build evidence.'
+          }
+          "SAPPHIRUS_CURRENT_INSTALLER=$($currentInstallers[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SAPPHIRUS_PRIOR_INSTALLER=$($priorInstallers[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SAPPHIRUS_BUILD_EVIDENCE=$($buildEvidenceFiles[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Qualify signed install, upgrade, launch, and uninstall
+        shell: pwsh
+        run: >-
+          ./tools/qualify-windows-installer.ps1
+          -InstallerPath "$env:SAPPHIRUS_CURRENT_INSTALLER"
+          -ExpectedVersion "$env:SAPPHIRUS_RELEASE_VERSION"
+          -InstallRoot "${{ runner.temp }}/sapphirus-signed-install"
+          -EvidencePath "${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json"
+          -PriorInstallerPath "$env:SAPPHIRUS_PRIOR_INSTALLER"
+          -ExpectedPriorVersion "$env:SAPPHIRUS_PRIOR_VERSION"
+          -RequireValidSignature
+      - name: Bind lifecycle evidence to signed build evidence
+        shell: pwsh
+        run: |
+          $buildEvidence = Get-Content "$env:SAPPHIRUS_BUILD_EVIDENCE" -Raw | ConvertFrom-Json
+          $lifecycleEvidence = Get-Content "${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json" -Raw | ConvertFrom-Json
+          if (
+            $buildEvidence.installer.sha256 -ne $lifecycleEvidence.artifact.sha256 -or
+            $buildEvidence.application.sha256 -ne $lifecycleEvidence.lifecycle.installedExecutableSha256
+          ) {
+            throw 'Lifecycle evidence does not describe the exact signed build artifacts.'
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-installer-qualification-${{ github.sha }}
+          path: |
+            ${{ env.SAPPHIRUS_BUILD_EVIDENCE }}
+            ${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json
+          if-no-files-found: error
+          retention-days: 14

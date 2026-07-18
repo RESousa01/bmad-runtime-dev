@@ -41,15 +41,16 @@
 ## Review ledger
 
 - Implementer full-diff review: executed 2026-07-18 during lane consolidation on branch `p0-baseline-consolidation` (commits `21142772`, `1c2125d3`, `a6229ad2`, `d3cd1125`, docs + gitignore).
-- Independent bug/security review: executed 2026-07-18 across renderer, native IPC/workspace, contracts/codegen, toolchain/security, and release scope. Blocking findings were the packet authority mismatch, a literal U+001F left in `bmadProtocol.ts`, incomplete C0/C# scanner coverage, and qualified verb-first BMAD guard bypasses. All were corrected on the branch; exact-HEAD CI remains required before merge.
+- Independent bug/security review: executed 2026-07-18 across renderer, native IPC/workspace, contracts/codegen, toolchain/security, and release scope. Blocking findings were the packet authority mismatch, a literal U+001F left in `bmadProtocol.ts`, incomplete C0/C# scanner coverage, and qualified verb-first BMAD guard bypasses. All were corrected and re-reviewed before publication.
 - Commands executed (2026-07-18, pinned Node 24.18.0 / pnpm 11.12.0 via user-level corepack shim):
   - `pnpm verify:source` — two consecutive green passes.
   - `pnpm contracts:verify:cross-language` — two consecutive green passes (104 pass, 1 environment skip).
   - Renderer full suite — five consecutive green passes (296/296).
   - `cargo fmt --all --check`, `cargo clippy --workspace --all-features --all-targets -- -D warnings`, `cargo test --workspace --all-features` — green.
   - Post-review `pnpm verify:source` — green, including renderer 296/296 and production build; final expanded first-party secret scan — 3,322 files green; scanner regression — 5/5 green; qualified generated-binding guard — green.
+  - Pull request #3 required CI on exact commit `5df63dc` — source-only, TypeScript Ubuntu, TypeScript Windows, and generator qualification all green; merged 2026-07-18 as `c76f7ca871b9728d92d04d331d7f70bce0084c2f`.
   - `git status` clean after lane commits.
-- Checks skipped and reason: .NET-only qualification lane not run standalone (exercised inside cross-language qualification); installer/signing checks explicitly deferred to P1; required CI checks not yet run (branch not pushed — push is the user's call).
+- Checks skipped and reason: .NET-only qualification lane not run standalone (exercised inside cross-language qualification); installer/signing checks explicitly deferred to P1.
 - Findings during implementation:
   - The NUL defect class was reproduced live: passing `\u0000` through JSON-encoded tooling writes the literal byte. Adversarial review found the same class as a literal U+001F in `bmadProtocol.ts`; the scanner now rejects prohibited C0 controls and covers first-party C#/MSBuild sources.
   - The vocabulary guard hid two distinct issues: the reversed-alternative regex false positive (fixed with `(?<![0-9A-Za-z])` token boundaries) and a genuine leak, the `builder_activation_gated` blocker code, renamed to `builder_engine_gated` across Rust and TypeScript.

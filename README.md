@@ -19,7 +19,7 @@ journal reconciliation that fails closed to manual review. The deterministic Hel
 an inert local review and one-shot consent flow without contacting a provider. Production model
 brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
 on Windows; the offline NSIS installer has local install, launch, prior-version upgrade, exact
-BMAD-resource, uninstall, and residue evidence. Authenticode signing, timestamping, and an
+BMAD-resource, uninstall, and install-root removal evidence. Authenticode signing, timestamping, and an
 independent clean-machine release run remain outstanding. Governed proposals currently originate
 from the renderer's review flow, not from a model.
 
@@ -54,6 +54,11 @@ the Vite web-asset build. It does not read or execute imported context-vault con
 `vault:check` command is a development audit only. The contract generator-qualification job is an
 unconditional Windows CI gate with pinned Rust and .NET tools. Desktop packaging remains a manual
 native CI job guarded by the organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` setting.
+The P1 signed-installer qualification job is additionally guarded by
+`SAPPHIRUS_SIGNING_LANE_ENABLED`, a protected `windows-signing` environment, and an
+organization-managed signing runner. A separate qualification runner executes the required prior
+installer and records exact-source signed-build plus install/upgrade/launch/uninstall evidence; it
+does not publish a release.
 
 Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update feed and
 `SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled

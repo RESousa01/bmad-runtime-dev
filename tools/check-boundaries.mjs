@@ -462,7 +462,11 @@ if (pnpmLockSource !== undefined) {
   }
 }
 
-for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-run.yml"]) {
+for (const workflowName of [
+  "desktop.yml",
+  "security-nightly.yml",
+  "release-dry-run.yml",
+]) {
   const workflowPath = join(root, ".github", "workflows", workflowName);
   const workflowSource = await requiredText(workflowPath);
   if (
@@ -473,6 +477,88 @@ for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-
     violations.push(
       `${relative(root, workflowPath)}: native workflow is missing the organization-controlled freeze gate`,
     );
+  }
+}
+
+const signedReleasePath = join(root, ".github", "workflows", "release-windows-signed.yml");
+const signedReleaseSource = await requiredText(signedReleasePath);
+if (signedReleaseSource !== undefined) {
+  for (const match of signedReleaseSource.matchAll(/^\s*- uses: ([^\s#]+)/gmu)) {
+    if (!/^[^@]+@[0-9a-f]{40}$/u.test(match[1])) {
+      violations.push(
+        `${relative(root, signedReleasePath)}: action reference must use a reviewed full commit SHA (${match[1]})`,
+      );
+    }
+  }
+  for (const [pattern, message] of [
+    [
+      /github\.ref == 'refs\/heads\/main'/u,
+      "must only sign the protected main branch",
+    ],
+    [
+      /vars\.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true'/u,
+      "must remain behind the organization native-lane gate",
+    ],
+    [
+      /vars\.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true'/u,
+      "must remain behind the organization signing-lane gate",
+    ],
+    [
+      /^ {4}environment: windows-signing\s*$/mu,
+      "must use the protected organization signing environment",
+    ],
+    [
+      /^ {4}runs-on: \[self-hosted, windows, x64, sapphirus-signing\]\s*$/mu,
+      "must use an organization-managed signing runner",
+    ],
+    [
+      /^ {4}runs-on: \[self-hosted, windows, x64, sapphirus-qualification\]\s*$/mu,
+      "must execute installers on a separate qualification runner",
+    ],
+    [
+      /uses: actions\/checkout@[0-9a-f]{40}/u,
+      "must pin checkout to an immutable commit",
+    ],
+    [
+      /uses: dtolnay\/rust-toolchain@[0-9a-f]{40}/u,
+      "must pin the Rust setup action to an immutable commit",
+    ],
+    [
+      /\.\/tools\/build-signed-windows-installer\.ps1\s*$/mu,
+      "must execute the repository-owned signed build",
+    ],
+    [
+      /-RequireValidSignature\s*$/mu,
+      "must fail closed unless the installer and installed application signatures are valid",
+    ],
+    [
+      /-PriorInstallerPath "\$env:SAPPHIRUS_PRIOR_INSTALLER"\s*$/mu,
+      "must exercise an upgrade from an explicit prior installer",
+    ],
+    [
+      /-ExpectedPriorVersion "\$env:SAPPHIRUS_PRIOR_VERSION"\s*$/mu,
+      "must pass dispatcher input through the environment rather than shell interpolation",
+    ],
+    [
+      /sapphirus-signed-build-evidence\.json\s*$/mu,
+      "must retain signed-build evidence",
+    ],
+    [
+      /sapphirus-signed-lifecycle-evidence\.json\s*$/mu,
+      "must retain signed lifecycle evidence",
+    ],
+    [
+      /buildEvidence\.installer\.sha256 -ne \$lifecycleEvidence\.artifact\.sha256/u,
+      "must bind lifecycle evidence to the exact signed installer",
+    ],
+    [
+      /buildEvidence\.application\.sha256 -ne \$lifecycleEvidence\.lifecycle\.installedExecutableSha256/u,
+      "must bind the installed executable to the exact signed application",
+    ],
+  ]) {
+    if (!pattern.test(signedReleaseSource)) {
+      violations.push(`${relative(root, signedReleasePath)}: ${message}`);
+    }
   }
 }
 
@@ -511,10 +597,28 @@ if (installerQualificationSource !== undefined) {
     [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
     [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
     [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
+    [/Prior and current installers use different publishers/u, "must reject a prior installer from another publisher"],
+    [/Assert-CleanQualificationAccount\s*\n\s*\$lifecycleComplete/u, "must recheck uninstall registration after removal"],
     [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
   ]) {
     if (!pattern.test(installerQualificationSource)) {
       violations.push(`${relative(root, installerQualificationPath)}: ${message}`);
+    }
+  }
+}
+
+const signedBuildPath = join(root, "tools", "build-signed-windows-installer.ps1");
+const signedBuildSource = await requiredText(signedBuildPath);
+if (signedBuildSource !== undefined) {
+  for (const [pattern, message] of [
+    [/\[string\] \$EvidencePath/u, "must require a durable signed-build evidence path"],
+    [/sourceRevision = \$sourceRevision\.ToLowerInvariant\(\)/u, "must bind evidence to the exact source revision"],
+    [/sourceTreeState = 'clean'/u, "must record a clean source tree"],
+    [/Signed release builds require a clean source worktree/u, "must reject dirty source builds"],
+    [/Assert-TimestampedPublisherSignature/u, "must verify publisher signatures and timestamps"],
+  ]) {
+    if (!pattern.test(signedBuildSource)) {
+      violations.push(`${relative(root, signedBuildPath)}: ${message}`);
     }
   }
 }

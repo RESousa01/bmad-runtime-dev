@@ -11,7 +11,11 @@ param(
 
     [string] $ApplicationPath = 'target/release/sapphirus.exe',
 
-    [string] $InstallerPath = 'target/release/bundle/nsis/Sapphirus_0.1.0_x64-setup.exe'
+    [string] $InstallerPath,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $EvidencePath
 )
 
 Set-StrictMode -Version Latest
@@ -28,6 +32,25 @@ function Resolve-RegularFile {
     return $item.FullName
 }
 
+function Resolve-NewEvidenceFile {
+    param([Parameter(Mandatory = $true)][string] $Path)
+
+    $absolutePath = if ([IO.Path]::IsPathRooted($Path)) {
+        [IO.Path]::GetFullPath($Path)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path (Get-Location).Path $Path))
+    }
+    $parentPath = Split-Path -Parent $absolutePath
+    $parent = Get-Item -LiteralPath $parentPath -Force
+    if (-not $parent.PSIsContainer -or ($parent.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw 'Signed-build evidence parent must be an existing regular directory.'
+    }
+    if (Test-Path -LiteralPath $absolutePath) {
+        throw 'Signed-build evidence path must not already exist.'
+    }
+    return $absolutePath
+}
+
 function Assert-ValidTimestampUrl {
     param([Parameter(Mandatory = $true)][string] $Url)
 
@@ -39,9 +62,9 @@ function Assert-ValidTimestampUrl {
         throw 'SAPPHIRUS_TIMESTAMP_URL must use HTTPS and include a host.'
     }
     if (
-        -not [string]::IsNullOrWhiteSpace($uri.UserInfo)
-        -or -not [string]::IsNullOrWhiteSpace($uri.Query)
-        -or -not [string]::IsNullOrWhiteSpace($uri.Fragment)
+        -not [string]::IsNullOrWhiteSpace($uri.UserInfo) -or
+        -not [string]::IsNullOrWhiteSpace($uri.Query) -or
+        -not [string]::IsNullOrWhiteSpace($uri.Fragment)
     ) {
         throw 'SAPPHIRUS_TIMESTAMP_URL must not contain credentials, a query, or a fragment.'
     }
@@ -123,6 +146,34 @@ if ($normalizedThumbprint -notmatch '^[0-9A-F]{40}$') {
 $validatedTimestampUrl = Assert-ValidTimestampUrl -Url $timestampInput
 $certificate = Find-CodeSigningCertificate -Thumbprint $normalizedThumbprint
 $configuration = Resolve-RegularFile -Path $ConfigPath
+$configurationJson = Get-Content -LiteralPath $configuration -Raw | ConvertFrom-Json
+$productVersion = [string] $configurationJson.version
+if ($productVersion -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+    throw 'Tauri configuration contains an invalid product version.'
+}
+if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
+    $InstallerPath = "target/release/bundle/nsis/Sapphirus_${productVersion}_x64-setup.exe"
+}
+$evidenceFile = Resolve-NewEvidenceFile -Path $EvidencePath
+
+$git = Get-Command 'git.exe' -ErrorAction SilentlyContinue
+if ($null -eq $git) {
+    $git = Get-Command 'git' -ErrorAction SilentlyContinue
+}
+if ($null -eq $git) {
+    throw 'Git is unavailable on PATH.'
+}
+$sourceRevision = (& $git.Source rev-parse --verify HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
+    throw 'Unable to resolve the exact source revision for the signed build.'
+}
+$sourceChanges = @(& $git.Source status --porcelain --untracked-files=normal)
+if ($LASTEXITCODE -ne 0) {
+    throw 'Unable to verify the source worktree state for the signed build.'
+}
+if ($sourceChanges.Count -ne 0) {
+    throw 'Signed release builds require a clean source worktree.'
+}
 
 $pnpm = Get-Command 'pnpm.cmd' -ErrorAction SilentlyContinue
 if ($null -eq $pnpm) {
@@ -182,8 +233,11 @@ try {
     $applicationSignature = Assert-TimestampedPublisherSignature -Path $application -PublisherThumbprint $normalizedThumbprint
     $installerSignature = Assert-TimestampedPublisherSignature -Path $installer -PublisherThumbprint $normalizedThumbprint
 
-    [ordered]@{
+    $evidence = [ordered]@{
         schemaVersion = 1
+        sourceRevision = $sourceRevision.ToLowerInvariant()
+        sourceTreeState = 'clean'
+        productVersion = $productVersion
         certificateThumbprint = $certificate.Thumbprint
         certificateNotAfterUtc = $certificate.NotAfter.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
         timestampProtocol = $TimestampProtocol
@@ -197,7 +251,14 @@ try {
             authenticodeStatus = $installerSignature.Status.ToString()
             timestamperThumbprint = $installerSignature.TimeStamperCertificate.Thumbprint
         }
-    } | ConvertTo-Json -Depth 5
+    }
+    $evidenceJson = $evidence | ConvertTo-Json -Depth 5
+    [IO.File]::WriteAllText(
+        $evidenceFile,
+        ($evidenceJson + [Environment]::NewLine),
+        [Text.UTF8Encoding]::new($false)
+    )
+    $evidenceJson
 }
 finally {
     if (Test-Path -LiteralPath $overlayPath -PathType Leaf) {
