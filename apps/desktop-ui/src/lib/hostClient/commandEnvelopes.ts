@@ -5,10 +5,21 @@ import {
   type DensityPreference,
   type HostBinding,
   type ProposedChange,
+  type RecoveryApprovalChoice,
   type RendererDispatchCommand,
   type ThemePreference,
 } from "./contracts";
-import { asContractId, asSha256, asUnsignedInteger } from "./validation";
+import {
+  asContractId,
+  asSha256,
+  asUnsignedInteger,
+  fail,
+} from "./validation";
+
+function asPositiveRecoveryEpoch(value: unknown): number {
+  const epoch = asUnsignedInteger(value);
+  return epoch < 1 ? fail() : epoch;
+}
 
 export function buildWorkspaceSelectionEnvelope(
   binding: HostBinding,
@@ -323,6 +334,67 @@ export function buildRollbackRequestEnvelope(
   };
 }
 
+export function buildChangesRecoveryPrepareEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  journalId: string,
+): CommandEnvelope<
+  "changes.recovery.prepare",
+  { workspaceId: string; workspaceGrantEpoch: number; journalId: string }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "changes.recovery.prepare",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveRecoveryEpoch(workspaceGrantEpoch),
+      journalId: asContractId(journalId),
+    },
+  };
+}
+
+export function buildChangesRecoveryDecisionEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  recoveryApprovalId: string,
+  displayedRecoveryHash: string,
+  choice: RecoveryApprovalChoice,
+): CommandEnvelope<
+  "changes.recovery.decide",
+  {
+    recoveryApprovalId: string;
+    displayedRecoveryHash: string;
+    choice: RecoveryApprovalChoice;
+  }
+> {
+  if (choice !== "restore" && choice !== "cancel") {
+    return fail();
+  }
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "changes.recovery.decide",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      recoveryApprovalId: asContractId(recoveryApprovalId),
+      displayedRecoveryHash: asSha256(displayedRecoveryHash),
+      choice,
+    },
+  };
+}
+
 export function buildReadOnlyEnvelope<
   TCommand extends Exclude<
     RendererDispatchCommand,
@@ -343,6 +415,8 @@ export function buildReadOnlyEnvelope<
     | "approval.decide"
     | "rollback.request"
     | "changes.history"
+    | "changes.recovery.prepare"
+    | "changes.recovery.decide"
   >,
 >(
   binding: HostBinding,

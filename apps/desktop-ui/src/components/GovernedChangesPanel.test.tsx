@@ -4,6 +4,7 @@ import type {
   ChangesExecutionProjection,
   ChangesHistoryProjection,
   ChangesReviewEnvelopeProjection,
+  ChangesRecoveryPrepared,
 } from "../lib/hostClient";
 import {
   GovernedChangesPanel,
@@ -65,6 +66,20 @@ const changesHistory: ChangesHistoryProjection = {
   openJournals: [],
 };
 
+const recoveryReview: Extract<ChangesRecoveryPrepared, { status: "review_required" }> = {
+  status: "review_required",
+  recoveryApprovalId: "recovery_private_01J00000000000000000000000",
+  displayedRecoveryHash: sha("e"),
+  journalId: "journal_private_01J00000000000000000000000",
+  executionId: "execution_private_01J00000000000000000000000",
+  operations: [{
+    relativePath: "src/main.rs",
+    operation: "replace",
+    explanation: "Restore the file content saved before the interrupted change.",
+  }],
+  expiresAt: 601_000,
+};
+
 function createProps(
   overrides: Partial<GovernedChangesPanelProps> = {},
 ): GovernedChangesPanelProps {
@@ -74,12 +89,17 @@ function createProps(
     errorMessage: null,
     onDecide: vi.fn(),
     onEnableEdits: vi.fn(),
+    onDecideRecovery: vi.fn(),
+    onPrepareRecovery: vi.fn(),
     onRefreshHistory: vi.fn(),
     onPropose: vi.fn(),
     onStartNewProposal: vi.fn(),
     onUndo: vi.fn(),
     history: null,
     historyBusy: false,
+    recoveryBusy: false,
+    recoveryReturnFocusTarget: null,
+    recoveryReview: null,
     state: { kind: "idle" },
     ...overrides,
   };
@@ -206,6 +226,63 @@ describe("GovernedChangesPanel", () => {
     expect(props.onUndo).toHaveBeenCalledWith(appliedExecution.executionId);
     fireEvent.click(screen.getByRole("button", { name: "Refresh history" }));
     expect(props.onRefreshHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the shared recovery review from history without exposing private bindings", () => {
+    const onPrepareRecovery = vi.fn();
+    const historyWithRecovery: ChangesHistoryProjection = {
+      ...changesHistory,
+      openJournals: [{
+        journalId: recoveryReview.journalId,
+        executionId: recoveryReview.executionId,
+        state: "recovery_required",
+        updatedAt: "2026-07-18T00:00:00Z",
+        recoveryAvailability: "review_available",
+      }],
+    };
+    const { rerender } = render(<GovernedChangesPanel {...createProps({
+      history: historyWithRecovery,
+      onPrepareRecovery,
+    })} />);
+    const trigger = screen.getByRole("button", { name: "Review recovery" });
+    fireEvent.click(trigger);
+    expect(onPrepareRecovery).toHaveBeenCalledWith(recoveryReview.journalId, trigger);
+
+    rerender(<GovernedChangesPanel {...createProps({
+      history: historyWithRecovery,
+      recoveryReview,
+      recoveryReturnFocusTarget: trigger,
+    })} />);
+    expect(screen.getByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
+    expect(document.body.textContent).not.toContain(recoveryReview.displayedRecoveryHash);
+    expect(document.body.textContent).not.toContain(recoveryReview.recoveryApprovalId);
+  });
+
+  it("shows quarantined and manual-review journals without a restore action", () => {
+    render(<GovernedChangesPanel {...createProps({
+      history: {
+        ...changesHistory,
+        openJournals: [
+          {
+            journalId: "journal_quarantined",
+            executionId: "execution_quarantined",
+            state: "recovery_required",
+            updatedAt: "2026-07-18T00:00:00Z",
+            recoveryAvailability: "quarantined",
+          },
+          {
+            journalId: "journal_manual",
+            executionId: "execution_manual",
+            state: "manual_review",
+            updatedAt: "2026-07-18T00:00:00Z",
+            recoveryAvailability: "manual_review",
+          },
+        ],
+      },
+    })} />);
+    expect(screen.getByText(/exact workspace and governed-edits grant/i)).toBeTruthy();
+    expect(screen.getByText(/requires manual review outside this recovery flow/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Restore checkpoint" })).toBeNull();
   });
 
   it("explains undo conflicts without offering an effect", () => {

@@ -14,7 +14,12 @@ function createProps(overrides: Partial<ActivityPanelProps> = {}): ActivityPanel
     historyAvailable: true,
     historyBusy: false,
     onRefreshHistory: vi.fn(),
+    onDecideRecovery: vi.fn(),
+    onPrepareRecovery: vi.fn(),
     onUndo: vi.fn(),
+    recoveryBusy: false,
+    recoveryReturnFocusTarget: null,
+    recoveryReview: null,
     ...overrides,
   };
 }
@@ -73,6 +78,7 @@ describe("ActivityPanel", () => {
                 executionId: "execution_9",
                 state: "recovery_required",
                 updatedAt: "2026-07-18T00:00:00Z",
+                recoveryAvailability: "review_available",
               },
             ],
           },
@@ -80,7 +86,29 @@ describe("ActivityPanel", () => {
       />,
     );
     expect(screen.getByText(/execution journal needs attention/)).toBeTruthy();
-    expect(screen.getByText(/recovery required/)).toBeTruthy();
+    expect(screen.getAllByText(/recovery required/)).toHaveLength(2);
+  });
+
+  it("uses the same recovery preparation entry point from Activity", async () => {
+    const user = userEvent.setup();
+    const onPrepareRecovery = vi.fn();
+    render(<ActivityPanel {...createProps({
+      onPrepareRecovery,
+      history: {
+        ...history,
+        entries: [],
+        openJournals: [{
+          journalId: "journal_1",
+          executionId: "execution_9",
+          state: "recovery_required",
+          updatedAt: "2026-07-18T00:00:00Z",
+          recoveryAvailability: "review_available",
+        }],
+      },
+    })} />);
+    const trigger = screen.getByRole("button", { name: "Review recovery" });
+    await user.click(trigger);
+    expect(onPrepareRecovery).toHaveBeenCalledWith("journal_1", trigger);
   });
 
   it("summarizes a completed skill-guidance run", () => {

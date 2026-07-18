@@ -108,6 +108,7 @@ export const localEditsLimits = {
   historyEntries: 50,
   openJournals: 64,
   reviewFiles: 20,
+  recoveryOperations: 20,
   undoConflicts: 20,
 } as const;
 
@@ -408,6 +409,45 @@ export interface ChangesOpenJournalProjection {
   executionId: string;
   state: string;
   updatedAt: string;
+  recoveryAvailability: "review_available" | "quarantined" | "manual_review";
+}
+
+export type RecoveryApprovalChoice = "restore" | "cancel";
+
+export interface RecoveryOperationSummaryProjection {
+  relativePath: string;
+  operation: "create" | "replace" | "delete";
+  explanation: string;
+}
+
+export type ChangesRecoveryPrepared =
+  | {
+      status: "review_required";
+      recoveryApprovalId: string;
+      displayedRecoveryHash: string;
+      journalId: string;
+      executionId: string;
+      operations: RecoveryOperationSummaryProjection[];
+      expiresAt: number;
+    }
+  | {
+      status: "already_recovered";
+      journalId: string;
+      executionId: string;
+    }
+  | {
+      status: "manual_review";
+      journalId: string;
+      executionId: string;
+      reason: string;
+    };
+
+export interface ChangesRecoveryDecision {
+  recoveryApprovalId: string;
+  disposition: "recovered" | "cancelled";
+  journalId: string;
+  executionId: string;
+  restoredFiles: number;
 }
 
 export interface ChangesHistoryProjection {

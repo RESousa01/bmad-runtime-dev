@@ -14,11 +14,14 @@ import type {
   ApprovalChoice,
   ChangesExecutionProjection,
   ChangesHistoryProjection,
+  ChangesRecoveryPrepared,
   ChangesReviewEnvelopeProjection,
   ChangesReviewFileProjection,
   ChangesUndoUnavailableProjection,
   ProposedChange,
+  RecoveryApprovalChoice,
 } from "../lib/hostClient";
+import { RecoveryReview } from "./RecoveryReview";
 
 export type GovernedChangesUiState =
   | { kind: "unavailable"; reason: string }
@@ -37,10 +40,15 @@ export interface GovernedChangesPanelProps {
   historyBusy: boolean;
   onDecide: (choice: ApprovalChoice) => void;
   onEnableEdits: () => void;
+  onDecideRecovery: (choice: RecoveryApprovalChoice) => void;
+  onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
   onRefreshHistory: () => void;
   onPropose: (changes: readonly ProposedChange[]) => void;
   onStartNewProposal: () => void;
   onUndo: (executionId: string) => void;
+  recoveryBusy: boolean;
+  recoveryReturnFocusTarget: HTMLElement | null;
+  recoveryReview: Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null;
   state: GovernedChangesUiState;
 }
 
@@ -48,12 +56,16 @@ function ChangeHistory({
   history,
   historyBusy,
   onRefreshHistory,
+  onPrepareRecovery,
   onUndo,
+  recoveryBusy,
 }: {
   history: ChangesHistoryProjection | null;
   historyBusy: boolean;
   onRefreshHistory: () => void;
+  onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
   onUndo: (executionId: string) => void;
+  recoveryBusy: boolean;
 }) {
   return (
     <section aria-labelledby="change-history-heading" className="changes-history">
@@ -75,6 +87,39 @@ function ChangeHistory({
           <ShieldAlert aria-hidden="true" size={16} />
           {history.openJournals.length} change journal{history.openJournals.length === 1 ? "" : "s"}
           {" require recovery review."}
+        </div>
+      ) : null}
+      {history?.openJournals.length ? (
+        <div aria-label="Open recovery journals" className="changes-history__list" role="list">
+          {history.openJournals.map((journal) => (
+            <div className="changes-history__row" key={journal.journalId} role="listitem">
+              <div>
+                <strong>{journal.state.replaceAll("_", " ")}</strong>
+                {journal.recoveryAvailability === "quarantined" ? (
+                  <p>Select the exact workspace and governed-edits grant to review recovery.</p>
+                ) : journal.recoveryAvailability === "manual_review" ? (
+                  <p>This journal requires manual review outside this recovery flow.</p>
+                ) : (
+                  <p>A bounded checkpoint review is available.</p>
+                )}
+              </div>
+              {journal.recoveryAvailability === "review_available" ? (
+                <Button
+                  aria-label="Review recovery"
+                  isDisabled={historyBusy || recoveryBusy}
+                  onPress={(event) => {
+                    if (event.target instanceof HTMLElement) {
+                      onPrepareRecovery(journal.journalId, event.target);
+                    }
+                  }}
+                  size="small"
+                  variant="secondary"
+                >
+                  Review recovery
+                </Button>
+              ) : null}
+            </div>
+          ))}
         </div>
       ) : null}
       {history === null ? (
@@ -313,10 +358,15 @@ export function GovernedChangesPanel({
   historyBusy,
   onDecide,
   onEnableEdits,
+  onDecideRecovery,
+  onPrepareRecovery,
   onRefreshHistory,
   onPropose,
   onStartNewProposal,
   onUndo,
+  recoveryBusy,
+  recoveryReturnFocusTarget,
+  recoveryReview,
   state,
 }: GovernedChangesPanelProps) {
   const errorBanner = errorMessage
@@ -352,13 +402,25 @@ export function GovernedChangesPanel({
   if (state.kind === "idle" || state.kind === "preparing") {
     return (
       <>
-        <ProposalComposer disabled={state.kind === "preparing"} onPropose={onPropose} />
+        {recoveryReview !== null ? (
+          <RecoveryReview
+            busy={recoveryBusy}
+            onDecide={onDecideRecovery}
+            returnFocusTarget={recoveryReturnFocusTarget}
+            review={recoveryReview}
+          />
+        ) : (
+          <ProposalComposer disabled={state.kind === "preparing"} onPropose={onPropose} />
+        )}
         {errorBanner}
         <ChangeHistory
+          key="change-history"
           history={history}
           historyBusy={historyBusy}
           onRefreshHistory={onRefreshHistory}
+          onPrepareRecovery={onPrepareRecovery}
           onUndo={onUndo}
+          recoveryBusy={recoveryBusy || recoveryReview !== null}
         />
       </>
     );
@@ -461,11 +523,22 @@ export function GovernedChangesPanel({
           </Button>
         </div>
         {errorBanner}
+        {recoveryReview !== null ? (
+          <RecoveryReview
+            busy={recoveryBusy}
+            onDecide={onDecideRecovery}
+            returnFocusTarget={recoveryReturnFocusTarget}
+            review={recoveryReview}
+          />
+        ) : null}
         <ChangeHistory
+          key="change-history"
           history={history}
           historyBusy={historyBusy}
           onRefreshHistory={onRefreshHistory}
+          onPrepareRecovery={onPrepareRecovery}
           onUndo={onUndo}
+          recoveryBusy={recoveryBusy || recoveryReview !== null}
         />
       </>
     );

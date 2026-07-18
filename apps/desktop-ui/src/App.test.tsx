@@ -157,6 +157,95 @@ async function readyD1Runtime(): Promise<{ runtime: HostRuntime; invoke: ReturnT
   return { runtime: { kind: "ready", client, bootstrap }, invoke };
 }
 
+async function reviewedRecoveryRuntime(): Promise<{
+  runtime: HostRuntime;
+  invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
+}> {
+  const bootstrap: BootstrapReply = {
+    ...recoveryBootstrap,
+    bootMode: "ready",
+    supportedCommands: [
+      "workspace.enable_edits",
+      "changes.propose",
+      "approval.decide",
+      "rollback.request",
+      "changes.history",
+      "changes.recovery.prepare",
+      "changes.recovery.decide",
+    ],
+    workspaces: [{
+      ...recoveryBootstrap.workspaces[0]!,
+      grantEpoch: 8,
+      permissions: "governed_edits",
+    }],
+    projectionSequence: 18,
+  };
+  let request = 0;
+  let sequence = 18;
+  const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+    if (command === "host_bootstrap") return bootstrap;
+    const envelope = JSON.parse(String(args?.body)) as {
+      command: string;
+      payload: Record<string, unknown>;
+      requestId: string;
+    };
+    sequence += 1;
+    if (envelope.command === "changes.history") {
+      return successfulReply(envelope.requestId, {
+        kind: "changes_history",
+        value: {
+          workspaceId: bootstrap.workspaces[0]!.workspaceId,
+          entries: [],
+          openJournals: [{
+            journalId: "journal_01K0Q6H3",
+            executionId: "execution_01K0Q6H3",
+            state: "recovery_required",
+            updatedAt: "2026-07-18T00:00:00Z",
+          }],
+        },
+      }, sequence);
+    }
+    if (envelope.command === "changes.recovery.prepare") {
+      return successfulReply(envelope.requestId, {
+        kind: "changes_recovery_prepared",
+        value: {
+          status: "review_required",
+          recovery_approval_id: "recovery_approval_01K0Q6H3",
+          displayed_recovery_hash: digestA,
+          journal_id: "journal_01K0Q6H3",
+          execution_id: "execution_01K0Q6H3",
+          operations: [{
+            relativePath: "src/example.ts",
+            operation: "replace",
+            explanation: "Restore the file content saved before the interrupted change.",
+          }],
+          expires_at: 1_900_000_000_000,
+        },
+      }, sequence);
+    }
+    if (envelope.command === "changes.recovery.decide") {
+      return successfulReply(envelope.requestId, {
+        kind: "changes_recovery_decision",
+        value: {
+          recoveryApprovalId: "recovery_approval_01K0Q6H3",
+          disposition: envelope.payload.choice === "restore" ? "recovered" : "cancelled",
+          journalId: "journal_01K0Q6H3",
+          executionId: "execution_01K0Q6H3",
+          restoredFiles: envelope.payload.choice === "restore" ? 1 : 0,
+        },
+      }, sequence);
+    }
+    throw new Error(`Unexpected command ${envelope.command}`);
+  });
+  const client = new DesktopHostClient({
+    invoke,
+    now: () => 1_800_000_000_000,
+    requestId: () => `request_recovery_ui_${request += 1}`,
+  });
+  await client.bootstrap();
+  return { runtime: { kind: "ready", client, bootstrap }, invoke };
+}
+
 async function workspaceManagementRuntime(
   revokeOutcome: "success" | "retryable_failure" | "recovery" = "success",
 ): Promise<{ runtime: HostRuntime; invoke: ReturnType<typeof vi.fn<TauriInvoke>> }> {
@@ -1219,6 +1308,66 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Run details" }));
     expect(screen.getByRole("heading", { name: "Activity" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
+  });
+
+  it("owns one shared recovery review across Changes and Activity and refreshes after cancel", async () => {
+    const { runtime, invoke } = await reviewedRecoveryRuntime();
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await screen.findAllByText("opaque-workspace-name");
+
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    const changesTrigger = await screen.findByRole("button", { name: "Review recovery" });
+    await user.click(changesTrigger);
+    expect(await screen.findByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
+    expect(document.body.textContent).not.toContain(digestA);
+    await user.dblClick(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(changesTrigger));
+
+    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+    await user.click(screen.getByRole("button", { name: "Run details" }));
+    const activityTrigger = await screen.findByRole("button", { name: "Review recovery" });
+    await user.click(activityTrigger);
+    expect(await screen.findByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Refresh activity" }));
+    await waitFor(() => expect(screen.queryByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeNull());
+    expect(screen.queryByRole("button", { name: "Restore checkpoint" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+
+    const envelopes = invoke.mock.calls
+      .filter(([command]) => command === "host_dispatch")
+      .map(([, args]) => JSON.parse(String(args?.body)) as {
+        command: string;
+        payload: Record<string, unknown>;
+      });
+    expect(envelopes.filter(({ command }) => command === "changes.recovery.prepare"))
+      .toEqual([
+        expect.objectContaining({
+          payload: {
+            workspaceId: "workspace_01K0Q6H3",
+            workspaceGrantEpoch: 8,
+            journalId: "journal_01K0Q6H3",
+          },
+        }),
+        expect.objectContaining({
+          payload: {
+            workspaceId: "workspace_01K0Q6H3",
+            workspaceGrantEpoch: 8,
+            journalId: "journal_01K0Q6H3",
+          },
+        }),
+      ]);
+    expect(envelopes.filter(({ command }) => command === "changes.recovery.decide"))
+      .toHaveLength(1);
+    expect(envelopes.filter(({ command }) => command === "changes.history").length)
+      .toBeGreaterThanOrEqual(2);
   });
 
   it("restores the latest retained Help run for the exact active workspace grant", async () => {

@@ -8,6 +8,8 @@ import {
   type ChangesHistoryEntryProjection,
   type ChangesHistoryProjection,
   type ChangesOpenJournalProjection,
+  type ChangesRecoveryDecision,
+  type ChangesRecoveryPrepared,
   type ChangesProposalKind,
   type ChangesReviewEnvelopeProjection,
   type ChangesReviewFileProjection,
@@ -16,6 +18,8 @@ import {
   type ChangesUndoConflictProjection,
   type ChangesUndoUnavailableProjection,
   localEditsLimits,
+  type RecoveryApprovalChoice,
+  type RecoveryOperationSummaryProjection,
   type RollbackRequestResult,
   type WorkspaceProjection,
 } from "./contracts";
@@ -407,6 +411,158 @@ export function parseRollbackRequestReply(
   };
 }
 
+function asRecoveryOperation(value: unknown): RecoveryOperationSummaryProjection {
+  const operation = asRecord(value);
+  assertExactKeys(operation, ["relativePath", "operation", "explanation"]);
+  if (
+    operation.operation !== "create"
+    && operation.operation !== "replace"
+    && operation.operation !== "delete"
+  ) {
+    return fail();
+  }
+  const explanation = asRendererSafeMessage(operation.explanation);
+  const expectedExplanation = {
+    create: "Recreate the file from the saved pre-change checkpoint.",
+    replace: "Restore the file content saved before the interrupted change.",
+    delete: "Remove a partial file created by the interrupted change.",
+  }[operation.operation];
+  if (explanation !== expectedExplanation) {
+    return fail();
+  }
+  return {
+    relativePath: asRelativePath(operation.relativePath),
+    operation: operation.operation,
+    explanation,
+  };
+}
+
+export function parseChangesRecoveryPreparedReply(
+  value: unknown,
+  requestId: string,
+  expectedJournalId: string,
+): { projection: ChangesRecoveryPrepared; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_recovery_prepared") {
+    return fail();
+  }
+  const prepared = asRecord(data.value);
+  if (prepared.status === "review_required") {
+    assertExactKeys(prepared, [
+      "status",
+      "recovery_approval_id",
+      "displayed_recovery_hash",
+      "journal_id",
+      "execution_id",
+      "operations",
+      "expires_at",
+    ]);
+    if (
+      prepared.journal_id !== expectedJournalId
+      || !Array.isArray(prepared.operations)
+      || prepared.operations.length === 0
+      || prepared.operations.length > localEditsLimits.recoveryOperations
+    ) {
+      return fail();
+    }
+    const operations = prepared.operations.map(asRecoveryOperation);
+    assertUniqueRelativePaths(operations.map(({ relativePath }) => relativePath));
+    return {
+      projection: {
+        status: "review_required",
+        recoveryApprovalId: asContractId(prepared.recovery_approval_id),
+        displayedRecoveryHash: asSha256(prepared.displayed_recovery_hash),
+        journalId: asContractId(prepared.journal_id),
+        executionId: asContractId(prepared.execution_id),
+        operations,
+        expiresAt: asUnsignedInteger(prepared.expires_at),
+      },
+      sequence: parsed.sequence,
+    };
+  }
+  if (prepared.status === "already_recovered") {
+    assertExactKeys(prepared, ["status", "journal_id", "execution_id"]);
+    if (prepared.journal_id !== expectedJournalId) {
+      return fail();
+    }
+    return {
+      projection: {
+        status: "already_recovered",
+        journalId: asContractId(prepared.journal_id),
+        executionId: asContractId(prepared.execution_id),
+      },
+      sequence: parsed.sequence,
+    };
+  }
+  if (prepared.status === "manual_review") {
+    assertExactKeys(prepared, ["status", "journal_id", "execution_id", "reason"]);
+    if (prepared.journal_id !== expectedJournalId) {
+      return fail();
+    }
+    return {
+      projection: {
+        status: "manual_review",
+        journalId: asContractId(prepared.journal_id),
+        executionId: asContractId(prepared.execution_id),
+        reason: asRendererSafeMessage(prepared.reason),
+      },
+      sequence: parsed.sequence,
+    };
+  }
+  return fail();
+}
+
+export function parseChangesRecoveryDecisionReply(
+  value: unknown,
+  requestId: string,
+  expected: {
+    recoveryApprovalId: string;
+    journalId: string;
+    executionId: string;
+    choice: RecoveryApprovalChoice;
+  },
+): { projection: ChangesRecoveryDecision; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "changes_recovery_decision") {
+    return fail();
+  }
+  const decision = asRecord(data.value);
+  assertExactKeys(decision, [
+    "recoveryApprovalId",
+    "disposition",
+    "journalId",
+    "executionId",
+    "restoredFiles",
+  ]);
+  const expectedDisposition = expected.choice === "restore" ? "recovered" : "cancelled";
+  if (
+    decision.recoveryApprovalId !== expected.recoveryApprovalId
+    || decision.journalId !== expected.journalId
+    || decision.executionId !== expected.executionId
+    || decision.disposition !== expectedDisposition
+  ) {
+    return fail();
+  }
+  const restoredFiles = asUnsignedInteger(decision.restoredFiles);
+  if (expected.choice === "cancel" && restoredFiles !== 0) {
+    return fail();
+  }
+  return {
+    projection: {
+      recoveryApprovalId: asContractId(decision.recoveryApprovalId),
+      disposition: expectedDisposition,
+      journalId: asContractId(decision.journalId),
+      executionId: asContractId(decision.executionId),
+      restoredFiles,
+    },
+    sequence: parsed.sequence,
+  };
+}
+
 export function parseChangesHistoryReply(
   value: unknown,
   requestId: string,
@@ -458,11 +614,15 @@ export function parseChangesHistoryReply(
         "state",
         "updatedAt",
       ]);
+      const state = asBmadIdentifier(journal.state);
       return {
         journalId: asContractId(journal.journalId),
         executionId: asContractId(journal.executionId),
-        state: asBmadIdentifier(journal.state),
+        state,
         updatedAt: asSingleLineText(journal.updatedAt, 64),
+        recoveryAvailability: state === "recovery_required"
+          ? "review_available"
+          : "manual_review",
       };
     },
   );
