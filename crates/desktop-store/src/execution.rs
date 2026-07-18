@@ -697,7 +697,7 @@ mod tests {
             candidate_hash: candidate_hash.clone(),
             manifest_hash: unique_test_hash(index * 10 + 3),
             entry_count: 0,
-            checkpoint_json: br#"{}"#.to_vec(),
+            checkpoint_json: br"{}".to_vec(),
         })?;
         store.create_effect_journal(
             &EffectJournalUpsert {
