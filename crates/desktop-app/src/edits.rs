@@ -89,6 +89,7 @@ pub(crate) struct GovernedWorkspaceIo<'a> {
     broker: &'a WorkspaceBroker,
     workspace_id: String,
     grant_epoch: u64,
+    expected_root_identity_hash: Sha256Digest,
     workspace_target_hash: Sha256Digest,
 }
 
@@ -101,12 +102,14 @@ impl GovernedWorkspaceIo<'_> {
         broker: &'a WorkspaceBroker,
         workspace_id: &ContractId,
         grant_epoch: u64,
+        expected_root_identity_hash: Sha256Digest,
         workspace_target_hash: Sha256Digest,
     ) -> GovernedWorkspaceIo<'a> {
         GovernedWorkspaceIo {
             broker,
             workspace_id: workspace_id.to_string(),
             grant_epoch,
+            expected_root_identity_hash,
             workspace_target_hash,
         }
     }
@@ -119,8 +122,11 @@ impl GovernedWorkspaceIo<'_> {
         if binding.grant_epoch != self.grant_epoch {
             return Err(WorkspaceIoError::CapabilityRevoked);
         }
-        Sha256Digest::parse(&binding.root_identity_hash)
+        let root_identity_hash = Sha256Digest::parse(&binding.root_identity_hash)
             .map_err(|_| WorkspaceIoError::Unavailable)?;
+        if root_identity_hash != self.expected_root_identity_hash {
+            return Err(WorkspaceIoError::CapabilityRevoked);
+        }
         Ok(self.workspace_target_hash)
     }
 }
@@ -520,6 +526,26 @@ fn latest_completed_checkpoint(
         .map_err(|_| recovery_error())?
         .unwrap_or_else(|| GENESIS_CHECKPOINT_ID.to_owned());
     ContractId::new(checkpoint).map_err(|_| recovery_error())
+}
+
+pub(crate) fn current_workspace_target_hash(
+    store: &LocalStore,
+    workspace_id: &ContractId,
+    grant_epoch: u64,
+    root_identity_hash: Sha256Digest,
+) -> Result<Sha256Digest, LocalError> {
+    let scope = WorkspaceEditsScope {
+        workspace_id: workspace_id.clone(),
+        grant_epoch,
+        root_identity_hash,
+    };
+    let target = workspace_target(
+        workspace_id.as_str(),
+        grant_epoch,
+        root_identity_hash,
+        latest_completed_checkpoint(store, &scope)?,
+    )?;
+    canonical_hash("workspace-target", 1, &target).map_err(|_| recovery_error())
 }
 
 fn executor_audience(installation_id: &ContractId) -> NativePatchEngineAudience {
@@ -1026,6 +1052,7 @@ fn apply_pending(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: canonical_hash(
             "workspace-target",
             1,
@@ -1120,6 +1147,7 @@ fn request_rollback(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: checkpoint.workspace_target_hash,
     };
     let plan = plan_rollback(
@@ -1586,7 +1614,8 @@ mod tests {
     }
 
     #[test]
-    fn proposes_applies_and_undoes_a_governed_change() -> Result<(), Box<dyn std::error::Error>> {
+    fn governed_changes_proposes_applies_and_undoes_a_reviewed_change(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = fixture()?;
         let changes = vec![
             ProposedFileChange::SetContent {

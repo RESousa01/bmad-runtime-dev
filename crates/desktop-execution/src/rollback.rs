@@ -331,7 +331,7 @@ where
             journal,
             RecoveryDisposition::Complete,
             recovery_observations,
-            Vec::new(),
+            recovery_operations,
             RecoveryReason::PostimagesVerified,
         )
     } else {
@@ -519,7 +519,10 @@ pub fn restore_checkpoint<W: WorkspaceFileIo>(
     plan: &RecoveryPlan,
 ) -> Result<RecoveryRestoreResult, ExecutionError> {
     verify_recovery_plan(plan)?;
-    if plan.disposition != RecoveryDisposition::RestoreCheckpoint {
+    if !matches!(
+        plan.disposition,
+        RecoveryDisposition::Complete | RecoveryDisposition::RestoreCheckpoint
+    ) {
         return Err(ExecutionError::AuthorizationMismatch);
     }
 
@@ -1151,7 +1154,14 @@ mod tests {
         ));
         assert_eq!(complete.disposition, RecoveryDisposition::Complete);
         assert_eq!(complete.reason, RecoveryReason::PostimagesVerified);
-        assert!(complete.operations.is_empty());
+        assert_eq!(
+            complete
+                .operations
+                .iter()
+                .map(|operation| operation.relative_path.as_str())
+                .collect::<Vec<_>>(),
+            ["a-modified.txt", "m-deleted.txt", "z-created.txt"]
+        );
 
         let restore = must(plan_recovery(
             &partial_workspace(target_hash),
@@ -1245,7 +1255,7 @@ mod tests {
         ));
 
         assert_eq!(baseline.disposition, RecoveryDisposition::Complete);
-        assert!(baseline.operations.is_empty());
+        assert_eq!(baseline.operations.len(), 3);
         assert_ne!(baseline.plan_hash, identity_changed.plan_hash);
     }
 
