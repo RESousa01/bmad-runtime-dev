@@ -1185,8 +1185,10 @@ export class DesktopHostClient {
   }): Promise<ChangesRecoveryDecision> {
     const pending = this.#pendingRecovery;
     this.#pendingRecovery = null;
+    const decisionAt = this.#now();
     if (
       pending === null
+      || decisionAt >= pending.review.expiresAt
       || input.recoveryApprovalId !== pending.review.recoveryApprovalId
       || input.displayedRecoveryHash !== pending.review.displayedRecoveryHash
       || (input.choice !== "restore" && input.choice !== "cancel")
@@ -1201,11 +1203,15 @@ export class DesktopHostClient {
       "changes.recovery.decide",
     );
     const bootstrapGeneration = this.#bootstrapGeneration;
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
     const requestId = this.#requestId();
     const envelope = buildChangesRecoveryDecisionEnvelope(
       bootstrap,
       requestId,
-      this.#now(),
+      decisionAt,
       input.recoveryApprovalId,
       input.displayedRecoveryHash,
       input.choice,
@@ -1218,6 +1224,7 @@ export class DesktopHostClient {
       journalId: pending.review.journalId,
       executionId: pending.review.executionId,
       choice: input.choice,
+      operationCount: pending.review.operations.length,
     });
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.requireGovernedEditsCommand(
@@ -1225,7 +1232,11 @@ export class DesktopHostClient {
       pending.workspaceGrantEpoch,
       "changes.recovery.decide",
     );
-    this.advanceProjectionSequence(parsed.sequence);
+    if (input.choice === "restore") {
+      this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    } else {
+      this.advanceProjectionSequence(parsed.sequence);
+    }
     return parsed.projection;
   }
 

@@ -4,6 +4,7 @@ import {
   buildChangesRecoveryPrepareEnvelope,
 } from "./commandEnvelopes";
 import {
+  parseChangesHistoryReply,
   parseChangesRecoveryDecisionReply,
   parseChangesRecoveryPreparedReply,
 } from "./changesProtocol";
@@ -140,11 +141,57 @@ describe("reviewed recovery protocol", () => {
         status: "manual_review",
         journal_id: "journal_01K0Q6H3",
         execution_id: "execution_01K0Q6H3",
-        reason: "Recovery requires manual review on this device.",
+        reason_code: "checkpoint_incomplete_or_inconsistent",
       }),
       "request_manual_01K0Q6H3",
       "journal_01K0Q6H3",
     ).projection.status).toBe("manual_review");
+
+    expect(() => parseChangesRecoveryPreparedReply(
+      reply("request_manual_01K0Q6H4", "changes_recovery_prepared", {
+        status: "manual_review",
+        journal_id: "journal_01K0Q6H3",
+        execution_id: "execution_01K0Q6H3",
+        reason_code: "C:\\private\\checkpoint",
+      }),
+      "request_manual_01K0Q6H4",
+      "journal_01K0Q6H3",
+    )).toThrow(HostProtocolError);
+  });
+
+  it("accepts only host-projected closed recovery availability", () => {
+    const history = {
+      workspaceId: "workspace_01K0Q6H3",
+      entries: [],
+      openJournals: [{
+        journalId: "journal_01K0Q6H3",
+        executionId: "execution_01K0Q6H3",
+        state: "recovery_required",
+        updatedAt: "2026-07-18T00:00:00Z",
+        recoveryAvailability: "quarantined",
+      }],
+    };
+    expect(parseChangesHistoryReply(
+      reply("request_history_01K0Q6H3", "changes_history", history),
+      "request_history_01K0Q6H3",
+      "workspace_01K0Q6H3",
+    ).projection.openJournals[0]?.recoveryAvailability).toBe("quarantined");
+
+    for (const openJournal of [
+      (({ recoveryAvailability: _availability, ...withoutAvailability }) => withoutAvailability)(
+        history.openJournals[0]!,
+      ),
+      { ...history.openJournals[0]!, recoveryAvailability: "derived_in_renderer" },
+    ]) {
+      expect(() => parseChangesHistoryReply(
+        reply("request_history_01K0Q6H3", "changes_history", {
+          ...history,
+          openJournals: [openJournal],
+        }),
+        "request_history_01K0Q6H3",
+        "workspace_01K0Q6H3",
+      )).toThrow(HostProtocolError);
+    }
   });
 
   it("rejects malformed, oversized, absolute-path, and extra-key preparation data", () => {
@@ -187,6 +234,7 @@ describe("reviewed recovery protocol", () => {
         journalId: "journal_01K0Q6H3",
         executionId: "execution_01K0Q6H3",
         choice: "restore",
+        operationCount: 1,
       },
     ).projection).toEqual(value);
 
@@ -206,8 +254,24 @@ describe("reviewed recovery protocol", () => {
           journalId: "journal_01K0Q6H3",
           executionId: "execution_01K0Q6H3",
           choice: "restore",
+          operationCount: 1,
         },
       )).toThrow(HostProtocolError);
     }
+
+    expect(() => parseChangesRecoveryDecisionReply(
+      reply("request_decide_01K0Q6H3", "changes_recovery_decision", {
+        ...value,
+        restoredFiles: 0,
+      }),
+      "request_decide_01K0Q6H3",
+      {
+        recoveryApprovalId: "recovery_approval_01K0Q6H3",
+        journalId: "journal_01K0Q6H3",
+        executionId: "execution_01K0Q6H3",
+        choice: "restore",
+        operationCount: 1,
+      },
+    )).toThrow(HostProtocolError);
   });
 });

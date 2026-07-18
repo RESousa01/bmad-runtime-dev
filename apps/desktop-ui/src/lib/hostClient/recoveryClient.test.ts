@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { DesktopHostClient } from "./client";
-import { HostCapabilityError, type BootstrapReply, type TauriInvoke } from "./contracts";
+import {
+  HostCapabilityError,
+  HostProtocolError,
+  type BootstrapReply,
+  type TauriInvoke,
+} from "./contracts";
 
 const digest = `sha256:${"a".repeat(64)}`;
 const bootstrap: BootstrapReply = {
@@ -68,7 +73,7 @@ describe("DesktopHostClient reviewed recovery", () => {
         journalId: prepared.journal_id,
         executionId: prepared.execution_id,
         restoredFiles: 1,
-      }, 12);
+      }, 13);
     });
     let request = 0;
     const client = new DesktopHostClient({
@@ -191,5 +196,81 @@ describe("DesktopHostClient reviewed recovery", () => {
       displayedRecoveryHash: digest,
       choice: "restore",
     })).rejects.toBeInstanceOf(HostCapabilityError);
+  });
+
+  it("consumes an expired retained review before decision dispatch", async () => {
+    let currentTime = 1_725_000_000_000;
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") return bootstrap;
+      const envelope = JSON.parse(String(args?.body)) as { command: string; requestId: string };
+      if (envelope.command === "changes.recovery.prepare") {
+        return success(envelope.requestId, "changes_recovery_prepared", prepared, 12);
+      }
+      throw new Error("expired review must not dispatch a decision");
+    });
+    const client = new DesktopHostClient({
+      invoke,
+      now: () => currentTime,
+      requestId: () => "request_expiry_01K0Q6H3",
+    });
+    await client.bootstrap();
+    await client.prepareChangesRecovery({
+      workspaceId: "workspace_01K0Q6H3",
+      workspaceGrantEpoch: 4,
+      journalId: "journal_01K0Q6H3",
+    });
+    currentTime = prepared.expires_at;
+    await expect(client.decideChangesRecovery({
+      recoveryApprovalId: prepared.recovery_approval_id,
+      displayedRecoveryHash: digest,
+      choice: "restore",
+    })).rejects.toBeInstanceOf(HostCapabilityError);
+    expect(invoke).toHaveBeenCalledTimes(2);
+  });
+
+  it("requires sequence advancement only for a recovered restore", async () => {
+    const createClient = (choice: "restore" | "cancel") => {
+      const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+        if (command === "host_bootstrap") return bootstrap;
+        const envelope = JSON.parse(String(args?.body)) as {
+          command: string;
+          payload: { choice?: string };
+          requestId: string;
+        };
+        if (envelope.command === "changes.recovery.prepare") {
+          return success(envelope.requestId, "changes_recovery_prepared", prepared, 12);
+        }
+        return success(envelope.requestId, "changes_recovery_decision", {
+          recoveryApprovalId: prepared.recovery_approval_id,
+          disposition: choice === "restore" ? "recovered" : "cancelled",
+          journalId: prepared.journal_id,
+          executionId: prepared.execution_id,
+          restoredFiles: choice === "restore" ? 1 : 0,
+        }, 12);
+      });
+      return new DesktopHostClient({
+        invoke,
+        now: () => 1_725_000_000_000,
+        requestId: () => `request_${choice}_01K0Q6H3`,
+      });
+    };
+
+    const cancelled = createClient("cancel");
+    await cancelled.bootstrap();
+    await cancelled.prepareChangesRecovery({ workspaceId: "workspace_01K0Q6H3", workspaceGrantEpoch: 4, journalId: prepared.journal_id });
+    await expect(cancelled.decideChangesRecovery({
+      recoveryApprovalId: prepared.recovery_approval_id,
+      displayedRecoveryHash: digest,
+      choice: "cancel",
+    })).resolves.toMatchObject({ disposition: "cancelled" });
+
+    const restored = createClient("restore");
+    await restored.bootstrap();
+    await restored.prepareChangesRecovery({ workspaceId: "workspace_01K0Q6H3", workspaceGrantEpoch: 4, journalId: prepared.journal_id });
+    await expect(restored.decideChangesRecovery({
+      recoveryApprovalId: prepared.recovery_approval_id,
+      displayedRecoveryHash: digest,
+      choice: "restore",
+    })).rejects.toBeInstanceOf(HostProtocolError);
   });
 });

@@ -157,7 +157,11 @@ async function readyD1Runtime(): Promise<{ runtime: HostRuntime; invoke: ReturnT
   return { runtime: { kind: "ready", client, bootstrap }, invoke };
 }
 
-async function reviewedRecoveryRuntime(): Promise<{
+async function reviewedRecoveryRuntime(options: {
+  expiresAt?: number;
+  manualReasonCode?: "checkpoint_incomplete_or_inconsistent";
+  now?: () => number;
+} = {}): Promise<{
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
 }> {
@@ -201,11 +205,23 @@ async function reviewedRecoveryRuntime(): Promise<{
             executionId: "execution_01K0Q6H3",
             state: "recovery_required",
             updatedAt: "2026-07-18T00:00:00Z",
+            recoveryAvailability: "review_available",
           }],
         },
       }, sequence);
     }
     if (envelope.command === "changes.recovery.prepare") {
+      if (options.manualReasonCode) {
+        return successfulReply(envelope.requestId, {
+          kind: "changes_recovery_prepared",
+          value: {
+            status: "manual_review",
+            journal_id: "journal_01K0Q6H3",
+            execution_id: "execution_01K0Q6H3",
+            reason_code: options.manualReasonCode,
+          },
+        }, sequence);
+      }
       return successfulReply(envelope.requestId, {
         kind: "changes_recovery_prepared",
         value: {
@@ -219,7 +235,7 @@ async function reviewedRecoveryRuntime(): Promise<{
             operation: "replace",
             explanation: "Restore the file content saved before the interrupted change.",
           }],
-          expires_at: 1_900_000_000_000,
+          expires_at: options.expiresAt ?? 1_900_000_000_000,
         },
       }, sequence);
     }
@@ -239,7 +255,7 @@ async function reviewedRecoveryRuntime(): Promise<{
   });
   const client = new DesktopHostClient({
     invoke,
-    now: () => 1_800_000_000_000,
+    now: options.now ?? (() => 1_800_000_000_000),
     requestId: () => `request_recovery_ui_${request += 1}`,
   });
   await client.bootstrap();
@@ -1368,6 +1384,47 @@ describe("Sapphirus desktop workbench", () => {
       .toHaveLength(1);
     expect(envelopes.filter(({ command }) => command === "changes.history").length)
       .toBeGreaterThanOrEqual(2);
+  });
+
+  it("removes an expired recovery review without dispatching a decision", async () => {
+    const { runtime, invoke } = await reviewedRecoveryRuntime({
+      expiresAt: Date.now() + 2_000,
+      now: () => Date.now(),
+    });
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await screen.findAllByText("opaque-workspace-name");
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    await user.click(await screen.findByRole("button", { name: "Review recovery" }));
+    expect(await screen.findByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
+
+    await waitFor(() => expect(screen.queryByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeNull(), { timeout: 4_000 });
+    expect(screen.queryByRole("button", { name: "Restore checkpoint" })).toBeNull();
+    const decisions = invoke.mock.calls.filter(([, args]) => {
+      if (!args?.body) return false;
+      return (JSON.parse(String(args.body)) as { command: string }).command
+        === "changes.recovery.decide";
+    });
+    expect(decisions).toHaveLength(0);
+  });
+
+  it("renders owned manual-review copy for a closed native reason code", async () => {
+    const { runtime } = await reviewedRecoveryRuntime({
+      manualReasonCode: "checkpoint_incomplete_or_inconsistent",
+    });
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await screen.findAllByText("opaque-workspace-name");
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    await user.click(await screen.findByRole("button", { name: "Review recovery" }));
+    expect(await screen.findByText(
+      "Recovery cannot continue automatically because the durable checkpoint is incomplete or inconsistent. Keep this journal quarantined for manual review.",
+    )).toBeTruthy();
+    expect(document.body.textContent).not.toContain("checkpoint_incomplete_or_inconsistent");
   });
 
   it("restores the latest retained Help run for the exact active workspace grant", async () => {

@@ -90,6 +90,15 @@ const browserDemoWorkspace: WorkspaceProjection = {
 const retainedHelpProjectionUnavailableMessage =
   "A retained BMAD Help session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local skill-guidance session for this workspace grant.";
 
+function recoveryManualReviewMessage(
+  reasonCode: Extract<ChangesRecoveryPrepared, { status: "manual_review" }>["reasonCode"],
+): string {
+  switch (reasonCode) {
+    case "checkpoint_incomplete_or_inconsistent":
+      return "Recovery cannot continue automatically because the durable checkpoint is incomplete or inconsistent. Keep this journal quarantined for manual review.";
+  }
+}
+
 type HostUiRuntime = HostRuntime | { kind: "loading" };
 
 export type PrimaryRoute = { kind: "task"; taskId: string | null };
@@ -1280,6 +1289,23 @@ export function App({
     setRecoveryReturnFocusTarget(null);
   }
 
+  useEffect(() => {
+    if (recoveryReview === null) return;
+    let timeout: number | null = null;
+    const clearAtExpiry = () => {
+      const remaining = recoveryReview.expiresAt - Date.now();
+      if (remaining <= 0) {
+        clearRecoveryReview();
+        return;
+      }
+      timeout = window.setTimeout(clearAtExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    clearAtExpiry();
+    return () => {
+      if (timeout !== null) window.clearTimeout(timeout);
+    };
+  }, [recoveryReview?.expiresAt, recoveryReview?.recoveryApprovalId]);
+
   async function refreshChangesHistory() {
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
@@ -1365,7 +1391,12 @@ export function App({
       setRecoveryReview(null);
       setRecoveryReturnFocusTarget(null);
       if (prepared.status === "manual_review") {
-        setChangesError(prepared.reason);
+        const manualReviewMessage = recoveryManualReviewMessage(prepared.reasonCode);
+        await refreshChangesHistory();
+        if (workspaceAuthorityKeyRef.current === authorityKey) {
+          setChangesError(manualReviewMessage);
+        }
+        return;
       }
       await refreshChangesHistory();
     } catch (error) {

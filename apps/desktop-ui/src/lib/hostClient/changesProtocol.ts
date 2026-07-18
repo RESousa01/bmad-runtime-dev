@@ -19,6 +19,7 @@ import {
   type ChangesUndoUnavailableProjection,
   localEditsLimits,
   type RecoveryApprovalChoice,
+  type RecoveryManualReviewReasonCode,
   type RecoveryOperationSummaryProjection,
   type RollbackRequestResult,
   type WorkspaceProjection,
@@ -437,6 +438,15 @@ function asRecoveryOperation(value: unknown): RecoveryOperationSummaryProjection
   };
 }
 
+function asRecoveryManualReviewReasonCode(
+  value: unknown,
+): RecoveryManualReviewReasonCode {
+  if (value !== "checkpoint_incomplete_or_inconsistent") {
+    return fail();
+  }
+  return value;
+}
+
 export function parseChangesRecoveryPreparedReply(
   value: unknown,
   requestId: string,
@@ -497,7 +507,7 @@ export function parseChangesRecoveryPreparedReply(
     };
   }
   if (prepared.status === "manual_review") {
-    assertExactKeys(prepared, ["status", "journal_id", "execution_id", "reason"]);
+    assertExactKeys(prepared, ["status", "journal_id", "execution_id", "reason_code"]);
     if (prepared.journal_id !== expectedJournalId) {
       return fail();
     }
@@ -506,7 +516,7 @@ export function parseChangesRecoveryPreparedReply(
         status: "manual_review",
         journalId: asContractId(prepared.journal_id),
         executionId: asContractId(prepared.execution_id),
-        reason: asRendererSafeMessage(prepared.reason),
+        reasonCode: asRecoveryManualReviewReasonCode(prepared.reason_code),
       },
       sequence: parsed.sequence,
     };
@@ -522,6 +532,7 @@ export function parseChangesRecoveryDecisionReply(
     journalId: string;
     executionId: string;
     choice: RecoveryApprovalChoice;
+    operationCount: number;
   },
 ): { projection: ChangesRecoveryDecision; sequence: number } {
   const parsed = parseDispatchReply(value, requestId);
@@ -548,7 +559,10 @@ export function parseChangesRecoveryDecisionReply(
     return fail();
   }
   const restoredFiles = asUnsignedInteger(decision.restoredFiles);
-  if (expected.choice === "cancel" && restoredFiles !== 0) {
+  if (
+    (expected.choice === "cancel" && restoredFiles !== 0)
+    || (expected.choice === "restore" && restoredFiles !== expected.operationCount)
+  ) {
     return fail();
   }
   return {
@@ -613,16 +627,22 @@ export function parseChangesHistoryReply(
         "executionId",
         "state",
         "updatedAt",
+        "recoveryAvailability",
       ]);
       const state = asBmadIdentifier(journal.state);
+      if (
+        journal.recoveryAvailability !== "review_available"
+        && journal.recoveryAvailability !== "quarantined"
+        && journal.recoveryAvailability !== "manual_review"
+      ) {
+        return fail();
+      }
       return {
         journalId: asContractId(journal.journalId),
         executionId: asContractId(journal.executionId),
         state,
         updatedAt: asSingleLineText(journal.updatedAt, 64),
-        recoveryAvailability: state === "recovery_required"
-          ? "review_available"
-          : "manual_review",
+        recoveryAvailability: journal.recoveryAvailability,
       };
     },
   );

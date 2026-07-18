@@ -413,6 +413,7 @@ export interface ChangesOpenJournalProjection {
 }
 
 export type RecoveryApprovalChoice = "restore" | "cancel";
+export type RecoveryManualReviewReasonCode = "checkpoint_incomplete_or_inconsistent";
 
 export interface RecoveryOperationSummaryProjection {
   relativePath: string;
@@ -439,7 +440,7 @@ export type ChangesRecoveryPrepared =
       status: "manual_review";
       journalId: string;
       executionId: string;
-      reason: string;
+      reasonCode: RecoveryManualReviewReasonCode;
     };
 
 export interface ChangesRecoveryDecision {

@@ -22,13 +22,11 @@ use crate::state::{
 };
 use crate::wire::{
     ChangesRecoveryDecisionWire, ChangesRecoveryPreparedWire, HostCommandData,
-    RecoveryOperationSummaryWire,
+    RecoveryManualReviewReasonWire, RecoveryOperationSummaryWire,
 };
 
 const MAX_PENDING_RECOVERIES: usize = 32;
 const RECOVERY_REVIEW_WINDOW_MS: u64 = 2 * 60 * 1000;
-const SAFE_MANUAL_REVIEW_REASON: &str =
-    "Recovery requires manual review because its durable checkpoint is incomplete or inconsistent.";
 
 pub(crate) struct PendingRecovery {
     approval_id: ContractId,
@@ -175,14 +173,7 @@ pub(crate) fn prepare_recovery(
             ExecutionError::IntegrityFailure
             | ExecutionError::AuthorizationMismatch
             | ExecutionError::InvalidDomain(_),
-        ) => {
-            return persist_manual_review(
-                store,
-                authenticated,
-                accepted_at,
-                SAFE_MANUAL_REVIEW_REASON,
-            )
-        }
+        ) => return persist_manual_review(store, authenticated, accepted_at),
         Err(_) => return Err(conflict_error(
             "Recovery is not available from the current workspace observation; review it again.",
         )),
@@ -208,7 +199,7 @@ pub(crate) fn prepare_recovery(
             ))
         }
         RecoveryDisposition::ManualReview => {
-            persist_manual_review(store, authenticated, accepted_at, SAFE_MANUAL_REVIEW_REASON)
+            persist_manual_review(store, authenticated, accepted_at)
         }
         RecoveryDisposition::Complete | RecoveryDisposition::RestoreCheckpoint => {
             let operations = plan
@@ -672,7 +663,7 @@ fn persist_unsafe_manual_review(
         ChangesRecoveryPreparedWire::ManualReview {
             journal_id,
             execution_id,
-            reason: SAFE_MANUAL_REVIEW_REASON.to_owned(),
+            reason_code: RecoveryManualReviewReasonWire::CheckpointIncompleteOrInconsistent,
         },
     ))
 }
@@ -681,7 +672,6 @@ fn persist_manual_review(
     store: &LocalStore,
     authenticated: AuthenticatedRecovery,
     accepted_at: UnixMillis,
-    reason: &str,
 ) -> Result<HostCommandData, LocalError> {
     let journal_id = authenticated.journal.journal_id.clone();
     let execution_id = authenticated.journal.execution_id.clone();
@@ -697,7 +687,7 @@ fn persist_manual_review(
         ChangesRecoveryPreparedWire::ManualReview {
             journal_id,
             execution_id,
-            reason: reason.to_owned(),
+            reason_code: RecoveryManualReviewReasonWire::CheckpointIncompleteOrInconsistent,
         },
     ))
 }
@@ -1615,13 +1605,16 @@ mod tests {
         .map_err(|error| error.safe_message)?;
 
         let HostCommandData::ChangesRecoveryPrepared(ChangesRecoveryPreparedWire::ManualReview {
-            reason,
+            reason_code,
             ..
         }) = prepared
         else {
             return Err("expected terminal manual review".into());
         };
-        assert_eq!(reason, super::SAFE_MANUAL_REVIEW_REASON);
+        assert_eq!(
+            reason_code,
+            crate::wire::RecoveryManualReviewReasonWire::CheckpointIncompleteOrInconsistent,
+        );
         let authority = fixture
             .state
             .ready_authority()

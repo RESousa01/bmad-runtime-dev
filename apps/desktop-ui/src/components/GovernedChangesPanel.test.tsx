@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   ChangesExecutionProjection,
@@ -108,6 +109,45 @@ function createProps(
 afterEach(cleanup);
 
 describe("GovernedChangesPanel", () => {
+  it("opens and closes recovery from the keyboard and restores Changes focus", async () => {
+    const user = userEvent.setup();
+    const onPrepareRecovery = vi.fn();
+    const onDecideRecovery = vi.fn();
+    const history: ChangesHistoryProjection = {
+      ...changesHistory,
+      entries: [],
+      openJournals: [{
+        journalId: "journal_keyboard_01J00000000000000000000000",
+        executionId: "execution_keyboard_01J00000000000000000000000",
+        state: "recovery_required",
+        updatedAt: "2026-07-18T00:00:00Z",
+        recoveryAvailability: "review_available",
+      }],
+    };
+    const base = createProps({ history, onDecideRecovery, onPrepareRecovery });
+    const { rerender } = render(<GovernedChangesPanel {...base} />);
+    const trigger = screen.getByRole("button", { name: "Review recovery" });
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    expect(onPrepareRecovery).toHaveBeenCalledWith(
+      "journal_keyboard_01J00000000000000000000000",
+      trigger,
+    );
+
+    rerender(<GovernedChangesPanel {...base}
+      recoveryReturnFocusTarget={trigger}
+      recoveryReview={recoveryReview}
+    />);
+    expect(document.activeElement).toBe(screen.getByRole("heading", {
+      name: "Review checkpoint recovery",
+    }));
+    await user.tab();
+    await user.keyboard(" ");
+    expect(onDecideRecovery).toHaveBeenCalledWith("cancel");
+    rerender(<GovernedChangesPanel {...base} recoveryReturnFocusTarget={trigger} />);
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it("offers governed-edits enablement only when the host allows it", () => {
     const props = createProps({
       canEnableEdits: true,
@@ -282,6 +322,7 @@ describe("GovernedChangesPanel", () => {
     })} />);
     expect(screen.getByText(/exact workspace and governed-edits grant/i)).toBeTruthy();
     expect(screen.getByText(/requires manual review outside this recovery flow/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Review recovery" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Restore checkpoint" })).toBeNull();
   });
 

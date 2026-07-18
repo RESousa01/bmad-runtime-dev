@@ -225,8 +225,14 @@ pub enum ChangesRecoveryPreparedWire {
     ManualReview {
         journal_id: ContractId,
         execution_id: ContractId,
-        reason: String,
+        reason_code: RecoveryManualReviewReasonWire,
     },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryManualReviewReasonWire {
+    CheckpointIncompleteOrInconsistent,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -307,6 +313,15 @@ pub struct OpenJournalWire {
     pub execution_id: String,
     pub state: String,
     pub updated_at: String,
+    pub recovery_availability: RecoveryAvailabilityWire,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryAvailabilityWire {
+    ReviewAvailable,
+    Quarantined,
+    ManualReview,
 }
 
 #[derive(Clone, Debug, Serialize)]

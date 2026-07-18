@@ -37,7 +37,8 @@ use crate::state::{
 };
 use crate::wire::{
     AppliedFileWire, ChangesDecisionWire, ChangesExecutionWire, ChangesHistoryEntryWire,
-    ChangesHistoryWire, ChangesReviewWire, HostCommandData, OpenJournalWire, UndoConflictWire,
+    ChangesHistoryWire, ChangesReviewWire, HostCommandData, OpenJournalWire,
+    RecoveryAvailabilityWire, UndoConflictWire,
 };
 
 const MAX_PENDING_PROPOSALS: usize = 32;
@@ -1261,6 +1262,11 @@ fn changes_history(
             execution_id: journal.execution_id.clone(),
             state: journal.state.clone(),
             updated_at: journal.updated_at.clone(),
+            recovery_availability: recovery_availability_for_open_journal(
+                &journal.state,
+                journal.workspace_grant_epoch,
+                scope.grant_epoch,
+            ),
         })
         .collect();
     Ok(HostCommandData::ChangesHistory(ChangesHistoryWire {
@@ -1268,6 +1274,24 @@ fn changes_history(
         entries,
         open_journals,
     }))
+}
+
+fn recovery_availability_for_open_journal(
+    state: &str,
+    journal_grant_epoch: u64,
+    current_grant_epoch: u64,
+) -> RecoveryAvailabilityWire {
+    match state {
+        "recovery_required" => {
+            if journal_grant_epoch == current_grant_epoch {
+                RecoveryAvailabilityWire::ReviewAvailable
+            } else {
+                RecoveryAvailabilityWire::Quarantined
+            }
+        }
+        "restoring" | "manual_review" => RecoveryAvailabilityWire::ManualReview,
+        _ => RecoveryAvailabilityWire::Quarantined,
+    }
 }
 
 fn history_entry(
@@ -1362,11 +1386,12 @@ mod tests {
     };
 
     use super::{
-        authorize_edits_scope, changes_proposal_binding, decide_approval, propose_changes,
-        reconcile_execution_journals, request_rollback,
+        authorize_edits_scope, changes_history, changes_proposal_binding, decide_approval,
+        propose_changes, reconcile_execution_journals, recovery_availability_for_open_journal,
+        request_rollback,
     };
     use crate::state::{now, HostState};
-    use crate::wire::{ChangesReviewWire, HostCommandData};
+    use crate::wire::{ChangesReviewWire, HostCommandData, RecoveryAvailabilityWire};
 
     struct EditsFixture {
         _store_dir: tempfile::TempDir,
@@ -1460,6 +1485,8 @@ mod tests {
         store: &LocalStore,
         index: usize,
         target_state: &str,
+        workspace_id: &str,
+        workspace_grant_epoch: u64,
     ) -> Result<String, StoreError> {
         let journal_id = format!("journal_boot_{index}");
         let execution_id = format!("execution_boot_{index}");
@@ -1483,8 +1510,8 @@ mod tests {
                 candidate_hash,
                 spec_hash: spec_hash.clone(),
                 consumption_hash: consumption_hash.clone(),
-                workspace_id: "workspace_boot".to_owned(),
-                workspace_grant_epoch: 1,
+                workspace_id: workspace_id.to_owned(),
+                workspace_grant_epoch,
                 state: "prepared".to_owned(),
                 journal_json: "{}".to_owned(),
             },
@@ -1594,7 +1621,7 @@ mod tests {
         ];
 
         for (index, (initial, expected)) in transitions.into_iter().enumerate() {
-            let journal_id = seed_journal(store, index, initial)
+            let journal_id = seed_journal(store, index, initial, "workspace_boot", 1)
                 .map_err(|error| format!("failed to seed {initial}: {error:?}"))?;
             reconcile_execution_journals(store)
                 .map_err(|error| format!("failed to reconcile {initial}: {error:?}"))?;
@@ -1735,6 +1762,96 @@ mod tests {
             now(),
         );
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn recovery_availability_is_closed_and_bound_to_current_journal_authority() {
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 8, 8),
+            RecoveryAvailabilityWire::ReviewAvailable,
+        );
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 7, 8),
+            RecoveryAvailabilityWire::Quarantined,
+        );
+        for state in ["restoring", "manual_review"] {
+            assert_eq!(
+                recovery_availability_for_open_journal(state, 8, 8),
+                RecoveryAvailabilityWire::ManualReview,
+            );
+        }
+    }
+
+    #[test]
+    fn changes_history_serializes_authenticated_recovery_availability(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = fixture()?;
+        let authority = fixture
+            .state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = fixture
+            .state
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        seed_journal(
+            store,
+            100,
+            "recovery_required",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch,
+        )?;
+        seed_journal(
+            store,
+            101,
+            "recovery_required",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch - 1,
+        )?;
+        seed_journal(
+            store,
+            102,
+            "manual_review",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch,
+        )?;
+        drop(authority);
+
+        let HostCommandData::ChangesHistory(history) =
+            changes_history(&fixture.state, &fixture.workspace_id, fixture.grant_epoch)
+                .map_err(|error| error.safe_message)?
+        else {
+            return Err("expected changes history".into());
+        };
+        let availability = history
+            .open_journals
+            .iter()
+            .map(|journal| journal.recovery_availability)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            availability,
+            [
+                RecoveryAvailabilityWire::ReviewAvailable,
+                RecoveryAvailabilityWire::Quarantined,
+                RecoveryAvailabilityWire::ManualReview,
+            ],
+        );
+        let serialized = serde_json::to_value(&history)?;
+        let projected = serialized["openJournals"]
+            .as_array()
+            .ok_or("open journals must serialize as an array")?
+            .iter()
+            .map(|journal| journal["recoveryAvailability"].as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            projected,
+            [
+                Some("review_available"),
+                Some("quarantined"),
+                Some("manual_review"),
+            ],
+        );
         Ok(())
     }
 }

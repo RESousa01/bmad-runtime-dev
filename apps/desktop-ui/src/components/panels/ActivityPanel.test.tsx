@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../../lib/bmadModelProjection";
-import type { ChangesHistoryProjection } from "../../lib/hostClient";
+import type { ChangesHistoryProjection, ChangesRecoveryPrepared } from "../../lib/hostClient";
 import { ActivityPanel, type ActivityPanelProps } from "./ActivityPanel";
 
 function createProps(overrides: Partial<ActivityPanelProps> = {}): ActivityPanelProps {
@@ -45,7 +45,61 @@ const history: ChangesHistoryProjection = {
   openJournals: [],
 };
 
+const recoveryReview: Extract<ChangesRecoveryPrepared, { status: "review_required" }> = {
+  status: "review_required",
+  recoveryApprovalId: "recovery_private_01J00000000000000000000000",
+  displayedRecoveryHash: `sha256:${"e".repeat(64)}`,
+  journalId: "journal_private_01J00000000000000000000000",
+  executionId: "execution_private_01J00000000000000000000000",
+  operations: [{
+    relativePath: "src/main.rs",
+    operation: "replace",
+    explanation: "Restore the file content saved before the interrupted change.",
+  }],
+  expiresAt: 601_000,
+};
+
 describe("ActivityPanel", () => {
+  it("opens and closes recovery from the keyboard and restores Activity focus", async () => {
+    const user = userEvent.setup();
+    const onPrepareRecovery = vi.fn();
+    const onDecideRecovery = vi.fn();
+    const recoveryHistory: ChangesHistoryProjection = {
+      ...history,
+      entries: [],
+      openJournals: [{
+        journalId: "journal_keyboard_1",
+        executionId: "execution_keyboard_1",
+        state: "recovery_required",
+        updatedAt: "2026-07-18T00:00:00Z",
+        recoveryAvailability: "review_available",
+      }],
+    };
+    const base = createProps({
+      history: recoveryHistory,
+      onDecideRecovery,
+      onPrepareRecovery,
+    });
+    const { rerender } = render(<ActivityPanel {...base} />);
+    const trigger = screen.getByRole("button", { name: "Review recovery" });
+    trigger.focus();
+    await user.keyboard(" ");
+    expect(onPrepareRecovery).toHaveBeenCalledWith("journal_keyboard_1", trigger);
+
+    rerender(<ActivityPanel {...base}
+      recoveryReturnFocusTarget={trigger}
+      recoveryReview={recoveryReview}
+    />);
+    expect(document.activeElement).toBe(screen.getByRole("heading", {
+      name: "Review checkpoint recovery",
+    }));
+    await user.tab();
+    await user.keyboard("{Enter}");
+    expect(onDecideRecovery).toHaveBeenCalledWith("cancel");
+    rerender(<ActivityPanel {...base} recoveryReturnFocusTarget={trigger} />);
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it("shows an empty state when there is no activity", () => {
     render(<ActivityPanel {...createProps()} />);
     expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
@@ -109,6 +163,34 @@ describe("ActivityPanel", () => {
     const trigger = screen.getByRole("button", { name: "Review recovery" });
     await user.click(trigger);
     expect(onPrepareRecovery).toHaveBeenCalledWith("journal_1", trigger);
+  });
+
+  it("keeps quarantined and manual-review Activity journals non-actionable", () => {
+    render(<ActivityPanel {...createProps({
+      history: {
+        ...history,
+        entries: [],
+        openJournals: [
+          {
+            journalId: "journal_quarantined",
+            executionId: "execution_quarantined",
+            state: "recovery_required",
+            updatedAt: "2026-07-18T00:00:00Z",
+            recoveryAvailability: "quarantined",
+          },
+          {
+            journalId: "journal_manual",
+            executionId: "execution_manual",
+            state: "manual_review",
+            updatedAt: "2026-07-18T00:00:00Z",
+            recoveryAvailability: "manual_review",
+          },
+        ],
+      },
+    })} />);
+    expect(screen.getByText(/exact workspace and governed-edits grant/i)).toBeTruthy();
+    expect(screen.getByText(/requires manual review outside this recovery flow/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Review recovery" })).toBeNull();
   });
 
   it("summarizes a completed skill-guidance run", () => {
