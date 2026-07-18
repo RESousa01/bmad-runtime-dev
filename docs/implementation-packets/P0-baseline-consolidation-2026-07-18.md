@@ -40,11 +40,20 @@
 
 ## Review ledger
 
-- Implementer full-diff review: pending.
-- Independent bug/security review: pending (adversarial review of the guard refactor and NUL fix required before merge).
-- Commands executed: to be recorded per lane.
-- Checks skipped and reason: none permitted; installer/signing checks explicitly deferred to P1.
-- Remaining risks: App test flakiness may reappear under CI load; vocabulary guard boundary rules may need per-language tokenization if `\b` proves insufficient against C# generated text.
+- Implementer full-diff review: executed 2026-07-18 during lane consolidation on branch `p0-baseline-consolidation` (commits `21142772`, `1c2125d3`, `a6229ad2`, `d3cd1125`, docs + gitignore).
+- Independent bug/security review: pending (adversarial review of the guard refactor, blocker-code rename, and fixture tests required before merge to main).
+- Commands executed (2026-07-18, pinned Node 24.18.0 / pnpm 11.12.0 via user-level corepack shim):
+  - `pnpm verify:source` — two consecutive green passes.
+  - `pnpm contracts:verify:cross-language` — two consecutive green passes (104 pass, 1 environment skip).
+  - Renderer full suite — five consecutive green passes (296/296).
+  - `cargo fmt --all --check`, `cargo clippy --workspace --all-features --all-targets -- -D warnings`, `cargo test --workspace --all-features` — green.
+  - `git status` clean after lane commits.
+- Checks skipped and reason: .NET-only qualification lane not run standalone (exercised inside cross-language qualification); installer/signing checks explicitly deferred to P1; required CI checks not yet run (branch not pushed — push is the user's call).
+- Findings during implementation:
+  - The NUL defect class was reproduced live: passing `\u0000` through JSON-encoded tooling writes the literal byte. The scanner regression now pins both directions.
+  - The vocabulary guard hid two distinct issues: the reversed-alternative regex false positive (fixed with `(?<![0-9A-Za-z])` token boundaries) and a genuine leak, the `builder_activation_gated` blocker code, renamed to `builder_engine_gated` across Rust and TypeScript.
+  - The renderer flake was testing-library's default 1 s `waitFor` ceiling under CPU contention, not a timing assumption in the tests; ceilings raised (`asyncUtilTimeout` 10 s, vitest 30 s).
+- Remaining risks: system PATH still resolves Node 24.11.1 first (user-level 24.18.0 installed via `pnpm env`; durable precedence needs an elevated change or system Node upgrade — flagged, not performed); the broken standalone pnpm launcher in `%LOCALAPPDATA%\pnpm\bin` still shadows corepack outside the shim PATH; golden fixtures cover projection events — command/reply/error envelope fixtures remain to extend.
 
 ## Open decisions to lock during P0
 
