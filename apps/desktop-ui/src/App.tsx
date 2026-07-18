@@ -1308,6 +1308,9 @@ export function App({
   }, [recoveryReview?.expiresAt, recoveryReview?.recoveryApprovalId]);
 
   async function refreshChangesHistory() {
+    if (recoveryDecisionRef.current) {
+      return;
+    }
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
     }

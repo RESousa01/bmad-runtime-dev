@@ -73,7 +73,7 @@ function ChangeHistory({
         <h2 id="change-history-heading">Change history</h2>
         <Button
           aria-label="Refresh history"
-          isDisabled={historyBusy}
+          isDisabled={historyBusy || recoveryBusy}
           onPress={onRefreshHistory}
           size="small"
           variant="quiet"

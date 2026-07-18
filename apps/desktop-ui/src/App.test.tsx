@@ -1460,6 +1460,57 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.queryByRole("button", { name: "Review recovery" })).toBeNull();
   });
 
+  it("guards history refresh while a recovery decision is in flight", async () => {
+    let releaseDecision!: () => void;
+    let markDecisionStarted!: () => void;
+    const decisionGate = new Promise<void>((resolve) => { releaseDecision = resolve; });
+    const decisionStarted = new Promise<void>((resolve) => { markDecisionStarted = resolve; });
+    const { runtime, invoke } = await reviewedRecoveryRuntime({
+      decisionGate,
+      onDecisionStarted: markDecisionStarted,
+    });
+    const user = userEvent.setup();
+    render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await screen.findAllByText("opaque-workspace-name");
+    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    await user.click(await screen.findByRole("button", { name: "Review recovery" }));
+    await user.click(await screen.findByRole("button", { name: "Restore checkpoint" }));
+    await decisionStarted;
+
+    const dispatchCommands = () => invoke.mock.calls
+      .filter(([command, args]) => command === "host_dispatch" && args?.body)
+      .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
+    const changesRefresh = screen.getByRole<HTMLButtonElement>("button", {
+      name: "Refresh history",
+    });
+    await waitFor(() => expect(changesRefresh.disabled).toBe(true));
+    fireEvent.click(changesRefresh);
+
+    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+    await user.click(screen.getByRole("button", { name: "Run details" }));
+    const activityRefresh = screen.getByRole<HTMLButtonElement>("button", {
+      name: "Refresh activity",
+    });
+    expect(activityRefresh.disabled).toBe(true);
+    fireEvent.click(activityRefresh);
+    fireEvent.click(screen.getByRole("button", { name: "Restore checkpoint" }));
+
+    expect(dispatchCommands().filter((command) => command === "changes.history"))
+      .toHaveLength(1);
+    expect(dispatchCommands().filter((command) => command === "changes.recovery.prepare"))
+      .toHaveLength(1);
+    expect(dispatchCommands().filter((command) => command === "changes.recovery.decide"))
+      .toHaveLength(1);
+
+    releaseDecision();
+    await waitFor(() => expect(
+      dispatchCommands().filter((command) => command === "changes.history"),
+    ).toHaveLength(2));
+    expect(screen.queryByRole("heading", { name: "Review checkpoint recovery" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Review recovery" })).toBeNull();
+  });
+
   it("renders owned manual-review copy for a closed native reason code", async () => {
     const { runtime } = await reviewedRecoveryRuntime({
       manualReasonCode: "checkpoint_incomplete_or_inconsistent",

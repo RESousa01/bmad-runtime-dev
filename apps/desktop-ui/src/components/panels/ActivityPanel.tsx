@@ -85,7 +85,7 @@ export function ActivityPanel({
         {historyAvailable ? (
           <Button
             aria-label="Refresh activity"
-            isDisabled={historyBusy}
+            isDisabled={historyBusy || recoveryBusy}
             onPress={onRefreshHistory}
             size="small"
             variant="quiet"
