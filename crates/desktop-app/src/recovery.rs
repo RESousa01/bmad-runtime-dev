@@ -34,6 +34,7 @@ pub(crate) struct PendingRecovery {
     renderer_session_id: ContractId,
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
+    journal_workspace_grant_epoch: u64,
     journal_id: ContractId,
     execution_id: ContractId,
     checkpoint_id: ContractId,
@@ -83,6 +84,7 @@ impl PendingRecoveries {
 struct AuthenticatedRecovery {
     journal: EffectJournal,
     checkpoint: LocalCheckpoint,
+    journal_workspace_grant_epoch: u64,
     journal_snapshot_hash: Sha256Digest,
     checkpoint_payload_hash: Sha256Digest,
 }
@@ -138,18 +140,17 @@ pub(crate) fn prepare_recovery(
     drop(scope);
 
     let store = state.local_store(commit.authority())?;
-    let authenticated =
-        match load_authenticated_recovery(store, workspace_id, workspace_grant_epoch, journal_id) {
-            Ok(authenticated) => authenticated,
-            Err(LoadRecoveryError::Unavailable(error)) => return Err(error),
-            Err(LoadRecoveryError::Unsafe(row)) => {
-                return persist_unsafe_manual_review(store, &row, accepted_at)
-            }
-        };
+    let authenticated = match load_authenticated_recovery(store, workspace_id, journal_id) {
+        Ok(authenticated) => authenticated,
+        Err(LoadRecoveryError::Unavailable(error)) => return Err(error),
+        Err(LoadRecoveryError::Unsafe(row)) => {
+            return persist_unsafe_manual_review(store, &row, accepted_at)
+        }
+    };
     let workspace_target_hash = current_workspace_target_hash(
         store,
         workspace_id,
-        workspace_grant_epoch,
+        authenticated.journal_workspace_grant_epoch,
         root_identity_hash,
     )?;
     if !constant_time_digest_eq(
@@ -229,6 +230,7 @@ pub(crate) fn prepare_recovery(
                 renderer_session_id: renderer.session_id().clone(),
                 workspace_id: workspace_id.clone(),
                 workspace_grant_epoch,
+                journal_workspace_grant_epoch: authenticated.journal_workspace_grant_epoch,
                 journal_id: plan.journal_id.clone(),
                 execution_id: plan.execution_id.clone(),
                 checkpoint_id: plan.checkpoint_id.clone(),
@@ -291,18 +293,16 @@ fn reauthenticate_pending_recovery<'a>(
     let commit = state.ready_workspace_commit()?;
     validate_pending_authority(state, commit.authority(), renderer, pending)?;
     let store = state.local_store(commit.authority())?;
-    let Ok(authenticated) = load_authenticated_recovery(
-        store,
-        &pending.workspace_id,
-        pending.workspace_grant_epoch,
-        &pending.journal_id,
-    ) else {
+    let Ok(authenticated) =
+        load_authenticated_recovery(store, &pending.workspace_id, &pending.journal_id)
+    else {
         return Err(conflict_error(
             "Recovery authority changed after review; prepare it again.",
         ));
     };
     if authenticated.journal.execution_id != pending.execution_id
         || authenticated.journal.checkpoint_id != pending.checkpoint_id
+        || authenticated.journal_workspace_grant_epoch != pending.journal_workspace_grant_epoch
         || !constant_time_digest_eq(
             &authenticated.journal_snapshot_hash,
             &pending.journal_snapshot_hash,
@@ -322,6 +322,7 @@ fn reauthenticate_pending_recovery<'a>(
         store,
         &pending.workspace_id,
         pending.workspace_grant_epoch,
+        authenticated.journal_workspace_grant_epoch,
     )?;
     if !constant_time_digest_eq(
         &workspace_target_hash,
@@ -472,6 +473,7 @@ fn live_workspace_target_binding(
     store: &LocalStore,
     workspace_id: &ContractId,
     workspace_grant_epoch: u64,
+    journal_workspace_grant_epoch: u64,
 ) -> Result<(Sha256Digest, Sha256Digest), LocalError> {
     let binding = state
         .workspace
@@ -488,7 +490,7 @@ fn live_workspace_target_binding(
     let workspace_target_hash = current_workspace_target_hash(
         store,
         workspace_id,
-        workspace_grant_epoch,
+        journal_workspace_grant_epoch,
         root_identity_hash,
     )?;
     Ok((root_identity_hash, workspace_target_hash))
@@ -547,7 +549,6 @@ enum LoadRecoveryError {
 fn load_authenticated_recovery(
     store: &LocalStore,
     workspace_id: &ContractId,
-    workspace_grant_epoch: u64,
     journal_id: &ContractId,
 ) -> Result<AuthenticatedRecovery, LoadRecoveryError> {
     let row = store
@@ -558,9 +559,7 @@ fn load_authenticated_recovery(
                 "Recovery is no longer available for this journal.",
             ))
         })?;
-    if row.workspace_id != workspace_id.as_str()
-        || row.workspace_grant_epoch != workspace_grant_epoch
-    {
+    if row.workspace_id != workspace_id.as_str() {
         return Err(LoadRecoveryError::Unavailable(conflict_error(
             "Recovery belongs to a different workspace authority.",
         )));
@@ -606,6 +605,7 @@ fn load_authenticated_recovery(
     let checkpoint_payload_hash = Sha256Digest::parse(&checkpoint_row.payload.content_hash)
         .map_err(|_| LoadRecoveryError::Unsafe(Box::new(row.clone())))?;
     Ok(AuthenticatedRecovery {
+        journal_workspace_grant_epoch: row.workspace_grant_epoch,
         journal_snapshot_hash: sha256_bytes(row.journal_json.as_bytes()),
         checkpoint_payload_hash,
         journal,
@@ -837,6 +837,39 @@ mod tests {
         current: &str,
         incomplete_checkpoint: bool,
     ) -> Result<ContractId, Box<dyn std::error::Error>> {
+        seed_recovery_in_state(fixture, before, current, incomplete_checkpoint, true)
+    }
+
+    fn seed_interrupted_recovery(
+        fixture: &RecoveryFixture,
+        before: &str,
+        current: &str,
+    ) -> Result<ContractId, Box<dyn std::error::Error>> {
+        seed_recovery_in_state(fixture, before, current, false, false)
+    }
+
+    fn seed_recovery_in_state(
+        fixture: &RecoveryFixture,
+        before: &str,
+        current: &str,
+        incomplete_checkpoint: bool,
+        quarantine: bool,
+    ) -> Result<ContractId, Box<dyn std::error::Error>> {
+        let workspace_target_hash = fixture_workspace_target_hash(fixture)?;
+        seed_recovery_with_target(
+            fixture,
+            before,
+            current,
+            incomplete_checkpoint,
+            workspace_target_hash,
+            quarantine,
+            fixture.grant_epoch,
+        )
+    }
+
+    fn fixture_workspace_target_hash(
+        fixture: &RecoveryFixture,
+    ) -> Result<desktop_runtime::Sha256Digest, Box<dyn std::error::Error>> {
         let binding = fixture
             .state
             .workspace
@@ -866,22 +899,21 @@ mod tests {
                 .as_bytes(),
             ),
         };
-        let workspace_target_hash = canonical_hash("workspace-target", 1, &target)?;
-        seed_recovery_with_target(
-            fixture,
-            before,
-            current,
-            incomplete_checkpoint,
-            workspace_target_hash,
-        )
+        Ok(canonical_hash("workspace-target", 1, &target)?)
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "the native fixture keeps its authenticated checkpoint and journal seed visibly paired"
+    )]
     fn seed_recovery_with_target(
         fixture: &RecoveryFixture,
         before: &str,
         current: &str,
         incomplete_checkpoint: bool,
         workspace_target_hash: desktop_runtime::Sha256Digest,
+        quarantine: bool,
+        stored_grant_epoch: u64,
     ) -> Result<ContractId, Box<dyn std::error::Error>> {
         let path = RelativeWorkspacePath::new("main.rs")?;
         fs::write(fixture.root.join(path.as_str()), current)?;
@@ -965,7 +997,7 @@ mod tests {
             .state
             .local_store(&authority)
             .map_err(|error| error.safe_message)?;
-        persist_seed(store, fixture, &checkpoint, &journal)?;
+        persist_seed(store, fixture, stored_grant_epoch, &checkpoint, &journal)?;
         for state in ["checkpoint_durable", "preconditions_verified", "applying"] {
             store.update_effect_journal(
                 journal_id.as_str(),
@@ -973,6 +1005,9 @@ mod tests {
                 &serde_json::to_string(&journal)?,
                 None,
             )?;
+        }
+        if !quarantine {
+            return Ok(journal_id);
         }
         journal.state = JournalState::RecoveryRequired;
         journal.updated_at = UnixMillis(300);
@@ -988,6 +1023,7 @@ mod tests {
     fn persist_seed(
         store: &LocalStore,
         fixture: &RecoveryFixture,
+        stored_grant_epoch: u64,
         checkpoint: &LocalCheckpoint,
         journal: &EffectJournal,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -1009,7 +1045,7 @@ mod tests {
                 spec_hash: journal.spec_hash.to_string(),
                 consumption_hash: journal.consumption_hash.to_string(),
                 workspace_id: fixture.workspace_id.to_string(),
-                workspace_grant_epoch: fixture.grant_epoch,
+                workspace_grant_epoch: stored_grant_epoch,
                 state: "prepared".to_owned(),
                 journal_json: serde_json::to_string(journal)?,
             },
@@ -1024,6 +1060,233 @@ mod tests {
                 retention_class: "evidence".to_owned(),
             },
         )?;
+        Ok(())
+    }
+
+    #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "the end-to-end restart fixture intentionally proves one continuous durable lifecycle"
+    )]
+    fn restart_recovery_requires_fresh_review_restores_once_and_keeps_failed_restore_blocking(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let initial = fixture()?;
+        let original_epoch = initial.grant_epoch;
+        let journal_id = seed_interrupted_recovery(&initial, "before\n", "partial\n")?;
+        assert_eq!(fs::read(initial.root.join("main.rs"))?, b"partial\n");
+
+        let RecoveryFixture {
+            store_dir,
+            _workspace: workspace,
+            state,
+            workspace_id,
+            root,
+            ..
+        } = initial;
+        let authority_root = store_dir.path().join("authority");
+        drop(state);
+
+        let restarted = HostState::initialize(Some(authority_root.clone()))
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(fs::read(root.join("main.rs"))?, b"partial\n");
+        let authority = restarted
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = restarted
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(
+            store
+                .load_effect_journal(journal_id.as_str())?
+                .ok_or("journal unavailable after restart")?
+                .state,
+            "recovery_required"
+        );
+        assert_eq!(store.list_open_effect_journals()?.len(), 1);
+        assert!(crate::update::ensure_update_is_safe(&restarted).is_err());
+        let enabled = restarted
+            .workspace
+            .enable_governed_edits(workspace_id.as_str())?;
+        assert!(enabled.grant_epoch > original_epoch);
+        restarted
+            .persist_workspace_update(
+                &authority,
+                &enabled,
+                "workspace.edits_enabled",
+                &ContractId::new("request_restart_recovery_enable_1")?,
+            )
+            .map_err(|error| error.safe_message)?;
+        drop(authority);
+        restarted
+            .bind_renderer("main")
+            .map_err(|error| error.safe_message)?;
+        let renderer = restarted
+            .renderer_session_authority("main")
+            .ok_or("renderer authority unavailable")?;
+        let first_review = prepare_recovery(
+            &restarted,
+            &renderer,
+            &workspace_id,
+            enabled.grant_epoch,
+            &journal_id,
+            UnixMillis(1_000),
+        )
+        .map_err(|error| error.safe_message)?;
+        let HostCommandData::ChangesRecoveryPrepared(ChangesRecoveryPreparedWire::ReviewRequired {
+            recovery_approval_id: old_approval_id,
+            displayed_recovery_hash: old_displayed_hash,
+            operations,
+            ..
+        }) = first_review
+        else {
+            return Err("expected a safe recovery review".into());
+        };
+        assert_eq!(operations.len(), 1);
+        assert_eq!(operations[0].relative_path.as_str(), "main.rs");
+        assert_eq!(operations[0].operation, "replace");
+        let projected = serde_json::to_string(&operations)?;
+        assert!(!projected.contains(root.to_string_lossy().as_ref()));
+        assert!(!projected.contains("sha256:"));
+        drop(renderer);
+        drop(restarted);
+
+        let reopened = HostState::initialize(Some(authority_root.clone()))
+            .map_err(|error| error.safe_message)?;
+        reopened
+            .bind_renderer("main")
+            .map_err(|error| error.safe_message)?;
+        let renderer = reopened
+            .renderer_session_authority("main")
+            .ok_or("renderer authority unavailable")?;
+        assert!(decide_recovery(
+            &reopened,
+            &renderer,
+            &old_approval_id,
+            old_displayed_hash,
+            RecoveryApprovalChoice::Restore,
+            UnixMillis(1_001),
+        )
+        .is_err());
+        drop(renderer);
+
+        let authority = reopened
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let enabled_again = reopened
+            .workspace
+            .enable_governed_edits(workspace_id.as_str())?;
+        assert!(enabled_again.grant_epoch > enabled.grant_epoch);
+        reopened
+            .persist_workspace_update(
+                &authority,
+                &enabled_again,
+                "workspace.edits_enabled",
+                &ContractId::new("request_restart_recovery_enable_2")?,
+            )
+            .map_err(|error| error.safe_message)?;
+        drop(authority);
+        let renderer = reopened
+            .renderer_session_authority("main")
+            .ok_or("renderer authority unavailable")?;
+        let review = prepare_recovery(
+            &reopened,
+            &renderer,
+            &workspace_id,
+            enabled_again.grant_epoch,
+            &journal_id,
+            UnixMillis(1_002),
+        )
+        .map_err(|error| error.safe_message)?;
+        let HostCommandData::ChangesRecoveryPrepared(ChangesRecoveryPreparedWire::ReviewRequired {
+            recovery_approval_id,
+            displayed_recovery_hash,
+            ..
+        }) = review
+        else {
+            return Err("expected a fresh recovery review".into());
+        };
+        let restored = decide_recovery(
+            &reopened,
+            &renderer,
+            &recovery_approval_id,
+            displayed_recovery_hash,
+            RecoveryApprovalChoice::Restore,
+            UnixMillis(1_003),
+        )
+        .map_err(|error| error.safe_message)?;
+        let HostCommandData::ChangesRecoveryDecision(restored) = restored else {
+            return Err("expected a recovery decision".into());
+        };
+        assert_eq!(restored.disposition, "recovered");
+        assert_eq!(restored.restored_files, 1);
+        assert_eq!(fs::read(root.join("main.rs"))?, b"before\n");
+        let authority = reopened
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = reopened
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(
+            store
+                .load_effect_journal(journal_id.as_str())?
+                .ok_or("recovered journal unavailable")?
+                .state,
+            "recovered"
+        );
+        assert!(store.list_open_effect_journals()?.is_empty());
+        assert!(crate::update::ensure_update_is_safe(&reopened).is_ok());
+        drop(authority);
+        drop(renderer);
+        drop(reopened);
+        drop(workspace);
+        drop(store_dir);
+
+        let failed = fixture()?;
+        let failed_journal = seed_recovery(&failed, "before\n", "partial\n", false)?;
+        let authority = failed
+            .state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = failed
+            .state
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        let row = store
+            .load_effect_journal(failed_journal.as_str())?
+            .ok_or("failed journal unavailable")?;
+        store.update_effect_journal(
+            failed_journal.as_str(),
+            "restoring",
+            &row.journal_json,
+            None,
+        )?;
+        drop(authority);
+        let RecoveryFixture {
+            store_dir: failed_store,
+            _workspace: failed_workspace,
+            state: failed_state,
+            ..
+        } = failed;
+        let failed_authority_root = failed_store.path().join("authority");
+        drop(failed_state);
+        let failed_reopened = HostState::initialize(Some(failed_authority_root))
+            .map_err(|error| error.safe_message)?;
+        let authority = failed_reopened
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = failed_reopened
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(
+            store
+                .load_effect_journal(failed_journal.as_str())?
+                .ok_or("manual-review journal unavailable")?
+                .state,
+            "manual_review"
+        );
+        assert_eq!(store.list_open_effect_journals()?.len(), 1);
+        assert!(crate::update::ensure_update_is_safe(&failed_reopened).is_err());
+        drop(failed_workspace);
         Ok(())
     }
 
@@ -1063,6 +1326,8 @@ mod tests {
             "partial\n",
             false,
             sha256_bytes(b"misbound workspace target"),
+            true,
+            fixture.grant_epoch,
         )?;
         let renderer = fixture
             .state
@@ -1082,6 +1347,73 @@ mod tests {
             fs::read_to_string(fixture.root.join("main.rs"))?,
             "partial\n"
         );
+        let authority = fixture
+            .state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        assert_eq!(
+            fixture
+                .state
+                .local_store(&authority)
+                .map_err(|error| error.safe_message)?
+                .load_effect_journal(journal_id.as_str())?
+                .ok_or("journal unavailable")?
+                .state,
+            "recovery_required"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn recovery_rejects_historical_epoch_substitution_and_current_request_drift(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = fixture()?;
+        let target_hash = fixture_workspace_target_hash(&fixture)?;
+        let substituted_epoch = fixture.grant_epoch.saturating_sub(1);
+        assert_ne!(substituted_epoch, fixture.grant_epoch);
+        let journal_id = seed_recovery_with_target(
+            &fixture,
+            "before\n",
+            "partial\n",
+            false,
+            target_hash,
+            true,
+            substituted_epoch,
+        )?;
+        let renderer = fixture
+            .state
+            .renderer_session_authority("main")
+            .ok_or("renderer authority unavailable")?;
+        assert!(prepare_recovery(
+            &fixture.state,
+            &renderer,
+            &fixture.workspace_id,
+            fixture.grant_epoch,
+            &journal_id,
+            UnixMillis(1_000),
+        )
+        .is_err());
+        assert_eq!(fs::read(fixture.root.join("main.rs"))?, b"partial\n");
+
+        assert!(prepare_recovery(
+            &fixture.state,
+            &renderer,
+            &fixture.workspace_id,
+            fixture.grant_epoch.saturating_add(1),
+            &journal_id,
+            UnixMillis(1_001),
+        )
+        .is_err());
+        assert!(prepare_recovery(
+            &fixture.state,
+            &renderer,
+            &ContractId::new("workspace_other")?,
+            fixture.grant_epoch,
+            &journal_id,
+            UnixMillis(1_002),
+        )
+        .is_err());
+        assert_eq!(fs::read(fixture.root.join("main.rs"))?, b"partial\n");
         let authority = fixture
             .state
             .ready_authority()
@@ -2250,6 +2582,7 @@ mod tests {
                 renderer_session_id: template.renderer_session_id.clone(),
                 workspace_id: template.workspace_id.clone(),
                 workspace_grant_epoch: template.workspace_grant_epoch,
+                journal_workspace_grant_epoch: template.journal_workspace_grant_epoch,
                 journal_id: ContractId::new(format!("journal_bound_{index}"))?,
                 execution_id: ContractId::new(format!("execution_bound_{index}"))?,
                 checkpoint_id: ContractId::new(format!("checkpoint_bound_{index}"))?,

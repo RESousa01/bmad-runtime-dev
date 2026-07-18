@@ -1283,7 +1283,7 @@ fn recovery_availability_for_open_journal(
 ) -> RecoveryAvailabilityWire {
     match state {
         "recovery_required" => {
-            if journal_grant_epoch == current_grant_epoch {
+            if journal_grant_epoch <= current_grant_epoch {
                 RecoveryAvailabilityWire::ReviewAvailable
             } else {
                 RecoveryAvailabilityWire::Quarantined
@@ -1773,6 +1773,10 @@ mod tests {
         );
         assert_eq!(
             recovery_availability_for_open_journal("recovery_required", 7, 8),
+            RecoveryAvailabilityWire::ReviewAvailable,
+        );
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 9, 8),
             RecoveryAvailabilityWire::Quarantined,
         );
         for state in ["restoring", "manual_review"] {
@@ -1833,7 +1837,7 @@ mod tests {
             availability,
             [
                 RecoveryAvailabilityWire::ReviewAvailable,
-                RecoveryAvailabilityWire::Quarantined,
+                RecoveryAvailabilityWire::ReviewAvailable,
                 RecoveryAvailabilityWire::ManualReview,
             ],
         );
@@ -1848,7 +1852,7 @@ mod tests {
             projected,
             [
                 Some("review_available"),
-                Some("quarantined"),
+                Some("review_available"),
                 Some("manual_review"),
             ],
         );

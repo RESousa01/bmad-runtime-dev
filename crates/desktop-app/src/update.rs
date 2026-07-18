@@ -80,7 +80,7 @@ pub async fn install_app_update(
     Ok(AppUpdateResult::Installed { version })
 }
 
-fn ensure_update_is_safe(state: &HostState) -> Result<(), String> {
+pub(crate) fn ensure_update_is_safe(state: &HostState) -> Result<(), String> {
     let authority = state.ready_authority().map_err(|_| update_blocked())?;
     let store = state
         .local_store(&authority)
