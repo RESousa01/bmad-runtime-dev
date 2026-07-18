@@ -49,6 +49,10 @@ const reviewedReadyCommands = [
   "approval.decide",
   "rollback.request",
   "changes.history",
+  "app.preferences.get",
+  "app.preferences.set",
+  "app.about",
+  "workspace.pick_files",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
 const boundedProcessAdapterPaths = new Set([
