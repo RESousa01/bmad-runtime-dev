@@ -1,0 +1,265 @@
+name: Signed Windows installer qualification
+
+on:
+  workflow_dispatch:
+    inputs:
+      prior_run_id:
+        description: Trusted main-branch run containing the prior signed installer
+        required: true
+        type: string
+      prior_artifact_name:
+        description: Artifact name containing exactly one prior signed installer
+        required: true
+        type: string
+      prior_version:
+        description: Exact prior product version exercised by the upgrade test
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build-signed-installer:
+    if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
+    environment: windows-signing
+    runs-on: [self-hosted, windows, x64, sapphirus-signing]
+    outputs:
+      product_version: ${{ steps.release-metadata.outputs.product_version }}
+      installer_name: ${{ steps.release-metadata.outputs.installer_name }}
+      sbom_name: ${{ steps.release-metadata.outputs.sbom_name }}
+    env:
+      SAPPHIRUS_SIGNING_CERT_THUMBPRINT: ${{ secrets.SAPPHIRUS_SIGNING_CERT_THUMBPRINT }}
+      SAPPHIRUS_TIMESTAMP_URL: ${{ vars.SAPPHIRUS_TIMESTAMP_URL }}
+      SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Assert exact protected source
+        shell: pwsh
+        run: |
+          $head = (git rev-parse --verify HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $head -ne $env:SAPPHIRUS_EXPECTED_REVISION) {
+            throw 'Signing checkout does not match the dispatched revision.'
+          }
+          if (@(git status --porcelain --untracked-files=normal).Count -ne 0) {
+            throw 'Signing checkout is not clean.'
+          }
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.12.0
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
+        with:
+          toolchain: 1.97.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:source
+      - name: Resolve and validate release metadata
+        id: release-metadata
+        shell: pwsh
+        run: node tools/resolve-release-metadata.mjs --github-output "$env:GITHUB_OUTPUT"
+      - name: Generate deterministic release SBOM
+        shell: pwsh
+        run: >-
+          node tools/generate-release-sbom.mjs
+          --output "${{ runner.temp }}/${{ steps.release-metadata.outputs.sbom_name }}"
+      - name: Build signed current-source installer
+        shell: pwsh
+        run: >-
+          ./tools/build-signed-windows-installer.ps1
+          -SbomPath "${{ runner.temp }}/${{ steps.release-metadata.outputs.sbom_name }}"
+          -EvidencePath "${{ runner.temp }}/sapphirus-signed-build-evidence.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-current-source-candidate-${{ github.sha }}
+          path: |
+            target/release/bundle/nsis/${{ steps.release-metadata.outputs.installer_name }}
+            target/release/sapphirus.exe
+            ${{ runner.temp }}/${{ steps.release-metadata.outputs.sbom_name }}
+            ${{ runner.temp }}/sapphirus-signed-build-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+
+  qualify-signed-installer:
+    needs: build-signed-installer
+    if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
+    environment: windows-release-qualification
+    runs-on: [self-hosted, windows, x64, sapphirus-qualification]
+    env:
+      SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
+      SAPPHIRUS_RELEASE_VERSION: ${{ needs.build-signed-installer.outputs.product_version }}
+      SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
+      SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
+      SAPPHIRUS_PRIOR_VERSION: ${{ inputs.prior_version }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-current-source-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/sapphirus-current-installer
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.prior_artifact_name }}
+          path: ${{ runner.temp }}/sapphirus-prior-installer
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.prior_run_id }}
+      - name: Resolve and bind qualification inputs
+        shell: pwsh
+        run: |
+          $currentRoot = "${{ runner.temp }}/sapphirus-current-installer"
+          $currentInstallers = @(Get-ChildItem $currentRoot -Recurse -File -Filter $env:SAPPHIRUS_INSTALLER_NAME)
+          $buildEvidenceFiles = @(Get-ChildItem $currentRoot -Recurse -File -Filter 'sapphirus-signed-build-evidence.json')
+          $sbomFiles = @(Get-ChildItem $currentRoot -Recurse -File -Filter $env:SAPPHIRUS_SBOM_NAME)
+          $priorInstallers = @(Get-ChildItem "${{ runner.temp }}/sapphirus-prior-installer" -Recurse -File -Filter '*_x64-setup.exe')
+          if ($currentInstallers.Count -ne 1 -or $buildEvidenceFiles.Count -ne 1 -or $sbomFiles.Count -ne 1 -or $priorInstallers.Count -ne 1) {
+            throw 'Qualification artifacts do not have the required exact shape.'
+          }
+          $buildEvidence = Get-Content $buildEvidenceFiles[0].FullName -Raw | ConvertFrom-Json
+          $currentHash = (Get-FileHash $currentInstallers[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          $sbomHash = (Get-FileHash $sbomFiles[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if (
+            $buildEvidence.sourceRevision -ne $env:SAPPHIRUS_EXPECTED_REVISION -or
+            $buildEvidence.productVersion -ne $env:SAPPHIRUS_RELEASE_VERSION -or
+            $buildEvidence.installer.sha256 -ne $currentHash -or
+            $buildEvidence.sbom.sha256 -ne $sbomHash
+          ) {
+            throw 'Signed candidate does not match its source-bound build evidence.'
+          }
+          "SAPPHIRUS_CURRENT_INSTALLER=$($currentInstallers[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SAPPHIRUS_PRIOR_INSTALLER=$($priorInstallers[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SAPPHIRUS_BUILD_EVIDENCE=$($buildEvidenceFiles[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SAPPHIRUS_SBOM=$($sbomFiles[0].FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Qualify signed install, upgrade, launch, and uninstall
+        shell: pwsh
+        run: >-
+          ./tools/qualify-windows-installer.ps1
+          -InstallerPath "$env:SAPPHIRUS_CURRENT_INSTALLER"
+          -ExpectedVersion "$env:SAPPHIRUS_RELEASE_VERSION"
+          -InstallRoot "${{ runner.temp }}/sapphirus-signed-install"
+          -EvidencePath "${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json"
+          -PriorInstallerPath "$env:SAPPHIRUS_PRIOR_INSTALLER"
+          -ExpectedPriorVersion "$env:SAPPHIRUS_PRIOR_VERSION"
+          -RequireValidSignature
+      - name: Bind lifecycle evidence to signed build evidence
+        shell: pwsh
+        run: |
+          $buildEvidence = Get-Content "$env:SAPPHIRUS_BUILD_EVIDENCE" -Raw | ConvertFrom-Json
+          $lifecycleEvidence = Get-Content "${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json" -Raw | ConvertFrom-Json
+          if (
+            $buildEvidence.installer.sha256 -ne $lifecycleEvidence.artifact.sha256 -or
+            $buildEvidence.application.sha256 -ne $lifecycleEvidence.lifecycle.installedExecutableSha256
+          ) {
+            throw 'Lifecycle evidence does not describe the exact signed build artifacts.'
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-installer-qualification-${{ github.sha }}
+          path: |
+            ${{ env.SAPPHIRUS_BUILD_EVIDENCE }}
+            ${{ env.SAPPHIRUS_SBOM }}
+            ${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+
+  attest-qualified-installer:
+    needs: [build-signed-installer, qualify-signed-installer]
+    if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+    env:
+      SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
+      SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-current-source-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/sapphirus-attestation-candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-installer-qualification-${{ github.sha }}
+          path: ${{ runner.temp }}/sapphirus-attestation-qualification
+      - name: Resolve exact attestation subjects
+        id: subjects
+        shell: bash
+        run: |
+          mapfile -t installers < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name "$SAPPHIRUS_INSTALLER_NAME")
+          mapfile -t applications < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name 'sapphirus.exe')
+          mapfile -t sboms < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name "$SAPPHIRUS_SBOM_NAME")
+          mapfile -t build_evidence < <(find "$RUNNER_TEMP/sapphirus-attestation-qualification" -type f -name 'sapphirus-signed-build-evidence.json')
+          mapfile -t lifecycle_evidence < <(find "$RUNNER_TEMP/sapphirus-attestation-qualification" -type f -name 'sapphirus-signed-lifecycle-evidence.json')
+          if [[ ${#installers[@]} -ne 1 || ${#applications[@]} -ne 1 || ${#sboms[@]} -ne 1 || ${#build_evidence[@]} -ne 1 || ${#lifecycle_evidence[@]} -ne 1 ]]; then
+            echo 'Attestation artifact does not have the required exact shape.' >&2
+            exit 1
+          fi
+          printf 'installer=%s\napplication=%s\nsbom=%s\nbuild_evidence=%s\nlifecycle_evidence=%s\n' \
+            "${installers[0]}" "${applications[0]}" "${sboms[0]}" "${build_evidence[0]}" "${lifecycle_evidence[0]}" >> "$GITHUB_OUTPUT"
+      - name: Create fail-closed qualification predicate
+        shell: bash
+        env:
+          SAPPHIRUS_APPLICATION_SUBJECT: ${{ steps.subjects.outputs.application }}
+          SAPPHIRUS_BUILD_EVIDENCE: ${{ steps.subjects.outputs.build_evidence }}
+          SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
+          SAPPHIRUS_EXPECTED_VERSION: ${{ needs.build-signed-installer.outputs.product_version }}
+          SAPPHIRUS_INSTALLER_SUBJECT: ${{ steps.subjects.outputs.installer }}
+          SAPPHIRUS_LIFECYCLE_EVIDENCE: ${{ steps.subjects.outputs.lifecycle_evidence }}
+          SAPPHIRUS_PRIOR_VERSION: ${{ inputs.prior_version }}
+          SAPPHIRUS_SBOM_SUBJECT: ${{ steps.subjects.outputs.sbom }}
+        run: |
+          node tools/create-release-attestation-predicate.mjs \
+            --build-evidence "$SAPPHIRUS_BUILD_EVIDENCE" \
+            --lifecycle-evidence "$SAPPHIRUS_LIFECYCLE_EVIDENCE" \
+            --installer "$SAPPHIRUS_INSTALLER_SUBJECT" \
+            --application "$SAPPHIRUS_APPLICATION_SUBJECT" \
+            --sbom "$SAPPHIRUS_SBOM_SUBJECT" \
+            --expected-revision "$SAPPHIRUS_EXPECTED_REVISION" \
+            --expected-version "$SAPPHIRUS_EXPECTED_VERSION" \
+            --expected-prior-version "$SAPPHIRUS_PRIOR_VERSION" \
+            --output "$RUNNER_TEMP/sapphirus-release-qualification-predicate.json"
+      - name: Attest build provenance
+        id: provenance
+        uses: actions/attest-build-provenance@96b4a1ef7235a096b17240c259729fdd70c83d45 # v2
+        with:
+          subject-path: |
+            ${{ steps.subjects.outputs.installer }}
+            ${{ steps.subjects.outputs.application }}
+      - name: Attest SBOM
+        id: sbom-attestation
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: |
+            ${{ steps.subjects.outputs.installer }}
+            ${{ steps.subjects.outputs.application }}
+          sbom-path: ${{ steps.subjects.outputs.sbom }}
+      - name: Attest qualified release identities and lifecycle evidence
+        id: qualification-attestation
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: |
+            ${{ steps.subjects.outputs.installer }}
+            ${{ steps.subjects.outputs.application }}
+          predicate-type: https://sapphirus.dev/attestations/release-qualification/v1
+          predicate-path: ${{ runner.temp }}/sapphirus-release-qualification-predicate.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-installer-attestations-${{ github.sha }}
+          path: |
+            ${{ steps.provenance.outputs.bundle-path }}
+            ${{ steps.sbom-attestation.outputs.bundle-path }}
+            ${{ steps.qualification-attestation.outputs.bundle-path }}
+          if-no-files-found: error
+          retention-days: 14

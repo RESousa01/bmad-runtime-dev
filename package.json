@@ -21,6 +21,9 @@
     "contracts:test": "pnpm --filter @sapphirus/contracts test",
     "bmad:foundation:verify": "pnpm --filter @sapphirus/bmad-foundation run verify",
     "secrets:check": "node --test tools/check-secrets.test.mjs && node tools/check-secrets.mjs",
+    "release:test": "node --test tools/release-metadata.test.mjs tools/release-sbom.test.mjs tools/release-attestation-predicate.test.mjs",
+    "release:metadata": "node tools/resolve-release-metadata.mjs",
+    "release:sbom": "node tools/generate-release-sbom.mjs",
     "vault:test": "node --test tools/tests/closed-manifest.test.mjs",
     "vault:check": "node tools/verify-reference-vault.mjs",
     "rust:fmt": "cargo fmt --all --check",
@@ -31,7 +34,7 @@
     "desktop:build": "pnpm exec tauri build --config crates/desktop-app/tauri.conf.json --features deterministic-help",
     "verify:boundaries": "node tools/check-boundaries.mjs",
     "toolchain:check": "node tools/check-toolchain.mjs",
-    "verify:source": "pnpm toolchain:check && pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",
+    "verify:source": "pnpm toolchain:check && pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm release:test && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm build",
     "verify": "pnpm verify:source",
     "verify:deferred-full": "pnpm contracts:verify:cross-language && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm rust:fmt && pnpm rust:clippy && pnpm rust:test && pnpm build"
   },
