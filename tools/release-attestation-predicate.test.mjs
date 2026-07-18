@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { createReleaseAttestationPredicate } from "./create-release-attestation-predicate.mjs";
+import { compareSemVer, createReleaseAttestationPredicate } from "./create-release-attestation-predicate.mjs";
 
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const installerBytes = Buffer.from("installer");
@@ -100,5 +100,14 @@ test("predicate rejects incomplete toolchain, lifecycle schema, version, signatu
 test("predicate treats quote and newline prior-version probes as data and rejects them", () => {
   for (const expectedPriorVersion of ["1.2.2' && echo injected", "1.2.2\necho injected"]) {
     assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(lifecycle), installerBytes, applicationBytes, sbomBytes, ...expected, expectedPriorVersion }), /version/u);
+  }
+});
+
+test("release version ordering follows SemVer and rejects reinstall or downgrade evidence", () => {
+  assert.equal(compareSemVer("1.2.2", "1.2.3"), -1);
+  assert.equal(compareSemVer("1.2.3-rc.2", "1.2.3"), -1);
+  assert.equal(compareSemVer("1.2.3-rc.10", "1.2.3-rc.2"), 1);
+  for (const expectedPriorVersion of ["1.2.3", "1.2.4", "1.2.3+build.1", "1.2.3-rc.01", "1.1.9-01"]) {
+    assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(lifecycle), installerBytes, applicationBytes, sbomBytes, ...expected, expectedPriorVersion }), /precede|canonical SemVer|leading zeroes/u);
   }
 });

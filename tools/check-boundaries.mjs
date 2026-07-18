@@ -572,7 +572,7 @@ if (signedReleaseSource !== undefined) {
       "must attest only after signed lifecycle qualification",
     ],
     [
-      /uses: actions\/attest-build-provenance@[0-9a-f]{40}/u,
+      /uses: actions\/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be/u,
       "must create immutable build provenance",
     ],
     [
@@ -623,6 +623,11 @@ if (signedReleaseSource !== undefined) {
 const releaseDryRunPath = join(root, ".github", "workflows", "release-dry-run.yml");
 const releaseDryRunSource = await requiredText(releaseDryRunPath);
 if (releaseDryRunSource !== undefined) {
+  for (const match of releaseDryRunSource.matchAll(/^\s*- uses: ([^\s#]+)/gmu)) {
+    if (!/@[0-9a-f]{40}$/u.test(match[1])) {
+      violations.push(`${relative(root, releaseDryRunPath)}: action reference must use a full immutable commit SHA: ${match[1]}`);
+    }
+  }
   for (const [pattern, message] of [
     [
       /\.\/tools\/qualify-windows-installer\.ps1\s*$/mu,
@@ -660,6 +665,8 @@ if (installerQualificationSource !== undefined) {
     [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
     [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
     [/Prior and current installers use different publishers/u, "must reject a prior installer from another publisher"],
+    [/Compare-CanonicalSemVer[\s\S]*prior installer version must precede/u, "must reject same-version reinstall and downgrade qualification"],
+    [/-not \[string\]::IsNullOrWhiteSpace\(\$PriorInstallerPath\)[\s\S]*Compare-CanonicalSemVer/u, "must preserve fresh-install qualification without prior-version comparison"],
     [/Assert-CleanQualificationAccount\s*\n\s*\$lifecycleComplete/u, "must recheck uninstall registration after removal"],
     [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
   ]) {

@@ -43,6 +43,60 @@ function Resolve-ExistingFile {
     throw "Expected a regular file: $Path"
 }
 
+function Compare-CanonicalSemVer {
+    param(
+        [Parameter(Mandatory = $true)][string] $Left,
+        [Parameter(Mandatory = $true)][string] $Right
+    )
+
+    $pattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$'
+    $leftMatch = [regex]::Match($Left, $pattern)
+    $rightMatch = [regex]::Match($Right, $pattern)
+    if (-not $leftMatch.Success -or -not $rightMatch.Success) {
+        throw 'Release versions must be canonical SemVer without build metadata.'
+    }
+    foreach ($match in @($leftMatch, $rightMatch)) {
+        $prerelease = $match.Groups[4].Value
+        if (-not [string]::IsNullOrEmpty($prerelease)) {
+            foreach ($identifier in $prerelease.Split('.')) {
+                if ($identifier -match '^0\d+$') {
+                    throw 'Numeric SemVer prerelease identifiers must not contain leading zeroes.'
+                }
+            }
+        }
+    }
+    foreach ($index in 1..3) {
+        $leftNumber = [Numerics.BigInteger]::Parse($leftMatch.Groups[$index].Value)
+        $rightNumber = [Numerics.BigInteger]::Parse($rightMatch.Groups[$index].Value)
+        $comparison = $leftNumber.CompareTo($rightNumber)
+        if ($comparison -ne 0) { return $comparison }
+    }
+    $leftPre = $leftMatch.Groups[4].Value
+    $rightPre = $rightMatch.Groups[4].Value
+    if ([string]::IsNullOrEmpty($leftPre) -or [string]::IsNullOrEmpty($rightPre)) {
+        if ($leftPre -eq $rightPre) { return 0 }
+        return $(if ([string]::IsNullOrEmpty($leftPre)) { 1 } else { -1 })
+    }
+    $leftParts = $leftPre.Split('.')
+    $rightParts = $rightPre.Split('.')
+    for ($index = 0; $index -lt [Math]::Max($leftParts.Length, $rightParts.Length); $index++) {
+        if ($index -ge $leftParts.Length) { return -1 }
+        if ($index -ge $rightParts.Length) { return 1 }
+        $leftPart = $leftParts[$index]
+        $rightPart = $rightParts[$index]
+        $leftNumeric = $leftPart -match '^\d+$'
+        $rightNumeric = $rightPart -match '^\d+$'
+        if ($leftNumeric -ne $rightNumeric) { return $(if ($leftNumeric) { -1 } else { 1 }) }
+        if ($leftPart -ne $rightPart) {
+            if ($leftNumeric) {
+                return ([Numerics.BigInteger]::Parse($leftPart)).CompareTo([Numerics.BigInteger]::Parse($rightPart))
+            }
+            return [string]::CompareOrdinal($leftPart, $rightPart)
+        }
+    }
+    return 0
+}
+
 function Resolve-ExistingDirectory {
     param([Parameter(Mandatory = $true)][string] $Path)
 
@@ -211,6 +265,9 @@ Assert-CleanQualificationAccount
 
 if ([string]::IsNullOrWhiteSpace($PriorInstallerPath) -ne [string]::IsNullOrWhiteSpace($ExpectedPriorVersion)) {
     throw 'PriorInstallerPath and ExpectedPriorVersion must be supplied together.'
+}
+if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath) -and (Compare-CanonicalSemVer -Left $ExpectedPriorVersion -Right $ExpectedVersion) -ge 0) {
+    throw 'The prior installer version must precede the current installer version.'
 }
 
 $signature = Get-AuthenticodeSignature -LiteralPath $installer

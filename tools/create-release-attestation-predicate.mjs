@@ -47,7 +47,44 @@ function requireText(value, label) {
   }
 }
 
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/u;
+
+export function compareSemVer(left, right) {
+  const leftMatch = left.match(SEMVER_PATTERN);
+  const rightMatch = right.match(SEMVER_PATTERN);
+  if (leftMatch === null || rightMatch === null) throw new Error("release versions must be canonical SemVer without build metadata");
+  for (const match of [leftMatch, rightMatch]) {
+    const prerelease = match[4];
+    if (prerelease !== undefined && prerelease.split(".").some((part) => /^\d{2,}$/u.test(part) && part.startsWith("0"))) {
+      throw new Error("numeric SemVer prerelease identifiers must not contain leading zeroes");
+    }
+  }
+  for (let index = 1; index <= 3; index += 1) {
+    const difference = BigInt(leftMatch[index]) - BigInt(rightMatch[index]);
+    if (difference !== 0n) return difference < 0n ? -1 : 1;
+  }
+  const leftPre = leftMatch[4];
+  const rightPre = rightMatch[4];
+  if (leftPre === undefined || rightPre === undefined) return leftPre === rightPre ? 0 : leftPre === undefined ? 1 : -1;
+  const leftParts = leftPre.split(".");
+  const rightParts = rightPre.split(".");
+  for (let index = 0; index < Math.max(leftParts.length, rightParts.length); index += 1) {
+    const leftPart = leftParts[index];
+    const rightPart = rightParts[index];
+    if (leftPart === undefined || rightPart === undefined) return leftPart === rightPart ? 0 : leftPart === undefined ? -1 : 1;
+    const leftNumeric = /^\d+$/u.test(leftPart);
+    const rightNumeric = /^\d+$/u.test(rightPart);
+    if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
+    if (leftPart !== rightPart) {
+      if (leftNumeric) return BigInt(leftPart) < BigInt(rightPart) ? -1 : 1;
+      return leftPart < rightPart ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
 function validateEvidence(build, lifecycle, expectedRevision, expectedVersion, expectedPriorVersion) {
+  if (compareSemVer(expectedPriorVersion, expectedVersion) >= 0) throw new Error("prior release version must precede the current release version");
   assertExactKeys(build, ["schemaVersion", "sourceRevision", "sourceTreeState", "productVersion", "releaseMetadata", "toolchain", "sbom", "certificateThumbprint", "certificateNotAfterUtc", "timestampProtocol", "application", "installer"], "build evidence");
   if (build.schemaVersion !== 2 || build.sourceTreeState !== "clean" || build.sourceRevision !== expectedRevision || build.productVersion !== expectedVersion) {
     throw new Error("build evidence source or product identity is invalid");
