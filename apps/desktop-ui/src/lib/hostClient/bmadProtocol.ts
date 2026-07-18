@@ -854,7 +854,7 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
   const methodAgents = snapshot.methodAgents.map(parseBmadMethodAgent);
   const builderPackages = snapshot.builderPackages.map(parseBmadBuilderPackage);
   assertUniqueIdentities(
-    builderPackages.map(({ packageKind, packageName }) => `${packageName}${packageKind}`),
+    builderPackages.map(({ packageKind, packageName }) => `${packageName}\u001f${packageKind}`),
   );
   assertUniqueIdentities(
     installedSkills.map(

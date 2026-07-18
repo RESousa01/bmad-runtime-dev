@@ -7,7 +7,17 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const scannerPath = join(dirname(fileURLToPath(import.meta.url)), "check-secrets.mjs");
-const scanRoots = [".github", "apps", "crates", "docs", "packages", "tools"];
+const scanRoots = [
+  ".github",
+  "apps",
+  "crates",
+  "docs",
+  "helpers",
+  "packages",
+  "services",
+  "tests",
+  "tools",
+];
 const rootFiles = [
   ".editorconfig",
   ".gitattributes",
@@ -66,6 +76,19 @@ test("scanner rejects a literal NUL byte in text source", async () => {
   }
 });
 
+test("scanner rejects other literal C0 control bytes in text source", async () => {
+  const root = await createFixtureRoot();
+  try {
+    await writeFile(join(root, "apps", "unit-separator.ts"), Buffer.from("const key = `a\x1fb`;\n", "latin1"));
+    const result = runScanner(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /C0 control byte in text source/);
+    assert.match(result.stderr, /unit-separator\.ts:1/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner rejects a literal secret assignment", async () => {
   const root = await createFixtureRoot();
   try {
@@ -75,6 +98,22 @@ test("scanner rejects a literal secret assignment", async () => {
     const result = runScanner(root);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /literal secret assignment/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("scanner covers first-party C sharp sources", async () => {
+  const root = await createFixtureRoot();
+  try {
+    const probe = `var ${["client", "secret"].join("_")} = "hunter2-hunter2";\n`;
+    const serviceRoot = join(root, "services", "desktop-support-api");
+    await mkdir(serviceRoot, { recursive: true });
+    await writeFile(join(serviceRoot, "Leak.cs"), probe);
+    const result = runScanner(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /literal secret assignment/);
+    assert.match(result.stderr, /Leak\.cs:1/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
