@@ -301,6 +301,7 @@ impl LocalCheckpoint {
             self.entries.clone(),
             self.created_at,
         )?;
+        let mut aliases = std::collections::BTreeSet::new();
         if recreated.schema_version != self.schema_version
             || recreated.manifest_hash != self.manifest_hash
             || self.entries.windows(2).any(|pair| {
@@ -309,6 +310,10 @@ impl LocalCheckpoint {
                     .canonical_cmp(&pair[1].relative_path)
                     .is_lt()
             })
+            || self
+                .entries
+                .iter()
+                .any(|entry| !aliases.insert(entry.relative_path.case_folded()))
         {
             return Err(ExecutionError::IntegrityFailure);
         }

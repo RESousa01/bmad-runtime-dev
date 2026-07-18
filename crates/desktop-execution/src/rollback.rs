@@ -350,15 +350,22 @@ fn verify_recovery_checkpoint_coverage(
     checkpoint: &LocalCheckpoint,
     checkpoint_entries: &BTreeMap<String, &crate::CheckpointEntry>,
 ) -> Result<bool, ExecutionError> {
-    let complete = checkpoint.entries.len() == journal.operations.len()
+    let same_cardinality = checkpoint.entries.len() == journal.operations.len();
+    let complete = same_cardinality
         && journal.operations.iter().all(|operation| {
             checkpoint_entries.contains_key(&operation.relative_path.case_folded())
         });
     for operation in &journal.operations {
         let Some(checkpoint_entry) = checkpoint_entries.get(&operation.relative_path.case_folded())
         else {
+            if same_cardinality {
+                return Err(ExecutionError::IntegrityFailure);
+            }
             continue;
         };
+        if operation.relative_path != checkpoint_entry.relative_path {
+            return Err(ExecutionError::IntegrityFailure);
+        }
         let valid_kind = matches!(
             (operation.operation, &checkpoint_entry.before),
             (
@@ -727,6 +734,7 @@ mod tests {
     struct RecoveryWorkspace {
         target_hash: Mutex<desktop_runtime::Sha256Digest>,
         files: Mutex<BTreeMap<String, TestFile>>,
+        observations: Mutex<Vec<String>>,
         mutations: Mutex<Vec<String>>,
         fail_reads: bool,
         fail_mutation: Option<usize>,
@@ -756,6 +764,7 @@ mod tests {
                         })
                         .collect(),
                 ),
+                observations: Mutex::new(Vec::new()),
                 mutations: Mutex::new(Vec::new()),
                 fail_reads: false,
                 fail_mutation: None,
@@ -820,6 +829,10 @@ mod tests {
         fn mutations(&self) -> Vec<String> {
             must(self.mutations.lock()).clone()
         }
+
+        fn observation_count(&self) -> usize {
+            must(self.observations.lock()).len()
+        }
     }
 
     impl WorkspaceFileIo for RecoveryWorkspace {
@@ -848,6 +861,10 @@ mod tests {
             &self,
             path: &RelativeWorkspacePath,
         ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+            self.observations
+                .lock()
+                .map_err(|_| WorkspaceIoError::Unavailable)?
+                .push(path.as_str().to_owned());
             if self.fail_reads {
                 return Err(WorkspaceIoError::Unavailable);
             }
@@ -1345,6 +1362,86 @@ mod tests {
             ),
             Err(ExecutionError::WorkspaceFailure)
         ));
+    }
+
+    #[test]
+    fn recovery_rejects_case_alias_before_workspace_observation() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let mut aliased = journal(
+            &checkpoint,
+            &["a-modified.txt", "m-deleted.txt", "z-created.txt"],
+        );
+        aliased.operations[0].relative_path = path("A-modified.txt");
+        let workspace = partial_workspace(target_hash);
+
+        assert!(matches!(
+            plan_recovery(&workspace, &aliased, &checkpoint),
+            Err(ExecutionError::IntegrityFailure)
+        ));
+        assert_eq!(workspace.observation_count(), 0);
+        assert!(workspace.mutations().is_empty());
+    }
+
+    #[test]
+    fn recovery_rejects_duplicate_folded_checkpoint_paths_before_observation() {
+        let target_hash = sha256_bytes(b"workspace");
+        let original = complete_checkpoint(target_hash);
+        let mut upper = original.entries[0].clone();
+        upper.relative_path = path("Foo.txt");
+        let mut lower = original.entries[1].clone();
+        lower.relative_path = path("foo.txt");
+        let duplicate = make_checkpoint(target_hash, vec![upper, lower]);
+        let journal = journal(
+            &duplicate,
+            &["a-modified.txt", "m-deleted.txt", "z-created.txt"],
+        );
+        let workspace = partial_workspace(target_hash);
+
+        assert!(matches!(
+            plan_recovery(&workspace, &journal, &duplicate),
+            Err(ExecutionError::IntegrityFailure)
+        ));
+        assert_eq!(workspace.observation_count(), 0);
+        assert!(workspace.mutations().is_empty());
+    }
+
+    #[test]
+    fn recovery_rejects_duplicate_folded_journal_paths_before_observation() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let mut duplicate = journal(
+            &checkpoint,
+            &["a-modified.txt", "m-deleted.txt", "z-created.txt"],
+        );
+        duplicate.operations[2].relative_path = path("A-modified.txt");
+        let workspace = partial_workspace(target_hash);
+
+        assert!(matches!(
+            plan_recovery(&workspace, &duplicate, &checkpoint),
+            Err(ExecutionError::IntegrityFailure)
+        ));
+        assert_eq!(workspace.observation_count(), 0);
+        assert!(workspace.mutations().is_empty());
+    }
+
+    #[test]
+    fn recovery_rejects_exact_path_mismatch_before_workspace_observation() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let mut mismatched = journal(
+            &checkpoint,
+            &["a-modified.txt", "m-deleted.txt", "z-created.txt"],
+        );
+        mismatched.operations[0].relative_path = path("other-modified.txt");
+        let workspace = partial_workspace(target_hash);
+
+        assert!(matches!(
+            plan_recovery(&workspace, &mismatched, &checkpoint),
+            Err(ExecutionError::IntegrityFailure)
+        ));
+        assert_eq!(workspace.observation_count(), 0);
+        assert!(workspace.mutations().is_empty());
     }
 
     #[test]
