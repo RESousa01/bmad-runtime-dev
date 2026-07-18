@@ -572,9 +572,19 @@ pub struct RecoveryPlan {
     pub checkpoint_id: ContractId,
     pub workspace_target_hash: Sha256Digest,
     pub disposition: RecoveryDisposition,
+    pub(crate) observations: Vec<RecoveryPathObservation>,
     pub operations: Vec<RecoveryOperation>,
     pub plan_hash: Sha256Digest,
     pub reason: RecoveryReason,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct RecoveryPathObservation {
+    pub(crate) relative_path: RelativeWorkspacePath,
+    pub(crate) current_exists: bool,
+    pub(crate) current_content_hash: Option<Sha256Digest>,
+    pub(crate) current_file_identity_hash: Option<Sha256Digest>,
+    pub(crate) restore_to: CheckpointFileState,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

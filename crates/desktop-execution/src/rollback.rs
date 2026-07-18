@@ -6,6 +6,8 @@ use desktop_runtime::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::model::RecoveryPathObservation;
+
 use crate::{
     CheckpointFileState, EffectJournal, ExecutionError, FileObservation, LocalCheckpoint,
     LocalExecutionResult, RecoveryDisposition, RecoveryOperation, RecoveryPlan, RecoveryReason,
@@ -265,36 +267,11 @@ where
         .iter()
         .map(|entry| (entry.relative_path.case_folded(), entry))
         .collect();
-    let coverage_complete = checkpoint.entries.len() == journal.operations.len()
-        && journal.operations.iter().all(|operation| {
-            checkpoint_entries.contains_key(&operation.relative_path.case_folded())
-        });
-
-    for operation in &journal.operations {
-        let Some(checkpoint_entry) = checkpoint_entries.get(&operation.relative_path.case_folded())
-        else {
-            continue;
-        };
-        let valid_preimage = operation.preimage_hash == checkpoint_entry.before.content_hash();
-        let valid_kind = matches!(
-            (operation.operation, &checkpoint_entry.before),
-            (
-                crate::ResultFileOperation::Created,
-                CheckpointFileState::Absent
-            ) | (
-                crate::ResultFileOperation::Modified | crate::ResultFileOperation::Deleted,
-                CheckpointFileState::Utf8 { .. }
-            )
-        );
-        if !valid_preimage || !valid_kind {
-            return Err(ExecutionError::IntegrityFailure);
-        }
-    }
-
-    if !coverage_complete {
+    if !verify_recovery_checkpoint_coverage(journal, checkpoint, &checkpoint_entries)? {
         return seal_recovery_plan(
             journal,
             RecoveryDisposition::ManualReview,
+            Vec::new(),
             Vec::new(),
             RecoveryReason::IncompleteCheckpointCoverage,
         );
@@ -302,6 +279,7 @@ where
 
     let mut all_preimages = true;
     let mut all_postimages = true;
+    let mut recovery_observations = Vec::with_capacity(journal.operations.len());
     let mut recovery_operations = Vec::new();
     for operation in &journal.operations {
         let checkpoint_entry = checkpoint_entries
@@ -315,6 +293,14 @@ where
         all_postimages &= current_exists == operation.postimage_hash.is_some()
             && current_hash == operation.postimage_hash;
 
+        recovery_observations.push(RecoveryPathObservation {
+            relative_path: checkpoint_entry.relative_path.clone(),
+            current_exists,
+            current_content_hash: current_hash,
+            current_file_identity_hash: current.file_identity_hash,
+            restore_to: checkpoint_entry.before.clone(),
+        });
+
         if current_exists != checkpoint_entry.before.exists()
             || current_hash != checkpoint_entry.before.content_hash()
         {
@@ -327,6 +313,8 @@ where
             });
         }
     }
+    recovery_observations
+        .sort_by(|left, right| left.relative_path.canonical_cmp(&right.relative_path));
     recovery_operations
         .sort_by(|left, right| left.relative_path.canonical_cmp(&right.relative_path));
 
@@ -334,6 +322,7 @@ where
         seal_recovery_plan(
             journal,
             RecoveryDisposition::NoEffect,
+            recovery_observations,
             Vec::new(),
             RecoveryReason::NoEffectObserved,
         )
@@ -341,6 +330,7 @@ where
         seal_recovery_plan(
             journal,
             RecoveryDisposition::Complete,
+            recovery_observations,
             Vec::new(),
             RecoveryReason::PostimagesVerified,
         )
@@ -348,10 +338,42 @@ where
         seal_recovery_plan(
             journal,
             RecoveryDisposition::RestoreCheckpoint,
+            recovery_observations,
             recovery_operations,
             RecoveryReason::CompleteCheckpointCoverage,
         )
     }
+}
+
+fn verify_recovery_checkpoint_coverage(
+    journal: &EffectJournal,
+    checkpoint: &LocalCheckpoint,
+    checkpoint_entries: &BTreeMap<String, &crate::CheckpointEntry>,
+) -> Result<bool, ExecutionError> {
+    let complete = checkpoint.entries.len() == journal.operations.len()
+        && journal.operations.iter().all(|operation| {
+            checkpoint_entries.contains_key(&operation.relative_path.case_folded())
+        });
+    for operation in &journal.operations {
+        let Some(checkpoint_entry) = checkpoint_entries.get(&operation.relative_path.case_folded())
+        else {
+            continue;
+        };
+        let valid_kind = matches!(
+            (operation.operation, &checkpoint_entry.before),
+            (
+                crate::ResultFileOperation::Created,
+                CheckpointFileState::Absent
+            ) | (
+                crate::ResultFileOperation::Modified | crate::ResultFileOperation::Deleted,
+                CheckpointFileState::Utf8 { .. }
+            )
+        );
+        if operation.preimage_hash != checkpoint_entry.before.content_hash() || !valid_kind {
+            return Err(ExecutionError::IntegrityFailure);
+        }
+    }
+    Ok(complete)
 }
 
 #[derive(Serialize)]
@@ -363,8 +385,20 @@ struct RecoveryPlanBinding<'a> {
     checkpoint_id: &'a ContractId,
     workspace_target_hash: Sha256Digest,
     disposition: RecoveryDisposition,
+    observations: Vec<RecoveryObservationBinding<'a>>,
     operations: Vec<RecoveryOperationBinding<'a>>,
     reason: RecoveryReason,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RecoveryObservationBinding<'a> {
+    relative_path: &'a RelativeWorkspacePath,
+    current_exists: bool,
+    current_content_hash: Option<Sha256Digest>,
+    current_file_identity_hash: Option<Sha256Digest>,
+    restore_exists: bool,
+    restore_content_hash: Option<Sha256Digest>,
 }
 
 #[derive(Serialize)]
@@ -379,6 +413,18 @@ struct RecoveryOperationBinding<'a> {
 }
 
 fn recovery_plan_hash(plan: &RecoveryPlan) -> Result<Sha256Digest, ExecutionError> {
+    let observations = plan
+        .observations
+        .iter()
+        .map(|observation| RecoveryObservationBinding {
+            relative_path: &observation.relative_path,
+            current_exists: observation.current_exists,
+            current_content_hash: observation.current_content_hash,
+            current_file_identity_hash: observation.current_file_identity_hash,
+            restore_exists: observation.restore_to.exists(),
+            restore_content_hash: observation.restore_to.content_hash(),
+        })
+        .collect();
     let operations = plan
         .operations
         .iter()
@@ -401,6 +447,7 @@ fn recovery_plan_hash(plan: &RecoveryPlan) -> Result<Sha256Digest, ExecutionErro
             checkpoint_id: &plan.checkpoint_id,
             workspace_target_hash: plan.workspace_target_hash,
             disposition: plan.disposition,
+            observations,
             operations,
             reason: plan.reason,
         },
@@ -412,6 +459,7 @@ fn recovery_plan_hash(plan: &RecoveryPlan) -> Result<Sha256Digest, ExecutionErro
 fn seal_recovery_plan(
     journal: &EffectJournal,
     disposition: RecoveryDisposition,
+    observations: Vec<RecoveryPathObservation>,
     operations: Vec<RecoveryOperation>,
     reason: RecoveryReason,
 ) -> Result<RecoveryPlan, ExecutionError> {
@@ -421,6 +469,7 @@ fn seal_recovery_plan(
         checkpoint_id: journal.checkpoint_id.clone(),
         workspace_target_hash: journal.workspace_target_hash,
         disposition,
+        observations,
         operations,
         plan_hash: sha256_bytes(b"unsealed-recovery-plan"),
         reason,
@@ -484,7 +533,19 @@ pub fn restore_checkpoint<W: WorkspaceFileIo>(
 }
 
 fn verify_recovery_plan(plan: &RecoveryPlan) -> Result<(), ExecutionError> {
-    if plan.operations.is_empty()
+    if plan.observations.is_empty()
+        || plan.observations.windows(2).any(|pair| {
+            !pair[0]
+                .relative_path
+                .canonical_cmp(&pair[1].relative_path)
+                .is_lt()
+        })
+        || plan.observations.iter().any(|observation| {
+            observation.current_exists != observation.current_content_hash.is_some()
+                || observation.current_exists != observation.current_file_identity_hash.is_some()
+                || !checkpoint_state_is_valid(&observation.restore_to)
+        })
+        || plan.operations.is_empty()
         || plan.operations.windows(2).any(|pair| {
             !pair[0]
                 .relative_path
@@ -495,20 +556,32 @@ fn verify_recovery_plan(plan: &RecoveryPlan) -> Result<(), ExecutionError> {
             operation.expected_current_exists != operation.expected_current_content_hash.is_some()
                 || operation.expected_current_exists
                     != operation.expected_current_file_identity_hash.is_some()
-                || matches!(
-                    &operation.restore_to,
-                    CheckpointFileState::Utf8 {
-                        content,
-                        content_hash
-                    } if content.contains('\0')
-                        || sha256_bytes(content.as_bytes()) != *content_hash
-                )
+                || !checkpoint_state_is_valid(&operation.restore_to)
+                || !plan.observations.iter().any(|observation| {
+                    observation.relative_path == operation.relative_path
+                        && observation.current_exists == operation.expected_current_exists
+                        && observation.current_content_hash
+                            == operation.expected_current_content_hash
+                        && observation.current_file_identity_hash
+                            == operation.expected_current_file_identity_hash
+                        && observation.restore_to == operation.restore_to
+                })
         })
         || recovery_plan_hash(plan)? != plan.plan_hash
     {
         return Err(ExecutionError::IntegrityFailure);
     }
     Ok(())
+}
+
+fn checkpoint_state_is_valid(state: &CheckpointFileState) -> bool {
+    !matches!(
+        state,
+        CheckpointFileState::Utf8 {
+            content,
+            content_hash
+        } if content.contains('\0') || sha256_bytes(content.as_bytes()) != *content_hash
+    )
 }
 
 fn restore_checkpoint_scoped(
@@ -523,15 +596,15 @@ fn restore_checkpoint_scoped(
         return Err(ExecutionError::AuthorizationMismatch);
     }
 
-    let mut reobserved_operations = Vec::with_capacity(plan.operations.len());
-    for operation in &plan.operations {
-        let observation = observe_recovery_file(workspace, &operation.relative_path)?;
-        reobserved_operations.push(RecoveryOperation {
-            relative_path: operation.relative_path.clone(),
-            expected_current_exists: observation.content.is_some(),
-            expected_current_content_hash: observation.content.as_deref().map(sha256_bytes),
-            expected_current_file_identity_hash: observation.file_identity_hash,
-            restore_to: operation.restore_to.clone(),
+    let mut reobserved_paths = Vec::with_capacity(plan.observations.len());
+    for planned in &plan.observations {
+        let observation = observe_recovery_file(workspace, &planned.relative_path)?;
+        reobserved_paths.push(RecoveryPathObservation {
+            relative_path: planned.relative_path.clone(),
+            current_exists: observation.content.is_some(),
+            current_content_hash: observation.content.as_deref().map(sha256_bytes),
+            current_file_identity_hash: observation.file_identity_hash,
+            restore_to: planned.restore_to.clone(),
         });
     }
     let reobserved = RecoveryPlan {
@@ -540,7 +613,8 @@ fn restore_checkpoint_scoped(
         checkpoint_id: plan.checkpoint_id.clone(),
         workspace_target_hash: plan.workspace_target_hash,
         disposition: plan.disposition,
-        operations: reobserved_operations,
+        observations: reobserved_paths,
+        operations: plan.operations.clone(),
         plan_hash: plan.plan_hash,
         reason: plan.reason,
     };
@@ -582,10 +656,10 @@ fn restore_checkpoint_scoped(
         }
     }
 
-    for operation in &plan.operations {
-        let observed = observe_recovery_file(workspace, &operation.relative_path)
+    for planned in &plan.observations {
+        let observed = observe_recovery_file(workspace, &planned.relative_path)
             .map_err(|_| ExecutionError::RecoveryRequired)?;
-        let matches_checkpoint = match &operation.restore_to {
+        let matches_checkpoint = match &planned.restore_to {
             CheckpointFileState::Absent => observed.content.is_none(),
             CheckpointFileState::Utf8 {
                 content,
@@ -713,6 +787,17 @@ mod tests {
 
         fn with_post_scope_failure(mut self) -> Self {
             self.fail_transaction_after_callback = true;
+            self
+        }
+
+        fn with_file_identity(self, path: &str, generation: u8) -> Self {
+            {
+                let mut files = must(self.files.lock());
+                let Some(file) = files.get_mut(path) else {
+                    std::process::abort()
+                };
+                file.identity = identity(path, generation);
+            }
             self
         }
 
@@ -1011,6 +1096,19 @@ mod tests {
         )
     }
 
+    fn partial_workspace_with_unchanged_path(
+        target_hash: desktop_runtime::Sha256Digest,
+    ) -> RecoveryWorkspace {
+        RecoveryWorkspace::new(
+            target_hash,
+            [
+                ("a-modified.txt", b"partial modified".as_slice()),
+                ("m-deleted.txt", b"before deleted".as_slice()),
+                ("z-created.txt", b"created content".as_slice()),
+            ],
+        )
+    }
+
     #[test]
     fn recovery_planning_classifies_verified_workspace_states() {
         let target_hash = sha256_bytes(b"workspace");
@@ -1084,6 +1182,95 @@ mod tests {
         ));
         assert_eq!(first.plan_hash, second.plan_hash);
         assert_eq!(first.operations, second.operations);
+    }
+
+    #[test]
+    fn recovery_no_effect_hash_binds_every_file_identity() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let journal = journal(
+            &checkpoint,
+            &["z-created.txt", "m-deleted.txt", "a-modified.txt"],
+        );
+        let baseline = must(plan_recovery(
+            &preimage_workspace(target_hash),
+            &journal,
+            &checkpoint,
+        ));
+        let identity_changed = must(plan_recovery(
+            &preimage_workspace(target_hash).with_file_identity("a-modified.txt", 2),
+            &journal,
+            &checkpoint,
+        ));
+
+        assert_eq!(baseline.disposition, RecoveryDisposition::NoEffect);
+        assert!(baseline.operations.is_empty());
+        assert_ne!(baseline.plan_hash, identity_changed.plan_hash);
+    }
+
+    #[test]
+    fn recovery_complete_hash_binds_every_file_identity() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let journal = journal(
+            &checkpoint,
+            &["m-deleted.txt", "a-modified.txt", "z-created.txt"],
+        );
+        let baseline = must(plan_recovery(
+            &postimage_workspace(target_hash),
+            &journal,
+            &checkpoint,
+        ));
+        let identity_changed = must(plan_recovery(
+            &postimage_workspace(target_hash).with_file_identity("z-created.txt", 2),
+            &journal,
+            &checkpoint,
+        ));
+
+        assert_eq!(baseline.disposition, RecoveryDisposition::Complete);
+        assert!(baseline.operations.is_empty());
+        assert_ne!(baseline.plan_hash, identity_changed.plan_hash);
+    }
+
+    #[test]
+    fn recovery_restore_hash_binds_unchanged_identity_in_canonical_order() {
+        let target_hash = sha256_bytes(b"workspace");
+        let checkpoint = complete_checkpoint(target_hash);
+        let journal = journal(
+            &checkpoint,
+            &["z-created.txt", "a-modified.txt", "m-deleted.txt"],
+        );
+        let baseline = must(plan_recovery(
+            &partial_workspace_with_unchanged_path(target_hash),
+            &journal,
+            &checkpoint,
+        ));
+        let identity_changed = must(plan_recovery(
+            &partial_workspace_with_unchanged_path(target_hash)
+                .with_file_identity("m-deleted.txt", 2),
+            &journal,
+            &checkpoint,
+        ));
+
+        assert_eq!(baseline.disposition, RecoveryDisposition::RestoreCheckpoint);
+        assert_eq!(
+            baseline
+                .operations
+                .iter()
+                .map(|operation| operation.relative_path.as_str())
+                .collect::<Vec<_>>(),
+            ["a-modified.txt", "z-created.txt"]
+        );
+        assert_eq!(baseline.operations, identity_changed.operations);
+        assert_ne!(baseline.plan_hash, identity_changed.plan_hash);
+        assert_eq!(
+            baseline
+                .observations
+                .iter()
+                .map(|observation| observation.relative_path.as_str())
+                .collect::<Vec<_>>(),
+            ["a-modified.txt", "m-deleted.txt", "z-created.txt"]
+        );
     }
 
     #[test]
