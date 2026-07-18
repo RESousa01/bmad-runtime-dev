@@ -26,13 +26,17 @@ jobs:
           toolchain: 1.97.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - name: Resolve release metadata
+        id: release-metadata
+        shell: pwsh
+        run: node tools/resolve-release-metadata.mjs --github-output "$env:GITHUB_OUTPUT"
       - run: pnpm desktop:build
       - name: Qualify installer lifecycle
         shell: pwsh
         run: >-
           ./tools/qualify-windows-installer.ps1
-          -InstallerPath target/release/bundle/nsis/Sapphirus_0.1.0_x64-setup.exe
-          -ExpectedVersion 0.1.0
+          -InstallerPath "target/release/bundle/nsis/${{ steps.release-metadata.outputs.installer_name }}"
+          -ExpectedVersion "${{ steps.release-metadata.outputs.product_version }}"
           -InstallRoot "${{ runner.temp }}\\sapphirus-installer-qualification"
           -EvidencePath "${{ runner.temp }}\\sapphirus-installer-qualification.json"
       - uses: actions/upload-artifact@v4

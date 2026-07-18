@@ -58,7 +58,12 @@ The P1 signed-installer qualification job is additionally guarded by
 `SAPPHIRUS_SIGNING_LANE_ENABLED`, a protected `windows-signing` environment, and an
 organization-managed signing runner. A separate qualification runner executes the required prior
 installer and records exact-source signed-build plus install/upgrade/launch/uninstall evidence; it
-does not publish a release.
+does not publish a release. The same release metadata authority supplies versions, artifact names,
+pinned toolchains, and dependency-lock hashes. The signed candidate carries a deterministic
+CycloneDX 1.6 complete build-lock inventory; after lifecycle qualification, GitHub binds build,
+SBOM, and release-qualification attestations to the exact application and installer hashes. The
+release predicate fail-closes on source, toolchain, lock, publisher, timestamp, lifecycle, or
+bundled-foundation evidence drift.
 
 Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update feed and
 `SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled

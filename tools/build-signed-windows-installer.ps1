@@ -13,6 +13,16 @@ param(
 
     [string] $InstallerPath,
 
+    [string] $ReleaseMetadataScript = 'tools/resolve-release-metadata.mjs',
+
+    [string] $ReleaseSbomScript = 'tools/generate-release-sbom.mjs',
+
+    [string] $TauriCliScript = 'node_modules/@tauri-apps/cli/tauri.js',
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $SbomPath,
+
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string] $EvidencePath
@@ -146,13 +156,51 @@ if ($normalizedThumbprint -notmatch '^[0-9A-F]{40}$') {
 $validatedTimestampUrl = Assert-ValidTimestampUrl -Url $timestampInput
 $certificate = Find-CodeSigningCertificate -Thumbprint $normalizedThumbprint
 $configuration = Resolve-RegularFile -Path $ConfigPath
+$metadataScript = Resolve-RegularFile -Path $ReleaseMetadataScript
+$sbomScript = Resolve-RegularFile -Path $ReleaseSbomScript
+$tauriCliScriptPath = Resolve-RegularFile -Path $TauriCliScript
+$sbom = Resolve-RegularFile -Path $SbomPath
+
+$node = Get-Command 'node.exe' -ErrorAction SilentlyContinue
+if ($null -eq $node) {
+    $node = Get-Command 'node' -ErrorAction SilentlyContinue
+}
+if ($null -eq $node) {
+    throw 'The pinned Node executable is unavailable on PATH.'
+}
+$releaseMetadataOutput = @(& $node.Source $metadataScript)
+if ($LASTEXITCODE -ne 0) {
+    throw 'Release metadata resolution failed.'
+}
+$releaseMetadata = ($releaseMetadataOutput -join [Environment]::NewLine) | ConvertFrom-Json
+$productVersion = [string] $releaseMetadata.product.version
+$expectedInstallerName = [string] $releaseMetadata.product.installerName
+$expectedApplicationName = [string] $releaseMetadata.product.applicationName
+$expectedSbomName = [string] $releaseMetadata.product.sbomName
+
 $configurationJson = Get-Content -LiteralPath $configuration -Raw | ConvertFrom-Json
-$productVersion = [string] $configurationJson.version
-if ($productVersion -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
-    throw 'Tauri configuration contains an invalid product version.'
+if ([string] $configurationJson.version -ne $productVersion) {
+    throw 'Tauri configuration disagrees with the release metadata authority.'
 }
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = "target/release/bundle/nsis/Sapphirus_${productVersion}_x64-setup.exe"
+    $InstallerPath = Join-Path 'target/release/bundle/nsis' $expectedInstallerName
+}
+if ([IO.Path]::GetFileName($InstallerPath) -ne $expectedInstallerName) {
+    throw 'Installer path disagrees with the release metadata authority.'
+}
+if ([IO.Path]::GetFileName($ApplicationPath) -ne $expectedApplicationName) {
+    throw 'Application path disagrees with the release metadata authority.'
+}
+if ([IO.Path]::GetFileName($sbom) -ne $expectedSbomName) {
+    throw 'SBOM path disagrees with the release metadata authority.'
+}
+$sbomJson = Get-Content -LiteralPath $sbom -Raw | ConvertFrom-Json
+if (
+    [string] $sbomJson.bomFormat -ne 'CycloneDX' -or
+    [string] $sbomJson.specVersion -ne '1.6' -or
+    [string] $sbomJson.metadata.component.version -ne $productVersion
+) {
+    throw 'SBOM identity disagrees with the release metadata authority.'
 }
 $evidenceFile = Resolve-NewEvidenceFile -Path $EvidencePath
 
@@ -181,6 +229,30 @@ if ($null -eq $pnpm) {
 }
 if ($null -eq $pnpm) {
     throw 'The pinned pnpm executable is unavailable on PATH.'
+}
+$rustc = Get-Command 'rustc.exe' -ErrorAction SilentlyContinue
+if ($null -eq $rustc) {
+    $rustc = Get-Command 'rustc' -ErrorAction SilentlyContinue
+}
+if ($null -eq $rustc) {
+    throw 'The pinned Rust compiler is unavailable on PATH.'
+}
+
+$actualNode = (& $node.Source --version).Trim().TrimStart('v')
+$actualPnpm = (& $pnpm.Source --version).Trim()
+$rustcDescription = (& $rustc.Source --version).Trim()
+$rustcMatch = [regex]::Match($rustcDescription, '^rustc (\d+\.\d+\.\d+) ')
+$tauriDescription = (& $node.Source $tauriCliScriptPath --version).Trim()
+$tauriMatch = [regex]::Match($tauriDescription, '^tauri-cli (\d+\.\d+\.\d+)$')
+if (
+    $actualNode -ne [string] $releaseMetadata.toolchain.node -or
+    $actualPnpm -ne [string] $releaseMetadata.toolchain.pnpm -or
+    -not $rustcMatch.Success -or
+    $rustcMatch.Groups[1].Value -ne [string] $releaseMetadata.toolchain.rust -or
+    -not $tauriMatch.Success -or
+    $tauriMatch.Groups[1].Value -ne [string] $releaseMetadata.toolchain.tauriCli
+) {
+    throw 'Runtime release toolchain disagrees with the reviewed metadata authority.'
 }
 
 $temporaryRoot = if (-not [string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) {
@@ -228,16 +300,56 @@ try {
         throw "Signed Tauri build failed with exit code $LASTEXITCODE."
     }
 
+    $postBuildRevision = (& $git.Source rev-parse --verify HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or $postBuildRevision -ne $sourceRevision) {
+        throw 'Source revision changed during the signed build.'
+    }
+    $postBuildChanges = @(& $git.Source status --porcelain --untracked-files=normal)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to verify the post-build source worktree state.'
+    }
+    if ($postBuildChanges.Count -ne 0) {
+        throw 'The signed build mutated the source worktree.'
+    }
+    $postBuildMetadataOutput = @(& $node.Source $metadataScript)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Post-build release metadata resolution failed.'
+    }
+    $postBuildMetadata = ($postBuildMetadataOutput -join [Environment]::NewLine) | ConvertFrom-Json
+    $preBuildMetadataJson = $releaseMetadata | ConvertTo-Json -Depth 8 -Compress
+    $postBuildMetadataJson = $postBuildMetadata | ConvertTo-Json -Depth 8 -Compress
+    if ($postBuildMetadataJson -cne $preBuildMetadataJson) {
+        throw 'Release metadata or lock identity changed during the signed build.'
+    }
+    & $node.Source $sbomScript --verify $sbom
+    if ($LASTEXITCODE -ne 0) {
+        throw 'SBOM verification against the post-build lock inventory failed.'
+    }
+    $sbomHash = (Get-FileHash -LiteralPath $sbom -Algorithm SHA256).Hash.ToLowerInvariant()
+
     $application = Resolve-RegularFile -Path $ApplicationPath
     $installer = Resolve-RegularFile -Path $InstallerPath
     $applicationSignature = Assert-TimestampedPublisherSignature -Path $application -PublisherThumbprint $normalizedThumbprint
     $installerSignature = Assert-TimestampedPublisherSignature -Path $installer -PublisherThumbprint $normalizedThumbprint
 
     $evidence = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         sourceRevision = $sourceRevision.ToLowerInvariant()
         sourceTreeState = 'clean'
         productVersion = $productVersion
+        releaseMetadata = $releaseMetadata
+        toolchain = [ordered]@{
+            node = $actualNode
+            pnpm = $actualPnpm
+            rustc = $rustcDescription
+            tauriCli = $tauriDescription
+        }
+        sbom = [ordered]@{
+            fileName = $expectedSbomName
+            sha256 = $sbomHash
+            format = 'CycloneDX'
+            specVersion = '1.6'
+        }
         certificateThumbprint = $certificate.Thumbprint
         certificateNotAfterUtc = $certificate.NotAfter.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
         timestampProtocol = $TimestampProtocol
@@ -252,7 +364,7 @@ try {
             timestamperThumbprint = $installerSignature.TimeStamperCertificate.Thumbprint
         }
     }
-    $evidenceJson = $evidence | ConvertTo-Json -Depth 5
+    $evidenceJson = $evidence | ConvertTo-Json -Depth 8
     [IO.File]::WriteAllText(
         $evidenceFile,
         ($evidenceJson + [Environment]::NewLine),
