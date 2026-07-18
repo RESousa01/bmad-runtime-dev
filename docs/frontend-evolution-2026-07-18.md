@@ -42,10 +42,34 @@ back it. The semantic palette remains contractual and untouched.
 
 ## Catalog lockstep
 
-READY commands went 24 → 28 (`app.preferences.get`, `app.preferences.set`,
-`app.about`, `workspace.pick_files`), appended in identical order in:
+READY commands first went 24 → 28 (`app.preferences.get`,
+`app.preferences.set`, `app.about`, `workspace.pick_files`) and reviewed
+recovery then extended the exact catalog to 30 with
+`changes.recovery.prepare` and `changes.recovery.decide`. The commands remain
+in identical order in:
 `crates/desktop-app/src/commands.rs`, `crates/desktop-ipc/src/envelope.rs`,
 `apps/desktop-ui/src/lib/hostClient/contracts.ts`, and
 `tools/check-boundaries.mjs`. A renderer tripwire test
 (`lib/hostClient/commandCatalog.test.ts`) pins the exact ordered list.
 Recovery mode still exposes only `app.get_boot_state` and `workspace.list`.
+
+## Reviewed restart recovery
+
+- Changes and Activity now share one `RecoveryReview` surface for a native
+  `recovery_required` journal. Entry availability is a closed host projection;
+  the renderer does not infer authority from journal state.
+- Preparation is read-only. It shows bounded relative paths and fixed,
+  renderer-owned operation explanations without exposing checkpoint bytes,
+  absolute paths, hashes, approval identifiers, or native diagnostic text.
+- Restore requires governed edits to be re-enabled for the exact workspace and
+  a fresh process-local approval. The client consumes its one-shot authority
+  before dispatch and invalidates it on expiry or relevant authority/history
+  drift. Refresh and duplicate actions stay disabled while a decision is in
+  flight, including across the expiry boundary.
+- Success is projected only after the host durably verifies and finalizes the
+  restore. Failed/interrupted restoration becomes non-actionable
+  `manual_review`; the UI offers neither discard nor automatic retry.
+- Renderer qualification is 322/322 tests across 24 files at code revision
+  `0eea58a4f940c65afca5ad43da37e7f8959eac02`. Independent whole-P2 review is
+  still pending, so this is implementation evidence rather than a completion
+  claim.

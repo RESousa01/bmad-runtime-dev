@@ -23,6 +23,17 @@ BMAD-resource, uninstall, and install-root removal evidence. Authenticode signin
 independent clean-machine release run remain outstanding. Governed proposals currently originate
 from the renderer's review flow, not from a model.
 
+Interrupted governed edits now have an explicit reviewed restart-recovery path.
+Boot never changes workspace files: it retains the authenticated journal as
+`recovery_required` and continues to block updates. After governed edits are
+re-enabled for the exact workspace, Changes or Activity can open the same
+bounded recovery review and issue a fresh, short-lived, single-use restore
+decision. A successful restore verifies the exact checkpoint bytes and
+finalizes once; an interrupted restore becomes terminal `manual_review` and is
+not retried automatically. The exact local qualification and still-pending
+independent review are recorded in
+`docs/implementation-packets/P2-d3-reviewed-recovery-2026-07-18.md`.
+
 ## Repository map
 
 - `apps/desktop-ui` — Agent + Sessions renderer
