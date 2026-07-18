@@ -108,9 +108,25 @@ export type {
   SapphirusFilesystemCapabilityV1 as FilesystemCapabilitySnapshot,
 } from "./schema/filesystem-capability.js";
 export type {
+  SapphirusDesktopDeviceRegistrationV1 as DesktopDeviceRegistration,
+} from "./schema/desktop-device-registration.js";
+export type {
+  SapphirusDesktopEntitlementLeaseV1 as DesktopEntitlementLease,
+} from "./schema/desktop-entitlement-lease.js";
+export type {
+  SapphirusDesktopPolicyV1 as DesktopPolicy,
+} from "./schema/desktop-policy.js";
+export type {
+  SapphirusModelAccessRequestV1 as ModelAccessRequest,
+  ContextItem as ModelContextItem,
+} from "./schema/model-access-request.js";
+export type {
   SapphirusModelAccessReceiptV1 as ModelAccessReceipt,
   SupportPlaneProof,
 } from "./schema/model-access-receipt.js";
+export type {
+  SapphirusModelAccessResultV1 as ModelAccessResult,
+} from "./schema/model-access-result.js";
 export type {
   SapphirusModelContextConsentV1 as ModelContextConsent,
   InstallationProof,

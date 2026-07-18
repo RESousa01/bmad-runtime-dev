@@ -60,8 +60,32 @@
     "reasonCode": null
   },
   {
+    "file": "valid/desktop-device-registration.json",
+    "schema": "desktop-device-registration.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/desktop-policy.json",
+    "schema": "desktop-policy.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/desktop-entitlement-lease.json",
+    "schema": "desktop-entitlement-lease.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
     "file": "valid/model-context-consent.json",
     "schema": "model-context-consent.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-request.json",
+    "schema": "model-access-request.schema.json",
     "valid": true,
     "reasonCode": null
   },
@@ -70,6 +94,36 @@
     "schema": "model-access-receipt.schema.json",
     "valid": true,
     "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-result.json",
+    "schema": "model-access-result.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "invalid/desktop-registration-unknown-property.json",
+    "schema": "desktop-device-registration.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/desktop-registration-malformed-public-key.json",
+    "schema": "desktop-device-registration.schema.json",
+    "valid": false,
+    "reasonCode": "PATTERN_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-request-unsafe-relative-label.json",
+    "schema": "model-access-request.schema.json",
+    "valid": false,
+    "reasonCode": "PATTERN_MISMATCH"
+  },
+  {
+    "file": "invalid/model-context-consent-malformed-signature.json",
+    "schema": "model-context-consent.schema.json",
+    "valid": false,
+    "reasonCode": "PATTERN_MISMATCH"
   },
   {
     "file": "invalid/unknown-discriminator.json",

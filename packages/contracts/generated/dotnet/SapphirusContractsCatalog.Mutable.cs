@@ -300,6 +300,54 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the (optional) <c>desktopDeviceRegistration</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Mutable DesktopDeviceRegistrationValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>desktopEntitlementLease</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Mutable DesktopEntitlementLeaseValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>desktopPolicy</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Mutable DesktopPolicyValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopPolicyValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the (optional) <c>durableObject</c> property.
         /// </summary>
         public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Mutable DurableObjectValue
@@ -435,6 +483,38 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessReceiptValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>modelAccessRequest</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Mutable ModelAccessRequestValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessRequestValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>modelAccessResult</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Mutable ModelAccessResultValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessResultValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Mutable value))
                 {
                     return value;
                 }
@@ -1185,6 +1265,249 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Set the <c>desktopDeviceRegistration</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopDeviceRegistrationValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopDeviceRegistrationValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>desktopDeviceRegistration</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopDeviceRegistrationValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopDeviceRegistrationValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>desktopDeviceRegistration</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveDesktopDeviceRegistrationValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopDeviceRegistrationValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>desktopEntitlementLease</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopEntitlementLeaseValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopEntitlementLeaseValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>desktopEntitlementLease</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopEntitlementLeaseValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopEntitlementLeaseValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>desktopEntitlementLease</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveDesktopEntitlementLeaseValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopEntitlementLeaseValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>desktopPolicy</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopPolicyValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopPolicyValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopPolicyValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopPolicyValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>desktopPolicy</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetDesktopPolicyValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopPolicyValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DesktopPolicyValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopPolicyValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>desktopPolicy</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveDesktopPolicyValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.DesktopPolicyValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
         /// Set the <c>durableObject</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
@@ -1909,6 +2232,168 @@ public readonly partial struct SapphirusContractsCatalog
         {
             CheckValidInstance();
             bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessReceiptValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>modelAccessRequest</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetModelAccessRequestValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessRequestValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessRequestValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessRequestValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>modelAccessRequest</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetModelAccessRequestValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessRequestValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessRequestValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessRequestValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>modelAccessRequest</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveModelAccessRequestValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessRequestValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>modelAccessResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetModelAccessResultValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessResultValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessResultValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessResultValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>modelAccessResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetModelAccessResultValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessResultValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelAccessResultValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessResultValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>modelAccessResult</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveModelAccessResultValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.ModelAccessResultValueUtf8);
             _documentVersion = _parent.Version;
             return result;
         }
@@ -2647,6 +3132,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default,
@@ -2656,6 +3144,8 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default,
@@ -2669,6 +3159,9 @@ public readonly partial struct SapphirusContractsCatalog
             builderAuthoringObject.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BuilderAuthoringObjectValue, ref builder);
             candidateAction.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CandidateActionValue, ref builder);
             contractError.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ContractErrorValue, ref builder);
+            desktopDeviceRegistration.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopDeviceRegistrationValue, ref builder);
+            desktopEntitlementLease.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopEntitlementLeaseValue, ref builder);
+            desktopPolicy.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopPolicyValue, ref builder);
             durableObject.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DurableObjectValue, ref builder);
             evidenceEvent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceEventValue, ref builder);
             executionResultManifest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ExecutionResultManifestValue, ref builder);
@@ -2678,6 +3171,8 @@ public readonly partial struct SapphirusContractsCatalog
             methodHelpRecommendation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref builder);
             methodSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodSessionValue, ref builder);
             modelAccessReceipt.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessReceiptValue, ref builder);
+            modelAccessRequest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessRequestValue, ref builder);
+            modelAccessResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessResultValue, ref builder);
             modelContextConsent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelContextConsentValue, ref builder);
             packageCompatibility.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageCompatibilityValue, ref builder);
             remoteJobHandoff.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RemoteJobHandoffValue, ref builder);
@@ -2696,6 +3191,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default,
@@ -2705,12 +3203,14 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default)
         {
-            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         /// <summary>
@@ -2727,6 +3227,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default,
@@ -2736,6 +3239,8 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default,
@@ -2752,6 +3257,9 @@ public readonly partial struct SapphirusContractsCatalog
             builderAuthoringObject.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BuilderAuthoringObjectValue, ref builder);
             candidateAction.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CandidateActionValue, ref builder);
             contractError.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ContractErrorValue, ref builder);
+            desktopDeviceRegistration.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopDeviceRegistrationValue, ref builder);
+            desktopEntitlementLease.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopEntitlementLeaseValue, ref builder);
+            desktopPolicy.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DesktopPolicyValue, ref builder);
             durableObject.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DurableObjectValue, ref builder);
             evidenceEvent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceEventValue, ref builder);
             executionResultManifest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ExecutionResultManifestValue, ref builder);
@@ -2761,6 +3269,8 @@ public readonly partial struct SapphirusContractsCatalog
             methodHelpRecommendation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodHelpRecommendation, ref builder);
             methodSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MethodSessionValue, ref builder);
             modelAccessReceipt.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessReceiptValue, ref builder);
+            modelAccessRequest.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessRequestValue, ref builder);
+            modelAccessResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelAccessResultValue, ref builder);
             modelContextConsent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ModelContextConsentValue, ref builder);
             packageCompatibility.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.PackageCompatibilityValue, ref builder);
             remoteJobHandoff.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RemoteJobHandoffValue, ref builder);
@@ -2780,6 +3290,9 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default,
@@ -2789,6 +3302,8 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default,
@@ -2797,7 +3312,7 @@ public readonly partial struct SapphirusContractsCatalog
         where TContext : allows ref struct
         #endif
         {
-            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -2931,6 +3446,9 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="builderAuthoringObject">The value of the property.</param>
     /// <param name="candidateAction">The value of the property.</param>
     /// <param name="contractError">The value of the property.</param>
+    /// <param name="desktopDeviceRegistration">The value of the property.</param>
+    /// <param name="desktopEntitlementLease">The value of the property.</param>
+    /// <param name="desktopPolicy">The value of the property.</param>
     /// <param name="durableObject">The value of the property.</param>
     /// <param name="evidenceEvent">The value of the property.</param>
     /// <param name="executionResultManifest">The value of the property.</param>
@@ -2940,19 +3458,21 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="methodHelpRecommendation">The value of the property.</param>
     /// <param name="methodSession">The value of the property.</param>
     /// <param name="modelAccessReceipt">The value of the property.</param>
+    /// <param name="modelAccessRequest">The value of the property.</param>
+    /// <param name="modelAccessResult">The value of the property.</param>
     /// <param name="modelContextConsent">The value of the property.</param>
     /// <param name="packageCompatibility">The value of the property.</param>
     /// <param name="remoteJobHandoff">The value of the property.</param>
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
     {
         JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -2973,6 +3493,9 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="builderAuthoringObject">The value of the property.</param>
     /// <param name="candidateAction">The value of the property.</param>
     /// <param name="contractError">The value of the property.</param>
+    /// <param name="desktopDeviceRegistration">The value of the property.</param>
+    /// <param name="desktopEntitlementLease">The value of the property.</param>
+    /// <param name="desktopPolicy">The value of the property.</param>
     /// <param name="durableObject">The value of the property.</param>
     /// <param name="evidenceEvent">The value of the property.</param>
     /// <param name="executionResultManifest">The value of the property.</param>
@@ -2982,13 +3505,15 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="methodHelpRecommendation">The value of the property.</param>
     /// <param name="methodSession">The value of the property.</param>
     /// <param name="modelAccessReceipt">The value of the property.</param>
+    /// <param name="modelAccessRequest">The value of the property.</param>
+    /// <param name="modelAccessResult">The value of the property.</param>
     /// <param name="modelContextConsent">The value of the property.</param>
     /// <param name="packageCompatibility">The value of the property.</param>
     /// <param name="remoteJobHandoff">The value of the property.</param>
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
         #if NET9_0_OR_GREATER
         where TContext : allows ref struct
         #endif
@@ -2997,7 +3522,7 @@ public readonly partial struct SapphirusContractsCatalog
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

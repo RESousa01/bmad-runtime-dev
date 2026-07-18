@@ -82,14 +82,17 @@ const deferredBmadPatterns = [
   ["PackageActivation", /package[._-]*(?:activate|activation)/iu],
   ["PackageRollback", /package[._-]*rollback/iu],
   ["BuilderModule", /builder[._-]*module/iu],
-  ["BuilderRegistration", /builder[._-]*(?:register|registration)|(?:register|registration)[._-]*builder/iu],
-  ["BuilderRehearsal", /builder[._-]*rehearsal|rehearsal[._-]*builder/iu],
-  ["BuilderEvaluation", /builder[._-]*(?:evaluate|evaluation)|(?:evaluate|evaluation)[._-]*builder/iu],
-  ["BuilderPublication", /builder[._-]*(?:publish|publication)|(?:publish|publication)[._-]*builder/iu],
-  ["BuilderPromotion", /builder[._-]*(?:promote|promotion)|(?:promote|promotion)[._-]*builder/iu],
-  ["BuilderActivation", /builder[._-]*(?:activate|activation)|(?:activate|activation)[._-]*builder/iu],
-  ["BuilderRollback", /builder[._-]*rollback|rollback[._-]*builder/iu],
-  ["BuilderMemoryAgent", /builder[._-]*memory[._-]*agent|memory[._-]*builder[._-]*agent/iu],
+  // Reversed (verb-first) alternatives require the verb to start its own identifier
+  // token so generated builder-pattern types such as
+  // DesktopDeviceRegistration.Builder.Build do not satisfy the guard.
+  ["BuilderRegistration", /builder[._-]*(?:register|registration)|(?<![0-9A-Za-z])(?:register|registration)[._-]*builder/iu],
+  ["BuilderRehearsal", /builder[._-]*rehearsal|(?<![0-9A-Za-z])rehearsal[._-]*builder/iu],
+  ["BuilderEvaluation", /builder[._-]*(?:evaluate|evaluation)|(?<![0-9A-Za-z])(?:evaluate|evaluation)[._-]*builder/iu],
+  ["BuilderPublication", /builder[._-]*(?:publish|publication)|(?<![0-9A-Za-z])(?:publish|publication)[._-]*builder/iu],
+  ["BuilderPromotion", /builder[._-]*(?:promote|promotion)|(?<![0-9A-Za-z])(?:promote|promotion)[._-]*builder/iu],
+  ["BuilderActivation", /builder[._-]*(?:activate|activation)|(?<![0-9A-Za-z])(?:activate|activation)[._-]*builder/iu],
+  ["BuilderRollback", /builder[._-]*rollback|(?<![0-9A-Za-z])rollback[._-]*builder/iu],
+  ["BuilderMemoryAgent", /builder[._-]*memory[._-]*agent|(?<![0-9A-Za-z])memory[._-]*builder[._-]*agent/iu],
   ["BuilderAutonomousAgent", /builder[._-]*autonomous[._-]*agent|autonomous[._-]*builder[._-]*agent/iu],
 ];
 
@@ -110,6 +113,25 @@ for (const spelling of [
     /BuilderActivation/u,
     `deferred scanner missed ${spelling}`,
   );
+}
+for (const spelling of [
+  "BuilderRegistration",
+  "builder_registration",
+  "registration.builder",
+  "RegisterBuilder",
+]) {
+  assert.throws(
+    () => assertNoDeferredBmadVocabulary("scanner qualification", spelling),
+    /BuilderRegistration/u,
+    `deferred scanner missed ${spelling}`,
+  );
+}
+for (const spelling of [
+  "DesktopDeviceRegistration.Builder.Build",
+  "public sealed class Builder",
+  "DeviceRegistrationBuilder",
+]) {
+  assertNoDeferredBmadVocabulary(`scanner qualification (${spelling})`, spelling);
 }
 
 for (const [runtime, source] of Object.entries(sources)) {
