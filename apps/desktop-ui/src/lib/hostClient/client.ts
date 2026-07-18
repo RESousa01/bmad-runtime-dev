@@ -27,23 +27,31 @@ import {
   parseRollbackRequestReply,
   parseWorkspaceEditsEnabledReply,
 } from "./changesProtocol";
+import { parseAboutReply, parsePreferencesReply } from "./appProtocol";
 import {
   buildApprovalDecisionEnvelope,
   buildBmadHelpRunEnvelope,
   buildBmadModelEnvelope,
+  buildEmptyPayloadEnvelope,
   buildLatestBmadHelpRunEnvelope,
+  buildPreferencesUpdateEnvelope,
   buildProposeChangesEnvelope,
   buildReadOnlyEnvelope,
   buildRollbackRequestEnvelope,
   buildWorkspaceEpochEnvelope,
   buildWorkspaceListEnvelope,
   buildWorkspaceRevocationEnvelope,
+  buildWorkspaceFilePickEnvelope,
   buildWorkspaceSelectionEnvelope,
 } from "./commandEnvelopes";
 import {
+  type AboutProjection,
   type ApprovalChoice,
   type BmadScanProjection,
   type BootstrapReply,
+  type DensityPreference,
+  type PreferencesProjection,
+  type ThemePreference,
   type ChangesDecisionProjection,
   type ChangesHistoryProjection,
   type ChangesReviewEnvelopeProjection,
@@ -64,6 +72,7 @@ import {
   workspaceReadLimits,
   type WorkspaceRevocationResult,
   type WorkspaceSearchMatch,
+  type WorkspaceFilePick,
   type WorkspaceSelection,
   type WorkspaceTextProjection,
 } from "./contracts";
@@ -91,6 +100,7 @@ import {
   parseWorkspaceEntriesReply,
   parseWorkspaceListReply,
   parseWorkspaceRevocationReply,
+  parseWorkspaceFilePickReply,
   parseWorkspaceSelectionReply,
   parseWorkspaceTextReply,
   sameWorkspaceIdentity,
@@ -187,6 +197,26 @@ export class DesktopHostClient {
       ]);
     }
     return parsed.selection;
+  }
+
+  async pickWorkspaceFiles(workspaceId: string): Promise<WorkspaceFilePick> {
+    const bootstrap = this.requireCommand("workspace.pick_files");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceFilePickEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseWorkspaceFilePickReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireCommand("workspace.pick_files");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.pick;
   }
 
   async listWorkspaces(): Promise<WorkspaceProjection[]> {
@@ -535,6 +565,80 @@ export class DesktopHostClient {
     this.requireBmadLibraryCommand();
     this.advanceProjectionSequence(parsed.sequence);
     return parsed.projection;
+  }
+
+  async getPreferences(): Promise<PreferencesProjection> {
+    const bootstrap = this.requireCommand("app.preferences.get");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildEmptyPayloadEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "app.preferences.get",
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parsePreferencesReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async setPreferences(
+    theme: ThemePreference,
+    density: DensityPreference,
+  ): Promise<PreferencesProjection> {
+    const bootstrap = this.requireCommand("app.preferences.set");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildPreferencesUpdateEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      theme,
+      density,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parsePreferencesReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async getAbout(): Promise<AboutProjection> {
+    const bootstrap = this.requireCommand("app.about");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildEmptyPayloadEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "app.about",
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseAboutReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  private requireCommand(command: RendererDispatchCommand): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    if (
+      bootstrap.bootMode !== "ready" ||
+      !(bootstrap.supportedCommands as readonly string[]).includes(command)
+    ) {
+      throw new HostCapabilityError(
+        "The command is unavailable in the current host mode.",
+      );
+    }
+    return bootstrap;
   }
 
   async modelAuthStatus(): Promise<ModelAuthStatusProjection> {

@@ -93,7 +93,7 @@ const modelAuthStatus: ModelAuthStatusProjection = {
 };
 
 const bmadLibrarySnapshot: BmadLibrarySnapshot = {
-  schemaVersion: "bmad-library-snapshot.v1",
+  schemaVersion: "bmad-library-snapshot.v2",
   scope: "installed_method",
   source: {
     sourceKind: "sealed_foundation",
@@ -144,6 +144,16 @@ const bmadLibrarySnapshot: BmadLibrarySnapshot = {
       availability: "capability_disabled",
       availabilityReason: "bmad_capability_disabled",
     }],
+  }],
+  builderPackages: [{
+    packageName: "bmad-builder",
+    packageVersion: "2.1.0",
+    packageKind: "agent",
+    displayName: "Builder agent",
+    activationState: "installed_inactive",
+    resourceCount: 3,
+    descriptorDigest: "0a1b2c3d4e5f",
+    blockerCodes: ["builder_engine_gated"],
   }],
   nextCursor: null,
 };
@@ -960,7 +970,7 @@ describe("DesktopHostClient", () => {
   });
 
   it.each([
-    ["snapshot schema", { ...bmadLibrarySnapshot, schemaVersion: "bmad-library-snapshot.v2" }],
+    ["snapshot schema", { ...bmadLibrarySnapshot, schemaVersion: "bmad-library-snapshot.v3" }],
     ["projection scope", { ...bmadLibrarySnapshot, scope: "workspace" }],
     ["source kind", {
       ...bmadLibrarySnapshot,
@@ -1052,6 +1062,27 @@ describe("DesktopHostClient", () => {
       methodAgents: [{
         ...bmadLibrarySnapshot.methodAgents[0]!,
         icon: "x".repeat(65),
+      }],
+    }],
+    ["builder activation state", {
+      ...bmadLibrarySnapshot,
+      builderPackages: [{
+        ...bmadLibrarySnapshot.builderPackages[0]!,
+        activationState: "active",
+      }],
+    }],
+    ["builder blocker code", {
+      ...bmadLibrarySnapshot,
+      builderPackages: [{
+        ...bmadLibrarySnapshot.builderPackages[0]!,
+        blockerCodes: ["none"],
+      }],
+    }],
+    ["builder descriptor digest", {
+      ...bmadLibrarySnapshot,
+      builderPackages: [{
+        ...bmadLibrarySnapshot.builderPackages[0]!,
+        descriptorDigest: "not-hex-digits",
       }],
     }],
   ])("rejects an invalid or unsafe BMAD %s", async (_field, value) => {

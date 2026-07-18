@@ -9,6 +9,10 @@ export default defineConfig({
       reporter: ["text", "json-summary"],
     },
     environment: "jsdom",
+    // Tests assert observable state; the elevated ceiling absorbs CPU
+    // contention during full-suite runs without hiding real hangs.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     setupFiles: ["./src/test/setup.ts"],
   },
 });

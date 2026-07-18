@@ -11,8 +11,8 @@ import {
 const drawerTitles = {
   files: "Files",
   changes: "Changes",
-  "run-details": "Run details",
-  methods: "Skills and agents",
+  activity: "Activity",
+  skills: "Skills and agents",
 } satisfies Record<ContextDrawerKind, string>;
 
 const drawerCases = Object.entries(drawerTitles) as Array<
@@ -55,22 +55,46 @@ describe("ContextDrawer", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("switches views through the tab strip when tab selection is wired", async () => {
+    const onSelectTab = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ContextDrawer kind="files" onClose={vi.fn()} onSelectTab={onSelectTab} />,
+    );
+
+    const tabs = screen.getByRole("navigation", { name: "Panel views" });
+    expect(
+      within(tabs).getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["Files", "Changes", "Activity", "Skills"]);
+    expect(
+      within(tabs).getByRole("button", { name: "Files" }).getAttribute("aria-current"),
+    ).toBe("page");
+
+    await user.click(within(tabs).getByRole("button", { name: "Activity" }));
+    expect(onSelectTab).toHaveBeenCalledWith("activity");
+  });
+
+  it("renders no tab strip when selection is not wired", () => {
+    render(<ContextDrawer kind="files" onClose={vi.fn()} />);
+    expect(screen.queryByRole("navigation", { name: "Panel views" })).toBeNull();
+  });
+
   it("renders a named modal dialog when presented as an overlay", () => {
     render(
       <ContextDrawer
-        kind="run-details"
+        kind="activity"
         onClose={vi.fn()}
         presentation="overlay"
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: "Run details" });
+    const dialog = screen.getByRole("dialog", { name: "Activity" });
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(screen.queryByRole("complementary")).toBeNull();
   });
 
   it("does not recreate Inspector tabs or a fifth context destination", () => {
-    render(<ContextDrawer kind="methods" onClose={vi.fn()} />);
+    render(<ContextDrawer kind="skills" onClose={vi.fn()} />);
 
     const drawer = screen.getByRole("complementary", { name: "Skills and agents" });
     expect(within(drawer).queryByRole("tablist")).toBeNull();

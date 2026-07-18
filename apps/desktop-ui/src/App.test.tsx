@@ -341,7 +341,7 @@ async function bmadLibraryRuntime({
     return successfulReply(envelope.requestId, {
       kind: "bmad_library_snapshot",
       value: {
-        schemaVersion: "bmad-library-snapshot.v1",
+        schemaVersion: "bmad-library-snapshot.v2",
         scope: "installed_method",
         source: {
           sourceKind: "sealed_foundation",
@@ -393,6 +393,7 @@ async function bmadLibraryRuntime({
             availabilityReason: "bmad_capability_disabled",
           }],
         }],
+        builderPackages: [],
         nextCursor: null,
       },
     }, refreshed ? 19 : 18);
@@ -655,7 +656,7 @@ async function bmadHelpRuntime({
       return bmadReply(envelope.requestId, {
         kind: "bmad_library_snapshot",
         value: {
-          schemaVersion: "bmad-library-snapshot.v1",
+          schemaVersion: "bmad-library-snapshot.v2",
           scope: "installed_method",
           source: {
             sourceKind: "sealed_foundation",
@@ -665,6 +666,7 @@ async function bmadHelpRuntime({
           installedSkills: [],
           helpActions: [],
           methodAgents: [],
+          builderPackages: [],
           nextCursor: null,
         },
       });
@@ -896,7 +898,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(document.activeElement).toBe(settingsTrigger);
   });
 
-  it("deep-links the agent control to Skills and agents and restores focus", async () => {
+  it("keeps the agent selector self-contained without a settings shortcut", async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("Browser preview");
@@ -904,13 +906,12 @@ describe("Sapphirus desktop workbench", () => {
     const agentTrigger = screen.getByRole("button", { name: "Agent and model settings" });
     await user.click(agentTrigger);
     const agentRegion = screen.getByRole("region", { name: "Agent and model" });
-    await user.click(within(agentRegion).getByRole("button", { name: "Open settings" }));
+    expect(within(agentRegion).getByText("BMAD Help")).toBeTruthy();
+    expect(within(agentRegion).getByText("Review before send")).toBeTruthy();
+    expect(within(agentRegion).queryByRole("button", { name: "Open settings" })).toBeNull();
 
-    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Skills and agents" }).getAttribute("aria-current")).toBe("page");
-    expect(screen.getByRole("heading", { name: "Skills and agents" })).toBeTruthy();
-
-    await user.click(screen.getByRole("button", { name: "Close settings" }));
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("region", { name: "Agent and model" })).toBeNull();
     await waitFor(() => expect(document.activeElement).toBe(agentTrigger));
   });
 
@@ -1216,8 +1217,8 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Close Changes" }));
 
     await user.click(screen.getByRole("button", { name: "Run details" }));
-    expect(screen.getByRole("heading", { name: "Run details" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "No run details yet" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Activity" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
   });
 
   it("restores the latest retained Help run for the exact active workspace grant", async () => {
@@ -1696,7 +1697,7 @@ describe("Sapphirus desktop workbench", () => {
 
     const settingsTrigger = await screen.findByRole("button", { name: "Settings" });
     await user.click(settingsTrigger);
-    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(screen.getByRole("button", { name: "Skills & agents" }));
     await user.click(screen.getByRole("button", { name: "Open Skills and agents" }));
 
     expect(screen.getByRole("heading", { name: "Skills and agents" })).toBeTruthy();

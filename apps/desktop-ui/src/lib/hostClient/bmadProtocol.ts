@@ -52,6 +52,7 @@ import {
   assertUniqueIdentities,
   assertUniqueRelativePaths,
   asSha256,
+  asSingleLineText,
   asTextContent,
   asUnsignedInteger,
   fail,
@@ -785,6 +786,43 @@ export function parseBmadMethodAgent(
   };
 }
 
+function parseBmadBuilderPackage(value: unknown) {
+  const builder = asRecord(value);
+  assertExactKeys(builder, [
+    "packageName",
+    "packageVersion",
+    "packageKind",
+    "displayName",
+    "activationState",
+    "resourceCount",
+    "descriptorDigest",
+    "blockerCodes",
+  ]);
+  if (
+    (builder.packageKind !== "agent" && builder.packageKind !== "workflow") ||
+    builder.activationState !== "installed_inactive" ||
+    !Array.isArray(builder.blockerCodes) ||
+    builder.blockerCodes.length !== 1 ||
+    builder.blockerCodes[0] !== "builder_engine_gated"
+  ) {
+    return fail();
+  }
+  const descriptorDigest = asSingleLineText(builder.descriptorDigest, 16);
+  if (!/^[0-9a-f]{12}$/.test(descriptorDigest)) {
+    return fail();
+  }
+  return {
+    packageName: asSingleLineText(builder.packageName, 128),
+    packageVersion: asSingleLineText(builder.packageVersion, 64),
+    packageKind: builder.packageKind,
+    displayName: asSingleLineText(builder.displayName, 128),
+    activationState: "installed_inactive",
+    resourceCount: asUnsignedInteger(builder.resourceCount),
+    descriptorDigest,
+    blockerCodes: ["builder_engine_gated"],
+  } as const;
+}
+
 export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
   const snapshot = asRecord(value);
   assertExactKeys(snapshot, [
@@ -794,6 +832,7 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     "installedSkills",
     "helpActions",
     "methodAgents",
+    "builderPackages",
     "nextCursor",
   ]);
   if (
@@ -804,13 +843,19 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     !Array.isArray(snapshot.helpActions) ||
     snapshot.helpActions.length > bmadProjectionLimits.helpActions ||
     !Array.isArray(snapshot.methodAgents) ||
-    snapshot.methodAgents.length > bmadProjectionLimits.methodAgents
+    snapshot.methodAgents.length > bmadProjectionLimits.methodAgents ||
+    !Array.isArray(snapshot.builderPackages) ||
+    snapshot.builderPackages.length > 8
   ) {
     return fail();
   }
   const installedSkills = snapshot.installedSkills.map(parseBmadInstalledSkill);
   const helpActions = snapshot.helpActions.map(parseBmadHelpAction);
   const methodAgents = snapshot.methodAgents.map(parseBmadMethodAgent);
+  const builderPackages = snapshot.builderPackages.map(parseBmadBuilderPackage);
+  assertUniqueIdentities(
+    builderPackages.map(({ packageKind, packageName }) => `${packageName}${packageKind}`),
+  );
   assertUniqueIdentities(
     installedSkills.map(
       ({ moduleCode, skillName }) => `${moduleCode}\u001f${skillName}`,
@@ -839,6 +884,7 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     installedSkills,
     helpActions,
     methodAgents,
+    builderPackages,
     nextCursor: asBmadCursor(snapshot.nextCursor),
   };
   if (

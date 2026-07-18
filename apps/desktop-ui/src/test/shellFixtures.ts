@@ -105,7 +105,7 @@ export async function createReadyShellRuntime(
       return successfulReply(envelope.requestId, {
         kind: "bmad_library_snapshot",
         value: {
-          schemaVersion: "bmad-library-snapshot.v1",
+          schemaVersion: "bmad-library-snapshot.v2",
           scope: "installed_method",
           source: {
             sourceKind: "sealed_foundation",
@@ -115,6 +115,7 @@ export async function createReadyShellRuntime(
           installedSkills: [],
           helpActions: [],
           methodAgents: [],
+          builderPackages: [],
           nextCursor: null,
         },
       });

@@ -82,16 +82,17 @@ describe("App task-shell integration", () => {
     expect(dispatchedCommands(invoke)).toEqual([]);
 
     await user.click(screen.getByRole("button", { name: "Run details" }));
-    expect(contextualSurface("Run details")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Close Run details" }));
+    expect(contextualSurface("Activity")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close Activity" }));
 
     await user.click(screen.getByRole("button", { name: "Settings" }));
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     await user.click(screen.getByRole("button", { name: "Account" }));
-    expect(screen.getByRole("dialog", { name: "Account" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Close account" }));
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+    expect(screen.getByText("Organization sign-in is not configured for this build.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     expect(dispatchedCommands(invoke)).toEqual([]);
   });
@@ -111,9 +112,9 @@ describe("App task-shell integration", () => {
 
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: "Run details" }));
-    expect(contextualSurface("Run details")).toBeTruthy();
+    expect(contextualSurface("Activity")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "New task" }));
-    expect(contextualSurface("Run details")).toBeNull();
+    expect(contextualSurface("Activity")).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Attach files" }));
     expect(contextualSurface("Files")).toBeTruthy();
@@ -157,7 +158,7 @@ describe("App task-shell integration", () => {
       await user.click(screen.getByRole("button", { name: "Open task navigation" }));
       navigation = screen.getByRole("dialog", { name: "Task navigation" });
       await user.click(within(navigation).getByRole("button", { name: "Account" }));
-      expect(screen.getByRole("dialog", { name: "Account" })).toBeTruthy();
+      expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
     } finally {
       view.unmount();
       Object.defineProperty(window, "matchMedia", {
