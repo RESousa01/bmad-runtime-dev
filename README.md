@@ -30,8 +30,11 @@ re-enabled for the exact workspace, Changes or Activity can open the same
 bounded recovery review and issue a fresh, short-lived, single-use restore
 decision. A successful restore verifies the exact checkpoint bytes and
 finalizes once; an interrupted restore becomes terminal `manual_review` and is
-not retried automatically. The exact local qualification and still-pending
-independent review are recorded in
+not retried automatically. On Windows, recovery pins the root, ancestors, and
+targets with identity-preserving native handles through the mutation; other
+platforms fail closed for recovery mutation. Prepare requests are fingerprinted
+so identical replays cannot re-observe files or mint new authority. The exact
+local qualification and still-pending independent re-review are recorded in
 `docs/implementation-packets/P2-d3-reviewed-recovery-2026-07-18.md`.
 
 ## Repository map

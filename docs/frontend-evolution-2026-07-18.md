@@ -58,9 +58,12 @@ Recovery mode still exposes only `app.get_boot_state` and `workspace.list`.
 - Changes and Activity now share one `RecoveryReview` surface for a native
   `recovery_required` journal. Entry availability is a closed host projection;
   the renderer does not infer authority from journal state.
-- Preparation is read-only. It shows bounded relative paths and fixed,
-  renderer-owned operation explanations without exposing checkpoint bytes,
-  absolute paths, hashes, approval identifiers, or native diagnostic text.
+- Preparation is filesystem-read-only and request-ID tracked. An identical
+  replay short-circuits before host observation or authority creation, while a
+  changed request under the same ID conflicts. It shows bounded relative paths
+  and fixed, renderer-owned operation explanations without exposing checkpoint
+  bytes, absolute paths, hashes, approval identifiers, or native diagnostic
+  text.
 - Restore requires governed edits to be re-enabled for the exact workspace and
   a fresh process-local approval. The client consumes its one-shot authority
   before dispatch and invalidates it on expiry or relevant authority/history
@@ -70,6 +73,7 @@ Recovery mode still exposes only `app.get_boot_state` and `workspace.list`.
   restore. Failed/interrupted restoration becomes non-actionable
   `manual_review`; the UI offers neither discard nor automatic retry.
 - Renderer qualification is 322/322 tests across 24 files at code revision
-  `0eea58a4f940c65afca5ad43da37e7f8959eac02`. Independent whole-P2 review is
-  still pending, so this is implementation evidence rather than a completion
-  claim.
+  `0a7001cd7052e22ac0f9a0da80bbb78e1b4feed7`. Native-host copy no longer
+  implies signing. The first independent whole-P2 review's two Important and
+  five Minor findings are fixed, but independent re-review is still pending,
+  so this is implementation evidence rather than a completion claim.
