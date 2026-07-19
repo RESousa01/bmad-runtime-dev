@@ -28,8 +28,11 @@ pub struct WorkspaceFileObservation {
 }
 
 /// A selected-root broker. Implementations must revalidate the root identity,
-/// grant epoch, reparse/file identity, hardlink policy, and same-volume atomic
-/// replacement immediately around each method call.
+/// grant epoch, reparse/file identity, and hardlink policy immediately around
+/// each method call. Ordinary execution adapters use same-volume atomic
+/// replacement. A recovery-scoped adapter may instead rewrite its retained,
+/// identity-verified handle in place after the journal is durably `restoring`;
+/// interruption is then terminal `manual_review`, never an automatic retry.
 pub trait WorkspaceFileIo: Send + Sync {
     /// Returns the hash of the currently authorized workspace target.
     ///
@@ -95,8 +98,9 @@ pub trait WorkspaceFileIo: Send + Sync {
         content: &str,
     ) -> Result<(), WorkspaceIoError>;
 
-    /// Atomically replace an existing file on the same volume, then durably
-    /// flush the replacement and owning directory.
+    /// Replace an existing exact preimage, then durably flush the file and
+    /// owning directory. Ordinary execution uses same-volume atomic replace;
+    /// recovery may use the retained-handle semantics documented on this trait.
     ///
     /// # Errors
     ///

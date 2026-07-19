@@ -7,11 +7,15 @@
 //! module never accepts an absolute path and never creates parent directories.
 
 use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 #[cfg(windows)]
 use std::collections::HashMap;
+#[cfg(windows)]
+use std::io::{Seek, SeekFrom};
+#[cfg(windows)]
+use std::sync::Arc;
 
 use ulid::Ulid;
 
@@ -48,7 +52,7 @@ struct VerifiedFile {
 
 #[cfg(windows)]
 struct PinnedRecoveryPath {
-    directories: Vec<File>,
+    directories: Vec<Arc<File>>,
     target: PathBuf,
     verified_file: Option<VerifiedFile>,
 }
@@ -64,6 +68,8 @@ pub struct GovernedRecoveryTransaction<'a> {
     grant: WorkspaceGrant,
     #[cfg(windows)]
     recovery_paths: parking_lot::Mutex<HashMap<String, PinnedRecoveryPath>>,
+    #[cfg(windows)]
+    recovery_directories: parking_lot::Mutex<HashMap<String, Arc<File>>>,
 }
 
 impl GovernedRecoveryTransaction<'_> {
@@ -80,7 +86,8 @@ impl GovernedRecoveryTransaction<'_> {
         revalidate_root(&self.grant)?;
         #[cfg(windows)]
         let observation = {
-            let (observation, pinned) = pin_recovery_path(&self.grant, relative_path)?;
+            let (observation, pinned) =
+                pin_recovery_path(&self.grant, relative_path, &self.recovery_directories)?;
             self.recovery_paths
                 .lock()
                 .insert(observation.relative_path.clone(), pinned);
@@ -115,6 +122,11 @@ impl GovernedRecoveryTransaction<'_> {
     }
 
     /// Replaces an exact identity-bound preimage in the retained scope.
+    ///
+    /// Recovery intentionally rewrites the retained verified handle in place,
+    /// rather than performing the ordinary adapter's atomic path replacement.
+    /// The journal is already durably `restoring`; interruption therefore
+    /// becomes terminal `manual_review` and is never retried automatically.
     ///
     /// # Errors
     ///
@@ -213,6 +225,8 @@ impl WorkspaceBroker {
             grant,
             #[cfg(windows)]
             recovery_paths: parking_lot::Mutex::new(HashMap::new()),
+            #[cfg(windows)]
+            recovery_directories: parking_lot::Mutex::new(HashMap::new()),
         };
         let result = operation(&transaction);
         revalidate_root(&transaction.grant)?;
@@ -454,10 +468,11 @@ fn observe_preimage_for_grant(
 fn pin_recovery_path(
     grant: &WorkspaceGrant,
     relative_path: &str,
+    directory_cache: &parking_lot::Mutex<HashMap<String, Arc<File>>>,
 ) -> Result<(PreimageObservation, PinnedRecoveryPath), WorkspaceError> {
     let normalized = validate_effect_path(relative_path)?;
     let parent_relative = normalized.rsplit_once('/').map(|(parent, _)| parent);
-    let directories = pin_recovery_directories(grant, parent_relative)?;
+    let directories = pin_recovery_directories(grant, parent_relative, directory_cache)?;
     let parent = parent_relative.map_or_else(
         || grant.root.clone(),
         |relative| grant.root.join(relative.replace('/', "\\")),
@@ -507,10 +522,11 @@ fn pin_recovery_path(
 fn pin_recovery_directories(
     grant: &WorkspaceGrant,
     parent_relative: Option<&str>,
-) -> Result<Vec<File>, WorkspaceError> {
+    directory_cache: &parking_lot::Mutex<HashMap<String, Arc<File>>>,
+) -> Result<Vec<Arc<File>>, WorkspaceError> {
     let mut pinned = Vec::new();
-    let root = open_pinned_recovery_directory(&grant.root)?;
-    if crate::identity_hash_from_information(&crate::handle_information(&root)?)
+    let root = cached_pinned_recovery_directory(directory_cache, "", &grant.root)?;
+    if crate::identity_hash_from_information(&crate::handle_information(root.as_ref())?)
         != grant.root_identity_hash
     {
         return Err(WorkspaceError::RootIdentityChanged);
@@ -525,17 +541,36 @@ fn pin_recovery_directories(
             }
             current_relative.push_str(segment);
             let resolved = resolve_existing(&grant.root, &current_relative)?;
-            pinned.push(open_pinned_recovery_directory(&resolved)?);
+            pinned.push(cached_pinned_recovery_directory(
+                directory_cache,
+                &current_relative,
+                &resolved,
+            )?);
         }
     }
     Ok(pinned)
 }
 
 #[cfg(windows)]
+fn cached_pinned_recovery_directory(
+    directory_cache: &parking_lot::Mutex<HashMap<String, Arc<File>>>,
+    cache_key: &str,
+    path: &Path,
+) -> Result<Arc<File>, WorkspaceError> {
+    let mut cache = directory_cache.lock();
+    if let Some(directory) = cache.get(cache_key) {
+        return Ok(Arc::clone(directory));
+    }
+    let directory = Arc::new(open_pinned_recovery_directory(path)?);
+    cache.insert(cache_key.to_owned(), Arc::clone(&directory));
+    Ok(directory)
+}
+
+#[cfg(windows)]
 fn open_pinned_recovery_directory(path: &Path) -> Result<File, WorkspaceError> {
     use std::os::windows::fs::OpenOptionsExt;
     use windows::Win32::Storage::FileSystem::{
-        FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ, FILE_SHARE_WRITE,
+        FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ,
     };
 
     let metadata = fs::symlink_metadata(path)?;
@@ -545,7 +580,10 @@ fn open_pinned_recovery_directory(path: &Path) -> Result<File, WorkspaceError> {
     let directory = OpenOptions::new()
         .read(true)
         .write(true)
-        .share_mode(FILE_SHARE_READ.0 | FILE_SHARE_WRITE.0)
+        // Retagging a directory requires a write-capable handle. Denying both
+        // write and delete sharing keeps the pinned namespace immutable until
+        // every recovery effect and parent sync has completed.
+        .share_mode(FILE_SHARE_READ.0)
         .custom_flags(FILE_FLAG_BACKUP_SEMANTICS.0 | FILE_FLAG_OPEN_REPARSE_POINT.0)
         .open(path)?;
     let information = crate::handle_information(&directory)?;
@@ -721,7 +759,8 @@ fn recovery_create_utf8_with_seam(
     content: &str,
     after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
 ) -> Result<(), WorkspaceError> {
-    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    let directory_cache = parking_lot::Mutex::new(HashMap::new());
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path, &directory_cache)?;
     recovery_create_pinned(&pinned, content, after_validation)
 }
 
@@ -768,7 +807,8 @@ fn recovery_replace_utf8_with_seam(
     content: &str,
     after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
 ) -> Result<(), WorkspaceError> {
-    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    let directory_cache = parking_lot::Mutex::new(HashMap::new());
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path, &directory_cache)?;
     recovery_replace_pinned(
         pinned,
         expected_content_hash,
@@ -812,7 +852,8 @@ fn recovery_delete_with_seam(
     expected_file_identity_hash: &str,
     after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
 ) -> Result<(), WorkspaceError> {
-    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    let directory_cache = parking_lot::Mutex::new(HashMap::new());
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path, &directory_cache)?;
     recovery_delete_pinned(
         pinned,
         expected_content_hash,
@@ -1069,6 +1110,87 @@ mod tests {
         assert_eq!(enabled.grant_epoch, projection.grant_epoch + 1);
         let epoch = enabled.grant_epoch;
         Ok((dir, broker, enabled.workspace_id, epoch))
+    }
+
+    #[cfg(windows)]
+    #[allow(
+        unsafe_code,
+        reason = "the regression must attempt the real Windows reparse control operation"
+    )]
+    fn attempt_mount_point_retag(
+        directory: &std::path::Path,
+        outside: &std::path::Path,
+    ) -> Result<bool, WorkspaceError> {
+        use std::os::windows::ffi::OsStrExt;
+        use std::os::windows::fs::OpenOptionsExt;
+        use std::os::windows::io::AsRawHandle;
+        use windows::Win32::Foundation::HANDLE;
+        use windows::Win32::Storage::FileSystem::{
+            FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ,
+            FILE_SHARE_WRITE,
+        };
+        use windows::Win32::System::IO::DeviceIoControl;
+
+        const FSCTL_SET_REPARSE_POINT: u32 = 589_988;
+        const IO_REPARSE_TAG_MOUNT_POINT: u32 = 0xA000_0003;
+
+        let handle = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .share_mode(FILE_SHARE_READ.0 | FILE_SHARE_WRITE.0)
+            .custom_flags(FILE_FLAG_BACKUP_SEMANTICS.0 | FILE_FLAG_OPEN_REPARSE_POINT.0)
+            .open(directory)?;
+
+        let substitute = format!(r"\??\{}", outside.display())
+            .encode_utf16()
+            .collect::<Vec<_>>();
+        let print = outside.as_os_str().encode_wide().collect::<Vec<_>>();
+        let substitute_bytes =
+            u16::try_from(substitute.len() * 2).map_err(|_| WorkspaceError::LimitExceeded)?;
+        let print_bytes =
+            u16::try_from(print.len() * 2).map_err(|_| WorkspaceError::LimitExceeded)?;
+        let path_bytes = usize::from(substitute_bytes) + 2 + usize::from(print_bytes) + 2;
+        let reparse_data_length =
+            u16::try_from(8 + path_bytes).map_err(|_| WorkspaceError::LimitExceeded)?;
+        let mut buffer = Vec::with_capacity(8 + usize::from(reparse_data_length));
+        buffer.extend_from_slice(&IO_REPARSE_TAG_MOUNT_POINT.to_le_bytes());
+        buffer.extend_from_slice(&reparse_data_length.to_le_bytes());
+        buffer.extend_from_slice(&0_u16.to_le_bytes());
+        buffer.extend_from_slice(&0_u16.to_le_bytes());
+        buffer.extend_from_slice(&substitute_bytes.to_le_bytes());
+        buffer.extend_from_slice(&(substitute_bytes + 2).to_le_bytes());
+        buffer.extend_from_slice(&print_bytes.to_le_bytes());
+        for unit in substitute {
+            buffer.extend_from_slice(&unit.to_le_bytes());
+        }
+        buffer.extend_from_slice(&0_u16.to_le_bytes());
+        for unit in print {
+            buffer.extend_from_slice(&unit.to_le_bytes());
+        }
+        buffer.extend_from_slice(&0_u16.to_le_bytes());
+
+        let mut bytes_returned = 0;
+        // SAFETY: the handle is live and owned; the immutable input buffer and
+        // byte count describe the complete mount-point reparse payload.
+        let result = unsafe {
+            DeviceIoControl(
+                HANDLE(handle.as_raw_handle()),
+                FSCTL_SET_REPARSE_POINT,
+                Some(buffer.as_ptr().cast()),
+                u32::try_from(buffer.len()).map_err(|_| WorkspaceError::LimitExceeded)?,
+                None,
+                0,
+                Some(&raw mut bytes_returned),
+                None,
+            )
+        };
+        Ok(result.is_ok())
+    }
+
+    #[cfg(windows)]
+    fn remove_test_mount_point(path: &std::path::Path) -> std::io::Result<()> {
+        fs::remove_dir(path)?;
+        fs::create_dir(path)
     }
 
     #[test]
@@ -1361,6 +1483,126 @@ mod tests {
         assert!(dir.path().join("src").join("lib.rs").exists());
         assert!(!dir.path().join("src").join("new.rs").exists());
         assert!(!displaced.exists());
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_create_blocks_empty_parent_reparse_retag_after_pin(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        fs::create_dir(root.path().join("empty"))?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_1", root.path())?;
+        let enabled = broker.enable_governed_edits(&projection.workspace_id)?;
+        let parent = root.path().join("empty");
+        let outside_file = outside.path().join("escaped.txt");
+        let retagged = std::cell::Cell::new(false);
+
+        let result = broker.with_governed_recovery(
+            &enabled.workspace_id,
+            enabled.grant_epoch,
+            |transaction| {
+                super::recovery_create_utf8_with_seam(
+                    &transaction.grant,
+                    "empty/escaped.txt",
+                    "blocked\n",
+                    |_target, pinned_parent| {
+                        retagged.set(attempt_mount_point_retag(pinned_parent, outside.path())?);
+                        Ok(())
+                    },
+                )
+            },
+        );
+
+        let governed_file = parent.join("escaped.txt");
+        let governed_changed = governed_file.exists();
+        let escaped = outside_file.exists();
+        if retagged.get() {
+            remove_test_mount_point(&parent)?;
+        }
+        assert!(matches!(result, Ok(Err(_))));
+        assert!(!governed_changed);
+        assert!(!escaped);
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_create_blocks_empty_root_reparse_retag_after_pin(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_1", root.path())?;
+        let enabled = broker.enable_governed_edits(&projection.workspace_id)?;
+        let outside_file = outside.path().join("escaped.txt");
+        let retagged = std::cell::Cell::new(false);
+
+        let result = broker.with_governed_recovery(
+            &enabled.workspace_id,
+            enabled.grant_epoch,
+            |transaction| {
+                super::recovery_create_utf8_with_seam(
+                    &transaction.grant,
+                    "escaped.txt",
+                    "blocked\n",
+                    |_target, pinned_root| {
+                        retagged.set(attempt_mount_point_retag(pinned_root, outside.path())?);
+                        Ok(())
+                    },
+                )
+            },
+        )?;
+
+        let governed_file = root.path().join("escaped.txt");
+        let governed_changed = governed_file.exists();
+        let escaped = outside_file.exists();
+        if retagged.get() {
+            remove_test_mount_point(root.path())?;
+        }
+        assert!(result.is_err());
+        assert!(!governed_changed);
+        assert!(!escaped);
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_pin_rejects_preexisting_write_capable_directory_handle(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::windows::fs::OpenOptionsExt;
+        use windows::Win32::Storage::FileSystem::{
+            FILE_FLAG_BACKUP_SEMANTICS, FILE_SHARE_READ, FILE_SHARE_WRITE,
+        };
+
+        let root = tempfile::tempdir()?;
+        fs::create_dir(root.path().join("empty"))?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_1", root.path())?;
+        let enabled = broker.enable_governed_edits(&projection.workspace_id)?;
+        let _write_capable = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .share_mode(FILE_SHARE_READ.0 | FILE_SHARE_WRITE.0)
+            .custom_flags(FILE_FLAG_BACKUP_SEMANTICS.0)
+            .open(root.path().join("empty"))?;
+
+        let result = broker.with_governed_recovery(
+            &enabled.workspace_id,
+            enabled.grant_epoch,
+            |transaction| {
+                super::recovery_create_utf8_with_seam(
+                    &transaction.grant,
+                    "empty/new.txt",
+                    "blocked\n",
+                    |_target, _parent| Ok(()),
+                )
+            },
+        )?;
+        assert!(result.is_err());
+        assert!(!root.path().join("empty/new.txt").exists());
         Ok(())
     }
 
