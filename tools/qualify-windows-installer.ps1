@@ -43,6 +43,60 @@ function Resolve-ExistingFile {
     throw "Expected a regular file: $Path"
 }
 
+function Compare-CanonicalSemVer {
+    param(
+        [Parameter(Mandatory = $true)][string] $Left,
+        [Parameter(Mandatory = $true)][string] $Right
+    )
+
+    $pattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$'
+    $leftMatch = [regex]::Match($Left, $pattern)
+    $rightMatch = [regex]::Match($Right, $pattern)
+    if (-not $leftMatch.Success -or -not $rightMatch.Success) {
+        throw 'Release versions must be canonical SemVer without build metadata.'
+    }
+    foreach ($match in @($leftMatch, $rightMatch)) {
+        $prerelease = $match.Groups[4].Value
+        if (-not [string]::IsNullOrEmpty($prerelease)) {
+            foreach ($identifier in $prerelease.Split('.')) {
+                if ($identifier -match '^0\d+$') {
+                    throw 'Numeric SemVer prerelease identifiers must not contain leading zeroes.'
+                }
+            }
+        }
+    }
+    foreach ($index in 1..3) {
+        $leftNumber = [Numerics.BigInteger]::Parse($leftMatch.Groups[$index].Value)
+        $rightNumber = [Numerics.BigInteger]::Parse($rightMatch.Groups[$index].Value)
+        $comparison = $leftNumber.CompareTo($rightNumber)
+        if ($comparison -ne 0) { return $comparison }
+    }
+    $leftPre = $leftMatch.Groups[4].Value
+    $rightPre = $rightMatch.Groups[4].Value
+    if ([string]::IsNullOrEmpty($leftPre) -or [string]::IsNullOrEmpty($rightPre)) {
+        if ($leftPre -eq $rightPre) { return 0 }
+        return $(if ([string]::IsNullOrEmpty($leftPre)) { 1 } else { -1 })
+    }
+    $leftParts = $leftPre.Split('.')
+    $rightParts = $rightPre.Split('.')
+    for ($index = 0; $index -lt [Math]::Max($leftParts.Length, $rightParts.Length); $index++) {
+        if ($index -ge $leftParts.Length) { return -1 }
+        if ($index -ge $rightParts.Length) { return 1 }
+        $leftPart = $leftParts[$index]
+        $rightPart = $rightParts[$index]
+        $leftNumeric = $leftPart -match '^\d+$'
+        $rightNumeric = $rightPart -match '^\d+$'
+        if ($leftNumeric -ne $rightNumeric) { return $(if ($leftNumeric) { -1 } else { 1 }) }
+        if ($leftPart -ne $rightPart) {
+            if ($leftNumeric) {
+                return ([Numerics.BigInteger]::Parse($leftPart)).CompareTo([Numerics.BigInteger]::Parse($rightPart))
+            }
+            return [string]::CompareOrdinal($leftPart, $rightPart)
+        }
+    }
+    return 0
+}
+
 function Resolve-ExistingDirectory {
     param([Parameter(Mandatory = $true)][string] $Path)
 
@@ -212,6 +266,9 @@ Assert-CleanQualificationAccount
 if ([string]::IsNullOrWhiteSpace($PriorInstallerPath) -ne [string]::IsNullOrWhiteSpace($ExpectedPriorVersion)) {
     throw 'PriorInstallerPath and ExpectedPriorVersion must be supplied together.'
 }
+if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath) -and (Compare-CanonicalSemVer -Left $ExpectedPriorVersion -Right $ExpectedVersion) -ge 0) {
+    throw 'The prior installer version must precede the current installer version.'
+}
 
 $signature = Get-AuthenticodeSignature -LiteralPath $installer
 if ($RequireValidSignature -and $signature.Status -ne [Management.Automation.SignatureStatus]::Valid) {
@@ -220,9 +277,37 @@ if ($RequireValidSignature -and $signature.Status -ne [Management.Automation.Sig
 if ($RequireValidSignature -and $null -eq $signature.TimeStamperCertificate) {
     throw 'Installer signature is valid but is not timestamped.'
 }
+if ($RequireValidSignature -and $null -eq $signature.SignerCertificate) {
+    throw 'Installer signature is valid but has no publisher certificate.'
+}
 
 $installerItem = Get-Item -LiteralPath $installer
 $installerHash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+$priorInstaller = $null
+$priorInstallerItem = $null
+$priorInstallerHash = $null
+$priorSignature = $null
+if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath)) {
+    $priorInstaller = Resolve-ExistingFile -Path $PriorInstallerPath
+    $priorInstallerItem = Get-Item -LiteralPath $priorInstaller -Force
+    $priorInstallerHash = (Get-FileHash -LiteralPath $priorInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
+    $priorSignature = Get-AuthenticodeSignature -LiteralPath $priorInstaller
+    if ($RequireValidSignature -and $priorSignature.Status -ne [Management.Automation.SignatureStatus]::Valid) {
+        throw "Prior installer signature is not valid: $($priorSignature.Status)."
+    }
+    if ($RequireValidSignature -and $null -eq $priorSignature.TimeStamperCertificate) {
+        throw 'Prior installer signature is valid but is not timestamped.'
+    }
+    if ($RequireValidSignature -and $null -eq $priorSignature.SignerCertificate) {
+        throw 'Prior installer signature is valid but has no publisher certificate.'
+    }
+    if (
+        $RequireValidSignature -and
+        $signature.SignerCertificate.Thumbprint -ne $priorSignature.SignerCertificate.Thumbprint
+    ) {
+        throw 'Prior and current installers use different publishers.'
+    }
+}
 $installedExecutable = Join-Path $installDirectory 'sapphirus.exe'
 $installedFoundation = Join-Path $installDirectory 'bmad-foundation'
 $uninstaller = Join-Path $installDirectory 'uninstall.exe'
@@ -231,8 +316,7 @@ $lifecycleComplete = $false
 
 try {
     $priorVersion = $null
-    if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath)) {
-        $priorInstaller = Resolve-ExistingFile -Path $PriorInstallerPath
+    if ($null -ne $priorInstaller) {
         Invoke-SilentInstaller -Path $priorInstaller -Destination $installDirectory
         Wait-ForPathState -Path $installedExecutable -Exists $true
         $priorVersion = (Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductVersion
@@ -263,10 +347,10 @@ try {
         throw 'Installed application signature is valid but is not timestamped.'
     }
     if (
-        $RequireValidSignature
-        -and $null -ne $signature.SignerCertificate
-        -and $null -ne $installedSignature.SignerCertificate
-        -and $signature.SignerCertificate.Thumbprint -ne $installedSignature.SignerCertificate.Thumbprint
+        $RequireValidSignature -and
+        $null -ne $signature.SignerCertificate -and
+        $null -ne $installedSignature.SignerCertificate -and
+        $signature.SignerCertificate.Thumbprint -ne $installedSignature.SignerCertificate.Thumbprint
     ) {
         throw 'Installer and installed application signatures use different publishers.'
     }
@@ -291,6 +375,7 @@ try {
         throw "Uninstaller exited with code $($uninstallProcess.ExitCode)."
     }
     Wait-ForPathState -Path $installDirectory -Exists $false
+    Assert-CleanQualificationAccount
     $lifecycleComplete = $true
 
     $evidence = [ordered]@{
@@ -305,6 +390,19 @@ try {
             signerThumbprint = if ($null -ne $signature.SignerCertificate) { $signature.SignerCertificate.Thumbprint } else { $null }
             timestamperThumbprint = if ($null -ne $signature.TimeStamperCertificate) { $signature.TimeStamperCertificate.Thumbprint } else { $null }
         }
+        priorArtifact = if ($null -ne $priorInstallerItem) {
+            [ordered]@{
+                fileName = $priorInstallerItem.Name
+                byteLength = $priorInstallerItem.Length
+                sha256 = $priorInstallerHash
+                expectedVersion = $ExpectedPriorVersion
+                authenticodeStatus = $priorSignature.Status.ToString()
+                signerThumbprint = if ($null -ne $priorSignature.SignerCertificate) { $priorSignature.SignerCertificate.Thumbprint } else { $null }
+                timestamperThumbprint = if ($null -ne $priorSignature.TimeStamperCertificate) { $priorSignature.TimeStamperCertificate.Thumbprint } else { $null }
+            }
+        } else {
+            $null
+        }
         lifecycle = [ordered]@{
             freshInstall = $true
             upgradedFromVersion = $priorVersion
@@ -315,7 +413,9 @@ try {
             installedExecutableTimestamperThumbprint = if ($null -ne $installedSignature.TimeStamperCertificate) { $installedSignature.TimeStamperCertificate.Thumbprint } else { $null }
             launchSmoke = $launchSmokePassed
             uninstall = $true
-            residueFree = $true
+            installRootRemoved = $true
+            uninstallRegistrationRemoved = $true
+            residueScope = 'install-root-and-uninstall-registration'
         }
         bundledFoundation = [ordered]@{
             exactFileCount = $foundationFileCount

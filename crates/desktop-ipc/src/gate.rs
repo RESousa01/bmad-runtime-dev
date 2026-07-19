@@ -90,7 +90,7 @@ impl RequestGate {
             return Err(IpcValidationError::AdmissionUnavailable);
         }
 
-        let mutation_identity = if !envelope.command.is_mutating() {
+        let mutation_identity = if !envelope.command.requires_request_tracking() {
             None
         } else if matches!(
             &envelope.command,
@@ -105,6 +105,7 @@ impl RequestGate {
                 | desktop_runtime::LocalCommand::ApproveBmadHelpReview { .. }
                 | desktop_runtime::LocalCommand::CancelBmadHelpReview { .. }
                 | desktop_runtime::LocalCommand::SubmitBmadHelpReview { .. }
+                | desktop_runtime::LocalCommand::DecideChangesRecovery { .. }
         ) {
             Some(MutationIdentity::OneShot)
         } else {
@@ -290,6 +291,27 @@ mod tests {
             Admission::New
         );
         assert!(revoke_first.admit(&help, UnixMillis(1_001)).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn recovery_prepare_is_fingerprinted_even_though_it_has_no_file_effect(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let gate = RequestGate::new(AdmissionPolicy::default());
+        let first = envelope(LocalCommand::PrepareChangesRecovery {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 7,
+            journal_id: id("journal_1")?,
+        })?;
+        let changed = envelope(LocalCommand::PrepareChangesRecovery {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 8,
+            journal_id: id("journal_1")?,
+        })?;
+
+        assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
+        assert_eq!(gate.admit(&first, UnixMillis(1_001))?, Admission::Replay);
+        assert!(gate.admit(&changed, UnixMillis(1_002)).is_err());
         Ok(())
     }
 }

@@ -46,8 +46,10 @@ import {
   HostCommandError,
   type ContextPreviewProjection,
   type ChangesHistoryProjection,
+  type ChangesRecoveryPrepared,
   type HostRuntime,
   type ProposedChange,
+  type RecoveryApprovalChoice,
   type WorkspaceProjection,
 } from "./lib/hostClient";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
@@ -87,6 +89,15 @@ const browserDemoWorkspace: WorkspaceProjection = {
 
 const retainedHelpProjectionUnavailableMessage =
   "A retained BMAD Help session from an earlier version exists, but its authenticated projection is unavailable. You can create a new local skill-guidance session for this workspace grant.";
+
+function recoveryManualReviewMessage(
+  reasonCode: Extract<ChangesRecoveryPrepared, { status: "manual_review" }>["reasonCode"],
+): string {
+  switch (reasonCode) {
+    case "checkpoint_incomplete_or_inconsistent":
+      return "Recovery cannot continue automatically because the durable checkpoint is incomplete or inconsistent. Keep this journal quarantined for manual review.";
+  }
+}
 
 type HostUiRuntime = HostRuntime | { kind: "loading" };
 
@@ -145,8 +156,17 @@ export function App({
   const [changesError, setChangesError] = useState<string | null>(null);
   const [changesHistory, setChangesHistory] = useState<ChangesHistoryProjection | null>(null);
   const [changesHistoryBusy, setChangesHistoryBusy] = useState(false);
+  const [recoveryReview, setRecoveryReview] = useState<
+    Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null
+  >(null);
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
+  const [recoveryReturnFocusTarget, setRecoveryReturnFocusTarget] =
+    useState<HTMLElement | null>(null);
   const [enableEditsBusy, setEnableEditsBusy] = useState(false);
   const changesGenerationRef = useRef(0);
+  const recoveryGenerationRef = useRef(0);
+  const recoveryDecisionRef = useRef(false);
+  const recoveryPreparationRef = useRef(false);
   const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
   const sidebarIsOverlay = useMediaQuery(SIDEBAR_OVERLAY_QUERY);
   const workspaceActionBusyRef = useRef(false);
@@ -253,7 +273,7 @@ export function App({
       };
     }
     if (hostRuntime.kind === "loading") {
-      return { detail: "Waiting for the signed desktop host.", label: "Checking access" };
+      return { detail: "Waiting for the native desktop host.", label: "Checking access" };
     }
     if (methodGuidanceClient !== null && modelAuthStatus === null) {
       return { detail: "The desktop host is verifying the current model authorization.", label: "Checking model access" };
@@ -482,6 +502,12 @@ export function App({
     setChangesHistory(null);
     setChangesHistoryBusy(false);
     setEnableEditsBusy(false);
+    recoveryGenerationRef.current += 1;
+    recoveryDecisionRef.current = false;
+    recoveryPreparationRef.current = false;
+    setRecoveryReview(null);
+    setRecoveryBusy(false);
+    setRecoveryReturnFocusTarget(null);
     setContextPreview(null);
     setContextProvenance(null);
     setContextDrawer(null);
@@ -1204,7 +1230,15 @@ export function App({
   }
 
   const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
-    && (["workspace.enable_edits", "changes.propose", "approval.decide", "rollback.request", "changes.history"] as const)
+    && ([
+      "workspace.enable_edits",
+      "changes.propose",
+      "approval.decide",
+      "rollback.request",
+      "changes.history",
+      "changes.recovery.prepare",
+      "changes.recovery.decide",
+    ] as const)
       .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
   const changesHistoryAvailable = governedEditsCommandsAvailable && activeWorkspace !== null;
   const editsEnabled = activeWorkspace?.permissions === "governed_edits";
@@ -1246,10 +1280,41 @@ export function App({
     setChangesError(null);
   }
 
+  function clearRecoveryReview() {
+    recoveryGenerationRef.current += 1;
+    recoveryDecisionRef.current = false;
+    recoveryPreparationRef.current = false;
+    setRecoveryReview(null);
+    setRecoveryBusy(false);
+    setRecoveryReturnFocusTarget(null);
+  }
+
+  useEffect(() => {
+    if (recoveryReview === null) return;
+    let timeout: number | null = null;
+    const clearAtExpiry = () => {
+      const remaining = recoveryReview.expiresAt - Date.now();
+      if (remaining <= 0) {
+        if (recoveryDecisionRef.current) return;
+        clearRecoveryReview();
+        return;
+      }
+      timeout = window.setTimeout(clearAtExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    clearAtExpiry();
+    return () => {
+      if (timeout !== null) window.clearTimeout(timeout);
+    };
+  }, [recoveryReview?.expiresAt, recoveryReview?.recoveryApprovalId]);
+
   async function refreshChangesHistory() {
+    if (recoveryDecisionRef.current) {
+      return;
+    }
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
     }
+    clearRecoveryReview();
     const client = hostRuntime.client;
     const workspace = activeWorkspace;
     const authorityKey = workspaceAuthorityKey;
@@ -1279,6 +1344,110 @@ export function App({
         && workspaceAuthorityKeyRef.current === authorityKey
       ) {
         setChangesHistoryBusy(false);
+      }
+    }
+  }
+
+  async function prepareChangesRecovery(journalId: string, trigger: HTMLElement) {
+    if (
+      hostRuntime.kind !== "ready"
+      || !activeWorkspace
+      || !editsEnabled
+      || recoveryBusy
+      || recoveryReview !== null
+      || recoveryPreparationRef.current
+      || !changesHistory?.openJournals.some(
+        (journal) => journal.journalId === journalId
+          && journal.recoveryAvailability === "review_available",
+      )
+    ) {
+      return;
+    }
+    const client = hostRuntime.client;
+    const workspace = activeWorkspace;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const authorityKey = workspaceAuthorityKey;
+    const generation = ++recoveryGenerationRef.current;
+    recoveryPreparationRef.current = true;
+    recoveryDecisionRef.current = false;
+    setRecoveryReview(null);
+    setRecoveryReturnFocusTarget(trigger);
+    setRecoveryBusy(true);
+    setChangesError(null);
+    try {
+      const prepared = await client.prepareChangesRecovery({
+        workspaceId: workspace.workspaceId,
+        workspaceGrantEpoch: workspace.grantEpoch,
+        journalId,
+      });
+      if (
+        generation !== recoveryGenerationRef.current
+        || workspaceAuthorityKeyRef.current !== authorityKey
+      ) {
+        return;
+      }
+      setRecoveryBusy(false);
+      recoveryPreparationRef.current = false;
+      if (prepared.status === "review_required") {
+        setRecoveryReview(prepared);
+        return;
+      }
+      setRecoveryReview(null);
+      setRecoveryReturnFocusTarget(null);
+      if (prepared.status === "manual_review") {
+        const manualReviewMessage = recoveryManualReviewMessage(prepared.reasonCode);
+        await refreshChangesHistory();
+        if (workspaceAuthorityKeyRef.current === authorityKey) {
+          setChangesError(manualReviewMessage);
+        }
+        return;
+      }
+      await refreshChangesHistory();
+    } catch (error) {
+      if (generation === recoveryGenerationRef.current) {
+        setRecoveryReview(null);
+        setRecoveryBusy(false);
+        setRecoveryReturnFocusTarget(null);
+        recoveryPreparationRef.current = false;
+        handleChangesFailure(client, error, sequence);
+      }
+    }
+  }
+
+  async function decideChangesRecovery(choice: RecoveryApprovalChoice) {
+    if (
+      hostRuntime.kind !== "ready"
+      || recoveryReview === null
+      || recoveryBusy
+      || recoveryDecisionRef.current
+    ) {
+      return;
+    }
+    const client = hostRuntime.client;
+    const sequence = hostRuntime.bootstrap.projectionSequence;
+    const review = recoveryReview;
+    const generation = recoveryGenerationRef.current;
+    recoveryDecisionRef.current = true;
+    setRecoveryBusy(true);
+    setChangesError(null);
+    try {
+      await client.decideChangesRecovery({
+        recoveryApprovalId: review.recoveryApprovalId,
+        displayedRecoveryHash: review.displayedRecoveryHash,
+        choice,
+      });
+      if (generation !== recoveryGenerationRef.current) return;
+      setRecoveryReview(null);
+      setRecoveryBusy(false);
+      recoveryDecisionRef.current = false;
+      await refreshChangesHistory();
+    } catch (error) {
+      if (generation === recoveryGenerationRef.current) {
+        setRecoveryReview(null);
+        setRecoveryBusy(false);
+        setRecoveryReturnFocusTarget(null);
+        recoveryDecisionRef.current = false;
+        handleChangesFailure(client, error, sequence);
       }
     }
   }
@@ -1566,10 +1735,15 @@ export function App({
           historyBusy={changesHistoryBusy}
           onDecide={(choice) => void decideGovernedChange(choice)}
           onEnableEdits={() => void enableGovernedEdits()}
+          onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
+          onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
           onRefreshHistory={() => void refreshChangesHistory()}
           onPropose={(changes) => void proposeGovernedChange(changes)}
           onStartNewProposal={resetChangesFlow}
           onUndo={(executionId) => void undoGovernedChange(executionId)}
+          recoveryBusy={recoveryBusy}
+          recoveryReturnFocusTarget={recoveryReturnFocusTarget}
+          recoveryReview={recoveryReview}
           state={changesState}
         />
       ) : contextDrawer === "skills" ? (
@@ -1597,7 +1771,12 @@ export function App({
           historyAvailable={changesHistoryAvailable}
           historyBusy={changesHistoryBusy}
           onRefreshHistory={() => void refreshChangesHistory()}
+          onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
+          onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
           onUndo={(executionId) => void undoGovernedChange(executionId)}
+          recoveryBusy={recoveryBusy}
+          recoveryReturnFocusTarget={recoveryReturnFocusTarget}
+          recoveryReview={recoveryReview}
         />
       )}
     </ContextDrawer>

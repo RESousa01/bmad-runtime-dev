@@ -15,6 +15,14 @@ pub enum ApprovalChoice {
     Discard,
 }
 
+/// User-facing outcomes for one fresh, recovery-only approval.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryApprovalChoice {
+    Restore,
+    Cancel,
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BmadLibraryProjectionScope {
@@ -132,6 +140,16 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
     },
+    PrepareChangesRecovery {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        journal_id: ContractId,
+    },
+    DecideChangesRecovery {
+        recovery_approval_id: ContractId,
+        displayed_recovery_hash: Sha256Digest,
+        choice: RecoveryApprovalChoice,
+    },
     GetPreferences,
     SetPreferences {
         theme: ThemePreference,
@@ -193,6 +211,8 @@ impl LocalCommand {
             Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
             Self::ProposeChanges { .. } => "changes.propose",
             Self::ChangesHistory { .. } => "changes.history",
+            Self::PrepareChangesRecovery { .. } => "changes.recovery.prepare",
+            Self::DecideChangesRecovery { .. } => "changes.recovery.decide",
             Self::GetPreferences => "app.preferences.get",
             Self::SetPreferences { .. } => "app.preferences.set",
             Self::GetAbout => "app.about",
@@ -221,9 +241,17 @@ impl LocalCommand {
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }
                 | Self::ChangesHistory { .. }
+                | Self::PrepareChangesRecovery { .. }
                 | Self::GetPreferences
                 | Self::GetAbout
         )
+    }
+
+    /// Returns whether a request identifier must be admitted exactly once or
+    /// fingerprinted even when the command has no filesystem effect.
+    #[must_use]
+    pub const fn requires_request_tracking(&self) -> bool {
+        self.is_mutating() || matches!(self, Self::PrepareChangesRecovery { .. })
     }
 }
 
@@ -331,7 +359,10 @@ pub trait RendererProjection: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApprovalChoice, BmadLibraryProjectionScope, LocalCommand, ProjectionEventKind};
+    use super::{
+        ApprovalChoice, BmadLibraryProjectionScope, LocalCommand, ProjectionEventKind,
+        RecoveryApprovalChoice,
+    };
     use crate::{sha256_bytes, ContractId, RelativeWorkspacePath};
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
@@ -461,6 +492,33 @@ mod tests {
 
         assert_eq!(command.name(), "bmad.help.latest");
         assert!(!command.is_mutating());
+        Ok(())
+    }
+
+    #[test]
+    fn recovery_commands_have_closed_names_and_effect_classification(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let prepare = LocalCommand::PrepareChangesRecovery {
+            workspace_id: id("workspace_1")?,
+            workspace_grant_epoch: 7,
+            journal_id: id("journal_1")?,
+        };
+        let decide = LocalCommand::DecideChangesRecovery {
+            recovery_approval_id: id("recovery_approval_1")?,
+            displayed_recovery_hash: sha256_bytes(b"displayed recovery"),
+            choice: RecoveryApprovalChoice::Restore,
+        };
+
+        assert_eq!(prepare.name(), "changes.recovery.prepare");
+        assert!(!prepare.is_mutating());
+        assert!(prepare.requires_request_tracking());
+        assert_eq!(decide.name(), "changes.recovery.decide");
+        assert!(decide.is_mutating());
+        assert!(decide.requires_request_tracking());
+        assert_eq!(
+            serde_json::to_value(RecoveryApprovalChoice::Cancel)?,
+            serde_json::json!("cancel")
+        );
         Ok(())
     }
 }

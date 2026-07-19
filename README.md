@@ -19,9 +19,24 @@ journal reconciliation that fails closed to manual review. The deterministic Hel
 an inert local review and one-shot consent flow without contacting a provider. Production model
 brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
 on Windows; the offline NSIS installer has local install, launch, prior-version upgrade, exact
-BMAD-resource, uninstall, and residue evidence. Authenticode signing, timestamping, and an
+BMAD-resource, uninstall, and install-root removal evidence. Authenticode signing, timestamping, and an
 independent clean-machine release run remain outstanding. Governed proposals currently originate
 from the renderer's review flow, not from a model.
+
+Interrupted governed edits now have an explicit reviewed restart-recovery path.
+Boot never changes workspace files: it retains the authenticated journal as
+`recovery_required` and continues to block updates. After governed edits are
+re-enabled for the exact workspace, Changes or Activity can open the same
+bounded recovery review and issue a fresh, short-lived, single-use restore
+decision. A successful restore verifies the exact checkpoint bytes and
+finalizes once; an interrupted restore becomes terminal `manual_review` and is
+not retried automatically. On Windows, recovery pins the root, ancestors, and
+targets with identity-preserving native handles through the mutation; other
+platforms fail closed for recovery mutation. Prepare requests are fingerprinted
+so identical replays cannot re-observe files or mint new authority. Exact-head
+and detached clean-worktree qualification plus an approved zero-finding
+independent re-review at `23d9add3` are recorded in
+`docs/implementation-packets/P2-d3-reviewed-recovery-2026-07-18.md`.
 
 ## Repository map
 
@@ -54,6 +69,16 @@ the Vite web-asset build. It does not read or execute imported context-vault con
 `vault:check` command is a development audit only. The contract generator-qualification job is an
 unconditional Windows CI gate with pinned Rust and .NET tools. Desktop packaging remains a manual
 native CI job guarded by the organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` setting.
+The P1 signed-installer qualification job is additionally guarded by
+`SAPPHIRUS_SIGNING_LANE_ENABLED`, a protected `windows-signing` environment, and an
+organization-managed signing runner. A separate qualification runner executes the required prior
+installer and records exact-source signed-build plus install/upgrade/launch/uninstall evidence; it
+does not publish a release. The same release metadata authority supplies versions, artifact names,
+pinned toolchains, and dependency-lock hashes. The signed candidate carries a deterministic
+CycloneDX 1.6 complete build-lock inventory; after lifecycle qualification, GitHub binds build,
+SBOM, and release-qualification attestations to the exact application and installer hashes. The
+release predicate fail-closes on source, toolchain, lock, publisher, timestamp, lifecycle, or
+bundled-foundation evidence drift.
 
 Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update feed and
 `SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled

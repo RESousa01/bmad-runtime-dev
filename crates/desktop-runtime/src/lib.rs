@@ -67,7 +67,8 @@ pub use bmad::{
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,
     DensityPreference, LocalCommand, LocalRuntimeCommandBus, ProjectionCursor, ProjectionEvent,
-    ProjectionEventKind, ProjectionScope, ProjectionSnapshot, RendererProjection, ThemePreference,
+    ProjectionEventKind, ProjectionScope, ProjectionSnapshot, RecoveryApprovalChoice,
+    RendererProjection, ThemePreference,
 };
 pub use domain::{
     ApprovalDecision, ApprovalDecisionDraft, ApprovalOutcome, ApprovedExecutionSpec,

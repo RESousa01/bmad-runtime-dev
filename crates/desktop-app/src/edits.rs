@@ -11,7 +11,8 @@ use std::collections::{HashMap, VecDeque};
 
 use desktop_execution::{
     plan_rollback, EffectJournal, ExecutionError, ExecutionRequest, ExecutionStore, JournalState,
-    LocalCheckpoint, LocalExecutionResult, PatchExecutor, WorkspaceFileIo, WorkspaceIoError,
+    LocalCheckpoint, LocalExecutionResult, PatchExecutor, WorkspaceFileIo,
+    WorkspaceFileObservation, WorkspaceIoError,
 };
 use desktop_runtime::{
     build_changes_candidate, build_changes_review, canonical_hash, sha256_bytes, ApprovalChoice,
@@ -25,7 +26,9 @@ use desktop_store::{
     EffectJournalRow, EffectJournalUpsert, EvidenceAppend, ExecutionCheckpointAppend,
     ExecutionResultAppend, ExecutionResultRow, LocalStore, StoreError,
 };
-use desktop_workspace::{PreimageObservation, WorkspaceBroker, WorkspaceError};
+use desktop_workspace::{
+    GovernedRecoveryTransaction, PreimageObservation, WorkspaceBroker, WorkspaceError,
+};
 use ulid::Ulid;
 
 use crate::state::{
@@ -34,7 +37,8 @@ use crate::state::{
 };
 use crate::wire::{
     AppliedFileWire, ChangesDecisionWire, ChangesExecutionWire, ChangesHistoryEntryWire,
-    ChangesHistoryWire, ChangesReviewWire, HostCommandData, OpenJournalWire, UndoConflictWire,
+    ChangesHistoryWire, ChangesReviewWire, HostCommandData, OpenJournalWire,
+    RecoveryAvailabilityWire, UndoConflictWire,
 };
 
 const MAX_PENDING_PROPOSALS: usize = 32;
@@ -82,14 +86,35 @@ impl PendingProposals {
 /// Each call revalidates the grant at the pinned epoch; the target hash is
 /// revalidated against live authority facts while the exact reviewed target
 /// hash remains pinned for execution and rollback.
-struct GovernedWorkspaceIo<'a> {
+pub(crate) struct GovernedWorkspaceIo<'a> {
     broker: &'a WorkspaceBroker,
     workspace_id: String,
     grant_epoch: u64,
+    expected_root_identity_hash: Sha256Digest,
     workspace_target_hash: Sha256Digest,
 }
 
 impl GovernedWorkspaceIo<'_> {
+    #[allow(
+        dead_code,
+        reason = "the recovery-only constructor is consumed by the Task 4 command boundary"
+    )]
+    pub(crate) fn new<'a>(
+        broker: &'a WorkspaceBroker,
+        workspace_id: &ContractId,
+        grant_epoch: u64,
+        expected_root_identity_hash: Sha256Digest,
+        workspace_target_hash: Sha256Digest,
+    ) -> GovernedWorkspaceIo<'a> {
+        GovernedWorkspaceIo {
+            broker,
+            workspace_id: workspace_id.to_string(),
+            grant_epoch,
+            expected_root_identity_hash,
+            workspace_target_hash,
+        }
+    }
+
     fn current_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError> {
         let binding = self
             .broker
@@ -98,8 +123,11 @@ impl GovernedWorkspaceIo<'_> {
         if binding.grant_epoch != self.grant_epoch {
             return Err(WorkspaceIoError::CapabilityRevoked);
         }
-        Sha256Digest::parse(&binding.root_identity_hash)
+        let root_identity_hash = Sha256Digest::parse(&binding.root_identity_hash)
             .map_err(|_| WorkspaceIoError::Unavailable)?;
+        if root_identity_hash != self.expected_root_identity_hash {
+            return Err(WorkspaceIoError::CapabilityRevoked);
+        }
         Ok(self.workspace_target_hash)
     }
 }
@@ -123,6 +151,33 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
                 expected.as_deref(),
             )
             .map_err(map_broker_error)
+    }
+
+    fn observe_recovery_file(
+        &self,
+        path: &RelativeWorkspacePath,
+    ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+        let observation = self
+            .broker
+            .observe_preimage(&self.workspace_id, self.grant_epoch, path.as_str())
+            .map_err(map_broker_error)?;
+        map_recovery_observation(path, observation)
+    }
+
+    fn with_recovery_transaction(
+        &self,
+        transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+    ) -> Result<(), WorkspaceIoError> {
+        let workspace_target_hash = self.current_target_hash()?;
+        self.broker
+            .with_governed_recovery(&self.workspace_id, self.grant_epoch, |broker_transaction| {
+                let scoped = ScopedRecoveryWorkspaceIo {
+                    transaction: broker_transaction,
+                    workspace_target_hash,
+                };
+                transaction(&scoped)
+            })
+            .map_err(map_broker_error)?
     }
 
     fn create_utf8_durable(
@@ -170,6 +225,113 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             )
             .map_err(map_broker_error)
     }
+}
+
+struct ScopedRecoveryWorkspaceIo<'transaction, 'scope> {
+    transaction: &'transaction GovernedRecoveryTransaction<'scope>,
+    workspace_target_hash: Sha256Digest,
+}
+
+impl WorkspaceFileIo for ScopedRecoveryWorkspaceIo<'_, '_> {
+    fn with_recovery_transaction(
+        &self,
+        _transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+    ) -> Result<(), WorkspaceIoError> {
+        Err(WorkspaceIoError::CapabilityRevoked)
+    }
+
+    fn workspace_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError> {
+        Ok(self.workspace_target_hash)
+    }
+
+    fn read_file(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_file_identity_hash: Option<Sha256Digest>,
+    ) -> Result<Option<Vec<u8>>, WorkspaceIoError> {
+        let observation = self.observe_recovery_file(path)?;
+        if expected_file_identity_hash.is_some()
+            && expected_file_identity_hash != observation.file_identity_hash
+        {
+            return Err(WorkspaceIoError::CapabilityRevoked);
+        }
+        Ok(observation.content)
+    }
+
+    fn observe_recovery_file(
+        &self,
+        path: &RelativeWorkspacePath,
+    ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+        let observation = self
+            .transaction
+            .observe_preimage(path.as_str())
+            .map_err(map_broker_error)?;
+        map_recovery_observation(path, observation)
+    }
+
+    fn create_utf8_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        content: &str,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .create_utf8_durable(path.as_str(), content)
+            .map_err(map_broker_error)
+    }
+
+    fn replace_utf8_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_content_hash: Sha256Digest,
+        expected_file_identity_hash: Sha256Digest,
+        content: &str,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .replace_utf8_durable(
+                path.as_str(),
+                &expected_content_hash.to_string(),
+                &expected_file_identity_hash.to_string(),
+                content,
+            )
+            .map_err(map_broker_error)
+    }
+
+    fn delete_durable(
+        &self,
+        path: &RelativeWorkspacePath,
+        expected_content_hash: Sha256Digest,
+        expected_file_identity_hash: Sha256Digest,
+    ) -> Result<(), WorkspaceIoError> {
+        self.transaction
+            .delete_durable(
+                path.as_str(),
+                &expected_content_hash.to_string(),
+                &expected_file_identity_hash.to_string(),
+            )
+            .map_err(map_broker_error)
+    }
+}
+
+fn map_recovery_observation(
+    expected_path: &RelativeWorkspacePath,
+    observation: PreimageObservation,
+) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+    if observation.relative_path != expected_path.as_str()
+        || observation.exists != observation.content.is_some()
+        || observation.exists != observation.file_identity_hash.is_some()
+    {
+        return Err(WorkspaceIoError::Unavailable);
+    }
+    let file_identity_hash = observation
+        .file_identity_hash
+        .as_deref()
+        .map(Sha256Digest::parse)
+        .transpose()
+        .map_err(|_| WorkspaceIoError::Unavailable)?;
+    Ok(WorkspaceFileObservation {
+        content: observation.content.map(String::into_bytes),
+        file_identity_hash,
+    })
 }
 
 fn map_broker_error(error: WorkspaceError) -> WorkspaceIoError {
@@ -372,6 +534,26 @@ fn latest_completed_checkpoint(
         .map_err(|_| recovery_error())?
         .unwrap_or_else(|| GENESIS_CHECKPOINT_ID.to_owned());
     ContractId::new(checkpoint).map_err(|_| recovery_error())
+}
+
+pub(crate) fn current_workspace_target_hash(
+    store: &LocalStore,
+    workspace_id: &ContractId,
+    grant_epoch: u64,
+    root_identity_hash: Sha256Digest,
+) -> Result<Sha256Digest, LocalError> {
+    let scope = WorkspaceEditsScope {
+        workspace_id: workspace_id.clone(),
+        grant_epoch,
+        root_identity_hash,
+    };
+    let target = workspace_target(
+        workspace_id.as_str(),
+        grant_epoch,
+        root_identity_hash,
+        latest_completed_checkpoint(store, &scope)?,
+    )?;
+    canonical_hash("workspace-target", 1, &target).map_err(|_| recovery_error())
 }
 
 fn executor_audience(installation_id: &ContractId) -> NativePatchEngineAudience {
@@ -878,6 +1060,7 @@ fn apply_pending(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: canonical_hash(
             "workspace-target",
             1,
@@ -972,6 +1155,7 @@ fn request_rollback(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: checkpoint.workspace_target_hash,
     };
     let plan = plan_rollback(
@@ -1085,6 +1269,11 @@ fn changes_history(
             execution_id: journal.execution_id.clone(),
             state: journal.state.clone(),
             updated_at: journal.updated_at.clone(),
+            recovery_availability: recovery_availability_for_open_journal(
+                &journal.state,
+                journal.workspace_grant_epoch,
+                scope.grant_epoch,
+            ),
         })
         .collect();
     Ok(HostCommandData::ChangesHistory(ChangesHistoryWire {
@@ -1092,6 +1281,24 @@ fn changes_history(
         entries,
         open_journals,
     }))
+}
+
+fn recovery_availability_for_open_journal(
+    state: &str,
+    journal_grant_epoch: u64,
+    current_grant_epoch: u64,
+) -> RecoveryAvailabilityWire {
+    match state {
+        "recovery_required" => {
+            if journal_grant_epoch <= current_grant_epoch {
+                RecoveryAvailabilityWire::ReviewAvailable
+            } else {
+                RecoveryAvailabilityWire::Quarantined
+            }
+        }
+        "restoring" | "manual_review" => RecoveryAvailabilityWire::ManualReview,
+        _ => RecoveryAvailabilityWire::Quarantined,
+    }
 }
 
 fn history_entry(
@@ -1111,7 +1318,7 @@ fn history_entry(
 /// Boot-time reconciliation of interrupted effect journals. The workspace
 /// broker restores read-only grants at startup, so no file can be observed or
 /// restored here; every disposition is decided from the durable state machine
-/// alone and anything ambiguous fails closed into `manual_review`.
+/// alone and interrupted effects remain quarantined for explicit review.
 pub(crate) fn reconcile_execution_journals(store: &LocalStore) -> Result<(), StoreError> {
     for journal in store.list_open_effect_journals()? {
         match journal.state.as_str() {
@@ -1139,24 +1346,23 @@ pub(crate) fn reconcile_execution_journals(store: &LocalStore) -> Result<(), Sto
                     &journal.journal_id,
                     "recovery_required",
                     &journal.journal_json,
-                    None,
+                    Some(&reconcile_evidence(
+                        &journal,
+                        "interrupted mid-effect; review required",
+                    )),
                 )?;
+            }
+            "restoring" => {
                 store.update_effect_journal(
                     &journal.journal_id,
                     "manual_review",
                     &journal.journal_json,
-                    Some(&reconcile_evidence(&journal, "interrupted mid-effect")),
+                    Some(&reconcile_evidence(
+                        &journal,
+                        "reviewed recovery was interrupted",
+                    )),
                 )?;
             }
-            "recovery_required" | "restoring" => {
-                store.update_effect_journal(
-                    &journal.journal_id,
-                    "manual_review",
-                    &journal.journal_json,
-                    Some(&reconcile_evidence(&journal, "recovery was interrupted")),
-                )?;
-            }
-            // `manual_review` is terminal and surfaced through history.
             _ => {}
         }
     }
@@ -1181,13 +1387,18 @@ mod tests {
     use std::fs;
 
     use desktop_runtime::{ApprovalChoice, ContractId, ProposedFileChange, RelativeWorkspacePath};
+    use desktop_store::{
+        EffectJournalUpsert, EvidenceAppend, ExecutionCheckpointAppend, ExecutionResultAppend,
+        LocalStore, StoreError,
+    };
 
     use super::{
-        authorize_edits_scope, changes_proposal_binding, decide_approval, propose_changes,
+        authorize_edits_scope, changes_history, changes_proposal_binding, decide_approval,
+        propose_changes, reconcile_execution_journals, recovery_availability_for_open_journal,
         request_rollback,
     };
     use crate::state::{now, HostState};
-    use crate::wire::{ChangesReviewWire, HostCommandData};
+    use crate::wire::{ChangesReviewWire, HostCommandData, RecoveryAvailabilityWire};
 
     struct EditsFixture {
         _store_dir: tempfile::TempDir,
@@ -1270,8 +1481,175 @@ mod tests {
         )
     }
 
+    const TEST_HASH: &str =
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    fn unique_test_hash(value: usize) -> String {
+        format!("sha256:{value:064x}")
+    }
+
+    fn seed_journal(
+        store: &LocalStore,
+        index: usize,
+        target_state: &str,
+        workspace_id: &str,
+        workspace_grant_epoch: u64,
+    ) -> Result<String, StoreError> {
+        let journal_id = format!("journal_boot_{index}");
+        let execution_id = format!("execution_boot_{index}");
+        let checkpoint_id = format!("checkpoint_boot_{index}");
+        let candidate_hash = unique_test_hash(index * 10 + 1);
+        let spec_hash = unique_test_hash(index * 10 + 4);
+        let consumption_hash = unique_test_hash(index * 10 + 5);
+        store.persist_execution_checkpoint(&ExecutionCheckpointAppend {
+            checkpoint_id: checkpoint_id.clone(),
+            workspace_target_hash: unique_test_hash(index * 10 + 2),
+            candidate_hash: candidate_hash.clone(),
+            manifest_hash: unique_test_hash(index * 10 + 3),
+            entry_count: 0,
+            checkpoint_json: br"{}".to_vec(),
+        })?;
+        store.create_effect_journal(
+            &EffectJournalUpsert {
+                journal_id: journal_id.clone(),
+                execution_id: execution_id.clone(),
+                checkpoint_id,
+                candidate_hash,
+                spec_hash: spec_hash.clone(),
+                consumption_hash: consumption_hash.clone(),
+                workspace_id: workspace_id.to_owned(),
+                workspace_grant_epoch,
+                state: "prepared".to_owned(),
+                journal_json: "{}".to_owned(),
+            },
+            &EvidenceAppend {
+                stream_id: format!("execution:{execution_id}"),
+                event_type: "execution.journal-created".to_owned(),
+                payload_hash: TEST_HASH.to_owned(),
+                payload_ref: None,
+                correlation_id: "test_boot_reconciliation".to_owned(),
+                causation_id: None,
+                redaction_level: "metadata".to_owned(),
+                retention_class: "evidence".to_owned(),
+            },
+        )?;
+
+        if target_state == "prepared" {
+            return Ok(journal_id);
+        }
+
+        let path = [
+            "checkpoint_durable",
+            "preconditions_verified",
+            "applying",
+            "effects_applied",
+            "postimages_verified",
+        ];
+        if target_state == "result_recorded" {
+            for state in path {
+                store.update_effect_journal(&journal_id, state, "{}", None)?;
+            }
+            store.record_execution_result(
+                &ExecutionResultAppend {
+                    execution_id: execution_id.clone(),
+                    journal_id: journal_id.clone(),
+                    checkpoint_id: format!("checkpoint_boot_{index}"),
+                    candidate_hash: unique_test_hash(index * 10 + 1),
+                    spec_hash,
+                    consumption_hash,
+                    result_hash: unique_test_hash(index * 10 + 6),
+                    result_json: "{}".to_owned(),
+                    file_count: 1,
+                    journal_json: "{}".to_owned(),
+                },
+                &EvidenceAppend {
+                    stream_id: format!("execution:{execution_id}"),
+                    event_type: "execution.result-recorded".to_owned(),
+                    payload_hash: TEST_HASH.to_owned(),
+                    payload_ref: None,
+                    correlation_id: "test_boot_reconciliation".to_owned(),
+                    causation_id: None,
+                    redaction_level: "metadata".to_owned(),
+                    retention_class: "evidence".to_owned(),
+                },
+            )?;
+        } else if target_state == "recovery_required" {
+            store.update_effect_journal(&journal_id, target_state, "{}", None)?;
+        } else if target_state == "restoring" || target_state == "manual_review" {
+            store.update_effect_journal(&journal_id, "recovery_required", "{}", None)?;
+            if target_state == "restoring" {
+                store.update_effect_journal(&journal_id, target_state, "{}", None)?;
+            } else {
+                store.update_effect_journal(&journal_id, "manual_review", "{}", None)?;
+            }
+        } else {
+            for state in path {
+                store.update_effect_journal(&journal_id, state, "{}", None)?;
+                if state == target_state {
+                    break;
+                }
+            }
+        }
+        Ok(journal_id)
+    }
+
     #[test]
-    fn proposes_applies_and_undoes_a_governed_change() -> Result<(), Box<dyn std::error::Error>> {
+    fn boot_reconciliation_is_metadata_only_and_preserves_reviewable_recovery(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let store_dir = tempfile::tempdir()?;
+        let workspace_dir = tempfile::tempdir()?;
+        let sentinel = workspace_dir.path().join("boot-sentinel.txt");
+        fs::write(&sentinel, "workspace must remain untouched\n")?;
+        let bytes_before = fs::read(&sentinel)?;
+        let metadata_before = fs::metadata(&sentinel)?;
+        let size_before = metadata_before.len();
+        let modified_before = metadata_before.modified()?;
+        let readonly_before = metadata_before.permissions().readonly();
+
+        let state = HostState::initialize(Some(store_dir.path().to_path_buf()))
+            .map_err(|error| error.safe_message)?;
+        let authority = state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = state
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        let transitions = [
+            ("prepared", "recovered"),
+            ("checkpoint_durable", "recovered"),
+            ("preconditions_verified", "recovered"),
+            ("result_recorded", "completed"),
+            ("applying", "recovery_required"),
+            ("effects_applied", "recovery_required"),
+            ("postimages_verified", "recovery_required"),
+            ("recovery_required", "recovery_required"),
+            ("restoring", "manual_review"),
+            ("manual_review", "manual_review"),
+        ];
+
+        for (index, (initial, expected)) in transitions.into_iter().enumerate() {
+            let journal_id = seed_journal(store, index, initial, "workspace_boot", 1)
+                .map_err(|error| format!("failed to seed {initial}: {error:?}"))?;
+            reconcile_execution_journals(store)
+                .map_err(|error| format!("failed to reconcile {initial}: {error:?}"))?;
+            let journal = store
+                .load_effect_journal(&journal_id)?
+                .ok_or("seeded journal must remain durable")?;
+            assert_eq!(journal.state, expected, "{initial} boot disposition");
+        }
+        drop(authority);
+
+        let metadata_after = fs::metadata(&sentinel)?;
+        assert_eq!(fs::read(&sentinel)?, bytes_before);
+        assert_eq!(metadata_after.len(), size_before);
+        assert_eq!(metadata_after.modified()?, modified_before);
+        assert_eq!(metadata_after.permissions().readonly(), readonly_before);
+        Ok(())
+    }
+
+    #[test]
+    fn governed_changes_proposes_applies_and_undoes_a_reviewed_change(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = fixture()?;
         let changes = vec![
             ProposedFileChange::SetContent {
@@ -1391,6 +1769,100 @@ mod tests {
             now(),
         );
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn recovery_availability_is_closed_and_bound_to_current_journal_authority() {
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 8, 8),
+            RecoveryAvailabilityWire::ReviewAvailable,
+        );
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 7, 8),
+            RecoveryAvailabilityWire::ReviewAvailable,
+        );
+        assert_eq!(
+            recovery_availability_for_open_journal("recovery_required", 9, 8),
+            RecoveryAvailabilityWire::Quarantined,
+        );
+        for state in ["restoring", "manual_review"] {
+            assert_eq!(
+                recovery_availability_for_open_journal(state, 8, 8),
+                RecoveryAvailabilityWire::ManualReview,
+            );
+        }
+    }
+
+    #[test]
+    fn changes_history_serializes_authenticated_recovery_availability(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = fixture()?;
+        let authority = fixture
+            .state
+            .ready_authority()
+            .map_err(|error| error.safe_message)?;
+        let store = fixture
+            .state
+            .local_store(&authority)
+            .map_err(|error| error.safe_message)?;
+        seed_journal(
+            store,
+            100,
+            "recovery_required",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch,
+        )?;
+        seed_journal(
+            store,
+            101,
+            "recovery_required",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch - 1,
+        )?;
+        seed_journal(
+            store,
+            102,
+            "manual_review",
+            fixture.workspace_id.as_str(),
+            fixture.grant_epoch,
+        )?;
+        drop(authority);
+
+        let HostCommandData::ChangesHistory(history) =
+            changes_history(&fixture.state, &fixture.workspace_id, fixture.grant_epoch)
+                .map_err(|error| error.safe_message)?
+        else {
+            return Err("expected changes history".into());
+        };
+        let availability = history
+            .open_journals
+            .iter()
+            .map(|journal| journal.recovery_availability)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            availability,
+            [
+                RecoveryAvailabilityWire::ReviewAvailable,
+                RecoveryAvailabilityWire::ReviewAvailable,
+                RecoveryAvailabilityWire::ManualReview,
+            ],
+        );
+        let serialized = serde_json::to_value(&history)?;
+        let projected = serialized["openJournals"]
+            .as_array()
+            .ok_or("open journals must serialize as an array")?
+            .iter()
+            .map(|journal| journal["recoveryAvailability"].as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            projected,
+            [
+                Some("review_available"),
+                Some("review_available"),
+                Some("manual_review"),
+            ],
+        );
         Ok(())
     }
 }

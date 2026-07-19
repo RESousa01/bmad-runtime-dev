@@ -49,12 +49,15 @@ const reviewedReadyCommands = [
   "approval.decide",
   "rollback.request",
   "changes.history",
+  "changes.recovery.prepare",
+  "changes.recovery.decide",
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
   "workspace.pick_files",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
+const updateBlockingRecoveryStates = ["recovery_required", "restoring", "manual_review"];
 const boundedProcessAdapterPaths = new Set([
   "crates/desktop-cloud/src/windows_broker.rs",
 ]);
@@ -462,7 +465,11 @@ if (pnpmLockSource !== undefined) {
   }
 }
 
-for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-run.yml"]) {
+for (const workflowName of [
+  "desktop.yml",
+  "security-nightly.yml",
+  "release-dry-run.yml",
+]) {
   const workflowPath = join(root, ".github", "workflows", workflowName);
   const workflowSource = await requiredText(workflowPath);
   if (
@@ -476,21 +483,170 @@ for (const workflowName of ["desktop.yml", "security-nightly.yml", "release-dry-
   }
 }
 
+const signedReleasePath = join(root, ".github", "workflows", "release-windows-signed.yml");
+const signedReleaseSource = await requiredText(signedReleasePath);
+if (signedReleaseSource !== undefined) {
+  for (const match of signedReleaseSource.matchAll(/^\s*- uses: ([^\s#]+)/gmu)) {
+    if (!/^[^@]+@[0-9a-f]{40}$/u.test(match[1])) {
+      violations.push(
+        `${relative(root, signedReleasePath)}: action reference must use a reviewed full commit SHA (${match[1]})`,
+      );
+    }
+  }
+  for (const [pattern, message] of [
+    [
+      /github\.ref == 'refs\/heads\/main'/u,
+      "must only sign the protected main branch",
+    ],
+    [
+      /vars\.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true'/u,
+      "must remain behind the organization native-lane gate",
+    ],
+    [
+      /vars\.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true'/u,
+      "must remain behind the organization signing-lane gate",
+    ],
+    [
+      /^ {4}environment: windows-signing\s*$/mu,
+      "must use the protected organization signing environment",
+    ],
+    [
+      /^ {4}runs-on: \[self-hosted, windows, x64, sapphirus-signing\]\s*$/mu,
+      "must use an organization-managed signing runner",
+    ],
+    [
+      /^ {4}runs-on: \[self-hosted, windows, x64, sapphirus-qualification\]\s*$/mu,
+      "must execute installers on a separate qualification runner",
+    ],
+    [
+      /uses: actions\/checkout@[0-9a-f]{40}/u,
+      "must pin checkout to an immutable commit",
+    ],
+    [
+      /uses: dtolnay\/rust-toolchain@[0-9a-f]{40}/u,
+      "must pin the Rust setup action to an immutable commit",
+    ],
+    [
+      /\.\/tools\/build-signed-windows-installer\.ps1\s*$/mu,
+      "must execute the repository-owned signed build",
+    ],
+    [
+      /-RequireValidSignature\s*$/mu,
+      "must fail closed unless the installer and installed application signatures are valid",
+    ],
+    [
+      /-PriorInstallerPath "\$env:SAPPHIRUS_PRIOR_INSTALLER"\s*$/mu,
+      "must exercise an upgrade from an explicit prior installer",
+    ],
+    [
+      /-ExpectedPriorVersion "\$env:SAPPHIRUS_PRIOR_VERSION"\s*$/mu,
+      "must pass dispatcher input through the environment rather than shell interpolation",
+    ],
+    [
+      /sapphirus-signed-build-evidence\.json\s*$/mu,
+      "must retain signed-build evidence",
+    ],
+    [
+      /sapphirus-signed-lifecycle-evidence\.json\s*$/mu,
+      "must retain signed lifecycle evidence",
+    ],
+    [
+      /buildEvidence\.installer\.sha256 -ne \$lifecycleEvidence\.artifact\.sha256/u,
+      "must bind lifecycle evidence to the exact signed installer",
+    ],
+    [
+      /buildEvidence\.application\.sha256 -ne \$lifecycleEvidence\.lifecycle\.installedExecutableSha256/u,
+      "must bind the installed executable to the exact signed application",
+    ],
+    [
+      /node tools\/resolve-release-metadata\.mjs --github-output/u,
+      "must resolve workflow paths and versions from the repository release authority",
+    ],
+    [
+      /node tools\/generate-release-sbom\.mjs/u,
+      "must generate the deterministic release SBOM",
+    ],
+    [
+      /\$buildEvidence\.sbom\.sha256 -ne \$sbomHash/u,
+      "must bind the SBOM to signed-build evidence before qualification",
+    ],
+    [
+      /^  attest-qualified-installer:\s*$/mu,
+      "must attest only after signed lifecycle qualification",
+    ],
+    [
+      /uses: actions\/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be/u,
+      "must create immutable build provenance",
+    ],
+    [
+      /uses: actions\/attest@[0-9a-f]{40}/u,
+      "must bind the SBOM to the signed application and installer",
+    ],
+    [
+      /node tools\/create-release-attestation-predicate\.mjs/u,
+      "must revalidate exact qualification evidence before attestation",
+    ],
+    [
+      /predicate-type: https:\/\/sapphirus\.dev\/attestations\/release-qualification\/v1/u,
+      "must attest the release-specific toolchain, lock, and lifecycle predicate",
+    ],
+    [
+      /SAPPHIRUS_EXPECTED_REVISION: \$\{\{ github\.sha \}\}[\s\S]*--expected-revision "\$SAPPHIRUS_EXPECTED_REVISION"/u,
+      "must bind qualification evidence to the dispatched source revision",
+    ],
+    [
+      /SAPPHIRUS_PRIOR_VERSION: \$\{\{ inputs\.prior_version \}\}[\s\S]*--expected-prior-version "\$SAPPHIRUS_PRIOR_VERSION"/u,
+      "must route caller-controlled prior version through the environment",
+    ],
+    [
+      /signed-installer-qualification-\$\{\{ github\.sha \}\}/u,
+      "must consume the immutable qualification artifact before attestation",
+    ],
+    [
+      /^      attestations: write\s*$/mu,
+      "must grant attestation write authority only to the attestation job",
+    ],
+    [
+      /^      id\x2dtoken: write\s*$/mu,
+      "must grant OIDC authority only to the attestation job",
+    ],
+  ]) {
+    if (!pattern.test(signedReleaseSource)) {
+      violations.push(`${relative(root, signedReleasePath)}: ${message}`);
+    }
+  }
+  const attestationJob = signedReleaseSource.match(/^  attest-qualified-installer:\s*$[\s\S]*$/mu)?.[0] ?? "";
+  for (const runBlock of attestationJob.matchAll(/^      - name:.*\n(?:^        .*\n)*?^        run: [|>]\s*\n((?:^          .*\n?)*)/gmu)) {
+    if (/\$\{\{\s*inputs\./u.test(runBlock[1])) {
+      violations.push(`${relative(root, signedReleasePath)}: privileged attestation shell must not interpolate workflow inputs directly`);
+    }
+  }
+}
+
 const releaseDryRunPath = join(root, ".github", "workflows", "release-dry-run.yml");
 const releaseDryRunSource = await requiredText(releaseDryRunPath);
 if (releaseDryRunSource !== undefined) {
+  for (const match of releaseDryRunSource.matchAll(/^\s*- uses: ([^\s#]+)/gmu)) {
+    if (!/@[0-9a-f]{40}$/u.test(match[1])) {
+      violations.push(`${relative(root, releaseDryRunPath)}: action reference must use a full immutable commit SHA: ${match[1]}`);
+    }
+  }
   for (const [pattern, message] of [
     [
       /\.\/tools\/qualify-windows-installer\.ps1\s*$/mu,
       "must execute the repository-owned Windows installer lifecycle verifier",
     ],
     [
-      /-InstallerPath target\/release\/bundle\/nsis\/Sapphirus_0\.1\.0_x64-setup\.exe\s*$/mu,
-      "must qualify the exact current-product NSIS artifact",
+      /node tools\/resolve-release-metadata\.mjs --github-output/u,
+      "must resolve the installer identity from the repository release authority",
     ],
     [
-      /-ExpectedVersion 0\.1\.0\s*$/mu,
-      "must bind installer qualification to the current product version",
+      /-InstallerPath "target\/release\/bundle\/nsis\/\$\{\{ steps\.release-metadata\.outputs\.installer_name \}\}"\s*$/mu,
+      "must qualify the resolver-selected NSIS artifact",
+    ],
+    [
+      /-ExpectedVersion "\$\{\{ steps\.release-metadata\.outputs\.product_version \}\}"\s*$/mu,
+      "must bind installer qualification to the resolver-selected product version",
     ],
     [
       /\$\{\{ runner\.temp \}\}\/sapphirus-installer-qualification\.json\s*$/mu,
@@ -511,12 +667,57 @@ if (installerQualificationSource !== undefined) {
     [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
     [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
     [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
+    [/Prior and current installers use different publishers/u, "must reject a prior installer from another publisher"],
+    [/Compare-CanonicalSemVer[\s\S]*prior installer version must precede/u, "must reject same-version reinstall and downgrade qualification"],
+    [/-not \[string\]::IsNullOrWhiteSpace\(\$PriorInstallerPath\)[\s\S]*Compare-CanonicalSemVer/u, "must preserve fresh-install qualification without prior-version comparison"],
+    [/Assert-CleanQualificationAccount\s*\n\s*\$lifecycleComplete/u, "must recheck uninstall registration after removal"],
     [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
   ]) {
     if (!pattern.test(installerQualificationSource)) {
       violations.push(`${relative(root, installerQualificationPath)}: ${message}`);
     }
   }
+}
+
+const signedBuildPath = join(root, "tools", "build-signed-windows-installer.ps1");
+const signedBuildSource = await requiredText(signedBuildPath);
+if (signedBuildSource !== undefined) {
+  for (const [pattern, message] of [
+    [/\[string\] \$EvidencePath/u, "must require a durable signed-build evidence path"],
+    [/sourceRevision = \$sourceRevision\.ToLowerInvariant\(\)/u, "must bind evidence to the exact source revision"],
+    [/sourceTreeState = 'clean'/u, "must record a clean source tree"],
+    [/Signed release builds require a clean source worktree/u, "must reject dirty source builds"],
+    [/Assert-TimestampedPublisherSignature/u, "must verify publisher signatures and timestamps"],
+    [/\[string\] \$SbomPath/u, "must require the release SBOM"],
+    [/releaseMetadata = \$releaseMetadata/u, "must embed the centralized release metadata"],
+    [/sha256 = \$sbomHash/u, "must bind the SBOM hash into signed-build evidence"],
+    [/Runtime release toolchain disagrees with the reviewed metadata authority/u, "must reject runtime toolchain drift"],
+    [/The signed build mutated the source worktree/u, "must reject post-build source drift"],
+    [/Release metadata or lock identity changed during the signed build/u, "must reject post-build metadata and lock drift"],
+    [/& \$node\.Source \$sbomScript --verify \$sbom/u, "must verify exact post-build SBOM bytes"],
+  ]) {
+    if (!pattern.test(signedBuildSource)) {
+      violations.push(`${relative(root, signedBuildPath)}: ${message}`);
+    }
+  }
+}
+
+for (const releaseTool of [
+  "resolve-release-metadata.mjs",
+  "generate-release-sbom.mjs",
+  "release-metadata.test.mjs",
+  "release-sbom.test.mjs",
+  "create-release-attestation-predicate.mjs",
+  "release-attestation-predicate.test.mjs",
+]) {
+  await requiredText(join(root, "tools", releaseTool));
+}
+
+if (rootPackage?.scripts?.["release:test"] !== "node --test tools/release-metadata.test.mjs tools/release-sbom.test.mjs tools/release-attestation-predicate.test.mjs") {
+  violations.push("package.json: release:test must run the exact metadata, SBOM, and attestation regression suite");
+}
+if (!String(rootPackage?.scripts?.["verify:source"] ?? "").includes("pnpm release:test")) {
+  violations.push("package.json: verify:source must include the release metadata and SBOM regression suite");
 }
 
 const rustToolchainSource = await requiredText(join(root, "rust-toolchain.toml"));
@@ -783,7 +984,9 @@ for (const path of rustFiles) {
     violations.push(`${displayPath}: Tauri import outside the composition root`);
   }
   const processPatterns = [
-    /\bstd::process\b/,
+    // `abort` is a test-only no-unwind assertion helper, not a child-process
+    // capability. All other direct std::process access remains forbidden.
+    /\bstd::process(?!(?:::abort\b))/,
     /\btokio::process\b/,
     /\bCommand\s*::\s*new\b/,
     /\bCreateProcess(?:A|W)?\b/,
@@ -835,6 +1038,24 @@ const rendererClientPath = join(
 const rendererClientSource = await requiredText(rendererClientPath);
 const ipcEnvelopePath = join(root, "crates", "desktop-ipc", "src", "envelope.rs");
 const ipcEnvelopeSource = await requiredText(ipcEnvelopePath);
+const runtimeCommandPath = join(root, "crates", "desktop-runtime", "src", "command.rs");
+const runtimeCommandSource = await requiredText(runtimeCommandPath);
+const catalogTestPath = join(
+  root,
+  "apps",
+  "desktop-ui",
+  "src",
+  "lib",
+  "hostClient",
+  "commandCatalog.test.ts",
+);
+const catalogTestSource = await requiredText(catalogTestPath);
+const editsPath = join(root, "crates", "desktop-app", "src", "edits.rs");
+const editsSource = await requiredText(editsPath);
+const storeExecutionPath = join(root, "crates", "desktop-store", "src", "execution.rs");
+const storeExecutionSource = await requiredText(storeExecutionPath);
+const updatePath = join(root, "crates", "desktop-update", "src", "lib.rs");
+const updateSource = await requiredText(updatePath);
 if (hostCommandsSource !== undefined) {
   const readySource = /const READY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
   const recoverySource = /const RECOVERY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
@@ -846,6 +1067,21 @@ if (hostCommandsSource !== undefined) {
   }
   if (!/allowed_commands:\s*supported_commands\(state\.boot_mode\(\)\)/.test(hostCommandsSource)) {
     violations.push(`${relative(root, hostCommandsPath)}: dispatch is not bound to the current capability projection`);
+  }
+  const cachePolicySource = /fn should_cache_reply\([^)]*\)[^{]*\{([\s\S]*?)\n\}/.exec(
+    hostCommandsSource,
+  )?.[1];
+  const recoveryExcludedFromReplyCache = cachePolicySource !== undefined
+    && /LocalCommand::PrepareChangesRecovery\s*\{\s*\.\.\s*\}/u.test(cachePolicySource)
+    && /LocalCommand::DecideChangesRecovery\s*\{\s*\.\.\s*\}/u.test(cachePolicySource);
+  if (!recoveryExcludedFromReplyCache) {
+    violations.push(`${relative(root, hostCommandsPath)}: recovery commands must remain excluded from reply caching`);
+  }
+  if (
+    !/crate::recovery::prepare_recovery\([\s\S]{0,160}renderer_session/u.test(hostCommandsSource)
+    || !/crate::recovery::decide_recovery\([\s\S]{0,160}renderer_session/u.test(hostCommandsSource)
+  ) {
+    violations.push(`${relative(root, hostCommandsPath)}: recovery dispatch must pass authenticated renderer authority`);
   }
 }
 if (rendererClientSource !== undefined) {
@@ -862,6 +1098,17 @@ if (rendererClientSource !== undefined) {
     violations.push(`${relative(root, rendererClientPath)}: renderer command catalog drifted from the host projection`);
   }
 }
+if (catalogTestSource !== undefined) {
+  const expectedCatalogSource = /expect\(desktopHostCommands\)\.toEqual\(\[([\s\S]*?)\]\);/.exec(
+    catalogTestSource,
+  )?.[1];
+  if (
+    expectedCatalogSource === undefined
+    || !sameOrderedValues(quotedStrings(expectedCatalogSource), reviewedReadyCommands)
+  ) {
+    violations.push(`${relative(root, catalogTestPath)}: tested renderer catalog drifted from the reviewed command catalog`);
+  }
+}
 if (ipcEnvelopeSource !== undefined) {
   const knownCommandSource = /fn is_known_command\([^)]*\)[^{]*\{([\s\S]*?)\n\}/.exec(
     ipcEnvelopeSource,
@@ -871,6 +1118,53 @@ if (ipcEnvelopeSource !== undefined) {
     || !sameOrderedValues(quotedStrings(knownCommandSource), reviewedReadyCommands)
   ) {
     violations.push(`${relative(root, ipcEnvelopePath)}: build-known IPC catalog drifted from the reviewed command catalog`);
+  }
+  const preparePayload = /struct PrepareChangesRecoveryPayload\s*\{([\s\S]*?)\n\}/.exec(
+    ipcEnvelopeSource,
+  )?.[1];
+  const decidePayload = /struct DecideChangesRecoveryPayload\s*\{([\s\S]*?)\n\}/.exec(
+    ipcEnvelopeSource,
+  )?.[1];
+  const recoveryPayloadFields = (source) => source === undefined
+    ? []
+    : [...source.matchAll(/^\s*([a-z][a-z0-9_]*):/gmu)].map((match) => match[1]);
+  if (
+    !sameOrderedValues(
+      recoveryPayloadFields(preparePayload),
+      ["workspace_id", "workspace_grant_epoch", "journal_id"],
+    )
+    || !sameOrderedValues(
+      recoveryPayloadFields(decidePayload),
+      ["recovery_approval_id", "displayed_recovery_hash", "choice"],
+    )
+  ) {
+    violations.push(`${relative(root, ipcEnvelopePath)}: recovery payload accepted fields drifted from the closed contract`);
+  }
+}
+if (runtimeCommandSource !== undefined) {
+  if (
+    !/Self::PrepareChangesRecovery\s*\{\s*\.\.\s*\}\s*=>\s*"changes\.recovery\.prepare"/u.test(runtimeCommandSource)
+    || !/Self::DecideChangesRecovery\s*\{\s*\.\.\s*\}\s*=>\s*"changes\.recovery\.decide"/u.test(runtimeCommandSource)
+    || !/Self::DecideApproval\s*\{\s*\.\.\s*\}\s*=>\s*"approval\.decide"/u.test(runtimeCommandSource)
+  ) {
+    violations.push(`${relative(root, runtimeCommandPath)}: recovery authority is not separated from ordinary approval`);
+  }
+}
+if (editsSource !== undefined) {
+  const openRecoveryProjection = /"recovery_required"\s*\|\s*"restoring"\s*\|\s*"manual_review"/u;
+  if (!openRecoveryProjection.test(editsSource)) {
+    violations.push(`${relative(root, editsPath)}: unresolved recovery journals are not all projected as open`);
+  }
+}
+if (storeExecutionSource !== undefined && updateSource !== undefined) {
+  const unresolvedRecoveryTest = /assert_eq!\(states,\s*\["recovery_required",\s*"restoring",\s*"manual_review"\]\)/u;
+  const updateBlocksOpenJournal = /if has_active_journal\s*\{[\s\S]{0,160}UpdateBlockReason::ActiveEffectJournal/u;
+  if (
+    !sameOrderedValues(updateBlockingRecoveryStates, ["recovery_required", "restoring", "manual_review"])
+    || !unresolvedRecoveryTest.test(storeExecutionSource)
+    || !updateBlocksOpenJournal.test(updateSource)
+  ) {
+    violations.push("unresolved recovery journals must remain update-blocking");
   }
 }
 

@@ -1,7 +1,12 @@
 import { Button } from "@sapphirus/ui";
 import { History, RefreshCw, RotateCcw, ShieldAlert } from "lucide-react";
 import type { BmadRequestState } from "../../lib/bmadModelProjection";
-import type { ChangesHistoryProjection } from "../../lib/hostClient";
+import type {
+  ChangesHistoryProjection,
+  ChangesRecoveryPrepared,
+  RecoveryApprovalChoice,
+} from "../../lib/hostClient";
+import { RecoveryReview } from "../RecoveryReview";
 
 export interface ActivityPanelProps {
   helpState: BmadRequestState;
@@ -9,7 +14,12 @@ export interface ActivityPanelProps {
   historyBusy: boolean;
   historyAvailable: boolean;
   onRefreshHistory: () => void;
+  onDecideRecovery: (choice: RecoveryApprovalChoice) => void;
+  onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
   onUndo: (executionId: string) => void;
+  recoveryBusy: boolean;
+  recoveryReturnFocusTarget: HTMLElement | null;
+  recoveryReview: Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null;
 }
 
 function journalStateLabel(state: string): string {
@@ -57,7 +67,12 @@ export function ActivityPanel({
   historyAvailable,
   historyBusy,
   onRefreshHistory,
+  onDecideRecovery,
+  onPrepareRecovery,
   onUndo,
+  recoveryBusy,
+  recoveryReturnFocusTarget,
+  recoveryReview,
 }: ActivityPanelProps) {
   const help = helpSummary(helpState);
   const entries = history?.entries ?? [];
@@ -70,7 +85,7 @@ export function ActivityPanel({
         {historyAvailable ? (
           <Button
             aria-label="Refresh activity"
-            isDisabled={historyBusy}
+            isDisabled={historyBusy || recoveryBusy}
             onPress={onRefreshHistory}
             size="small"
             variant="quiet"
@@ -91,6 +106,54 @@ export function ActivityPanel({
             {" · "}
             {openJournals.map((journal) => journalStateLabel(journal.state)).join(", ")}
           </span>
+        </div>
+      ) : null}
+
+      {recoveryReview !== null ? (
+        <RecoveryReview
+          busy={recoveryBusy}
+          onDecide={onDecideRecovery}
+          returnFocusTarget={recoveryReturnFocusTarget}
+          review={recoveryReview}
+        />
+      ) : null}
+
+      {openJournals.length > 0 ? (
+        <div
+          aria-label="Open recovery journals"
+          className="activity-panel__list"
+          key="open-recovery-journals"
+          role="list"
+        >
+          {openJournals.map((journal) => (
+            <div className="activity-panel__entry" key={journal.journalId} role="listitem">
+              <div className="activity-panel__entry-main">
+                <strong>{journalStateLabel(journal.state)}</strong>
+                <small>
+                  {journal.recoveryAvailability === "quarantined"
+                    ? "Select the exact workspace and governed-edits grant to review recovery."
+                    : journal.recoveryAvailability === "manual_review"
+                      ? "This journal requires manual review outside this recovery flow."
+                      : "A bounded checkpoint review is available."}
+                </small>
+              </div>
+              {journal.recoveryAvailability === "review_available" ? (
+                <Button
+                  aria-label="Review recovery"
+                  isDisabled={historyBusy || recoveryBusy || recoveryReview !== null}
+                  onPress={(event) => {
+                    if (event.target instanceof HTMLElement) {
+                      onPrepareRecovery(journal.journalId, event.target);
+                    }
+                  }}
+                  size="small"
+                  variant="secondary"
+                >
+                  Review recovery
+                </Button>
+              ) : null}
+            </div>
+          ))}
         </div>
       ) : null}
 

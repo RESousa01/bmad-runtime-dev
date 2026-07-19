@@ -8,6 +8,11 @@ pub mod bmad_foundation;
 mod bmad_model;
 mod commands;
 mod edits;
+#[allow(
+    dead_code,
+    reason = "the Task 3 recovery host composition is consumed by the Task 4 command boundary"
+)]
+mod recovery;
 mod state;
 mod update;
 mod wire;
@@ -19,7 +24,7 @@ use thiserror::Error;
 #[error("Sapphirus desktop startup failed")]
 pub struct StartupError;
 
-/// Starts the signed desktop host and its single local renderer window.
+/// Starts the native desktop host and its single local renderer window.
 ///
 /// # Errors
 ///

@@ -20,9 +20,19 @@ pub enum WorkspaceIoError {
     Unavailable,
 }
 
+/// Identity-bound observation of one governed workspace path.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WorkspaceFileObservation {
+    pub content: Option<Vec<u8>>,
+    pub file_identity_hash: Option<Sha256Digest>,
+}
+
 /// A selected-root broker. Implementations must revalidate the root identity,
-/// grant epoch, reparse/file identity, hardlink policy, and same-volume atomic
-/// replacement immediately around each method call.
+/// grant epoch, reparse/file identity, and hardlink policy immediately around
+/// each method call. Ordinary execution adapters use same-volume atomic
+/// replacement. A recovery-scoped adapter may instead rewrite its retained,
+/// identity-verified handle in place after the journal is durably `restoring`;
+/// interruption is then terminal `manual_review`, never an automatic retry.
 pub trait WorkspaceFileIo: Send + Sync {
     /// Returns the hash of the currently authorized workspace target.
     ///
@@ -44,6 +54,38 @@ pub trait WorkspaceFileIo: Send + Sync {
         expected_file_identity_hash: Option<Sha256Digest>,
     ) -> Result<Option<Vec<u8>>, WorkspaceIoError>;
 
+    /// Observes content and file identity for recovery planning.
+    ///
+    /// Existing adapters which cannot expose a broker-owned identity fail
+    /// closed for recovery because the default observation has no identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when the governed path cannot be observed.
+    fn observe_recovery_file(
+        &self,
+        path: &RelativeWorkspacePath,
+    ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
+        Ok(WorkspaceFileObservation {
+            content: self.read_file(path, None)?,
+            file_identity_hash: None,
+        })
+    }
+
+    /// Runs recovery validation and effects in one explicitly retained
+    /// authority scope. Every adapter must provide this boundary; there is no
+    /// permissive default that can silently split validation from mutation.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceIoError`] when the recovery scope or callback fails.
+    fn with_recovery_transaction(
+        &self,
+        transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+    ) -> Result<(), WorkspaceIoError>
+    where
+        Self: Sized;
+
     /// Create a new file and durably flush the file and owning directory.
     ///
     /// # Errors
@@ -56,8 +98,9 @@ pub trait WorkspaceFileIo: Send + Sync {
         content: &str,
     ) -> Result<(), WorkspaceIoError>;
 
-    /// Atomically replace an existing file on the same volume, then durably
-    /// flush the replacement and owning directory.
+    /// Replace an existing exact preimage, then durably flush the file and
+    /// owning directory. Ordinary execution uses same-volume atomic replace;
+    /// recovery may use the retained-handle semantics documented on this trait.
     ///
     /// # Errors
     ///
@@ -259,6 +302,7 @@ impl LocalCheckpoint {
             self.entries.clone(),
             self.created_at,
         )?;
+        let mut aliases = std::collections::BTreeSet::new();
         if recreated.schema_version != self.schema_version
             || recreated.manifest_hash != self.manifest_hash
             || self.entries.windows(2).any(|pair| {
@@ -267,6 +311,10 @@ impl LocalCheckpoint {
                     .canonical_cmp(&pair[1].relative_path)
                     .is_lt()
             })
+            || self
+                .entries
+                .iter()
+                .any(|entry| !aliases.insert(entry.relative_path.case_folded()))
         {
             return Err(ExecutionError::IntegrityFailure);
         }
@@ -514,7 +562,8 @@ impl LocalExecutionResult {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RecoveryDisposition {
     Complete,
     RestoreCheckpoint,
@@ -525,8 +574,47 @@ pub enum RecoveryDisposition {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RecoveryPlan {
     pub journal_id: ContractId,
+    pub execution_id: ContractId,
+    pub checkpoint_id: ContractId,
+    pub workspace_target_hash: Sha256Digest,
     pub disposition: RecoveryDisposition,
-    pub reason: &'static str,
+    pub(crate) observations: Vec<RecoveryPathObservation>,
+    pub operations: Vec<RecoveryOperation>,
+    pub plan_hash: Sha256Digest,
+    pub reason: RecoveryReason,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct RecoveryPathObservation {
+    pub(crate) relative_path: RelativeWorkspacePath,
+    pub(crate) current_exists: bool,
+    pub(crate) current_content_hash: Option<Sha256Digest>,
+    pub(crate) current_file_identity_hash: Option<Sha256Digest>,
+    pub(crate) restore_to: CheckpointFileState,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecoveryOperation {
+    pub relative_path: RelativeWorkspacePath,
+    pub expected_current_exists: bool,
+    pub expected_current_content_hash: Option<Sha256Digest>,
+    pub expected_current_file_identity_hash: Option<Sha256Digest>,
+    pub restore_to: CheckpointFileState,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryReason {
+    NoEffectObserved,
+    PostimagesVerified,
+    CompleteCheckpointCoverage,
+    IncompleteCheckpointCoverage,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecoveryRestoreResult {
+    pub journal_id: ContractId,
+    pub restored_count: usize,
 }
 
 #[derive(Clone, Debug)]

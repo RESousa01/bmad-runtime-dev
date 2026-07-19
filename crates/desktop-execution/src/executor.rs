@@ -563,6 +563,13 @@ mod tests {
     }
 
     impl WorkspaceFileIo for MemoryWorkspace {
+        fn with_recovery_transaction(
+            &self,
+            transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+        ) -> Result<(), WorkspaceIoError> {
+            transaction(self)
+        }
+
         fn workspace_target_hash(&self) -> Result<desktop_runtime::Sha256Digest, WorkspaceIoError> {
             Ok(self.target_hash)
         }

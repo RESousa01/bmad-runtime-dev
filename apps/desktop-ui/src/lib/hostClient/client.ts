@@ -23,6 +23,8 @@ import {
 import {
   parseChangesDecisionReply,
   parseChangesHistoryReply,
+  parseChangesRecoveryDecisionReply,
+  parseChangesRecoveryPreparedReply,
   parseChangesReviewReply,
   parseRollbackRequestReply,
   parseWorkspaceEditsEnabledReply,
@@ -30,6 +32,8 @@ import {
 import { parseAboutReply, parsePreferencesReply } from "./appProtocol";
 import {
   buildApprovalDecisionEnvelope,
+  buildChangesRecoveryDecisionEnvelope,
+  buildChangesRecoveryPrepareEnvelope,
   buildBmadHelpRunEnvelope,
   buildBmadModelEnvelope,
   buildEmptyPayloadEnvelope,
@@ -54,6 +58,8 @@ import {
   type ThemePreference,
   type ChangesDecisionProjection,
   type ChangesHistoryProjection,
+  type ChangesRecoveryDecision,
+  type ChangesRecoveryPrepared,
   type ChangesReviewEnvelopeProjection,
   type ContextPreviewProjection,
   HostCapabilityError,
@@ -64,6 +70,7 @@ import {
   type ProjectionScope,
   type ProjectionSnapshot,
   type ProposedChange,
+  type RecoveryApprovalChoice,
   type RendererDispatchCommand,
   type RollbackRequestResult,
   type TauriInvoke,
@@ -126,6 +133,11 @@ export class DesktopHostClient {
   #bootstrapAttempt = 0;
   #bootstrapGeneration = 0;
   #projectionSequence: number | null = null;
+  #pendingRecovery: {
+    review: Extract<ChangesRecoveryPrepared, { status: "review_required" }>;
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+  } | null = null;
 
   constructor({
     invoke,
@@ -146,6 +158,7 @@ export class DesktopHostClient {
     this.#directoryCursors.clear();
     this.#directoryEntryPaths.clear();
     this.#pendingDirectoryCursors.clear();
+    this.#pendingRecovery = null;
     const reply = parseBootstrapReply(await this.#invoke("host_bootstrap"));
     if (attempt !== this.#bootstrapAttempt) {
       return fail();
@@ -1091,6 +1104,7 @@ export class DesktopHostClient {
     workspaceIdValue: string,
     workspaceGrantEpoch: number,
   ): Promise<ChangesHistoryProjection> {
+    this.#pendingRecovery = null;
     const bootstrap = this.requireGovernedEditsCommand(
       workspaceIdValue,
       workspaceGrantEpoch,
@@ -1113,6 +1127,116 @@ export class DesktopHostClient {
     const parsed = parseChangesHistoryReply(reply, requestId, workspaceId);
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async prepareChangesRecovery(input: {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    journalId: string;
+  }): Promise<ChangesRecoveryPrepared> {
+    this.#pendingRecovery = null;
+    const bootstrap = this.requireGovernedEditsCommand(
+      input.workspaceId,
+      input.workspaceGrantEpoch,
+      "changes.recovery.prepare",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(input.workspaceId);
+    const journalId = asContractId(input.journalId);
+    const requestId = this.#requestId();
+    const issuedAt = this.#now();
+    const envelope = buildChangesRecoveryPrepareEnvelope(
+      bootstrap,
+      requestId,
+      issuedAt,
+      workspaceId,
+      input.workspaceGrantEpoch,
+      journalId,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseChangesRecoveryPreparedReply(reply, requestId, journalId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireGovernedEditsCommand(
+      workspaceId,
+      input.workspaceGrantEpoch,
+      "changes.recovery.prepare",
+    );
+    this.advanceProjectionSequence(parsed.sequence);
+    if (parsed.projection.status === "review_required") {
+      if (parsed.projection.expiresAt <= issuedAt) {
+        return fail();
+      }
+      this.#pendingRecovery = {
+        review: parsed.projection,
+        workspaceId,
+        workspaceGrantEpoch: input.workspaceGrantEpoch,
+      };
+    }
+    return parsed.projection;
+  }
+
+  async decideChangesRecovery(input: {
+    recoveryApprovalId: string;
+    displayedRecoveryHash: string;
+    choice: RecoveryApprovalChoice;
+  }): Promise<ChangesRecoveryDecision> {
+    const pending = this.#pendingRecovery;
+    this.#pendingRecovery = null;
+    const decisionAt = this.#now();
+    if (
+      pending === null
+      || decisionAt >= pending.review.expiresAt
+      || input.recoveryApprovalId !== pending.review.recoveryApprovalId
+      || input.displayedRecoveryHash !== pending.review.displayedRecoveryHash
+      || (input.choice !== "restore" && input.choice !== "cancel")
+    ) {
+      throw new HostCapabilityError(
+        "That recovery review is no longer current; prepare recovery again.",
+      );
+    }
+    const bootstrap = this.requireGovernedEditsCommand(
+      pending.workspaceId,
+      pending.workspaceGrantEpoch,
+      "changes.recovery.decide",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const requestId = this.#requestId();
+    const envelope = buildChangesRecoveryDecisionEnvelope(
+      bootstrap,
+      requestId,
+      decisionAt,
+      input.recoveryApprovalId,
+      input.displayedRecoveryHash,
+      input.choice,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseChangesRecoveryDecisionReply(reply, requestId, {
+      recoveryApprovalId: pending.review.recoveryApprovalId,
+      journalId: pending.review.journalId,
+      executionId: pending.review.executionId,
+      choice: input.choice,
+      operationCount: pending.review.operations.length,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireGovernedEditsCommand(
+      pending.workspaceId,
+      pending.workspaceGrantEpoch,
+      "changes.recovery.decide",
+    );
+    if (input.choice === "restore") {
+      this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    } else {
+      this.advanceProjectionSequence(parsed.sequence);
+    }
     return parsed.projection;
   }
 
@@ -1248,7 +1372,10 @@ export class DesktopHostClient {
     workspaceGrantEpoch: number,
     command: Extract<
       RendererDispatchCommand,
-      "changes.propose" | "changes.history"
+      | "changes.propose"
+      | "changes.history"
+      | "changes.recovery.prepare"
+      | "changes.recovery.decide"
     >,
   ): BootstrapReply {
     const bootstrap = this.requireBootstrap();
@@ -1392,6 +1519,7 @@ export class DesktopHostClient {
   }
 
   private replaceWorkspaces(workspaces: WorkspaceProjection[]): void {
+    this.#pendingRecovery = null;
     const bootstrap = this.requireBootstrap();
     const visibleWorkspaceIds = new Set(
       workspaces.map(({ workspaceId }) => workspaceId),
@@ -1462,6 +1590,7 @@ export class DesktopHostClient {
     this.#directoryCursors.clear();
     this.#directoryEntryPaths.clear();
     this.#pendingDirectoryCursors.clear();
+    this.#pendingRecovery = null;
     this.#bootstrap = {
       ...this.#bootstrap,
       bootMode: "read_only_recovery",

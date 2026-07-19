@@ -103,6 +103,7 @@ pub(crate) struct HostState {
     cursors: Mutex<CursorState>,
     replies: Mutex<ReplyCache>,
     pending_proposals: Mutex<crate::edits::PendingProposals>,
+    pending_recoveries: Mutex<crate::recovery::PendingRecoveries>,
     sequence: AtomicU64,
     model_auth_epoch: AtomicU64,
     events: Mutex<VecDeque<ProjectionEvent>>,
@@ -207,6 +208,7 @@ impl HostState {
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
             pending_proposals: Mutex::new(crate::edits::PendingProposals::default()),
+            pending_recoveries: Mutex::new(crate::recovery::PendingRecoveries::default()),
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
@@ -230,6 +232,7 @@ impl HostState {
             cursors: Mutex::new(CursorState::default()),
             replies: Mutex::new(ReplyCache::default()),
             pending_proposals: Mutex::new(crate::edits::PendingProposals::default()),
+            pending_recoveries: Mutex::new(crate::recovery::PendingRecoveries::default()),
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
@@ -320,6 +323,29 @@ impl HostState {
         self.pending_proposals.lock().take(approval_id)
     }
 
+    #[allow(
+        dead_code,
+        reason = "the recovery authority methods are consumed by the Task 4 command boundary"
+    )]
+    pub(crate) fn insert_pending_recovery(&self, pending: crate::recovery::PendingRecovery) {
+        self.pending_recoveries.lock().insert(pending);
+    }
+
+    #[allow(
+        dead_code,
+        reason = "the recovery authority methods are consumed by the Task 4 command boundary"
+    )]
+    pub(crate) fn take_pending_recovery(
+        &self,
+        approval_id: &ContractId,
+    ) -> Option<crate::recovery::PendingRecovery> {
+        self.pending_recoveries.lock().take(approval_id)
+    }
+
+    pub(crate) fn invalidate_pending_recoveries(&self) {
+        self.pending_recoveries.lock().invalidate_all();
+    }
+
     /// Persists an updated projection for an already-registered workspace,
     /// for example after governed edits are enabled at a new grant epoch.
     pub fn persist_workspace_update(
@@ -340,7 +366,9 @@ impl HostState {
             })
             .ok_or_else(|| not_found_error("The local workspace is not available."))?;
         entry.projection = projection.clone();
-        persist_catalog(store, &mut catalog, next, event_type, correlation_id)
+        persist_catalog(store, &mut catalog, next, event_type, correlation_id)?;
+        self.invalidate_pending_recoveries();
+        Ok(())
     }
 
     pub fn replay_bmad_help_run(
@@ -391,6 +419,7 @@ impl HostState {
     pub fn enter_recovery(&self) -> u64 {
         let mut mode = self.boot_mode.write();
         if *mode == BootMode::ReadOnlyRecovery {
+            self.invalidate_pending_recoveries();
             return self.sequence();
         }
         // Acquire the Ready write authority before the Help coordinator. A
@@ -398,6 +427,7 @@ impl HostState {
         // this order prevents recovery from forming the inverse wait cycle.
         let mut bmad_model = self.bmad_model.lock();
         bmad_model.invalidate(now());
+        self.invalidate_pending_recoveries();
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {
             mode: BootMode::ReadOnlyRecovery.as_str().to_owned(),
@@ -410,6 +440,7 @@ impl HostState {
         let mut bmad_model = self.bmad_model.lock();
         renderer_sessions.insert(window_label.to_owned(), renderer_session_id.clone());
         bmad_model.invalidate(now());
+        self.invalidate_pending_recoveries();
         Ok(renderer_session_id)
     }
 
@@ -470,7 +501,9 @@ impl HostState {
             next,
             "workspace.granted",
             correlation_id,
-        )
+        )?;
+        self.invalidate_pending_recoveries();
+        Ok(())
     }
 
     pub fn persist_revocation(
@@ -494,7 +527,9 @@ impl HostState {
             next,
             "workspace.revoked",
             correlation_id,
-        )
+        )?;
+        self.invalidate_pending_recoveries();
+        Ok(())
     }
 
     pub fn insert_cursor(&self, target: DirectoryCursor) -> String {

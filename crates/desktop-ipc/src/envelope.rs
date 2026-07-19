@@ -1,7 +1,7 @@
 use desktop_runtime::{
     deserialize_strict_json, ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId,
-    LocalCommand, LocalError, ProjectionEvent, ProposedFileChange, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES,
+    LocalCommand, LocalError, ProjectionEvent, ProposedFileChange, RecoveryApprovalChoice,
+    RelativeWorkspacePath, Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
@@ -193,6 +193,8 @@ fn is_known_command(command: &str) -> bool {
             | "approval.decide"
             | "rollback.request"
             | "changes.history"
+            | "changes.recovery.prepare"
+            | "changes.recovery.decide"
             | "app.preferences.get"
             | "app.preferences.set"
             | "app.about"
@@ -365,6 +367,22 @@ struct ProposeChangesPayload {
     changes: Vec<ProposedFileChange>,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PrepareChangesRecoveryPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    journal_id: ContractId,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DecideChangesRecoveryPayload {
+    recovery_approval_id: ContractId,
+    displayed_recovery_hash: Sha256Digest,
+    choice: RecoveryApprovalChoice,
+}
+
 fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
     match command {
         "app.get_boot_state" => {
@@ -442,6 +460,23 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             Ok(LocalCommand::ChangesHistory {
                 workspace_id: input.workspace_id,
                 workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
+        "changes.recovery.prepare" => {
+            let input: PrepareChangesRecoveryPayload = parse_payload(payload)?;
+            validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+            Ok(LocalCommand::PrepareChangesRecovery {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+                journal_id: input.journal_id,
+            })
+        }
+        "changes.recovery.decide" => {
+            let input: DecideChangesRecoveryPayload = parse_payload(payload)?;
+            Ok(LocalCommand::DecideChangesRecovery {
+                recovery_approval_id: input.recovery_approval_id,
+                displayed_recovery_hash: input.displayed_recovery_hash,
+                choice: input.choice,
             })
         }
         "app.preferences.get" | "app.preferences.set" | "app.about" | "workspace.pick_files" => {
@@ -778,7 +813,9 @@ fn validate_structure(
 
 #[cfg(test)]
 mod tests {
-    use desktop_runtime::{ContractId, LocalCommand, UnixMillis};
+    use desktop_runtime::{
+        sha256_bytes, ContractId, LocalCommand, RecoveryApprovalChoice, UnixMillis,
+    };
 
     use super::{CommandEnvelopeValidator, IpcValidationContext, IpcValidationError};
 
@@ -1013,6 +1050,196 @@ mod tests {
         }"#;
         let error = CommandEnvelopeValidator::parse(json, &context()?).err();
         assert!(matches!(error, Some(IpcValidationError::BindingMismatch)));
+        Ok(())
+    }
+
+    fn recovery_context() -> Result<IpcValidationContext, Box<dyn std::error::Error>> {
+        let mut value = context()?;
+        value.allowed_commands.extend([
+            "changes.recovery.prepare".to_owned(),
+            "changes.recovery.decide".to_owned(),
+        ]);
+        Ok(value)
+    }
+
+    #[test]
+    fn parses_only_the_closed_recovery_command_payloads() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let prepare = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_prepare",
+          "command":"changes.recovery.prepare",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"journal_1"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(prepare, &recovery_context()?)?.command(),
+            LocalCommand::PrepareChangesRecovery {
+                workspace_grant_epoch: 7,
+                ..
+            }
+        ));
+
+        let decide = format!(
+            r#"{{
+              "schemaVersion":"desktop-ipc-command.v1",
+              "requestId":"req_decide",
+              "command":"changes.recovery.decide",
+              "windowLabel":"main",
+              "rendererSessionId":"rs_test",
+              "installationId":"install_test",
+              "issuedAt":10000,
+              "payload":{{"recoveryApprovalId":"recovery_approval_1","displayedRecoveryHash":"{}","choice":"restore"}}
+            }}"#,
+            sha256_bytes(b"displayed recovery")
+        );
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(decide.as_bytes(), &recovery_context()?)?.command(),
+            LocalCommand::DecideChangesRecovery {
+                choice: RecoveryApprovalChoice::Restore,
+                ..
+            }
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_malformed_recovery_payloads() -> Result<(), Box<dyn std::error::Error>> {
+        let digest = sha256_bytes(b"displayed recovery").to_string();
+        let cases = [
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":0,"journalId":"journal_1"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":9007199254740992,"journalId":"journal_1"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"bad id"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"journal_1","absolutePath":"C:\\\\private.txt"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"journal_1","shellText":"restore private"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.prepare",
+                r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"journal_1","provider":"remote"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.decide",
+                format!(r#"{{"recoveryApprovalId":"recovery_approval_1","displayedRecoveryHash":"{digest}","choice":"apply"}}"#),
+            ),
+            (
+                "changes.recovery.decide",
+                r#"{"recoveryApprovalId":"recovery_approval_1","displayedRecoveryHash":"not-a-hash","choice":"cancel"}"#.to_owned(),
+            ),
+            (
+                "changes.recovery.decide",
+                format!(r#"{{"recoveryApprovalId":"bad id","displayedRecoveryHash":"{digest}","choice":"cancel"}}"#),
+            ),
+            (
+                "changes.recovery.decide",
+                format!(r#"{{"recoveryApprovalId":"recovery_approval_1","displayedRecoveryHash":"{digest}","choice":"cancel","checkpointContent":"private"}}"#),
+            ),
+        ];
+        for (index, (command, payload)) in cases.into_iter().enumerate() {
+            let json = format!(
+                r#"{{
+                  "schemaVersion":"desktop-ipc-command.v1",
+                  "requestId":"req_{index}",
+                  "command":"{command}",
+                  "windowLabel":"main",
+                  "rendererSessionId":"rs_test",
+                  "installationId":"install_test",
+                  "issuedAt":10000,
+                  "payload":{payload}
+                }}"#
+            );
+            assert!(matches!(
+                CommandEnvelopeValidator::parse(json.as_bytes(), &recovery_context()?).err(),
+                Some(IpcValidationError::InvalidPayload)
+            ));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_recovery_binding_timestamp_and_capability_drift(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let valid_payload =
+            r#"{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"journalId":"journal_1"}"#;
+        for (field, value) in [
+            ("rendererSessionId", "rs_attacker"),
+            ("installationId", "install_attacker"),
+        ] {
+            let mut envelope = serde_json::json!({
+                "schemaVersion": "desktop-ipc-command.v1",
+                "requestId": "req_binding",
+                "command": "changes.recovery.prepare",
+                "windowLabel": "main",
+                "rendererSessionId": "rs_test",
+                "installationId": "install_test",
+                "issuedAt": 10_000,
+                "payload": serde_json::from_str::<serde_json::Value>(valid_payload)?,
+            });
+            envelope[field] = serde_json::json!(value);
+            assert!(matches!(
+                CommandEnvelopeValidator::parse(
+                    &serde_json::to_vec(&envelope)?,
+                    &recovery_context()?
+                )
+                .err(),
+                Some(IpcValidationError::BindingMismatch)
+            ));
+        }
+
+        let stale = format!(
+            r#"{{"schemaVersion":"desktop-ipc-command.v1","requestId":"req_stale","command":"changes.recovery.prepare","windowLabel":"main","rendererSessionId":"rs_test","installationId":"install_test","issuedAt":500000,"payload":{valid_payload}}}"#
+        );
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(stale.as_bytes(), &recovery_context()?).err(),
+            Some(IpcValidationError::InvalidTimestamp)
+        ));
+
+        let mut unavailable = context()?;
+        unavailable.allowed_commands =
+            vec!["app.get_boot_state".to_owned(), "workspace.list".to_owned()];
+        let json = format!(
+            r#"{{"schemaVersion":"desktop-ipc-command.v1","requestId":"req_unavailable","command":"changes.recovery.prepare","windowLabel":"main","rendererSessionId":"rs_test","installationId":"install_test","issuedAt":10000,"payload":{valid_payload}}}"#
+        );
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(json.as_bytes(), &unavailable).err(),
+            Some(IpcValidationError::CapabilityUnavailable)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_duplicate_recovery_payload_keys_before_parsing(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let json = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_duplicate",
+          "command":"changes.recovery.prepare",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"workspaceId":"workspace_1","workspaceGrantEpoch":7,"workspaceGrantEpoch":8,"journalId":"journal_1"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(json, &recovery_context()?).err(),
+            Some(IpcValidationError::InvalidJson)
+        ));
         Ok(())
     }
 }

@@ -124,6 +124,16 @@ pub enum HostCommandData {
     WorkspaceEditsEnabled(desktop_workspace::WorkspaceProjection),
     ChangesReview(ChangesReviewWire),
     ChangesDecision(ChangesDecisionWire),
+    #[allow(
+        dead_code,
+        reason = "the Task 3 recovery projection is routed by the Task 4 command boundary"
+    )]
+    ChangesRecoveryPrepared(ChangesRecoveryPreparedWire),
+    #[allow(
+        dead_code,
+        reason = "the Task 3 recovery projection is routed by the Task 4 command boundary"
+    )]
+    ChangesRecoveryDecision(ChangesRecoveryDecisionWire),
     ChangesUndoUnavailable(ChangesUndoUnavailableWire),
     ChangesHistory(ChangesHistoryWire),
     Preferences(PreferencesProjection),
@@ -193,6 +203,56 @@ pub struct ChangesDecisionWire {
     pub execution: Option<ChangesExecutionWire>,
 }
 
+#[allow(
+    dead_code,
+    reason = "the Task 3 recovery projection is routed by the Task 4 command boundary"
+)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum ChangesRecoveryPreparedWire {
+    ReviewRequired {
+        recovery_approval_id: ContractId,
+        displayed_recovery_hash: Sha256Digest,
+        journal_id: ContractId,
+        execution_id: ContractId,
+        operations: Vec<RecoveryOperationSummaryWire>,
+        expires_at: UnixMillis,
+    },
+    AlreadyRecovered {
+        journal_id: ContractId,
+        execution_id: ContractId,
+    },
+    ManualReview {
+        journal_id: ContractId,
+        execution_id: ContractId,
+        reason_code: RecoveryManualReviewReasonWire,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryManualReviewReasonWire {
+    CheckpointIncompleteOrInconsistent,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecoveryOperationSummaryWire {
+    pub relative_path: RelativeWorkspacePath,
+    pub operation: String,
+    pub explanation: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangesRecoveryDecisionWire {
+    pub recovery_approval_id: ContractId,
+    pub disposition: String,
+    pub journal_id: ContractId,
+    pub execution_id: ContractId,
+    pub restored_files: u32,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChangesExecutionWire {
@@ -253,6 +313,15 @@ pub struct OpenJournalWire {
     pub execution_id: String,
     pub state: String,
     pub updated_at: String,
+    pub recovery_availability: RecoveryAvailabilityWire,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryAvailabilityWire {
+    ReviewAvailable,
+    Quarantined,
+    ManualReview,
 }
 
 #[derive(Clone, Debug, Serialize)]
