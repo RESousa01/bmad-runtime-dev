@@ -12,28 +12,37 @@ public sealed record ProductionAzureClients(
     KeyClient KeyVault,
     AzureOpenAIClient Model);
 
+internal sealed record ProductionAzureCredentials(
+    TokenCredential AppConfiguration,
+    TokenCredential KeyVault,
+    TokenCredential Model);
+
 public static class AzureClientRegistration
 {
+    internal static ProductionAzureCredentials CreateManagedIdentityCredentials(
+        ProductionOptions options)
+    {
+        ManagedIdentityId managedIdentity = ManagedIdentityId.FromUserAssignedClientId(
+            options.ManagedIdentityClientId.ToString("D"));
+        return new ProductionAzureCredentials(
+            new ManagedIdentityCredential(managedIdentity),
+            new ManagedIdentityCredential(managedIdentity),
+            new ManagedIdentityCredential(managedIdentity));
+    }
+
     public static IServiceCollection AddProductionAzureClients(
         this IServiceCollection services,
         ProductionOptions options)
     {
         services.TryAddSingleton(_ =>
         {
-            ManagedIdentityId managedIdentity = ManagedIdentityId.FromUserAssignedClientId(
-                options.ManagedIdentityClientId.ToString("D"));
-            TokenCredential appConfigurationCredential =
-                new ManagedIdentityCredential(managedIdentity);
-            TokenCredential keyVaultCredential =
-                new ManagedIdentityCredential(managedIdentity);
-            TokenCredential modelCredential =
-                new ManagedIdentityCredential(managedIdentity);
+            ProductionAzureCredentials credentials = CreateManagedIdentityCredentials(options);
             return new ProductionAzureClients(
                 new ConfigurationClient(
                     options.ValidatedAppConfigurationEndpoint,
-                    appConfigurationCredential),
-                new KeyClient(options.ValidatedKeyVaultUri, keyVaultCredential),
-                new AzureOpenAIClient(options.ValidatedModelEndpoint, modelCredential));
+                    credentials.AppConfiguration),
+                new KeyClient(options.ValidatedKeyVaultUri, credentials.KeyVault),
+                new AzureOpenAIClient(options.ValidatedModelEndpoint, credentials.Model));
         });
         services.TryAddSingleton(options);
         return services;

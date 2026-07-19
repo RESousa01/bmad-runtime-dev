@@ -20,6 +20,14 @@
 - Gates: `cargo clippy -p desktop-cloud -p desktop-runtime --all-features --all-targets -- -D warnings` clean; `cargo test` (both crates, all features) all green; `pnpm contracts:verify:cross-language` 104 pass / 0 fail / 1 environment skip.
 - Environment notes: `cargo clean` reclaimed 98 GiB from a full disk (C: was at 100%); that also deleted the repo-local pinned `target/contract-tools/bin/cargo-typify.exe` — restored with `node tools/contract-codegen/native-generator.mjs restore`. The restore left a duplicate reviewed archive in a second Cargo cache index dir; the lock gate refuses ambiguity, so the stale identical copy (`index.crates.io-1949cf8c…`) was removed.
 
+## Task 2 evidence (2026-07-19)
+
+- Prior lane (`1cfc6596`) had already landed the Configuration scaffolding (`ProductionOptions`, `AzureClientRegistration`, `ProductionComposition`), package references, and 3 composition tests; this task closed the remaining plan gaps.
+- Split `Services.cs` (1136 lines, 24 types) into bounded modules with no behavior change: `SupportPlaneOptions.cs`, `DeviceRegistry.cs`, `CancellableOperation.cs`, `Idempotency.cs`, `ModelAuthority.cs`, `DevelopmentAdapters.cs`.
+- Added missing red tests: Key Vault and model endpoint rejection theories (non-HTTPS, userinfo, path, query, unexpected host), production rejection of development flags and development consent file store, and per-client credential identity (three distinct `ManagedIdentityCredential` instances via new internal `CreateManagedIdentityCredentials` seam).
+- Proof: locked restore clean; `dotnet test` 76/76 passed; `dotnet publish -c Release --no-restore` succeeded.
+- Note: `ProductionComposition.AddProductionComposition` still ends by throwing "Production authority adapters are not configured" — intentional fail-closed placeholder until Tasks 3–6 supply the real adapters.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.
