@@ -34,10 +34,12 @@
   remains update-blocking.
 - Windows recovery pins the authenticated root, every ancestor directory, and
   each existing target using identity-preserving native handles that deny
-  delete sharing through validation and effect. Replace/delete operate on the
-  exact verified target handle; create remains parent-bound while the full
-  chain is pinned. Non-Windows recovery mutation is explicitly unsupported and
-  fails closed, while observe-only diagnostics remain available.
+  write and delete sharing through validation and effect. Transaction-scoped
+  `Arc<File>` ownership reuses each directory authority for the full restore.
+  Replace/delete operate on the exact verified target handle; create remains
+  parent-bound while the full chain is pinned. Non-Windows recovery mutation
+  is explicitly unsupported and fails closed, while observe-only diagnostics
+  remain available.
 - `changes.recovery.prepare` is filesystem-read-only but request-ID
   fingerprinted and tracked. An identical replay returns the sanitized prior
   admission result before observation or authority creation; changed-payload
@@ -70,14 +72,14 @@
 ## Exact-revision qualification
 
 The executable code revision qualified here is
-`0a7001cd7052e22ac0f9a0da80bbb78e1b4feed7`. Later packet/README/BigBrain edits
+`23d9add3fef372243d11460c4cf04a2a6881d714`. Later packet/README/BigBrain edits
 are documentation-only and do not change the qualified product tree.
 
 Main checkout proof under Node 24.18.0, pnpm 11.12.0, Rust/Cargo 1.97.0:
 
 - `cargo fmt --all -- --check` — pass.
-- `cargo clippy --workspace --all-features --all-targets -- -D warnings` — pass.
-- `cargo test --workspace --all-features --locked` — 486 counted tests,
+- `cargo clippy --workspace --all-features --all-targets --locked -- -D warnings` — pass.
+- `cargo test --workspace --all-features --locked` — 489 counted tests,
   including 15 compile-fail doctests; zero failures or ignored tests.
 - `pnpm --filter @sapphirus/desktop-ui test --run` — 24 files, 322/322 pass.
 - `pnpm verify:source` — pass: BMAD foundation 59/59, TypeScript contracts 85
@@ -89,18 +91,20 @@ Main checkout proof under Node 24.18.0, pnpm 11.12.0, Rust/Cargo 1.97.0:
   generated files checked. The plan's older `qualify:cross-language` spelling
   is not a repository script; the named authoritative command above was run.
 
-Independent clean-worktree proof used detached `C:\tmp\p2q` at that exact full
+Independent clean-worktree proof used detached `C:\tmp\p2f` at that exact full
 revision:
 
-- `pnpm install --offline --frozen-lockfile` was already up to date and
+- `pnpm install --offline --frozen-lockfile` reused all 176 packages and
   downloaded zero packages.
 - `pnpm verify:source` passed with the same functional counts; its secret scan
   passed on the exact detached revision.
 - Renderer tests passed 322/322 across 24 files.
-- The Windows target/parent identity suite passed 4/4, the integrated native
+- Full all-feature locked Rust passed 489/489, including 15 compile-fail
+  doctests, using the main checkout's derived target directory at the same
+  executable revision to avoid duplicating several gigabytes of build output.
+- The Windows recovery directory suite passed 7/7, the integrated native
   restart fixture passed 1/1, and the dispatcher replay-before-observation/
-  authority fixture passed 1/1. Full all-feature Rust and cross-language gates
-  passed at the same exact revision in the clean main checkout.
+  authority fixture passed 1/1.
 - `git status --short` was empty and `git rev-parse HEAD` returned the exact
   revision above.
 
@@ -110,10 +114,9 @@ after Windows returned `EPERM`/access-denied errors for generated or target
 paths. Those were runner restrictions, not product skips. The only test skip is
 the documented Windows file-link probe reported above. Existing non-failing
 messages remain the axe/jsdom canvas notice and Vite large-chunk warning.
-After a disk-exhaustion failure, the validated derived-only
-`C:\tmp\p2q\target` Cargo directory was removed, freeing about 8.9 GB. It is
-rebuildable; no source or user data was deleted. The clean focused Rust reruns
-then used the main checkout's exact-revision target directory.
+No clean-proof output required deletion. Disk use stayed bounded by reusing the
+validated main-checkout Cargo target directory; no source or user data was
+removed.
 
 ## Review ledger and exit posture
 
@@ -129,15 +132,15 @@ then used the main checkout's exact-revision target directory.
   transition pairs, mandatory recovery-transaction adapters, duplicate updater
   coverage, native-host wording, and a stale plan command alias. All seven are
   corrected and locally qualified at the exact revision above.
-- Independent re-review and the P0/P1 carry-forward verdict: **pending**. No
-  claim is made that P2 is release- or merge-complete until the reviewer
-  verifies the corrections and its verdict is recorded here. Local green
-  qualification is not a substitute for that verdict.
+- Independent re-review of exact executable revision `23d9add3` is **approved
+  with zero findings**. The carry-forward audit reports no current P0 or P1
+  finding against P2. Every P2 exit gate is green on that revision; the later
+  evidence delta is documentation-only.
 - Remaining operational path: there is deliberately no discard or automatic
   retry for `manual_review`; operator resolution remains a future separately
   designed authority. Production signing and release evidence remain P1
   concerns, not evidence supplied by this packet.
 
 No readiness percentage was changed by this packet. The measured evidence
-closes the local P2 implementation/qualification work only; aggregate product
-readiness must be reassessed separately after independent review.
+closes the reviewed P2 recovery gate only; it does not claim signed-release,
+clean-machine production, or aggregate product readiness.

@@ -72,8 +72,9 @@ Recovery mode still exposes only `app.get_boot_state` and `workspace.list`.
 - Success is projected only after the host durably verifies and finalizes the
   restore. Failed/interrupted restoration becomes non-actionable
   `manual_review`; the UI offers neither discard nor automatic retry.
-- Renderer qualification is 322/322 tests across 24 files at code revision
-  `0a7001cd7052e22ac0f9a0da80bbb78e1b4feed7`. Native-host copy no longer
-  implies signing. The first independent whole-P2 review's two Important and
-  five Minor findings are fixed, but independent re-review is still pending,
-  so this is implementation evidence rather than a completion claim.
+- Renderer qualification is 322/322 tests across 24 files at executable code
+  revision `23d9add3fef372243d11460c4cf04a2a6881d714`, in both the main checkout
+  and detached clean proof. Native-host copy no longer implies signing. The
+  first independent whole-P2 review's two Important and five Minor findings
+  are fixed; independent re-review approved the final revision with zero
+  findings and no P0/P1 carry-forward issue.

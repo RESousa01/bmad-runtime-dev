@@ -33,8 +33,9 @@ finalizes once; an interrupted restore becomes terminal `manual_review` and is
 not retried automatically. On Windows, recovery pins the root, ancestors, and
 targets with identity-preserving native handles through the mutation; other
 platforms fail closed for recovery mutation. Prepare requests are fingerprinted
-so identical replays cannot re-observe files or mint new authority. The exact
-local qualification and still-pending independent re-review are recorded in
+so identical replays cannot re-observe files or mint new authority. Exact-head
+and detached clean-worktree qualification plus an approved zero-finding
+independent re-review at `23d9add3` are recorded in
 `docs/implementation-packets/P2-d3-reviewed-recovery-2026-07-18.md`.
 
 ## Repository map
