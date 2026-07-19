@@ -28,6 +28,16 @@
 - Proof: locked restore clean; `dotnet test` 76/76 passed; `dotnet publish -c Release --no-restore` succeeded.
 - Note: `ProductionComposition.AddProductionComposition` still ends by throwing "Production authority adapters are not configured" — intentional fail-closed placeholder until Tasks 3–6 supply the real adapters.
 
+## Task 3 evidence (2026-07-20)
+
+- Added `services/desktop-support-api/Sql/`: embedded migration `0001_support_authority.sql` (all 8 planned tables, state CHECK constraints, no content columns), `SqlConnectionFactory` (Entra-only managed-identity auth, mandatory encryption, pooled, bounded connect/command timeouts; raw-string ctor is internal and test-only), `SqlMigrationRunner` (once-only, name-ordered, per-migration transaction, refuses re-apply on hash drift), `SqlDeviceRegistry`, `SqlIdempotencyStore`, `SqlModelCallIdempotencyStore`, `SqlConsentConsumptionStore`.
+- Durable revocation authority: every lease/receipt commit re-checks active state + registration epoch under `UPDLOCK, HOLDLOCK` inside the commit transaction; the in-process token is only an optimization. Revocation is an UPDATE that flips state and increments epoch.
+- Model-call uncertainty: a started claim that fails during commit is never released — later calls throw `ModelCallIdempotencyUncertainException` instead of returning success-shaped results; only the completion marker (receipt id + hashes) is persisted, never payloads. `SqlIdempotencyStore` refuses `ModelAccessResult` responses outright.
+- Consent single-use authority is the primary key over (subject hash, registration, consumption hash); duplicate insert (2627/2601) maps to `AlreadyConsumed`.
+- Tests: `services/desktop-support-api.Tests/Sql/` — LocalDB-backed fixture (throwaway DB per class, real migration run, `Assert.Skip` when LocalDB is absent), 10 tests covering subject partitioning, revocation vs lease/receipt commits, replica-concurrent consent duplication, idempotency convergence/conflict/claim-release, model-call uncertainty and marker replay, cancellation awareness, hostile-subject parameterization, and a privacy-canary scan of every text column after success and failure paths.
+- Grants doc: `infra/desktop-support/sql-grants.md` — migration identity (db_ddladmin) vs runtime identity (DML only, no schema alteration).
+- Proof: SQL-filtered run 10/10 (note: xUnit v3/MTP needs `-- --filter-namespace …`, the plan's `--filter Sql` form matches nothing); full suite 86/86; Release publish clean.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.
