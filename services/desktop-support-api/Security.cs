@@ -167,52 +167,15 @@ public static class RequestGuards
         out string installationPublicKeyHash)
     {
         installationPublicKeyHash = "";
-        if (encodedPublicKey is null
-            || encodedPublicKey.Length is < 80 or > 512
-            || encodedPublicKey.Any(
-                character => !char.IsAsciiLetterOrDigit(character)
-                    && character is not '-' and not '_'))
+        if (!Security.InstallationPublicKey.TryParse(
+            encodedPublicKey,
+            out Security.InstallationPublicKey? key)
+            || key is null)
         {
             return false;
         }
-
-        try
-        {
-            byte[] subjectPublicKeyInfo = DecodeBase64Url(encodedPublicKey);
-            using ECDsa key = ECDsa.Create();
-            key.ImportSubjectPublicKeyInfo(subjectPublicKeyInfo, out int bytesRead);
-            ECParameters parameters = key.ExportParameters(false);
-            if (bytesRead != subjectPublicKeyInfo.Length
-                || parameters.Curve.Oid.Value != ECCurve.NamedCurves.nistP256.Oid.Value
-                || parameters.Q.X is not { Length: 32 }
-                || parameters.Q.Y is not { Length: 32 })
-            {
-                return false;
-            }
-            installationPublicKeyHash = HashBytes(subjectPublicKeyInfo);
-            return true;
-        }
-        catch (CryptographicException)
-        {
-            return false;
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-    }
-
-    private static byte[] DecodeBase64Url(string value)
-    {
-        string padded = value.Replace('-', '+').Replace('_', '/');
-        padded += (padded.Length % 4) switch
-        {
-            0 => "",
-            2 => "==",
-            3 => "=",
-            _ => throw new FormatException("Invalid base64url length."),
-        };
-        return Convert.FromBase64String(padded);
+        installationPublicKeyHash = key.Hash;
+        return true;
     }
 
     public static bool ValidateModelRequest(

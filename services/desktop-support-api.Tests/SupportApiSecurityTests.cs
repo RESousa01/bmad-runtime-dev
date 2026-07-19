@@ -1237,7 +1237,9 @@ public sealed class SupportApiSecurityTests
             request,
             "idem-consent-unavailable");
 
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        // The default verifier is the real installation-key verifier, so a
+        // consent whose proof cannot verify is rejected outright.
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

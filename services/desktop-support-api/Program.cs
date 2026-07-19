@@ -82,7 +82,8 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
     builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
     builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
-    builder.Services.AddSingleton<IContextConsentVerifier, UnavailableContextConsentVerifier>();
+    builder.Services.AddSingleton<IContextConsentVerifier>(
+        new Sapphirus.DesktopSupportApi.Security.InstallationConsentVerifier(TimeProvider.System));
     builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
         !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
         ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)

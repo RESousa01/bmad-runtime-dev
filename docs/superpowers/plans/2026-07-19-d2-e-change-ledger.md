@@ -38,6 +38,15 @@
 - Grants doc: `infra/desktop-support/sql-grants.md` — migration identity (db_ddladmin) vs runtime identity (DML only, no schema alteration).
 - Proof: SQL-filtered run 10/10 (note: xUnit v3/MTP needs `-- --filter-namespace …`, the plan's `--filter Sql` form matches nothing); full suite 86/86; Release publish clean.
 
+## Task 4 evidence (2026-07-20)
+
+- Shared ES256 signature spec documented in `crates/desktop-cloud/src/installation_identity.rs`: payload = ASCII of the envelope-hash string `sha256:<hex>`; ECDSA P-256 + SHA-256; raw 64-byte `r||s` base64url (JOSE); proof key id = SPKI hash (same value as the registration's installation-public-key hash).
+- Rust: `WindowsInstallationIdentity` — non-exportable persisted P-256 key via NCrypt (TPM platform provider first, software KSP fallback), SPKI export, `InstallationConsentSigner` impl; `Debug` redacts key material. Windows integration test creates a real key, signs, verifies via `BCryptVerifySignature`, reopens, and deletes it.
+- Golden vector: `crates/desktop-cloud/tests/consent_envelope_vector.rs` pins the canonical envelope hash `sha256:9789b78a…` for a fixed draft; the C# `InstallationConsentVerifierTests` asserts the identical constant, proving the two `canonical_hash` implementations agree byte-for-byte (purpose preimage `sapphirus:model-context-consent:v1\n` + RFC 8785 JSON).
+- C#: `Security/InstallationPublicKey.cs` (strict P-256 SPKI value object, redacting `ToString`; `RequestGuards.TryGetInstallationPublicKeyHash` now delegates to it) and `Security/InstallationConsentVerifier.cs` (recomputes the envelope hash from the received consent, enforces key-id/registration/manifest/time-window bindings, verifies the signature with the registered device's key; every failure collapses to `Rejected`). Wired as the app-default `IContextConsentVerifier`.
+- Behavior change: an unverifiable consent now yields 403 (Rejected) instead of 503 (Unavailable) — `Opaque_consent_hash_is_not_treated_as_verified` updated accordingly.
+- Proof: `cargo test -p desktop-cloud --all-features --locked` all green (incl. live NCrypt test); clippy `-D warnings` clean; C# 108/108 (Security namespace 22/22); cross-language 104 pass.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.

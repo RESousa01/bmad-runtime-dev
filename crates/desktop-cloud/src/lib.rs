@@ -8,6 +8,7 @@ mod broker_protocol;
 mod composition;
 mod entitlement;
 mod identity;
+mod installation_identity;
 mod model;
 mod support_contract;
 mod transport;
@@ -19,6 +20,11 @@ pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
 pub use composition::DeterministicModelTransport;
 pub use composition::OfflineModelTransport;
 pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
+pub use installation_identity::{
+    base64url_no_pad, consent_signature_payload, installation_key_id, p256_spki_from_point,
+};
+#[cfg(windows)]
+pub use installation_identity::WindowsInstallationIdentity;
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 pub use model::{
     verify_dispatched_model_response, AuthorizedContextItem, AuthorizedModelRequest,
@@ -111,4 +117,6 @@ pub enum CloudError {
     TransportFailed,
     #[error("the canonical transport projection could not be constructed")]
     CanonicalProjectionInvalid,
+    #[error("the installation signing key is unavailable")]
+    InstallationKeyUnavailable,
 }
