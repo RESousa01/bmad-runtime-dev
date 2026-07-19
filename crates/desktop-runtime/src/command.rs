@@ -246,6 +246,13 @@ impl LocalCommand {
                 | Self::GetAbout
         )
     }
+
+    /// Returns whether a request identifier must be admitted exactly once or
+    /// fingerprinted even when the command has no filesystem effect.
+    #[must_use]
+    pub const fn requires_request_tracking(&self) -> bool {
+        self.is_mutating() || matches!(self, Self::PrepareChangesRecovery { .. })
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -504,8 +511,10 @@ mod tests {
 
         assert_eq!(prepare.name(), "changes.recovery.prepare");
         assert!(!prepare.is_mutating());
+        assert!(prepare.requires_request_tracking());
         assert_eq!(decide.name(), "changes.recovery.decide");
         assert!(decide.is_mutating());
+        assert!(decide.requires_request_tracking());
         assert_eq!(
             serde_json::to_value(RecoveryApprovalChoice::Cancel)?,
             serde_json::json!("cancel")

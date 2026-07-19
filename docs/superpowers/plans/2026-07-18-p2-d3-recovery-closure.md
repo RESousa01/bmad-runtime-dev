@@ -667,7 +667,7 @@ Use the repository-pinned Node and pnpm launchers resolved by `check-toolchain.m
 ```powershell
 pnpm --filter @sapphirus/desktop-ui test --run
 pnpm verify:source
-pnpm qualify:cross-language
+pnpm contracts:verify:cross-language
 ```
 
 Expected: renderer suite green, source verification green, and cross-language qualification green except only already-documented environment skips.

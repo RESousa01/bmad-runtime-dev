@@ -109,10 +109,6 @@ pub struct ExecutionResultRow {
     pub completed_at: String,
 }
 
-fn is_terminal_journal_state(state: &str) -> bool {
-    matches!(state, "completed" | "recovered" | "manual_review")
-}
-
 fn is_known_journal_state(state: &str) -> bool {
     matches!(
         state,
@@ -132,24 +128,34 @@ fn is_known_journal_state(state: &str) -> bool {
 }
 
 fn allowed_journal_transition(current: &str, next: &str) -> bool {
-    if next == current {
-        return !is_terminal_journal_state(current);
-    }
-    if next == "recovery_required" {
-        return !is_terminal_journal_state(current);
-    }
-    match current {
-        "prepared" => matches!(next, "checkpoint_durable" | "recovered"),
-        "checkpoint_durable" => matches!(next, "preconditions_verified" | "recovered"),
-        "preconditions_verified" => matches!(next, "applying" | "recovered"),
-        "applying" => next == "effects_applied",
-        "effects_applied" => next == "postimages_verified",
-        "postimages_verified" => next == "result_recorded",
-        "result_recorded" => next == "completed",
-        "recovery_required" => matches!(next, "restoring" | "recovered" | "manual_review"),
-        "restoring" => matches!(next, "recovered" | "manual_review"),
-        _ => false,
-    }
+    matches!(
+        (current, next),
+        (
+            "prepared",
+            "prepared" | "checkpoint_durable" | "recovered" | "recovery_required"
+        ) | (
+            "checkpoint_durable",
+            "checkpoint_durable" | "preconditions_verified" | "recovered" | "recovery_required"
+        ) | (
+            "preconditions_verified",
+            "preconditions_verified" | "applying" | "recovered" | "recovery_required"
+        ) | (
+            "applying",
+            "applying" | "effects_applied" | "recovery_required"
+        ) | (
+            "effects_applied",
+            "effects_applied" | "postimages_verified" | "recovery_required"
+        ) | (
+            "postimages_verified",
+            "postimages_verified" | "result_recorded" | "recovery_required"
+        ) | (
+            "result_recorded",
+            "result_recorded" | "completed" | "recovery_required"
+        ) | (
+            "recovery_required",
+            "recovery_required" | "restoring" | "recovered" | "manual_review"
+        ) | ("restoring", "restoring" | "recovered" | "manual_review")
+    )
 }
 
 fn validate_journal_json(journal_json: &str) -> Result<(), StoreError> {
@@ -775,6 +781,10 @@ mod tests {
         ));
         assert!(allowed_journal_transition("restoring", "recovered"));
         assert!(allowed_journal_transition("restoring", "manual_review"));
+        assert!(!allowed_journal_transition(
+            "restoring",
+            "recovery_required"
+        ));
         assert!(!allowed_journal_transition("manual_review", "restoring"));
         assert!(allowed_journal_transition("prepared", "recovered"));
         assert!(!allowed_journal_transition("applying", "completed"));

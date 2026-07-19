@@ -273,7 +273,7 @@ export function App({
       };
     }
     if (hostRuntime.kind === "loading") {
-      return { detail: "Waiting for the signed desktop host.", label: "Checking access" };
+      return { detail: "Waiting for the native desktop host.", label: "Checking access" };
     }
     if (methodGuidanceClient !== null && modelAuthStatus === null) {
       return { detail: "The desktop host is verifying the current model authorization.", label: "Checking model access" };

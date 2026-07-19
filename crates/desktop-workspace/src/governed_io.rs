@@ -7,8 +7,11 @@
 //! module never accepts an absolute path and never creates parent directories.
 
 use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
+
+#[cfg(windows)]
+use std::collections::HashMap;
 
 use ulid::Ulid;
 
@@ -43,12 +46,24 @@ struct VerifiedFile {
     metadata_hash: String,
 }
 
+#[cfg(windows)]
+struct PinnedRecoveryPath {
+    directories: Vec<File>,
+    target: PathBuf,
+    verified_file: Option<VerifiedFile>,
+}
+
 /// Broker-owned recovery scope which retains the exact governed grant and its
 /// revocation barrier across final observation and every durable effect.
+/// Recovery mutation is supported only on Windows, where native handles pin
+/// the root, ancestors, parent entry, and existing target. Other platforms can
+/// observe for diagnostics but fail mutation closed with `UnsupportedRoot`.
 pub struct GovernedRecoveryTransaction<'a> {
     broker: &'a WorkspaceBroker,
     authority: parking_lot::RwLockReadGuard<'a, ()>,
     grant: WorkspaceGrant,
+    #[cfg(windows)]
+    recovery_paths: parking_lot::Mutex<HashMap<String, PinnedRecoveryPath>>,
 }
 
 impl GovernedRecoveryTransaction<'_> {
@@ -63,6 +78,15 @@ impl GovernedRecoveryTransaction<'_> {
         relative_path: &str,
     ) -> Result<PreimageObservation, WorkspaceError> {
         revalidate_root(&self.grant)?;
+        #[cfg(windows)]
+        let observation = {
+            let (observation, pinned) = pin_recovery_path(&self.grant, relative_path)?;
+            self.recovery_paths
+                .lock()
+                .insert(observation.relative_path.clone(), pinned);
+            observation
+        };
+        #[cfg(not(windows))]
         let observation = observe_preimage_for_grant(&self.grant, relative_path)?;
         self.broker
             .ensure_grant_current(&self.authority, &self.grant)?;
@@ -80,7 +104,12 @@ impl GovernedRecoveryTransaction<'_> {
         content: &str,
     ) -> Result<(), WorkspaceError> {
         revalidate_root(&self.grant)?;
-        create_utf8_for_grant(&self.grant, relative_path, content)?;
+        #[cfg(windows)]
+        self.mutate_pinned(relative_path, |pinned| {
+            recovery_create_pinned(&pinned, content, |_, _| Ok(()))
+        })?;
+        #[cfg(not(windows))]
+        return Err(WorkspaceError::UnsupportedRoot);
         self.broker
             .ensure_grant_current(&self.authority, &self.grant)
     }
@@ -98,13 +127,18 @@ impl GovernedRecoveryTransaction<'_> {
         content: &str,
     ) -> Result<(), WorkspaceError> {
         revalidate_root(&self.grant)?;
-        replace_utf8_for_grant(
-            &self.grant,
-            relative_path,
-            expected_content_hash,
-            expected_file_identity_hash,
-            content,
-        )?;
+        #[cfg(windows)]
+        self.mutate_pinned(relative_path, |pinned| {
+            recovery_replace_pinned(
+                pinned,
+                expected_content_hash,
+                expected_file_identity_hash,
+                content,
+                |_, _| Ok(()),
+            )
+        })?;
+        #[cfg(not(windows))]
+        return Err(WorkspaceError::UnsupportedRoot);
         self.broker
             .ensure_grant_current(&self.authority, &self.grant)
     }
@@ -121,14 +155,36 @@ impl GovernedRecoveryTransaction<'_> {
         expected_file_identity_hash: &str,
     ) -> Result<(), WorkspaceError> {
         revalidate_root(&self.grant)?;
-        delete_for_grant(
-            &self.grant,
-            relative_path,
-            expected_content_hash,
-            expected_file_identity_hash,
-        )?;
+        #[cfg(windows)]
+        self.mutate_pinned(relative_path, |pinned| {
+            recovery_delete_pinned(
+                pinned,
+                expected_content_hash,
+                expected_file_identity_hash,
+                |_, _| Ok(()),
+            )
+        })?;
+        #[cfg(not(windows))]
+        return Err(WorkspaceError::UnsupportedRoot);
         self.broker
             .ensure_grant_current(&self.authority, &self.grant)
+    }
+}
+
+#[cfg(windows)]
+impl GovernedRecoveryTransaction<'_> {
+    fn mutate_pinned(
+        &self,
+        relative_path: &str,
+        mutation: impl FnOnce(PinnedRecoveryPath) -> Result<(), WorkspaceError>,
+    ) -> Result<(), WorkspaceError> {
+        let normalized = validate_effect_path(relative_path)?;
+        let pinned = self
+            .recovery_paths
+            .lock()
+            .remove(&normalized)
+            .ok_or(WorkspaceError::StalePreimage)?;
+        mutation(pinned)
     }
 }
 
@@ -155,6 +211,8 @@ impl WorkspaceBroker {
             broker: self,
             authority,
             grant,
+            #[cfg(windows)]
+            recovery_paths: parking_lot::Mutex::new(HashMap::new()),
         };
         let result = operation(&transaction);
         revalidate_root(&transaction.grant)?;
@@ -392,6 +450,242 @@ fn observe_preimage_for_grant(
     }
 }
 
+#[cfg(windows)]
+fn pin_recovery_path(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+) -> Result<(PreimageObservation, PinnedRecoveryPath), WorkspaceError> {
+    let normalized = validate_effect_path(relative_path)?;
+    let parent_relative = normalized.rsplit_once('/').map(|(parent, _)| parent);
+    let directories = pin_recovery_directories(grant, parent_relative)?;
+    let parent = parent_relative.map_or_else(
+        || grant.root.clone(),
+        |relative| grant.root.join(relative.replace('/', "\\")),
+    );
+    let target = parent.join(leaf_segment(&normalized)?);
+    match open_recovery_verified_file(&target) {
+        Ok(verified) => {
+            let content = String::from_utf8(verified.content.clone())
+                .map_err(|_| WorkspaceError::UnsupportedText)?;
+            let observation = PreimageObservation {
+                relative_path: normalized,
+                exists: true,
+                content: Some(content),
+                content_hash: Some(verified.content_hash.clone()),
+                file_identity_hash: Some(verified.file_identity_hash.clone()),
+                metadata_hash: Some(verified.metadata_hash.clone()),
+            };
+            Ok((
+                observation,
+                PinnedRecoveryPath {
+                    directories,
+                    target,
+                    verified_file: Some(verified),
+                },
+            ))
+        }
+        Err(WorkspaceError::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => Ok((
+            PreimageObservation {
+                relative_path: normalized,
+                exists: false,
+                content: None,
+                content_hash: None,
+                file_identity_hash: None,
+                metadata_hash: None,
+            },
+            PinnedRecoveryPath {
+                directories,
+                target,
+                verified_file: None,
+            },
+        )),
+        Err(error) => Err(error),
+    }
+}
+
+#[cfg(windows)]
+fn pin_recovery_directories(
+    grant: &WorkspaceGrant,
+    parent_relative: Option<&str>,
+) -> Result<Vec<File>, WorkspaceError> {
+    let mut pinned = Vec::new();
+    let root = open_pinned_recovery_directory(&grant.root)?;
+    if crate::identity_hash_from_information(&crate::handle_information(&root)?)
+        != grant.root_identity_hash
+    {
+        return Err(WorkspaceError::RootIdentityChanged);
+    }
+    pinned.push(root);
+
+    if let Some(relative) = parent_relative {
+        let mut current_relative = String::new();
+        for segment in relative.split('/') {
+            if !current_relative.is_empty() {
+                current_relative.push('/');
+            }
+            current_relative.push_str(segment);
+            let resolved = resolve_existing(&grant.root, &current_relative)?;
+            pinned.push(open_pinned_recovery_directory(&resolved)?);
+        }
+    }
+    Ok(pinned)
+}
+
+#[cfg(windows)]
+fn open_pinned_recovery_directory(path: &Path) -> Result<File, WorkspaceError> {
+    use std::os::windows::fs::OpenOptionsExt;
+    use windows::Win32::Storage::FileSystem::{
+        FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ, FILE_SHARE_WRITE,
+    };
+
+    let metadata = fs::symlink_metadata(path)?;
+    if !metadata.is_dir() || metadata.file_type().is_symlink() || is_reparse_point(&metadata) {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    let directory = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .share_mode(FILE_SHARE_READ.0 | FILE_SHARE_WRITE.0)
+        .custom_flags(FILE_FLAG_BACKUP_SEMANTICS.0 | FILE_FLAG_OPEN_REPARSE_POINT.0)
+        .open(path)?;
+    let information = crate::handle_information(&directory)?;
+    if information.dwFileAttributes & WINDOWS_FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    Ok(directory)
+}
+
+#[cfg(windows)]
+fn recovery_create_pinned(
+    pinned: &PinnedRecoveryPath,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    use std::os::windows::fs::OpenOptionsExt;
+    use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
+
+    validate_governed_content(content)?;
+    if pinned.verified_file.is_some() {
+        return Err(WorkspaceError::AlreadyExists);
+    }
+    let parent = pinned
+        .target
+        .parent()
+        .ok_or(WorkspaceError::InvalidRelativePath)?;
+    after_validation(&pinned.target, parent)?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .share_mode(FILE_SHARE_READ.0)
+        .open(&pinned.target)
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::AlreadyExists {
+                WorkspaceError::AlreadyExists
+            } else {
+                WorkspaceError::Io(error)
+            }
+        })?;
+    file.write_all(content.as_bytes())?;
+    file.sync_all()?;
+    drop(file);
+    sync_pinned_parent(pinned)
+}
+
+#[cfg(windows)]
+fn recovery_replace_pinned(
+    mut pinned: PinnedRecoveryPath,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    validate_governed_content(content)?;
+    if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let mut verified = pinned
+        .verified_file
+        .take()
+        .ok_or(WorkspaceError::StalePreimage)?;
+    if verified.content_hash != expected_content_hash
+        || verified.file_identity_hash != expected_file_identity_hash
+    {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let parent = pinned
+        .target
+        .parent()
+        .ok_or(WorkspaceError::InvalidRelativePath)?;
+    after_validation(&pinned.target, parent)?;
+    verified.file.seek(SeekFrom::Start(0))?;
+    verified.file.set_len(0)?;
+    verified.file.write_all(content.as_bytes())?;
+    verified.file.sync_all()?;
+    drop(verified.file);
+    sync_pinned_parent(&pinned)
+}
+
+#[cfg(windows)]
+#[allow(
+    unsafe_code,
+    reason = "Windows exposes identity-preserving delete only through SetFileInformationByHandle"
+)]
+fn recovery_delete_pinned(
+    mut pinned: PinnedRecoveryPath,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    use std::os::windows::io::AsRawHandle;
+    use windows::Win32::Foundation::HANDLE;
+    use windows::Win32::Storage::FileSystem::{
+        FileDispositionInfo, SetFileInformationByHandle, FILE_DISPOSITION_INFO,
+    };
+
+    if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let verified = pinned
+        .verified_file
+        .take()
+        .ok_or(WorkspaceError::StalePreimage)?;
+    if verified.content_hash != expected_content_hash
+        || verified.file_identity_hash != expected_file_identity_hash
+    {
+        return Err(WorkspaceError::StalePreimage);
+    }
+    let parent = pinned
+        .target
+        .parent()
+        .ok_or(WorkspaceError::InvalidRelativePath)?;
+    after_validation(&pinned.target, parent)?;
+    let disposition = FILE_DISPOSITION_INFO { DeleteFile: true };
+    // SAFETY: the handle is owned and live, the information pointer and size
+    // exactly describe FILE_DISPOSITION_INFO, and no alias can close the file.
+    unsafe {
+        SetFileInformationByHandle(
+            HANDLE(verified.file.as_raw_handle()),
+            FileDispositionInfo,
+            std::ptr::from_ref(&disposition).cast(),
+            u32::try_from(std::mem::size_of::<FILE_DISPOSITION_INFO>())
+                .map_err(|_| WorkspaceError::UnsupportedRoot)?,
+        )
+    }
+    .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+    drop(verified.file);
+    sync_pinned_parent(&pinned)
+}
+
+#[cfg(windows)]
+fn sync_pinned_parent(pinned: &PinnedRecoveryPath) -> Result<(), WorkspaceError> {
+    pinned
+        .directories
+        .last()
+        .ok_or(WorkspaceError::InvalidRelativePath)?
+        .sync_all()?;
+    Ok(())
+}
+
 fn create_utf8_for_grant(
     grant: &WorkspaceGrant,
     relative_path: &str,
@@ -418,6 +712,17 @@ fn create_utf8_for_grant(
     file.sync_all()?;
     drop(file);
     flush_directory(&parent)
+}
+
+#[cfg(all(test, windows))]
+fn recovery_create_utf8_with_seam(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    recovery_create_pinned(&pinned, content, after_validation)
 }
 
 fn replace_utf8_for_grant(
@@ -454,6 +759,25 @@ fn replace_utf8_for_grant(
     flush_directory(&parent)
 }
 
+#[cfg(all(test, windows))]
+fn recovery_replace_utf8_with_seam(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    recovery_replace_pinned(
+        pinned,
+        expected_content_hash,
+        expected_file_identity_hash,
+        content,
+        after_validation,
+    )
+}
+
 fn delete_for_grant(
     grant: &WorkspaceGrant,
     relative_path: &str,
@@ -478,6 +802,23 @@ fn delete_for_grant(
     fs::remove_file(&target)?;
     drop(verified.file);
     flush_directory(&parent)
+}
+
+#[cfg(all(test, windows))]
+fn recovery_delete_with_seam(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    let (_observation, pinned) = pin_recovery_path(grant, relative_path)?;
+    recovery_delete_pinned(
+        pinned,
+        expected_content_hash,
+        expected_file_identity_hash,
+        after_validation,
+    )
 }
 
 fn validate_effect_path(relative_path: &str) -> Result<String, WorkspaceError> {
@@ -555,6 +896,65 @@ fn open_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
     let mut file = OpenOptions::new()
         .read(true)
         .share_mode(FILE_SHARE_READ.0 | FILE_SHARE_DELETE.0)
+        .open(path)?;
+    let information = crate::handle_information(&file)?;
+    if information.dwFileAttributes & WINDOWS_FILE_ATTRIBUTE_REPARSE_POINT != 0
+        || information.nNumberOfLinks > 1
+    {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    let size = (u64::from(information.nFileSizeHigh) << 32) | u64::from(information.nFileSizeLow);
+    if size > MAX_GOVERNED_FILE_BYTES {
+        return Err(WorkspaceError::LimitExceeded);
+    }
+    let mut content = Vec::with_capacity(usize::try_from(size).unwrap_or(0).saturating_add(1));
+    file.read_to_end(&mut content)?;
+    if content.len() as u64 > MAX_GOVERNED_FILE_BYTES || content.contains(&0) {
+        return Err(WorkspaceError::UnsupportedText);
+    }
+    if std::str::from_utf8(&content).is_err() {
+        return Err(WorkspaceError::UnsupportedText);
+    }
+    let content_hash = hash_bytes(&content);
+    let file_identity_hash = crate::identity_hash_from_information(&information);
+    let metadata_hash = hash_bytes(
+        format!(
+            "{}:{}:{}",
+            size,
+            information.ftLastWriteTime.dwHighDateTime,
+            information.ftLastWriteTime.dwLowDateTime
+        )
+        .as_bytes(),
+    );
+    Ok(VerifiedFile {
+        file,
+        content,
+        content_hash,
+        file_identity_hash,
+        metadata_hash,
+    })
+}
+
+#[cfg(windows)]
+fn open_recovery_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
+    use std::os::windows::fs::OpenOptionsExt;
+    use windows::Win32::Foundation::{GENERIC_READ, GENERIC_WRITE};
+    use windows::Win32::Storage::FileSystem::{
+        DELETE, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ,
+    };
+
+    let metadata = fs::symlink_metadata(path)?;
+    if !metadata.is_file()
+        || metadata.file_type().is_symlink()
+        || is_reparse_point(&metadata)
+        || is_cloud_placeholder(&metadata)
+    {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    let mut file = OpenOptions::new()
+        .access_mode(GENERIC_READ.0 | GENERIC_WRITE.0 | DELETE.0)
+        .share_mode(FILE_SHARE_READ.0)
+        .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT.0)
         .open(path)?;
     let information = crate::handle_information(&file)?;
     if information.dwFileAttributes & WINDOWS_FILE_ATTRIBUTE_REPARSE_POINT != 0
@@ -876,6 +1276,137 @@ mod tests {
         broker.revoke(&workspace_id)?;
         let result = broker.create_utf8_durable(&workspace_id, epoch, "late.txt", "content");
         assert!(matches!(result, Err(WorkspaceError::GrantUnavailable)));
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_replace_rejects_target_substitution_after_validation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let content_hash = before.content_hash.ok_or("missing content hash")?;
+        let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
+        let displaced = dir.path().join("main.displaced.rs");
+        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
+            super::recovery_replace_utf8_with_seam(
+                &transaction.grant,
+                "main.rs",
+                &content_hash,
+                &identity_hash,
+                "restored\n",
+                |target, _parent| {
+                    fs::rename(target, &displaced)?;
+                    fs::write(target, "attacker\n")?;
+                    Ok(())
+                },
+            )
+        })?;
+
+        assert!(result.is_err());
+        assert_eq!(fs::read(dir.path().join("main.rs"))?, b"fn main() {}\n");
+        assert!(!displaced.exists());
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_delete_rejects_target_substitution_after_validation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let content_hash = before.content_hash.ok_or("missing content hash")?;
+        let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
+        let displaced = dir.path().join("main.displaced.rs");
+        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
+            super::recovery_delete_with_seam(
+                &transaction.grant,
+                "main.rs",
+                &content_hash,
+                &identity_hash,
+                |target, _parent| {
+                    fs::rename(target, &displaced)?;
+                    fs::write(target, "attacker\n")?;
+                    Ok(())
+                },
+            )
+        })?;
+
+        assert!(result.is_err());
+        assert_eq!(fs::read(dir.path().join("main.rs"))?, b"fn main() {}\n");
+        assert!(!displaced.exists());
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn recovery_create_rejects_parent_substitution_after_validation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let displaced = dir.path().join("src.displaced");
+        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
+            super::recovery_create_utf8_with_seam(
+                &transaction.grant,
+                "src/new.rs",
+                "restored\n",
+                |_target, parent| {
+                    fs::rename(parent, &displaced)?;
+                    fs::create_dir(parent)?;
+                    Ok(())
+                },
+            )
+        })?;
+
+        assert!(result.is_err());
+        assert!(dir.path().join("src").join("lib.rs").exists());
+        assert!(!dir.path().join("src").join("new.rs").exists());
+        assert!(!displaced.exists());
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn governed_recovery_transaction_uses_pinned_handles_for_all_effect_kinds(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
+        broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
+            let replace = transaction.observe_preimage("main.rs")?;
+            let delete = transaction.observe_preimage("src/lib.rs")?;
+            assert!(!transaction.observe_preimage("src/new.rs")?.exists);
+
+            transaction.replace_utf8_durable(
+                "main.rs",
+                replace
+                    .content_hash
+                    .as_deref()
+                    .ok_or(WorkspaceError::StalePreimage)?,
+                replace
+                    .file_identity_hash
+                    .as_deref()
+                    .ok_or(WorkspaceError::StalePreimage)?,
+                "restored\n",
+            )?;
+
+            transaction.delete_durable(
+                "src/lib.rs",
+                delete
+                    .content_hash
+                    .as_deref()
+                    .ok_or(WorkspaceError::StalePreimage)?,
+                delete
+                    .file_identity_hash
+                    .as_deref()
+                    .ok_or(WorkspaceError::StalePreimage)?,
+            )?;
+            transaction.create_utf8_durable("src/new.rs", "created\n")
+        })??;
+
+        assert_eq!(fs::read(dir.path().join("main.rs"))?, b"restored\n");
+        assert!(!dir.path().join("src").join("lib.rs").exists());
+        assert_eq!(
+            fs::read(dir.path().join("src").join("new.rs"))?,
+            b"created\n"
+        );
         Ok(())
     }
 }

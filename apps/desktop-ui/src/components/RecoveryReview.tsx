@@ -72,7 +72,7 @@ export function RecoveryReview({
 
       <p className="inspector-footnote">
         Confirmation is bound to this exact review. The private confirmation value stays in
-        the signed desktop host and is not displayed.
+        the native desktop host and is not displayed.
       </p>
 
       <div className="change-actions">

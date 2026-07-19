@@ -24,7 +24,7 @@ use thiserror::Error;
 #[error("Sapphirus desktop startup failed")]
 pub struct StartupError;
 
-/// Starts the signed desktop host and its single local renderer window.
+/// Starts the native desktop host and its single local renderer window.
 ///
 /// # Errors
 ///

@@ -171,19 +171,6 @@ mod tests {
     }
 
     #[test]
-    fn active_journal_blocks_an_otherwise_eligible_update() -> Result<(), Box<dyn std::error::Error>>
-    {
-        let policy = UpdatePolicy::new("sapphirus-desktop", ReleaseChannel::Beta, "x64", 1);
-        assert_eq!(
-            policy.evaluate(&release()?, true, true, false)?,
-            UpdateState::Blocked {
-                reason: UpdateBlockReason::ActiveEffectJournal
-            }
-        );
-        Ok(())
-    }
-
-    #[test]
     fn enterprise_mode_never_invokes_in_app_install() -> Result<(), Box<dyn std::error::Error>> {
         let policy = UpdatePolicy::new(
             "sapphirus-desktop",

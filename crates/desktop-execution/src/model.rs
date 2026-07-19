@@ -69,9 +69,9 @@ pub trait WorkspaceFileIo: Send + Sync {
         })
     }
 
-    /// Runs recovery validation and effects in one broker-owned authority
-    /// scope. Production workspace adapters override this method to retain the
-    /// grant barrier across the entire callback.
+    /// Runs recovery validation and effects in one explicitly retained
+    /// authority scope. Every adapter must provide this boundary; there is no
+    /// permissive default that can silently split validation from mutation.
     ///
     /// # Errors
     ///
@@ -81,10 +81,7 @@ pub trait WorkspaceFileIo: Send + Sync {
         transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
     ) -> Result<(), WorkspaceIoError>
     where
-        Self: Sized,
-    {
-        transaction(self)
-    }
+        Self: Sized;
 
     /// Create a new file and durably flush the file and owning directory.
     ///

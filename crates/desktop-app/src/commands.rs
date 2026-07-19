@@ -11,6 +11,7 @@ use desktop_ipc::{
     BmadHelpSecretFindingInput, BmadHelpTerminalInput, BmadHelpTerminalReasonProjection,
     BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
     ModelAuthModeProjection, ModelAuthStatusInput, ModelAuthStatusKindProjection,
+    ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
     canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
@@ -164,6 +165,29 @@ fn should_cache_reply(command: &LocalCommand) -> bool {
         )
 }
 
+fn admit_dispatch_envelope(
+    state: &HostState,
+    envelope: &ValidatedCommandEnvelope,
+    accepted_at: UnixMillis,
+) -> Result<(), HostDispatchReply> {
+    let request_id = envelope.request_id().clone();
+    let admission = state.gate.admit(envelope, accepted_at).map_err(|error| {
+        let safe_error = map_ipc_error(&error).with_correlation_id(request_id.clone());
+        HostDispatchReply::error(Some(request_id.clone()), state.sequence(), safe_error)
+    })?;
+    if admission == Admission::Replay {
+        return Err(state.cached_reply(&request_id).unwrap_or_else(|| {
+            HostDispatchReply::error(
+                Some(request_id.clone()),
+                state.sequence(),
+                conflict_error("The prior request receipt expired; refresh before retrying.")
+                    .with_correlation_id(request_id),
+            )
+        }));
+    }
+    Ok(())
+}
+
 #[tauri::command]
 #[expect(
     clippy::needless_pass_by_value,
@@ -230,22 +254,8 @@ pub(crate) fn host_dispatch(
         }
     };
     let request_id = envelope.request_id().clone();
-    let admission = match state.gate.admit(&envelope, accepted_at) {
-        Ok(admission) => admission,
-        Err(error) => {
-            let safe_error = map_ipc_error(&error).with_correlation_id(request_id.clone());
-            return HostDispatchReply::error(Some(request_id), state.sequence(), safe_error);
-        }
-    };
-    if admission == Admission::Replay {
-        return state.cached_reply(&request_id).unwrap_or_else(|| {
-            HostDispatchReply::error(
-                Some(request_id.clone()),
-                state.sequence(),
-                conflict_error("The prior request receipt expired; refresh before retrying.")
-                    .with_correlation_id(request_id),
-            )
-        });
+    if let Err(reply) = admit_dispatch_envelope(&state, &envelope, accepted_at) {
+        return reply;
     }
 
     let (_, command) = envelope.into_command();
@@ -1918,10 +1928,10 @@ mod tests {
     #[cfg(feature = "deterministic-help")]
     use super::prepare_bmad_help_review;
     use super::{
-        about_projection, bmad_library_snapshot, create_bmad_help_run, latest_bmad_help_run,
-        latest_bmad_help_run_data, load_preferences, map_bmad_model_error, map_workspace_error,
-        model_auth_status_data, revoke_workspace, save_preferences, should_cache_reply,
-        supported_commands,
+        about_projection, admit_dispatch_envelope, bmad_library_snapshot, create_bmad_help_run,
+        latest_bmad_help_run, latest_bmad_help_run_data, load_preferences, map_bmad_model_error,
+        map_workspace_error, model_auth_status_data, revoke_workspace, save_preferences,
+        should_cache_reply, supported_commands,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
@@ -2625,6 +2635,61 @@ mod tests {
         ] {
             assert!(!should_cache_reply(&command), "{}", command.name());
         }
+    }
+
+    #[test]
+    fn duplicate_recovery_prepare_stops_before_observation_or_authority_creation() {
+        let storage = tempfile::tempdir().expect("temporary authority store");
+        let state = HostState::initialize(Some(storage.path().join("authority")))
+            .expect("ready host state");
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer_session_id = state
+            .renderer_session_authority("main")
+            .expect("renderer authority")
+            .session_id()
+            .clone();
+        let context = desktop_ipc::IpcValidationContext {
+            expected_window_label: "main".to_owned(),
+            renderer_session_id: renderer_session_id.clone(),
+            installation_id: state.installation_id().clone(),
+            now: UnixMillis(10_000),
+            allowed_commands: supported_commands(crate::wire::BootMode::Ready),
+        };
+        let envelope = |epoch| {
+            serde_json::to_vec(&serde_json::json!({
+                "schemaVersion": "desktop-ipc-command.v1",
+                "requestId": "request_recovery_prepare_1",
+                "command": "changes.recovery.prepare",
+                "windowLabel": "main",
+                "rendererSessionId": renderer_session_id,
+                "installationId": state.installation_id(),
+                "issuedAt": 10_000,
+                "payload": {
+                    "workspaceId": "workspace_1",
+                    "workspaceGrantEpoch": epoch,
+                    "journalId": "journal_1"
+                }
+            }))
+            .expect("envelope JSON")
+        };
+        let first = desktop_ipc::CommandEnvelopeValidator::parse(&envelope(7), &context)
+            .expect("first recovery prepare");
+        let duplicate = desktop_ipc::CommandEnvelopeValidator::parse(&envelope(7), &context)
+            .expect("duplicate recovery prepare");
+        let changed = desktop_ipc::CommandEnvelopeValidator::parse(&envelope(8), &context)
+            .expect("changed recovery prepare");
+        let mut observation_count = 0_u8;
+        let mut authority_count = 0_u8;
+
+        admit_dispatch_envelope(&state, &first, UnixMillis(10_000))
+            .expect("first request admitted");
+        observation_count += 1;
+        authority_count += 1;
+        assert!(admit_dispatch_envelope(&state, &duplicate, UnixMillis(10_001)).is_err());
+        assert!(admit_dispatch_envelope(&state, &changed, UnixMillis(10_002)).is_err());
+        assert_eq!(observation_count, 1);
+        assert_eq!(authority_count, 1);
+        assert!(!should_cache_reply(first.command()));
     }
 
     #[test]

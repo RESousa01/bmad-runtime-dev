@@ -233,6 +233,13 @@ struct ScopedRecoveryWorkspaceIo<'transaction, 'scope> {
 }
 
 impl WorkspaceFileIo for ScopedRecoveryWorkspaceIo<'_, '_> {
+    fn with_recovery_transaction(
+        &self,
+        _transaction: &mut dyn FnMut(&dyn WorkspaceFileIo) -> Result<(), WorkspaceIoError>,
+    ) -> Result<(), WorkspaceIoError> {
+        Err(WorkspaceIoError::CapabilityRevoked)
+    }
+
     fn workspace_target_hash(&self) -> Result<Sha256Digest, WorkspaceIoError> {
         Ok(self.workspace_target_hash)
     }
