@@ -9,6 +9,7 @@ mod composition;
 mod entitlement;
 mod identity;
 mod model;
+mod support_contract;
 mod transport;
 #[cfg(windows)]
 mod windows_broker;
@@ -24,6 +25,13 @@ pub use model::{
     CanonicalOutputValidator, DispatchedModelRequest, ModelAccessReceipt, ModelReceiptStatus,
     RawModelOutput, ReceiptClock, ReceiptProofVerifier, ReceiptVerifier, ReplaySafeReceiptVerifier,
     SystemReceiptClock, VerifiedModelOutput,
+};
+pub use support_contract::{
+    project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,
+    ConsentWindow,
+    InstallationConsentSigner, LeaseBinding, ModelAccessRequest as CanonicalModelAccessRequest,
+    ModelAccessRequestContextItem as CanonicalModelAccessRequestContextItem,
+    ModelContextConsent as CanonicalModelContextConsent, RegistrationBinding, TenantPolicyBinding,
 };
 pub use transport::{
     HttpExecutor, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor, SupportApiOrigin,
@@ -101,4 +109,6 @@ pub enum CloudError {
     InvalidSupportOrigin,
     #[error("the support API transport failed")]
     TransportFailed,
+    #[error("the canonical transport projection could not be constructed")]
+    CanonicalProjectionInvalid,
 }

@@ -24,7 +24,8 @@ mod strict_json;
 // would reject them before the generated shapes could be compiled.
 #[allow(dead_code, clippy::all, clippy::pedantic, clippy::unwrap_used)]
 #[path = "../../../packages/contracts/generated/rust/contracts.rs"]
-pub(crate) mod generated_contracts;
+#[doc(hidden)]
+pub mod generated_contracts;
 
 pub use bmad::{
     validate_bmad_help_proposal_schema, BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster,

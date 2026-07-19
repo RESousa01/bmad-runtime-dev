@@ -258,6 +258,32 @@ impl AuthorizedModelRequest {
         }
     }
 
+    /// Consumes the request into the parts needed by the canonical
+    /// support-plane transport projection. Consumption prevents any second
+    /// projection or dispatch of the same authorized request.
+    pub(crate) fn into_transport_parts(self) -> TransportRequestParts {
+        TransportRequestParts {
+            request_id: self.request_id,
+            invocation_id: self.invocation_id,
+            decision_id: self.decision_id,
+            manifest_hash: self.manifest_hash,
+            binding_hash: self.binding_hash,
+            consumption_hash: self.consumption_hash,
+            consent_disclosure_hash: self.consent_disclosure_hash,
+            purpose: self.purpose,
+            model_role: self.model_role,
+            canonical_output_schema_id: self.canonical_output_schema_id,
+            canonical_output_schema_hash: self.canonical_output_schema_hash,
+            provider_profile_hash: self.provider_profile_hash,
+            model_profile_hash: self.model_profile_hash,
+            deployment_hash: self.deployment_hash,
+            policy_hash: self.policy_hash,
+            region: self.region,
+            retention_mode: self.retention_mode,
+            items: self.items,
+        }
+    }
+
     #[must_use]
     pub fn request_id(&self) -> &ContractId {
         &self.request_id
@@ -363,6 +389,30 @@ impl AuthorizedModelRequest {
         }
         Ok(())
     }
+}
+
+/// Consumed request parts released to the canonical support-plane transport
+/// projection. Local-only authority fields (tenant/project/run refs, decision
+/// hash, policy-internal totals) are deliberately not carried.
+pub(crate) struct TransportRequestParts {
+    pub(crate) request_id: ContractId,
+    pub(crate) invocation_id: ContractId,
+    pub(crate) decision_id: ContractId,
+    pub(crate) manifest_hash: Sha256Digest,
+    pub(crate) binding_hash: Sha256Digest,
+    pub(crate) consumption_hash: Sha256Digest,
+    pub(crate) consent_disclosure_hash: Sha256Digest,
+    pub(crate) purpose: String,
+    pub(crate) model_role: String,
+    pub(crate) canonical_output_schema_id: ContractId,
+    pub(crate) canonical_output_schema_hash: Sha256Digest,
+    pub(crate) provider_profile_hash: Sha256Digest,
+    pub(crate) model_profile_hash: Sha256Digest,
+    pub(crate) deployment_hash: Sha256Digest,
+    pub(crate) policy_hash: Sha256Digest,
+    pub(crate) region: String,
+    pub(crate) retention_mode: RetentionMode,
+    pub(crate) items: Vec<AuthorizedContextItem>,
 }
 
 /// A request that has crossed the one-shot transport boundary. It retains the
