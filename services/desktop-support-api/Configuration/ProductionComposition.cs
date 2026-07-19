@@ -1,3 +1,4 @@
+using Sapphirus.DesktopSupportApi.Model;
 using Sapphirus.DesktopSupportApi.Policy;
 using Sapphirus.DesktopSupportApi.Signing;
 
@@ -35,8 +36,24 @@ public static class ProductionComposition
                 provider.GetRequiredService<IHashSigner>(),
                 supportPlane));
 
-        // Tasks 6+ supply the model broker; production still cannot boot
-        // until every authority adapter exists.
+        builder.Services.AddSingleton<IModelProviderExecutor>(provider =>
+            new AzureOpenAiProviderExecutor(
+                provider.GetRequiredService<ProductionAzureClients>().Model));
+        builder.Services.AddSingleton<IModelAccessBroker>(provider =>
+            new AzureOpenAiModelAccessBroker(
+                async cancellationToken => ModelAccessProfile.Resolve(
+                    await provider
+                        .GetRequiredService<AppConfigurationPolicyProvider>()
+                        .GetSnapshotAsync(cancellationToken)
+                        .ConfigureAwait(false),
+                    production,
+                    supportPlane),
+                provider.GetRequiredService<IModelProviderExecutor>(),
+                provider.GetRequiredService<IModelReceiptSigner>(),
+                TimeProvider.System));
+
+        // Task 7 binds the durable SQL authority stores; production still
+        // cannot boot until every authority adapter exists.
         throw new InvalidOperationException(
             "Production authority adapters are not configured.");
     }

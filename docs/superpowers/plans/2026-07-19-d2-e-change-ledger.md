@@ -56,6 +56,15 @@
 - Production DI: policy source/provider, Key Vault signer, signed-policy service, receipt signer registered in `ProductionComposition`; startup still fails closed pending the Task 6 model broker.
 - Proof: Signing namespace 18/18; full suite 126/126; Release publish clean. (MTP filter form: `-- --filter-namespace …Tests.Signing`.)
 
+## Task 6 evidence (2026-07-20)
+
+- `Model/ModelAccessProfile.cs`: one immutable profile resolved from verified policy + validated production config (deployment must be policy-approved, region policy-allowed); fixed purpose/role/schema; versioned server-side price profile (`desktop-price-profile.2026-07`) computes cost — caller/model-reported cost is never trusted.
+- `Model/CanonicalPromptProjector.cs`: minimum in-memory prompt; pre-egress guards reject absolute/UNC/drive/traversal paths, username-bearing labels (`users/`, `home/`, …), wildcard/whole-repo patterns, oversized context, and unsupported classifications (only `public`/`internal`/`source`) — all before any provider call (recording-executor tests prove zero egress).
+- `Model/CanonicalModelOutputValidator.cs`: closed-schema validation (`sapphirus.bmad-method-help-proposal.v1`, `additionalProperties:false`, bounded sizes/depth) with deterministic canonical re-serialization and recomputed payload hash; the strict provider JSON schema constant is hashed as the schema projection hash.
+- `Model/AzureOpenAiModelAccessBroker.cs`: fixed-profile broker over an `IModelProviderExecutor` seam. Request data cannot alter profile fields (`profile_mismatch`). Safe outcome codes: `context_rejected`, `provider_refusal`, `content_filtered`, `incomplete_output`, `malformed_output`, `schema_invalid`, `timeout`, `rate_limited`, `quota_exhausted`, `provider_unavailable`; cancellation propagates as cancellation. Retries bounded by the profile (3 attempts), transient outcomes only, identical request record reused (`Assert.Single(Calls.Distinct())`). Production executor disables provider storage (`StoredOutputEnabled=false`), tools, and background behavior, and maps SDK failures by status with no body material in any exception surface (canary-checked).
+- Production DI registers the executor and broker; startup still fails closed pending Task 7's SQL authority binding.
+- Proof: Model namespace 30/30; full suite 156/156; Release publish clean.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.
