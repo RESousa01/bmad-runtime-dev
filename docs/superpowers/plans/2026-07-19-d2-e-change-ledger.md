@@ -47,6 +47,15 @@
 - Behavior change: an unverifiable consent now yields 403 (Rejected) instead of 503 (Unavailable) — `Opaque_consent_hash_is_not_treated_as_verified` updated accordingly.
 - Proof: `cargo test -p desktop-cloud --all-features --locked` all green (incl. live NCrypt test); clippy `-D warnings` clean; C# 108/108 (Security namespace 22/22); cross-language 104 pass.
 
+## Task 5 evidence (2026-07-20)
+
+- `Policy/AppConfigurationPolicyProvider.cs`: allowlisted-key snapshot loading (`desktop-support:policy:*` only, unknown fields reject), full value validation (policy id shape, version ≥ 1, context limits ≤ 512 KiB/64 items, non-empty regions/deployments, retention pinned to `transient_no_store`), bounded refresh interval, downgrade rejection, and last-known-valid fallback that applies only to *load* failures within its lifetime — validation failures are always hard.
+- `Policy/CanonicalPolicyProjector.cs`: shared `CanonicalProof` canonical-JSON digester (same RFC 8785 + purpose-preimage scheme as Rust `canonical_hash`; purposes `desktop-policy`, `entitlement-lease`, `model-access-receipt`) and policy/lease projection.
+- `Signing/KeyVaultHashSigner.cs`: `IHashSigner` seam + production `CryptographyClient` ES256 signer (raw r||s base64url, versioned key id, vault failures propagate — no unsigned artifacts) + `SigningKeyRing` rotation policy (one active key, explicit verification-only overlap, everything else rejected).
+- `Signing/AzureSignedPolicyService.cs` / `Signing/AzureModelReceiptSigner.cs`: vault-signed policies, leases, receipts; canonical digests recomputed from full field sets; proofs bind digest + key version + issuer (`Authority`) + audience; semantic validation strictly precedes signing (recording-signer tests prove zero sign calls on invalid input; non-`succeeded` results are ineligible for receipts).
+- Production DI: policy source/provider, Key Vault signer, signed-policy service, receipt signer registered in `ProductionComposition`; startup still fails closed pending the Task 6 model broker.
+- Proof: Signing namespace 18/18; full suite 126/126; Release publish clean. (MTP filter form: `-- --filter-namespace …Tests.Signing`.)
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.
