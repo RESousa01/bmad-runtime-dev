@@ -520,8 +520,8 @@
           "rationale": "Retain outcome and status semantics as non-runnable reference evidence."
         },
         {
-          "decision": "defer",
-          "rationale": "Defer headless execution."
+          "decision": "reject",
+          "rationale": "The desktop delivery has no headless mode: script invocation, web verification, subagent reviewer lenses, and artifact-path outputs are categorically excluded; the assumptions/open-questions discipline is already carried by the architecture projection."
         }
       ]
     },
@@ -1362,8 +1362,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 43386,
-      "sha256": "2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6"
+      "byteLength": 43614,
+      "sha256": "6bd30f1608a29493f17ecaababb41e71d74e6b91f3016df8aa3148712d6267f7"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",

@@ -129,7 +129,7 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-023": ["adopt", "adapt", "reject"],
   "method-024": ["adapt", "reject"],
   "method-025": ["adapt", "reject"],
-  "method-026": ["adapt", "defer"],
+  "method-026": ["adapt", "reject"],
   "method-027": ["adapt", "reject"],
   "method-028": ["adapt"],
   "method-029": ["reject"],

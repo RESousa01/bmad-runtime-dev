@@ -460,8 +460,8 @@
           "rationale": "Retain outcome and status semantics as non-runnable reference evidence."
         },
         {
-          "decision": "defer",
-          "rationale": "Defer headless execution."
+          "decision": "reject",
+          "rationale": "The desktop delivery has no headless mode: script invocation, web verification, subagent reviewer lenses, and artifact-path outputs are categorically excluded; the assumptions/open-questions discipline is already carried by the architecture projection."
         }
       ]
     },

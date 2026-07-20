@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326",
+  "semanticLedgerHash": "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6",
-      "byteLength": 43386,
+      "contentHash": "sha256:6bd30f1608a29493f17ecaababb41e71d74e6b91f3016df8aa3148712d6267f7",
+      "byteLength": 43614,
       "contentKind": "provenance_ledger"
     },
     {
@@ -179,10 +179,10 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326",
-      "byteLength": 50338,
+      "contentHash": "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687",
+      "byteLength": 50566,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41"
+  "manifestHash": "sha256:83183060d8c0d9665839493504d518c655023a76daf66d4a496fd74b9287288e"
 }
