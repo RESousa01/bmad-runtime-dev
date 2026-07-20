@@ -30,9 +30,15 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/architect-persona.instructions.md",
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
+  "runtime/method/6.10.0/brainstorming.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
+  "runtime/method/6.10.0/domain-research.instructions.md",
+  "runtime/method/6.10.0/market-research.instructions.md",
   "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/prfaq.instructions.md",
+  "runtime/method/6.10.0/product-brief.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+  "runtime/method/6.10.0/technical-research.instructions.md",
   "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ]);
 
@@ -40,11 +46,17 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-analyst.package.json",
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-brainstorming.package.json",
   "normalized/bmad-dev.package.json",
+  "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
+  "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
+  "normalized/bmad-prfaq.package.json",
+  "normalized/bmad-product-brief.package.json",
   "normalized/bmad-tech-writer.package.json",
+  "normalized/bmad-technical-research.package.json",
   "normalized/bmad-ux-designer.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
@@ -134,6 +146,18 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-027": ["adapt", "reject"],
   "method-028": ["adapt"],
   "method-029": ["reject"],
+  "method-030": ["adopt", "adapt"],
+  "method-031": ["adopt", "adapt"],
+  "method-032": ["adopt", "adapt"],
+  "method-033": ["adopt", "adapt"],
+  "method-034": ["adopt", "adapt"],
+  "method-035": ["adopt", "adapt"],
+  "method-036": ["adopt", "adapt"],
+  "method-037": ["adopt", "adapt"],
+  "method-038": ["adopt", "adapt"],
+  "method-039": ["adopt", "adapt"],
+  "method-040": ["adopt", "adapt"],
+  "method-041": ["adopt", "adapt"],
   "builder-001": ["adopt"],
   "builder-002": ["adopt", "reject"],
   "builder-003": ["adopt", "adapt"],
@@ -184,6 +208,36 @@ const expectedTreatmentDecisionSets = Object.freeze({
 });
 
 const expectedProjectionSourceMemberIds = Object.freeze({
+  "runtime/method/6.10.0/brainstorming.instructions.md": [
+    "method-004",
+    "method-030",
+    "method-031",
+  ],
+  "runtime/method/6.10.0/domain-research.instructions.md": [
+    "method-004",
+    "method-034",
+    "method-035",
+  ],
+  "runtime/method/6.10.0/market-research.instructions.md": [
+    "method-004",
+    "method-032",
+    "method-033",
+  ],
+  "runtime/method/6.10.0/prfaq.instructions.md": [
+    "method-004",
+    "method-040",
+    "method-041",
+  ],
+  "runtime/method/6.10.0/product-brief.instructions.md": [
+    "method-004",
+    "method-038",
+    "method-039",
+  ],
+  "runtime/method/6.10.0/technical-research.instructions.md": [
+    "method-004",
+    "method-036",
+    "method-037",
+  ],
   "runtime/method/6.10.0/bmad-help.instructions.md": [
     "method-001",
     "method-002",
@@ -497,7 +551,7 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 76, "the reviewed source set must be exact and closed");
+  assert.equal(members.size, 88, "the reviewed source set must be exact and closed");
   assert.deepEqual(
     Object.fromEntries(
       ledger.sourceMembers.map((member) => [
@@ -673,7 +727,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 8);
+  assert.equal(method.length, 14);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

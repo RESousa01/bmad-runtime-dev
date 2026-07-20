@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687",
+  "semanticLedgerHash": "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:6bd30f1608a29493f17ecaababb41e71d74e6b91f3016df8aa3148712d6267f7",
-      "byteLength": 43614,
+      "contentHash": "sha256:95d44c161a33e5fc0fd8a6655e851fc13746a90b629d4902be4e1e161afbd7af",
+      "byteLength": 53624,
       "contentKind": "provenance_ledger"
     },
     {
@@ -46,9 +46,21 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-brainstorming.package.json",
+      "contentHash": "sha256:69e331c2d2427f0d04477cb4c042a076e46ef584749ebf2b0f210ae8d2ebdde9",
+      "byteLength": 1955,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-dev.package.json",
       "contentHash": "sha256:79d7bfc30adff3008a005901a986c89cc4505a43ac174a58e017b03d4843787a",
       "byteLength": 1973,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-domain-research.package.json",
+      "contentHash": "sha256:0535e647c31ee82063aae2ca32563a5915e53550da78093cf42144aff0b2942e",
+      "byteLength": 2001,
       "contentKind": "normalized_contract"
     },
     {
@@ -59,8 +71,14 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:2572b4519da146a8991e606edface2d036f804fa62b609a81140eaeed7e1cca2",
-      "byteLength": 38955,
+      "contentHash": "sha256:8d5b1e606dbada59e5de66b6ca9941bc890bcb516aa6914453d82d07659ef7af",
+      "byteLength": 50735,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-market-research.package.json",
+      "contentHash": "sha256:60cdb5dfa48ef7a43817f43ca852ec944b4c5e6d82a361baa3b1deb75f0e11f1",
+      "byteLength": 2001,
       "contentKind": "normalized_contract"
     },
     {
@@ -70,9 +88,27 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-prfaq.package.json",
+      "contentHash": "sha256:0fccd3c59ed5ce880fbe805ce487bd8b5c5fc5e4b1482b28311ea6f0e612880d",
+      "byteLength": 1943,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-product-brief.package.json",
+      "contentHash": "sha256:9dd142bba549ed3426256ea6702d81be3b151b29d60ff7746ee1c989d686b020",
+      "byteLength": 1975,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-tech-writer.package.json",
       "contentHash": "sha256:9bcd495ca5c506fe24489f4686f613efb8eef306f8adcda4b6faaafb68ee65cc",
       "byteLength": 1993,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-technical-research.package.json",
+      "contentHash": "sha256:dd2976ca9dd553d66d49600a9db8bbfa98dfa86fc02781b7d590c8afb9228509",
+      "byteLength": 2013,
       "contentKind": "normalized_contract"
     },
     {
@@ -154,9 +190,27 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/brainstorming.instructions.md",
+      "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
+      "byteLength": 1231,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
       "contentHash": "sha256:cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588",
       "byteLength": 952,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/domain-research.instructions.md",
+      "contentHash": "sha256:537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e",
+      "byteLength": 1113,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/market-research.instructions.md",
+      "contentHash": "sha256:70fc5f6e6abc469564d03eb9ace223f212feca587935faf2fbe49b4bb3d535d7",
+      "byteLength": 1234,
       "contentKind": "managed_instruction"
     },
     {
@@ -166,9 +220,27 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/prfaq.instructions.md",
+      "contentHash": "sha256:4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df",
+      "byteLength": 1147,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/product-brief.instructions.md",
+      "contentHash": "sha256:b0f9d7be576cfd38449f9b2e7d099a547ae88c8510ad81a03d49e190183920cb",
+      "byteLength": 1055,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
       "contentHash": "sha256:46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb",
       "byteLength": 857,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/technical-research.instructions.md",
+      "contentHash": "sha256:e2214bc1fe98b95e074bf36d27f7a47fbe7c448c0320e247999f2fe15c5d734a",
+      "byteLength": 1213,
       "contentKind": "managed_instruction"
     },
     {
@@ -179,10 +251,10 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687",
-      "byteLength": 50566,
+      "contentHash": "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
+      "byteLength": 59993,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:83183060d8c0d9665839493504d518c655023a76daf66d4a496fd74b9287288e"
+  "manifestHash": "sha256:32cbd14801c5db1022142f17170a06abd59a74d4ceb565851e8f81391c949e0d"
 }

@@ -68,6 +68,30 @@ fn sealed_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
             "runtime/method/6.10.0/ux-designer-persona.instructions.md",
             BmadLocationClass::ManagedProjection,
         ),
+        source_entry(
+            "runtime/method/6.10.0/brainstorming.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/domain-research.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/market-research.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/prfaq.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/product-brief.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/technical-research.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
     ];
     (
         BmadSourceSnapshot::new(entries).expect("sealed source snapshot"),
@@ -158,7 +182,7 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     );
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:f018366d63059a987d55d40fc6187b873c3dc943dcfb7ceb54fc50eb557366a3")
+        digest("sha256:6d666649b70d217c783084e9da65f5e662fbcc89100569d7765595baa2ae928b")
     );
 
     assert_eq!(help.module_code(), "core");

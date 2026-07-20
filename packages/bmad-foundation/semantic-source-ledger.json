@@ -566,6 +566,198 @@
       ]
     },
     {
+      "id": "method-030",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/SKILL.md",
+      "sha256": "399ddc752fc786b501ba07fb4b4b038b3d2bb076d36496b6384ef85cf922dd59",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-031",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/customize.toml",
+      "sha256": "21fcbc60c78db99ca0424da192ba0942dce2189f350f77838e4d3ecd501edd1c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-032",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/SKILL.md",
+      "sha256": "13f2c2148061dc6688c4c9d81b5e5b98fbfe4d7294eba0daa0cac5b17f7a0593",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-033",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/customize.toml",
+      "sha256": "f47af9158893dd3f7ab81ac03cb07d8c76342eead61ec7c9a8a463066b7db9af",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-034",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/SKILL.md",
+      "sha256": "2308f7e21f78d7f2ed43d560dbcdbfa2af236d6a81988495f28baf0e81a03206",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-035",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/customize.toml",
+      "sha256": "462ef14dc1e1f6d145fdfe25e315168fd1fa278ea5f87fe0fa86689234daec2f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-036",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/SKILL.md",
+      "sha256": "290c5aec88886a623f620e59e43090d11791b0fade357bae2b9de9ae510d3159",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-037",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/customize.toml",
+      "sha256": "7f567fddb04674f817398addbc06e6d1620883d89dcc7ac643c5a56eef5ac337",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-038",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
+      "sha256": "0d569d109cd61a8056374d1f3f3980188407983772544ab81f4ff6b18e798508",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-039",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/customize.toml",
+      "sha256": "cdd7b417de5b280ab5bd3af65f69654b05980b5efb48077563827c16391f42d6",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-040",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+      "sha256": "353da1cc8837e880c7f41b636a1bd38086c56a91d59798b13f5d6168f0021de4",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-041",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/customize.toml",
+      "sha256": "8994f925bab65bd310e5ab38781286b6137f3e0c9e89f3ab8a2f480eb05e0de5",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
       "id": "builder-001",
       "sourceId": "builder",
       "member": "skills/module.yaml",
@@ -1362,8 +1554,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 43614,
-      "sha256": "6bd30f1608a29493f17ecaababb41e71d74e6b91f3016df8aa3148712d6267f7"
+      "byteLength": 53624,
+      "sha256": "95d44c161a33e5fc0fd8a6655e851fc13746a90b629d4902be4e1e161afbd7af"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -1421,9 +1613,24 @@
       "sha256": "d3d3c91d516d32546c446503d88957f6e499c504370b6749b5936f786643df66"
     },
     {
+      "path": "runtime/method/6.10.0/brainstorming.instructions.md",
+      "byteLength": 1231,
+      "sha256": "07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
       "byteLength": 952,
       "sha256": "cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588"
+    },
+    {
+      "path": "runtime/method/6.10.0/domain-research.instructions.md",
+      "byteLength": 1113,
+      "sha256": "537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e"
+    },
+    {
+      "path": "runtime/method/6.10.0/market-research.instructions.md",
+      "byteLength": 1234,
+      "sha256": "70fc5f6e6abc469564d03eb9ace223f212feca587935faf2fbe49b4bb3d535d7"
     },
     {
       "path": "runtime/method/6.10.0/pm-persona.instructions.md",
@@ -1431,9 +1638,24 @@
       "sha256": "d0721b37f735afdbc439073d962c83fb66edb3f92498ca6786fd8393b51dec07"
     },
     {
+      "path": "runtime/method/6.10.0/prfaq.instructions.md",
+      "byteLength": 1147,
+      "sha256": "4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df"
+    },
+    {
+      "path": "runtime/method/6.10.0/product-brief.instructions.md",
+      "byteLength": 1055,
+      "sha256": "b0f9d7be576cfd38449f9b2e7d099a547ae88c8510ad81a03d49e190183920cb"
+    },
+    {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
       "byteLength": 857,
       "sha256": "46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb"
+    },
+    {
+      "path": "runtime/method/6.10.0/technical-research.instructions.md",
+      "byteLength": 1213,
+      "sha256": "e2214bc1fe98b95e074bf36d27f7a47fbe7c448c0320e247999f2fe15c5d734a"
     },
     {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",

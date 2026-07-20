@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_C675FB93DD1C6C6C46B1F0AD170303AAEAA3D4928CCFD5846F80D5F4FDCC234E",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-domain-research",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_537BA4190B88C50B548ADAE2ABD3B744ED85851A83DB61094B913A6622EDB59E",
+    "sourceIdentityHash": "sha256:c675fb93dd1c6c6c46b1f0ad170303aaeaa3d4928ccfd5846f80d5f4fdcc234e",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/research/bmad-domain-research/SKILL.md",
+      "contentHash": "sha256:2308f7e21f78d7f2ed43d560dbcdbfa2af236d6a81988495f28baf0e81a03206",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/research/bmad-domain-research/customize.toml",
+        "contentHash": "sha256:462ef14dc1e1f6d145fdfe25e315168fd1fa278ea5f87fe0fa86689234daec2f",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/domain-research.instructions.md",
+      "contentHash": "sha256:537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:9e4fdc28395afc111ca8fbd122c2fc9c1861877486674ec999e7e3b8c09ca8c9"
+  },
+  "projectionEnvelopeHash": "sha256:c22d24b1281b2580eb506d96e61b2f3d9538bbf4bee0be22a249278cf70a8b92"
+}

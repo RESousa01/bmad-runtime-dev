@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const lockedSemanticLedger = Object.freeze({
-  byteLength: 50566,
-  sha256: "8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687",
+  byteLength: 59993,
+  sha256: "c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
 });
 const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-analyze.instructions.md",
@@ -20,9 +20,15 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/architect-persona.instructions.md",
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
+  "runtime/method/6.10.0/brainstorming.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
+  "runtime/method/6.10.0/domain-research.instructions.md",
+  "runtime/method/6.10.0/market-research.instructions.md",
   "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/prfaq.instructions.md",
+  "runtime/method/6.10.0/product-brief.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+  "runtime/method/6.10.0/technical-research.instructions.md",
   "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ]);
 const methodRuntimePaths = Object.freeze(
@@ -32,11 +38,17 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-analyst.package.json",
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-brainstorming.package.json",
   "normalized/bmad-dev.package.json",
+  "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
+  "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
+  "normalized/bmad-prfaq.package.json",
+  "normalized/bmad-product-brief.package.json",
   "normalized/bmad-tech-writer.package.json",
+  "normalized/bmad-technical-research.package.json",
   "normalized/bmad-ux-designer.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
@@ -440,6 +452,12 @@ export function classifyProjectionFromSourceIdentity(sourceIdentity) {
       "bmad-agent-tech-writer",
       "bmad-agent-ux-designer",
       "bmad-architecture",
+      "bmad-brainstorming",
+      "bmad-domain-research",
+      "bmad-market-research",
+      "bmad-prfaq",
+      "bmad-product-brief",
+      "bmad-technical-research",
     ].includes(sourceIdentity.skill)
   ) {
     return "method";
@@ -892,8 +910,8 @@ function verifySourceFacts(semantic) {
     fail("foundation_license_decision_missing", "licenses", "exact license artifacts are required");
   }
 
-  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 76) {
-    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 76 reviewed members are required");
+  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 88) {
+    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 88 reviewed members are required");
   }
   const ids = new Set();
   const identities = new Set();
@@ -913,7 +931,7 @@ function verifySourceFacts(semantic) {
     validateTreatments(member.treatments, `sourceMembers.${member.id}.treatments`);
   }
   const expectedIds = [
-    ...Array.from({ length: 29 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
+    ...Array.from({ length: 41 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
     ...Array.from({ length: 47 }, (_, index) => `builder-${String(index + 1).padStart(3, "0")}`),
   ];
   if (!sameValues([...ids], expectedIds)) {
@@ -1075,6 +1093,66 @@ function verifyAdoption(adoption, semanticState) {
         "method-018", "method-019", "method-022", "method-023", "method-024",
         "method-025", "method-026", "method-027", "method-028", "method-029",
       ],
+    }],
+    ["runtime/method/6.10.0/brainstorming.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-brainstorming",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-030", "method-031"],
+    }],
+    ["runtime/method/6.10.0/domain-research.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-domain-research",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-034", "method-035"],
+    }],
+    ["runtime/method/6.10.0/market-research.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-market-research",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-032", "method-033"],
+    }],
+    ["runtime/method/6.10.0/prfaq.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-prfaq",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-040", "method-041"],
+    }],
+    ["runtime/method/6.10.0/product-brief.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-product-brief",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-038", "method-039"],
+    }],
+    ["runtime/method/6.10.0/technical-research.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-technical-research",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-036", "method-037"],
     }],
     ["runtime/builder/2.1.0/agent-create-rebuild.instructions.md", {
       classification: "builder_agent",
@@ -1388,12 +1466,14 @@ async function verifyNormalizedArtifacts(resources) {
 
   const helpGraph = parseJson(
     await readRegularBytes("normalized/bmad-help-action-graph.json"),
-    "normalized/bmad-help-action-graph.json",
+    "normalized/bmad-domain-research.package.json",
+  "normalized/bmad-help-action-graph.json",
   );
   exactKeys(
     helpGraph,
     ["schemaVersion", "packageVersionId", "sources", "graphHash"],
-    "normalized/bmad-help-action-graph.json",
+    "normalized/bmad-domain-research.package.json",
+  "normalized/bmad-help-action-graph.json",
   );
   const expectedHelpSources = [
     ["bmm", "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf", "bmad-architecture"],
@@ -1484,6 +1564,7 @@ async function verifyNormalizedArtifacts(resources) {
     parseJson(
       await readRegularBytes("normalized/bmad-architecture.package.json"),
       "normalized/bmad-architecture.package.json",
+  "normalized/bmad-brainstorming.package.json",
     ),
     resources,
     "runtime/method/6.10.0/architecture-create.instructions.md",

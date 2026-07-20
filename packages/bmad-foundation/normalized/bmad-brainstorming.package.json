@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_E276233905D656A66BFF9DC6AB1D978F48736B71C8628535A51BE608EC438878",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-brainstorming",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_07CF8FBBE88E81661FAD69985F9C69F32071F037081D65BEF7B2FF0EC129CE9F",
+    "sourceIdentityHash": "sha256:e276233905d656a66bff9dc6ab1d978f48736b71c8628535a51be608ec438878",
+    "sourceEntrypoint": {
+      "path": "src/core-skills/bmad-brainstorming/SKILL.md",
+      "contentHash": "sha256:399ddc752fc786b501ba07fb4b4b038b3d2bb076d36496b6384ef85cf922dd59",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/core-skills/bmad-brainstorming/customize.toml",
+        "contentHash": "sha256:21fcbc60c78db99ca0424da192ba0942dce2189f350f77838e4d3ecd501edd1c",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/brainstorming.instructions.md",
+      "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:dddf8ee8cf3916c245239f4304ad21f6ef3c296a172821336f266721ea1a7a69"
+  },
+  "projectionEnvelopeHash": "sha256:3c22bac8929fd10e3eb5a7eb151c77abaea7453b407da45d8f2fa8660963c3ca"
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_0AD8D5B1CF3A4369CB11D2141A89240D23EDDD5EF050C144C355F1C2A56CB043",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-technical-research",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_E2214BC1FE98B95E074BF36D27F7A47FBE7C448C0320E247999F2FE15C5D734A",
+    "sourceIdentityHash": "sha256:0ad8d5b1cf3a4369cb11d2141a89240d23eddd5ef050c144c355f1c2a56cb043",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/research/bmad-technical-research/SKILL.md",
+      "contentHash": "sha256:290c5aec88886a623f620e59e43090d11791b0fade357bae2b9de9ae510d3159",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/research/bmad-technical-research/customize.toml",
+        "contentHash": "sha256:7f567fddb04674f817398addbc06e6d1620883d89dcc7ac643c5a56eef5ac337",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/technical-research.instructions.md",
+      "contentHash": "sha256:e2214bc1fe98b95e074bf36d27f7a47fbe7c448c0320e247999f2fe15c5d734a",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:92db9d98401ef4f6f24f3044a8dd676ab883241ee806af99d61503e5f41e2efb"
+  },
+  "projectionEnvelopeHash": "sha256:00989a4d2fc40f7105fa1cd62ea2fd2ff613e4e11ed1a6c345eb33d4ef028baf"
+}

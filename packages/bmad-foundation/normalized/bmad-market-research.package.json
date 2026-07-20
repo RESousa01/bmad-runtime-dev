@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_1CA9C0ABC8D34F5D2382FEE2BB95E58DB8E5E7A3EE6AC85A996EB4326AF1E5F6",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-market-research",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_70FC5F6E6ABC469564D03EB9ACE223F212FECA587935FAF2FBE49B4BB3D535D7",
+    "sourceIdentityHash": "sha256:1ca9c0abc8d34f5d2382fee2bb95e58db8e5e7a3ee6ac85a996eb4326af1e5f6",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/research/bmad-market-research/SKILL.md",
+      "contentHash": "sha256:13f2c2148061dc6688c4c9d81b5e5b98fbfe4d7294eba0daa0cac5b17f7a0593",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/research/bmad-market-research/customize.toml",
+        "contentHash": "sha256:f47af9158893dd3f7ab81ac03cb07d8c76342eead61ec7c9a8a463066b7db9af",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/market-research.instructions.md",
+      "contentHash": "sha256:70fc5f6e6abc469564d03eb9ace223f212feca587935faf2fbe49b4bb3d535d7",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:2c8ec63feca0d091a63af88f5f018cc4fa00e62c90f108b0cbd2f4af1d5fd63e"
+  },
+  "projectionEnvelopeHash": "sha256:d6e90d1adb08ead82318c90bcd98c1ce47e7b2dc8f0d6a18c22cc0a826264acc"
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_5838745C0E812B0FC7DD04B1201711C22D8D9865B585414EFE6B3C6D625CB35D",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-prfaq",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_4A2A1FE8CDB0FFA41157816FD3C3969477578AB2758D77780B100867E77A87DF",
+    "sourceIdentityHash": "sha256:5838745c0e812b0fc7dd04b1201711c22d8d9865b585414efe6b3c6d625cb35d",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+      "contentHash": "sha256:353da1cc8837e880c7f41b636a1bd38086c56a91d59798b13f5d6168f0021de4",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-prfaq/customize.toml",
+        "contentHash": "sha256:8994f925bab65bd310e5ab38781286b6137f3e0c9e89f3ab8a2f480eb05e0de5",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/prfaq.instructions.md",
+      "contentHash": "sha256:4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:d9d2960e17d5e82b48e8adc8667c177631f1e911ce1a1ca36626e8bedc57a66b"
+  },
+  "projectionEnvelopeHash": "sha256:e52e5c943f36253b1ebf0eef883c958fdb820b7d07865868dc6b5e45dc308f40"
+}
