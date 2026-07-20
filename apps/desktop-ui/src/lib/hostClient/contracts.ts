@@ -51,6 +51,11 @@ export const desktopHostCommands = [
   bmadModelCommands.cancel,
   bmadModelCommands.submit,
   "bmad.help.latest",
+  "bmad.capability.prepare",
+  "bmad.capability.approve",
+  "bmad.capability.cancel",
+  "bmad.capability.submit",
+  "bmad.capability.latest",
   "run.create",
   "context.preview",
   "workspace.enable_edits",
@@ -527,6 +532,11 @@ export type RendererDispatchCommand =
   | "bmad.help.cancel"
   | "bmad.help.submit"
   | "bmad.help.latest"
+  | "bmad.capability.prepare"
+  | "bmad.capability.approve"
+  | "bmad.capability.cancel"
+  | "bmad.capability.submit"
+  | "bmad.capability.latest"
   | "context.preview"
   | "run.create"
   | "workspace.enable_edits"

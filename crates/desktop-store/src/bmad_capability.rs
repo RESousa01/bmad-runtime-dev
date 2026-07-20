@@ -131,6 +131,39 @@ impl LocalStore {
         }
     }
 
+    /// Returns the newest capability run for one workspace and capability,
+    /// with its decrypted result when recorded.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the database cannot be read or the
+    /// result payload fails authenticated decryption.
+    pub fn latest_bmad_capability_run(
+        &self,
+        workspace_id: &ContractId,
+        capability_id: &str,
+    ) -> Result<Option<BmadCapabilityRunRecord>, StoreError> {
+        let run_id: Option<String> = {
+            let connection = self.connection.lock();
+            connection
+                .query_row(
+                    "SELECT run_id FROM bmad_capability_runs
+                     WHERE workspace_id = ?1 AND capability_id = ?2
+                     ORDER BY created_at_ms DESC, run_id DESC LIMIT 1",
+                    params![workspace_id.as_str(), capability_id],
+                    |row| row.get(0),
+                )
+                .optional()?
+        };
+        match run_id {
+            Some(run_id) => {
+                let run_id = ContractId::new(run_id).map_err(|_| StoreError::Inconsistent)?;
+                self.bmad_capability_run(&run_id)
+            }
+            None => Ok(None),
+        }
+    }
+
     /// Loads one capability run and, when present, its decrypted result.
     ///
     /// # Errors

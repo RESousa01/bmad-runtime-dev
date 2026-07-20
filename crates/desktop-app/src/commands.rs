@@ -49,7 +49,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 33] = [
+const READY_COMMANDS: [&str; 38] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -68,6 +68,11 @@ const READY_COMMANDS: [&str; 33] = [
     "bmad.help.cancel",
     "bmad.help.submit",
     "bmad.help.latest",
+    "bmad.capability.prepare",
+    "bmad.capability.approve",
+    "bmad.capability.cancel",
+    "bmad.capability.submit",
+    "bmad.capability.latest",
     "run.create",
     "context.preview",
     "workspace.enable_edits",
@@ -416,19 +421,69 @@ fn execute_command(
         LocalCommand::PickWorkspaceFiles { workspace_id } => {
             pick_workspace_files(app, state, workspace_id)
         }
-        // The bmad.capability.* verticals stay outside the reviewed READY
-        // catalog until their host composition lands (readiness Task 7);
-        // the envelope allowlist makes these arms unreachable today, and
-        // they fail closed if that ever regresses.
-        LocalCommand::PrepareBmadCapabilityRun { .. }
-        | LocalCommand::ApproveBmadCapabilityRun { .. }
-        | LocalCommand::CancelBmadCapabilityRun { .. }
-        | LocalCommand::SubmitBmadCapabilityRun { .. }
-        | LocalCommand::LatestBmadCapabilityRun { .. } => Err(LocalError::new(
-            LocalErrorCode::TemporarilyUnavailable,
-            "Capability runs are not yet composed in this build.",
-            false,
-        )),
+        LocalCommand::PrepareBmadCapabilityRun {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+            context_paths,
+        } => prepare_bmad_capability_run(
+            state,
+            foundation,
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            &capability_id,
+            context_paths,
+            accepted_at,
+        ),
+        LocalCommand::ApproveBmadCapabilityRun {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+            manifest_hash,
+        } => approve_bmad_capability_run(
+            state,
+            workspace_id,
+            workspace_grant_epoch,
+            &capability_id,
+            manifest_hash,
+            accepted_at,
+        ),
+        LocalCommand::CancelBmadCapabilityRun {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+            manifest_hash,
+            decision_id,
+        } => cancel_bmad_capability_run(
+            state,
+            workspace_id,
+            workspace_grant_epoch,
+            &capability_id,
+            manifest_hash,
+            decision_id,
+            accepted_at,
+        ),
+        LocalCommand::SubmitBmadCapabilityRun {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+            manifest_hash,
+            decision_id,
+        } => submit_bmad_capability_run(
+            state,
+            workspace_id,
+            workspace_grant_epoch,
+            &capability_id,
+            manifest_hash,
+            decision_id,
+            accepted_at,
+        ),
+        LocalCommand::LatestBmadCapabilityRun {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+        } => latest_bmad_capability_run(state, workspace_id, workspace_grant_epoch, &capability_id),
         LocalCommand::OffboardingInspect => {
             let _authority = state.ready_authority()?;
             offboarding_inspect(state)
@@ -981,6 +1036,310 @@ fn bmad_library_snapshot(
     )
     .map(HostCommandData::BmadLibrarySnapshot)
     .map_err(map_bmad_projection_error)
+}
+
+fn map_capability_error(
+    error: crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError,
+) -> LocalError {
+    use crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError as E;
+    match error {
+        E::Unauthorized => LocalError::new(
+            LocalErrorCode::Unauthorized,
+            "No capability run is active for this workspace.",
+            false,
+        ),
+        E::Conflict => LocalError::new(
+            LocalErrorCode::Conflict,
+            "Another capability run is already in review.",
+            true,
+        ),
+        E::CapabilityBindingMismatch => LocalError::new(
+            LocalErrorCode::Unauthorized,
+            "The request does not match the reviewed capability.",
+            false,
+        ),
+        E::ConsentBindingMismatch => LocalError::new(
+            LocalErrorCode::Unauthorized,
+            "The consent decision does not match the reviewed context.",
+            false,
+        ),
+        E::ConsentExpired => LocalError::new(
+            LocalErrorCode::Expired,
+            "The reviewed consent expired before it was used.",
+            true,
+        ),
+        E::ConsentAlreadyConsumed => LocalError::new(
+            LocalErrorCode::Conflict,
+            "The reviewed consent was already used.",
+            false,
+        ),
+        E::OutputRejected | E::ResultArchetypeMismatch => LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The model output failed capability verification.",
+            false,
+        ),
+        E::Transport => LocalError::new(
+            LocalErrorCode::TemporarilyUnavailable,
+            "The model destination is unavailable in this composition.",
+            true,
+        ),
+        E::Store | E::Integrity => LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The capability run could not be durably recorded.",
+            false,
+        ),
+    }
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the dispatch surface passes each validated envelope field explicitly"
+)]
+fn prepare_bmad_capability_run(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+    created_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let binding =
+        crate::bmad_capability_host::capability_binding(capability_id).ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::NotFound,
+                "The capability is not in the reviewed closure ledger.",
+                false,
+            )
+        })?;
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let workspace = workspace_authority.projection();
+
+    let instruction_bytes = foundation
+        .resource_bytes(binding.projection_path)
+        .ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The sealed capability instruction projection is missing.",
+                false,
+            )
+        })?;
+
+    let mut candidates = Vec::with_capacity(context_paths.len());
+    let mut total_bytes = 0_u64;
+    for (index, relative_path) in context_paths.into_iter().enumerate() {
+        let preview = state
+            .workspace
+            .read_text(
+                workspace_id.as_str(),
+                relative_path.as_str(),
+                MAX_CONTEXT_FILE_BYTES,
+            )
+            .map_err(|error| map_workspace_error(&error))?;
+        if preview.truncated {
+            return Err(resource_limit_error(
+                "A selected context file exceeds the per-file limit.",
+            ));
+        }
+        total_bytes =
+            total_bytes.saturating_add(u64::try_from(preview.content.len()).unwrap_or(u64::MAX));
+        if total_bytes > MAX_CONTEXT_BYTES {
+            return Err(resource_limit_error(
+                "The selected context exceeds the per-request byte limit.",
+            ));
+        }
+        let relative_label = desktop_runtime::RelativeWorkspacePath::new(&preview.relative_path)
+            .map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::IntegrityFailure,
+                    "A governed read returned an invalid relative path.",
+                    false,
+                )
+            })?;
+        candidates.push(
+            crate::bmad_capability_host::context_candidate(relative_label, preview.content, index)
+                .map_err(map_capability_error)?,
+        );
+    }
+
+    let project_id = ContractId::new(workspace.project_id.clone()).map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The workspace project identity is invalid.",
+            false,
+        )
+    })?;
+    let prepare_input = crate::bmad_capability_host::assemble_capability_prepare(
+        crate::bmad_capability_host::AssembleCapabilityPrepareInput {
+            binding,
+            instruction_bytes: &instruction_bytes,
+            renderer_session_id: renderer_session.session_id(),
+            installation_id: state.installation_id(),
+            project_id: &project_id,
+            workspace_id,
+            workspace_grant_epoch,
+            workspace_context_read_epoch: workspace.context_read_epoch,
+            candidates,
+            created_at,
+        },
+    )
+    .map_err(map_capability_error)?;
+    let review = state
+        .bmad_capabilities
+        .lock()
+        .prepare(prepare_input)
+        .map_err(map_capability_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::CapabilityReview(review))
+}
+
+fn approve_bmad_capability_run(
+    state: &HostState,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    manifest_hash: Sha256Digest,
+    approved_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let input =
+        crate::bmad_capability_host::approve_input(capability_id, manifest_hash, approved_at)
+            .map_err(map_capability_error)?;
+    let approved = state
+        .bmad_capabilities
+        .lock()
+        .approve(&input)
+        .map_err(map_capability_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::CapabilityApproved(approved))
+}
+
+fn cancel_bmad_capability_run(
+    state: &HostState,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    cancelled_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let input = crate::bmad_capability_host::cancel_input(
+        capability_id,
+        manifest_hash,
+        decision_id,
+        cancelled_at,
+    )
+    .map_err(map_capability_error)?;
+    state
+        .bmad_capabilities
+        .lock()
+        .cancel(&input)
+        .map_err(map_capability_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::CapabilityCancelled(
+        crate::wire::CapabilityCancelledProjection {
+            capability_id: capability_id.to_owned(),
+            manifest_hash,
+            cancelled: true,
+        },
+    ))
+}
+
+fn submit_bmad_capability_run(
+    state: &HostState,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    submitted_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let store = state.local_store(authority.authority())?;
+    let input = crate::bmad_capability_host::submit_input(
+        capability_id,
+        manifest_hash,
+        decision_id,
+        submitted_at,
+    )
+    .map_err(map_capability_error)?;
+    let transport = crate::bmad_capability_host::active_capability_transport();
+    let completed = state
+        .bmad_capabilities
+        .lock()
+        .submit(
+            &input,
+            transport.as_ref(),
+            &crate::bmad_capability_host::WireCapabilityOutputVerifier,
+            store,
+        )
+        .map_err(map_capability_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::CapabilityCompleted(completed))
+}
+
+fn latest_bmad_capability_run(
+    state: &HostState,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let store = state.local_store(authority.authority())?;
+    let record = store
+        .latest_bmad_capability_run(&workspace_id, capability_id)
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The capability run history could not be read.",
+                false,
+            )
+        })?;
+    drop(workspace_authority);
+    drop(authority);
+    let projection = match record {
+        Some(record) => crate::wire::CapabilityRunLatestProjection {
+            capability_id: capability_id.to_owned(),
+            found: true,
+            run_id: Some(record.run_id),
+            result_kind: record.result_kind,
+            result_json: record.result_json,
+        },
+        None => crate::wire::CapabilityRunLatestProjection {
+            capability_id: capability_id.to_owned(),
+            found: false,
+            run_id: None,
+            result_kind: None,
+            result_json: None,
+        },
+    };
+    Ok(HostCommandData::CapabilityRunLatest(projection))
 }
 
 fn offboarding_inspect(state: &HostState) -> Result<HostCommandData, LocalError> {
@@ -2824,7 +3183,7 @@ mod tests {
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 33);
+        assert_eq!(ready.len(), 38);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]

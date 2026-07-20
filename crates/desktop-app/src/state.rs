@@ -108,6 +108,8 @@ pub(crate) struct HostState {
     model_auth_epoch: AtomicU64,
     events: Mutex<VecDeque<ProjectionEvent>>,
     pub(crate) bmad_model: Mutex<BmadHelpCoordinator>,
+    pub(crate) bmad_capabilities:
+        Mutex<crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator>,
 }
 
 /// Proof that the local authority remained in Ready mode while a D1 operation
@@ -213,6 +215,9 @@ impl HostState {
             model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
+            bmad_capabilities: Mutex::new(
+                crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator::new(),
+            ),
         })
     }
 
@@ -237,6 +242,9 @@ impl HostState {
             model_auth_epoch: AtomicU64::new(1),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
+            bmad_capabilities: Mutex::new(
+                crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator::new(),
+            ),
         }
     }
 
@@ -259,6 +267,7 @@ impl HostState {
     pub fn sign_out_model(&self) -> Result<u64, LocalError> {
         let mut bmad_model = self.bmad_model.lock();
         bmad_model.invalidate(now());
+        self.bmad_capabilities.lock().invalidate();
         let current = self.model_auth_epoch.load(Ordering::SeqCst);
         if current >= MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH {
             return Err(recovery_error());
@@ -465,6 +474,7 @@ impl HostState {
         // this order prevents recovery from forming the inverse wait cycle.
         let mut bmad_model = self.bmad_model.lock();
         bmad_model.invalidate(now());
+        self.bmad_capabilities.lock().invalidate();
         self.invalidate_pending_recoveries();
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {

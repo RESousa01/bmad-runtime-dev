@@ -298,7 +298,7 @@ fn proposal_key(action: &BmadHelpAction) -> ProposalCapabilityKey<'_> {
     }
 }
 
-pub(super) fn derived_contract_id(
+pub(crate) fn derived_contract_id(
     prefix: &str,
     digest: Sha256Digest,
 ) -> Result<ContractId, BmadKernelError> {

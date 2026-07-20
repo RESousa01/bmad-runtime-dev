@@ -169,6 +169,7 @@ pub enum BmadFoundationError {
 #[derive(Debug)]
 pub struct BmadLoadedFoundation {
     method_package: BmadLoadedMethodPackage,
+    resources: FoundationResources,
     catalog: BmadCatalog,
     roster: BmadAgentRoster,
     manifest_hash: Sha256Digest,
@@ -291,6 +292,13 @@ impl BmadLoadedFoundation {
     #[must_use]
     pub fn personas(&self) -> &[BmadSealedPersonaProjection] {
         &self.personas
+    }
+
+    /// The verified bytes of one manifest-bound runtime resource, used by
+    /// the capability host to bind sealed instruction projections.
+    #[must_use]
+    pub fn resource_bytes(&self, relative_path: &str) -> Option<Arc<[u8]>> {
+        self.resources.get(relative_path).cloned()
     }
 
     /// The sealed persona projection for one roster agent code.
@@ -416,6 +424,7 @@ pub fn load_bmad_foundation(
 
     Ok(BmadLoadedFoundation {
         method_package,
+        resources,
         catalog,
         roster,
         manifest_hash: manifest.manifest_hash,

@@ -187,6 +187,11 @@ fn is_known_command(command: &str) -> bool {
             | "bmad.help.cancel"
             | "bmad.help.submit"
             | "bmad.help.latest"
+            | "bmad.capability.prepare"
+            | "bmad.capability.approve"
+            | "bmad.capability.cancel"
+            | "bmad.capability.submit"
+            | "bmad.capability.latest"
             | "run.create"
             | "context.preview"
             | "workspace.enable_edits"
@@ -1289,8 +1294,7 @@ mod tests {
     }
 
     #[test]
-    fn capability_payloads_stay_closed_bounded_and_uncataloged(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_payloads_stay_closed_and_bounded() -> Result<(), Box<dyn std::error::Error>> {
         let manifest_hash = format!("sha256:{}", "a".repeat(64));
         // Unknown fields fail closed.
         let extra = serde_json::json!({
@@ -1323,34 +1327,37 @@ mod tests {
             "contextPaths": [],
         });
         assert!(super::parse_bmad_capability_prepare(empty).is_err());
-        // Until the host composition lands, the reviewed envelope catalog
-        // rejects every capability command outright.
-        for command in [
-            "bmad.capability.prepare",
-            "bmad.capability.approve",
-            "bmad.capability.cancel",
-            "bmad.capability.submit",
-            "bmad.capability.latest",
-        ] {
-            let mut admitted = context()?;
-            admitted.allowed_commands.push(command.to_owned());
-            let envelope = format!(
-                r#"{{
-                  "schemaVersion":"desktop-ipc-command.v1",
-                  "requestId":"req_capability",
-                  "command":"{command}",
-                  "windowLabel":"main",
-                  "rendererSessionId":"rs_test",
-                  "installationId":"install_test",
-                  "issuedAt":10000,
-                  "payload":{{}}
-                }}"#
-            );
-            assert!(matches!(
-                CommandEnvelopeValidator::parse(envelope.as_bytes(), &admitted),
-                Err(IpcValidationError::UnknownCommand)
-            ));
-        }
+        // The full envelope admits a reviewed capability command once the
+        // validation context allows it, and still rejects empty payloads.
+        let mut admitted = context()?;
+        admitted
+            .allowed_commands
+            .push("bmad.capability.latest".to_owned());
+        let envelope = r#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_capability",
+          "command":"bmad.capability.latest",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"workspaceId":"workspace_01J00000000000000000000000","workspaceGrantEpoch":1,"capabilityId":"bmm:bmad-product-brief"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(envelope.as_bytes(), &admitted)?.command(),
+            LocalCommand::LatestBmadCapabilityRun { .. }
+        ));
+        let empty = r#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_capability",
+          "command":"bmad.capability.latest",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{}
+        }"#;
+        assert!(CommandEnvelopeValidator::parse(empty.as_bytes(), &admitted).is_err());
         Ok(())
     }
 

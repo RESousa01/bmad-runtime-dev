@@ -97,6 +97,27 @@ pub enum HostDispatchOutcome {
     },
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CapabilityCancelledProjection {
+    pub capability_id: String,
+    pub manifest_hash: desktop_runtime::Sha256Digest,
+    pub cancelled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CapabilityRunLatestProjection {
+    pub capability_id: String,
+    pub found: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result_kind: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result_json: Option<String>,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
 pub enum HostCommandData {
@@ -111,6 +132,11 @@ pub enum HostCommandData {
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
     BmadPersonaPerspective(BmadPersonaPerspectiveProjection),
+    CapabilityReview(crate::bmad_model::capability_coordinator::CapabilityReviewProjection),
+    CapabilityApproved(crate::bmad_model::capability_coordinator::CapabilityApprovedProjection),
+    CapabilityCancelled(CapabilityCancelledProjection),
+    CapabilityCompleted(crate::bmad_model::capability_coordinator::CapabilityCompletedProjection),
+    CapabilityRunLatest(CapabilityRunLatestProjection),
     RetentionManifest(desktop_ipc::RetentionManifestProjection),
     OffboardingErased(desktop_ipc::OffboardingErasedProjection),
     ModelAuthStatus(ModelAuthStatusProjection),
