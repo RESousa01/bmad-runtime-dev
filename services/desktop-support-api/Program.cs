@@ -67,6 +67,15 @@ builder.Services.AddRateLimiter(rateLimiter =>
 });
 
 builder.Services.AddSingleton(options);
+builder.Services.AddSingleton(provider =>
+    new Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinator(
+        provider.GetRequiredService<IDeviceRegistry>(),
+        provider.GetRequiredService<IModelAccessBroker>(),
+        provider.GetRequiredService<IContextConsentVerifier>(),
+        provider.GetRequiredService<IContextConsentConsumptionStore>(),
+        provider.GetRequiredService<IModelCallIdempotencyStore>(),
+        options,
+        TimeProvider.System));
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IDeviceRegistry, MemoryDeviceRegistry>();
@@ -286,163 +295,18 @@ desktop.MapGet("/policy/current", async (
 desktop.MapPost("/model-access/calls", async (
         ModelAccessRequest request,
         HttpContext context,
-        IDeviceRegistry registry,
-        IModelAccessBroker broker,
-        IContextConsentVerifier consentVerifier,
-        IContextConsentConsumptionStore consentConsumptionStore,
-        IModelCallIdempotencyStore idempotency,
-        SupportPlaneOptions configuration,
+        Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinator coordinator,
         CancellationToken cancellationToken) =>
     {
-        string? key = RequestGuards.IdempotencyKey(context.Request);
-        if (key is null)
-        {
-            return Results.BadRequest(RequestGuards.SafeProblem("idempotency_key_invalid"));
-        }
-        if (!RequestGuards.ValidateModelRequest(
-            request,
-            out string errorCode,
-            out string recomputedManifestHash))
-        {
-            return Results.BadRequest(RequestGuards.SafeProblem(errorCode));
-        }
-        string subject = ScopeAuthorization.SubjectPartition(context.User);
-        ActiveDeviceRegistration? device = await registry.FindActiveAsync(
-            subject,
-            request.RegistrationId,
-            cancellationToken);
-        if (device is null)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "device_registration_unavailable",
-                    StatusCodes.Status403Forbidden),
-                statusCode: StatusCodes.Status403Forbidden);
-        }
-        using CancellationTokenSource operationCancellation =
-            CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                device.RevocationToken);
-        operationCancellation.CancelAfter(
-            TimeSpan.FromSeconds(configuration.ConnectedOperationTimeoutSeconds));
-        try
-        {
-            ContextConsentVerification consent = await CancellableOperation.WaitAsync(
-                consentVerifier.VerifyAsync(
-                    new ContextConsentVerificationRequest(
-                        subject,
-                        device.Registration,
-                        request,
-                        recomputedManifestHash),
-                    operationCancellation.Token).AsTask(),
-                operationCancellation.Token);
-            if (consent == ContextConsentVerification.Unavailable)
-            {
-                return Results.Json(
-                    RequestGuards.SafeProblem(
-                        "consent_binding_unavailable",
-                        StatusCodes.Status503ServiceUnavailable),
-                    statusCode: StatusCodes.Status503ServiceUnavailable);
-            }
-            if (consent != ContextConsentVerification.Verified)
-            {
-                return Results.Json(
-                    RequestGuards.SafeProblem(
-                        "consent_binding_rejected",
-                        StatusCodes.Status403Forbidden),
-                    statusCode: StatusCodes.Status403Forbidden);
-            }
-            ModelCallIdempotencyResult execution = await idempotency.ExecuteAsync(
-                subject,
-                key,
-                RequestGuards.Fingerprint(request),
-                async token =>
-                {
-                    ContextConsentConsumption consumption = await consentConsumptionStore.ConsumeAsync(
-                        new ContextConsentConsumptionRequest(
-                            subject,
-                            request.RegistrationId,
-                            request.Consent.DecisionId,
-                            request.RequestId,
-                            request.Consent.ConsumptionHash,
-                            DateTimeOffset.UtcNow),
-                        token);
-                    if (consumption == ContextConsentConsumption.Unavailable)
-                    {
-                        throw new ContextConsentConsumptionUnavailableException();
-                    }
-                    if (consumption == ContextConsentConsumption.AlreadyConsumed)
-                    {
-                        throw new ContextConsentAlreadyConsumedException();
-                    }
-                    return await broker.CompleteAsync(subject, request, token).ConfigureAwait(false);
-                },
-                (completed, token) => registry.CommitModelResultIfActiveAsync(
-                        device,
-                        request,
-                        completed,
-                        configuration.Region,
-                        token),
-                operationCancellation.Token);
-            if (execution.PriorCompletion is ModelCallCompletionMarker completion)
-            {
-                return Results.Json(
-                    new
-                    {
-                        type = "https://errors.sapphirus.invalid/model_call_already_completed",
-                        title = "The model call already completed.",
-                        status = StatusCodes.Status409Conflict,
-                        code = "model_call_already_completed",
-                        receiptId = completion.ReceiptId,
-                        requestHash = completion.RequestHash,
-                        resultHash = completion.ResultHash,
-                    },
-                    statusCode: StatusCodes.Status409Conflict);
-            }
-            return Results.Ok(execution.Result);
-        }
-        catch (DeviceRegistrationRevokedException)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "device_registration_unavailable",
-                    StatusCodes.Status403Forbidden),
-                statusCode: StatusCodes.Status403Forbidden);
-        }
-        catch (ContextConsentAlreadyConsumedException)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "consent_already_consumed",
-                    StatusCodes.Status409Conflict),
-                statusCode: StatusCodes.Status409Conflict);
-        }
-        catch (ContextConsentConsumptionUnavailableException)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "consent_consumption_unavailable",
-                    StatusCodes.Status503ServiceUnavailable),
-                statusCode: StatusCodes.Status503ServiceUnavailable);
-        }
-        catch (OperationCanceledException) when (
-            device.RevocationToken.IsCancellationRequested
-            && !cancellationToken.IsCancellationRequested)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "device_registration_unavailable",
-                    StatusCodes.Status403Forbidden),
-                statusCode: StatusCodes.Status403Forbidden);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return Results.Json(
-                RequestGuards.SafeProblem(
-                    "connected_operation_timeout",
-                    StatusCodes.Status504GatewayTimeout),
-                statusCode: StatusCodes.Status504GatewayTimeout);
-        }
+        Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinationResult outcome =
+            await coordinator.ExecuteAsync(
+                request,
+                RequestGuards.IdempotencyKey(context.Request),
+                ScopeAuthorization.SubjectPartition(context.User),
+                cancellationToken);
+        return outcome.StatusCode == StatusCodes.Status200OK
+            ? Results.Ok(outcome.Body)
+            : Results.Json(outcome.Body, statusCode: outcome.StatusCode);
     })
     .RequireAuthorization(DesktopScopes.ModelInvoke)
     .DisableAntiforgery();

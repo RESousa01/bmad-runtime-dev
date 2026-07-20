@@ -65,6 +65,14 @@
 - Production DI registers the executor and broker; startup still fails closed pending Task 7's SQL authority binding.
 - Proof: Model namespace 30/30; full suite 156/156; Release publish clean.
 
+## Task 7 evidence (2026-07-20)
+
+- `Model/ModelAccessCoordinator.cs`: the model-access route body extracted into an explicit staged coordinator (validate → load active registration → verify consent → reserve idempotency → consume consent → broker → sign (inside broker) → transactional commit → render). Route and error contracts unchanged; the route is now a thin adapter returning `ModelAccessCoordinationResult`.
+- New failure mappings the old route lacked: `ModelCallIdempotencyUncertainException` → 409 `model_call_uncertain` (terminal uncertainty; the same request authority can never fund a new provider call), and `ModelAccessFailedException` outcomes → stable statuses (`context_rejected`/`profile_mismatch` 400, `rate_limited` 429, `timeout` 504, `quota_exhausted`/`provider_unavailable` 503, output failures 502).
+- Production boot unlocked: `ProductionComposition` now binds `SqlConnectionFactory`, `SqlDeviceRegistry`, `SqlIdempotencyStore`, `SqlModelCallIdempotencyStore`, `SqlConsentConsumptionStore`, and the installation consent verifier, and the fail-closed "adapters not configured" throw is removed — every authority adapter now exists.
+- Coordinator tests (6): consumption strictly precedes egress and provider failure does not restore consent; revocation between admission and commit blocks receipt publication (no receipt readable afterward); terminal uncertainty yields 409 with zero broker/consumption calls; concurrent identical requests converge to one provider call and one consumption; alternate idempotency keys cannot replay one consent; safe replay exposes only receipt id/request hash/result hash.
+- Proof: coordinator class 6/6 (MTP `--filter-class`); full suite 162/162; Release publish clean. Cross-replica equivalents of the concurrency/recovery invariants are covered by the Task 3 LocalDB store tests.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.

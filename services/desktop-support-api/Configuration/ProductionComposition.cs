@@ -1,4 +1,5 @@
 using Sapphirus.DesktopSupportApi.Model;
+using Sapphirus.DesktopSupportApi.Sql;
 using Sapphirus.DesktopSupportApi.Policy;
 using Sapphirus.DesktopSupportApi.Signing;
 
@@ -52,9 +53,21 @@ public static class ProductionComposition
                 provider.GetRequiredService<IModelReceiptSigner>(),
                 TimeProvider.System));
 
-        // Task 7 binds the durable SQL authority stores; production still
-        // cannot boot until every authority adapter exists.
-        throw new InvalidOperationException(
-            "Production authority adapters are not configured.");
+        // Durable SQL authority stores (Task 7): the transactional
+        // active/epoch checks in these adapters are the cross-replica
+        // authority for revocation, consent single-use, and idempotency.
+        builder.Services.AddSingleton(new SqlConnectionFactory(production));
+        builder.Services.AddSingleton<IDeviceRegistry>(provider =>
+            new SqlDeviceRegistry(provider.GetRequiredService<SqlConnectionFactory>()));
+        builder.Services.AddSingleton<IIdempotencyStore>(provider =>
+            new SqlIdempotencyStore(provider.GetRequiredService<SqlConnectionFactory>()));
+        builder.Services.AddSingleton<IModelCallIdempotencyStore>(provider =>
+            new SqlModelCallIdempotencyStore(
+                provider.GetRequiredService<SqlConnectionFactory>()));
+        builder.Services.AddSingleton<IContextConsentConsumptionStore>(provider =>
+            new SqlConsentConsumptionStore(
+                provider.GetRequiredService<SqlConnectionFactory>()));
+        builder.Services.AddSingleton<IContextConsentVerifier>(
+            new Security.InstallationConsentVerifier(TimeProvider.System));
     }
 }
