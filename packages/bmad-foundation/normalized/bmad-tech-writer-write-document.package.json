@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_5A2BA6E6A18BFDE4FB11A9732DC8FEE46F19A83D4CC0E9E3465C1210C00374B5",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-tech-writer",
+    "normalizedAction": "write"
+  },
+  "instructionProjection": {
+    "projectionId": "projection_F793679356A0C05B302DEE6ED46EAC3AEEAFAD78FD36CA8EFFCDB8DCBC63B8D0",
+    "sourceIdentityHash": "sha256:5a2ba6e6a18bfde4fb11a9732dc8fee46f19a83d4cc0e9e3465c1210c00374b5",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md",
+      "contentHash": "sha256:c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+        "contentHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/write-document.instructions.md",
+      "contentHash": "sha256:f793679356a0c05b302dee6ed46eac3aeeafad78fd36ca8effcdb8dcbc63b8d0",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:0998641fa3d38003439864e37b260af6521a253ef2048883690be68611fe910f"
+  },
+  "projectionEnvelopeHash": "sha256:b56ee1988f63f6d66a5544d26d3c60cbbd669b04047aad7b6b8d9255a5ab3626"
+}

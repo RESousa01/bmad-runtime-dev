@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
+  "semanticLedgerHash": "sha256:0813c069f75518a659fc7ec75cbd72f5c4b9ca896748e94b2e4d1777d870aa94",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:d06d7b9d34cb5ddb4779e3ccaa873777a2c1accfa57f9841090075bcedfa2ff6",
-      "byteLength": 72000,
+      "contentHash": "sha256:c0a97ffddb064e06bcfe11f8a72789ffb02dc06c0c1706cad100ee4d6dd1e72f",
+      "byteLength": 78045,
       "contentKind": "provenance_ledger"
     },
     {
@@ -94,6 +94,12 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-document-project.package.json",
+      "contentHash": "sha256:abfe8264310d941bb89beef4d6dded228fca2cab7b62dd226bbe5337a3a96274",
+      "byteLength": 1987,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-domain-research.package.json",
       "contentHash": "sha256:0535e647c31ee82063aae2ca32563a5915e53550da78093cf42144aff0b2942e",
       "byteLength": 2001,
@@ -107,8 +113,8 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:6ce79d9f9dd7d682c96e329af3ec8c3c8587c8e05a47f18e9b6f1fcd167335ca",
-      "byteLength": 72425,
+      "contentHash": "sha256:392688bfe98f865f7c561c974e278ea37d58160de430d51b38fdad0e08177f4b",
+      "byteLength": 84215,
       "contentKind": "normalized_contract"
     },
     {
@@ -121,6 +127,12 @@
       "path": "normalized/bmad-pm.package.json",
       "contentHash": "sha256:6339f5dd6833d173514e5927746eec277058d346c969aa57e05f2fc3aa447eaa",
       "byteLength": 1969,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-prd.package.json",
+      "contentHash": "sha256:9fcdc2012f82ccf43d1da517ed41a756fb830a0f2643de286c2c6e1b3a0acc94",
+      "byteLength": 1947,
       "contentKind": "normalized_contract"
     },
     {
@@ -157,6 +169,30 @@
       "path": "normalized/bmad-sprint-planning.package.json",
       "contentHash": "sha256:c97c044f6ef3fc7cd3db7dfc6dc21282880de5f97ab8397acbbc5e587108ed03",
       "byteLength": 1995,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-tech-writer-explain-concept.package.json",
+      "contentHash": "sha256:babd6454058b003c49a624efb39bafc4d9d4de0e8d95e2ee8c91d610bb883469",
+      "byteLength": 2004,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-tech-writer-mermaid-gen.package.json",
+      "contentHash": "sha256:93b6f05a8f15fe83e37ffcf2eed528399d42f5dfc34b51c38e274d04c5d1cd82",
+      "byteLength": 1996,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-tech-writer-validate-doc.package.json",
+      "contentHash": "sha256:cb76dfd2a452a22f187bedbb441fa77ce43e6494781e92d7d5909d0ea218052c",
+      "byteLength": 1999,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-tech-writer-write-document.package.json",
+      "contentHash": "sha256:09d473f3736e0553ee4c9dc98332960efd9335bec9fa11330a54a9e2867a73ab",
+      "byteLength": 2000,
       "contentKind": "normalized_contract"
     },
     {
@@ -298,9 +334,21 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/document-project.instructions.md",
+      "contentHash": "sha256:f0397ced48a617cf302f18407719950b106a27b86e15e51ec0f352f632186dee",
+      "byteLength": 1316,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/domain-research.instructions.md",
       "contentHash": "sha256:537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e",
       "byteLength": 1113,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/explain-concept.instructions.md",
+      "contentHash": "sha256:1923063b398f5c386d615c2368b2a768a56842219fdacbbd5078993b904fba68",
+      "byteLength": 1117,
       "contentKind": "managed_instruction"
     },
     {
@@ -316,9 +364,21 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/mermaid-gen.instructions.md",
+      "contentHash": "sha256:7f8ef9f3d488b7a126edcb30a89c3355f868c88185a65482eb98a9394062e915",
+      "byteLength": 1067,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/pm-persona.instructions.md",
       "contentHash": "sha256:d0721b37f735afdbc439073d962c83fb66edb3f92498ca6786fd8393b51dec07",
       "byteLength": 920,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/prd.instructions.md",
+      "contentHash": "sha256:6637cb307ed27fbf9bd87795a9f140e97135307d211988fd14d4c40788069b68",
+      "byteLength": 1510,
       "contentKind": "managed_instruction"
     },
     {
@@ -382,11 +442,23 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/validate-doc.instructions.md",
+      "contentHash": "sha256:41d8f8ea2c259956f9c7bc94ff1e63334b6ebc9520eff799b874be6361241d65",
+      "byteLength": 1039,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/write-document.instructions.md",
+      "contentHash": "sha256:f793679356a0c05b302dee6ed46eac3aeeafad78fd36ca8effcdb8dcbc63b8d0",
+      "byteLength": 1128,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
-      "byteLength": 77372,
+      "contentHash": "sha256:0813c069f75518a659fc7ec75cbd72f5c4b9ca896748e94b2e4d1777d870aa94",
+      "byteLength": 81262,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:b4f0db883e6778621391cb52c9c2b2765c86e35cfc1ac32c77c383098c101a0f"
+  "manifestHash": "sha256:e0320ac6c913fd06ec4cb7522c2772869afbcc83914c4199f10a48b008de06bd"
 }

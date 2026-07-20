@@ -106,7 +106,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/document-project.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -121,7 +121,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/write-document.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -136,7 +136,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/mermaid-gen.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -151,7 +151,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/validate-doc.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -166,7 +166,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/explain-concept.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -181,7 +181,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "first_party_semantic_rewrite",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/prd.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {

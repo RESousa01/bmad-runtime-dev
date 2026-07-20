@@ -108,3 +108,17 @@
   coordinator, renderer BmadCapabilityPanel, the 26-path activation
   matrix, and the six first-party targets awaiting the owner's
   license/provenance approval (Paige DP/WD/MG/VD/EC + John PRD).
+- 2026-07-20 — OWNER APPROVAL RECORDED: the repository maintainer approved
+  the six first-party targets (Paige DP/WD/MG/VD/EC and John PRD) for
+  first-party semantic rewrite, directing that the rewrites follow the
+  reviewed BMAD sources for accuracy. Executed: the four ADR-0003-deferred
+  tech-writer action members (method-010..013) were treatment-converted
+  from adapt/defer/reject to adopt/adapt (the exclusion tripwire test now
+  pins the resolved state); bmad-document-project and bmad-prd were
+  intake'd as method-064..067. Six sealed projections minted, grounded in
+  the vault sources (PRD facilitation with decision-log discipline,
+  tech-writer four-action processes, document-project brownfield router).
+  Members 110 -> 114, manifest 76 resources, descriptor 31 managed method
+  projections. All 24 unique menu capabilities and 26 menu paths now carry
+  sealed managedProjection bindings. Foundation 116/116, workspace 0
+  failures, strict clippy clean, boundaries green.

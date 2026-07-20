@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const lockedSemanticLedger = Object.freeze({
-  byteLength: 77372,
-  sha256: "2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
+  byteLength: 81262,
+  sha256: "0813c069f75518a659fc7ec75cbd72f5c4b9ca896748e94b2e4d1777d870aa94",
 });
 const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-analyze.instructions.md",
@@ -27,10 +27,14 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/create-story.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
   "runtime/method/6.10.0/dev-story.instructions.md",
+  "runtime/method/6.10.0/document-project.instructions.md",
   "runtime/method/6.10.0/domain-research.instructions.md",
+  "runtime/method/6.10.0/explain-concept.instructions.md",
   "runtime/method/6.10.0/implementation-readiness.instructions.md",
   "runtime/method/6.10.0/market-research.instructions.md",
+  "runtime/method/6.10.0/mermaid-gen.instructions.md",
   "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/prd.instructions.md",
   "runtime/method/6.10.0/prfaq.instructions.md",
   "runtime/method/6.10.0/product-brief.instructions.md",
   "runtime/method/6.10.0/qa-tests.instructions.md",
@@ -41,6 +45,8 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/technical-research.instructions.md",
   "runtime/method/6.10.0/ux-design.instructions.md",
   "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+  "runtime/method/6.10.0/validate-doc.instructions.md",
+  "runtime/method/6.10.0/write-document.instructions.md",
 ]);
 const methodRuntimePaths = Object.freeze(
   runtimePaths.filter((relativePath) => relativePath.startsWith("runtime/method/")),
@@ -57,17 +63,23 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-create-story.package.json",
   "normalized/bmad-dev-story.package.json",
   "normalized/bmad-dev.package.json",
+  "normalized/bmad-document-project.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
+  "normalized/bmad-prd.package.json",
   "normalized/bmad-prfaq.package.json",
   "normalized/bmad-product-brief.package.json",
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
   "normalized/bmad-sprint-planning.package.json",
+  "normalized/bmad-tech-writer-explain-concept.package.json",
+  "normalized/bmad-tech-writer-mermaid-gen.package.json",
+  "normalized/bmad-tech-writer-validate-doc.package.json",
+  "normalized/bmad-tech-writer-write-document.package.json",
   "normalized/bmad-tech-writer.package.json",
   "normalized/bmad-technical-research.package.json",
   "normalized/bmad-ux-designer.package.json",
@@ -490,6 +502,8 @@ export function classifyProjectionFromSourceIdentity(sourceIdentity) {
       "bmad-retrospective",
       "bmad-sprint-planning",
       "bmad-ux",
+      "bmad-document-project",
+      "bmad-prd",
       "bmad-technical-research",
     ].includes(sourceIdentity.skill)
   ) {
@@ -943,8 +957,8 @@ function verifySourceFacts(semantic) {
     fail("foundation_license_decision_missing", "licenses", "exact license artifacts are required");
   }
 
-  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 110) {
-    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 110 reviewed members are required");
+  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 114) {
+    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 114 reviewed members are required");
   }
   const ids = new Set();
   const identities = new Set();
@@ -964,7 +978,7 @@ function verifySourceFacts(semantic) {
     validateTreatments(member.treatments, `sourceMembers.${member.id}.treatments`);
   }
   const expectedIds = [
-    ...Array.from({ length: 63 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
+    ...Array.from({ length: 67 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
     ...Array.from({ length: 47 }, (_, index) => `builder-${String(index + 1).padStart(3, "0")}`),
   ];
   if (!sameValues([...ids], expectedIds)) {
@@ -1296,6 +1310,86 @@ function verifyAdoption(adoption, semanticState) {
       action: null,
       entrypointKind: null,
       sourceMemberIds: ["method-004", "method-048", "method-049"],
+    }],
+    ["runtime/method/6.10.0/document-project.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-document-project",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-064", "method-065"],
+    }],
+    ["runtime/method/6.10.0/prd.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-prd",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-066", "method-067"],
+    }],
+    ["runtime/method/6.10.0/document-project.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-document-project",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-064", "method-065"],
+    }],
+    ["runtime/method/6.10.0/explain-concept.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-agent-tech-writer",
+      profile: "MethodOfficialSkillV6",
+      actions: ["explain"],
+      action: "explain",
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-013", "method-009"],
+    }],
+    ["runtime/method/6.10.0/mermaid-gen.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-agent-tech-writer",
+      profile: "MethodOfficialSkillV6",
+      actions: ["mermaid"],
+      action: "mermaid",
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-011", "method-009"],
+    }],
+    ["runtime/method/6.10.0/prd.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-prd",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-066", "method-067"],
+    }],
+    ["runtime/method/6.10.0/validate-doc.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-agent-tech-writer",
+      profile: "MethodOfficialSkillV6",
+      actions: ["validate"],
+      action: "validate",
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-012", "method-009"],
+    }],
+    ["runtime/method/6.10.0/write-document.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-agent-tech-writer",
+      profile: "MethodOfficialSkillV6",
+      actions: ["write"],
+      action: "write",
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-010", "method-009"],
     }],
     ["runtime/builder/2.1.0/agent-create-rebuild.instructions.md", {
       classification: "builder_agent",

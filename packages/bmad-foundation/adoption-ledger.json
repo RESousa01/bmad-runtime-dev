@@ -228,16 +228,12 @@
       "sourceMemberId": "method-010",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the document authoring working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code WD to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -245,16 +241,12 @@
       "sourceMemberId": "method-011",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the Mermaid diagram generation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code MG to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -262,16 +254,12 @@
       "sourceMemberId": "method-012",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the documentation validation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code VD to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -279,16 +267,12 @@
       "sourceMemberId": "method-013",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the concept explanation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code EC to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -1584,6 +1568,58 @@
           "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
+    },
+    {
+      "sourceMemberId": "method-064",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-065",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-066",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-067",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
     }
   ],
   "runtimeProjections": [
@@ -2310,6 +2346,146 @@
         "method-004",
         "method-062",
         "method-063"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/document-project.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-document-project",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-064",
+        "method-065"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/prd.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-prd",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-066",
+        "method-067"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/write-document.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-tech-writer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "write"
+      ],
+      "action": "write",
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-010",
+        "method-009"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/mermaid-gen.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-tech-writer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "mermaid"
+      ],
+      "action": "mermaid",
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-011",
+        "method-009"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/validate-doc.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-tech-writer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "validate"
+      ],
+      "action": "validate",
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-012",
+        "method-009"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/explain-concept.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-tech-writer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "explain"
+      ],
+      "action": "explain",
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-013",
+        "method-009"
       ]
     }
   ]

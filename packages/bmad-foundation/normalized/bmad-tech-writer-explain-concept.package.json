@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_CE01494ADA78011FBFB2AC1A3A5F62CDF69CD5D6E6B8C907846DCEAC114E59D5",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-tech-writer",
+    "normalizedAction": "explain"
+  },
+  "instructionProjection": {
+    "projectionId": "projection_1923063B398F5C386D615C2368B2A768A56842219FDACBBD5078993B904FBA68",
+    "sourceIdentityHash": "sha256:ce01494ada78011fbfb2ac1a3a5f62cdf69cd5d6e6b8c907846dceac114e59d5",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md",
+      "contentHash": "sha256:6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+        "contentHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/explain-concept.instructions.md",
+      "contentHash": "sha256:1923063b398f5c386d615c2368b2a768a56842219fdacbbd5078993b904fba68",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:28b507757d3280ca45859f1db720ce8fbcfda73834a55491e9600bd46c19fee0"
+  },
+  "projectionEnvelopeHash": "sha256:dd58cb093ad8eb7db0f6fdc8fce46517c09f4679bd2f36a79409db18cfd26677"
+}

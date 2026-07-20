@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_3E4788C7761B8A2BEDBA476CCA3D70A702DD893576D9985602FCBCD7E7D63607",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-tech-writer",
+    "normalizedAction": "validate"
+  },
+  "instructionProjection": {
+    "projectionId": "projection_41D8F8EA2C259956F9C7BC94FF1E63334B6EBC9520EFF799B874BE6361241D65",
+    "sourceIdentityHash": "sha256:3e4788c7761b8a2bedba476cca3d70a702dd893576d9985602fcbcd7e7d63607",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md",
+      "contentHash": "sha256:3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+        "contentHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/validate-doc.instructions.md",
+      "contentHash": "sha256:41d8f8ea2c259956f9c7bc94ff1e63334b6ebc9520eff799b874be6361241d65",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:00dd7b22ac902b4b67823b164496e1e5f858e0c296a0f24381c4fe6c18d99a44"
+  },
+  "projectionEnvelopeHash": "sha256:6ddd4df8780da28394c1089a4a24a62f78c344d95a84cf37ae8d658f97a68b39"
+}

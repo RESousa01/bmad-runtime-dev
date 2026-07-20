@@ -240,16 +240,12 @@
       "sha256": "c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the document authoring working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code WD to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -260,16 +256,12 @@
       "sha256": "1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the Mermaid diagram generation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code MG to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -280,16 +272,12 @@
       "sha256": "3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the documentation validation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code VD to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -300,16 +288,12 @@
       "sha256": "6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9",
       "treatments": [
         {
+          "decision": "adopt",
+          "rationale": "Preserve the concept explanation working stance, sequence intent, and output shape."
+        },
+        {
           "decision": "adapt",
-          "rationale": "Bind menu code EC to the exact prompt-reference member identity."
-        },
-        {
-          "decision": "defer",
-          "rationale": "Keep the prompt-reference capability unavailable."
-        },
-        {
-          "decision": "reject",
-          "rationale": "Exclude the prompt body from runnable, runtime, and renderer projections and from execution."
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -1102,6 +1086,70 @@
         {
           "decision": "adopt",
           "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-064",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/SKILL.md",
+      "sha256": "806d73f66a8f3f3e7b3cbd3b9a87ad4d8b9aabd3ff91f37c96edef36a17aa2b3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-065",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/customize.toml",
+      "sha256": "3bbb5044fafdd865a5fe0863df116a479f30de7fb95c9cf4213f0b87ba1ba924",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-066",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+      "sha256": "85f0a3ea5fee06fcaef5ff34d6b194b265fe0d31ffd7610a9c9a0134bf0b21ce",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-067",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/customize.toml",
+      "sha256": "5da1c87df2022c3e31f2c8e343dbead23356fbc5f5e9169eccd3102577ba295f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
         },
         {
           "decision": "adapt",
@@ -1906,8 +1954,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 72000,
-      "sha256": "d06d7b9d34cb5ddb4779e3ccaa873777a2c1accfa57f9841090075bcedfa2ff6"
+      "byteLength": 78045,
+      "sha256": "c0a97ffddb064e06bcfe11f8a72789ffb02dc06c0c1706cad100ee4d6dd1e72f"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -2000,9 +2048,19 @@
       "sha256": "5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e"
     },
     {
+      "path": "runtime/method/6.10.0/document-project.instructions.md",
+      "byteLength": 1316,
+      "sha256": "f0397ced48a617cf302f18407719950b106a27b86e15e51ec0f352f632186dee"
+    },
+    {
       "path": "runtime/method/6.10.0/domain-research.instructions.md",
       "byteLength": 1113,
       "sha256": "537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e"
+    },
+    {
+      "path": "runtime/method/6.10.0/explain-concept.instructions.md",
+      "byteLength": 1117,
+      "sha256": "1923063b398f5c386d615c2368b2a768a56842219fdacbbd5078993b904fba68"
     },
     {
       "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
@@ -2015,9 +2073,19 @@
       "sha256": "70fc5f6e6abc469564d03eb9ace223f212feca587935faf2fbe49b4bb3d535d7"
     },
     {
+      "path": "runtime/method/6.10.0/mermaid-gen.instructions.md",
+      "byteLength": 1067,
+      "sha256": "7f8ef9f3d488b7a126edcb30a89c3355f868c88185a65482eb98a9394062e915"
+    },
+    {
       "path": "runtime/method/6.10.0/pm-persona.instructions.md",
       "byteLength": 920,
       "sha256": "d0721b37f735afdbc439073d962c83fb66edb3f92498ca6786fd8393b51dec07"
+    },
+    {
+      "path": "runtime/method/6.10.0/prd.instructions.md",
+      "byteLength": 1510,
+      "sha256": "6637cb307ed27fbf9bd87795a9f140e97135307d211988fd14d4c40788069b68"
     },
     {
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
@@ -2068,6 +2136,16 @@
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
       "byteLength": 922,
       "sha256": "b6a21cbb4648bfb588094100ac5cf0b07eebc64b850b7ccbc1255da470974d92"
+    },
+    {
+      "path": "runtime/method/6.10.0/validate-doc.instructions.md",
+      "byteLength": 1039,
+      "sha256": "41d8f8ea2c259956f9c7bc94ff1e63334b6ebc9520eff799b874be6361241d65"
+    },
+    {
+      "path": "runtime/method/6.10.0/write-document.instructions.md",
+      "byteLength": 1128,
+      "sha256": "f793679356a0c05b302dee6ed46eac3aeeafad78fd36ca8effcdb8dcbc63b8d0"
     }
   ]
 }

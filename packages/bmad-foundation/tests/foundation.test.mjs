@@ -37,10 +37,14 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/create-story.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
   "runtime/method/6.10.0/dev-story.instructions.md",
+  "runtime/method/6.10.0/document-project.instructions.md",
   "runtime/method/6.10.0/domain-research.instructions.md",
+  "runtime/method/6.10.0/explain-concept.instructions.md",
   "runtime/method/6.10.0/implementation-readiness.instructions.md",
   "runtime/method/6.10.0/market-research.instructions.md",
+  "runtime/method/6.10.0/mermaid-gen.instructions.md",
   "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/prd.instructions.md",
   "runtime/method/6.10.0/prfaq.instructions.md",
   "runtime/method/6.10.0/product-brief.instructions.md",
   "runtime/method/6.10.0/qa-tests.instructions.md",
@@ -51,6 +55,8 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/technical-research.instructions.md",
   "runtime/method/6.10.0/ux-design.instructions.md",
   "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+  "runtime/method/6.10.0/validate-doc.instructions.md",
+  "runtime/method/6.10.0/write-document.instructions.md",
 ]);
 
 const normalizedPaths = Object.freeze([
@@ -65,17 +71,23 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-create-story.package.json",
   "normalized/bmad-dev-story.package.json",
   "normalized/bmad-dev.package.json",
+  "normalized/bmad-document-project.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
+  "normalized/bmad-prd.package.json",
   "normalized/bmad-prfaq.package.json",
   "normalized/bmad-product-brief.package.json",
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
   "normalized/bmad-sprint-planning.package.json",
+  "normalized/bmad-tech-writer-explain-concept.package.json",
+  "normalized/bmad-tech-writer-mermaid-gen.package.json",
+  "normalized/bmad-tech-writer-validate-doc.package.json",
+  "normalized/bmad-tech-writer-write-document.package.json",
   "normalized/bmad-tech-writer.package.json",
   "normalized/bmad-technical-research.package.json",
   "normalized/bmad-ux-designer.package.json",
@@ -148,10 +160,10 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-007": ["adapt", "reject"],
   "method-008": ["adopt", "adapt"],
   "method-009": ["adapt", "reject"],
-  "method-010": ["adapt", "defer", "reject"],
-  "method-011": ["adapt", "defer", "reject"],
-  "method-012": ["adapt", "defer", "reject"],
-  "method-013": ["adapt", "defer", "reject"],
+  "method-010": ["adopt", "adapt"],
+  "method-011": ["adopt", "adapt"],
+  "method-012": ["adopt", "adapt"],
+  "method-013": ["adopt", "adapt"],
   "method-014": ["adopt", "adapt"],
   "method-015": ["adapt", "reject"],
   "method-016": ["adopt", "adapt"],
@@ -202,6 +214,14 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-061": ["adopt", "adapt"],
   "method-062": ["adopt", "adapt"],
   "method-063": ["adopt", "adapt"],
+  "method-064": ["adopt", "adapt"],
+  "method-065": ["adopt", "adapt"],
+  "method-066": ["adopt", "adapt"],
+  "method-067": ["adopt", "adapt"],
+  "method-064": ["adopt", "adapt"],
+  "method-065": ["adopt", "adapt"],
+  "method-066": ["adopt", "adapt"],
+  "method-067": ["adopt", "adapt"],
   "builder-001": ["adopt"],
   "builder-002": ["adopt", "reject"],
   "builder-003": ["adopt", "adapt"],
@@ -252,6 +272,46 @@ const expectedTreatmentDecisionSets = Object.freeze({
 });
 
 const expectedProjectionSourceMemberIds = Object.freeze({
+  "runtime/method/6.10.0/document-project.instructions.md": [
+    "method-004",
+    "method-064",
+    "method-065",
+  ],
+  "runtime/method/6.10.0/explain-concept.instructions.md": [
+    "method-004",
+    "method-013",
+    "method-009",
+  ],
+  "runtime/method/6.10.0/mermaid-gen.instructions.md": [
+    "method-004",
+    "method-011",
+    "method-009",
+  ],
+  "runtime/method/6.10.0/prd.instructions.md": [
+    "method-004",
+    "method-066",
+    "method-067",
+  ],
+  "runtime/method/6.10.0/validate-doc.instructions.md": [
+    "method-004",
+    "method-012",
+    "method-009",
+  ],
+  "runtime/method/6.10.0/write-document.instructions.md": [
+    "method-004",
+    "method-010",
+    "method-009",
+  ],
+  "runtime/method/6.10.0/document-project.instructions.md": [
+    "method-004",
+    "method-064",
+    "method-065",
+  ],
+  "runtime/method/6.10.0/prd.instructions.md": [
+    "method-004",
+    "method-066",
+    "method-067",
+  ],
   "runtime/method/6.10.0/code-review.instructions.md": [
     "method-004",
     "method-056",
@@ -650,7 +710,7 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 110, "the reviewed source set must be exact and closed");
+  assert.equal(members.size, 114, "the reviewed source set must be exact and closed");
   assert.deepEqual(
     Object.fromEntries(
       ledger.sourceMembers.map((member) => [
@@ -671,14 +731,15 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
       assert.match(treatment.rationale, /\S/u);
     }
   }
+  // ADR-0005 + the 2026-07-20 owner approval superseded the ADR-0003
+  // exclusion: the tech-writer action sources are first-party approved.
   for (const identity of Object.keys(criticalMembers).filter((value) =>
     value.includes("bmad-agent-tech-writer"),
   )) {
+    const decisions = members.get(identity).treatments.map((t) => t.decision);
     assert.ok(
-      members
-        .get(identity)
-        .treatments.some((treatment) => ["defer", "reject"].includes(treatment.decision)),
-      `${identity} must remain unavailable`,
+      !decisions.includes("defer"),
+      `${identity} deferral was resolved by the reviewed approval`,
     );
   }
 
@@ -826,7 +887,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 25);
+  assert.equal(method.length, 31);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

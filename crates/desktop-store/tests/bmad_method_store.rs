@@ -686,6 +686,30 @@ fn loaded_help_method() -> BmadLoadedMethodPackage {
             "runtime/method/6.10.0/ux-design.instructions.md",
             BmadLocationClass::ManagedProjection,
         ),
+        help_source_entry(
+            "runtime/method/6.10.0/document-project.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/explain-concept.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/mermaid-gen.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/prd.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/validate-doc.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/write-document.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
     ])
     .expect("sealed Help snapshot");
     BmadPackageLoader::load(&snapshot, semantic_hash, adoption_hash).expect("qualified Method")

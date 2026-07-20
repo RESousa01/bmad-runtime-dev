@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_A0E80E87A92FE498D2FF17D80D122C21E37A3627DF8A73171AB078F874F87FB4",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-document-project",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_F0397CED48A617CF302F18407719950B106A27B86E15E51EC0F352F632186DEE",
+    "sourceIdentityHash": "sha256:a0e80e87a92fe498d2ff17d80d122c21e37a3627df8a73171ab078f874f87fb4",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-document-project/SKILL.md",
+      "contentHash": "sha256:806d73f66a8f3f3e7b3cbd3b9a87ad4d8b9aabd3ff91f37c96edef36a17aa2b3",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-document-project/customize.toml",
+        "contentHash": "sha256:3bbb5044fafdd865a5fe0863df116a479f30de7fb95c9cf4213f0b87ba1ba924",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/document-project.instructions.md",
+      "contentHash": "sha256:f0397ced48a617cf302f18407719950b106a27b86e15e51ec0f352f632186dee",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:28ff4a37687d3c58bf9a3f13451136f4b9cbced41272afa5c5dd44a884e4901f"
+  },
+  "projectionEnvelopeHash": "sha256:ac3a45846644ba6de234ceac43b85d53229a612f04048902881ae2463be2e741"
+}

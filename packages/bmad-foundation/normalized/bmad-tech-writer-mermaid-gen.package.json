@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_D2DBABA27A1396146B7AC363B057C6A90D69CED53CC0DBE9D9B4F27B472C2CF4",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-tech-writer",
+    "normalizedAction": "mermaid"
+  },
+  "instructionProjection": {
+    "projectionId": "projection_7F8EF9F3D488B7A126EDCB30A89C3355F868C88185A65482EB98A9394062E915",
+    "sourceIdentityHash": "sha256:d2dbaba27a1396146b7ac363b057c6a90d69ced53cc0dbe9d9b4f27b472c2cf4",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+      "contentHash": "sha256:1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+        "contentHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/mermaid-gen.instructions.md",
+      "contentHash": "sha256:7f8ef9f3d488b7a126edcb30a89c3355f868c88185a65482eb98a9394062e915",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:fc961bc3c9916c03d4bf437bdeb0be7d988dea530ae36b6adcb69b47a0fd465d"
+  },
+  "projectionEnvelopeHash": "sha256:337fb2225b73d35f142a3fb86c889fb13ce054d974ba42272b40376fa6139acc"
+}
