@@ -16,7 +16,7 @@
     <RootNamespace>Sapphirus.WindowsAuthBroker</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.83.3" />
-    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.83.3" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.86.1" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.86.1" />
   </ItemGroup>
 </Project>

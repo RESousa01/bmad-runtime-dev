@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - sapphirus-signing
+    - sapphirus-qualification

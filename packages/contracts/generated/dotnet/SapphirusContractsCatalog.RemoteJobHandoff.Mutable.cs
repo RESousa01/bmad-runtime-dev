@@ -535,7 +535,7 @@ public readonly partial struct SapphirusContractsCatalog
             ///   </para>
             /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void SetProperty(string propertyName, in JsonElement.Source value)
+            public void SetProperty(string propertyName, scoped in JsonElement.Source value)
             {
                 SetProperty(propertyName.AsSpan(), value);
             }
@@ -558,7 +558,7 @@ public readonly partial struct SapphirusContractsCatalog
             ///     If the property doesn't exist, it will be added to the object.
             ///   </para>
             /// </remarks>
-            public void SetProperty(ReadOnlySpan<char> propertyName, in JsonElement.Source value)
+            public void SetProperty(ReadOnlySpan<char> propertyName, scoped in JsonElement.Source value)
             {
                 CheckValidInstance();
 
@@ -605,7 +605,7 @@ public readonly partial struct SapphirusContractsCatalog
             ///     If the property doesn't exist, it will be added to the object.
             ///   </para>
             /// </remarks>
-            public void SetProperty(ReadOnlySpan<byte> propertyName, in JsonElement.Source value)
+            public void SetProperty(ReadOnlySpan<byte> propertyName, scoped in JsonElement.Source value)
             {
                 CheckValidInstance();
 
@@ -1001,23 +1001,37 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 JsonElement,
                 RemoteJobHandoffCloudWorkHandoffBuilder,
+                RemoteJobHandoffCloudWorkHandoffSource,
                 RemoteJobHandoffDraftHandoffBuilder,
+                RemoteJobHandoffDraftHandoffSource,
                 RemoteJobHandoffFailedHandoffBuilder,
+                RemoteJobHandoffFailedHandoffSource,
                 RemoteJobHandoffImportedProposalHandoffBuilder,
+                RemoteJobHandoffImportedProposalHandoffSource,
                 RemoteJobHandoffLocallyAuthorizedHandoffBuilder,
+                RemoteJobHandoffLocallyAuthorizedHandoffSource,
                 RemoteJobHandoffRemoteResultHandoffBuilder,
+                RemoteJobHandoffRemoteResultHandoffSource,
                 RemoteJobHandoffUploadPreviewedHandoffBuilder,
+                RemoteJobHandoffUploadPreviewedHandoffSource,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.Build? _remoteJobHandoffCloudWorkHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Source _remoteJobHandoffCloudWorkHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.Build? _remoteJobHandoffDraftHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Source _remoteJobHandoffDraftHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build? _remoteJobHandoffFailedHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Source _remoteJobHandoffFailedHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.Build? _remoteJobHandoffImportedProposalHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Source _remoteJobHandoffImportedProposalHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.Build? _remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Source _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.Build? _remoteJobHandoffRemoteResultHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Source _remoteJobHandoffRemoteResultHandoffSourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.Build? _remoteJobHandoffUploadPreviewedHandoffBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Source _remoteJobHandoffUploadPreviewedHandoffSourceInstance;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1032,17 +1046,31 @@ public readonly partial struct SapphirusContractsCatalog
 
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.Build value) {_remoteJobHandoffCloudWorkHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffCloudWorkHandoffBuilder; }
 
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Source value) { _remoteJobHandoffCloudWorkHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffCloudWorkHandoffSource; }
+
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.Build value) {_remoteJobHandoffDraftHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffDraftHandoffBuilder; }
+
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Source value) { _remoteJobHandoffDraftHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffDraftHandoffSource; }
 
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build value) {_remoteJobHandoffFailedHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffFailedHandoffBuilder; }
 
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Source value) { _remoteJobHandoffFailedHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffFailedHandoffSource; }
+
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.Build value) {_remoteJobHandoffImportedProposalHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffImportedProposalHandoffBuilder; }
+
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Source value) { _remoteJobHandoffImportedProposalHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffImportedProposalHandoffSource; }
 
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.Build value) {_remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder; }
 
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Source value) { _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource; }
+
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.Build value) {_remoteJobHandoffRemoteResultHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffRemoteResultHandoffBuilder; }
 
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Source value) { _remoteJobHandoffRemoteResultHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffRemoteResultHandoffSource; }
+
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.Build value) {_remoteJobHandoffUploadPreviewedHandoffBuilderInstance = value; _kind = Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder; }
+
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Source value) { _remoteJobHandoffUploadPreviewedHandoffSourceInstance = value; _kind = Kind.RemoteJobHandoffUploadPreviewedHandoffSource; }
 
             public static implicit operator Source(RemoteJobHandoff instance) => new(JsonElement.From(instance));
 
@@ -1050,22 +1078,43 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff instance) => new(JsonElement.From(instance));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Source value) => new(value);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff instance) => new(JsonElement.From(instance));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Source value) => new(value);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff instance) => new(JsonElement.From(instance));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Source value) => new(value);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff instance) => new(JsonElement.From(instance));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Source value) => new(value);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff instance) => new(JsonElement.From(instance));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Source value) => new(value);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff instance) => new(JsonElement.From(instance));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Source value) => new(value);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff instance) => new(JsonElement.From(instance));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Source value) => new(value);
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1079,23 +1128,44 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.RemoteJobHandoffCloudWorkHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffCloudWorkHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.RemoteJobHandoffCloudWorkHandoffSource:
+                        _remoteJobHandoffCloudWorkHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                        break;
                     case Kind.RemoteJobHandoffDraftHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffDraftHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.RemoteJobHandoffDraftHandoffSource:
+                        _remoteJobHandoffDraftHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                         break;
                     case Kind.RemoteJobHandoffFailedHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffFailedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.RemoteJobHandoffFailedHandoffSource:
+                        _remoteJobHandoffFailedHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                        break;
                     case Kind.RemoteJobHandoffImportedProposalHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffImportedProposalHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.RemoteJobHandoffImportedProposalHandoffSource:
+                        _remoteJobHandoffImportedProposalHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                         break;
                     case Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource:
+                        _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                        break;
                     case Kind.RemoteJobHandoffRemoteResultHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffRemoteResultHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.RemoteJobHandoffRemoteResultHandoffSource:
+                        _remoteJobHandoffRemoteResultHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                        break;
                     case Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder:
                         valueBuilder.AddProperty(utf8Name, _remoteJobHandoffUploadPreviewedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.RemoteJobHandoffUploadPreviewedHandoffSource:
+                        _remoteJobHandoffUploadPreviewedHandoffSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -1115,23 +1185,44 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.RemoteJobHandoffCloudWorkHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffCloudWorkHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffCloudWorkHandoffSource:
+                        _remoteJobHandoffCloudWorkHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffDraftHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffDraftHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffDraftHandoffSource:
+                        _remoteJobHandoffDraftHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffFailedHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffFailedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffFailedHandoffSource:
+                        _remoteJobHandoffFailedHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffImportedProposalHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffImportedProposalHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffImportedProposalHandoffSource:
+                        _remoteJobHandoffImportedProposalHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource:
+                        _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffRemoteResultHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffRemoteResultHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffRemoteResultHandoffSource:
+                        _remoteJobHandoffRemoteResultHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _remoteJobHandoffUploadPreviewedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffUploadPreviewedHandoffSource:
+                        _remoteJobHandoffUploadPreviewedHandoffSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -1151,23 +1242,44 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.RemoteJobHandoffCloudWorkHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffCloudWorkHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffCloudWorkHandoffSource:
+                        _remoteJobHandoffCloudWorkHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffDraftHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffDraftHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffDraftHandoffSource:
+                        _remoteJobHandoffDraftHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffFailedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffFailedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffFailedHandoffSource:
+                        _remoteJobHandoffFailedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffImportedProposalHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffImportedProposalHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffImportedProposalHandoffSource:
+                        _remoteJobHandoffImportedProposalHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource:
+                        _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffRemoteResultHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffRemoteResultHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffRemoteResultHandoffSource:
+                        _remoteJobHandoffRemoteResultHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffUploadPreviewedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffUploadPreviewedHandoffSource:
+                        _remoteJobHandoffUploadPreviewedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -1187,23 +1299,44 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.RemoteJobHandoffCloudWorkHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffCloudWorkHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffCloudWorkHandoffSource:
+                        _remoteJobHandoffCloudWorkHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffDraftHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffDraftHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffDraftHandoffSource:
+                        _remoteJobHandoffDraftHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffFailedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffFailedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffFailedHandoffSource:
+                        _remoteJobHandoffFailedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffImportedProposalHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffImportedProposalHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffImportedProposalHandoffSource:
+                        _remoteJobHandoffImportedProposalHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource:
+                        _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffRemoteResultHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffRemoteResultHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffRemoteResultHandoffSource:
+                        _remoteJobHandoffRemoteResultHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder:
                         valueBuilder.AddProperty(name, _remoteJobHandoffUploadPreviewedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffUploadPreviewedHandoffSource:
+                        _remoteJobHandoffUploadPreviewedHandoffSourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -1223,23 +1356,44 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.RemoteJobHandoffCloudWorkHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffCloudWorkHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffCloudWorkHandoffSource:
+                        _remoteJobHandoffCloudWorkHandoffSourceInstance.AddAsItem(ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffDraftHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffDraftHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffDraftHandoffSource:
+                        _remoteJobHandoffDraftHandoffSourceInstance.AddAsItem(ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffFailedHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffFailedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffFailedHandoffSource:
+                        _remoteJobHandoffFailedHandoffSourceInstance.AddAsItem(ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffImportedProposalHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffImportedProposalHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffImportedProposalHandoffSource:
+                        _remoteJobHandoffImportedProposalHandoffSourceInstance.AddAsItem(ref valueBuilder);
                         break;
                     case Kind.RemoteJobHandoffLocallyAuthorizedHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffLocallyAuthorizedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffLocallyAuthorizedHandoffSource:
+                        _remoteJobHandoffLocallyAuthorizedHandoffSourceInstance.AddAsItem(ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffRemoteResultHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffRemoteResultHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.RemoteJobHandoffRemoteResultHandoffSource:
+                        _remoteJobHandoffRemoteResultHandoffSourceInstance.AddAsItem(ref valueBuilder);
+                        break;
                     case Kind.RemoteJobHandoffUploadPreviewedHandoffBuilder:
                         valueBuilder.AddItem(_remoteJobHandoffUploadPreviewedHandoffBuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.RemoteJobHandoffUploadPreviewedHandoffSource:
+                        _remoteJobHandoffUploadPreviewedHandoffSourceInstance.AddAsItem(ref valueBuilder);
                         break;
                     default:
                         Debug.Fail("Unexpected Kind");
@@ -2058,6 +2212,453 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<RemoteJobHandoff, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates an empty <see cref="ParsedJsonDocument{T}"/>.
+        /// </summary>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>An empty <see cref="ParsedJsonDocument{T}"/>. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

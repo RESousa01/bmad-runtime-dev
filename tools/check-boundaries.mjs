@@ -71,7 +71,7 @@ const boundedProcessAdapterPaths = new Set([
 ]);
 const exactToolchain = Object.freeze({
   node: "24.18.0",
-  pnpm: "11.12.0",
+  pnpm: "11.15.1",
   rust: "1.97.0",
   typescript: "7.0.2",
 });
@@ -482,7 +482,7 @@ for (const workflowName of [
   const workflowSource = await requiredText(workflowPath);
   if (
     workflowSource !== undefined
-    && !/^ {4}if: \$\{\{ vars\.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' \}\}\s*$/mu
+    && !/^ {4}if: \$\{\{ vars\.SAPPHIRUS_NATIVE_LANE_FROZEN != 'true' \}\}\s*$/mu
       .test(workflowSource)
   ) {
     violations.push(
@@ -598,7 +598,7 @@ if (signedReleaseSource !== undefined) {
       "must attest only after signed lifecycle qualification",
     ],
     [
-      /uses: actions\/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be/u,
+      /uses: actions\/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373/u,
       "must create immutable build provenance",
     ],
     [

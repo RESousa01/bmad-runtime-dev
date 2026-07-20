@@ -203,6 +203,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffDraftHandoff.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -216,6 +225,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreviewedHandoff.Mutable value)
         {
             return From(value);
         }
@@ -239,6 +257,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocallyAuthorizedHandoff.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -252,6 +279,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkHandoff.Mutable value)
         {
             return From(value);
         }
@@ -275,6 +311,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -293,6 +338,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffImportedProposalHandoff.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -306,6 +360,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator RemoteJobHandoff(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Mutable value)
         {
             return From(value);
         }
@@ -413,10 +476,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RemoteJobHandoff ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<RemoteJobHandoff>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -436,10 +502,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RemoteJobHandoff ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<RemoteJobHandoff>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -459,10 +528,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RemoteJobHandoff ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<RemoteJobHandoff>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -500,9 +572,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static RemoteJobHandoff ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<RemoteJobHandoff>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>

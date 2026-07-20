@@ -39,4 +39,4 @@ No worker edits `crates/**`, generated contracts, `packages/ui`, BMAD projection
 
 ## Required checks
 
-Pinned Node 24.18.0 and pnpm 11.12.0; frontend typecheck, Vitest, build, boundary scan, direct-invoke scan, copy scan, diff check, and browser viewport review. Native/package checks run in parallel when time permits and may not be replaced by Vite evidence.
+Pinned Node 24.18.0 and pnpm 11.15.1; frontend typecheck, Vitest, build, boundary scan, direct-invoke scan, copy scan, diff check, and browser viewport review. Native/package checks run in parallel when time permits and may not be replaced by Vite evidence.

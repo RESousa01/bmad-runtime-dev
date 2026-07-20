@@ -95,8 +95,8 @@ const expectedFailureCodes = Object.freeze(Object.values(FAILURE_CODES).sort());
 const expectedPackageIntegrities = Object.freeze({
   "json-schema-to-typescript@15.0.4":
     "sha512-Su9oK8DR4xCmDsLlyvadkXzX6+GGXJpbhwoLtOGArAG61dvbW4YQmSEno2y66ahpIdmLMg6YUf/QHLgiwvkrHQ==",
-  "ajv@8.17.1":
-    "sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==",
+  "ajv@8.20.0":
+    "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==",
   "typescript@7.0.2":
     "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
 });
@@ -104,22 +104,22 @@ const expectedRustArguments = Object.freeze(["typify", "{input}", "--output", "{
 const expectedBootstrapLocks = Object.freeze({
   pnpm: {
     file: "pnpm-lock.yaml",
-    sha256: "c6e9d334213dd0f44da4a79f0894dd51c1c9a1dfcc69fc79b70280379a96fc12",
+    sha256: "28fa1837a685e17c9b696e761fd0f86173a09ed22c666c88378910792ae58a93",
     status: "reviewed",
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "5fef36888d7cd519786b412ee93b47a753776d304c3252e2545e89fdd6b83fd3",
+    sha256: "49ad67660adbbebcf3653ada3a472cadaed3c777bdeefe89a637f5f43b0f5c85",
     status: "reviewed",
   },
   dotnetTools: {
     file: ".config/dotnet-tools.json",
-    sha256: "de8f3ea09ea43d3332ed0ef42328530fa6c71d3883d81caeafbf35d75c103a20",
+    sha256: "a951b939e6d946e93d33c112969fd2500f2cb77190367fb466a247d8a209582c",
     status: "reviewed",
   },
   dotnetPackages: {
     file: "tests/generator-qualification/dotnet/packages.lock.json",
-    sha256: "0162aef1cbdb6d087d33e102f91e8a0430dd5d6d876ad534c58fbaacdaa2a872",
+    sha256: "4166588aeb1745851eb694eea48b493693909860fd66394b1a457639eea22b4a",
     status: "reviewed",
   },
 });
@@ -655,7 +655,7 @@ export function validateToolLock(lock) {
     "rejectEmbeddedBom", "rejectRunPathLeaks",
   ], FAILURE_CODES.lock, "normalizationPolicy");
   if (typescript?.identity !== "json-schema-to-typescript@15.0.4"
-    || typescript?.validator !== "ajv@8.17.1"
+    || typescript?.validator !== "ajv@8.20.0"
     || typescript?.compiler !== "typescript@7.0.2"
     || typescript?.packageSource !== "pnpm-lock.yaml"
     || typescript?.license !== "MIT") {
@@ -746,17 +746,17 @@ export function validateToolLock(lock) {
     runtime: dotnet?.runtime,
     license: dotnet?.license,
   }, {
-    identity: "Corvus.Json.Cli@5.1.0",
+    identity: "Corvus.Json.Cli@5.2.7",
     packageId: "Corvus.Json.Cli",
-    version: "5.1.0",
+    version: "5.2.7",
     command: "corvusjson",
     toolManifest: ".config/dotnet-tools.json",
     packageSource: "nuget.org",
-    packageSha256: "d621eb857fcb073ebd6f59d4b820e339df8725a1a466c031f981cca2cd517343",
-    packageSha512: "CSFbHpadwPMujU7EVXBRq86B+dRFXQ+FUU57e0YGA5mQGbIoUWGpCXqTiJNR3gMaK2UnB8epeFD7AqVGPgCmLA==",
+    packageSha256: "dfda21e11bc03c3d28ecb818ff6634247e149119b1cf9408d49010c7f2416c57",
+    packageSha512: "Gok55yzooHkoEpz8pSWqjUVI1RKf7v93FgZx3dv4pnsN23fLCGGPRNJ1pl33B0ZhzbD361/uEsMOhXaCrnG21g==",
     versionArguments: ["version"],
     versionExitCode: 1,
-    versionOutput: "Version: 5.1.0 Build: c7464f821334e0bb9757bae4256d0d2bf0929bc7",
+    versionOutput: "Version: 5.2.7 Build: 43d84f4dbbb7f9bc4be6dd871b547277470512b1",
     generationArguments: [...expectedDotnetArguments],
     sdk: "10.0.302",
     sdkExecutable: "C:/Program Files/dotnet/dotnet.exe",
@@ -771,10 +771,10 @@ export function validateToolLock(lock) {
       archivePrefix: "tools/net10.0/any/",
       entryPoint: "Corvus.Json.Cli.dll",
       fileCount: 359,
-      treeSha256: "d78b66ac06257175cbaa668c1c0946e03048d03cce1c7cce59cf3e537427dfc3",
+      treeSha256: "3b4d31d9bdeef8592efe37470d7d0c34340f11ec987d99a72d35c5688107d426",
     },
     restoreArguments: ["tool", "restore", "--tool-manifest", ".config/dotnet-tools.json"],
-    runtime: "Corvus.Text.Json@5.1.0",
+    runtime: "Corvus.Text.Json@5.2.7",
     license: "Apache-2.0",
   }, FAILURE_CODES.version, ".NET generator lock");
   equalJson([...lock.failureCodes].sort(), expectedFailureCodes, FAILURE_CODES.lock, "failure code set");
@@ -874,7 +874,7 @@ async function validateManifest() {
     isRoot: true,
     tools: {
       "corvus.json.cli": {
-        version: "5.1.0",
+        version: "5.2.7",
         commands: ["corvusjson"],
         rollForward: false,
       },
@@ -1190,7 +1190,7 @@ async function validateNodeToolchain(lock) {
   }
   for (const [packageName, version] of [
     ["json-schema-to-typescript", "15.0.4"],
-    ["ajv", "8.17.1"],
+    ["ajv", "8.20.0"],
     ["typescript", "7.0.2"],
   ]) {
     const manifest = await readJson(
@@ -1278,9 +1278,9 @@ export async function preflightNativeTools(lock) {
     userProfile === "" ? "" : path.join(userProfile, ".nuget", "packages"),
     "NUGET_PACKAGES",
   );
-  const nugetRoot = path.join(nugetPackages, "corvus.json.cli", "5.1.0");
-  const nugetPackage = path.join(nugetRoot, "corvus.json.cli.5.1.0.nupkg");
-  const nugetSha512 = path.join(nugetRoot, "corvus.json.cli.5.1.0.nupkg.sha512");
+  const nugetRoot = path.join(nugetPackages, "corvus.json.cli", "5.2.7");
+  const nugetPackage = path.join(nugetRoot, "corvus.json.cli.5.2.7.nupkg");
+  const nugetSha512 = path.join(nugetRoot, "corvus.json.cli.5.2.7.nupkg.sha512");
   let physicalPackage;
   try {
     const [packageStats, checksumStats] = await Promise.all([

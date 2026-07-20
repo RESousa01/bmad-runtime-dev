@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      javascript:
+        patterns: ["*"]
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      rust:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /services/desktop-support-api
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directories:
+      - /services/desktop-support-api
+      - /services/desktop-support-api.Tests
+      - /helpers/windows-auth-broker
+      - /tests/generator-qualification/dotnet
+      - /tests/conformance/dotnet
+    schedule:
+      interval: weekly
+    groups:
+      dotnet:
+        patterns: ["*"]

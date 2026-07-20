@@ -648,6 +648,114 @@ for (const [relativePath, content] of bmadFixtureSet.files) {
   add(relativePath, content);
 }
 
+const bmadCapabilityRunFixture = {
+  schemaVersion: "sapphirus.bmad-capability-run.v1",
+  runId: "run_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  capabilityId: "bmm:bmad-product-brief",
+  workspaceId: "workspace_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  instructionHash: "sha256:" + "a".repeat(64),
+  contextManifestHash: "sha256:" + "a".repeat(64),
+  outputSchemaId: "sapphirus.bmad-document-artifact.v1",
+  consentEvidenceId: "consent_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  createdAt: "2026-07-20T12:00:00.000Z",
+};
+add("fixtures/valid/bmad-capability-run.json", stableJson(bmadCapabilityRunFixture));
+
+const bmadDocumentResultFixture = {
+  resultKind: "document_artifact",
+  documentArtifact: {
+    schemaVersion: "sapphirus.bmad-document-artifact.v1",
+    title: "Product brief: example",
+    sections: [{ heading: "Problem", body: "A bounded problem statement." }],
+    evidenceRefs: ["evidence_01ARZ3NDEKTSV4RRFFQ69G5FAV"],
+    openQuestions: ["What is the launch market?"],
+  },
+};
+add(
+  "fixtures/valid/bmad-capability-result-document.json",
+  stableJson(bmadDocumentResultFixture),
+);
+
+const bmadChangeSetResultFixture = {
+  resultKind: "governed_change_set",
+  governedChangeSet: {
+    schemaVersion: "sapphirus.bmad-governed-change-set.v1",
+    summary: "Implements the story acceptance tests.",
+    changes: [
+      { operation: "create", path: "src/feature.test.ts", content: "// test body" },
+      {
+        operation: "replace",
+        path: "src/feature.ts",
+        content: "// new body",
+        preimageSha256: "sha256:" + "a".repeat(64),
+      },
+      {
+        operation: "delete",
+        path: "src/dead.ts",
+        preimageSha256: "sha256:" + "a".repeat(64),
+      },
+    ],
+  },
+};
+add(
+  "fixtures/valid/bmad-capability-result-changes.json",
+  stableJson(bmadChangeSetResultFixture),
+);
+
+const bmadBuilderDraftResultFixture = {
+  resultKind: "inactive_builder_draft",
+  inactiveBuilderDraft: {
+    schemaVersion: "sapphirus.bmad-inactive-builder-draft.v1",
+    draftKind: "agent",
+    title: "Draft compliance reviewer",
+    revisionNote: "First analysis draft; inactive by design.",
+    files: [{ path: "agent.instructions.md", content: "# Draft" }],
+  },
+};
+add(
+  "fixtures/valid/bmad-capability-result-builder-draft.json",
+  stableJson(bmadBuilderDraftResultFixture),
+);
+
+const bmadCapabilityRunUnknownProperty = structuredClone(bmadCapabilityRunFixture);
+bmadCapabilityRunUnknownProperty.extraAuthority = "admin";
+add(
+  "fixtures/invalid/bmad-capability-run-unknown-property.json",
+  stableJson(bmadCapabilityRunUnknownProperty),
+);
+
+const bmadCapabilityRunForgedId = structuredClone(bmadCapabilityRunFixture);
+bmadCapabilityRunForgedId.capabilityId = "shell:rm -rf";
+add(
+  "fixtures/invalid/bmad-capability-run-forged-capability-id.json",
+  stableJson(bmadCapabilityRunForgedId),
+);
+
+const bmadCapabilityResultAbsolutePath = structuredClone(bmadChangeSetResultFixture);
+bmadCapabilityResultAbsolutePath.governedChangeSet.changes[0].path =
+  "C:/Windows/system32/evil.dll";
+add(
+  "fixtures/invalid/bmad-capability-result-absolute-path.json",
+  stableJson(bmadCapabilityResultAbsolutePath),
+);
+
+const bmadCapabilityResultAuthorityClaim = structuredClone(bmadDocumentResultFixture);
+bmadCapabilityResultAuthorityClaim.documentArtifact.approved = true;
+add(
+  "fixtures/invalid/bmad-capability-result-authority-claim.json",
+  stableJson(bmadCapabilityResultAuthorityClaim),
+);
+
+const bmadCapabilityResultArchetypeSubstitution = structuredClone(
+  bmadDocumentResultFixture,
+);
+bmadCapabilityResultArchetypeSubstitution.documentArtifact.schemaVersion =
+  "sapphirus.bmad-governed-change-set.v1";
+add(
+  "fixtures/invalid/bmad-capability-result-archetype-substitution.json",
+  stableJson(bmadCapabilityResultArchetypeSubstitution),
+);
+
 const modelContextConsentFixture = {
   schemaVersion: "sapphirus.model-context-consent.v1",
   decisionId: "decision_01J00000000000000000000000",
@@ -875,10 +983,19 @@ const catalog = [
   ["valid/model-access-request.json", "model-access-request.schema.json", true, null],
   ["valid/model-access-receipt.json", "model-access-receipt.schema.json", true, null],
   ["valid/model-access-result.json", "model-access-result.schema.json", true, null],
+  ["valid/bmad-capability-run.json", "bmad-capability-run.schema.json", true, null],
+  ["valid/bmad-capability-result-document.json", "bmad-capability-result.schema.json", true, null],
+  ["valid/bmad-capability-result-changes.json", "bmad-capability-result.schema.json", true, null],
+  ["valid/bmad-capability-result-builder-draft.json", "bmad-capability-result.schema.json", true, null],
   ["invalid/desktop-registration-unknown-property.json", "desktop-device-registration.schema.json", false, "UNKNOWN_PROPERTY"],
   ["invalid/desktop-registration-malformed-public-key.json", "desktop-device-registration.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/model-access-request-unsafe-relative-label.json", "model-access-request.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/model-context-consent-malformed-signature.json", "model-context-consent.schema.json", false, "PATTERN_MISMATCH"],
+  ["invalid/bmad-capability-run-unknown-property.json", "bmad-capability-run.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/bmad-capability-run-forged-capability-id.json", "bmad-capability-run.schema.json", false, "PATTERN_MISMATCH"],
+  ["invalid/bmad-capability-result-absolute-path.json", "bmad-capability-result.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/bmad-capability-result-authority-claim.json", "bmad-capability-result.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/bmad-capability-result-archetype-substitution.json", "bmad-capability-result.schema.json", false, "ONE_OF_MISMATCH"],
   ["invalid/unknown-discriminator.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/authority-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
   ["invalid/workspace-target-mismatch.json", "candidate-action.schema.json", false, "CONST_MISMATCH"],
@@ -1975,11 +2092,11 @@ if (!typescriptOnly) {
     typescriptCompiler: "typescript@7.0.2",
     typescript:
       "json-schema-to-typescript@15.0.4; ignoreMinAndMaxItems=true; unreachableDefinitions=false",
-    typescriptValidator: "ajv@8.17.1",
+    typescriptValidator: "ajv@8.20.0",
     rust: "cargo-typify@0.6.1",
     rustValidator: "jsonschema@0.44.1",
-    dotnet: "Corvus.Json.Cli@5.1.0",
-    dotnetRuntime: "Corvus.Text.Json@5.1.0",
+    dotnet: "Corvus.Json.Cli@5.2.7",
+    dotnetRuntime: "Corvus.Text.Json@5.2.7",
   },
   toolLockSha256: await toolLockDigest(),
   generationConfigSha256: nativeGeneration.configDigest,
@@ -1995,16 +2112,16 @@ if (!typescriptOnly) {
   },
   toolchain: {
     node: "24.18.0",
-    pnpm: "11.12.0",
+    pnpm: "11.15.1",
     typescript: "7.0.2",
     jsonSchemaToTypescript: "15.0.4",
-    ajv: "8.17.1",
+    ajv: "8.20.0",
     rust: "1.97.0",
     cargoTypify: "0.6.1",
     rustJsonschema: "0.44.1",
     dotnetSdk: "10.0.302",
-    corvusJsonCli: "5.1.0",
-    corvusTextJson: "5.1.0",
+    corvusJsonCli: "5.2.7",
+    corvusTextJson: "5.2.7",
   },
   languageCoverage: {
     typescript: {

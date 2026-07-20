@@ -409,7 +409,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>externalValue</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetExternalValue(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source value)
+            public void SetExternalValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source value)
             {
                 CheckValidInstance();
 
@@ -474,7 +474,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>interoperableValue</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInteroperableValue(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source value)
+            public void SetInteroperableValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -505,7 +505,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>items</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetItems(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source value)
+            public void SetItems(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -570,7 +570,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>label</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetLabel(in Sapphirus.GeneratorQualification.Generated.JsonString.Source value)
+            public void SetLabel(scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source value)
             {
                 CheckValidInstance();
 
@@ -601,7 +601,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>node</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetNode(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source value)
+            public void SetNode(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source value)
             {
                 CheckValidInstance();
 
@@ -666,7 +666,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>nullableValue</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetNullableValue(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source value)
+            public void SetNullableValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -697,7 +697,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SchemaVersionEntity.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SchemaVersionEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -728,7 +728,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>signedValue</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSignedValue(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source value)
+            public void SetSignedValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -759,7 +759,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>unsignedValue</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetUnsignedValue(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source value)
+            public void SetUnsignedValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -790,7 +790,7 @@ public readonly partial struct GeneratorQualification
             /// Set the <c>variant</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetVariant(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source value)
+            public void SetVariant(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -998,12 +998,22 @@ public readonly partial struct GeneratorQualification
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source _createArg1;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source _createArg2;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source _createArg3;
+            private readonly Sapphirus.GeneratorQualification.Generated.JsonString.Source _createArg4;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source _createArg5;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source _createArg6;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source _createArg7;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source _createArg8;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source _createArg9;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1017,6 +1027,20 @@ public readonly partial struct GeneratorQualification
             }
 
             internal Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source arg1, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source arg2, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source arg3, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source arg4, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source arg5, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source arg6, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source arg7, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source arg8, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source arg9)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(OneOf0Entity instance) => new(JsonElement.From(instance));
 
@@ -1032,6 +1056,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1050,6 +1081,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1068,6 +1106,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1086,6 +1131,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1104,6 +1156,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1121,12 +1180,22 @@ public readonly partial struct GeneratorQualification
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source<TContext> _createArg1;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source _createArg2;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source<TContext> _createArg3;
+            private readonly Sapphirus.GeneratorQualification.Generated.JsonString.Source _createArg4;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source<TContext> _createArg5;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source _createArg6;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source _createArg7;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source _createArg8;
+            private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source<TContext> _createArg9;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1138,6 +1207,21 @@ public readonly partial struct GeneratorQualification
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source<TContext> arg1, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source arg2, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source<TContext> arg3, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source arg4, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source<TContext> arg5, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source arg6, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source arg7, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source arg8, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source<TContext> arg9)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1151,6 +1235,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1169,6 +1260,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1187,6 +1285,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1205,6 +1310,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1223,6 +1335,13 @@ public readonly partial struct GeneratorQualification
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1366,6 +1485,51 @@ public readonly partial struct GeneratorQualification
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source arg1, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source arg2, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source arg3, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source arg4, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source arg5, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source arg6, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source arg7, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source arg8, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source arg9, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source<TContext> arg1, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source arg2, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source<TContext> arg3, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source arg4, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source<TContext> arg5, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source arg6, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source arg7, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source arg8, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source<TContext> arg9, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -1395,6 +1559,47 @@ public readonly partial struct GeneratorQualification
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="externalValue">The value of the <c>"externalValue"</c> property.</param>
+        /// <param name="interoperableValue">The value of the <c>"interoperableValue"</c> property.</param>
+        /// <param name="items">The value of the <c>"items"</c> property.</param>
+        /// <param name="label">The value of the <c>"label"</c> property.</param>
+        /// <param name="node">The value of the <c>"node"</c> property.</param>
+        /// <param name="nullableValue">The value of the <c>"nullableValue"</c> property.</param>
+        /// <param name="signedValue">The value of the <c>"signedValue"</c> property.</param>
+        /// <param name="unsignedValue">The value of the <c>"unsignedValue"</c> property.</param>
+        /// <param name="variant">The value of the <c>"variant"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source externalValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source interoperableValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source items, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source label, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source node, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source nullableValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source signedValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source unsignedValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source variant)
+        {
+            return new Source(externalValue, interoperableValue, items, label, node, nullableValue, signedValue, unsignedValue, variant);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="externalValue">The value of the <c>"externalValue"</c> property.</param>
+        /// <param name="interoperableValue">The value of the <c>"interoperableValue"</c> property.</param>
+        /// <param name="items">The value of the <c>"items"</c> property.</param>
+        /// <param name="label">The value of the <c>"label"</c> property.</param>
+        /// <param name="node">The value of the <c>"node"</c> property.</param>
+        /// <param name="nullableValue">The value of the <c>"nullableValue"</c> property.</param>
+        /// <param name="signedValue">The value of the <c>"signedValue"</c> property.</param>
+        /// <param name="unsignedValue">The value of the <c>"unsignedValue"</c> property.</param>
+        /// <param name="variant">The value of the <c>"variant"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source<TContext> externalValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source interoperableValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source<TContext> items, scoped in Sapphirus.GeneratorQualification.Generated.JsonString.Source label, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source<TContext> node, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source nullableValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source signedValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source unsignedValue, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source<TContext> variant)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, externalValue, interoperableValue, items, label, node, nullableValue, signedValue, unsignedValue, variant);
         }
 
         /// <summary>
@@ -1532,6 +1737,160 @@ public readonly partial struct GeneratorQualification
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<OneOf0Entity, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<OneOf0Entity> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<OneOf0Entity>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<OneOf0Entity> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<OneOf0Entity>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<OneOf0Entity> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<OneOf0Entity>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="externalValue">The value of the property.</param>
+        /// <param name="interoperableValue">The value of the property.</param>
+        /// <param name="items">The value of the property.</param>
+        /// <param name="label">The value of the property.</param>
+        /// <param name="node">The value of the property.</param>
+        /// <param name="nullableValue">The value of the property.</param>
+        /// <param name="signedValue">The value of the property.</param>
+        /// <param name="unsignedValue">The value of the property.</param>
+        /// <param name="variant">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<OneOf0Entity> Create(in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source externalValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source interoperableValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source items, in Sapphirus.GeneratorQualification.Generated.JsonString.Source label, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source node, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source nullableValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source signedValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source unsignedValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source variant, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(externalValue, interoperableValue, items, label, node, nullableValue, signedValue, unsignedValue, variant);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<OneOf0Entity>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="externalValue">The value of the property.</param>
+        /// <param name="interoperableValue">The value of the property.</param>
+        /// <param name="items">The value of the property.</param>
+        /// <param name="label">The value of the property.</param>
+        /// <param name="node">The value of the property.</param>
+        /// <param name="nullableValue">The value of the property.</param>
+        /// <param name="signedValue">The value of the property.</param>
+        /// <param name="unsignedValue">The value of the property.</param>
+        /// <param name="variant">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<OneOf0Entity> Create<TContext>(in TContext context, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.QualificationExternalExternalValue.Source<TContext> externalValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.InteroperableValueEntity.Source interoperableValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.ItemsArray.Source<TContext> items, in Sapphirus.GeneratorQualification.Generated.JsonString.Source label, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Source<TContext> node, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.NullableValueEntity.Source nullableValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.SignedValueEntity.Source signedValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.UnsignedValueEntity.Source unsignedValue, in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.OneOf0Entity.VariantEntity.Source<TContext> variant, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, externalValue, interoperableValue, items, label, node, nullableValue, signedValue, unsignedValue, variant);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<OneOf0Entity>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

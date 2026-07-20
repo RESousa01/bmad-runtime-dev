@@ -493,7 +493,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>createdAt</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCreatedAt(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
+            public void SetCreatedAt(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
             {
                 CheckValidInstance();
 
@@ -524,7 +524,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>failureCode</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetFailureCode(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source value)
+            public void SetFailureCode(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -555,7 +555,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>failureEvidenceHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetFailureEvidenceHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetFailureEvidenceHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -586,7 +586,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetHandoffHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -617,7 +617,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetHandoffId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -648,7 +648,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source value)
+            public void SetHandoffVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source value)
             {
                 CheckValidInstance();
 
@@ -679,7 +679,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>previousHandoffHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPreviousHandoffHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source value)
+            public void SetPreviousHandoffHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source value)
             {
                 CheckValidInstance();
 
@@ -710,7 +710,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffSchemaVersion.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffSchemaVersion.Source value)
             {
                 CheckValidInstance();
 
@@ -741,7 +741,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceAuthority</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceAuthority(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
+            public void SetSourceAuthority(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
             {
                 CheckValidInstance();
 
@@ -806,7 +806,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceCheckpointId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceCheckpointId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceCheckpointId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -837,7 +837,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceProjectId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceProjectId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceProjectId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -868,7 +868,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceRunId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceRunId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceRunId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -899,7 +899,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceWorkspaceManifestHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceWorkspaceManifestHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSourceWorkspaceManifestHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -930,7 +930,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>state</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetState(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source value)
+            public void SetState(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1104,12 +1104,26 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source _createArg13;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1123,6 +1137,24 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source arg13)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(RemoteJobHandoffFailedHandoff instance) => new(JsonElement.From(instance));
 
@@ -1138,6 +1170,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1156,6 +1195,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1174,6 +1220,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1192,6 +1245,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1210,6 +1270,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1227,12 +1294,26 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source _createArg13;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1244,6 +1325,25 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source arg13)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1257,6 +1357,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1275,6 +1382,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1293,6 +1407,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1311,6 +1432,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1329,6 +1457,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1496,6 +1631,59 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source arg13, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source arg13, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -1525,6 +1713,55 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="createdAt">The value of the <c>"createdAt"</c> property.</param>
+        /// <param name="failureCode">The value of the <c>"failureCode"</c> property.</param>
+        /// <param name="failureEvidenceHash">The value of the <c>"failureEvidenceHash"</c> property.</param>
+        /// <param name="handoffHash">The value of the <c>"handoffHash"</c> property.</param>
+        /// <param name="handoffId">The value of the <c>"handoffId"</c> property.</param>
+        /// <param name="handoffVersion">The value of the <c>"handoffVersion"</c> property.</param>
+        /// <param name="previousHandoffHash">The value of the <c>"previousHandoffHash"</c> property.</param>
+        /// <param name="sourceAuthority">The value of the <c>"sourceAuthority"</c> property.</param>
+        /// <param name="sourceCheckpointId">The value of the <c>"sourceCheckpointId"</c> property.</param>
+        /// <param name="sourceProjectId">The value of the <c>"sourceProjectId"</c> property.</param>
+        /// <param name="sourceRunId">The value of the <c>"sourceRunId"</c> property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the <c>"sourceWorkspaceManifestHash"</c> property.</param>
+        /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source failureCode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source failureEvidenceHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source sourceAuthority, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source state)
+        {
+            return new Source(createdAt, failureCode, failureEvidenceHash, handoffHash, handoffId, handoffVersion, previousHandoffHash, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="createdAt">The value of the <c>"createdAt"</c> property.</param>
+        /// <param name="failureCode">The value of the <c>"failureCode"</c> property.</param>
+        /// <param name="failureEvidenceHash">The value of the <c>"failureEvidenceHash"</c> property.</param>
+        /// <param name="handoffHash">The value of the <c>"handoffHash"</c> property.</param>
+        /// <param name="handoffId">The value of the <c>"handoffId"</c> property.</param>
+        /// <param name="handoffVersion">The value of the <c>"handoffVersion"</c> property.</param>
+        /// <param name="previousHandoffHash">The value of the <c>"previousHandoffHash"</c> property.</param>
+        /// <param name="sourceAuthority">The value of the <c>"sourceAuthority"</c> property.</param>
+        /// <param name="sourceCheckpointId">The value of the <c>"sourceCheckpointId"</c> property.</param>
+        /// <param name="sourceProjectId">The value of the <c>"sourceProjectId"</c> property.</param>
+        /// <param name="sourceRunId">The value of the <c>"sourceRunId"</c> property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the <c>"sourceWorkspaceManifestHash"</c> property.</param>
+        /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source failureCode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source failureEvidenceHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> sourceAuthority, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source state)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, createdAt, failureCode, failureEvidenceHash, handoffHash, handoffId, handoffVersion, previousHandoffHash, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state);
         }
 
         /// <summary>
@@ -1670,6 +1907,168 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<RemoteJobHandoffFailedHandoff, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffFailedHandoff> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffFailedHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffFailedHandoff> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffFailedHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffFailedHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffFailedHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="failureCode">The value of the property.</param>
+        /// <param name="failureEvidenceHash">The value of the property.</param>
+        /// <param name="handoffHash">The value of the property.</param>
+        /// <param name="handoffId">The value of the property.</param>
+        /// <param name="handoffVersion">The value of the property.</param>
+        /// <param name="previousHandoffHash">The value of the property.</param>
+        /// <param name="sourceAuthority">The value of the property.</param>
+        /// <param name="sourceCheckpointId">The value of the property.</param>
+        /// <param name="sourceProjectId">The value of the property.</param>
+        /// <param name="sourceRunId">The value of the property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffFailedHandoff> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source failureCode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source failureEvidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source sourceAuthority, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source state, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(createdAt, failureCode, failureEvidenceHash, handoffHash, handoffId, handoffVersion, previousHandoffHash, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffFailedHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="failureCode">The value of the property.</param>
+        /// <param name="failureEvidenceHash">The value of the property.</param>
+        /// <param name="handoffHash">The value of the property.</param>
+        /// <param name="handoffId">The value of the property.</param>
+        /// <param name="handoffVersion">The value of the property.</param>
+        /// <param name="previousHandoffHash">The value of the property.</param>
+        /// <param name="sourceAuthority">The value of the property.</param>
+        /// <param name="sourceCheckpointId">The value of the property.</param>
+        /// <param name="sourceProjectId">The value of the property.</param>
+        /// <param name="sourceRunId">The value of the property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffFailedHandoff> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.FailureCodeEntity.Source failureCode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source failureEvidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> sourceAuthority, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffFailedHandoff.StateEntity.Source state, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, createdAt, failureCode, failureEvidenceHash, handoffHash, handoffId, handoffVersion, previousHandoffHash, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffFailedHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

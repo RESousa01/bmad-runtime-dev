@@ -20,11 +20,16 @@ permissions:
   actions: read
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-signed-installer:
     if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
     environment: windows-signing
     runs-on: [self-hosted, windows, x64, sapphirus-signing]
+    timeout-minutes: 180
     outputs:
       product_version: ${{ steps.release-metadata.outputs.product_version }}
       installer_name: ${{ steps.release-metadata.outputs.installer_name }}
@@ -34,7 +39,7 @@ jobs:
       SAPPHIRUS_TIMESTAMP_URL: ${{ vars.SAPPHIRUS_TIMESTAMP_URL }}
       SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - name: Assert exact protected source
@@ -47,11 +52,11 @@ jobs:
           if (@(git status --porcelain --untracked-files=normal).Count -ne 0) {
             throw 'Signing checkout is not clean.'
           }
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
-          version: 11.12.0
+          version: 11.15.1
           run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -76,7 +81,7 @@ jobs:
           ./tools/build-signed-windows-installer.ps1
           -SbomPath "${{ runner.temp }}/${{ steps.release-metadata.outputs.sbom_name }}"
           -EvidencePath "${{ runner.temp }}/sapphirus-signed-build-evidence.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-current-source-candidate-${{ github.sha }}
           path: |
@@ -92,6 +97,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
     environment: windows-release-qualification
     runs-on: [self-hosted, windows, x64, sapphirus-qualification]
+    timeout-minutes: 120
     env:
       SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
       SAPPHIRUS_RELEASE_VERSION: ${{ needs.build-signed-installer.outputs.product_version }}
@@ -99,14 +105,14 @@ jobs:
       SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
       SAPPHIRUS_PRIOR_VERSION: ${{ inputs.prior_version }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-current-source-candidate-${{ github.sha }}
           path: ${{ runner.temp }}/sapphirus-current-installer
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ inputs.prior_artifact_name }}
           path: ${{ runner.temp }}/sapphirus-prior-installer
@@ -161,7 +167,7 @@ jobs:
           ) {
             throw 'Lifecycle evidence does not describe the exact signed build artifacts.'
           }
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-installer-qualification-${{ github.sha }}
           path: |
@@ -174,7 +180,8 @@ jobs:
   attest-qualified-installer:
     needs: [build-signed-installer, qualify-signed-installer]
     if: ${{ github.ref == 'refs/heads/main' && vars.SAPPHIRUS_NATIVE_LANE_ENABLED == 'true' && vars.SAPPHIRUS_SIGNING_LANE_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     permissions:
       actions: read
       attestations: write
@@ -184,12 +191,14 @@ jobs:
       SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
       SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-current-source-candidate-${{ github.sha }}
           path: ${{ runner.temp }}/sapphirus-attestation-candidate
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-installer-qualification-${{ github.sha }}
           path: ${{ runner.temp }}/sapphirus-attestation-qualification
@@ -232,14 +241,14 @@ jobs:
             --output "$RUNNER_TEMP/sapphirus-release-qualification-predicate.json"
       - name: Attest build provenance
         id: provenance
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
           subject-path: |
             ${{ steps.subjects.outputs.installer }}
             ${{ steps.subjects.outputs.application }}
       - name: Attest SBOM
         id: sbom-attestation
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-path: |
             ${{ steps.subjects.outputs.installer }}
@@ -247,14 +256,14 @@ jobs:
           sbom-path: ${{ steps.subjects.outputs.sbom }}
       - name: Attest qualified release identities and lifecycle evidence
         id: qualification-attestation
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-path: |
             ${{ steps.subjects.outputs.installer }}
             ${{ steps.subjects.outputs.application }}
           predicate-type: https://sapphirus.dev/attestations/release-qualification/v1
           predicate-path: ${{ runner.temp }}/sapphirus-release-qualification-predicate.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-installer-attestations-${{ github.sha }}
           path: |

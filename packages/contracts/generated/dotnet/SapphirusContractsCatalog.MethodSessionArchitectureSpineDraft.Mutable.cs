@@ -703,7 +703,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>altitude</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetAltitude(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source value)
+            public void SetAltitude(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -734,7 +734,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>artifactKind</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetArtifactKind(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ArtifactKindEntity.Source value)
+            public void SetArtifactKind(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ArtifactKindEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -765,7 +765,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>binds</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetBinds(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source value)
+            public void SetBinds(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -830,7 +830,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>capabilityMap</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCapabilityMap(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source value)
+            public void SetCapabilityMap(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source value)
             {
                 CheckValidInstance();
 
@@ -895,7 +895,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>checkpointHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCheckpointHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetCheckpointHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -926,7 +926,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>conventions</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetConventions(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source value)
+            public void SetConventions(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -991,7 +991,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>createdAt</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCreatedAt(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
+            public void SetCreatedAt(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
             {
                 CheckValidInstance();
 
@@ -1022,7 +1022,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>decisions</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDecisions(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source value)
+            public void SetDecisions(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1087,7 +1087,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>deferred</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDeferred(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source value)
+            public void SetDeferred(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1152,7 +1152,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>inheritedInvariants</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInheritedInvariants(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source value)
+            public void SetInheritedInvariants(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1217,7 +1217,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>name</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetName(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source value)
+            public void SetName(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1248,7 +1248,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>openItems</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetOpenItems(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source value)
+            public void SetOpenItems(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1313,7 +1313,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>paradigm</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetParadigm(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source value)
+            public void SetParadigm(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1344,7 +1344,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>purpose</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPurpose(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source value)
+            public void SetPurpose(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1375,7 +1375,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>revisionOrdinal</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRevisionOrdinal(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source value)
+            public void SetRevisionOrdinal(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1406,7 +1406,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>scope</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetScope(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source value)
+            public void SetScope(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1437,7 +1437,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sessionId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSessionId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSessionId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1468,7 +1468,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceContextDigest</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceContextDigest(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSourceContextDigest(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1499,7 +1499,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>spineArtifactRef</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSpineArtifactRef(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source value)
+            public void SetSpineArtifactRef(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source value)
             {
                 CheckValidInstance();
 
@@ -1564,7 +1564,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>spineDraftId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSpineDraftId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSpineDraftId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1595,7 +1595,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>spineHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSpineHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSpineHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1626,7 +1626,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>stack</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetStack(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source value)
+            public void SetStack(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1691,7 +1691,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>structuralSeeds</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetStructuralSeeds(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source value)
+            public void SetStructuralSeeds(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1756,7 +1756,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>workingMode</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetWorkingMode(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source value)
+            public void SetWorkingMode(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1930,12 +1930,36 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source _createArg18;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg19;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg20;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source _createArg21;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source _createArg22;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source _createArg23;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1949,6 +1973,34 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg19, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg20, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source arg21, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source arg22, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source arg23)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _createArg19 = arg19;
+                _createArg20 = arg20;
+                _createArg21 = arg21;
+                _createArg22 = arg22;
+                _createArg23 = arg23;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(MethodSessionArchitectureSpineDraft instance) => new(JsonElement.From(instance));
 
@@ -1964,6 +2016,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1982,6 +2041,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2000,6 +2066,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2018,6 +2091,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2036,6 +2116,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2053,12 +2140,36 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source<TContext> _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source<TContext> _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source<TContext> _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source<TContext> _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source<TContext> _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source<TContext> _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source<TContext> _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source<TContext> _createArg18;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg19;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg20;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source<TContext> _createArg21;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source<TContext> _createArg22;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source _createArg23;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -2070,6 +2181,35 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source<TContext> arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source<TContext> arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source<TContext> arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source<TContext> arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg19, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg20, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source<TContext> arg21, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source<TContext> arg22, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source arg23)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _createArg19 = arg19;
+                _createArg20 = arg20;
+                _createArg21 = arg21;
+                _createArg22 = arg22;
+                _createArg23 = arg23;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -2083,6 +2223,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2101,6 +2248,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2119,6 +2273,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2137,6 +2298,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2155,6 +2323,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, _createArg20, _createArg21, _createArg22, _createArg23, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2382,6 +2557,79 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="arg19">The value of the property.</param>
+            /// <param name="arg20">The value of the property.</param>
+            /// <param name="arg21">The value of the property.</param>
+            /// <param name="arg22">The value of the property.</param>
+            /// <param name="arg23">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg19, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg20, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source arg21, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source arg22, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source arg23, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="arg19">The value of the property.</param>
+            /// <param name="arg20">The value of the property.</param>
+            /// <param name="arg21">The value of the property.</param>
+            /// <param name="arg22">The value of the property.</param>
+            /// <param name="arg23">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source<TContext> arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source<TContext> arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source<TContext> arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source<TContext> arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg19, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg20, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source<TContext> arg21, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source<TContext> arg22, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source arg23, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -2411,6 +2659,75 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="altitude">The value of the <c>"altitude"</c> property.</param>
+        /// <param name="binds">The value of the <c>"binds"</c> property.</param>
+        /// <param name="capabilityMap">The value of the <c>"capabilityMap"</c> property.</param>
+        /// <param name="checkpointHash">The value of the <c>"checkpointHash"</c> property.</param>
+        /// <param name="conventions">The value of the <c>"conventions"</c> property.</param>
+        /// <param name="createdAt">The value of the <c>"createdAt"</c> property.</param>
+        /// <param name="decisions">The value of the <c>"decisions"</c> property.</param>
+        /// <param name="deferred">The value of the <c>"deferred"</c> property.</param>
+        /// <param name="inheritedInvariants">The value of the <c>"inheritedInvariants"</c> property.</param>
+        /// <param name="name">The value of the <c>"name"</c> property.</param>
+        /// <param name="openItems">The value of the <c>"openItems"</c> property.</param>
+        /// <param name="paradigm">The value of the <c>"paradigm"</c> property.</param>
+        /// <param name="purpose">The value of the <c>"purpose"</c> property.</param>
+        /// <param name="revisionOrdinal">The value of the <c>"revisionOrdinal"</c> property.</param>
+        /// <param name="scope">The value of the <c>"scope"</c> property.</param>
+        /// <param name="sessionId">The value of the <c>"sessionId"</c> property.</param>
+        /// <param name="sourceContextDigest">The value of the <c>"sourceContextDigest"</c> property.</param>
+        /// <param name="spineArtifactRef">The value of the <c>"spineArtifactRef"</c> property.</param>
+        /// <param name="spineDraftId">The value of the <c>"spineDraftId"</c> property.</param>
+        /// <param name="spineHash">The value of the <c>"spineHash"</c> property.</param>
+        /// <param name="stack">The value of the <c>"stack"</c> property.</param>
+        /// <param name="structuralSeeds">The value of the <c>"structuralSeeds"</c> property.</param>
+        /// <param name="workingMode">The value of the <c>"workingMode"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source altitude, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source binds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source capabilityMap, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source checkpointHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source conventions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source decisions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source deferred, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source inheritedInvariants, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source name, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source openItems, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source paradigm, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source purpose, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source revisionOrdinal, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source scope, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceContextDigest, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source spineArtifactRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source spineDraftId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source spineHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source stack, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source structuralSeeds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source workingMode)
+        {
+            return new Source(altitude, binds, capabilityMap, checkpointHash, conventions, createdAt, decisions, deferred, inheritedInvariants, name, openItems, paradigm, purpose, revisionOrdinal, scope, sessionId, sourceContextDigest, spineArtifactRef, spineDraftId, spineHash, stack, structuralSeeds, workingMode);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="altitude">The value of the <c>"altitude"</c> property.</param>
+        /// <param name="binds">The value of the <c>"binds"</c> property.</param>
+        /// <param name="capabilityMap">The value of the <c>"capabilityMap"</c> property.</param>
+        /// <param name="checkpointHash">The value of the <c>"checkpointHash"</c> property.</param>
+        /// <param name="conventions">The value of the <c>"conventions"</c> property.</param>
+        /// <param name="createdAt">The value of the <c>"createdAt"</c> property.</param>
+        /// <param name="decisions">The value of the <c>"decisions"</c> property.</param>
+        /// <param name="deferred">The value of the <c>"deferred"</c> property.</param>
+        /// <param name="inheritedInvariants">The value of the <c>"inheritedInvariants"</c> property.</param>
+        /// <param name="name">The value of the <c>"name"</c> property.</param>
+        /// <param name="openItems">The value of the <c>"openItems"</c> property.</param>
+        /// <param name="paradigm">The value of the <c>"paradigm"</c> property.</param>
+        /// <param name="purpose">The value of the <c>"purpose"</c> property.</param>
+        /// <param name="revisionOrdinal">The value of the <c>"revisionOrdinal"</c> property.</param>
+        /// <param name="scope">The value of the <c>"scope"</c> property.</param>
+        /// <param name="sessionId">The value of the <c>"sessionId"</c> property.</param>
+        /// <param name="sourceContextDigest">The value of the <c>"sourceContextDigest"</c> property.</param>
+        /// <param name="spineArtifactRef">The value of the <c>"spineArtifactRef"</c> property.</param>
+        /// <param name="spineDraftId">The value of the <c>"spineDraftId"</c> property.</param>
+        /// <param name="spineHash">The value of the <c>"spineHash"</c> property.</param>
+        /// <param name="stack">The value of the <c>"stack"</c> property.</param>
+        /// <param name="structuralSeeds">The value of the <c>"structuralSeeds"</c> property.</param>
+        /// <param name="workingMode">The value of the <c>"workingMode"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source altitude, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source<TContext> binds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source<TContext> capabilityMap, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source checkpointHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source<TContext> conventions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source<TContext> decisions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source<TContext> deferred, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source<TContext> inheritedInvariants, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source name, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source<TContext> openItems, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source paradigm, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source purpose, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source revisionOrdinal, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source scope, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceContextDigest, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source<TContext> spineArtifactRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source spineDraftId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source spineHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source<TContext> stack, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source<TContext> structuralSeeds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source workingMode)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, altitude, binds, capabilityMap, checkpointHash, conventions, createdAt, decisions, deferred, inheritedInvariants, name, openItems, paradigm, purpose, revisionOrdinal, scope, sessionId, sourceContextDigest, spineArtifactRef, spineDraftId, spineHash, stack, structuralSeeds, workingMode);
         }
 
         /// <summary>
@@ -2576,6 +2893,188 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<MethodSessionArchitectureSpineDraft, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<MethodSessionArchitectureSpineDraft> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<MethodSessionArchitectureSpineDraft>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<MethodSessionArchitectureSpineDraft> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<MethodSessionArchitectureSpineDraft>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<MethodSessionArchitectureSpineDraft> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<MethodSessionArchitectureSpineDraft>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="altitude">The value of the property.</param>
+        /// <param name="binds">The value of the property.</param>
+        /// <param name="capabilityMap">The value of the property.</param>
+        /// <param name="checkpointHash">The value of the property.</param>
+        /// <param name="conventions">The value of the property.</param>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="decisions">The value of the property.</param>
+        /// <param name="deferred">The value of the property.</param>
+        /// <param name="inheritedInvariants">The value of the property.</param>
+        /// <param name="name">The value of the property.</param>
+        /// <param name="openItems">The value of the property.</param>
+        /// <param name="paradigm">The value of the property.</param>
+        /// <param name="purpose">The value of the property.</param>
+        /// <param name="revisionOrdinal">The value of the property.</param>
+        /// <param name="scope">The value of the property.</param>
+        /// <param name="sessionId">The value of the property.</param>
+        /// <param name="sourceContextDigest">The value of the property.</param>
+        /// <param name="spineArtifactRef">The value of the property.</param>
+        /// <param name="spineDraftId">The value of the property.</param>
+        /// <param name="spineHash">The value of the property.</param>
+        /// <param name="stack">The value of the property.</param>
+        /// <param name="structuralSeeds">The value of the property.</param>
+        /// <param name="workingMode">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<MethodSessionArchitectureSpineDraft> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source altitude, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source binds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source capabilityMap, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source checkpointHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source conventions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source decisions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source deferred, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source inheritedInvariants, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source name, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source openItems, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source paradigm, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source purpose, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source revisionOrdinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source scope, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceContextDigest, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source spineArtifactRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source spineDraftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source spineHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source stack, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source structuralSeeds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source workingMode, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(altitude, binds, capabilityMap, checkpointHash, conventions, createdAt, decisions, deferred, inheritedInvariants, name, openItems, paradigm, purpose, revisionOrdinal, scope, sessionId, sourceContextDigest, spineArtifactRef, spineDraftId, spineHash, stack, structuralSeeds, workingMode);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<MethodSessionArchitectureSpineDraft>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="altitude">The value of the property.</param>
+        /// <param name="binds">The value of the property.</param>
+        /// <param name="capabilityMap">The value of the property.</param>
+        /// <param name="checkpointHash">The value of the property.</param>
+        /// <param name="conventions">The value of the property.</param>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="decisions">The value of the property.</param>
+        /// <param name="deferred">The value of the property.</param>
+        /// <param name="inheritedInvariants">The value of the property.</param>
+        /// <param name="name">The value of the property.</param>
+        /// <param name="openItems">The value of the property.</param>
+        /// <param name="paradigm">The value of the property.</param>
+        /// <param name="purpose">The value of the property.</param>
+        /// <param name="revisionOrdinal">The value of the property.</param>
+        /// <param name="scope">The value of the property.</param>
+        /// <param name="sessionId">The value of the property.</param>
+        /// <param name="sourceContextDigest">The value of the property.</param>
+        /// <param name="spineArtifactRef">The value of the property.</param>
+        /// <param name="spineDraftId">The value of the property.</param>
+        /// <param name="spineHash">The value of the property.</param>
+        /// <param name="stack">The value of the property.</param>
+        /// <param name="structuralSeeds">The value of the property.</param>
+        /// <param name="workingMode">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<MethodSessionArchitectureSpineDraft> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.AltitudeEntity.Source altitude, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.BindsArray.Source<TContext> binds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.CapabilityMapArray.Source<TContext> capabilityMap, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source checkpointHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ConventionsArray.Source<TContext> conventions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DecisionsArray.Source<TContext> decisions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.DeferredArray.Source<TContext> deferred, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.InheritedInvariantsArray.Source<TContext> inheritedInvariants, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.NameEntity.Source name, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.OpenItemsArray.Source<TContext> openItems, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ParadigmEntity.Source paradigm, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.PurposeEntity.Source purpose, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.RevisionOrdinalEntity.Source revisionOrdinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.ScopeEntity.Source scope, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceContextDigest, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonArtifactRef.Source<TContext> spineArtifactRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source spineDraftId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source spineHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StackArray.Source<TContext> stack, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.StructuralSeedsArray.Source<TContext> structuralSeeds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionArchitectureSpineDraft.WorkingModeEntity.Source workingMode, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, altitude, binds, capabilityMap, checkpointHash, conventions, createdAt, decisions, deferred, inheritedInvariants, name, openItems, paradigm, purpose, revisionOrdinal, scope, sessionId, sourceContextDigest, spineArtifactRef, spineDraftId, spineHash, stack, structuralSeeds, workingMode);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<MethodSessionArchitectureSpineDraft>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

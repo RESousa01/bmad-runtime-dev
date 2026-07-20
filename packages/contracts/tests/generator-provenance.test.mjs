@@ -47,15 +47,15 @@ const expectedToolLock = Object.freeze({
     versionExitCode: 0,
   }),
   dotnet: Object.freeze({
-    identity: "Corvus.Json.Cli@5.1.0",
+    identity: "Corvus.Json.Cli@5.2.7",
     packageId: "Corvus.Json.Cli",
-    version: "5.1.0",
+    version: "5.2.7",
     command: "corvusjson",
     toolManifest: ".config/dotnet-tools.json",
     packageSource: "nuget.org",
-    packageSha256: "d621eb857fcb073ebd6f59d4b820e339df8725a1a466c031f981cca2cd517343",
+    packageSha256: "dfda21e11bc03c3d28ecb818ff6634247e149119b1cf9408d49010c7f2416c57",
     packageSha512:
-      "CSFbHpadwPMujU7EVXBRq86B+dRFXQ+FUU57e0YGA5mQGbIoUWGpCXqTiJNR3gMaK2UnB8epeFD7AqVGPgCmLA==",
+      "Gok55yzooHkoEpz8pSWqjUVI1RKf7v93FgZx3dv4pnsN23fLCGGPRNJ1pl33B0ZhzbD361/uEsMOhXaCrnG21g==",
     sdkExecutable: "C:/Program Files/dotnet/dotnet.exe",
     sdkAuthenticode: Object.freeze({
       status: "Valid",
@@ -68,7 +68,7 @@ const expectedToolLock = Object.freeze({
       archivePrefix: "tools/net10.0/any/",
       entryPoint: "Corvus.Json.Cli.dll",
       fileCount: 359,
-      treeSha256: "d78b66ac06257175cbaa668c1c0946e03048d03cce1c7cce59cf3e537427dfc3",
+      treeSha256: "3b4d31d9bdeef8592efe37470d7d0c34340f11ec987d99a72d35c5688107d426",
     }),
     versionArguments: Object.freeze(["version"]),
     versionExitCode: 1,
@@ -469,7 +469,7 @@ test("tool-lock validation rejects substitution, truncation, and unrelated evide
 
   const mutations = [
     ["Rust version prefix", (lock) => { lock.tools.rust.version = "0.6.10"; }],
-    ["C# version suffix", (lock) => { lock.tools.dotnet.version = "5.1.00"; }],
+    ["C# version suffix", (lock) => { lock.tools.dotnet.version = "5.2.70"; }],
     [
       "global Rust executable",
       (lock) => { lock.tools.rust.resolvedExecutable = "C:/Users/example/.cargo/bin/cargo-typify.exe"; },
@@ -516,7 +516,7 @@ test("BMAD-G0 .NET tool manifest binds the exact Corvus package and command", as
       manifestVersion: 1,
       packageKeys: ["corvus.json.cli"],
       tool: {
-        version: "5.1.0",
+        version: "5.2.7",
         commands: ["corvusjson"],
         rollForward: false,
       },
@@ -542,8 +542,8 @@ test("BMAD-G0 records cargo-typify 0.6.1 as the exact Rust generator", () => {
   }
 });
 
-test("BMAD-G0 records Corvus.Json.Cli 5.1.0 as the exact C# generator", () => {
-  const expectedIdentity = "Corvus.Json.Cli@5.1.0";
+test("BMAD-G0 records Corvus.Json.Cli 5.2.7 as the exact C# generator", () => {
+  const expectedIdentity = "Corvus.Json.Cli@5.2.7";
 
   assert.deepEqual(
     {
@@ -557,7 +557,7 @@ test("BMAD-G0 records Corvus.Json.Cli 5.1.0 as the exact C# generator", () => {
   );
   for (const source of [generatorSource, schemaLockSource, packageManifestSource]) {
     assert.ok(
-      !source.includes("Corvus.Json.CodeGeneration.Cli@5.1.0"),
+      !source.includes("Corvus.Json.CodeGeneration.Cli@5.2.7"),
       "Legacy Corvus.Json.CodeGeneration.Cli identity remains.",
     );
   }
@@ -632,7 +632,7 @@ test("BMAD-G0 C# qualification project pins its runtime and locked restore", asy
     .map((match) => match[1])
     .find((attributes) => /\bInclude\s*=\s*["']Corvus\.Text\.Json["']/u.test(attributes));
   assert.ok(corvusReference, "C# project must reference Corvus.Text.Json.");
-  assert.match(corvusReference, /\bVersion\s*=\s*["']\[5\.1\.0\]["']/u);
+  assert.match(corvusReference, /\bVersion\s*=\s*["']\[5\.2\.7\]["']/u);
 
   const packageLockArtifact = await loadJsonArtifact(
     "tests/generator-qualification/dotnet/packages.lock.json",
@@ -644,8 +644,8 @@ test("BMAD-G0 C# qualification project pins its runtime and locked restore", asy
     .filter(Boolean);
   assert.ok(lockedCorvusEntries.length > 0, "NuGet lock must contain Corvus.Text.Json.");
   for (const entry of lockedCorvusEntries) {
-    assert.equal(entry.requested, "[5.1.0, 5.1.0]");
-    assert.equal(entry.resolved, "5.1.0");
+    assert.equal(entry.requested, "[5.2.7, 5.2.7]");
+    assert.equal(entry.resolved, "5.2.7");
     assert.equal(typeof entry.contentHash, "string");
     assert.ok(entry.contentHash.length > 0);
   }

@@ -1,0 +1,46 @@
+import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import test from "node:test";
+
+const workflowDirectory = new URL("../.github/workflows/", import.meta.url);
+const workflows = readdirSync(workflowDirectory)
+  .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
+  .map((name) => ({
+    name,
+    source: readFileSync(new URL(name, workflowDirectory), "utf8"),
+  }));
+
+test("workflows use bounded, immutable, current CI primitives", () => {
+  for (const { name, source } of workflows) {
+    assert.match(source, /^concurrency:/mu, `${name} must cancel superseded runs`);
+    assert.doesNotMatch(source, /(?:ubuntu|windows)-latest/u, `${name} must pin its runner image`);
+    assert.doesNotMatch(source, /cargo install cargo-deny/u, `${name} must not compile cargo-deny on every run`);
+    assert.doesNotMatch(source, /sql inspection wired via runbook/u, `${name} must not substitute prose for a gate`);
+
+    const jobsSource = source.split(/^jobs:\s*$/mu)[1] ?? "";
+    const jobCount = [...jobsSource.matchAll(/^  [a-zA-Z][a-zA-Z0-9_-]*:\s*$/gmu)].length;
+    const timeoutCount = [...jobsSource.matchAll(/^    timeout-minutes:\s*\d+\s*$/gmu)].length;
+    assert.equal(timeoutCount, jobCount, `${name} must bound every job with timeout-minutes`);
+
+    for (const action of source.matchAll(/uses:\s*([^\s#]+)(?:\s*#.*)?$/gmu)) {
+      const reference = action[1];
+      if (reference.startsWith("./") || reference.startsWith("docker://")) continue;
+      assert.match(reference, /^[^@]+@[0-9a-f]{40}$/u, `${name} must pin ${reference} by full commit SHA`);
+    }
+  }
+});
+
+test("checkout never leaves a writable repository credential behind", () => {
+  for (const { name, source } of workflows) {
+    const checkoutCount = [...source.matchAll(/uses:\s*actions\/checkout@/gmu)].length;
+    const hardenedCount = [...source.matchAll(/persist-credentials:\s*false/gmu)].length;
+    assert.equal(hardenedCount, checkoutCount, `${name} must disable checkout credential persistence`);
+  }
+});
+
+test("desktop support changes always trigger their own workflow and run a real SQL gate", () => {
+  const source = workflows.find(({ name }) => name === "desktop-support.yml")?.source;
+  assert.ok(source, "desktop-support.yml must exist");
+  assert.match(source, /push:[\s\S]*?\.github\/workflows\/desktop-support\.yml/u);
+  assert.match(source, /sqlcmd[\s\S]*?privacy-sql-inspect\.sql/u);
+});

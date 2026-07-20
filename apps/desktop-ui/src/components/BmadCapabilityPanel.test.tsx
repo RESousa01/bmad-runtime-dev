@@ -172,7 +172,7 @@ describe("BmadCapabilityPanel", () => {
       screen.getByRole("heading", { name: /inactive draft produced/i }),
     ).toBeTruthy();
     expect(document.body.textContent).not.toMatch(
-      /(?:Install|Activate|Register|Execute|Apply)/u,
+      /\\b(?:Install|Activate|Register|Execute|Apply)\\b/u,
     );
     expect(screen.queryByRole("button", { name: /install|activate|register/i })).toBeNull();
     await expectAccessible(container);

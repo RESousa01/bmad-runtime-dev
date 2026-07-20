@@ -208,6 +208,15 @@ public readonly partial struct GeneratorQualification
             }
 
             /// <summary>
+            /// Conversion from the <see cref="Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode"/> mutable view.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static implicit operator NextEntity(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationNode.Mutable value)
+            {
+                return From(value);
+            }
+
+            /// <summary>
             /// Operator ==.
             /// </summary>
             /// <param name="left">The lhs of the operator.</param>
@@ -310,10 +319,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static NextEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<NextEntity>(utf8Json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -333,10 +345,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static NextEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<NextEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -356,10 +371,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the text.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static NextEntity ParseValue(string json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<NextEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -397,9 +415,12 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the reader.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             public static NextEntity ParseValue(ref Utf8JsonReader reader)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<NextEntity>(ref reader);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
