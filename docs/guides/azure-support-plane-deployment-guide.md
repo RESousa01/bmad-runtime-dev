@@ -47,6 +47,78 @@ Repository state: `origin/main` at the revision you intend to qualify
 
 ---
 
+## 0.1 Deploying without local tooling (Cloud Shell)
+
+You do not need admin rights or any local installation. **Azure Cloud
+Shell** (shell.azure.com, Bash mode) ships with `az`, `bicep`, `sqlcmd`,
+and `git` preinstalled and runs under your work identity.
+
+- **Storage prompt:** choose *"No storage account required"* (ephemeral)
+  if org policy blocks the auto-created storage account — the deployment
+  does not need persistence. Re-upload the small file set per session and
+  retrieve deployment outputs any time with
+  `az deployment group show -g <rg> -n <name> --query properties.outputs`.
+  If you can create a policy-compliant storage account (allowed region,
+  required tags), mounting one is more convenient for the multi-day flow;
+  keep it in its own resource group, never in the workload group.
+- **Getting the files in:** zip `infra/desktop-support/` locally and use
+  the Cloud Shell upload button, or clone the repository with a GitHub
+  token. Keep the filled `*.bicepparam` inside Cloud Shell or your own
+  machine — never in the repository.
+- **Container image without Docker:** never build locally. ACR Tasks
+  builds in the cloud:
+
+  ```bash
+  az acr build --registry <registry> --image desktop-support-api:build services/desktop-support-api
+  az acr repository show-manifests --name <registry> --repository desktop-support-api --query "[0].digest" -o tsv
+  ```
+
+- **No CLI at all (fallback):** the compiled ARM template
+  (`infra/desktop-support/main.json`) deploys through the portal via
+  *Deploy a custom template -> Build your own template in the editor*;
+  the portal preview screen is the what-if review. Entra app/group setup
+  is fully portal-native.
+- **Output discipline in ephemeral mode:** copy the stage-1 outputs JSON
+  to your local machine immediately; every later stage consumes them.
+
+## 0.2 Organization-account realities
+
+On an org subscription and directory, expect governance to shape each
+step. None of it blocks the deployment; all of it benefits from asking in
+the right shape.
+
+- **Azure Policy applies to you.** The stage-1 policy inspection is not a
+  formality: org policies commonly enforce allowed regions, required
+  tags, and naming conventions, and will deny non-compliant resources
+  (exactly as they may deny Cloud Shell's default storage account). Put
+  mandated tags into the template's `tags` parameter so every resource
+  inherits them, and name the resource group per your convention.
+- **Entra self-service may be disabled.** If
+  `az ad app create` / `az ad group create` return *Insufficient
+  privileges*, the failed command itself is the specification for your
+  identity team: forward it verbatim with the display names. Follow org
+  naming conventions for the app registration and group.
+- **Cost approval.** The stack runs continuously (Azure SQL, Container
+  Apps, Azure OpenAI, Log Analytics) — obtain spend approval before
+  `az deployment group create`, deploy with `deployAlerts = true`, and
+  set a conservative `monthlyBudgetAmount` so a budget exists from day
+  one on org billing.
+- **Azure OpenAI gating.** Org subscriptions often gate AOAI behind an
+  access-approval process and restrict regions/models. A quota or
+  "not permitted" failure on the `openAi` resource is an org onboarding
+  step, not a template defect; your platform team may also dictate the
+  approved `modelName`/`modelVersion`, which then feed the reviewed
+  canonical hashes.
+- **Least-privilege asks that usually succeed:** Owner scoped to the one
+  workload resource group (needed because the template creates role
+  assignments); membership in the SQL administrators group; one
+  policy-compliant storage account for Cloud Shell. Each is small,
+  auditable, and containable.
+- **Device posture is a non-issue.** Cloud Shell runs in Azure under your
+  work identity; the only thing crossing your browser is this
+  repository's infrastructure code and a parameter file containing no
+  secrets.
+
 ## 1. One-time Entra setup
 
 ### 1.1 SQL administrators group
@@ -114,7 +186,10 @@ param environmentTag = 'staging'
 param tags = { application: 'sapphirus', distribution: 'internal' }
 ```
 
-**The four canonical hashes** bind the server to the exact reviewed
+**The four canonical hashes** (stage-1 note: the example's
+placeholder values are acceptable while `deployApi = false`; the real
+reviewed values are required before stage 4 sets `deployApi = true`)
+bind the server to the exact reviewed
 provider/model/capability/deployment documents the desktop client also
 pins (`crates/desktop-cloud`). They must be the canonical
 `sapphirus:<purpose>:v1` document hashes of the reviewed profile documents
