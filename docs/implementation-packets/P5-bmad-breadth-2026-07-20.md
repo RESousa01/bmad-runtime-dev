@@ -119,5 +119,16 @@ slice's evidence.
   user-value-over-feasibility / start-simple-evolve / stated task
   sequence). All four amended and the full hash chain regenerated;
   foundation 69/69, workspace 59 suites, `verify:deferred-full` exit 0.
-- Remaining P5 slices: capability wiring for the projected personas
-  (catalog/envelope/renderer lanes) and P5-C/P5-D per this packet.
+- Persona capability seam (2026-07-20): `BmadLoadedFoundation` exposes
+  all six sealed personas with full chain verification (envelope and
+  projection canonical hashes re-derived; instruction bytes bound to the
+  pinned content hash; source entrypoint bound to the roster's
+  personaSourceHash). Tamper test flips one binding and the foundation
+  fails closed. 88 desktop-app tests; workspace 59 suites; deferred-full
+  exit 0. No IPC/catalog change.
+- Remaining P5 slices: the deliberate `bmad.method.*` command-family
+  catalog change (agent-bound Method sessions consuming the persona
+  seam, with renderer surface) — a full contract arc with its own
+  packet-level review; then P5-C (PRD workflow) and P5-D (adversarial
+  review of any further projections; the source-fidelity audit above
+  already covers the six personas).
