@@ -72,4 +72,36 @@
 
 ## Review ledger
 
-- (filled during execution)
+- Executed 2026-07-20 on `main`; lanes committed as `d1d723a3` (decision
+  docs), `6c3cdd3d` (workspace authority), `70f536cf` (desktop-app D2/D3
+  bindings), `ce0dc401` (reviewed cargo bootstrap repin).
+- Commands executed (pinned Node 24.18.0 / pnpm 11.12.0 corepack shim):
+  - `cargo fmt --all -- --check` — clean.
+  - `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings` — clean.
+  - `cargo test --workspace --all-features --locked` — 59 suites, all green
+    (desktop-workspace 46 incl. the new dual-epoch/independence/legacy-JSON
+    tests; desktop-app 86 with `deterministic-help` incl. the four new
+    cross-independence tests).
+  - `pnpm verify:deferred-full` — green end to end: cross-language
+    qualification 104 pass / 1 environment skip, contracts 85, foundation
+    59, renderer 24/24 test files, boundary + secret scans, production
+    build.
+- Bootstrap repin evidence: the Cargo.lock diff was reviewed as exactly one
+  line (`serde_json` into desktop-workspace dev-dependencies; no new
+  packages or versions). The pinned hash moved `03809774…` → `5fef3688…`
+  in `tool-lock.json` and its embedded validator copy, and
+  `schema-lock.json` was regenerated with only its three lock-hash fields
+  changing — verified by diff before committing.
+- Findings during implementation:
+  - Two pre-P4 tests encoded the fused-epoch coupling (historical-epoch
+    fixtures derived stale epochs by subtracting from the post-enable
+    binding epoch); both were re-expressed against ADR-0002 semantics, and
+    the foreign-lineage journal case now quarantines end to end while the
+    past-epoch case stays pinned by the pure availability test.
+  - Undo availability now survives edit-authority re-enablement (the old
+    fused epoch incidentally killed it); effect execution still validates
+    the live edit epoch at every governed mutation.
+- Exit gate: all bullets hold — fmt/clippy/tests green, renderer suite and
+  catalog byte-identical (no renderer or contract-fixture diffs in any
+  lane), `verify:deferred-full` green, `git status` clean, lanes committed
+  separately.
