@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "corvus.json.cli": {
-      "version": "5.1.0",
+      "version": "5.2.7",
       "commands": [
         "corvusjson"
       ],

@@ -477,7 +477,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>action</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetAction(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source value)
+                public void SetAction(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -508,7 +508,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>args</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetArgs(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source value)
+                public void SetArgs(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -539,7 +539,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>description</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetDescription(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source value)
+                public void SetDescription(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -570,7 +570,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>display-name</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetDisplayName(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source value)
+                public void SetDisplayName(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -601,7 +601,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>followed-by</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetFollowedBy(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source value)
+                public void SetFollowedBy(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -632,7 +632,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>menu-code</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetMenuCode(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source value)
+                public void SetMenuCode(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -663,7 +663,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>module</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetModule(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source value)
+                public void SetModule(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -694,7 +694,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>output-location</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetOutputLocation(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source value)
+                public void SetOutputLocation(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -725,7 +725,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>outputs</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetOutputs(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source value)
+                public void SetOutputs(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -756,7 +756,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>phase</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetPhase(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source value)
+                public void SetPhase(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -787,7 +787,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>preceded-by</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetPrecededBy(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source value)
+                public void SetPrecededBy(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -818,7 +818,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>required</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetRequired(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source value)
+                public void SetRequired(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -849,7 +849,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>skill</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetSkill(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source value)
+                public void SetSkill(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -1023,12 +1023,26 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     Unknown,
                     JsonElement,
+                    Create,
                     Builder,
                 }
 
                 private readonly Kind _kind;
                 private readonly JsonElement _jsonElement;
                 private readonly Builder.Build? _objectBuilder;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source _createArg1;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source _createArg2;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source _createArg3;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source _createArg4;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source _createArg5;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source _createArg6;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source _createArg7;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source _createArg8;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source _createArg9;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source _createArg10;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source _createArg11;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source _createArg12;
+                private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source _createArg13;
 
                 /// <summary>
                 /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1042,6 +1056,24 @@ public readonly partial struct SapphirusContractsCatalog
                 }
 
                 internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+                internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source arg13)
+                {
+                    _createArg1 = arg1;
+                    _createArg2 = arg2;
+                    _createArg3 = arg3;
+                    _createArg4 = arg4;
+                    _createArg5 = arg5;
+                    _createArg6 = arg6;
+                    _createArg7 = arg7;
+                    _createArg8 = arg8;
+                    _createArg9 = arg9;
+                    _createArg10 = arg10;
+                    _createArg11 = arg11;
+                    _createArg12 = arg12;
+                    _createArg13 = arg13;
+                    _kind = Kind.Create;
+                }
 
                 public static implicit operator Source(RawRowEntity instance) => new(JsonElement.From(instance));
 
@@ -1057,6 +1089,13 @@ public readonly partial struct SapphirusContractsCatalog
                         case Kind.Builder:
                             valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                             break;
+                        case Kind.Create:
+                            {
+                                ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                                Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                                valueBuilder.EndProperty(handle);
+                                break;
+                            }
                         default:
                             Debug.Fail("Unexpected Kind");
                             break;
@@ -1075,6 +1114,13 @@ public readonly partial struct SapphirusContractsCatalog
                         case Kind.Builder:
                             valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.Create:
+                            {
+                                ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                                Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                                valueBuilder.EndProperty(handle);
+                                break;
+                            }
                         default:
                             Debug.Fail("Unexpected Kind");
                             break;
@@ -1093,6 +1139,13 @@ public readonly partial struct SapphirusContractsCatalog
                         case Kind.Builder:
                             valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.Create:
+                            {
+                                ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                                Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                                valueBuilder.EndProperty(handle);
+                                break;
+                            }
                         default:
                             Debug.Fail("Unexpected Kind");
                             break;
@@ -1111,6 +1164,13 @@ public readonly partial struct SapphirusContractsCatalog
                         case Kind.Builder:
                             valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.Create:
+                            {
+                                ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                                Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                                valueBuilder.EndProperty(handle);
+                                break;
+                            }
                         default:
                             Debug.Fail("Unexpected Kind");
                             break;
@@ -1129,6 +1189,13 @@ public readonly partial struct SapphirusContractsCatalog
                         case Kind.Builder:
                             valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.Create:
+                            {
+                                ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                                Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, ref valueBuilder);
+                                valueBuilder.EndItem(handle);
+                                break;
+                            }
                         default:
                             Debug.Fail("Unexpected Kind");
                             break;
@@ -1350,6 +1417,30 @@ public readonly partial struct SapphirusContractsCatalog
                     o = ovb._builder;
                     o.EndObject();
                 }
+
+                /// <summary>
+                /// Builds the object value directly from its captured property values into the given complex value builder.
+                /// </summary>
+                /// <param name="arg1">The value of the property.</param>
+                /// <param name="arg2">The value of the property.</param>
+                /// <param name="arg3">The value of the property.</param>
+                /// <param name="arg4">The value of the property.</param>
+                /// <param name="arg5">The value of the property.</param>
+                /// <param name="arg6">The value of the property.</param>
+                /// <param name="arg7">The value of the property.</param>
+                /// <param name="arg8">The value of the property.</param>
+                /// <param name="arg9">The value of the property.</param>
+                /// <param name="arg10">The value of the property.</param>
+                /// <param name="arg11">The value of the property.</param>
+                /// <param name="arg12">The value of the property.</param>
+                /// <param name="arg13">The value of the property.</param>
+                /// <param name="o">The complex value builder into which to write the object.</param>
+                internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source arg13, ref ComplexValueBuilder o)
+                {
+                    o.StartObject();
+                    Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+                    o.EndObject();
+                }
             }
 
             /// <summary>
@@ -1379,6 +1470,28 @@ public readonly partial struct SapphirusContractsCatalog
                 #endif
             {
                 return new Source<TContext>(context, buildValue);
+            }
+
+            /// <summary>
+            /// Build an instance of the value directly from its property values.
+            /// </summary>
+            /// <param name="action">The value of the <c>"action"</c> property.</param>
+            /// <param name="args">The value of the <c>"args"</c> property.</param>
+            /// <param name="description">The value of the <c>"description"</c> property.</param>
+            /// <param name="displayName">The value of the <c>"display-name"</c> property.</param>
+            /// <param name="followedBy">The value of the <c>"followed-by"</c> property.</param>
+            /// <param name="menuCode">The value of the <c>"menu-code"</c> property.</param>
+            /// <param name="module">The value of the <c>"module"</c> property.</param>
+            /// <param name="outputLocation">The value of the <c>"output-location"</c> property.</param>
+            /// <param name="outputs">The value of the <c>"outputs"</c> property.</param>
+            /// <param name="phase">The value of the <c>"phase"</c> property.</param>
+            /// <param name="precededBy">The value of the <c>"preceded-by"</c> property.</param>
+            /// <param name="required">The value of the <c>"required"</c> property.</param>
+            /// <param name="skill">The value of the <c>"skill"</c> property.</param>
+            /// <returns>The source from which to build the value.</returns>
+            public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source action, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source args, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source description, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source displayName, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source followedBy, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source menuCode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source module, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source outputLocation, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source outputs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source phase, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source precededBy, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source required, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source skill)
+            {
+                return new Source(action, args, description, displayName, followedBy, menuCode, module, outputLocation, outputs, phase, precededBy, required, skill);
             }
 
             /// <summary>
@@ -1487,6 +1600,125 @@ public readonly partial struct SapphirusContractsCatalog
             public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
             {
                 return workspace.CreateBuilder<RawRowEntity, Mutable>(this);
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<RawRowEntity> Create(
+                scoped in Source value, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    value.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<RawRowEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<RawRowEntity> Create(
+                scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<RawRowEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<RawRowEntity> Create<TContext>(
+                scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<RawRowEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+            /// </summary>
+            /// <param name="action">The value of the property.</param>
+            /// <param name="args">The value of the property.</param>
+            /// <param name="description">The value of the property.</param>
+            /// <param name="displayName">The value of the property.</param>
+            /// <param name="followedBy">The value of the property.</param>
+            /// <param name="menuCode">The value of the property.</param>
+            /// <param name="module">The value of the property.</param>
+            /// <param name="outputLocation">The value of the property.</param>
+            /// <param name="outputs">The value of the property.</param>
+            /// <param name="phase">The value of the property.</param>
+            /// <param name="precededBy">The value of the property.</param>
+            /// <param name="required">The value of the property.</param>
+            /// <param name="skill">The value of the property.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<RawRowEntity> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ActionEntity.Source action, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ArgsEntity.Source args, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DescriptionEntity.Source description, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.DisplayNameEntity.Source displayName, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.FollowedByEntity.Source followedBy, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.MenuCodeEntity.Source menuCode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.ModuleEntity.Source module, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputLocationEntity.Source outputLocation, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.OutputsEntity.Source outputs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PhaseEntity.Source phase, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.PrecededByEntity.Source precededBy, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.RequiredEntity.Source required, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadHelpActionRecord.RawRowEntity.SkillEntity.Source skill, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    cvb.StartObject();
+                    Builder ovb = new(cvb);
+                    ovb.Create(action, args, description, displayName, followedBy, menuCode, module, outputLocation, outputs, phase, precededBy, required, skill);
+                    cvb = ovb._builder;
+                    cvb.EndObject();
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<RawRowEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
             }
         }
     }

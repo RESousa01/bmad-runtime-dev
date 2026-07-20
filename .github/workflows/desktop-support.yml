@@ -13,6 +13,7 @@ on:
       - 'services/desktop-support-api/**'
       - 'services/desktop-support-api.Tests/**'
       - 'infra/desktop-support/**'
+      - '.github/workflows/desktop-support.yml'
   workflow_dispatch:
     inputs:
       run_azure_gates:
@@ -25,14 +26,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Gate 1 (offline source): C# tests (including LocalDB authority-store
   # integration on the Windows runner), Release publish, Bicep build.
   support-api:
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - run: dotnet restore services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --locked-mode
@@ -45,9 +53,12 @@ jobs:
   # vulnerability scan. The image digest is published only by the release
   # lane; this job proves buildability and supply-chain scanning.
   support-container:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Require reviewed base-image digests
         run: |
           if grep -q 'REPLACE_WITH_REVIEWED' services/desktop-support-api/Dockerfile; then
@@ -60,7 +71,7 @@ jobs:
           image: desktop-support-api:ci
           format: spdx-json
           output-file: desktop-support-api.sbom.spdx.json
-      - uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
+      - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: desktop-support-api:ci
           fail-build: true
@@ -72,14 +83,17 @@ jobs:
   # source every tenant/subscription value from environment configuration.
   azure-gates:
     if: github.event_name == 'workflow_dispatch' && inputs.run_azure_gates
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
     environment: desktop-support-staging
     permissions:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: Azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -100,12 +114,15 @@ jobs:
             -Scope ${{ vars.SUPPORT_SCOPE }}
         shell: pwsh
       - name: Privacy gate SQL inspection
+        env:
+          SUPPORT_SQL_SERVER: ${{ vars.SUPPORT_SQL_SERVER }}
+          SUPPORT_SQL_DATABASE: ${{ vars.SUPPORT_SQL_DATABASE }}
         run: |
-          # Executes tools/support-smoke/privacy-sql-inspect.sql against the
-          # authority database under the read-only inspection identity and
-          # fails when any canary marker is found. The end-to-end and
-          # recovery drills (revocation race, Key Vault throttle, revision
-          # rollback, PITR rehearsal, key rotation) follow the runbook in
-          # docs/superpowers/plans/2026-07-20-d2-e-rollout-runbook.md.
-          Write-Host 'sql inspection wired via runbook; see rollout runbook'
+          if ([string]::IsNullOrWhiteSpace($env:SUPPORT_SQL_SERVER) -or
+              [string]::IsNullOrWhiteSpace($env:SUPPORT_SQL_DATABASE)) {
+            throw 'SUPPORT_SQL_SERVER and SUPPORT_SQL_DATABASE environment variables are required.'
+          }
+          sqlcmd -G -b -S $env:SUPPORT_SQL_SERVER -d $env:SUPPORT_SQL_DATABASE `
+            -i tools/support-smoke/privacy-sql-inspect.sql
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         shell: pwsh

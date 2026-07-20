@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use desktop_runtime::{ContractId, UnixMillis};
-use rand::RngCore;
+use rand::Rng;
 use time::OffsetDateTime;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::windows::named_pipe::ServerOptions;

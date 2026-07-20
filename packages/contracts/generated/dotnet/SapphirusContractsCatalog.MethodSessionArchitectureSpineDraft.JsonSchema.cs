@@ -208,7 +208,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static readonly JsonSchemaPathProvider StructuralSeedsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/structuralSeeds"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider WorkingModeSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/workingMode"u8, buffer, out written);
 
-            private static void MatchAltitude(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchAltitude(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext =
@@ -230,7 +230,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForAltitude] |= RequiredBitForAltitude;
             }
 
-            private static void MatchArtifactKind(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchArtifactKind(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext1 =
@@ -252,7 +252,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForArtifactKind] |= RequiredBitForArtifactKind;
             }
 
-            private static void MatchBinds(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchBinds(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext2 =
@@ -274,7 +274,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForBinds] |= RequiredBitForBinds;
             }
 
-            private static void MatchCapabilityMap(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchCapabilityMap(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext3 =
@@ -296,7 +296,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForCapabilityMap] |= RequiredBitForCapabilityMap;
             }
 
-            private static void MatchCheckpointHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchCheckpointHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext4 =
@@ -318,7 +318,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForCheckpointHash] |= RequiredBitForCheckpointHash;
             }
 
-            private static void MatchConventions(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchConventions(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext5 =
@@ -340,7 +340,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForConventions] |= RequiredBitForConventions;
             }
 
-            private static void MatchCreatedAt(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchCreatedAt(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext6 =
@@ -362,7 +362,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForCreatedAt] |= RequiredBitForCreatedAt;
             }
 
-            private static void MatchDecisions(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchDecisions(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext7 =
@@ -384,7 +384,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForDecisions] |= RequiredBitForDecisions;
             }
 
-            private static void MatchDeferred(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchDeferred(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext8 =
@@ -406,7 +406,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForDeferred] |= RequiredBitForDeferred;
             }
 
-            private static void MatchInheritedInvariants(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchInheritedInvariants(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext9 =
@@ -428,7 +428,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForInheritedInvariants] |= RequiredBitForInheritedInvariants;
             }
 
-            private static void MatchName(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchName(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext10 =
@@ -450,7 +450,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForName] |= RequiredBitForName;
             }
 
-            private static void MatchOpenItems(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchOpenItems(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext11 =
@@ -472,7 +472,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForOpenItems] |= RequiredBitForOpenItems;
             }
 
-            private static void MatchParadigm(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchParadigm(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext12 =
@@ -494,7 +494,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForParadigm] |= RequiredBitForParadigm;
             }
 
-            private static void MatchPurpose(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchPurpose(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext13 =
@@ -516,7 +516,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForPurpose] |= RequiredBitForPurpose;
             }
 
-            private static void MatchRevisionOrdinal(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchRevisionOrdinal(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext14 =
@@ -538,7 +538,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForRevisionOrdinal] |= RequiredBitForRevisionOrdinal;
             }
 
-            private static void MatchScope(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchScope(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext15 =
@@ -560,7 +560,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForScope] |= RequiredBitForScope;
             }
 
-            private static void MatchSessionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchSessionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext16 =
@@ -582,7 +582,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForSessionId] |= RequiredBitForSessionId;
             }
 
-            private static void MatchSourceContextDigest(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchSourceContextDigest(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext17 =
@@ -604,7 +604,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForSourceContextDigest] |= RequiredBitForSourceContextDigest;
             }
 
-            private static void MatchSpineArtifactRef(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchSpineArtifactRef(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext18 =
@@ -626,7 +626,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForSpineArtifactRef] |= RequiredBitForSpineArtifactRef;
             }
 
-            private static void MatchSpineDraftId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchSpineDraftId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext19 =
@@ -648,7 +648,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForSpineDraftId] |= RequiredBitForSpineDraftId;
             }
 
-            private static void MatchSpineHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchSpineHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext20 =
@@ -670,7 +670,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForSpineHash] |= RequiredBitForSpineHash;
             }
 
-            private static void MatchStack(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchStack(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext21 =
@@ -692,7 +692,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForStack] |= RequiredBitForStack;
             }
 
-            private static void MatchStructuralSeeds(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchStructuralSeeds(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext22 =
@@ -714,7 +714,7 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForStructuralSeeds] |= RequiredBitForStructuralSeeds;
             }
 
-            private static void MatchWorkingMode(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+            private static void MatchWorkingMode(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext23 =
@@ -832,7 +832,7 @@ public readonly partial struct SapphirusContractsCatalog
                         using UnescapedUtf8JsonString objectValidation_unescapedPropertyName = parentDocument.GetPropertyNameUnescaped(objectValidation_currentIndex);
                         if (TryGetNamedMatcher(objectValidation_unescapedPropertyName.Span, out Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1? validator))
                         {
-                            validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, parentIndex, requiredPropertyChildHandler_seenItems);
+                            validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, requiredPropertyChildHandler_seenItems);
                             if (!context.HasCollector && !context.IsMatch)
                             {
                                 return;

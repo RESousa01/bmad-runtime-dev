@@ -203,6 +203,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAzureControlPlaneAuthorityRef"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator CommonAuthorityRef(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAzureControlPlaneAuthorityRef.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -216,6 +225,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator CommonAuthorityRef(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator CommonAuthorityRef(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Mutable value)
         {
             return From(value);
         }
@@ -323,10 +341,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CommonAuthorityRef ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<CommonAuthorityRef>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -346,10 +367,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CommonAuthorityRef ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<CommonAuthorityRef>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -369,10 +393,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CommonAuthorityRef ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<CommonAuthorityRef>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -410,9 +437,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static CommonAuthorityRef ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<CommonAuthorityRef>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ decision, filesystem access, executor dispatch, or persistence behavior.
   type checking, binding inventory/digest checks, and JavaScript conformance tests.
 - `pnpm generate`, `pnpm check`, and `pnpm verify:cross-language` run the locked
   three-language lane. They require the repository-local `cargo-typify@0.6.1`
-  binary, the manifest-scoped `Corvus.Json.Cli@5.1.0` tool, and the exact SDKs
+  binary, the manifest-scoped `Corvus.Json.Cli@5.2.7` tool, and the exact SDKs
   recorded in `tools/contract-codegen/tool-lock.json`.
 - `pnpm test` exercises strict JSON parsing, RFC 8785 canonicalization,
   purpose-separated hashes, fixture validation, and delivery binding.

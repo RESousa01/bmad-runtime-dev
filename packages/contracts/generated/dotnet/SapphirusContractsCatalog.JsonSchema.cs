@@ -56,7 +56,7 @@ public readonly partial struct SapphirusContractsCatalog
         private static readonly JsonSchemaPathProvider RemoteJobHandoffValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/remoteJobHandoff/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider SpecConsumptionRecordValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/specConsumptionRecord/$ref"u8, buffer, out written);
 
-        private static void MatchApprovedExecutionSpecValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchApprovedExecutionSpecValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext =
@@ -71,7 +71,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext.IsMatch, ref childContext);
         }
 
-        private static void MatchAuthorityRef(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchAuthorityRef(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext1 =
@@ -86,7 +86,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext1.IsMatch, ref childContext1);
         }
 
-        private static void MatchBmadCapabilityCatalogValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadCapabilityCatalogValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext2 =
@@ -101,7 +101,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext2.IsMatch, ref childContext2);
         }
 
-        private static void MatchBmadCapabilityResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadCapabilityResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext3 =
@@ -116,7 +116,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext3.IsMatch, ref childContext3);
         }
 
-        private static void MatchBmadCapabilityRunValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadCapabilityRunValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext4 =
@@ -131,7 +131,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext4.IsMatch, ref childContext4);
         }
 
-        private static void MatchBmadPackageDescriptorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadPackageDescriptorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext5 =
@@ -146,7 +146,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext5.IsMatch, ref childContext5);
         }
 
-        private static void MatchBmadValidationReportValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadValidationReportValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext6 =
@@ -161,7 +161,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext6.IsMatch, ref childContext6);
         }
 
-        private static void MatchBuilderAuthoringObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBuilderAuthoringObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext7 =
@@ -176,7 +176,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext7.IsMatch, ref childContext7);
         }
 
-        private static void MatchCandidateActionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchCandidateActionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext8 =
@@ -191,7 +191,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext8.IsMatch, ref childContext8);
         }
 
-        private static void MatchContractErrorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchContractErrorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext9 =
@@ -206,7 +206,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext9.IsMatch, ref childContext9);
         }
 
-        private static void MatchDesktopDeviceRegistrationValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchDesktopDeviceRegistrationValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext10 =
@@ -221,7 +221,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext10.IsMatch, ref childContext10);
         }
 
-        private static void MatchDesktopEntitlementLeaseValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchDesktopEntitlementLeaseValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext11 =
@@ -236,7 +236,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext11.IsMatch, ref childContext11);
         }
 
-        private static void MatchDesktopPolicyValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchDesktopPolicyValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext12 =
@@ -251,7 +251,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext12.IsMatch, ref childContext12);
         }
 
-        private static void MatchDurableObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchDurableObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext13 =
@@ -266,7 +266,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext13.IsMatch, ref childContext13);
         }
 
-        private static void MatchEvidenceEventValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchEvidenceEventValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext14 =
@@ -281,7 +281,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext14.IsMatch, ref childContext14);
         }
 
-        private static void MatchExecutionResultManifestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchExecutionResultManifestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext15 =
@@ -296,7 +296,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext15.IsMatch, ref childContext15);
         }
 
-        private static void MatchFilesystemCapabilitySnapshotValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchFilesystemCapabilitySnapshotValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext16 =
@@ -311,7 +311,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext16.IsMatch, ref childContext16);
         }
 
-        private static void MatchMethodAdvanceResult(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchMethodAdvanceResult(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext17 =
@@ -326,7 +326,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext17.IsMatch, ref childContext17);
         }
 
-        private static void MatchMethodHelpProposalValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchMethodHelpProposalValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext18 =
@@ -341,7 +341,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext18.IsMatch, ref childContext18);
         }
 
-        private static void MatchMethodHelpRecommendation(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchMethodHelpRecommendation(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext19 =
@@ -356,7 +356,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext19.IsMatch, ref childContext19);
         }
 
-        private static void MatchMethodSessionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchMethodSessionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext20 =
@@ -371,7 +371,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext20.IsMatch, ref childContext20);
         }
 
-        private static void MatchModelAccessReceiptValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchModelAccessReceiptValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext21 =
@@ -386,7 +386,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext21.IsMatch, ref childContext21);
         }
 
-        private static void MatchModelAccessRequestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchModelAccessRequestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext22 =
@@ -401,7 +401,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext22.IsMatch, ref childContext22);
         }
 
-        private static void MatchModelAccessResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchModelAccessResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext23 =
@@ -416,7 +416,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext23.IsMatch, ref childContext23);
         }
 
-        private static void MatchModelContextConsentValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchModelContextConsentValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext24 =
@@ -431,7 +431,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext24.IsMatch, ref childContext24);
         }
 
-        private static void MatchPackageCompatibilityValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchPackageCompatibilityValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext25 =
@@ -446,7 +446,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext25.IsMatch, ref childContext25);
         }
 
-        private static void MatchRemoteJobHandoffValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchRemoteJobHandoffValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext26 =
@@ -461,7 +461,7 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext26.IsMatch, ref childContext26);
         }
 
-        private static void MatchSpecConsumptionRecordValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchSpecConsumptionRecordValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext27 =
@@ -574,7 +574,7 @@ public readonly partial struct SapphirusContractsCatalog
                     using UnescapedUtf8JsonString objectValidation_unescapedPropertyName = parentDocument.GetPropertyNameUnescaped(objectValidation_currentIndex);
                     if (TryGetNamedMatcher(objectValidation_unescapedPropertyName.Span, out Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator? validator))
                     {
-                        validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, parentIndex);
+                        validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context);
                         if (!context.HasCollector && !context.IsMatch)
                         {
                             return;

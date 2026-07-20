@@ -514,7 +514,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>actionCardinality</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetActionCardinality(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source value)
+            public void SetActionCardinality(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -545,7 +545,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>capabilityKeys</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCapabilityKeys(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source value)
+            public void SetCapabilityKeys(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source value)
             {
                 CheckValidInstance();
 
@@ -610,7 +610,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>distributionProfile</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDistributionProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
+            public void SetDistributionProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
             {
                 CheckValidInstance();
 
@@ -641,7 +641,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>entrypointKind</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetEntrypointKind(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source value)
+            public void SetEntrypointKind(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -672,7 +672,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>executionProfileHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetExecutionProfileHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetExecutionProfileHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -703,7 +703,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>installationObservationHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInstallationObservationHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetInstallationObservationHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -734,7 +734,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>installProfile</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInstallProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
+            public void SetInstallProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
             {
                 CheckValidInstance();
 
@@ -765,7 +765,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>instructionProjectionHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInstructionProjectionHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source value)
+            public void SetInstructionProjectionHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -796,7 +796,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>moduleCode</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetModuleCode(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source value)
+            public void SetModuleCode(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -827,7 +827,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>packageVersionId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPackageVersionId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetPackageVersionId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -858,7 +858,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>resourceSetHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetResourceSetHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetResourceSetHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -889,7 +889,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>skillDescriptorHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSkillDescriptorHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSkillDescriptorHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -920,7 +920,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>skillName</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSkillName(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source value)
+            public void SetSkillName(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -951,7 +951,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceEntrypointHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceEntrypointHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSourceEntrypointHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -982,7 +982,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>validationProfile</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetValidationProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source value)
+            public void SetValidationProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1156,12 +1156,28 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source _createArg15;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1175,6 +1191,26 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source arg15)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(BmadCapabilityCatalogInstalledSkillRecord instance) => new(JsonElement.From(instance));
 
@@ -1190,6 +1226,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1208,6 +1251,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1226,6 +1276,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1244,6 +1301,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1262,6 +1326,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1279,12 +1350,28 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source<TContext> _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source _createArg15;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1296,6 +1383,27 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source arg15)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1309,6 +1417,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1327,6 +1442,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1345,6 +1467,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1363,6 +1492,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1381,6 +1517,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1558,6 +1701,63 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source arg15, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source arg15, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -1587,6 +1787,59 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="actionCardinality">The value of the <c>"actionCardinality"</c> property.</param>
+        /// <param name="capabilityKeys">The value of the <c>"capabilityKeys"</c> property.</param>
+        /// <param name="distributionProfile">The value of the <c>"distributionProfile"</c> property.</param>
+        /// <param name="entrypointKind">The value of the <c>"entrypointKind"</c> property.</param>
+        /// <param name="executionProfileHash">The value of the <c>"executionProfileHash"</c> property.</param>
+        /// <param name="installationObservationHash">The value of the <c>"installationObservationHash"</c> property.</param>
+        /// <param name="installProfile">The value of the <c>"installProfile"</c> property.</param>
+        /// <param name="instructionProjectionHash">The value of the <c>"instructionProjectionHash"</c> property.</param>
+        /// <param name="moduleCode">The value of the <c>"moduleCode"</c> property.</param>
+        /// <param name="packageVersionId">The value of the <c>"packageVersionId"</c> property.</param>
+        /// <param name="resourceSetHash">The value of the <c>"resourceSetHash"</c> property.</param>
+        /// <param name="skillDescriptorHash">The value of the <c>"skillDescriptorHash"</c> property.</param>
+        /// <param name="skillName">The value of the <c>"skillName"</c> property.</param>
+        /// <param name="sourceEntrypointHash">The value of the <c>"sourceEntrypointHash"</c> property.</param>
+        /// <param name="validationProfile">The value of the <c>"validationProfile"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source actionCardinality, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source capabilityKeys, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source entrypointKind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source installationObservationHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source instructionProjectionHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source moduleCode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source skillDescriptorHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source skillName, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceEntrypointHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source validationProfile)
+        {
+            return new Source(actionCardinality, capabilityKeys, distributionProfile, entrypointKind, executionProfileHash, installationObservationHash, installProfile, instructionProjectionHash, moduleCode, packageVersionId, resourceSetHash, skillDescriptorHash, skillName, sourceEntrypointHash, validationProfile);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="actionCardinality">The value of the <c>"actionCardinality"</c> property.</param>
+        /// <param name="capabilityKeys">The value of the <c>"capabilityKeys"</c> property.</param>
+        /// <param name="distributionProfile">The value of the <c>"distributionProfile"</c> property.</param>
+        /// <param name="entrypointKind">The value of the <c>"entrypointKind"</c> property.</param>
+        /// <param name="executionProfileHash">The value of the <c>"executionProfileHash"</c> property.</param>
+        /// <param name="installationObservationHash">The value of the <c>"installationObservationHash"</c> property.</param>
+        /// <param name="installProfile">The value of the <c>"installProfile"</c> property.</param>
+        /// <param name="instructionProjectionHash">The value of the <c>"instructionProjectionHash"</c> property.</param>
+        /// <param name="moduleCode">The value of the <c>"moduleCode"</c> property.</param>
+        /// <param name="packageVersionId">The value of the <c>"packageVersionId"</c> property.</param>
+        /// <param name="resourceSetHash">The value of the <c>"resourceSetHash"</c> property.</param>
+        /// <param name="skillDescriptorHash">The value of the <c>"skillDescriptorHash"</c> property.</param>
+        /// <param name="skillName">The value of the <c>"skillName"</c> property.</param>
+        /// <param name="sourceEntrypointHash">The value of the <c>"sourceEntrypointHash"</c> property.</param>
+        /// <param name="validationProfile">The value of the <c>"validationProfile"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source actionCardinality, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source<TContext> capabilityKeys, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source entrypointKind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source installationObservationHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source instructionProjectionHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source moduleCode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source skillDescriptorHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source skillName, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceEntrypointHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source validationProfile)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, actionCardinality, capabilityKeys, distributionProfile, entrypointKind, executionProfileHash, installationObservationHash, installProfile, instructionProjectionHash, moduleCode, packageVersionId, resourceSetHash, skillDescriptorHash, skillName, sourceEntrypointHash, validationProfile);
         }
 
         /// <summary>
@@ -1736,6 +1989,172 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<BmadCapabilityCatalogInstalledSkillRecord, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="actionCardinality">The value of the property.</param>
+        /// <param name="capabilityKeys">The value of the property.</param>
+        /// <param name="distributionProfile">The value of the property.</param>
+        /// <param name="entrypointKind">The value of the property.</param>
+        /// <param name="executionProfileHash">The value of the property.</param>
+        /// <param name="installationObservationHash">The value of the property.</param>
+        /// <param name="installProfile">The value of the property.</param>
+        /// <param name="instructionProjectionHash">The value of the property.</param>
+        /// <param name="moduleCode">The value of the property.</param>
+        /// <param name="packageVersionId">The value of the property.</param>
+        /// <param name="resourceSetHash">The value of the property.</param>
+        /// <param name="skillDescriptorHash">The value of the property.</param>
+        /// <param name="skillName">The value of the property.</param>
+        /// <param name="sourceEntrypointHash">The value of the property.</param>
+        /// <param name="validationProfile">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source actionCardinality, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source capabilityKeys, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source entrypointKind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source installationObservationHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source instructionProjectionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source moduleCode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source skillDescriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source skillName, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceEntrypointHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source validationProfile, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(actionCardinality, capabilityKeys, distributionProfile, entrypointKind, executionProfileHash, installationObservationHash, installProfile, instructionProjectionHash, moduleCode, packageVersionId, resourceSetHash, skillDescriptorHash, skillName, sourceEntrypointHash, validationProfile);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="actionCardinality">The value of the property.</param>
+        /// <param name="capabilityKeys">The value of the property.</param>
+        /// <param name="distributionProfile">The value of the property.</param>
+        /// <param name="entrypointKind">The value of the property.</param>
+        /// <param name="executionProfileHash">The value of the property.</param>
+        /// <param name="installationObservationHash">The value of the property.</param>
+        /// <param name="installProfile">The value of the property.</param>
+        /// <param name="instructionProjectionHash">The value of the property.</param>
+        /// <param name="moduleCode">The value of the property.</param>
+        /// <param name="packageVersionId">The value of the property.</param>
+        /// <param name="resourceSetHash">The value of the property.</param>
+        /// <param name="skillDescriptorHash">The value of the property.</param>
+        /// <param name="skillName">The value of the property.</param>
+        /// <param name="sourceEntrypointHash">The value of the property.</param>
+        /// <param name="validationProfile">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ActionCardinalityEntity.Source actionCardinality, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.CapabilityKeysArray.Source<TContext> capabilityKeys, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.EntrypointKindEntity.Source entrypointKind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source installationObservationHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.InstructionProjectionHashEntity.Source instructionProjectionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ModuleCodeEntity.Source moduleCode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source skillDescriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.SkillNameEntity.Source skillName, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceEntrypointHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogInstalledSkillRecord.ValidationProfileEntity.Source validationProfile, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, actionCardinality, capabilityKeys, distributionProfile, entrypointKind, executionProfileHash, installationObservationHash, installProfile, instructionProjectionHash, moduleCode, packageVersionId, resourceSetHash, skillDescriptorHash, skillName, sourceEntrypointHash, validationProfile);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadCapabilityCatalogInstalledSkillRecord>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

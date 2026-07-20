@@ -6,7 +6,7 @@
 
 **Architecture:** Preserve the signed Rust host as the sole local authority. Extend the existing sealed BMAD foundation through a generic capability-run layer, keep model output inert until it enters the existing D3 review/checkpoint/apply authority, finish the production D2 support-plane round trip, and qualify the exact same source revision through CI, Azure, signing, update, clean-machine, security, accessibility, recovery, and pilot gates. A machine-readable scorecard prevents scope changes or documentation-only claims from counting as completion.
 
-**Tech Stack:** Windows 11, Tauri 2.11.x, Rust/Cargo 1.97.0, React 19, TypeScript 7.0.2, Node 24.18.0, pnpm 11.12.0, JSON Schema 2020-12, SQLite/DPAPI, .NET 10, Azure Container Apps, Azure SQL, App Configuration, Key Vault, Azure OpenAI, GitHub Actions/OIDC, NSIS, Authenticode.
+**Tech Stack:** Windows 11, Tauri 2.11.x, Rust/Cargo 1.97.0, React 19, TypeScript 7.0.2, Node 24.18.0, pnpm 11.15.1, JSON Schema 2020-12, SQLite/DPAPI, .NET 10, Azure Container Apps, Azure SQL, App Configuration, Key Vault, Azure OpenAI, GitHub Actions/OIDC, NSIS, Authenticode.
 
 ## Global Constraints
 
@@ -876,4 +876,3 @@
 | E | D3 backend/UI, integrated D2+D3, first honest AI desktop prototype |
 | F | Reproducible/installable offline prototype, complete current-source EXE |
 | G-H | Internal pilot readiness and final confirmation of all earlier capabilities |
-

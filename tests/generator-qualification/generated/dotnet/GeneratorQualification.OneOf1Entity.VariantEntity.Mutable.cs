@@ -450,7 +450,7 @@ public readonly partial struct GeneratorQualification
                 ///   </para>
                 /// </remarks>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void SetProperty(string propertyName, in JsonElement.Source value)
+                public void SetProperty(string propertyName, scoped in JsonElement.Source value)
                 {
                     SetProperty(propertyName.AsSpan(), value);
                 }
@@ -473,7 +473,7 @@ public readonly partial struct GeneratorQualification
                 ///     If the property doesn't exist, it will be added to the object.
                 ///   </para>
                 /// </remarks>
-                public void SetProperty(ReadOnlySpan<char> propertyName, in JsonElement.Source value)
+                public void SetProperty(ReadOnlySpan<char> propertyName, scoped in JsonElement.Source value)
                 {
                     CheckValidInstance();
 
@@ -520,7 +520,7 @@ public readonly partial struct GeneratorQualification
                 ///     If the property doesn't exist, it will be added to the object.
                 ///   </para>
                 /// </remarks>
-                public void SetProperty(ReadOnlySpan<byte> propertyName, in JsonElement.Source value)
+                public void SetProperty(ReadOnlySpan<byte> propertyName, scoped in JsonElement.Source value)
                 {
                     CheckValidInstance();
 
@@ -761,13 +761,17 @@ public readonly partial struct GeneratorQualification
                     Unknown,
                     JsonElement,
                     GeneratorQualificationCountVariantBuilder,
+                    GeneratorQualificationCountVariantSource,
                     GeneratorQualificationTextVariantBuilder,
+                    GeneratorQualificationTextVariantSource,
                 }
 
                 private readonly Kind _kind;
                 private readonly JsonElement _jsonElement;
                 private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.Build? _generatorQualificationCountVariantBuilderInstance;
+                private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Source _generatorQualificationCountVariantSourceInstance;
                 private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.Build? _generatorQualificationTextVariantBuilderInstance;
+                private readonly Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Source _generatorQualificationTextVariantSourceInstance;
 
                 /// <summary>
                 /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -782,7 +786,11 @@ public readonly partial struct GeneratorQualification
 
                 public Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.Build value) {_generatorQualificationCountVariantBuilderInstance = value; _kind = Kind.GeneratorQualificationCountVariantBuilder; }
 
+                public Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Source value) { _generatorQualificationCountVariantSourceInstance = value; _kind = Kind.GeneratorQualificationCountVariantSource; }
+
                 public Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.Build value) {_generatorQualificationTextVariantBuilderInstance = value; _kind = Kind.GeneratorQualificationTextVariantBuilder; }
+
+                public Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Source value) { _generatorQualificationTextVariantSourceInstance = value; _kind = Kind.GeneratorQualificationTextVariantSource; }
 
                 public static implicit operator Source(VariantEntity instance) => new(JsonElement.From(instance));
 
@@ -790,7 +798,13 @@ public readonly partial struct GeneratorQualification
                 public static implicit operator Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant instance) => new(JsonElement.From(instance));
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Source value) => new(value);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public static implicit operator Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant instance) => new(JsonElement.From(instance));
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator Source(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Source value) => new(value);
 
                 internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
                 {
@@ -804,8 +818,14 @@ public readonly partial struct GeneratorQualification
                         case Kind.GeneratorQualificationCountVariantBuilder:
                             valueBuilder.AddProperty(utf8Name, _generatorQualificationCountVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                             break;
+                        case Kind.GeneratorQualificationCountVariantSource:
+                            _generatorQualificationCountVariantSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                            break;
                         case Kind.GeneratorQualificationTextVariantBuilder:
                             valueBuilder.AddProperty(utf8Name, _generatorQualificationTextVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                            break;
+                        case Kind.GeneratorQualificationTextVariantSource:
+                            _generatorQualificationTextVariantSourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                             break;
                         default:
                             Debug.Fail("Unexpected Kind");
@@ -825,8 +845,14 @@ public readonly partial struct GeneratorQualification
                         case Kind.GeneratorQualificationCountVariantBuilder:
                             valueBuilder.AddPrebakedProperty(prebakedPropertyName, _generatorQualificationCountVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.GeneratorQualificationCountVariantSource:
+                            _generatorQualificationCountVariantSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                            break;
                         case Kind.GeneratorQualificationTextVariantBuilder:
                             valueBuilder.AddPrebakedProperty(prebakedPropertyName, _generatorQualificationTextVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.BuildValue(b, ref o));
+                            break;
+                        case Kind.GeneratorQualificationTextVariantSource:
+                            _generatorQualificationTextVariantSourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                             break;
                         default:
                             Debug.Fail("Unexpected Kind");
@@ -846,8 +872,14 @@ public readonly partial struct GeneratorQualification
                         case Kind.GeneratorQualificationCountVariantBuilder:
                             valueBuilder.AddProperty(name, _generatorQualificationCountVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.GeneratorQualificationCountVariantSource:
+                            _generatorQualificationCountVariantSourceInstance.AddAsProperty(name, ref valueBuilder);
+                            break;
                         case Kind.GeneratorQualificationTextVariantBuilder:
                             valueBuilder.AddProperty(name, _generatorQualificationTextVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.BuildValue(b, ref o));
+                            break;
+                        case Kind.GeneratorQualificationTextVariantSource:
+                            _generatorQualificationTextVariantSourceInstance.AddAsProperty(name, ref valueBuilder);
                             break;
                         default:
                             Debug.Fail("Unexpected Kind");
@@ -867,8 +899,14 @@ public readonly partial struct GeneratorQualification
                         case Kind.GeneratorQualificationCountVariantBuilder:
                             valueBuilder.AddProperty(name, _generatorQualificationCountVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.GeneratorQualificationCountVariantSource:
+                            _generatorQualificationCountVariantSourceInstance.AddAsProperty(name, ref valueBuilder);
+                            break;
                         case Kind.GeneratorQualificationTextVariantBuilder:
                             valueBuilder.AddProperty(name, _generatorQualificationTextVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.BuildValue(b, ref o));
+                            break;
+                        case Kind.GeneratorQualificationTextVariantSource:
+                            _generatorQualificationTextVariantSourceInstance.AddAsProperty(name, ref valueBuilder);
                             break;
                         default:
                             Debug.Fail("Unexpected Kind");
@@ -888,8 +926,14 @@ public readonly partial struct GeneratorQualification
                         case Kind.GeneratorQualificationCountVariantBuilder:
                             valueBuilder.AddItem(_generatorQualificationCountVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.BuildValue(b, ref o));
                             break;
+                        case Kind.GeneratorQualificationCountVariantSource:
+                            _generatorQualificationCountVariantSourceInstance.AddAsItem(ref valueBuilder);
+                            break;
                         case Kind.GeneratorQualificationTextVariantBuilder:
                             valueBuilder.AddItem(_generatorQualificationTextVariantBuilderInstance!, static (in b, ref o) => Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.BuildValue(b, ref o));
+                            break;
+                        case Kind.GeneratorQualificationTextVariantSource:
+                            _generatorQualificationTextVariantSourceInstance.AddAsItem(ref valueBuilder);
                             break;
                         default:
                             Debug.Fail("Unexpected Kind");
@@ -1233,6 +1277,168 @@ public readonly partial struct GeneratorQualification
             public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
             {
                 return workspace.CreateBuilder<VariantEntity, Mutable>(this);
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create(
+                scoped in Source value, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    value.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates an empty <see cref="ParsedJsonDocument{T}"/>.
+            /// </summary>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>An empty <see cref="ParsedJsonDocument{T}"/>. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create(
+                int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    cvb.StartObject();
+                    cvb.EndObject();
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create(
+                scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create<TContext>(
+                scoped in TContext context, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create(
+                scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<VariantEntity> Create<TContext>(
+                scoped in TContext context, scoped in Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<VariantEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
             }
         }
     }

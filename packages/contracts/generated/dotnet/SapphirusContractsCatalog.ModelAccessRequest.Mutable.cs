@@ -472,7 +472,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>budgetClass</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetBudgetClass(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source value)
+            public void SetBudgetClass(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -503,7 +503,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>canonicalOutputSchemaHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCanonicalOutputSchemaHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetCanonicalOutputSchemaHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -534,7 +534,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>canonicalOutputSchemaId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCanonicalOutputSchemaId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source value)
+            public void SetCanonicalOutputSchemaId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source value)
             {
                 CheckValidInstance();
 
@@ -565,7 +565,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>consent</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetConsent(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source value)
+            public void SetConsent(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source value)
             {
                 CheckValidInstance();
 
@@ -630,7 +630,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>deliveryModel</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDeliveryModel(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.DeliveryModelEntity.Source value)
+            public void SetDeliveryModel(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.DeliveryModelEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -661,7 +661,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>items</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetItems(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source value)
+            public void SetItems(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -726,7 +726,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>localEgressManifestHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetLocalEgressManifestHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetLocalEgressManifestHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -757,7 +757,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>modelRole</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetModelRole(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source value)
+            public void SetModelRole(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -788,7 +788,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>purpose</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPurpose(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source value)
+            public void SetPurpose(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -819,7 +819,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>registrationId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRegistrationId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetRegistrationId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -850,7 +850,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>requestId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRequestId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetRequestId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -881,7 +881,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>retentionMode</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRetentionMode(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.RetentionModeEntity.Source value)
+            public void SetRetentionMode(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.RetentionModeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -912,7 +912,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.SchemaVersionEntity.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.SchemaVersionEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1086,12 +1086,23 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1105,6 +1116,21 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(ModelAccessRequest instance) => new(JsonElement.From(instance));
 
@@ -1120,6 +1146,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1138,6 +1171,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1156,6 +1196,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1174,6 +1221,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1192,6 +1246,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1209,12 +1270,23 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source<TContext> _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg10;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1226,6 +1298,22 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1239,6 +1327,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1257,6 +1352,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1275,6 +1377,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1293,6 +1402,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1311,6 +1427,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1464,6 +1587,53 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg10, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -1493,6 +1663,49 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="budgetClass">The value of the <c>"budgetClass"</c> property.</param>
+        /// <param name="canonicalOutputSchemaHash">The value of the <c>"canonicalOutputSchemaHash"</c> property.</param>
+        /// <param name="canonicalOutputSchemaId">The value of the <c>"canonicalOutputSchemaId"</c> property.</param>
+        /// <param name="consent">The value of the <c>"consent"</c> property.</param>
+        /// <param name="items">The value of the <c>"items"</c> property.</param>
+        /// <param name="localEgressManifestHash">The value of the <c>"localEgressManifestHash"</c> property.</param>
+        /// <param name="modelRole">The value of the <c>"modelRole"</c> property.</param>
+        /// <param name="purpose">The value of the <c>"purpose"</c> property.</param>
+        /// <param name="registrationId">The value of the <c>"registrationId"</c> property.</param>
+        /// <param name="requestId">The value of the <c>"requestId"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source budgetClass, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source canonicalOutputSchemaHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source canonicalOutputSchemaId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source items, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source localEgressManifestHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source modelRole, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source purpose, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source registrationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source requestId)
+        {
+            return new Source(budgetClass, canonicalOutputSchemaHash, canonicalOutputSchemaId, consent, items, localEgressManifestHash, modelRole, purpose, registrationId, requestId);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="budgetClass">The value of the <c>"budgetClass"</c> property.</param>
+        /// <param name="canonicalOutputSchemaHash">The value of the <c>"canonicalOutputSchemaHash"</c> property.</param>
+        /// <param name="canonicalOutputSchemaId">The value of the <c>"canonicalOutputSchemaId"</c> property.</param>
+        /// <param name="consent">The value of the <c>"consent"</c> property.</param>
+        /// <param name="items">The value of the <c>"items"</c> property.</param>
+        /// <param name="localEgressManifestHash">The value of the <c>"localEgressManifestHash"</c> property.</param>
+        /// <param name="modelRole">The value of the <c>"modelRole"</c> property.</param>
+        /// <param name="purpose">The value of the <c>"purpose"</c> property.</param>
+        /// <param name="registrationId">The value of the <c>"registrationId"</c> property.</param>
+        /// <param name="requestId">The value of the <c>"requestId"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source budgetClass, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source canonicalOutputSchemaHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source canonicalOutputSchemaId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source<TContext> items, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source localEgressManifestHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source modelRole, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source purpose, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source registrationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source requestId)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, budgetClass, canonicalOutputSchemaHash, canonicalOutputSchemaId, consent, items, localEgressManifestHash, modelRole, purpose, registrationId, requestId);
         }
 
         /// <summary>
@@ -1632,6 +1845,162 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<ModelAccessRequest, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<ModelAccessRequest> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<ModelAccessRequest>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<ModelAccessRequest> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<ModelAccessRequest>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<ModelAccessRequest> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<ModelAccessRequest>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="budgetClass">The value of the property.</param>
+        /// <param name="canonicalOutputSchemaHash">The value of the property.</param>
+        /// <param name="canonicalOutputSchemaId">The value of the property.</param>
+        /// <param name="consent">The value of the property.</param>
+        /// <param name="items">The value of the property.</param>
+        /// <param name="localEgressManifestHash">The value of the property.</param>
+        /// <param name="modelRole">The value of the property.</param>
+        /// <param name="purpose">The value of the property.</param>
+        /// <param name="registrationId">The value of the property.</param>
+        /// <param name="requestId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<ModelAccessRequest> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source budgetClass, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source canonicalOutputSchemaHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source canonicalOutputSchemaId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source items, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source localEgressManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source modelRole, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source purpose, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source registrationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source requestId, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(budgetClass, canonicalOutputSchemaHash, canonicalOutputSchemaId, consent, items, localEgressManifestHash, modelRole, purpose, registrationId, requestId);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<ModelAccessRequest>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="budgetClass">The value of the property.</param>
+        /// <param name="canonicalOutputSchemaHash">The value of the property.</param>
+        /// <param name="canonicalOutputSchemaId">The value of the property.</param>
+        /// <param name="consent">The value of the property.</param>
+        /// <param name="items">The value of the property.</param>
+        /// <param name="localEgressManifestHash">The value of the property.</param>
+        /// <param name="modelRole">The value of the property.</param>
+        /// <param name="purpose">The value of the property.</param>
+        /// <param name="registrationId">The value of the property.</param>
+        /// <param name="requestId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<ModelAccessRequest> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.BudgetClassEntity.Source budgetClass, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source canonicalOutputSchemaHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestCanonicalSchemaId.Source canonicalOutputSchemaId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ItemsArray.Source<TContext> items, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source localEgressManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.ModelRoleEntity.Source modelRole, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.PurposeEntity.Source purpose, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source registrationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source requestId, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, budgetClass, canonicalOutputSchemaHash, canonicalOutputSchemaId, consent, items, localEgressManifestHash, modelRole, purpose, registrationId, requestId);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<ModelAccessRequest>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

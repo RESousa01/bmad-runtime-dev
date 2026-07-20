@@ -619,7 +619,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>actor</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetActor(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source value)
+            public void SetActor(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source value)
             {
                 CheckValidInstance();
 
@@ -684,7 +684,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>authorityRef</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetAuthorityRef(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
+            public void SetAuthorityRef(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
             {
                 CheckValidInstance();
 
@@ -749,7 +749,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>causationId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCausationId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source value)
+            public void SetCausationId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -780,7 +780,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>correlationId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCorrelationId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source value)
+            public void SetCorrelationId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -811,7 +811,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>deliveryModel</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDeliveryModel(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.DeliveryModelEntity.Source value)
+            public void SetDeliveryModel(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.DeliveryModelEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -842,7 +842,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>eventHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetEventHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetEventHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -873,7 +873,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>eventId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetEventId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetEventId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -904,7 +904,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>eventType</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetEventType(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source value)
+            public void SetEventType(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -935,7 +935,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>occurredAt</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetOccurredAt(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
+            public void SetOccurredAt(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
             {
                 CheckValidInstance();
 
@@ -966,7 +966,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>ownerScopeRef</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetOwnerScopeRef(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetOwnerScopeRef(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -997,7 +997,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>payloadHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPayloadHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetPayloadHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1028,7 +1028,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>payloadRef</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPayloadRef(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source value)
+            public void SetPayloadRef(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1059,7 +1059,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>previousEventHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPreviousEventHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source value)
+            public void SetPreviousEventHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1090,7 +1090,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>projectId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetProjectId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetProjectId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1121,7 +1121,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>redactionLevel</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRedactionLevel(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source value)
+            public void SetRedactionLevel(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1152,7 +1152,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>retentionClass</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRetentionClass(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source value)
+            public void SetRetentionClass(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1183,7 +1183,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>runId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRunId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source value)
+            public void SetRunId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1214,7 +1214,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SchemaVersionEntity.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SchemaVersionEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1245,7 +1245,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sequence</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSequence(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source value)
+            public void SetSequence(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1276,7 +1276,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>streamId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetStreamId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source value)
+            public void SetStreamId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1450,12 +1450,31 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source _createArg18;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1469,6 +1488,29 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source arg18)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(EvidenceEvent instance) => new(JsonElement.From(instance));
 
@@ -1484,6 +1526,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1502,6 +1551,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1520,6 +1576,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1538,6 +1601,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1556,6 +1626,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1573,12 +1650,31 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source<TContext> _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source _createArg18;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1590,6 +1686,30 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source arg18)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1603,6 +1723,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1621,6 +1748,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1639,6 +1773,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1657,6 +1798,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1675,6 +1823,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1874,6 +2029,69 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source arg18, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source arg18, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -1903,6 +2121,65 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="actor">The value of the <c>"actor"</c> property.</param>
+        /// <param name="authorityRef">The value of the <c>"authorityRef"</c> property.</param>
+        /// <param name="causationId">The value of the <c>"causationId"</c> property.</param>
+        /// <param name="correlationId">The value of the <c>"correlationId"</c> property.</param>
+        /// <param name="eventHash">The value of the <c>"eventHash"</c> property.</param>
+        /// <param name="eventId">The value of the <c>"eventId"</c> property.</param>
+        /// <param name="eventType">The value of the <c>"eventType"</c> property.</param>
+        /// <param name="occurredAt">The value of the <c>"occurredAt"</c> property.</param>
+        /// <param name="ownerScopeRef">The value of the <c>"ownerScopeRef"</c> property.</param>
+        /// <param name="payloadHash">The value of the <c>"payloadHash"</c> property.</param>
+        /// <param name="payloadRef">The value of the <c>"payloadRef"</c> property.</param>
+        /// <param name="previousEventHash">The value of the <c>"previousEventHash"</c> property.</param>
+        /// <param name="projectId">The value of the <c>"projectId"</c> property.</param>
+        /// <param name="redactionLevel">The value of the <c>"redactionLevel"</c> property.</param>
+        /// <param name="retentionClass">The value of the <c>"retentionClass"</c> property.</param>
+        /// <param name="runId">The value of the <c>"runId"</c> property.</param>
+        /// <param name="sequence">The value of the <c>"sequence"</c> property.</param>
+        /// <param name="streamId">The value of the <c>"streamId"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source actor, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source authorityRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source causationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source correlationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source eventHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source eventId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source eventType, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source occurredAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source payloadHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source payloadRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source previousEventHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source projectId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source redactionLevel, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source retentionClass, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source runId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source sequence, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source streamId)
+        {
+            return new Source(actor, authorityRef, causationId, correlationId, eventHash, eventId, eventType, occurredAt, ownerScopeRef, payloadHash, payloadRef, previousEventHash, projectId, redactionLevel, retentionClass, runId, sequence, streamId);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="actor">The value of the <c>"actor"</c> property.</param>
+        /// <param name="authorityRef">The value of the <c>"authorityRef"</c> property.</param>
+        /// <param name="causationId">The value of the <c>"causationId"</c> property.</param>
+        /// <param name="correlationId">The value of the <c>"correlationId"</c> property.</param>
+        /// <param name="eventHash">The value of the <c>"eventHash"</c> property.</param>
+        /// <param name="eventId">The value of the <c>"eventId"</c> property.</param>
+        /// <param name="eventType">The value of the <c>"eventType"</c> property.</param>
+        /// <param name="occurredAt">The value of the <c>"occurredAt"</c> property.</param>
+        /// <param name="ownerScopeRef">The value of the <c>"ownerScopeRef"</c> property.</param>
+        /// <param name="payloadHash">The value of the <c>"payloadHash"</c> property.</param>
+        /// <param name="payloadRef">The value of the <c>"payloadRef"</c> property.</param>
+        /// <param name="previousEventHash">The value of the <c>"previousEventHash"</c> property.</param>
+        /// <param name="projectId">The value of the <c>"projectId"</c> property.</param>
+        /// <param name="redactionLevel">The value of the <c>"redactionLevel"</c> property.</param>
+        /// <param name="retentionClass">The value of the <c>"retentionClass"</c> property.</param>
+        /// <param name="runId">The value of the <c>"runId"</c> property.</param>
+        /// <param name="sequence">The value of the <c>"sequence"</c> property.</param>
+        /// <param name="streamId">The value of the <c>"streamId"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source<TContext> actor, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> authorityRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source causationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source correlationId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source eventHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source eventId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source eventType, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source occurredAt, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source payloadHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source payloadRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source previousEventHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source projectId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source redactionLevel, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source retentionClass, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source runId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source sequence, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source streamId)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, actor, authorityRef, causationId, correlationId, eventHash, eventId, eventType, occurredAt, ownerScopeRef, payloadHash, payloadRef, previousEventHash, projectId, redactionLevel, retentionClass, runId, sequence, streamId);
         }
 
         /// <summary>
@@ -2058,6 +2335,178 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<EvidenceEvent, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<EvidenceEvent> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<EvidenceEvent>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<EvidenceEvent> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<EvidenceEvent>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<EvidenceEvent> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<EvidenceEvent>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="actor">The value of the property.</param>
+        /// <param name="authorityRef">The value of the property.</param>
+        /// <param name="causationId">The value of the property.</param>
+        /// <param name="correlationId">The value of the property.</param>
+        /// <param name="eventHash">The value of the property.</param>
+        /// <param name="eventId">The value of the property.</param>
+        /// <param name="eventType">The value of the property.</param>
+        /// <param name="occurredAt">The value of the property.</param>
+        /// <param name="ownerScopeRef">The value of the property.</param>
+        /// <param name="payloadHash">The value of the property.</param>
+        /// <param name="payloadRef">The value of the property.</param>
+        /// <param name="previousEventHash">The value of the property.</param>
+        /// <param name="projectId">The value of the property.</param>
+        /// <param name="redactionLevel">The value of the property.</param>
+        /// <param name="retentionClass">The value of the property.</param>
+        /// <param name="runId">The value of the property.</param>
+        /// <param name="sequence">The value of the property.</param>
+        /// <param name="streamId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<EvidenceEvent> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source actor, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source authorityRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source causationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source correlationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source eventHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source eventId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source eventType, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source occurredAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source payloadHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source payloadRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source previousEventHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source projectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source redactionLevel, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source retentionClass, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source runId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source sequence, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source streamId, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(actor, authorityRef, causationId, correlationId, eventHash, eventId, eventType, occurredAt, ownerScopeRef, payloadHash, payloadRef, previousEventHash, projectId, redactionLevel, retentionClass, runId, sequence, streamId);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<EvidenceEvent>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="actor">The value of the property.</param>
+        /// <param name="authorityRef">The value of the property.</param>
+        /// <param name="causationId">The value of the property.</param>
+        /// <param name="correlationId">The value of the property.</param>
+        /// <param name="eventHash">The value of the property.</param>
+        /// <param name="eventId">The value of the property.</param>
+        /// <param name="eventType">The value of the property.</param>
+        /// <param name="occurredAt">The value of the property.</param>
+        /// <param name="ownerScopeRef">The value of the property.</param>
+        /// <param name="payloadHash">The value of the property.</param>
+        /// <param name="payloadRef">The value of the property.</param>
+        /// <param name="previousEventHash">The value of the property.</param>
+        /// <param name="projectId">The value of the property.</param>
+        /// <param name="redactionLevel">The value of the property.</param>
+        /// <param name="retentionClass">The value of the property.</param>
+        /// <param name="runId">The value of the property.</param>
+        /// <param name="sequence">The value of the property.</param>
+        /// <param name="streamId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<EvidenceEvent> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonEvidenceActor.Source<TContext> actor, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> authorityRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CausationIdEntity.Source causationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.CorrelationIdEntity.Source correlationId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source eventHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source eventId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.EventTypeEntity.Source eventType, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source occurredAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source payloadHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PayloadRefEntity.Source payloadRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.PreviousEventHashEntity.Source previousEventHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source projectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RedactionLevelEntity.Source redactionLevel, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RetentionClassEntity.Source retentionClass, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.RunIdEntity.Source runId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.SequenceEntity.Source sequence, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.StreamIdEntity.Source streamId, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, actor, authorityRef, causationId, correlationId, eventHash, eventId, eventType, occurredAt, ownerScopeRef, payloadHash, payloadRef, previousEventHash, projectId, redactionLevel, retentionClass, runId, sequence, streamId);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<EvidenceEvent>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

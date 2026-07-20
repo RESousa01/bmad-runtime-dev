@@ -208,6 +208,15 @@ public readonly partial struct GeneratorQualification
             }
 
             /// <summary>
+            /// Conversion from the <see cref="Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant"/> mutable view.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static implicit operator VariantEntity(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationTextVariant.Mutable value)
+            {
+                return From(value);
+            }
+
+            /// <summary>
             /// Conversion to <see cref="Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant"/>.
             /// </summary>
             /// <param name="value">The value from which to convert.</param>
@@ -221,6 +230,15 @@ public readonly partial struct GeneratorQualification
             /// </summary>
             /// <param name="value">The value from which to convert.</param>
             public static implicit operator VariantEntity(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant value)
+            {
+                return From(value);
+            }
+
+            /// <summary>
+            /// Conversion from the <see cref="Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant"/> mutable view.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static implicit operator VariantEntity(Sapphirus.GeneratorQualification.Generated.GeneratorQualification.GeneratorQualificationCountVariant.Mutable value)
             {
                 return From(value);
             }
@@ -328,10 +346,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static VariantEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<VariantEntity>(utf8Json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -351,10 +372,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static VariantEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<VariantEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -374,10 +398,13 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the text.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static VariantEntity ParseValue(string json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<VariantEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -415,9 +442,12 @@ public readonly partial struct GeneratorQualification
             /// <exception cref="JsonException">
             ///   A value could not be read from the reader.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             public static VariantEntity ParseValue(ref Utf8JsonReader reader)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<VariantEntity>(ref reader);
+                #pragma warning restore CS0618
             }
 
             /// <summary>

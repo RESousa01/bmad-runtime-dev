@@ -834,7 +834,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>agentBinding</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetAgentBinding(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAgentBinding.Source value)
+                public void SetAgentBinding(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAgentBinding.Source value)
                 {
                     CheckValidInstance();
 
@@ -899,7 +899,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>agentRosterHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetAgentRosterHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetAgentRosterHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -930,7 +930,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>architectureReviewResults</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetArchitectureReviewResults(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureReviewResultsArray.Source value)
+                public void SetArchitectureReviewResults(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureReviewResultsArray.Source value)
                 {
                     CheckValidInstance();
 
@@ -995,7 +995,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>architectureSpineDrafts</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetArchitectureSpineDrafts(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureSpineDraftsArray.Source value)
+                public void SetArchitectureSpineDrafts(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureSpineDraftsArray.Source value)
                 {
                     CheckValidInstance();
 
@@ -1060,7 +1060,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>artifactExpectations</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetArtifactExpectations(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArtifactExpectationsArray.Source value)
+                public void SetArtifactExpectations(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArtifactExpectationsArray.Source value)
                 {
                     CheckValidInstance();
 
@@ -1125,7 +1125,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>capabilityCatalogHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetCapabilityCatalogHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetCapabilityCatalogHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1156,7 +1156,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>capabilityKey</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetCapabilityKey(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CapabilityKeyEntity.Source value)
+                public void SetCapabilityKey(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CapabilityKeyEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -1221,7 +1221,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>checkpoints</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetCheckpoints(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CheckpointsArray.Source value)
+                public void SetCheckpoints(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CheckpointsArray.Source value)
                 {
                     CheckValidInstance();
 
@@ -1286,7 +1286,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>configGraphHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetConfigGraphHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetConfigGraphHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1317,7 +1317,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>configResolutionHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetConfigResolutionHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetConfigResolutionHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1348,7 +1348,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>contextDigest</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetContextDigest(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetContextDigest(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1379,7 +1379,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>contextLedger</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetContextLedger(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodContextLedger.Source value)
+                public void SetContextLedger(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodContextLedger.Source value)
                 {
                     CheckValidInstance();
 
@@ -1444,7 +1444,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>customizationHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetCustomizationHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetCustomizationHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1475,7 +1475,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>decisionConsumptions</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetDecisionConsumptions(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.DecisionConsumptionsArray.Source value)
+                public void SetDecisionConsumptions(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.DecisionConsumptionsArray.Source value)
                 {
                     CheckValidInstance();
 
@@ -1540,7 +1540,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>distributionProfile</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetDistributionProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
+                public void SetDistributionProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
                 {
                     CheckValidInstance();
 
@@ -1571,7 +1571,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>executionProfile</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetExecutionProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorSkillExecutionProfile.Source value)
+                public void SetExecutionProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorSkillExecutionProfile.Source value)
                 {
                     CheckValidInstance();
 
@@ -1636,7 +1636,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>executionProfileHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetExecutionProfileHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetExecutionProfileHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1667,7 +1667,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>installProfile</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetInstallProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
+                public void SetInstallProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
                 {
                     CheckValidInstance();
 
@@ -1698,7 +1698,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>instructionProjectionHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetInstructionProjectionHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetInstructionProjectionHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1729,7 +1729,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>methodSchemaHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetMethodSchemaHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetMethodSchemaHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1760,7 +1760,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>methodShape</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetMethodShape(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.MethodShapeEntity.Source value)
+                public void SetMethodShape(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.MethodShapeEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -1791,7 +1791,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>modelBinding</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetModelBinding(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodModelBinding.Source value)
+                public void SetModelBinding(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodModelBinding.Source value)
                 {
                     CheckValidInstance();
 
@@ -1856,7 +1856,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>packageDescriptorHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetPackageDescriptorHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetPackageDescriptorHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1887,7 +1887,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>packageSourceHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetPackageSourceHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetPackageSourceHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1918,7 +1918,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>packageVersionId</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetPackageVersionId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+                public void SetPackageVersionId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
                 {
                     CheckValidInstance();
 
@@ -1949,7 +1949,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>resourceSetHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetResourceSetHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetResourceSetHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -1980,7 +1980,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>schemaVersion</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.SchemaVersionEntity.Source value)
+                public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.SchemaVersionEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -2011,7 +2011,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>sessionId</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetSessionId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+                public void SetSessionId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
                 {
                     CheckValidInstance();
 
@@ -2042,7 +2042,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>validationProfile</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetValidationProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReportBmadValidationProfile.Source value)
+                public void SetValidationProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReportBmadValidationProfile.Source value)
                 {
                     CheckValidInstance();
 
@@ -2073,7 +2073,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>validationProfileHash</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetValidationProfileHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+                public void SetValidationProfileHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
                 {
                     CheckValidInstance();
 
@@ -2736,6 +2736,18 @@ public readonly partial struct SapphirusContractsCatalog
             /// <summary>
             /// Build an instance of the value.
             /// </summary>
+            /// <remarks>
+            /// <para>
+            /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+            /// overload with a <c>static</c> callback, capturing your source data in the context.
+            /// </para>
+            /// <para>
+            /// A <c>Build(...)</c> overload taking the individual property values directly is
+            /// intentionally not generated for this type, because its estimated captured-argument
+            /// footprint exceeds the configured build-parameters threshold. The threshold is
+            /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+            /// </para>
+            /// </remarks>
             /// <param name="buildValue">The callback that builds the value.</param>
             /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
             /// <returns>The source from which to build the value.</returns>
@@ -2748,6 +2760,18 @@ public readonly partial struct SapphirusContractsCatalog
             /// <summary>
             /// Build an instance of the value.
             /// </summary>
+            /// <remarks>
+            /// <para>
+            /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+            /// overload with a <c>static</c> callback, capturing your source data in the context.
+            /// </para>
+            /// <para>
+            /// A <c>Build(...)</c> overload taking the individual property values directly is
+            /// intentionally not generated for this type, because its estimated captured-argument
+            /// footprint exceeds the configured build-parameters threshold. The threshold is
+            /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+            /// </para>
+            /// </remarks>
             /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
             /// <param name="context">The context to pass to the builder.</param>
             /// <param name="buildValue">The callback that builds the value.</param>
@@ -2935,6 +2959,198 @@ public readonly partial struct SapphirusContractsCatalog
             public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
             {
                 return workspace.CreateBuilder<OneOf1Entity, Mutable>(this);
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<OneOf1Entity> Create(
+                scoped in Source value, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    value.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<OneOf1Entity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<OneOf1Entity> Create(
+                scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<OneOf1Entity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<OneOf1Entity> Create<TContext>(
+                scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<OneOf1Entity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+            /// </summary>
+            /// <param name="agentBinding">The value of the property.</param>
+            /// <param name="agentRosterHash">The value of the property.</param>
+            /// <param name="architectureReviewResults">The value of the property.</param>
+            /// <param name="architectureSpineDrafts">The value of the property.</param>
+            /// <param name="artifactExpectations">The value of the property.</param>
+            /// <param name="capabilityCatalogHash">The value of the property.</param>
+            /// <param name="capabilityKey">The value of the property.</param>
+            /// <param name="checkpoints">The value of the property.</param>
+            /// <param name="configGraphHash">The value of the property.</param>
+            /// <param name="configResolutionHash">The value of the property.</param>
+            /// <param name="contextDigest">The value of the property.</param>
+            /// <param name="contextLedger">The value of the property.</param>
+            /// <param name="customizationHash">The value of the property.</param>
+            /// <param name="decisionConsumptions">The value of the property.</param>
+            /// <param name="distributionProfile">The value of the property.</param>
+            /// <param name="executionProfile">The value of the property.</param>
+            /// <param name="executionProfileHash">The value of the property.</param>
+            /// <param name="installProfile">The value of the property.</param>
+            /// <param name="instructionProjectionHash">The value of the property.</param>
+            /// <param name="methodSchemaHash">The value of the property.</param>
+            /// <param name="modelBinding">The value of the property.</param>
+            /// <param name="packageDescriptorHash">The value of the property.</param>
+            /// <param name="packageSourceHash">The value of the property.</param>
+            /// <param name="packageVersionId">The value of the property.</param>
+            /// <param name="resourceSetHash">The value of the property.</param>
+            /// <param name="sessionId">The value of the property.</param>
+            /// <param name="validationProfile">The value of the property.</param>
+            /// <param name="validationProfileHash">The value of the property.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<OneOf1Entity> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAgentBinding.Source agentBinding, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source agentRosterHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureReviewResultsArray.Source architectureReviewResults, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureSpineDraftsArray.Source architectureSpineDrafts, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArtifactExpectationsArray.Source artifactExpectations, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source capabilityCatalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CapabilityKeyEntity.Source capabilityKey, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CheckpointsArray.Source checkpoints, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source configGraphHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source configResolutionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contextDigest, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodContextLedger.Source contextLedger, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source customizationHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.DecisionConsumptionsArray.Source decisionConsumptions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorSkillExecutionProfile.Source executionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source methodSchemaHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodModelBinding.Source modelBinding, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageDescriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReportBmadValidationProfile.Source validationProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source validationProfileHash, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    cvb.StartObject();
+                    Builder ovb = new(cvb);
+                    ovb.Create(agentBinding, agentRosterHash, architectureReviewResults, architectureSpineDrafts, artifactExpectations, capabilityCatalogHash, capabilityKey, checkpoints, configGraphHash, configResolutionHash, contextDigest, contextLedger, customizationHash, decisionConsumptions, distributionProfile, executionProfile, executionProfileHash, installProfile, instructionProjectionHash, methodSchemaHash, modelBinding, packageDescriptorHash, packageSourceHash, packageVersionId, resourceSetHash, sessionId, validationProfile, validationProfileHash);
+                    cvb = ovb._builder;
+                    cvb.EndObject();
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<OneOf1Entity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The value of the property.</param>
+            /// <param name="agentBinding">The value of the property.</param>
+            /// <param name="agentRosterHash">The value of the property.</param>
+            /// <param name="architectureReviewResults">The value of the property.</param>
+            /// <param name="architectureSpineDrafts">The value of the property.</param>
+            /// <param name="artifactExpectations">The value of the property.</param>
+            /// <param name="capabilityCatalogHash">The value of the property.</param>
+            /// <param name="capabilityKey">The value of the property.</param>
+            /// <param name="checkpoints">The value of the property.</param>
+            /// <param name="configGraphHash">The value of the property.</param>
+            /// <param name="configResolutionHash">The value of the property.</param>
+            /// <param name="contextDigest">The value of the property.</param>
+            /// <param name="contextLedger">The value of the property.</param>
+            /// <param name="customizationHash">The value of the property.</param>
+            /// <param name="decisionConsumptions">The value of the property.</param>
+            /// <param name="distributionProfile">The value of the property.</param>
+            /// <param name="executionProfile">The value of the property.</param>
+            /// <param name="executionProfileHash">The value of the property.</param>
+            /// <param name="installProfile">The value of the property.</param>
+            /// <param name="instructionProjectionHash">The value of the property.</param>
+            /// <param name="methodSchemaHash">The value of the property.</param>
+            /// <param name="modelBinding">The value of the property.</param>
+            /// <param name="packageDescriptorHash">The value of the property.</param>
+            /// <param name="packageSourceHash">The value of the property.</param>
+            /// <param name="packageVersionId">The value of the property.</param>
+            /// <param name="resourceSetHash">The value of the property.</param>
+            /// <param name="sessionId">The value of the property.</param>
+            /// <param name="validationProfile">The value of the property.</param>
+            /// <param name="validationProfileHash">The value of the property.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<OneOf1Entity> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAgentBinding.Source<TContext> agentBinding, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source agentRosterHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureReviewResultsArray.Source<TContext> architectureReviewResults, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArchitectureSpineDraftsArray.Source<TContext> architectureSpineDrafts, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.ArtifactExpectationsArray.Source<TContext> artifactExpectations, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source capabilityCatalogHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CapabilityKeyEntity.Source<TContext> capabilityKey, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.CheckpointsArray.Source<TContext> checkpoints, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source configGraphHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source configResolutionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contextDigest, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodContextLedger.Source<TContext> contextLedger, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source customizationHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodSessionPayload.OneOf1Entity.DecisionConsumptionsArray.Source<TContext> decisionConsumptions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorSkillExecutionProfile.Source<TContext> executionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source executionProfileHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source instructionProjectionHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source methodSchemaHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodModelBinding.Source<TContext> modelBinding, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageDescriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageSourceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source resourceSetHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReportBmadValidationProfile.Source validationProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source validationProfileHash, int initialCapacity = 30)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    cvb.StartObject();
+                    Builder ovb = new(cvb);
+                    ovb.Create(context, agentBinding, agentRosterHash, architectureReviewResults, architectureSpineDrafts, artifactExpectations, capabilityCatalogHash, capabilityKey, checkpoints, configGraphHash, configResolutionHash, contextDigest, contextLedger, customizationHash, decisionConsumptions, distributionProfile, executionProfile, executionProfileHash, installProfile, instructionProjectionHash, methodSchemaHash, modelBinding, packageDescriptorHash, packageSourceHash, packageVersionId, resourceSetHash, sessionId, validationProfile, validationProfileHash);
+                    cvb = ovb._builder;
+                    cvb.EndObject();
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<OneOf1Entity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
             }
         }
     }

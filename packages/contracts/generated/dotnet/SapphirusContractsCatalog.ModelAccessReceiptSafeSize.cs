@@ -120,10 +120,10 @@ public readonly partial struct SapphirusContractsCatalog
         private JsonTokenType TokenType => _parent?.GetJsonTokenType(_idx) ?? JsonTokenType.None;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator long(ModelAccessReceiptSafeSize value) => value._parent.TryGetValue(value._idx, out long result) ? result : throw new FormatException();
+        public static implicit operator long(ModelAccessReceiptSafeSize value) => value._parent.TryGetValue(value._idx, out long result) ? result : throw new FormatException();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator double(ModelAccessReceiptSafeSize value) => value._parent.TryGetValue(value._idx, out double result) ? result : throw new FormatException();
+        public static implicit operator double(ModelAccessReceiptSafeSize value) => value._parent.TryGetValue(value._idx, out double result) ? result : throw new FormatException();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator Corvus.Numerics.BigNumber(ModelAccessReceiptSafeSize value) => value._parent.TryGetValue(value._idx, out Corvus.Numerics.BigNumber result) ? result : throw new FormatException();
@@ -237,10 +237,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ModelAccessReceiptSafeSize ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<ModelAccessReceiptSafeSize>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -260,10 +263,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ModelAccessReceiptSafeSize ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<ModelAccessReceiptSafeSize>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -283,10 +289,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ModelAccessReceiptSafeSize ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<ModelAccessReceiptSafeSize>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -324,9 +333,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static ModelAccessReceiptSafeSize ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<ModelAccessReceiptSafeSize>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>

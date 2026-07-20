@@ -909,6 +909,46 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     return workspace.CreateBuilder<ModelLensResultsArray, Mutable>(this);
                 }
+
+                /// <summary>
+                /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+                /// </summary>
+                /// <param name="value">The value with which to initialize the document.</param>
+                /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+                /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+                public static ParsedJsonDocument<ModelLensResultsArray> Create(
+                    scoped in Source value, int initialCapacity = 30)
+                {
+                    ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                    try
+                    {
+                        ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                        value.AddAsItem(ref cvb);
+                        Debug.Assert(cvb.MemberCount == 1);
+                        ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                        return documentBuilder.ToParsedJsonDocument<ModelLensResultsArray>();
+                    }
+                    finally
+                    {
+                        documentBuilder.Dispose();
+                    }
+                }
+
+                /// <summary>
+                /// Creates a new <see cref="ParsedJsonDocument{T}"/> from positional tuple item sources.
+                /// </summary>
+                /// <param name="item1">The source for tuple item 1.</param>
+                /// <param name="item2">The source for tuple item 2.</param>
+                /// <param name="item3">The source for tuple item 3.</param>
+                /// <param name="item4">The source for tuple item 4.</param>
+                /// <param name="item5">The source for tuple item 5.</param>
+                /// <param name="item6">The source for tuple item 6.</param>
+                /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+                /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given tuple values. The caller must dispose it.</returns>
+                public static ParsedJsonDocument<ModelLensResultsArray> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems0Entity.Source item1, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems1Entity.Source item2, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems2Entity.Source item3, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems3Entity.Source item4, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems4Entity.Source item5, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.ModelLensResultsArray.PrefixItems5Entity.Source item6, int initialCapacity = 30)
+                {
+                    return Create(Build(item1, item2, item3, item4, item5, item6), initialCapacity);
+                }
             }
         }
     }

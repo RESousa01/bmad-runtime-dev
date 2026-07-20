@@ -2780,8 +2780,7 @@ mod tests {
         let renderer = state
             .renderer_session_authority("main")
             .expect("renderer authority");
-        let workspace_contract = id(&workspace_id);
-        let capability = "bmm:bmad-dev-story";
+        let (workspace_contract, capability) = (id(&workspace_id), "bmm:bmad-dev-story");
 
         let review = prepare_bmad_capability_run(
             &state,

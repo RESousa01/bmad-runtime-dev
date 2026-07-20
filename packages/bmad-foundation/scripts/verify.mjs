@@ -659,7 +659,7 @@ function verifyManifest(manifest) {
   }
   if (
     manifest.engines?.node !== "24.18.0"
-    || manifest.engines?.pnpm !== "11.12.0"
+    || manifest.engines?.pnpm !== "11.15.1"
   ) {
     fail("foundation_hash_mismatch", "package.json", "toolchain identity drifted");
   }

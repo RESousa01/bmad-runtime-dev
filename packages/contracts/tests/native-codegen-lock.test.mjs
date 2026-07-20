@@ -115,7 +115,7 @@ test("native codegen lock rejects bootstrap, runtime, and transform substitution
     (lock) => { lock.tools.rust.runtimeValidator = "jsonschema@0.45.0"; },
     (lock) => { lock.tools.dotnet.runtime = "Corvus.Text.Json@5.2.0"; },
     (lock) => { lock.tools.dotnet.license = "UNKNOWN"; },
-    (lock) => { lock.tools.typescript.packageIntegrities["ajv@8.17.1"] = "sha512-substituted"; },
+    (lock) => { lock.tools.typescript.packageIntegrities["ajv@8.20.0"] = "sha512-substituted"; },
     (lock) => { lock.stagingPolicy.transformVersion = "internal-$defs-bundle-v2"; },
     (lock) => { lock.stagingPolicy.productionOptionalNullablePolicy = "allow-lossy"; },
     (lock) => { lock.bootstrapLocks.cargo.status = "pending_native_harness_review"; },
@@ -479,18 +479,18 @@ test("native preflight rejects a tampered expanded Corvus closure before probing
     ".nuget",
     "packages",
     "corvus.json.cli",
-    "5.1.0",
+    "5.2.7",
   );
   const candidatePackageRoot = path.join(
     temporaryRoot,
     "corvus.json.cli",
-    "5.1.0",
+    "5.2.7",
   );
   try {
     await mkdir(candidatePackageRoot, { recursive: true });
     for (const name of [
-      "corvus.json.cli.5.1.0.nupkg",
-      "corvus.json.cli.5.1.0.nupkg.sha512",
+      "corvus.json.cli.5.2.7.nupkg",
+      "corvus.json.cli.5.2.7.nupkg.sha512",
     ]) {
       await copyFile(path.join(trustedPackageRoot, name), path.join(candidatePackageRoot, name));
     }

@@ -19,6 +19,11 @@ WHERE c.TABLE_SCHEMA = 'dbo'
   AND c.DATA_TYPE LIKE '%char%';
 
 DECLARE @wrapped NVARCHAR(MAX) = N'DECLARE @scan TABLE (table_name SYSNAME, column_name SYSNAME, hits INT);'
-    + @sql + N' SELECT * FROM @scan WHERE hits > 0;';
+    + @sql + N'
+IF EXISTS (SELECT 1 FROM @scan WHERE hits > 0)
+BEGIN
+    SELECT * FROM @scan WHERE hits > 0;
+    THROW 51000, ''Privacy canary or sensitive marker found in authority storage.'', 1;
+END;';
 EXEC sp_executesql @wrapped, N'@pattern NVARCHAR(64)', @pattern = @canary;
 -- An empty result set is the passing condition.

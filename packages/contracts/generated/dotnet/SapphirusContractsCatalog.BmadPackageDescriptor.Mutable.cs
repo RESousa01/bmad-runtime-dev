@@ -619,7 +619,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>configGraphs</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetConfigGraphs(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source value)
+            public void SetConfigGraphs(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -684,7 +684,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>configResolutions</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetConfigResolutions(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source value)
+            public void SetConfigResolutions(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -749,7 +749,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>descriptorHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDescriptorHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetDescriptorHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -780,7 +780,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>distributionProfile</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetDistributionProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
+            public void SetDistributionProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source value)
             {
                 CheckValidInstance();
 
@@ -811,7 +811,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>finalCompositeInventoryHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetFinalCompositeInventoryHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetFinalCompositeInventoryHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -842,7 +842,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>installProfile</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInstallProfile(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
+            public void SetInstallProfile(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source value)
             {
                 CheckValidInstance();
 
@@ -873,7 +873,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>instructionProjections</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetInstructionProjections(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source value)
+            public void SetInstructionProjections(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -938,7 +938,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>metadataOrigin</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetMetadataOrigin(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source value)
+            public void SetMetadataOrigin(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source value)
             {
                 CheckValidInstance();
 
@@ -969,7 +969,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>modules</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetModules(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source value)
+            public void SetModules(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1034,7 +1034,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>packageMetadataHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPackageMetadataHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetPackageMetadataHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1065,7 +1065,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>packageName</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPackageName(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source value)
+            public void SetPackageName(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1096,7 +1096,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>packageVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPackageVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source value)
+            public void SetPackageVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1127,7 +1127,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>packageVersionId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPackageVersionId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetPackageVersionId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1158,7 +1158,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>resourceInventory</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetResourceInventory(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source value)
+            public void SetResourceInventory(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1223,7 +1223,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SchemaVersionEntity.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SchemaVersionEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1254,7 +1254,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>skills</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSkills(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source value)
+            public void SetSkills(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1319,7 +1319,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceIdentity</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceIdentity(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source value)
+            public void SetSourceIdentity(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source value)
             {
                 CheckValidInstance();
 
@@ -1384,7 +1384,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceSnapshotHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceSnapshotHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSourceSnapshotHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1415,7 +1415,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>upstreamManifestObservationHashes</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetUpstreamManifestObservationHashes(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source value)
+            public void SetUpstreamManifestObservationHashes(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1480,7 +1480,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>validationReportHashes</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetValidationReportHashes(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source value)
+            public void SetValidationReportHashes(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source value)
             {
                 CheckValidInstance();
 
@@ -1688,12 +1688,32 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 Unknown,
                 JsonElement,
+                Create,
                 Builder,
             }
 
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source _createArg18;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source _createArg19;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1707,6 +1727,30 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source arg19)
+            {
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _createArg19 = arg19;
+                _kind = Kind.Create;
+            }
 
             public static implicit operator Source(BmadPackageDescriptor instance) => new(JsonElement.From(instance));
 
@@ -1722,6 +1766,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1740,6 +1791,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1758,6 +1816,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1776,6 +1841,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, _objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1794,6 +1866,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(_objectBuilder!, static (in b, ref o) => Builder.BuildValue(b, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1811,12 +1890,32 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source<TContext> _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source<TContext> _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source<TContext> _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source<TContext> _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source<TContext> _createArg14;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source<TContext> _createArg15;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source<TContext> _createArg16;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg17;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source<TContext> _createArg18;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source<TContext> _createArg19;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1828,6 +1927,31 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source<TContext> arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source<TContext> arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source<TContext> arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source<TContext> arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source<TContext> arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source<TContext> arg19)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _createArg15 = arg15;
+                _createArg16 = arg16;
+                _createArg17 = arg17;
+                _createArg18 = arg18;
+                _createArg19 = arg19;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1841,6 +1965,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1859,6 +1990,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1877,6 +2015,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1895,6 +2040,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1913,6 +2065,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, _createArg15, _createArg16, _createArg17, _createArg18, _createArg19, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -2116,6 +2275,71 @@ public readonly partial struct SapphirusContractsCatalog
                 o = ovb._builder;
                 o.EndObject();
             }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="arg19">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source arg19, ref ComplexValueBuilder o)
+            {
+                o.StartObject();
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="arg15">The value of the property.</param>
+            /// <param name="arg16">The value of the property.</param>
+            /// <param name="arg17">The value of the property.</param>
+            /// <param name="arg18">The value of the property.</param>
+            /// <param name="arg19">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source<TContext> arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source<TContext> arg14, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source<TContext> arg15, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source<TContext> arg16, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg17, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source<TContext> arg18, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source<TContext> arg19, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19);
+                o.EndObject();
+            }
         }
 
         /// <summary>
@@ -2145,6 +2369,67 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <param name="configGraphs">The value of the <c>"configGraphs"</c> property.</param>
+        /// <param name="configResolutions">The value of the <c>"configResolutions"</c> property.</param>
+        /// <param name="descriptorHash">The value of the <c>"descriptorHash"</c> property.</param>
+        /// <param name="distributionProfile">The value of the <c>"distributionProfile"</c> property.</param>
+        /// <param name="finalCompositeInventoryHash">The value of the <c>"finalCompositeInventoryHash"</c> property.</param>
+        /// <param name="installProfile">The value of the <c>"installProfile"</c> property.</param>
+        /// <param name="instructionProjections">The value of the <c>"instructionProjections"</c> property.</param>
+        /// <param name="metadataOrigin">The value of the <c>"metadataOrigin"</c> property.</param>
+        /// <param name="modules">The value of the <c>"modules"</c> property.</param>
+        /// <param name="packageMetadataHash">The value of the <c>"packageMetadataHash"</c> property.</param>
+        /// <param name="packageName">The value of the <c>"packageName"</c> property.</param>
+        /// <param name="packageVersion">The value of the <c>"packageVersion"</c> property.</param>
+        /// <param name="packageVersionId">The value of the <c>"packageVersionId"</c> property.</param>
+        /// <param name="resourceInventory">The value of the <c>"resourceInventory"</c> property.</param>
+        /// <param name="skills">The value of the <c>"skills"</c> property.</param>
+        /// <param name="sourceIdentity">The value of the <c>"sourceIdentity"</c> property.</param>
+        /// <param name="sourceSnapshotHash">The value of the <c>"sourceSnapshotHash"</c> property.</param>
+        /// <param name="upstreamManifestObservationHashes">The value of the <c>"upstreamManifestObservationHashes"</c> property.</param>
+        /// <param name="validationReportHashes">The value of the <c>"validationReportHashes"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source configGraphs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source configResolutions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source finalCompositeInventoryHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source instructionProjections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source metadataOrigin, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source modules, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageMetadataHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source packageName, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source packageVersion, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source resourceInventory, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source skills, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source sourceIdentity, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceSnapshotHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source upstreamManifestObservationHashes, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source validationReportHashes)
+        {
+            return new Source(configGraphs, configResolutions, descriptorHash, distributionProfile, finalCompositeInventoryHash, installProfile, instructionProjections, metadataOrigin, modules, packageMetadataHash, packageName, packageVersion, packageVersionId, resourceInventory, skills, sourceIdentity, sourceSnapshotHash, upstreamManifestObservationHashes, validationReportHashes);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="configGraphs">The value of the <c>"configGraphs"</c> property.</param>
+        /// <param name="configResolutions">The value of the <c>"configResolutions"</c> property.</param>
+        /// <param name="descriptorHash">The value of the <c>"descriptorHash"</c> property.</param>
+        /// <param name="distributionProfile">The value of the <c>"distributionProfile"</c> property.</param>
+        /// <param name="finalCompositeInventoryHash">The value of the <c>"finalCompositeInventoryHash"</c> property.</param>
+        /// <param name="installProfile">The value of the <c>"installProfile"</c> property.</param>
+        /// <param name="instructionProjections">The value of the <c>"instructionProjections"</c> property.</param>
+        /// <param name="metadataOrigin">The value of the <c>"metadataOrigin"</c> property.</param>
+        /// <param name="modules">The value of the <c>"modules"</c> property.</param>
+        /// <param name="packageMetadataHash">The value of the <c>"packageMetadataHash"</c> property.</param>
+        /// <param name="packageName">The value of the <c>"packageName"</c> property.</param>
+        /// <param name="packageVersion">The value of the <c>"packageVersion"</c> property.</param>
+        /// <param name="packageVersionId">The value of the <c>"packageVersionId"</c> property.</param>
+        /// <param name="resourceInventory">The value of the <c>"resourceInventory"</c> property.</param>
+        /// <param name="skills">The value of the <c>"skills"</c> property.</param>
+        /// <param name="sourceIdentity">The value of the <c>"sourceIdentity"</c> property.</param>
+        /// <param name="sourceSnapshotHash">The value of the <c>"sourceSnapshotHash"</c> property.</param>
+        /// <param name="upstreamManifestObservationHashes">The value of the <c>"upstreamManifestObservationHashes"</c> property.</param>
+        /// <param name="validationReportHashes">The value of the <c>"validationReportHashes"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source<TContext> configGraphs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source<TContext> configResolutions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source finalCompositeInventoryHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source<TContext> instructionProjections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source metadataOrigin, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source<TContext> modules, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageMetadataHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source packageName, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source packageVersion, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source<TContext> resourceInventory, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source<TContext> skills, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source<TContext> sourceIdentity, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceSnapshotHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source<TContext> upstreamManifestObservationHashes, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source<TContext> validationReportHashes)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, configGraphs, configResolutions, descriptorHash, distributionProfile, finalCompositeInventoryHash, installProfile, instructionProjections, metadataOrigin, modules, packageMetadataHash, packageName, packageVersion, packageVersionId, resourceInventory, skills, sourceIdentity, sourceSnapshotHash, upstreamManifestObservationHashes, validationReportHashes);
         }
 
         /// <summary>
@@ -2302,6 +2587,180 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<BmadPackageDescriptor, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadPackageDescriptor> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadPackageDescriptor>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadPackageDescriptor> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadPackageDescriptor>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadPackageDescriptor> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadPackageDescriptor>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="configGraphs">The value of the property.</param>
+        /// <param name="configResolutions">The value of the property.</param>
+        /// <param name="descriptorHash">The value of the property.</param>
+        /// <param name="distributionProfile">The value of the property.</param>
+        /// <param name="finalCompositeInventoryHash">The value of the property.</param>
+        /// <param name="installProfile">The value of the property.</param>
+        /// <param name="instructionProjections">The value of the property.</param>
+        /// <param name="metadataOrigin">The value of the property.</param>
+        /// <param name="modules">The value of the property.</param>
+        /// <param name="packageMetadataHash">The value of the property.</param>
+        /// <param name="packageName">The value of the property.</param>
+        /// <param name="packageVersion">The value of the property.</param>
+        /// <param name="packageVersionId">The value of the property.</param>
+        /// <param name="resourceInventory">The value of the property.</param>
+        /// <param name="skills">The value of the property.</param>
+        /// <param name="sourceIdentity">The value of the property.</param>
+        /// <param name="sourceSnapshotHash">The value of the property.</param>
+        /// <param name="upstreamManifestObservationHashes">The value of the property.</param>
+        /// <param name="validationReportHashes">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadPackageDescriptor> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source configGraphs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source configResolutions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source finalCompositeInventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source instructionProjections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source metadataOrigin, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source modules, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageMetadataHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source packageName, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source packageVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source resourceInventory, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source skills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source sourceIdentity, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceSnapshotHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source upstreamManifestObservationHashes, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source validationReportHashes, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(configGraphs, configResolutions, descriptorHash, distributionProfile, finalCompositeInventoryHash, installProfile, instructionProjections, metadataOrigin, modules, packageMetadataHash, packageName, packageVersion, packageVersionId, resourceInventory, skills, sourceIdentity, sourceSnapshotHash, upstreamManifestObservationHashes, validationReportHashes);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadPackageDescriptor>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="configGraphs">The value of the property.</param>
+        /// <param name="configResolutions">The value of the property.</param>
+        /// <param name="descriptorHash">The value of the property.</param>
+        /// <param name="distributionProfile">The value of the property.</param>
+        /// <param name="finalCompositeInventoryHash">The value of the property.</param>
+        /// <param name="installProfile">The value of the property.</param>
+        /// <param name="instructionProjections">The value of the property.</param>
+        /// <param name="metadataOrigin">The value of the property.</param>
+        /// <param name="modules">The value of the property.</param>
+        /// <param name="packageMetadataHash">The value of the property.</param>
+        /// <param name="packageName">The value of the property.</param>
+        /// <param name="packageVersion">The value of the property.</param>
+        /// <param name="packageVersionId">The value of the property.</param>
+        /// <param name="resourceInventory">The value of the property.</param>
+        /// <param name="skills">The value of the property.</param>
+        /// <param name="sourceIdentity">The value of the property.</param>
+        /// <param name="sourceSnapshotHash">The value of the property.</param>
+        /// <param name="upstreamManifestObservationHashes">The value of the property.</param>
+        /// <param name="validationReportHashes">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadPackageDescriptor> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigGraphsArray.Source<TContext> configGraphs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ConfigResolutionsArray.Source<TContext> configResolutions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source descriptorHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadDistributionProfile.Source distributionProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source finalCompositeInventoryHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadInstallProfile.Source installProfile, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.InstructionProjectionsArray.Source<TContext> instructionProjections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadMetadataOrigin.Source metadataOrigin, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ModulesArray.Source<TContext> modules, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source packageMetadataHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageNameEntity.Source packageName, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.PackageVersionEntity.Source packageVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source packageVersionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ResourceInventoryArray.Source<TContext> resourceInventory, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.SkillsArray.Source<TContext> skills, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadSourceIdentity.Source<TContext> sourceIdentity, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceSnapshotHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.UpstreamManifestObservationHashesArray.Source<TContext> upstreamManifestObservationHashes, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.ValidationReportHashesArray.Source<TContext> validationReportHashes, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, configGraphs, configResolutions, descriptorHash, distributionProfile, finalCompositeInventoryHash, installProfile, instructionProjections, metadataOrigin, modules, packageMetadataHash, packageName, packageVersion, packageVersionId, resourceInventory, skills, sourceIdentity, sourceSnapshotHash, upstreamManifestObservationHashes, validationReportHashes);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadPackageDescriptor>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

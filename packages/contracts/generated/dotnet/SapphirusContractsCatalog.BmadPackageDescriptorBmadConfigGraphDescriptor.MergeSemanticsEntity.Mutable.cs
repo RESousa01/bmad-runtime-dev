@@ -309,7 +309,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>deletionOperator</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetDeletionOperator(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.DeletionOperatorEntity.Source value)
+                public void SetDeletionOperator(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.DeletionOperatorEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -340,7 +340,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>keyedTableArrayRule</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetKeyedTableArrayRule(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.KeyedTableArrayRuleEntity.Source value)
+                public void SetKeyedTableArrayRule(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.KeyedTableArrayRuleEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -371,7 +371,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>otherArrayRule</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetOtherArrayRule(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.OtherArrayRuleEntity.Source value)
+                public void SetOtherArrayRule(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.OtherArrayRuleEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -402,7 +402,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>scalarRule</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetScalarRule(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.ScalarRuleEntity.Source value)
+                public void SetScalarRule(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.ScalarRuleEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -433,7 +433,7 @@ public readonly partial struct SapphirusContractsCatalog
                 /// Set the <c>tableRule</c> property.
                 /// </summary>
                 /// <param name="value">The value of the property to add.</param>
-                public void SetTableRule(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.TableRuleEntity.Source value)
+                public void SetTableRule(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.MergeSemanticsEntity.TableRuleEntity.Source value)
                 {
                     CheckValidInstance();
 
@@ -1004,6 +1004,87 @@ public readonly partial struct SapphirusContractsCatalog
             public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
             {
                 return workspace.CreateBuilder<MergeSemanticsEntity, Mutable>(this);
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<MergeSemanticsEntity> Create(
+                scoped in Source value, int initialCapacity = 30)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    value.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<MergeSemanticsEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<MergeSemanticsEntity> Create(
+                scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source(value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<MergeSemanticsEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="value">The value with which to initialize the document.</param>
+            /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+            /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+            /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+            public static ParsedJsonDocument<MergeSemanticsEntity> Create<TContext>(
+                scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+                #if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+                #endif
+            {
+                ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+                try
+                {
+                    ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                    var source = new Source<TContext>(context, value);
+                    source.AddAsItem(ref cvb);
+                    Debug.Assert(cvb.MemberCount == 1);
+                    ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                    return documentBuilder.ToParsedJsonDocument<MergeSemanticsEntity>();
+                }
+                finally
+                {
+                    documentBuilder.Dispose();
+                }
             }
         }
     }

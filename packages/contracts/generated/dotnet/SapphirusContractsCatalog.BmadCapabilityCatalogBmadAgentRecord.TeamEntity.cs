@@ -100,6 +100,15 @@ public readonly partial struct SapphirusContractsCatalog
                 return From(value);
             }
 
+            /// <summary>
+            /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRecord.TeamEntity.OneOf0Entity"/> mutable view.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static implicit operator TeamEntity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentRecord.TeamEntity.OneOf0Entity.Mutable value)
+            {
+                return From(value);
+            }
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static explicit operator string(TeamEntity value) => value._parent.GetString(value._idx, JsonTokenType.String) ?? throw new FormatException();
 
@@ -206,10 +215,13 @@ public readonly partial struct SapphirusContractsCatalog
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static TeamEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<TeamEntity>(utf8Json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -229,10 +241,13 @@ public readonly partial struct SapphirusContractsCatalog
             /// <exception cref="JsonException">
             ///   A value could not be read from the span.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static TeamEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<TeamEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -252,10 +267,13 @@ public readonly partial struct SapphirusContractsCatalog
             /// <exception cref="JsonException">
             ///   A value could not be read from the text.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static TeamEntity ParseValue(string json, JsonDocumentOptions options = default)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<TeamEntity>(json, options);
+                #pragma warning restore CS0618
             }
 
             /// <summary>
@@ -293,9 +311,12 @@ public readonly partial struct SapphirusContractsCatalog
             /// <exception cref="JsonException">
             ///   A value could not be read from the reader.
             /// </exception>
+            [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
             public static TeamEntity ParseValue(ref Utf8JsonReader reader)
             {
+                #pragma warning disable CS0618 // Type or member is obsolete
                 return JsonElementHelpers.ParseValue<TeamEntity>(ref reader);
+                #pragma warning restore CS0618
             }
 
             /// <summary>

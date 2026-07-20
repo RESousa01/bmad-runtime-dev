@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Corvus.Text.Json;
+using Corvus.Text.Json.Internal;
 using Sapphirus.Contracts.Generated;
 using Xunit;
 using JsonDocument = System.Text.Json.JsonDocument;
@@ -219,32 +220,32 @@ public sealed class BmadContractConformanceTests
         Assert.Equal("MAX_DEPTH_EXCEEDED", depth.Code);
     }
 
-    private static byte[] RoundTripGenerated(string schema, ReadOnlySpan<byte> source)
+    private static byte[] RoundTripGenerated(string schema, ReadOnlyMemory<byte> source)
     {
         string serialized = schema switch
         {
             "bmad-package-descriptor.schema.json" =>
-                SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.BmadPackageDescriptor>(source),
             "bmad-capability-catalog.schema.json" =>
-                SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.BmadCapabilityCatalog>(source),
             "bmad-method-advance-result.schema.json" =>
-                SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.MethodSessionMethodAdvanceResult>(source),
             "bmad-method-help-proposal.schema.json" =>
-                SapphirusContractsCatalog.MethodHelpProposal.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.MethodHelpProposal>(source),
             "bmad-method-help-recommendation.schema.json" =>
-                SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation>(source),
             "bmad-method-session.schema.json" =>
-                SapphirusContractsCatalog.MethodSession.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.MethodSession>(source),
             "bmad-builder-authoring.schema.json" =>
-                SapphirusContractsCatalog.BuilderAuthoringObject.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.BuilderAuthoringObject>(source),
             "bmad-validation-report.schema.json" =>
-                SapphirusContractsCatalog.BmadValidationReport.ParseValue(source).ToString(),
+                RoundTripGeneratedValue<SapphirusContractsCatalog.BmadValidationReport>(source),
             _ => throw new InvalidOperationException($"Unsupported BMAD schema {schema}."),
         };
         return Encoding.UTF8.GetBytes(serialized);
     }
 
-    private static string? ValidateGenerated(string schema, ReadOnlySpan<byte> source)
+    private static string? ValidateGenerated(string schema, ReadOnlyMemory<byte> source)
     {
         string? expectedRootVersion = schema switch
         {
@@ -254,17 +255,17 @@ public sealed class BmadContractConformanceTests
             _ => null,
         };
         if (expectedRootVersion is not null
-            && !StringComparer.Ordinal.Equals(ReadRootSchemaVersion(source), expectedRootVersion))
+            && !StringComparer.Ordinal.Equals(ReadRootSchemaVersion(source.Span), expectedRootVersion))
         {
             return "CONST_MISMATCH";
         }
         if (schema == "bmad-capability-catalog.schema.json"
-            && HasCapabilityKeyWithoutRequiredNullableAction(source))
+            && HasCapabilityKeyWithoutRequiredNullableAction(source.Span))
         {
             return "REQUIRED_PROPERTY_MISSING";
         }
         if (schema == "bmad-method-session.schema.json"
-            && HasMethodAuthorityMismatch(source))
+            && HasMethodAuthorityMismatch(source.Span))
         {
             return "CONST_MISMATCH";
         }
@@ -275,21 +276,21 @@ public sealed class BmadContractConformanceTests
         bool valid = schema switch
         {
             "bmad-package-descriptor.schema.json" =>
-                SapphirusContractsCatalog.BmadPackageDescriptor.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.BmadPackageDescriptor>(source, collector),
             "bmad-capability-catalog.schema.json" =>
-                SapphirusContractsCatalog.BmadCapabilityCatalog.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.BmadCapabilityCatalog>(source, collector),
             "bmad-method-advance-result.schema.json" =>
-                SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.MethodSessionMethodAdvanceResult>(source, collector),
             "bmad-method-help-proposal.schema.json" =>
-                SapphirusContractsCatalog.MethodHelpProposal.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.MethodHelpProposal>(source, collector),
             "bmad-method-help-recommendation.schema.json" =>
-                SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation>(source, collector),
             "bmad-method-session.schema.json" =>
-                SapphirusContractsCatalog.MethodSession.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.MethodSession>(source, collector),
             "bmad-builder-authoring.schema.json" =>
-                SapphirusContractsCatalog.BuilderAuthoringObject.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.BuilderAuthoringObject>(source, collector),
             "bmad-validation-report.schema.json" =>
-                SapphirusContractsCatalog.BmadValidationReport.ParseValue(source).EvaluateSchema(collector),
+                ValidateGeneratedValue<SapphirusContractsCatalog.BmadValidationReport>(source, collector),
             _ => throw new InvalidOperationException($"Unsupported BMAD schema {schema}."),
         };
         if (valid)
@@ -357,6 +358,23 @@ public sealed class BmadContractConformanceTests
         }
 
         return "SCHEMA_INVALID";
+    }
+
+    private static string RoundTripGeneratedValue<T>(ReadOnlyMemory<byte> source)
+        where T : struct, IJsonElement<T>
+    {
+        using ParsedJsonDocument<T> document = ParsedJsonDocument<T>.Parse(source);
+        return document.RootElement.ToString()
+            ?? throw new InvalidOperationException("Generated JSON value did not serialize.");
+    }
+
+    private static bool ValidateGeneratedValue<T>(
+        ReadOnlyMemory<byte> source,
+        JsonSchemaResultsCollector collector)
+        where T : struct, IJsonElement<T>
+    {
+        using ParsedJsonDocument<T> document = ParsedJsonDocument<T>.Parse(source);
+        return document.RootElement.EvaluateSchema(collector);
     }
 
     private static string? ReadRootSchemaVersion(ReadOnlySpan<byte> source)

@@ -203,6 +203,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf0Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf0Entity.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf1Entity"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -216,6 +225,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf1Entity value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf1Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf1Entity.Mutable value)
         {
             return From(value);
         }
@@ -239,6 +257,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf2Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf2Entity.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf3Entity"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -252,6 +279,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf3Entity value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf3Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator MethodSessionMethodAdvanceResult(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.OneOf3Entity.Mutable value)
         {
             return From(value);
         }
@@ -359,10 +395,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodSessionMethodAdvanceResult ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<MethodSessionMethodAdvanceResult>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -382,10 +421,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodSessionMethodAdvanceResult ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<MethodSessionMethodAdvanceResult>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -405,10 +447,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodSessionMethodAdvanceResult ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<MethodSessionMethodAdvanceResult>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -446,9 +491,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static MethodSessionMethodAdvanceResult ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<MethodSessionMethodAdvanceResult>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>

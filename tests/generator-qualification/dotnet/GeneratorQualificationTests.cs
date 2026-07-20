@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Corvus.Text.Json;
 using Sapphirus.Contracts.Generated;
 using Sapphirus.GeneratorQualification.Generated;
 using Xunit;
@@ -50,12 +51,16 @@ public sealed class QualificationTests
             if (fixture.Expected == "accept")
             {
                 using JsonDocument original = StrictJson.Parse(source, catalog.ParserLimits);
-                QualificationWire generated = QualificationWire.ParseValue(source);
+                using ParsedJsonDocument<QualificationWire> generatedDocument =
+                    ParsedJsonDocument<QualificationWire>.Parse(source);
+                QualificationWire generated = generatedDocument.RootElement;
                 Assert.True(generated.EvaluateSchema());
 
                 byte[] serialized = Encoding.UTF8.GetBytes(generated.ToString());
                 using JsonDocument roundTrip = StrictJson.Parse(serialized, catalog.ParserLimits);
-                QualificationWire reparsed = QualificationWire.ParseValue(serialized);
+                using ParsedJsonDocument<QualificationWire> reparsedDocument =
+                    ParsedJsonDocument<QualificationWire>.Parse(serialized);
+                QualificationWire reparsed = reparsedDocument.RootElement;
                 Assert.True(reparsed.EvaluateSchema());
                 Assert.Equal(
                     CanonicalJson.Serialize(original.RootElement),
@@ -122,16 +127,22 @@ public sealed class QualificationTests
     public void GeneratedQualificationPreservesRequiredNullAndOptionalAbsence()
     {
         byte[] absentSource = File.ReadAllBytes(QualificationPath("fixtures/valid/text-null-empty.json"));
-        QualificationWire absent = QualificationWire.ParseValue(absentSource);
+        using ParsedJsonDocument<QualificationWire> absentDocument =
+            ParsedJsonDocument<QualificationWire>.Parse(absentSource);
+        QualificationWire absent = absentDocument.RootElement;
         Assert.Equal(CorvusJsonValueKind.Null, absent["nullableValue"u8].ValueKind);
         Assert.False(absent.TryGetProperty("optionalValue"u8, out _));
 
         byte[] nullSource = File.ReadAllBytes(QualificationPath("fixtures/valid/count-optional-null.json"));
-        QualificationWire explicitNull = QualificationWire.ParseValue(nullSource);
+        using ParsedJsonDocument<QualificationWire> explicitNullDocument =
+            ParsedJsonDocument<QualificationWire>.Parse(nullSource);
+        QualificationWire explicitNull = explicitNullDocument.RootElement;
         Assert.True(explicitNull.TryGetProperty("optionalValue"u8, out Corvus.Text.Json.JsonElement optional));
         Assert.Equal(CorvusJsonValueKind.Null, optional.ValueKind);
 
-        QualificationWire roundTrip = QualificationWire.ParseValue(explicitNull.ToString());
+        using ParsedJsonDocument<QualificationWire> roundTripDocument =
+            ParsedJsonDocument<QualificationWire>.Parse(explicitNull.ToString());
+        QualificationWire roundTrip = roundTripDocument.RootElement;
         Assert.True(roundTrip.TryGetProperty("optionalValue"u8, out optional));
         Assert.Equal(CorvusJsonValueKind.Null, optional.ValueKind);
         Assert.True(roundTrip.EvaluateSchema());
@@ -141,8 +152,9 @@ public sealed class QualificationTests
     public void ActualProductionCorvusTreeParsesAndValidatesRepresentativeRoot()
     {
         byte[] source = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "windows-local-candidate.json"));
-        SapphirusContractsCatalog.CandidateAction candidate =
-            SapphirusContractsCatalog.CandidateAction.ParseValue(source);
+        using ParsedJsonDocument<SapphirusContractsCatalog.CandidateAction> candidateDocument =
+            ParsedJsonDocument<SapphirusContractsCatalog.CandidateAction>.Parse(source);
+        SapphirusContractsCatalog.CandidateAction candidate = candidateDocument.RootElement;
 
         Assert.True(candidate.EvaluateSchema());
         Assert.Equal("sapphirus.candidate-action.v1", candidate.SchemaVersion.ToString());

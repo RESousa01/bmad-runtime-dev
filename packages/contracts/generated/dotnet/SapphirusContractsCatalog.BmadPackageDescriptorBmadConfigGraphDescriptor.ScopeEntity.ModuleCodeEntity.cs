@@ -105,6 +105,15 @@ public readonly partial struct SapphirusContractsCatalog
                     return From(value);
                 }
 
+                /// <summary>
+                /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.ScopeEntity.ModuleCodeEntity.OneOf0Entity"/> mutable view.
+                /// </summary>
+                /// <param name="value">The value from which to convert.</param>
+                public static implicit operator ModuleCodeEntity(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptorBmadConfigGraphDescriptor.ScopeEntity.ModuleCodeEntity.OneOf0Entity.Mutable value)
+                {
+                    return From(value);
+                }
+
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public static explicit operator string(ModuleCodeEntity value) => value._parent.GetString(value._idx, JsonTokenType.String) ?? throw new FormatException();
 
@@ -211,10 +220,13 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the span.
                 /// </exception>
+                [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public static ModuleCodeEntity ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     return JsonElementHelpers.ParseValue<ModuleCodeEntity>(utf8Json, options);
+                    #pragma warning restore CS0618
                 }
 
                 /// <summary>
@@ -234,10 +246,13 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the span.
                 /// </exception>
+                [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public static ModuleCodeEntity ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     return JsonElementHelpers.ParseValue<ModuleCodeEntity>(json, options);
+                    #pragma warning restore CS0618
                 }
 
                 /// <summary>
@@ -257,10 +272,13 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the text.
                 /// </exception>
+                [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public static ModuleCodeEntity ParseValue(string json, JsonDocumentOptions options = default)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     return JsonElementHelpers.ParseValue<ModuleCodeEntity>(json, options);
+                    #pragma warning restore CS0618
                 }
 
                 /// <summary>
@@ -298,9 +316,12 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <exception cref="JsonException">
                 ///   A value could not be read from the reader.
                 /// </exception>
+                [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
                 public static ModuleCodeEntity ParseValue(ref Utf8JsonReader reader)
                 {
+                    #pragma warning disable CS0618 // Type or member is obsolete
                     return JsonElementHelpers.ParseValue<ModuleCodeEntity>(ref reader);
+                    #pragma warning restore CS0618
                 }
 
                 /// <summary>

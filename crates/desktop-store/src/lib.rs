@@ -9,7 +9,7 @@ use desktop_runtime::{
     MethodSessionRepository, MethodSessionScope, SpecConsumptionRecord,
 };
 use parking_lot::Mutex;
-use rand::RngCore;
+use rand::Rng;
 use rusqlite::{params, Connection, OpenFlags, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

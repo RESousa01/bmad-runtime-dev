@@ -43,12 +43,12 @@
     "verify:cross-language": "node ./scripts/qualify-generators.mjs --check && node ./scripts/generate.mjs --check && node ./scripts/check-schemas.mjs && tsc --project ./tsconfig.json --noEmit && tsc --project ../../tests/generator-qualification/typescript/tsconfig.json --noEmit && node ./scripts/check-generated-bindings.mjs && node ./scripts/run-tests.mjs --include-native"
   },
   "dependencies": {
-    "ajv": "8.17.1",
+    "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
-    "canonicalize": "2.1.0"
+    "canonicalize": "3.0.0"
   },
   "devDependencies": {
-    "@types/node": "24.10.1",
+    "@types/node": "24.13.3",
     "json-schema-to-typescript": "15.0.4",
     "typescript": "7.0.2"
   },
@@ -56,14 +56,14 @@
     "jsonSchemaDraft": "2020-12",
     "typescriptCompiler": "typescript@7.0.2",
     "typescriptGenerator": "json-schema-to-typescript@15.0.4",
-    "typescriptValidator": "ajv@8.17.1",
+    "typescriptValidator": "ajv@8.20.0",
     "rustGenerator": "cargo-typify@0.6.1",
     "rustValidator": "jsonschema@0.44.1",
-    "dotnetGenerator": "Corvus.Json.Cli@5.1.0",
-    "dotnetRuntime": "Corvus.Text.Json@5.1.0"
+    "dotnetGenerator": "Corvus.Json.Cli@5.2.7",
+    "dotnetRuntime": "Corvus.Text.Json@5.2.7"
   },
   "engines": {
     "node": "24.18.0",
-    "pnpm": "11.12.0"
+    "pnpm": "11.15.1"
   }
 }

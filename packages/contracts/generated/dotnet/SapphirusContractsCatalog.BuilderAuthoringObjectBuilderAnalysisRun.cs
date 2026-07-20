@@ -203,6 +203,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -216,6 +225,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.Mutable value)
         {
             return From(value);
         }
@@ -239,6 +257,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf0Entity2"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -257,6 +284,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf0Entity2"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf0Entity2.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf1Entity"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -270,6 +306,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf1Entity value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf1Entity"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf1Entity.Mutable value)
         {
             return From(value);
         }
@@ -377,10 +422,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BuilderAuthoringObjectBuilderAnalysisRun ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BuilderAuthoringObjectBuilderAnalysisRun>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -400,10 +448,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BuilderAuthoringObjectBuilderAnalysisRun ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BuilderAuthoringObjectBuilderAnalysisRun>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -423,10 +474,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BuilderAuthoringObjectBuilderAnalysisRun ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BuilderAuthoringObjectBuilderAnalysisRun>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -464,9 +518,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static BuilderAuthoringObjectBuilderAnalysisRun ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BuilderAuthoringObjectBuilderAnalysisRun>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>

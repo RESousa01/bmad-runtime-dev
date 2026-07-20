@@ -73,7 +73,7 @@ public readonly partial struct SapphirusContractsCatalog
                     private static readonly JsonSchemaPathProvider PackageVersionIdSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/packageVersionId/$ref"u8, buffer, out written);
                     private static readonly JsonSchemaPathProvider SkillNameSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/skillName"u8, buffer, out written);
 
-                    private static void MatchModuleCode(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                    private static void MatchModuleCode(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                     {
                         context.AddLocalEvaluatedProperty(propertyCount);
                         JsonSchemaContext childContext =
@@ -95,7 +95,7 @@ public readonly partial struct SapphirusContractsCatalog
                         requiredBitBuffer[RequiredOffsetForModuleCode] |= RequiredBitForModuleCode;
                     }
 
-                    private static void MatchNormalizedAction(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                    private static void MatchNormalizedAction(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                     {
                         context.AddLocalEvaluatedProperty(propertyCount);
                         JsonSchemaContext childContext1 =
@@ -117,7 +117,7 @@ public readonly partial struct SapphirusContractsCatalog
                         requiredBitBuffer[RequiredOffsetForNormalizedAction] |= RequiredBitForNormalizedAction;
                     }
 
-                    private static void MatchPackageVersionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                    private static void MatchPackageVersionId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                     {
                         context.AddLocalEvaluatedProperty(propertyCount);
                         JsonSchemaContext childContext2 =
@@ -139,7 +139,7 @@ public readonly partial struct SapphirusContractsCatalog
                         requiredBitBuffer[RequiredOffsetForPackageVersionId] |= RequiredBitForPackageVersionId;
                     }
 
-                    private static void MatchSkillName(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                    private static void MatchSkillName(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                     {
                         context.AddLocalEvaluatedProperty(propertyCount);
                         JsonSchemaContext childContext3 =
@@ -237,7 +237,7 @@ public readonly partial struct SapphirusContractsCatalog
                                 using UnescapedUtf8JsonString objectValidation_unescapedPropertyName = parentDocument.GetPropertyNameUnescaped(objectValidation_currentIndex);
                                 if (TryGetNamedMatcher(objectValidation_unescapedPropertyName.Span, out Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1? validator))
                                 {
-                                    validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, parentIndex, requiredPropertyChildHandler_seenItems);
+                                    validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, requiredPropertyChildHandler_seenItems);
                                     if (!context.HasCollector && !context.IsMatch)
                                     {
                                         return;

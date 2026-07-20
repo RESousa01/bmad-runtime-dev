@@ -652,7 +652,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>approvedExecutionSpec</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetApprovedExecutionSpecValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source value)
+        public void SetApprovedExecutionSpecValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source value)
         {
             CheckValidInstance();
 
@@ -733,7 +733,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>authorityRef</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetAuthorityRef(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source value)
+        public void SetAuthorityRef(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source value)
         {
             CheckValidInstance();
 
@@ -814,7 +814,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>bmadCapabilityCatalog</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBmadCapabilityCatalogValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source value)
+        public void SetBmadCapabilityCatalogValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source value)
         {
             CheckValidInstance();
 
@@ -895,7 +895,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>bmadCapabilityResult</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBmadCapabilityResultValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source value)
+        public void SetBmadCapabilityResultValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source value)
         {
             CheckValidInstance();
 
@@ -976,7 +976,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>bmadCapabilityRun</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBmadCapabilityRunValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source value)
+        public void SetBmadCapabilityRunValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source value)
         {
             CheckValidInstance();
 
@@ -1057,7 +1057,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>bmadPackageDescriptor</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBmadPackageDescriptorValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source value)
+        public void SetBmadPackageDescriptorValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source value)
         {
             CheckValidInstance();
 
@@ -1138,7 +1138,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>bmadValidationReport</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBmadValidationReportValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source value)
+        public void SetBmadValidationReportValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source value)
         {
             CheckValidInstance();
 
@@ -1219,7 +1219,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>builderAuthoringObject</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetBuilderAuthoringObjectValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source value)
+        public void SetBuilderAuthoringObjectValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source value)
         {
             CheckValidInstance();
 
@@ -1300,7 +1300,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>candidateAction</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetCandidateActionValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source value)
+        public void SetCandidateActionValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source value)
         {
             CheckValidInstance();
 
@@ -1381,7 +1381,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>contractError</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetContractErrorValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source value)
+        public void SetContractErrorValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source value)
         {
             CheckValidInstance();
 
@@ -1462,7 +1462,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>desktopDeviceRegistration</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetDesktopDeviceRegistrationValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source value)
+        public void SetDesktopDeviceRegistrationValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source value)
         {
             CheckValidInstance();
 
@@ -1543,7 +1543,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>desktopEntitlementLease</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetDesktopEntitlementLeaseValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source value)
+        public void SetDesktopEntitlementLeaseValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source value)
         {
             CheckValidInstance();
 
@@ -1624,7 +1624,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>desktopPolicy</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetDesktopPolicyValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source value)
+        public void SetDesktopPolicyValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source value)
         {
             CheckValidInstance();
 
@@ -1705,7 +1705,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>durableObject</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetDurableObjectValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source value)
+        public void SetDurableObjectValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source value)
         {
             CheckValidInstance();
 
@@ -1786,7 +1786,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>evidenceEvent</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetEvidenceEventValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source value)
+        public void SetEvidenceEventValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source value)
         {
             CheckValidInstance();
 
@@ -1867,7 +1867,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>executionResultManifest</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetExecutionResultManifestValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source value)
+        public void SetExecutionResultManifestValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source value)
         {
             CheckValidInstance();
 
@@ -1948,7 +1948,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>filesystemCapabilitySnapshot</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetFilesystemCapabilitySnapshotValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source value)
+        public void SetFilesystemCapabilitySnapshotValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source value)
         {
             CheckValidInstance();
 
@@ -2029,7 +2029,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>methodAdvanceResult</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetMethodAdvanceResult(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source value)
+        public void SetMethodAdvanceResult(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source value)
         {
             CheckValidInstance();
 
@@ -2110,7 +2110,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>methodHelpProposal</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetMethodHelpProposalValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source value)
+        public void SetMethodHelpProposalValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source value)
         {
             CheckValidInstance();
 
@@ -2191,7 +2191,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>methodHelpRecommendation</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetMethodHelpRecommendation(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source value)
+        public void SetMethodHelpRecommendation(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source value)
         {
             CheckValidInstance();
 
@@ -2272,7 +2272,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>methodSession</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetMethodSessionValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source value)
+        public void SetMethodSessionValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source value)
         {
             CheckValidInstance();
 
@@ -2353,7 +2353,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>modelAccessReceipt</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetModelAccessReceiptValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source value)
+        public void SetModelAccessReceiptValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source value)
         {
             CheckValidInstance();
 
@@ -2434,7 +2434,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>modelAccessRequest</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetModelAccessRequestValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source value)
+        public void SetModelAccessRequestValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source value)
         {
             CheckValidInstance();
 
@@ -2515,7 +2515,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>modelAccessResult</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetModelAccessResultValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source value)
+        public void SetModelAccessResultValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source value)
         {
             CheckValidInstance();
 
@@ -2596,7 +2596,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>modelContextConsent</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetModelContextConsentValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source value)
+        public void SetModelContextConsentValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source value)
         {
             CheckValidInstance();
 
@@ -2677,7 +2677,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>packageCompatibility</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetPackageCompatibilityValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source value)
+        public void SetPackageCompatibilityValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source value)
         {
             CheckValidInstance();
 
@@ -2758,7 +2758,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>remoteJobHandoff</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetRemoteJobHandoffValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source value)
+        public void SetRemoteJobHandoffValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source value)
         {
             CheckValidInstance();
 
@@ -2839,7 +2839,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Set the <c>specConsumptionRecord</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
-        public void SetSpecConsumptionRecordValue(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source value)
+        public void SetSpecConsumptionRecordValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source value)
         {
             CheckValidInstance();
 
@@ -3548,6 +3548,18 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Build an instance of the value.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+    /// overload with a <c>static</c> callback, capturing your source data in the context.
+    /// </para>
+    /// <para>
+    /// A <c>Build(...)</c> overload taking the individual property values directly is
+    /// intentionally not generated for this type, because its estimated captured-argument
+    /// footprint exceeds the configured build-parameters threshold. The threshold is
+    /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+    /// </para>
+    /// </remarks>
     /// <param name="buildValue">The callback that builds the value.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>The source from which to build the value.</returns>
@@ -3560,6 +3572,18 @@ public readonly partial struct SapphirusContractsCatalog
     /// <summary>
     /// Build an instance of the value.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+    /// overload with a <c>static</c> callback, capturing your source data in the context.
+    /// </para>
+    /// <para>
+    /// A <c>Build(...)</c> overload taking the individual property values directly is
+    /// intentionally not generated for this type, because its estimated captured-argument
+    /// footprint exceeds the configured build-parameters threshold. The threshold is
+    /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+    /// </para>
+    /// </remarks>
     /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
     /// <param name="context">The context to pass to the builder.</param>
     /// <param name="buildValue">The callback that builds the value.</param>
@@ -3747,5 +3771,197 @@ public readonly partial struct SapphirusContractsCatalog
     public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
     {
         return workspace.CreateBuilder<SapphirusContractsCatalog, Mutable>(this);
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+    /// </summary>
+    /// <param name="value">The value with which to initialize the document.</param>
+    /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+    /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create(
+        scoped in Source value, int initialCapacity = 30)
+    {
+        ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+        try
+        {
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            value.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder.ToParsedJsonDocument<SapphirusContractsCatalog>();
+        }
+        finally
+        {
+            documentBuilder.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+    /// </summary>
+    /// <param name="value">The value with which to initialize the document.</param>
+    /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+    /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+    /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create(
+        scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+    {
+        ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+        try
+        {
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Source(value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder.ToParsedJsonDocument<SapphirusContractsCatalog>();
+        }
+        finally
+        {
+            documentBuilder.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+    /// </summary>
+    /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+    /// <param name="context">The context to pass to the builder.</param>
+    /// <param name="value">The value with which to initialize the document.</param>
+    /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+    /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+    /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create<TContext>(
+        scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        #if NET9_0_OR_GREATER
+        where TContext : allows ref struct
+        #endif
+    {
+        ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+        try
+        {
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Source<TContext>(context, value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder.ToParsedJsonDocument<SapphirusContractsCatalog>();
+        }
+        finally
+        {
+            documentBuilder.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+    /// </summary>
+    /// <param name="approvedExecutionSpec">The value of the property.</param>
+    /// <param name="authorityRef">The value of the property.</param>
+    /// <param name="bmadCapabilityCatalog">The value of the property.</param>
+    /// <param name="bmadCapabilityResult">The value of the property.</param>
+    /// <param name="bmadCapabilityRun">The value of the property.</param>
+    /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadValidationReport">The value of the property.</param>
+    /// <param name="builderAuthoringObject">The value of the property.</param>
+    /// <param name="candidateAction">The value of the property.</param>
+    /// <param name="contractError">The value of the property.</param>
+    /// <param name="desktopDeviceRegistration">The value of the property.</param>
+    /// <param name="desktopEntitlementLease">The value of the property.</param>
+    /// <param name="desktopPolicy">The value of the property.</param>
+    /// <param name="durableObject">The value of the property.</param>
+    /// <param name="evidenceEvent">The value of the property.</param>
+    /// <param name="executionResultManifest">The value of the property.</param>
+    /// <param name="filesystemCapabilitySnapshot">The value of the property.</param>
+    /// <param name="methodAdvanceResult">The value of the property.</param>
+    /// <param name="methodHelpProposal">The value of the property.</param>
+    /// <param name="methodHelpRecommendation">The value of the property.</param>
+    /// <param name="methodSession">The value of the property.</param>
+    /// <param name="modelAccessReceipt">The value of the property.</param>
+    /// <param name="modelAccessRequest">The value of the property.</param>
+    /// <param name="modelAccessResult">The value of the property.</param>
+    /// <param name="modelContextConsent">The value of the property.</param>
+    /// <param name="packageCompatibility">The value of the property.</param>
+    /// <param name="remoteJobHandoff">The value of the property.</param>
+    /// <param name="specConsumptionRecord">The value of the property.</param>
+    /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+    /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
+    {
+        ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+        try
+        {
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            cvb.StartObject();
+            Builder ovb = new(cvb);
+            ovb.Create(approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            cvb = ovb._builder;
+            cvb.EndObject();
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder.ToParsedJsonDocument<SapphirusContractsCatalog>();
+        }
+        finally
+        {
+            documentBuilder.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+    /// </summary>
+    /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+    /// <param name="context">The value of the property.</param>
+    /// <param name="approvedExecutionSpec">The value of the property.</param>
+    /// <param name="authorityRef">The value of the property.</param>
+    /// <param name="bmadCapabilityCatalog">The value of the property.</param>
+    /// <param name="bmadCapabilityResult">The value of the property.</param>
+    /// <param name="bmadCapabilityRun">The value of the property.</param>
+    /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadValidationReport">The value of the property.</param>
+    /// <param name="builderAuthoringObject">The value of the property.</param>
+    /// <param name="candidateAction">The value of the property.</param>
+    /// <param name="contractError">The value of the property.</param>
+    /// <param name="desktopDeviceRegistration">The value of the property.</param>
+    /// <param name="desktopEntitlementLease">The value of the property.</param>
+    /// <param name="desktopPolicy">The value of the property.</param>
+    /// <param name="durableObject">The value of the property.</param>
+    /// <param name="evidenceEvent">The value of the property.</param>
+    /// <param name="executionResultManifest">The value of the property.</param>
+    /// <param name="filesystemCapabilitySnapshot">The value of the property.</param>
+    /// <param name="methodAdvanceResult">The value of the property.</param>
+    /// <param name="methodHelpProposal">The value of the property.</param>
+    /// <param name="methodHelpRecommendation">The value of the property.</param>
+    /// <param name="methodSession">The value of the property.</param>
+    /// <param name="modelAccessReceipt">The value of the property.</param>
+    /// <param name="modelAccessRequest">The value of the property.</param>
+    /// <param name="modelAccessResult">The value of the property.</param>
+    /// <param name="modelContextConsent">The value of the property.</param>
+    /// <param name="packageCompatibility">The value of the property.</param>
+    /// <param name="remoteJobHandoff">The value of the property.</param>
+    /// <param name="specConsumptionRecord">The value of the property.</param>
+    /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+    /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
+        #if NET9_0_OR_GREATER
+        where TContext : allows ref struct
+        #endif
+    {
+        ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+        try
+        {
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            cvb.StartObject();
+            Builder ovb = new(cvb);
+            ovb.Create(context, approvedExecutionSpec, authorityRef, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadPackageDescriptor, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessReceipt, modelAccessRequest, modelAccessResult, modelContextConsent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            cvb = ovb._builder;
+            cvb.EndObject();
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder.ToParsedJsonDocument<SapphirusContractsCatalog>();
+        }
+        finally
+        {
+            documentBuilder.Dispose();
+        }
     }
 }

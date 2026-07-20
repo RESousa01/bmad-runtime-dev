@@ -535,7 +535,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>cloudWork</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCloudWork(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkLink.Source value)
+            public void SetCloudWork(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkLink.Source value)
             {
                 CheckValidInstance();
 
@@ -600,7 +600,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>createdAt</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetCreatedAt(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
+            public void SetCreatedAt(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source value)
             {
                 CheckValidInstance();
 
@@ -631,7 +631,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetHandoffHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -662,7 +662,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetHandoffId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -693,7 +693,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>handoffVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetHandoffVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source value)
+            public void SetHandoffVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source value)
             {
                 CheckValidInstance();
 
@@ -724,7 +724,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>localAuthorization</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetLocalAuthorization(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocalHandoffAuthorization.Source value)
+            public void SetLocalAuthorization(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocalHandoffAuthorization.Source value)
             {
                 CheckValidInstance();
 
@@ -789,7 +789,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>previousHandoffHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetPreviousHandoffHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source value)
+            public void SetPreviousHandoffHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source value)
             {
                 CheckValidInstance();
 
@@ -820,7 +820,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>remoteResult</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetRemoteResult(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultLink.Source value)
+            public void SetRemoteResult(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultLink.Source value)
             {
                 CheckValidInstance();
 
@@ -885,7 +885,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>schemaVersion</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSchemaVersion(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffSchemaVersion.Source value)
+            public void SetSchemaVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffSchemaVersion.Source value)
             {
                 CheckValidInstance();
 
@@ -916,7 +916,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceAuthority</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceAuthority(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
+            public void SetSourceAuthority(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source value)
             {
                 CheckValidInstance();
 
@@ -981,7 +981,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceCheckpointId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceCheckpointId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceCheckpointId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1012,7 +1012,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceProjectId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceProjectId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceProjectId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1043,7 +1043,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceRunId</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceRunId(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            public void SetSourceRunId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
             {
                 CheckValidInstance();
 
@@ -1074,7 +1074,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>sourceWorkspaceManifestHash</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetSourceWorkspaceManifestHash(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            public void SetSourceWorkspaceManifestHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
             {
                 CheckValidInstance();
 
@@ -1105,7 +1105,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>state</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetState(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.StateEntity.Source value)
+            public void SetState(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.StateEntity.Source value)
             {
                 CheckValidInstance();
 
@@ -1136,7 +1136,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Set the <c>uploadPreview</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
-            public void SetUploadPreview(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreview.Source value)
+            public void SetUploadPreview(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreview.Source value)
             {
                 CheckValidInstance();
 
@@ -1753,6 +1753,18 @@ public readonly partial struct SapphirusContractsCatalog
         /// <summary>
         /// Build an instance of the value.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+        /// overload with a <c>static</c> callback, capturing your source data in the context.
+        /// </para>
+        /// <para>
+        /// A <c>Build(...)</c> overload taking the individual property values directly is
+        /// intentionally not generated for this type, because its estimated captured-argument
+        /// footprint exceeds the configured build-parameters threshold. The threshold is
+        /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+        /// </para>
+        /// </remarks>
         /// <param name="buildValue">The callback that builds the value.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>The source from which to build the value.</returns>
@@ -1765,6 +1777,18 @@ public readonly partial struct SapphirusContractsCatalog
         /// <summary>
         /// Build an instance of the value.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// To build this value without allocating a closure, use the <c>Build&lt;TContext&gt;</c>
+        /// overload with a <c>static</c> callback, capturing your source data in the context.
+        /// </para>
+        /// <para>
+        /// A <c>Build(...)</c> overload taking the individual property values directly is
+        /// intentionally not generated for this type, because its estimated captured-argument
+        /// footprint exceeds the configured build-parameters threshold. The threshold is
+        /// configurable via <c>CSharpLanguageProvider.Options.BuildParametersThreshold</c>.
+        /// </para>
+        /// </remarks>
         /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
         /// <param name="context">The context to pass to the builder.</param>
         /// <param name="buildValue">The callback that builds the value.</param>
@@ -1926,6 +1950,172 @@ public readonly partial struct SapphirusContractsCatalog
         public JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace)
         {
             return workspace.CreateBuilder<RemoteJobHandoffRemoteResultHandoff, Mutable>(this);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff> Create(
+            scoped in Source value, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                value.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff> Create(
+            scoped in Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff> Create<TContext>(
+            scoped in TContext context, scoped in Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <param name="cloudWork">The value of the property.</param>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="handoffHash">The value of the property.</param>
+        /// <param name="handoffId">The value of the property.</param>
+        /// <param name="handoffVersion">The value of the property.</param>
+        /// <param name="localAuthorization">The value of the property.</param>
+        /// <param name="previousHandoffHash">The value of the property.</param>
+        /// <param name="remoteResult">The value of the property.</param>
+        /// <param name="sourceAuthority">The value of the property.</param>
+        /// <param name="sourceCheckpointId">The value of the property.</param>
+        /// <param name="sourceProjectId">The value of the property.</param>
+        /// <param name="sourceRunId">The value of the property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="uploadPreview">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkLink.Source cloudWork, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocalHandoffAuthorization.Source localAuthorization, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultLink.Source remoteResult, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source sourceAuthority, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreview.Source uploadPreview, int initialCapacity = 30)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(cloudWork, createdAt, handoffHash, handoffId, handoffVersion, localAuthorization, previousHandoffHash, remoteResult, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state, uploadPreview);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="cloudWork">The value of the property.</param>
+        /// <param name="createdAt">The value of the property.</param>
+        /// <param name="handoffHash">The value of the property.</param>
+        /// <param name="handoffId">The value of the property.</param>
+        /// <param name="handoffVersion">The value of the property.</param>
+        /// <param name="localAuthorization">The value of the property.</param>
+        /// <param name="previousHandoffHash">The value of the property.</param>
+        /// <param name="remoteResult">The value of the property.</param>
+        /// <param name="sourceAuthority">The value of the property.</param>
+        /// <param name="sourceCheckpointId">The value of the property.</param>
+        /// <param name="sourceProjectId">The value of the property.</param>
+        /// <param name="sourceRunId">The value of the property.</param>
+        /// <param name="sourceWorkspaceManifestHash">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="uploadPreview">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffCloudWorkLink.Source<TContext> cloudWork, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonUtcInstant.Source createdAt, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source handoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source handoffId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffHandoffVersion.Source handoffVersion, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffLocalHandoffAuthorization.Source<TContext> localAuthorization, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffPreviousHandoffHash.Source previousHandoffHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultLink.Source<TContext> remoteResult, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonDesktopLocalStoreAuthorityRef.Source<TContext> sourceAuthority, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceCheckpointId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceProjectId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sourceRunId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source sourceWorkspaceManifestHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffRemoteResultHandoff.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoffUploadPreview.Source<TContext> uploadPreview, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, cloudWork, createdAt, handoffHash, handoffId, handoffVersion, localAuthorization, previousHandoffHash, remoteResult, sourceAuthority, sourceCheckpointId, sourceProjectId, sourceRunId, sourceWorkspaceManifestHash, state, uploadPreview);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<RemoteJobHandoffRemoteResultHandoff>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
         }
     }
 }

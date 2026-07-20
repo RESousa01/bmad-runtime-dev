@@ -362,7 +362,9 @@ public sealed class QualificationValidator(Action? onValidatorInvoked = null)
         using (document)
         {
             this.onValidatorInvoked();
-            QualificationWire generated = QualificationWire.ParseValue(source.Span);
+            using Corvus.Text.Json.ParsedJsonDocument<QualificationWire> generatedDocument =
+                Corvus.Text.Json.ParsedJsonDocument<QualificationWire>.Parse(source);
+            QualificationWire generated = generatedDocument.RootElement;
             using JsonSchemaResultsCollector collector = JsonSchemaResultsCollector.CreateUnrented(
                 JsonSchemaResultsLevel.Verbose,
                 128);

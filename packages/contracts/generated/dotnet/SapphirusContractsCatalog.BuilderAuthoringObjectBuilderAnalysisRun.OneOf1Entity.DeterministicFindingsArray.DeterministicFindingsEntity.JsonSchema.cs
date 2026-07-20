@@ -79,7 +79,7 @@ public readonly partial struct SapphirusContractsCatalog
                         private static readonly JsonSchemaPathProvider RuleIdSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/ruleId"u8, buffer, out written);
                         private static readonly JsonSchemaPathProvider SeveritySchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/severity"u8, buffer, out written);
 
-                        private static void MatchFindingId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                        private static void MatchFindingId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                         {
                             context.AddLocalEvaluatedProperty(propertyCount);
                             JsonSchemaContext childContext =
@@ -101,7 +101,7 @@ public readonly partial struct SapphirusContractsCatalog
                             requiredBitBuffer[RequiredOffsetForFindingId] |= RequiredBitForFindingId;
                         }
 
-                        private static void MatchMessage(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                        private static void MatchMessage(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                         {
                             context.AddLocalEvaluatedProperty(propertyCount);
                             JsonSchemaContext childContext1 =
@@ -123,7 +123,7 @@ public readonly partial struct SapphirusContractsCatalog
                             requiredBitBuffer[RequiredOffsetForMessage] |= RequiredBitForMessage;
                         }
 
-                        private static void MatchRelativePath(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                        private static void MatchRelativePath(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                         {
                             context.AddLocalEvaluatedProperty(propertyCount);
                             JsonSchemaContext childContext2 =
@@ -138,7 +138,7 @@ public readonly partial struct SapphirusContractsCatalog
                             context.CommitChildContext(childContext2.IsMatch, ref childContext2);
                         }
 
-                        private static void MatchRuleId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                        private static void MatchRuleId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                         {
                             context.AddLocalEvaluatedProperty(propertyCount);
                             JsonSchemaContext childContext3 =
@@ -160,7 +160,7 @@ public readonly partial struct SapphirusContractsCatalog
                             requiredBitBuffer[RequiredOffsetForRuleId] |= RequiredBitForRuleId;
                         }
 
-                        private static void MatchSeverity(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex, Span<uint> requiredBitBuffer)
+                        private static void MatchSeverity(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
                         {
                             context.AddLocalEvaluatedProperty(propertyCount);
                             JsonSchemaContext childContext4 =
@@ -259,7 +259,7 @@ public readonly partial struct SapphirusContractsCatalog
                                     using UnescapedUtf8JsonString objectValidation_unescapedPropertyName = parentDocument.GetPropertyNameUnescaped(objectValidation_currentIndex);
                                     if (TryGetNamedMatcher(objectValidation_unescapedPropertyName.Span, out Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1? validator))
                                     {
-                                        validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, parentIndex, requiredPropertyChildHandler_seenItems);
+                                        validator!(parentDocument, objectValidation_currentIndex, objectValidation_propertyCount, ref context, requiredPropertyChildHandler_seenItems);
                                         if (!context.HasCollector && !context.IsMatch)
                                         {
                                             return;

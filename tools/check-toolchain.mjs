@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
@@ -21,9 +20,15 @@ assert.equal(
   `Node ${actualNode} is running, but the pinned toolchain requires ${expectedNode}.`,
 );
 
-// Child processes must inherit the same pnpm the pin names, not whatever
-// launcher happens to shadow it on PATH.
-const childPnpm = execFileSync("pnpm", ["--version"], { encoding: "utf8", shell: true }).trim();
+// pnpm records the exact invoking package-manager version in every package
+// script. Reading that metadata avoids executing a platform-specific command
+// shim (which Node intentionally refuses to spawn directly on Windows).
+const packageManagerAgent = process.env.npm_config_user_agent ?? "";
+const childPnpm = /(?:^|\s)pnpm\/([^\s]+)/u.exec(packageManagerAgent)?.[1];
+assert.ok(
+  childPnpm,
+  "Toolchain checks must run through pnpm so the invoking version can be verified.",
+);
 assert.equal(
   childPnpm,
   expectedPnpm,

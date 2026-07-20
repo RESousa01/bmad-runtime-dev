@@ -203,6 +203,15 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentSkillTarget"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BmadCapabilityCatalogBmadAgentMenuTarget(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentSkillTarget.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentPromptReferenceTarget"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -216,6 +225,15 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
         public static implicit operator BmadCapabilityCatalogBmadAgentMenuTarget(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentPromptReferenceTarget value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentPromptReferenceTarget"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BmadCapabilityCatalogBmadAgentMenuTarget(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalogBmadAgentPromptReferenceTarget.Mutable value)
         {
             return From(value);
         }
@@ -323,10 +341,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BmadCapabilityCatalogBmadAgentMenuTarget ParseValue(ReadOnlySpan<byte> utf8Json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BmadCapabilityCatalogBmadAgentMenuTarget>(utf8Json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -346,10 +367,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the span.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BmadCapabilityCatalogBmadAgentMenuTarget ParseValue(ReadOnlySpan<char> json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BmadCapabilityCatalogBmadAgentMenuTarget>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -369,10 +393,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the text.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BmadCapabilityCatalogBmadAgentMenuTarget ParseValue(string json, JsonDocumentOptions options = default)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BmadCapabilityCatalogBmadAgentMenuTarget>(json, options);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -410,9 +437,12 @@ public readonly partial struct SapphirusContractsCatalog
         /// <exception cref="JsonException">
         ///   A value could not be read from the reader.
         /// </exception>
+        [Obsolete("Use ParsedJsonDocument<T>.Parse() for pooled-memory parsing, or Clone() for a standalone copy. ParseValue allocates without pooling.")]
         public static BmadCapabilityCatalogBmadAgentMenuTarget ParseValue(ref Utf8JsonReader reader)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             return JsonElementHelpers.ParseValue<BmadCapabilityCatalogBmadAgentMenuTarget>(ref reader);
+            #pragma warning restore CS0618
         }
 
         /// <summary>
