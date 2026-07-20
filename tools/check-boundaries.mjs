@@ -34,6 +34,7 @@ const reviewedReadyCommands = [
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
+  "bmad.persona.view",
   "model.auth.status",
   "model.auth.sign_in",
   "model.auth.sign_out",

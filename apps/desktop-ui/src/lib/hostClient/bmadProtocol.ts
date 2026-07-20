@@ -895,6 +895,78 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
   return projection;
 }
 
+const PERSONA_SCHEMA = "sapphirus.bmad-persona-perspective.v1";
+const MAX_PERSONA_MARKDOWN_CHARS = 16_384;
+
+export interface BmadPersonaPerspective {
+  readonly schemaVersion: string;
+  readonly agentCode: string;
+  readonly name: string;
+  readonly title: string;
+  readonly icon: string;
+  readonly instructionMarkdown: string;
+  readonly instructionHash: string;
+}
+
+export function parseBmadPersonaPerspective(value: unknown): BmadPersonaPerspective {
+  const perspective = asRecord(value);
+  assertExactKeys(perspective, [
+    "schemaVersion",
+    "agentCode",
+    "name",
+    "title",
+    "icon",
+    "instructionMarkdown",
+    "instructionHash",
+  ]);
+  if (
+    perspective.schemaVersion !== PERSONA_SCHEMA ||
+    typeof perspective.agentCode !== "string" ||
+    !perspective.agentCode.startsWith("bmad-agent-") ||
+    perspective.agentCode.length > 64 ||
+    typeof perspective.name !== "string" ||
+    perspective.name.length === 0 ||
+    perspective.name.length > 128 ||
+    typeof perspective.title !== "string" ||
+    perspective.title.length === 0 ||
+    perspective.title.length > 128 ||
+    typeof perspective.icon !== "string" ||
+    perspective.icon.length > 16 ||
+    typeof perspective.instructionMarkdown !== "string" ||
+    perspective.instructionMarkdown.length === 0 ||
+    perspective.instructionMarkdown.length > MAX_PERSONA_MARKDOWN_CHARS ||
+    typeof perspective.instructionHash !== "string" ||
+    !/^sha256:[0-9a-f]{64}$/u.test(perspective.instructionHash)
+  ) {
+    return fail();
+  }
+  return {
+    schemaVersion: perspective.schemaVersion,
+    agentCode: perspective.agentCode,
+    name: perspective.name,
+    title: perspective.title,
+    icon: perspective.icon,
+    instructionMarkdown: perspective.instructionMarkdown,
+    instructionHash: perspective.instructionHash,
+  };
+}
+
+export function parseBmadPersonaPerspectiveReply(
+  value: unknown,
+  requestId: string,
+): { projection: BmadPersonaPerspective; sequence: number } {
+  const parsed = parseDispatchReply(value, requestId);
+  const data = parsed.data;
+  assertExactKeys(data, ["kind", "value"]);
+  if (data.kind !== "bmad_persona_perspective") {
+    return fail();
+  }
+  return {
+    projection: parseBmadPersonaPerspective(data.value),
+    sequence: parsed.sequence,
+  };
+}
+
 export function parseBmadLibrarySnapshotReply(
   value: unknown,
   requestId: string,

@@ -17,6 +17,8 @@ import {
   parseBmadHelpReviewReply,
   parseBmadHelpRunCreatedReply,
   parseBmadLibrarySnapshotReply,
+  parseBmadPersonaPerspectiveReply,
+  type BmadPersonaPerspective,
   parseLatestBmadHelpRunReply,
   parseModelAuthStatusReply,
 } from "./bmadProtocol";
@@ -576,6 +578,26 @@ export class DesktopHostClient {
     const parsed = parseBmadLibrarySnapshotReply(reply, requestId);
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.requireBmadLibraryCommand();
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async viewBmadPersona(agentCode: string): Promise<BmadPersonaPerspective> {
+    const bootstrap = this.requireCommand("bmad.persona.view");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildReadOnlyEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.persona.view",
+      { agentCode },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseBmadPersonaPerspectiveReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
     this.advanceProjectionSequence(parsed.sequence);
     return parsed.projection;
   }

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BmadHelpCard } from "./components/BmadHelpCard";
-import { BmadLibraryPanel } from "./components/BmadLibraryPanel";
+import {
+  BmadLibraryPanel,
+  type BmadPersonaPerspectiveView,
+} from "./components/BmadLibraryPanel";
 import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
@@ -150,6 +153,9 @@ export function App({
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
   const [, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
+  const [personaPerspectives, setPersonaPerspectives] = useState<
+    ReadonlyMap<string, BmadPersonaPerspectiveView>
+  >(new Map());
   const [bmadHelpState, setBmadHelpState] = useState<BmadRequestState>(initialBmadRequestState);
   const [modelAuthStatus, setModelAuthStatus] = useState<ModelAuthStatusProjection | null>(null);
   const [changesFlow, setChangesFlow] = useState<GovernedChangesUiState | null>(null);
@@ -223,6 +229,31 @@ export function App({
     ? hostRuntime.client
     : null;
   const methodLibraryAvailable = methodLibraryClient !== null;
+  const viewPersonaPerspective = useCallback(
+    async (agentCode: string) => {
+      if (
+        hostRuntime.kind !== "ready" ||
+        !hostRuntime.bootstrap.supportedCommands.includes("bmad.persona.view")
+      ) {
+        return;
+      }
+      try {
+        const perspective = await hostRuntime.client.viewBmadPersona(agentCode);
+        setPersonaPerspectives((current) => {
+          const next = new Map(current);
+          next.set(agentCode, {
+            agentCode: perspective.agentCode,
+            instructionMarkdown: perspective.instructionMarkdown,
+            instructionHash: perspective.instructionHash,
+          });
+          return next;
+        });
+      } catch {
+        // The perspective stays hidden; the library remains usable.
+      }
+    },
+    [hostRuntime],
+  );
   const skillsAgentsStatusLabel = !methodLibraryAvailable
     ? "Unavailable"
     : bmadLibraryState.kind === "ready"
@@ -1761,6 +1792,10 @@ export function App({
                 void loadMethodLibrary(methodLibraryClient);
               }
             }}
+            onViewPersona={(agentCode) => {
+              void viewPersonaPerspective(agentCode);
+            }}
+            personaPerspectives={personaPerspectives}
             state={bmadLibraryState}
           />
         </div>

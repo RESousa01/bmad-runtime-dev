@@ -433,7 +433,9 @@ export function buildReadOnlyEnvelope<
           ? { workspaceId: string }
           : TCommand extends "bmad.library.snapshot"
             ? { scope: "installed_method"; cursor: string | null }
-            : { workspaceId: string; relativePaths: string[] },
+            : TCommand extends "bmad.persona.view"
+              ? { agentCode: string }
+              : { workspaceId: string; relativePaths: string[] },
 ): CommandEnvelope<TCommand, typeof payload> {
   return {
     schemaVersion: COMMAND_SCHEMA,
