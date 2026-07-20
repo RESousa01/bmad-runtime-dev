@@ -49,7 +49,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 31] = [
+const READY_COMMANDS: [&str; 33] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -80,6 +80,8 @@ const READY_COMMANDS: [&str; 31] = [
     "app.preferences.get",
     "app.preferences.set",
     "app.about",
+    "app.offboarding.inspect",
+    "app.offboarding.erase",
     "workspace.pick_files",
 ];
 const RECOVERY_COMMANDS: [&str; 2] = ["app.get_boot_state", "workspace.list"];
@@ -413,6 +415,20 @@ fn execute_command(
         }
         LocalCommand::PickWorkspaceFiles { workspace_id } => {
             pick_workspace_files(app, state, workspace_id)
+        }
+        LocalCommand::OffboardingInspect => {
+            let _authority = state.ready_authority()?;
+            offboarding_inspect(state)
+        }
+        LocalCommand::OffboardingErase => {
+            state.offboard_erase()?;
+            Ok(HostCommandData::OffboardingErased(
+                desktop_ipc::OffboardingErasedProjection {
+                    schema_version: "sapphirus.offboarding-erased.v1".to_owned(),
+                    status: "erased".to_owned(),
+                    restart_required: true,
+                },
+            ))
         }
         LocalCommand::ViewBmadPersona { agent_code } => {
             let _authority = state.ready_authority()?;
@@ -952,6 +968,34 @@ fn bmad_library_snapshot(
     )
     .map(HostCommandData::BmadLibrarySnapshot)
     .map_err(map_bmad_projection_error)
+}
+
+fn offboarding_inspect(state: &HostState) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_authority()?;
+    let store = state.local_store(&authority)?;
+    let manifest = store.retention_manifest().map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The retention manifest could not be produced.",
+            false,
+        )
+    })?;
+    let categories = manifest
+        .into_iter()
+        .map(
+            |(category, count)| desktop_ipc::RetentionCategoryProjection {
+                category: category.to_owned(),
+                count,
+            },
+        )
+        .collect();
+    Ok(HostCommandData::RetentionManifest(
+        desktop_ipc::RetentionManifestProjection {
+            schema_version: "sapphirus.retention-manifest.v1".to_owned(),
+            categories,
+            retained_bytes: store.retained_bytes(),
+        },
+    ))
 }
 
 fn view_bmad_persona(
@@ -1987,13 +2031,77 @@ mod tests {
     use super::{
         about_projection, admit_dispatch_envelope, bmad_library_snapshot, create_bmad_help_run,
         latest_bmad_help_run, latest_bmad_help_run_data, load_preferences, map_bmad_model_error,
-        map_workspace_error, model_auth_status_data, revoke_workspace, save_preferences,
-        should_cache_reply, supported_commands, view_bmad_persona,
+        map_workspace_error, model_auth_status_data, offboarding_inspect, revoke_workspace,
+        save_preferences, should_cache_reply, supported_commands, view_bmad_persona,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
         state::HostState, wire::HostCommandData,
     };
+
+    #[test]
+    fn offboarding_inspect_reports_bounded_categories_only(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (state, _storage, _workspace, _workspace_id) = ready_workspace_state();
+        let HostCommandData::RetentionManifest(manifest) =
+            offboarding_inspect(&state).expect("retention manifest")
+        else {
+            return Err("expected a retention manifest projection".into());
+        };
+        assert_eq!(manifest.schema_version, "sapphirus.retention-manifest.v1");
+        assert_eq!(manifest.categories.len(), 8);
+        let serialized = serde_json::to_string(&manifest).expect("serializable manifest");
+        // The manifest may never leak paths, separators, or identifiers.
+        assert!(!serialized.contains('/') && !serialized.contains('\\'));
+        for category in &manifest.categories {
+            assert!(category
+                .category
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c == '_'));
+        }
+        assert!(manifest.retained_bytes > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn offboarding_erase_revokes_grants_and_drops_to_recovery() {
+        let (state, storage, workspace, workspace_id) = ready_workspace_state();
+        let sentinel = workspace.path().join("work-product.txt");
+        std::fs::write(&sentinel, b"user work product").expect("sentinel write");
+        let epoch_before = state.model_auth_epoch();
+
+        state.offboard_erase().expect("offboarding erase");
+
+        // Terminal state: recovery mode, no grants, advanced auth epoch.
+        assert!(state.ready_authority().is_err());
+        assert!(state.workspace.list().is_empty());
+        assert!(state.model_auth_epoch() > epoch_before);
+        assert!(state.workspace.authority_binding(&workspace_id).is_err());
+
+        // The authority root keeps no key, database, or payloads.
+        let root = storage.path().join("authority");
+        assert!(!root.join("store.key").exists());
+        assert!(!root.join("authority.sqlite3").exists());
+        assert!(!root.join("cas").exists());
+
+        // Workspace work product is untouched.
+        assert_eq!(
+            std::fs::read(&sentinel).expect("sentinel intact"),
+            b"user work product"
+        );
+
+        // Erase is not repeatable from recovery, and a fresh launch starts
+        // a clean identity.
+        assert_eq!(
+            state
+                .offboard_erase()
+                .expect_err("recovery blocks erase")
+                .code,
+            LocalErrorCode::RecoveryRequired
+        );
+        let fresh = HostState::initialize(Some(root)).expect("fresh identity");
+        assert!(fresh.ready_authority().is_ok());
+    }
 
     fn foundation_path() -> std::path::PathBuf {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation")
@@ -2703,7 +2811,7 @@ mod tests {
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 31);
+        assert_eq!(ready.len(), 33);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]

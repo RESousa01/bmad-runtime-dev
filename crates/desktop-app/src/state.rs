@@ -271,6 +271,41 @@ impl HostState {
         Ok(next)
     }
 
+    /// Executes the ADR-0004 offboarding erase: signs out model authority
+    /// (withdrawing every D2 context-read epoch), revokes all workspace
+    /// grants, cryptographically erases the local authority store, and drops
+    /// the session to read-only recovery. Irreversible by design.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed before any deletion when Ready authority is not held or
+    /// the store is absent; a store failure after key destruction still
+    /// leaves only undecryptable ciphertext behind.
+    pub fn offboard_erase(&self) -> Result<(), LocalError> {
+        let _commit = self.workspace_commits.lock();
+        {
+            let _authority = self.ready_authority()?;
+            // Epoch exhaustion cannot block erasure: the identity being
+            // signed out is about to be destroyed anyway.
+            let _ = self.sign_out_model();
+            for workspace in self.workspace.list() {
+                let _ = self.workspace.revoke(&workspace.workspace_id);
+            }
+            let store = self.store.as_ref().ok_or_else(recovery_error)?;
+            store.erase_for_offboarding().map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::IntegrityFailure,
+                    "Local data could not be fully erased; the store key was destroyed, so remaining bytes are undecryptable. Restart and retry.",
+                    false,
+                )
+            })?;
+        }
+        // The Ready read guard is released above; recovery takes the write
+        // half of the same lock.
+        self.enter_recovery();
+        Ok(())
+    }
+
     pub fn boot_mode(&self) -> BootMode {
         *self.boot_mode.read()
     }

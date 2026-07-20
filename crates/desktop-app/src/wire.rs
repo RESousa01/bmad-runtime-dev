@@ -111,6 +111,8 @@ pub enum HostCommandData {
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
     BmadPersonaPerspective(BmadPersonaPerspectiveProjection),
+    RetentionManifest(desktop_ipc::RetentionManifestProjection),
+    OffboardingErased(desktop_ipc::OffboardingErasedProjection),
     ModelAuthStatus(ModelAuthStatusProjection),
     BmadHelpReview(BmadHelpReviewProjection),
     BmadHelpApproved(BmadHelpApprovedProjection),
