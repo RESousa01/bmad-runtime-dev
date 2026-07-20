@@ -1,0 +1,12 @@
+name: Sapphirus shipped-source boundary
+
+paths-ignore:
+  # Read-only upstream provenance snapshots are not part of the shipped or
+  # maintained source boundary. Their manifests and integrity checks remain
+  # analyzed because those controls live outside this directory.
+  - bmad-runtime-lib/**
+
+  # Mechanically generated bindings remain covered by regeneration, drift,
+  # compilation, and cross-language qualification gates.
+  - packages/contracts/generated/**
+  - tests/generator-qualification/generated/**

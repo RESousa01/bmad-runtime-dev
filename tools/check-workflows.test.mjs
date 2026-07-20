@@ -9,6 +9,8 @@ const workflows = readdirSync(workflowDirectory)
     name,
     source: readFileSync(new URL(name, workflowDirectory), "utf8"),
   }));
+const codeqlConfig = readFileSync(new URL("../.github/codeql-config.yml", import.meta.url), "utf8");
+const codeRabbitConfig = readFileSync(new URL("../.coderabbit.yaml", import.meta.url), "utf8");
 
 test("workflows use bounded, immutable, current CI primitives", () => {
   for (const { name, source } of workflows) {
@@ -43,4 +45,17 @@ test("desktop support changes always trigger their own workflow and run a real S
   assert.ok(source, "desktop-support.yml must exist");
   assert.match(source, /push:[\s\S]*?\.github\/workflows\/desktop-support\.yml/u);
   assert.match(source, /sqlcmd[\s\S]*?privacy-sql-inspect\.sql/u);
+});
+
+test("automated review excludes the read-only upstream source vault", () => {
+  const codeqlWorkflow = workflows.find(({ name }) => name === "codeql.yml")?.source;
+  assert.ok(codeqlWorkflow, "codeql.yml must exist");
+  assert.match(codeqlWorkflow, /config-file:\s+\.\/\.github\/codeql-config\.yml/u);
+  assert.match(codeqlConfig, /^\s+- bmad-runtime-lib\/\*\*\s*$/mu);
+  assert.match(codeRabbitConfig, /^\s+- "!bmad-runtime-lib\/\*\*"\s*$/mu);
+  assert.match(
+    readFileSync(new URL("verify-reference-vault.mjs", import.meta.url), "utf8"),
+    /bmad-runtime-lib/u,
+    "reference-vault integrity verification must remain enabled",
+  );
 });

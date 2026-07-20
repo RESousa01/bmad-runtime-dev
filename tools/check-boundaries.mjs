@@ -79,10 +79,13 @@ const referenceVaultPattern = /(?:bmad-runtime-lib|_source_review)/iu;
 const referenceVaultVerificationPattern =
   /\b(?:pnpm(?:\.cmd)?\s+(?:run\s+)?vault:check|node(?:\.exe)?\s+(?:\.?[\\/])?tools[\\/]verify-reference-vault\.mjs)\b/iu;
 const referenceVaultAllowlist = new Set([
+  ".coderabbit.yaml",
   ".gitignore",
+  ".github/codeql-config.yml",
   "README.md",
   "docs/provenance/vault-validation.json",
   "tools/check-boundaries.mjs",
+  "tools/check-workflows.test.mjs",
   "tools/check-secrets.mjs",
   "tools/verify-reference-vault.mjs",
 ]);

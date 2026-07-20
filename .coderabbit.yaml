@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+reviews:
+  path_filters:
+    # This is a read-only provenance/reference vault containing upstream
+    # OpenClaw, Hermes, BMAD, and Odysseus source snapshots. Our code review
+    # boundary is the manifests, adapters, and conformance checks outside it.
+    - "!bmad-runtime-lib/**"
+
+    # These bindings are reproducibly generated and are covered by the
+    # generator qualification and source-drift gates. Review their inputs,
+    # generator configuration, and tests instead of thousands of generated files.
+    - "!packages/contracts/generated/**"
+    - "!tests/generator-qualification/generated/**"
+
+    # Dependency and build products are mechanically verified elsewhere.
+    - "!**/node_modules/**"
+    - "!**/target/**"
+    - "!**/bin/**"
+    - "!**/obj/**"
+    - "!**/dist/**"

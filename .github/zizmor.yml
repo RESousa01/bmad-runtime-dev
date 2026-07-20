@@ -1,0 +1,6 @@
+rules:
+  self-hosted-runner:
+    ignore:
+      # These manual, main-only jobs are fail-closed behind organization
+      # variables, dedicated protected environments, and purpose-built labels.
+      - release-windows-signed.yml
