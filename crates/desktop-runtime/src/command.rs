@@ -159,6 +159,11 @@ pub enum LocalCommand {
         workspace_grant_epoch: u64,
         capability_id: String,
     },
+    ProposeBmadCapabilityChanges {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+    },
     PreviewContext {
         workspace_id: ContractId,
         relative_paths: Vec<RelativeWorkspacePath>,
@@ -251,6 +256,7 @@ impl LocalCommand {
             Self::CancelBmadCapabilityRun { .. } => "bmad.capability.cancel",
             Self::SubmitBmadCapabilityRun { .. } => "bmad.capability.submit",
             Self::LatestBmadCapabilityRun { .. } => "bmad.capability.latest",
+            Self::ProposeBmadCapabilityChanges { .. } => "bmad.capability.propose_changes",
             Self::PreviewContext { .. } => "context.preview",
             Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
             Self::ProposeChanges { .. } => "changes.propose",

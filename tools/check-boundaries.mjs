@@ -48,6 +48,7 @@ const reviewedReadyCommands = [
   "bmad.capability.cancel",
   "bmad.capability.submit",
   "bmad.capability.latest",
+  "bmad.capability.propose_changes",
   "run.create",
   "context.preview",
   "workspace.enable_edits",
