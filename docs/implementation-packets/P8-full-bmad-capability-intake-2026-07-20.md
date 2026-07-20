@@ -90,3 +90,21 @@
   license/provenance approval), add the five `bmad.capability.*` IPC
   commands (catalog 33 -> 38 across all five pin sites), the renderer
   `BmadCapabilityPanel`, and the 26-path table-driven activation matrix.
+- 2026-07-20 — Task 7 Step 1 foundation lane COMPLETE for every
+  semantic-rewrite target: 17 new sealed capability instruction
+  projections minted in two family passes (analyst 6, planning/dev 11),
+  joining the pre-existing architecture projection for 18/18. Source
+  intake grew the reviewed member set 76 -> 110 (method-030..063,
+  SKILL.md + customize.toml per skill, hashed from the vault); manifest
+  30 -> 64 resources; descriptor 8 -> 25 managed method projections. All
+  pins moved: verify.mjs (lock, counts, projection map, identity set),
+  foundation tests (104/104), Rust bmad_foundation.rs, and the four
+  kernel/materialization/help-run/method-store snapshots. Workspace 0
+  failures, strict clippy clean, boundaries green. The closure ledger now
+  binds managedProjection for all 18; activationStatus stays `planned`
+  until the bmad.capability.* vertical (next slice) proves each path.
+- REMAINING for Task 7: five `bmad.capability.*` IPC commands (catalog
+  33 -> 38 across five pin sites), host wiring onto the Task 6
+  coordinator, renderer BmadCapabilityPanel, the 26-path activation
+  matrix, and the six first-party targets awaiting the owner's
+  license/provenance approval (Paige DP/WD/MG/VD/EC + John PRD).
