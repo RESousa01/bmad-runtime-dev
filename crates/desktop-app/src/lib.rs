@@ -6,6 +6,7 @@
 )]
 mod bmad_capability_host;
 pub mod bmad_foundation;
+mod bmad_governed_proposal;
 mod bmad_model;
 mod commands;
 mod edits;

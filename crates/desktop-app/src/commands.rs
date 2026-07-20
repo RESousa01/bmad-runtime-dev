@@ -49,7 +49,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 38] = [
+const READY_COMMANDS: [&str; 39] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -73,6 +73,7 @@ const READY_COMMANDS: [&str; 38] = [
     "bmad.capability.cancel",
     "bmad.capability.submit",
     "bmad.capability.latest",
+    "bmad.capability.propose_changes",
     "run.create",
     "context.preview",
     "workspace.enable_edits",
@@ -486,6 +487,18 @@ fn execute_command(
         } => {
             latest_bmad_capability_run(state, &workspace_id, workspace_grant_epoch, &capability_id)
         }
+        LocalCommand::ProposeBmadCapabilityChanges {
+            workspace_id,
+            workspace_grant_epoch,
+            capability_id,
+        } => propose_bmad_capability_changes(
+            state,
+            request_id,
+            accepted_at,
+            workspace_id,
+            workspace_grant_epoch,
+            &capability_id,
+        ),
         LocalCommand::OffboardingInspect => {
             let _authority = state.ready_authority()?;
             offboarding_inspect(state)
@@ -1321,6 +1334,70 @@ fn submit_bmad_capability_run(
     drop(workspace_authority);
     drop(authority);
     Ok(HostCommandData::CapabilityCompleted(completed))
+}
+
+/// ADR-0007: converts the latest stored change-set result for one
+/// capability into an ordinary D3 proposal through the existing
+/// `changes.propose` authority. Model origin grants nothing; the change
+/// set re-enters the same review, approval, and apply machinery as any
+/// renderer-originated edit.
+fn propose_bmad_capability_changes(
+    state: &HostState,
+    request_id: &ContractId,
+    accepted_at: UnixMillis,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+) -> Result<HostCommandData, LocalError> {
+    let proposed = {
+        let authority = state.ready_workspace_commit()?;
+        let workspace_authority = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+            .map_err(|error| map_workspace_error(&error))?;
+        let store = state.local_store(authority.authority())?;
+        let record = store
+            .latest_bmad_capability_run(&workspace_id, capability_id)
+            .map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::IntegrityFailure,
+                    "The capability run history could not be read.",
+                    false,
+                )
+            })?
+            .ok_or_else(|| {
+                LocalError::new(
+                    LocalErrorCode::NotFound,
+                    "No completed run exists for this capability.",
+                    false,
+                )
+            })?;
+        let result_json = record.result_json.ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::NotFound,
+                "The latest run has no verified result.",
+                false,
+            )
+        })?;
+        let proposed = crate::bmad_governed_proposal::proposed_changes_from_stored_result(
+            state,
+            workspace_id.as_str(),
+            &result_json,
+        )?;
+        drop(workspace_authority);
+        drop(authority);
+        proposed
+    };
+    crate::edits::execute_changes_command(
+        state,
+        request_id,
+        accepted_at,
+        LocalCommand::ProposeChanges {
+            workspace_id,
+            workspace_grant_epoch,
+            changes: proposed,
+        },
+    )
 }
 
 fn latest_bmad_capability_run(
@@ -2432,7 +2509,7 @@ mod tests {
     #[cfg(feature = "deterministic-help")]
     use super::{
         approve_bmad_capability_run, cancel_bmad_capability_run, latest_bmad_capability_run,
-        prepare_bmad_capability_run, submit_bmad_capability_run,
+        prepare_bmad_capability_run, propose_bmad_capability_changes, submit_bmad_capability_run,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
@@ -2683,6 +2760,120 @@ mod tests {
             };
             assert_eq!(completed.result_kind, expected_kind, "{}", binding.id);
         }
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn verified_change_sets_enter_d3_as_ordinary_candidates(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        std::fs::write(
+            workspace.path().join("story.md"),
+            b"# Story
+",
+        )?;
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_contract = id(&workspace_id);
+        let capability = "bmm:bmad-dev-story";
+
+        let review = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_contract.clone(),
+            1,
+            capability,
+            vec![RelativeWorkspacePath::new("story.md")?],
+            UnixMillis(10_000),
+        )
+        .expect("prepared review");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected a review projection".into());
+        };
+        let approved = approve_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            UnixMillis(20_000),
+        )
+        .expect("approved review");
+        let HostCommandData::CapabilityApproved(approved) = approved else {
+            return Err("expected an approval projection".into());
+        };
+        submit_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id,
+            UnixMillis(30_000),
+        )
+        .expect("completed run");
+
+        // Governed edits must be explicitly enabled, like any D3 flow.
+        crate::edits::execute_changes_command(
+            &state,
+            &id("request_01J00000000000000000000010"),
+            UnixMillis(35_000),
+            desktop_runtime::LocalCommand::EnableWorkspaceEdits {
+                workspace_id: workspace_contract.clone(),
+                workspace_grant_epoch: 1,
+            },
+        )
+        .expect("edits enabled");
+        let edited_grant_epoch = state
+            .workspace
+            .list()
+            .into_iter()
+            .find(|projection| projection.workspace_id == workspace_id)
+            .expect("workspace projection")
+            .grant_epoch;
+
+        // ADR-0007: the stored change set becomes an ordinary D3 proposal.
+        let proposal = propose_bmad_capability_changes(
+            &state,
+            &id("request_01J00000000000000000000011"),
+            UnixMillis(40_000),
+            workspace_contract.clone(),
+            edited_grant_epoch,
+            capability,
+        )
+        .expect("D3 proposal from verified change set");
+        assert!(
+            matches!(proposal, HostCommandData::ChangesReview(_)),
+            "the change set must land in the standard changes review"
+        );
+        // Nothing was applied: the proposed file does not exist.
+        assert!(!workspace
+            .path()
+            .join("deterministic-preview.proposal.md")
+            .exists());
+
+        // Staleness tripwire: once the create target exists, a re-proposal
+        // of the same stored result fails closed.
+        std::fs::write(
+            workspace.path().join("deterministic-preview.proposal.md"),
+            b"user wrote this meanwhile",
+        )?;
+        let stale_proposal = propose_bmad_capability_changes(
+            &state,
+            &id("request_01J00000000000000000000012"),
+            UnixMillis(41_000),
+            workspace_contract,
+            edited_grant_epoch,
+            capability,
+        );
+        assert!(stale_proposal.is_err(), "a moved workspace must fail closed");
         Ok(())
     }
 
@@ -3465,7 +3656,7 @@ mod tests {
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 38);
+        assert_eq!(ready.len(), 39);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]

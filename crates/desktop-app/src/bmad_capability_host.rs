@@ -510,7 +510,7 @@ This draft cannot install, register, or execute.
                 ),
                 "changes": [{
                     "operation": "create",
-                    "path": "bmad/proposals/deterministic-preview.md",
+                    "path": "deterministic-preview.proposal.md",
                     "content": "# Deterministic capability preview\n\nThis candidate was produced by the deterministic composition; it requires governed review before any effect.\n",
                 }],
             },

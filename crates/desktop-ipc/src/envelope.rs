@@ -192,6 +192,7 @@ fn is_known_command(command: &str) -> bool {
             | "bmad.capability.cancel"
             | "bmad.capability.submit"
             | "bmad.capability.latest"
+            | "bmad.capability.propose_changes"
             | "run.create"
             | "context.preview"
             | "workspace.enable_edits"
@@ -453,6 +454,7 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
         "bmad.capability.cancel" => parse_bmad_capability_cancel(payload),
         "bmad.capability.submit" => parse_bmad_capability_submit(payload),
         "bmad.capability.latest" => parse_bmad_capability_latest(payload),
+        "bmad.capability.propose_changes" => parse_bmad_capability_propose_changes(payload),
         "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
         "workspace.enable_edits" => {
@@ -769,6 +771,19 @@ fn parse_bmad_capability_submit(payload: Value) -> Result<LocalCommand, IpcValid
         capability_id: input.capability_id,
         manifest_hash: input.manifest_hash,
         decision_id: input.decision_id,
+    })
+}
+
+fn parse_bmad_capability_propose_changes(
+    payload: Value,
+) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityWorkspacePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    Ok(LocalCommand::ProposeBmadCapabilityChanges {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
     })
 }
 
