@@ -90,6 +90,9 @@ pub enum LocalCommand {
         scope: BmadLibraryProjectionScope,
         cursor: Option<String>,
     },
+    ViewBmadPersona {
+        agent_code: String,
+    },
     CreateBmadHelpRun {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
@@ -198,6 +201,7 @@ impl LocalCommand {
             Self::ScanBmad { .. } => "bmad.scan",
             Self::PickWorkspaceFiles { .. } => "workspace.pick_files",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
+            Self::ViewBmadPersona { .. } => "bmad.persona.view",
             Self::CreateBmadHelpRun { .. } => "run.create",
             Self::ModelAuthStatus => "model.auth.status",
             Self::ModelAuthSignIn => "model.auth.sign_in",
@@ -237,6 +241,7 @@ impl LocalCommand {
                 | Self::SearchWorkspace { .. }
                 | Self::ScanBmad { .. }
                 | Self::BmadLibrarySnapshot { .. }
+                | Self::ViewBmadPersona { .. }
                 | Self::ModelAuthStatus
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }

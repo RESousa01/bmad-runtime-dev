@@ -7,7 +7,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload};
+use crate::bmad::{valid_bmad_cursor, BmadLibrarySnapshotPayload, BmadPersonaViewPayload};
 
 pub const MAX_COMMAND_BYTES: usize = 128 * 1024;
 const MAX_JSON_DEPTH: usize = 16;
@@ -178,6 +178,7 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.search"
             | "bmad.scan"
             | "bmad.library.snapshot"
+            | "bmad.persona.view"
             | "model.auth.status"
             | "model.auth.sign_in"
             | "model.auth.sign_out"
@@ -383,6 +384,10 @@ struct DecideChangesRecoveryPayload {
     choice: RecoveryApprovalChoice,
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one flat dispatch row per reviewed catalog command"
+)]
 fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValidationError> {
     match command {
         "app.get_boot_state" => {
@@ -413,6 +418,7 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             })
         }
         "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
+        "bmad.persona.view" => parse_bmad_persona_view(payload),
         "model.auth.status" => {
             parse_empty(payload)?;
             Ok(LocalCommand::ModelAuthStatus)
@@ -634,6 +640,25 @@ fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValida
         scope: input.scope,
         cursor: input.cursor,
     })
+}
+
+fn parse_bmad_persona_view(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadPersonaViewPayload = parse_payload(payload)?;
+    let code = input.agent_code;
+    let suffix = code.strip_prefix("bmad-agent-");
+    let valid = code.len() <= 64
+        && suffix.is_some_and(|rest| {
+            rest.bytes()
+                .next()
+                .is_some_and(|byte| byte.is_ascii_lowercase())
+                && rest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+        });
+    if !valid {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::ViewBmadPersona { agent_code: code })
 }
 
 fn parse_list_entries(payload: Value) -> Result<LocalCommand, IpcValidationError> {
@@ -1060,6 +1085,70 @@ mod tests {
             "changes.recovery.decide".to_owned(),
         ]);
         Ok(value)
+    }
+
+    fn persona_context() -> Result<IpcValidationContext, Box<dyn std::error::Error>> {
+        let mut value = context()?;
+        value.allowed_commands.push("bmad.persona.view".to_owned());
+        Ok(value)
+    }
+
+    #[test]
+    fn parses_only_the_closed_persona_view_payload_impl() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let valid = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_persona",
+          "command":"bmad.persona.view",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"agentCode":"bmad-agent-analyst"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(valid, &persona_context()?)?.command(),
+            LocalCommand::ViewBmadPersona { agent_code } if agent_code == "bmad-agent-analyst"
+        ));
+
+        for bad_code in [
+            "",
+            "bmad-agent-",
+            "not-an-agent",
+            "bmad-agent-UPPER",
+            "bmad-agent-with/slash",
+            "bmad-agent-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        ] {
+            let payload = format!(
+                r#"{{
+                  "schemaVersion":"desktop-ipc-command.v1",
+                  "requestId":"req_persona_bad",
+                  "command":"bmad.persona.view",
+                  "windowLabel":"main",
+                  "rendererSessionId":"rs_test",
+                  "installationId":"install_test",
+                  "issuedAt":10000,
+                  "payload":{{"agentCode":"{bad_code}"}}
+                }}"#,
+            );
+            assert!(
+                CommandEnvelopeValidator::parse(payload.as_bytes(), &persona_context()?).is_err(),
+                "{bad_code:?} must be rejected",
+            );
+        }
+        // Extra payload fields fail closed.
+        let extra = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_persona_extra",
+          "command":"bmad.persona.view",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"agentCode":"bmad-agent-analyst","workspaceId":"workspace_1"}
+        }"#;
+        assert!(CommandEnvelopeValidator::parse(extra, &persona_context()?).is_err());
+        Ok(())
     }
 
     #[test]

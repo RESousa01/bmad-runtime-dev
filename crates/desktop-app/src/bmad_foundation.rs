@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326";
+    "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41";
+    "sha256:83183060d8c0d9665839493504d518c655023a76daf66d4a496fd74b9287288e";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -827,7 +827,7 @@ mod tests {
                 .help_invocation()
                 .adoption_ledger_hash()
                 .to_string(),
-            "sha256:2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6"
+            "sha256:6bd30f1608a29493f17ecaababb41e71d74e6b91f3016df8aa3148712d6267f7"
         );
         assert_eq!(foundation.catalog().installed_skills.len(), 2);
         assert_eq!(foundation.catalog().help_actions.len(), 2);
@@ -850,11 +850,11 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41"
+            "sha256:83183060d8c0d9665839493504d518c655023a76daf66d4a496fd74b9287288e"
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),
-            "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326"
+            "sha256:8d9c9d5b55d15ef176f0a1f068ad84714f893bfac5636c8d883ababdaac93687"
         );
     }
 
@@ -907,7 +907,7 @@ mod tests {
         let manifest_path = temporary.path().join("runtime-manifest.json");
         let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
         let tampered = manifest.replace(
-            "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41",
+            "sha256:83183060d8c0d9665839493504d518c655023a76daf66d4a496fd74b9287288e",
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         );
         std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");

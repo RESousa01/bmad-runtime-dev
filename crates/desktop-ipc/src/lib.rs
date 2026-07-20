@@ -34,12 +34,12 @@ where
     desktop_runtime::deserialize_strict_json(bytes).map_err(|_| IpcValidationError::InvalidJson)
 }
 pub use bmad::{
-    project_bmad_library, project_bmad_library_with_activations, BmadAgentMenuProjection,
-    BmadAgentMenuTargetProjection, BmadAgentProjection, BmadBuilderPackageKind,
-    BmadBuilderPackageProjection, BmadHelpActionProjection, BmadInstalledSkillProjection,
-    BmadLibrarySnapshotProjection, BmadLibrarySourceKind, BmadLibrarySourceProjection,
-    BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
-    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+    project_bmad_library, project_bmad_library_with_activations, project_bmad_persona_perspective,
+    BmadAgentMenuProjection, BmadAgentMenuTargetProjection, BmadAgentProjection,
+    BmadBuilderPackageKind, BmadBuilderPackageProjection, BmadHelpActionProjection,
+    BmadInstalledSkillProjection, BmadLibrarySnapshotProjection, BmadLibrarySourceKind,
+    BmadLibrarySourceProjection, BmadPersonaPerspectiveProjection, BmadProjectionAvailability,
+    BmadProjectionBlockerCode, BmadProjectionError, MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
 pub use bmad_completion::{
     decode_retained_bmad_help_completion, project_completed_bmad_help_run,

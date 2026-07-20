@@ -27,6 +27,60 @@ pub(crate) struct BmadLibrarySnapshotPayload {
     pub(crate) cursor: Option<String>,
 }
 
+pub(crate) const MAX_PERSONA_MARKDOWN_BYTES: usize = 16_384;
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct BmadPersonaViewPayload {
+    pub(crate) agent_code: String,
+}
+
+/// One roster agent's sealed persona perspective for read-only renderer
+/// display. Carries only repository-authored instruction text and its
+/// hash — never source bodies, paths, or authority material.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BmadPersonaPerspectiveProjection {
+    pub schema_version: String,
+    pub agent_code: String,
+    pub name: String,
+    pub title: String,
+    pub icon: String,
+    pub instruction_markdown: String,
+    pub instruction_hash: String,
+}
+
+/// Builds the bounded persona perspective projection.
+///
+/// # Errors
+///
+/// Returns [`BmadProjectionError::Unavailable`] when any field exceeds its
+/// bound or the markdown is empty or oversized.
+pub fn project_bmad_persona_perspective(
+    agent_code: &str,
+    name: &str,
+    title: &str,
+    icon: &str,
+    instruction_markdown: &str,
+    instruction_hash: &str,
+) -> Result<BmadPersonaPerspectiveProjection, BmadProjectionError> {
+    if instruction_markdown.is_empty()
+        || instruction_markdown.len() > MAX_PERSONA_MARKDOWN_BYTES
+        || !instruction_hash.starts_with("sha256:")
+    {
+        return Err(BmadProjectionError::Unavailable);
+    }
+    Ok(BmadPersonaPerspectiveProjection {
+        schema_version: "sapphirus.bmad-persona-perspective.v1".to_owned(),
+        agent_code: bounded_identifier(agent_code)?,
+        name: bounded_text(name, MAX_IDENTIFIER_BYTES)?,
+        title: bounded_text(title, MAX_IDENTIFIER_BYTES)?,
+        icon: bounded_text(icon, MAX_ICON_BYTES)?,
+        instruction_markdown: instruction_markdown.to_owned(),
+        instruction_hash: instruction_hash.to_owned(),
+    })
+}
+
 #[must_use]
 pub(crate) fn valid_bmad_cursor(cursor: &str) -> bool {
     !cursor.is_empty()

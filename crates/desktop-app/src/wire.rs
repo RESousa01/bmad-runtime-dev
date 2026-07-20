@@ -1,7 +1,8 @@
 use desktop_ipc::{
     BmadHelpApprovedLifecycleProjection, BmadHelpApprovedProjection, BmadHelpCancelledProjection,
     BmadHelpReviewProjection, BmadHelpRunCompletedProjection, BmadHelpRunCreatedProjection,
-    BmadHelpTerminalProjection, BmadLibrarySnapshotProjection, ModelAuthStatusProjection,
+    BmadHelpTerminalProjection, BmadLibrarySnapshotProjection, BmadPersonaPerspectiveProjection,
+    ModelAuthStatusProjection,
 };
 use desktop_runtime::{
     ChangesReviewProjection, CommandReceipt, ContractId, LocalError, ProjectionEvent,
@@ -109,6 +110,7 @@ pub enum HostCommandData {
     SearchResults(Vec<SearchMatch>),
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
+    BmadPersonaPerspective(BmadPersonaPerspectiveProjection),
     ModelAuthStatus(ModelAuthStatusProjection),
     BmadHelpReview(BmadHelpReviewProjection),
     BmadHelpApproved(BmadHelpApprovedProjection),

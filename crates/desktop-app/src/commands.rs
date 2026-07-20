@@ -49,7 +49,7 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 30] = [
+const READY_COMMANDS: [&str; 31] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -59,6 +59,7 @@ const READY_COMMANDS: [&str; 30] = [
     "workspace.search",
     "bmad.scan",
     "bmad.library.snapshot",
+    "bmad.persona.view",
     "model.auth.status",
     "model.auth.sign_in",
     "model.auth.sign_out",
@@ -412,6 +413,10 @@ fn execute_command(
         }
         LocalCommand::PickWorkspaceFiles { workspace_id } => {
             pick_workspace_files(app, state, workspace_id)
+        }
+        LocalCommand::ViewBmadPersona { agent_code } => {
+            let _authority = state.ready_authority()?;
+            view_bmad_persona(foundation, &agent_code)
         }
         LocalCommand::BmadLibrarySnapshot { scope, cursor } => {
             let _authority = state.ready_authority()?;
@@ -946,6 +951,48 @@ fn bmad_library_snapshot(
         builder_packages,
     )
     .map(HostCommandData::BmadLibrarySnapshot)
+    .map_err(map_bmad_projection_error)
+}
+
+fn view_bmad_persona(
+    foundation: &BmadLoadedFoundation,
+    agent_code: &str,
+) -> Result<HostCommandData, LocalError> {
+    let persona = foundation.persona_for(agent_code).ok_or_else(|| {
+        LocalError::new(
+            LocalErrorCode::NotFound,
+            "No sealed persona exists for that agent.",
+            false,
+        )
+    })?;
+    let roster_agent = foundation
+        .roster()
+        .agents
+        .iter()
+        .find(|agent| agent.agent_code == agent_code)
+        .ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::NotFound,
+                "No roster agent exists for that code.",
+                false,
+            )
+        })?;
+    let markdown = std::str::from_utf8(persona.instruction_bytes()).map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The sealed persona instruction is not valid text.",
+            false,
+        )
+    })?;
+    desktop_ipc::project_bmad_persona_perspective(
+        agent_code,
+        &roster_agent.display_name,
+        &roster_agent.title,
+        &roster_agent.icon,
+        markdown,
+        &persona.instruction_hash().to_string(),
+    )
+    .map(HostCommandData::BmadPersonaPerspective)
     .map_err(map_bmad_projection_error)
 }
 
@@ -1941,7 +1988,7 @@ mod tests {
         about_projection, admit_dispatch_envelope, bmad_library_snapshot, create_bmad_help_run,
         latest_bmad_help_run, latest_bmad_help_run_data, load_preferences, map_bmad_model_error,
         map_workspace_error, model_auth_status_data, revoke_workspace, save_preferences,
-        should_cache_reply, supported_commands,
+        should_cache_reply, supported_commands, view_bmad_persona,
     };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
@@ -2136,6 +2183,37 @@ mod tests {
                 "completedAt": 2_000,
             },
         }))
+    }
+
+    #[test]
+    fn persona_view_projects_only_sealed_perspective_data() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let data =
+            view_bmad_persona(&foundation, "bmad-agent-analyst").expect("persona perspective");
+        let HostCommandData::BmadPersonaPerspective(projection) = &data else {
+            return Err("expected a persona perspective projection".into());
+        };
+        assert_eq!(
+            projection.schema_version,
+            "sapphirus.bmad-persona-perspective.v1"
+        );
+        assert_eq!(projection.agent_code, "bmad-agent-analyst");
+        assert_eq!(projection.name, "Mary");
+        assert_eq!(projection.title, "Business Analyst");
+        assert!(projection
+            .instruction_markdown
+            .contains("Managed analyst persona guidance"));
+        assert!(projection.instruction_hash.starts_with("sha256:"));
+        // The projection never carries paths, source bodies, or envelopes.
+        let serialized = serde_json::to_string(&projection)?;
+        assert!(!serialized.contains("runtime/method"));
+        assert!(!serialized.contains("bmm-skills"));
+        assert!(!serialized.contains("resolve_customization"));
+
+        let missing = view_bmad_persona(&foundation, "bmad-agent-unknown");
+        assert!(missing.is_err());
+        Ok(())
     }
 
     #[test]
@@ -2625,7 +2703,7 @@ mod tests {
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 30);
+        assert_eq!(ready.len(), 31);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]
