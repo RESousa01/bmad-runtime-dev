@@ -486,6 +486,21 @@ for (const workflowName of [
   }
 }
 
+{
+  const workflowsRoot = join(root, ".github", "workflows");
+  const workflowFiles = (await readdir(workflowsRoot)).filter((name) => name.endsWith(".yml"));
+  for (const workflowFile of workflowFiles) {
+    const workflowSource = await readFile(join(workflowsRoot, workflowFile), "utf8");
+    for (const match of workflowSource.matchAll(/^\s*(?:- )?uses:\s*([^\s#]+)/gmu)) {
+      if (!/^[^@\s]+@[0-9a-f]{40}$/u.test(match[1])) {
+        violations.push(
+          `.github/workflows/${workflowFile}: action reference must use a reviewed full commit SHA (${match[1]})`,
+        );
+      }
+    }
+  }
+}
+
 const signedReleasePath = join(root, ".github", "workflows", "release-windows-signed.yml");
 const signedReleaseSource = await requiredText(signedReleasePath);
 if (signedReleaseSource !== undefined) {

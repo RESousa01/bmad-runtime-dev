@@ -31,8 +31,8 @@ jobs:
   support-api:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           global-json-file: global.json
       - run: dotnet restore services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --locked-mode
@@ -47,26 +47,20 @@ jobs:
   support-container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Check reviewed base-image digests
-        id: digests
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Require reviewed base-image digests
         run: |
           if grep -q 'REPLACE_WITH_REVIEWED' services/desktop-support-api/Dockerfile; then
-            echo 'pinned=false' >> "$GITHUB_OUTPUT"
-            echo '::notice::Base-image digests not yet reviewed/pinned; container gate activates at rollout stage 3.'
-          else
-            echo 'pinned=true' >> "$GITHUB_OUTPUT"
+            echo '::error::Base-image digests must be reviewed and pinned.'
+            exit 1
           fi
-      - if: steps.digests.outputs.pinned == 'true'
-        run: docker build --file services/desktop-support-api/Dockerfile --tag desktop-support-api:ci services/desktop-support-api
-      - if: steps.digests.outputs.pinned == 'true'
-        uses: anchore/sbom-action@v0
+      - run: docker build --file services/desktop-support-api/Dockerfile --tag desktop-support-api:ci services/desktop-support-api
+      - uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: desktop-support-api:ci
           format: spdx-json
           output-file: desktop-support-api.sbom.spdx.json
-      - if: steps.digests.outputs.pinned == 'true'
-        uses: anchore/scan-action@v6
+      - uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
         with:
           image: desktop-support-api:ci
           fail-build: true
@@ -84,8 +78,8 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}

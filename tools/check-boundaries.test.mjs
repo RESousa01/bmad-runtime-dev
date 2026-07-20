@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -34,4 +34,46 @@ test("reviewed catalog and update blocking remain executable guard invariants", 
   assert.match(guard, /reviewedReadyCommands[\s\S]*"changes\.history",\s*"changes\.recovery\.prepare",\s*"changes\.recovery\.decide"/u);
   assert.match(guard, /recoveryExcludedFromReplyCache/u);
   assert.match(guard, /recovery_required[\s\S]*restoring[\s\S]*manual_review[\s\S]*update/u);
+});
+
+const immutableActionReference = /^[^@\s]+@[0-9a-f]{40}$/u;
+
+test("the immutable-reference pattern rejects every mutable action form", () => {
+  for (const mutable of [
+    "actions/checkout@v4",
+    "anchore/scan-action@v6",
+    "dtolnay/rust-toolchain@master",
+    "actions/setup-node@main",
+    "pnpm/action-setup@release/v4",
+    "actions/checkout@34e11487",
+    "actions/checkout@34E114876B0B11C390A56381AD16EBD13914F8D5",
+  ]) {
+    assert.equal(immutableActionReference.test(mutable), false, mutable);
+  }
+  assert.equal(
+    immutableActionReference.test(
+      "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
+    ),
+    true,
+  );
+});
+
+test("every workflow action reference is an immutable reviewed commit", async () => {
+  const files = (await readdir(join(root, ".github", "workflows"))).filter((name) =>
+    name.endsWith(".yml"),
+  );
+  assert.ok(files.length >= 7, "expected the full workflow set");
+  const mutable = [];
+  for (const file of files) {
+    const text = await source(".github", "workflows", file);
+    for (const match of text.matchAll(/^\s*(?:- )?uses:\s*([^\s#]+)/gmu)) {
+      if (!immutableActionReference.test(match[1])) {
+        mutable.push(`${file}: ${match[1]}`);
+      }
+    }
+  }
+  assert.deepEqual(mutable, []);
+  const guard = await source("tools", "check-boundaries.mjs");
+  assert.match(guard, /action reference must use a reviewed full commit SHA/u);
+  assert.match(guard, /workflowFiles/u);
 });
