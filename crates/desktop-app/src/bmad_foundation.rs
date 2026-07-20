@@ -17,31 +17,42 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141";
+    "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:32cbd14801c5db1022142f17170a06abd59a74d4ceb565851e8f81391c949e0d";
+    "sha256:b4f0db883e6778621391cb52c9c2b2765c86e35cfc1ac32c77c383098c101a0f";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
-const METHOD_RUNTIME_PATHS: [&str; 14] = [
+const METHOD_RUNTIME_PATHS: [&str; 25] = [
     "runtime/method/6.10.0/analyst-persona.instructions.md",
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
     HELP_INSTRUCTION_PATH,
     "runtime/method/6.10.0/brainstorming.instructions.md",
+    "runtime/method/6.10.0/code-review.instructions.md",
+    "runtime/method/6.10.0/correct-course.instructions.md",
+    "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+    "runtime/method/6.10.0/create-story.instructions.md",
     "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/dev-story.instructions.md",
     "runtime/method/6.10.0/domain-research.instructions.md",
+    "runtime/method/6.10.0/implementation-readiness.instructions.md",
     "runtime/method/6.10.0/market-research.instructions.md",
     "runtime/method/6.10.0/pm-persona.instructions.md",
     "runtime/method/6.10.0/prfaq.instructions.md",
     "runtime/method/6.10.0/product-brief.instructions.md",
+    "runtime/method/6.10.0/qa-tests.instructions.md",
+    "runtime/method/6.10.0/quick-dev.instructions.md",
+    "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
+    "runtime/method/6.10.0/ux-design.instructions.md",
     "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ];
-const EXPECTED_RESOURCE_PATHS: [&str; 42] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 64] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "licenses/BMAD-BUILDER-MIT.txt",
@@ -50,6 +61,12 @@ const EXPECTED_RESOURCE_PATHS: [&str; 42] = [
     "normalized/bmad-architect.package.json",
     "normalized/bmad-architecture.package.json",
     "normalized/bmad-brainstorming.package.json",
+    "normalized/bmad-check-implementation-readiness.package.json",
+    "normalized/bmad-code-review.package.json",
+    "normalized/bmad-correct-course.package.json",
+    "normalized/bmad-create-epics-and-stories.package.json",
+    "normalized/bmad-create-story.package.json",
+    "normalized/bmad-dev-story.package.json",
     "normalized/bmad-dev.package.json",
     "normalized/bmad-domain-research.package.json",
     "normalized/bmad-help-action-graph.json",
@@ -58,9 +75,14 @@ const EXPECTED_RESOURCE_PATHS: [&str; 42] = [
     "normalized/bmad-pm.package.json",
     "normalized/bmad-prfaq.package.json",
     "normalized/bmad-product-brief.package.json",
+    "normalized/bmad-qa-generate-e2e-tests.package.json",
+    "normalized/bmad-quick-dev.package.json",
+    "normalized/bmad-retrospective.package.json",
+    "normalized/bmad-sprint-planning.package.json",
     "normalized/bmad-tech-writer.package.json",
     "normalized/bmad-technical-research.package.json",
     "normalized/bmad-ux-designer.package.json",
+    "normalized/bmad-ux.package.json",
     "normalized/bmm-agent-roster.json",
     "normalized/builder-agent.package.json",
     "normalized/builder-workflow.package.json",
@@ -74,14 +96,25 @@ const EXPECTED_RESOURCE_PATHS: [&str; 42] = [
     "runtime/method/6.10.0/architecture-create.instructions.md",
     "runtime/method/6.10.0/bmad-help.instructions.md",
     "runtime/method/6.10.0/brainstorming.instructions.md",
+    "runtime/method/6.10.0/code-review.instructions.md",
+    "runtime/method/6.10.0/correct-course.instructions.md",
+    "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+    "runtime/method/6.10.0/create-story.instructions.md",
     "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/dev-story.instructions.md",
     "runtime/method/6.10.0/domain-research.instructions.md",
+    "runtime/method/6.10.0/implementation-readiness.instructions.md",
     "runtime/method/6.10.0/market-research.instructions.md",
     "runtime/method/6.10.0/pm-persona.instructions.md",
     "runtime/method/6.10.0/prfaq.instructions.md",
     "runtime/method/6.10.0/product-brief.instructions.md",
+    "runtime/method/6.10.0/qa-tests.instructions.md",
+    "runtime/method/6.10.0/quick-dev.instructions.md",
+    "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
+    "runtime/method/6.10.0/ux-design.instructions.md",
     "runtime/method/6.10.0/ux-designer-persona.instructions.md",
     "semantic-source-ledger.json",
 ];
@@ -845,7 +878,7 @@ mod tests {
                 .help_invocation()
                 .adoption_ledger_hash()
                 .to_string(),
-            "sha256:95d44c161a33e5fc0fd8a6655e851fc13746a90b629d4902be4e1e161afbd7af"
+            "sha256:d06d7b9d34cb5ddb4779e3ccaa873777a2c1accfa57f9841090075bcedfa2ff6"
         );
         assert_eq!(foundation.catalog().installed_skills.len(), 2);
         assert_eq!(foundation.catalog().help_actions.len(), 2);
@@ -868,11 +901,11 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:32cbd14801c5db1022142f17170a06abd59a74d4ceb565851e8f81391c949e0d"
+            "sha256:b4f0db883e6778621391cb52c9c2b2765c86e35cfc1ac32c77c383098c101a0f"
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),
-            "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141"
+            "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06"
         );
     }
 
@@ -925,7 +958,7 @@ mod tests {
         let manifest_path = temporary.path().join("runtime-manifest.json");
         let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
         let tampered = manifest.replace(
-            "sha256:32cbd14801c5db1022142f17170a06abd59a74d4ceb565851e8f81391c949e0d",
+            "sha256:b4f0db883e6778621391cb52c9c2b2765c86e35cfc1ac32c77c383098c101a0f",
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         );
         std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");

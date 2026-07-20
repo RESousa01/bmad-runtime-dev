@@ -570,6 +570,10 @@ fn help_source_entry(path: &str, location: BmadLocationClass) -> BmadSourceEntry
     .expect("valid source entry")
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the sealed snapshot fixture enumerates the full reviewed managed set"
+)]
 fn loaded_help_method() -> BmadLoadedMethodPackage {
     let semantic = help_source_entry(
         HELP_SEMANTIC_LEDGER_PATH,
@@ -636,6 +640,50 @@ fn loaded_help_method() -> BmadLoadedMethodPackage {
         ),
         help_source_entry(
             "runtime/method/6.10.0/technical-research.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/code-review.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/correct-course.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/create-story.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/dev-story.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/implementation-readiness.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/qa-tests.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/quick-dev.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/retrospective.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/sprint-planning.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        help_source_entry(
+            "runtime/method/6.10.0/ux-design.instructions.md",
             BmadLocationClass::ManagedProjection,
         ),
     ])

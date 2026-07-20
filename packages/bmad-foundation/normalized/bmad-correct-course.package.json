@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_EE44D407F2677B38BD87C2A9FA5E45395DED38B77C89943AE559024B9A217012",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-correct-course",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_C4221A7F5328DA875157114F687D38EB657780324FE92B33EF42A1EF9E3D908B",
+    "sourceIdentityHash": "sha256:ee44d407f2677b38bd87c2a9fa5e45395ded38b77c89943ae559024b9a217012",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
+      "contentHash": "sha256:5064ef2e7aedfb094bef912d5e4d6680318a1904d9bcdc7875d3dc16bb253ea4",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/4-implementation/bmad-correct-course/customize.toml",
+        "contentHash": "sha256:78095d25afb5b2d4844956f61e9ac640a62d0245174fab9406e9c289f33fd84b",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/correct-course.instructions.md",
+      "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:3c9e96521c56aa14a1880aa1535f76d4c4c19bfaef36938fa934c9cb60e29b5b"
+  },
+  "projectionEnvelopeHash": "sha256:80e4f917cc2e08511cc77fdf05cd21780520b1d1916b6a534a0173b0a0da73e9"
+}

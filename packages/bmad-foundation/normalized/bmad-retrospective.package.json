@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_CA1CB743352A9311C1304A0361A9810294117A2E2823BC671994EE5FFFEEB0CD",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-retrospective",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_E36F8B850FB4C131845B44962B1FFF5D54AE5C7A801868D882FDF95B6D61B482",
+    "sourceIdentityHash": "sha256:ca1cb743352a9311c1304a0361a9810294117a2e2823bc671994ee5fffeeb0cd",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
+      "contentHash": "sha256:af09b92e4928bbc9e01382497e733ecc9312bf8c1ad680e4f4cc0c4a0ea34253",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/4-implementation/bmad-retrospective/customize.toml",
+        "contentHash": "sha256:4ad7e7e7154b480eac7592d0ecc18680b9567471812e9687550be10d547fa7ff",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/retrospective.instructions.md",
+      "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:ce7128883dc60e57365d61973ab0d82876a0bbc9721cbcb5278b882fde12e19e"
+  },
+  "projectionEnvelopeHash": "sha256:c28691f7b29760844f7dd8c2c3452d25837d455f225995a42b42c5c90633c51d"
+}

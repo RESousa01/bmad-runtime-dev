@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_553C26C4E060398E6FCE9C2A8BEE446FDE953CA7E31F775EFEC779AFCDAACD06",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-create-epics-and-stories",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_DDA703745ECD3F6EDE34D1990E1DF7E82C15AD3ED3A58062021337535713C05A",
+    "sourceIdentityHash": "sha256:553c26c4e060398e6fce9c2a8bee446fde953ca7e31f775efec779afcdaacd06",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+      "contentHash": "sha256:4ec9ec255c2c0e97ae912342ae1445318e672aa1c2a9e412806b7d7ef7d5a6a7",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/customize.toml",
+        "contentHash": "sha256:da9e43605bc6aec83173050b5d37ede6aebfa9a17c5959a5029681d73e744ba3",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+      "contentHash": "sha256:dda703745ecd3f6ede34d1990e1df7e82c15ad3ed3a58062021337535713c05a",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:66f10e0a827fe639773fe17cf73679766750029e7dfad398d84c84304ed55bad"
+  },
+  "projectionEnvelopeHash": "sha256:d0bd23d162b4935ab22af725180ebf130771f22559e59e56cc32e5bd7aa1afa6"
+}

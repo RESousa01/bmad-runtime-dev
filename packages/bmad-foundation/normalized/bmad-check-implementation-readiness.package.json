@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_65B3BBACE8C4E66C9D542492DAF55EB019CE9DD8B707AA9187810A61E121484B",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-check-implementation-readiness",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_FFC571E19318584DCCC80A09098914F46EE7F39234B8FE2058B1A31E3E87A853",
+    "sourceIdentityHash": "sha256:65b3bbace8c4e66c9d542492daf55eb019ce9dd8b707aa9187810a61e121484b",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+      "contentHash": "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+        "contentHash": "sha256:571d81087b7a6d914cf7c2f21aa26354eac385bb2f5cfeabc591892cbb98d036",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+      "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:1d1de0292a0b35e1d1e58a4b7f91baa6a9c367c359d013e0fa7300d938ea33a4"
+  },
+  "projectionEnvelopeHash": "sha256:611b9dbcee48f88a2c76dd98cc6421920f8bce55dffc0dcfc42c8b19b9b090dd"
+}

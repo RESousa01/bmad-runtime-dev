@@ -758,6 +758,358 @@
       ]
     },
     {
+      "id": "method-042",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+      "sha256": "4ec9ec255c2c0e97ae912342ae1445318e672aa1c2a9e412806b7d7ef7d5a6a7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-043",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/customize.toml",
+      "sha256": "da9e43605bc6aec83173050b5d37ede6aebfa9a17c5959a5029681d73e744ba3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-044",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+      "sha256": "a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-045",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+      "sha256": "571d81087b7a6d914cf7c2f21aa26354eac385bb2f5cfeabc591892cbb98d036",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-046",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
+      "sha256": "5064ef2e7aedfb094bef912d5e4d6680318a1904d9bcdc7875d3dc16bb253ea4",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-047",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/customize.toml",
+      "sha256": "78095d25afb5b2d4844956f61e9ac640a62d0245174fab9406e9c289f33fd84b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-048",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+      "sha256": "250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-049",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+      "sha256": "c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-050",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
+      "sha256": "f12801307b157f04d2bde7da104e1ebde3f2898bd3a60326da928d5b9fc793ac",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-051",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
+      "sha256": "592fa7948c4614609a59b152518f518d35e0178d6aa7c22e169d78157fd9f5aa",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-052",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md",
+      "sha256": "b16f55bff0181e12edb1b5f0e2cec012507efe86c1013f926e50026a8df9e48f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-053",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/customize.toml",
+      "sha256": "ae6e5249ef9ef97009a8e65e76a20677fc99a2a5e9f6b775794e0d4942ddb0f8",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-054",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md",
+      "sha256": "9e78729569b2dc8e24e5f8eb016a851c4efd5c1920e2c91e0e3175fc6899d98d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-055",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/customize.toml",
+      "sha256": "04a99926b2d79318b927434c7344dc666f143026ed99c7fcc0d6e3d68263ae66",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-056",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/SKILL.md",
+      "sha256": "c303ef6d8cc507ef268e95978052250289bd0c76941441a023baebfd807c1efd",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-057",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/customize.toml",
+      "sha256": "0289d4e42524eafcd465d4adfc86fb5bcf28903e6b42d41bdafc5e31b163afa3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-058",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
+      "sha256": "aa828c5ceeb2aa875da324e358844700802c6ad8cb11a97cfb955f37209231de",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-059",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/customize.toml",
+      "sha256": "f7bde2f792e8604f26122ee792c5493e270710296044b07680db7d90e886caf3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-060",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
+      "sha256": "692ab872ebaa197931d849a8d01fa28e86a9b3ee2f4acf79318bb3797a91e9aa",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-061",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/customize.toml",
+      "sha256": "1204f6de064436922f2813069778eb4eaa5f1f945aa8ea5a5ffb87897a2ba8fe",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-062",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
+      "sha256": "af09b92e4928bbc9e01382497e733ecc9312bf8c1ad680e4f4cc0c4a0ea34253",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-063",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-retrospective/customize.toml",
+      "sha256": "4ad7e7e7154b480eac7592d0ecc18680b9567471812e9687550be10d547fa7ff",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
       "id": "builder-001",
       "sourceId": "builder",
       "member": "skills/module.yaml",
@@ -1554,8 +1906,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 53624,
-      "sha256": "95d44c161a33e5fc0fd8a6655e851fc13746a90b629d4902be4e1e161afbd7af"
+      "byteLength": 72000,
+      "sha256": "d06d7b9d34cb5ddb4779e3ccaa873777a2c1accfa57f9841090075bcedfa2ff6"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -1618,14 +1970,44 @@
       "sha256": "07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f"
     },
     {
+      "path": "runtime/method/6.10.0/code-review.instructions.md",
+      "byteLength": 1045,
+      "sha256": "5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5"
+    },
+    {
+      "path": "runtime/method/6.10.0/correct-course.instructions.md",
+      "byteLength": 1060,
+      "sha256": "c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+      "byteLength": 1174,
+      "sha256": "dda703745ecd3f6ede34d1990e1df7e82c15ad3ed3a58062021337535713c05a"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-story.instructions.md",
+      "byteLength": 1154,
+      "sha256": "76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
       "byteLength": 952,
       "sha256": "cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588"
     },
     {
+      "path": "runtime/method/6.10.0/dev-story.instructions.md",
+      "byteLength": 1191,
+      "sha256": "5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e"
+    },
+    {
       "path": "runtime/method/6.10.0/domain-research.instructions.md",
       "byteLength": 1113,
       "sha256": "537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e"
+    },
+    {
+      "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+      "byteLength": 1157,
+      "sha256": "ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853"
     },
     {
       "path": "runtime/method/6.10.0/market-research.instructions.md",
@@ -1648,6 +2030,26 @@
       "sha256": "b0f9d7be576cfd38449f9b2e7d099a547ae88c8510ad81a03d49e190183920cb"
     },
     {
+      "path": "runtime/method/6.10.0/qa-tests.instructions.md",
+      "byteLength": 1106,
+      "sha256": "a607ac6b0f220948344b6c46a91f22106ccaa9f2e0d4c3cd2767f1efe2f66555"
+    },
+    {
+      "path": "runtime/method/6.10.0/quick-dev.instructions.md",
+      "byteLength": 1114,
+      "sha256": "2c309dcf47f3f1e7f010424e1f087449e33c0666a2c196c89a168daf6b5c51a5"
+    },
+    {
+      "path": "runtime/method/6.10.0/retrospective.instructions.md",
+      "byteLength": 1107,
+      "sha256": "e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482"
+    },
+    {
+      "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+      "byteLength": 974,
+      "sha256": "e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452"
+    },
+    {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
       "byteLength": 857,
       "sha256": "46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb"
@@ -1656,6 +2058,11 @@
       "path": "runtime/method/6.10.0/technical-research.instructions.md",
       "byteLength": 1213,
       "sha256": "e2214bc1fe98b95e074bf36d27f7a47fbe7c448c0320e247999f2fe15c5d734a"
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-design.instructions.md",
+      "byteLength": 1054,
+      "sha256": "9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24"
     },
     {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",

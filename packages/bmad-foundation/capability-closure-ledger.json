@@ -196,7 +196,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -213,7 +213,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/implementation-readiness.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -228,7 +228,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/correct-course.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -243,7 +243,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/ux-design.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -273,7 +273,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/dev-story.instructions.md",
       "outputSchema": "sapphirus.bmad-governed-change-set.v1"
     },
     {
@@ -288,7 +288,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/quick-dev.instructions.md",
       "outputSchema": "sapphirus.bmad-governed-change-set.v1"
     },
     {
@@ -303,7 +303,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/qa-tests.instructions.md",
       "outputSchema": "sapphirus.bmad-governed-change-set.v1"
     },
     {
@@ -318,7 +318,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/code-review.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -333,7 +333,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/sprint-planning.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -348,7 +348,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/create-story.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
@@ -363,7 +363,7 @@
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
       "activationStatus": "planned",
-      "managedProjection": null,
+      "managedProjection": "runtime/method/6.10.0/retrospective.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {

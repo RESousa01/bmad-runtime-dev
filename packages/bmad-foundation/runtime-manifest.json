@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
+  "semanticLedgerHash": "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:95d44c161a33e5fc0fd8a6655e851fc13746a90b629d4902be4e1e161afbd7af",
-      "byteLength": 53624,
+      "contentHash": "sha256:d06d7b9d34cb5ddb4779e3ccaa873777a2c1accfa57f9841090075bcedfa2ff6",
+      "byteLength": 72000,
       "contentKind": "provenance_ledger"
     },
     {
@@ -52,6 +52,42 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-check-implementation-readiness.package.json",
+      "contentHash": "sha256:630ac1c0f2e27af65e2af80a087f37b483e54de71be9c10322c33eb295ea2aa9",
+      "byteLength": 2043,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-code-review.package.json",
+      "contentHash": "sha256:12aeaa6b991a492d27dd609aa2a6352192407dbc2dbfae2634a58afc0a0cbf07",
+      "byteLength": 1979,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-correct-course.package.json",
+      "contentHash": "sha256:43e3407ed33b3c75a4c958adbc954da37e32e886053774d4a51a385165e04148",
+      "byteLength": 1991,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-create-epics-and-stories.package.json",
+      "contentHash": "sha256:2ac05382c3c483463e9a7da57ee069c66ace4e45c2dd3db6b59161eee4284e29",
+      "byteLength": 2025,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-create-story.package.json",
+      "contentHash": "sha256:75502efdfe1be29407ed8ac92b6b9e1cbe0b83c91786c8ca69e77ef88368ec36",
+      "byteLength": 1983,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-dev-story.package.json",
+      "contentHash": "sha256:50a7a5f2e67e59fb4491396aea0a95652ed27161ea778f9d939eee15c76b8128",
+      "byteLength": 1971,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-dev.package.json",
       "contentHash": "sha256:79d7bfc30adff3008a005901a986c89cc4505a43ac174a58e017b03d4843787a",
       "byteLength": 1973,
@@ -71,8 +107,8 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:8d5b1e606dbada59e5de66b6ca9941bc890bcb516aa6914453d82d07659ef7af",
-      "byteLength": 50735,
+      "contentHash": "sha256:6ce79d9f9dd7d682c96e329af3ec8c3c8587c8e05a47f18e9b6f1fcd167335ca",
+      "byteLength": 72425,
       "contentKind": "normalized_contract"
     },
     {
@@ -100,6 +136,30 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-qa-generate-e2e-tests.package.json",
+      "contentHash": "sha256:6e5e6a279fb4cf2dee902fb356358b60cb527f36410868b837f49843686a90f2",
+      "byteLength": 2006,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-quick-dev.package.json",
+      "contentHash": "sha256:070edf17734678a8ca87affe51d6ce210ba1bc66b6ba99ca3573212b13c3dc10",
+      "byteLength": 1971,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-retrospective.package.json",
+      "contentHash": "sha256:61a2870d498e3ac67ceeafeebdfd197eac9cebf553280b7875273d9ebe69515d",
+      "byteLength": 1987,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-sprint-planning.package.json",
+      "contentHash": "sha256:c97c044f6ef3fc7cd3db7dfc6dc21282880de5f97ab8397acbbc5e587108ed03",
+      "byteLength": 1995,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-tech-writer.package.json",
       "contentHash": "sha256:9bcd495ca5c506fe24489f4686f613efb8eef306f8adcda4b6faaafb68ee65cc",
       "byteLength": 1993,
@@ -115,6 +175,12 @@
       "path": "normalized/bmad-ux-designer.package.json",
       "contentHash": "sha256:7f69b8a452cfe8069e0a9d687b9a9adf238cf18d9f62a5284248d568d2854426",
       "byteLength": 2005,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-ux.package.json",
+      "contentHash": "sha256:a6f33dd7fedc92beb904a35bbde10072ec3493b09020100b38f693d4baafdcf5",
+      "byteLength": 1950,
       "contentKind": "normalized_contract"
     },
     {
@@ -196,15 +262,51 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/code-review.instructions.md",
+      "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
+      "byteLength": 1045,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/correct-course.instructions.md",
+      "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+      "byteLength": 1060,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+      "contentHash": "sha256:dda703745ecd3f6ede34d1990e1df7e82c15ad3ed3a58062021337535713c05a",
+      "byteLength": 1174,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-story.instructions.md",
+      "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+      "byteLength": 1154,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
       "contentHash": "sha256:cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588",
       "byteLength": 952,
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/dev-story.instructions.md",
+      "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
+      "byteLength": 1191,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/domain-research.instructions.md",
       "contentHash": "sha256:537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e",
       "byteLength": 1113,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+      "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+      "byteLength": 1157,
       "contentKind": "managed_instruction"
     },
     {
@@ -232,6 +334,30 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/qa-tests.instructions.md",
+      "contentHash": "sha256:a607ac6b0f220948344b6c46a91f22106ccaa9f2e0d4c3cd2767f1efe2f66555",
+      "byteLength": 1106,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/quick-dev.instructions.md",
+      "contentHash": "sha256:2c309dcf47f3f1e7f010424e1f087449e33c0666a2c196c89a168daf6b5c51a5",
+      "byteLength": 1114,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/retrospective.instructions.md",
+      "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
+      "byteLength": 1107,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+      "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
+      "byteLength": 974,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
       "contentHash": "sha256:46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb",
       "byteLength": 857,
@@ -244,6 +370,12 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/ux-design.instructions.md",
+      "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
+      "byteLength": 1054,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
       "contentHash": "sha256:b6a21cbb4648bfb588094100ac5cf0b07eebc64b850b7ccbc1255da470974d92",
       "byteLength": 922,
@@ -251,10 +383,10 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
-      "byteLength": 59993,
+      "contentHash": "sha256:2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
+      "byteLength": 77372,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:32cbd14801c5db1022142f17170a06abd59a74d4ceb565851e8f81391c949e0d"
+  "manifestHash": "sha256:b4f0db883e6778621391cb52c9c2b2765c86e35cfc1ac32c77c383098c101a0f"
 }

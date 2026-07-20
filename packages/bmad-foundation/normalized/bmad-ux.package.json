@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_6A22F2E7368893E7A089CCDF8EFF4C7C30840741377AB48756651A56D0C88CD5",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-ux",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_9C53ED25C264B70B8A656EF7328762DB85DC88E75241BC2BBEB3EEDCF96F5F24",
+    "sourceIdentityHash": "sha256:6a22f2e7368893e7a089ccdf8eff4c7c30840741377ab48756651a56d0c88cd5",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+      "contentHash": "sha256:250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+        "contentHash": "sha256:c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/ux-design.instructions.md",
+      "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:611bc692f19b0bf4b04532602916a0a5c683480c958053c35f2f65e85ee9fca3"
+  },
+  "projectionEnvelopeHash": "sha256:a8f2f77282b629f751b70cecc969f70f711f511a40e53ea3f7b06a5e8a0ee570"
+}

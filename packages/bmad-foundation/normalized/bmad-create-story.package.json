@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_6420C2F159C5DCBC0AF2E528F1123C3E7CF244732B8B2217546B1EBD40A27B10",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-create-story",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_76922235FFED328F04221DE9C6CB6E2AD21641FF0BAEA39FB09304DC84B6EE7D",
+    "sourceIdentityHash": "sha256:6420c2f159c5dcbc0af2e528f1123c3e7cf244732b8b2217546b1ebd40a27b10",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
+      "contentHash": "sha256:692ab872ebaa197931d849a8d01fa28e86a9b3ee2f4acf79318bb3797a91e9aa",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/4-implementation/bmad-create-story/customize.toml",
+        "contentHash": "sha256:1204f6de064436922f2813069778eb4eaa5f1f945aa8ea5a5ffb87897a2ba8fe",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/create-story.instructions.md",
+      "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:58f88e03a9128c4a5a6ca428efadeade8ef01db8c836162da3fd4f0c91f67ef1"
+  },
+  "projectionEnvelopeHash": "sha256:d6ad5f03a0d4b551e0f1613fc3434621321832ba51767728ca480ceb2f2901b9"
+}

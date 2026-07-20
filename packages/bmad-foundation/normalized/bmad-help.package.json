@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:6d666649b70d217c783084e9da65f5e662fbcc89100569d7765595baa2ae928b",
+  "finalCompositeInventoryHash": "sha256:ee1ea1bc043398a0892dcdc5b62e9d54b6c5efe87dc2e8d08d62ee4db408fb79",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -665,6 +665,424 @@
         }
       ],
       "projectionHash": "sha256:d9d2960e17d5e82b48e8adc8667c177631f1e911ce1a1ca36626e8bedc57a66b"
+    },
+    {
+      "projectionId": "projection_DDA703745ECD3F6EDE34D1990E1DF7E82C15AD3ED3A58062021337535713C05A",
+      "sourceIdentityHash": "sha256:553c26c4e060398e6fce9c2a8bee446fde953ca7e31f775efec779afcdaacd06",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+        "contentHash": "sha256:4ec9ec255c2c0e97ae912342ae1445318e672aa1c2a9e412806b7d7ef7d5a6a7",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/customize.toml",
+          "contentHash": "sha256:da9e43605bc6aec83173050b5d37ede6aebfa9a17c5959a5029681d73e744ba3",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+        "contentHash": "sha256:dda703745ecd3f6ede34d1990e1df7e82c15ad3ed3a58062021337535713c05a",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:66f10e0a827fe639773fe17cf73679766750029e7dfad398d84c84304ed55bad"
+    },
+    {
+      "projectionId": "projection_FFC571E19318584DCCC80A09098914F46EE7F39234B8FE2058B1A31E3E87A853",
+      "sourceIdentityHash": "sha256:65b3bbace8c4e66c9d542492daf55eb019ce9dd8b707aa9187810a61e121484b",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+        "contentHash": "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+          "contentHash": "sha256:571d81087b7a6d914cf7c2f21aa26354eac385bb2f5cfeabc591892cbb98d036",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+        "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:1d1de0292a0b35e1d1e58a4b7f91baa6a9c367c359d013e0fa7300d938ea33a4"
+    },
+    {
+      "projectionId": "projection_C4221A7F5328DA875157114F687D38EB657780324FE92B33EF42A1EF9E3D908B",
+      "sourceIdentityHash": "sha256:ee44d407f2677b38bd87c2a9fa5e45395ded38b77c89943ae559024b9a217012",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
+        "contentHash": "sha256:5064ef2e7aedfb094bef912d5e4d6680318a1904d9bcdc7875d3dc16bb253ea4",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-correct-course/customize.toml",
+          "contentHash": "sha256:78095d25afb5b2d4844956f61e9ac640a62d0245174fab9406e9c289f33fd84b",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/correct-course.instructions.md",
+        "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:3c9e96521c56aa14a1880aa1535f76d4c4c19bfaef36938fa934c9cb60e29b5b"
+    },
+    {
+      "projectionId": "projection_9C53ED25C264B70B8A656EF7328762DB85DC88E75241BC2BBEB3EEDCF96F5F24",
+      "sourceIdentityHash": "sha256:6a22f2e7368893e7a089ccdf8eff4c7c30840741377ab48756651a56d0c88cd5",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+        "contentHash": "sha256:250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+          "contentHash": "sha256:c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/ux-design.instructions.md",
+        "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:611bc692f19b0bf4b04532602916a0a5c683480c958053c35f2f65e85ee9fca3"
+    },
+    {
+      "projectionId": "projection_5EAE6A04389B8717AA7523BF13FB881D00CF4B9DD5E6EB6337EEB0812DEC153E",
+      "sourceIdentityHash": "sha256:a2ace8f1d930f131adf40f74bde08325c13f47851b5bd4c12967c172833a2428",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
+        "contentHash": "sha256:f12801307b157f04d2bde7da104e1ebde3f2898bd3a60326da928d5b9fc793ac",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
+          "contentHash": "sha256:592fa7948c4614609a59b152518f518d35e0178d6aa7c22e169d78157fd9f5aa",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/dev-story.instructions.md",
+        "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:31296071c02c20a731ffda329817709abbc3c2c6986534d6da26fa9d174bea00"
+    },
+    {
+      "projectionId": "projection_2C309DCF47F3F1E7F010424E1F087449E33C0666A2C196C89A168DAF6B5C51A5",
+      "sourceIdentityHash": "sha256:7dd33d201b05541276a02cc5c1d1dfc96ade73486c084ae36e7f23892cc31546",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md",
+        "contentHash": "sha256:b16f55bff0181e12edb1b5f0e2cec012507efe86c1013f926e50026a8df9e48f",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-quick-dev/customize.toml",
+          "contentHash": "sha256:ae6e5249ef9ef97009a8e65e76a20677fc99a2a5e9f6b775794e0d4942ddb0f8",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/quick-dev.instructions.md",
+        "contentHash": "sha256:2c309dcf47f3f1e7f010424e1f087449e33c0666a2c196c89a168daf6b5c51a5",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:23a951c44a1b26534a1772c15be11f1c0183c69c212b5ad93b375dd4f3fa2580"
+    },
+    {
+      "projectionId": "projection_A607AC6B0F220948344B6C46A91F22106CCAA9F2E0D4C3CD2767F1EFE2F66555",
+      "sourceIdentityHash": "sha256:0e7991e5f290f2436c26d6218ce9a6d97c41456dfc9ce52024b0c8d19c70cfb1",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md",
+        "contentHash": "sha256:9e78729569b2dc8e24e5f8eb016a851c4efd5c1920e2c91e0e3175fc6899d98d",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/customize.toml",
+          "contentHash": "sha256:04a99926b2d79318b927434c7344dc666f143026ed99c7fcc0d6e3d68263ae66",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/qa-tests.instructions.md",
+        "contentHash": "sha256:a607ac6b0f220948344b6c46a91f22106ccaa9f2e0d4c3cd2767f1efe2f66555",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:fbd257ef24de4b49dd3b27b910efba309ccdd3ace8816dd61b3e356893e2ffd3"
+    },
+    {
+      "projectionId": "projection_5C697871BAB894161EDB74B9D75C02F43F0998DD149A396CAF190A1D94759DB5",
+      "sourceIdentityHash": "sha256:61a29be5c0b98006bd0f93ff9acd06a6916bccab593c18d85d2d35c0a28c6ad2",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-code-review/SKILL.md",
+        "contentHash": "sha256:c303ef6d8cc507ef268e95978052250289bd0c76941441a023baebfd807c1efd",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-code-review/customize.toml",
+          "contentHash": "sha256:0289d4e42524eafcd465d4adfc86fb5bcf28903e6b42d41bdafc5e31b163afa3",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/code-review.instructions.md",
+        "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:3f588d4c1a1210f3b7801e7e33310c17058bc10746a0554f456b03d8c4836ec8"
+    },
+    {
+      "projectionId": "projection_E0F23A005F0567595D807F231BB5E2964384DE261CF564F6FE7D7DC984A24452",
+      "sourceIdentityHash": "sha256:78bb50409002ec6950b33c392fa429b4be7b337360ffce3172ddd72ece821b49",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
+        "contentHash": "sha256:aa828c5ceeb2aa875da324e358844700802c6ad8cb11a97cfb955f37209231de",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-sprint-planning/customize.toml",
+          "contentHash": "sha256:f7bde2f792e8604f26122ee792c5493e270710296044b07680db7d90e886caf3",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+        "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:a40efe2fd86be82d83c1d0890bfad987ded0370c7a762cdd7d011e80acc782f7"
+    },
+    {
+      "projectionId": "projection_76922235FFED328F04221DE9C6CB6E2AD21641FF0BAEA39FB09304DC84B6EE7D",
+      "sourceIdentityHash": "sha256:6420c2f159c5dcbc0af2e528f1123c3e7cf244732b8b2217546b1ebd40a27b10",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
+        "contentHash": "sha256:692ab872ebaa197931d849a8d01fa28e86a9b3ee2f4acf79318bb3797a91e9aa",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-create-story/customize.toml",
+          "contentHash": "sha256:1204f6de064436922f2813069778eb4eaa5f1f945aa8ea5a5ffb87897a2ba8fe",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/create-story.instructions.md",
+        "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:58f88e03a9128c4a5a6ca428efadeade8ef01db8c836162da3fd4f0c91f67ef1"
+    },
+    {
+      "projectionId": "projection_E36F8B850FB4C131845B44962B1FFF5D54AE5C7A801868D882FDF95B6D61B482",
+      "sourceIdentityHash": "sha256:ca1cb743352a9311c1304a0361a9810294117a2e2823bc671994ee5fffeeb0cd",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
+        "contentHash": "sha256:af09b92e4928bbc9e01382497e733ecc9312bf8c1ad680e4f4cc0c4a0ea34253",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/4-implementation/bmad-retrospective/customize.toml",
+          "contentHash": "sha256:4ad7e7e7154b480eac7592d0ecc18680b9567471812e9687550be10d547fa7ff",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/module.yaml",
+          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "treatment": "adopt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/retrospective.instructions.md",
+        "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "file_read"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "file_read",
+          "inputKind": "resolved_config",
+          "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        }
+      ],
+      "projectionHash": "sha256:ce7128883dc60e57365d61973ab0d82876a0bbc9721cbcb5278b882fde12e19e"
     }
   ],
   "resourceInventory": [
@@ -714,6 +1132,42 @@
       "runtimeUse": "instruction_data"
     },
     {
+      "path": "runtime/method/6.10.0/code-review.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
+      "byteLength": 1045,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/correct-course.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+      "byteLength": 1060,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:dda703745ecd3f6ede34d1990e1df7e82c15ad3ed3a58062021337535713c05a",
+      "byteLength": 1174,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/create-story.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+      "byteLength": 1154,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
@@ -723,11 +1177,29 @@
       "runtimeUse": "instruction_data"
     },
     {
+      "path": "runtime/method/6.10.0/dev-story.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
+      "byteLength": 1191,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
       "path": "runtime/method/6.10.0/domain-research.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
       "contentHash": "sha256:537ba4190b88c50b548adae2abd3b744ed85851a83db61094b913a6622edb59e",
       "byteLength": 1113,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+      "byteLength": 1157,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -768,6 +1240,42 @@
       "runtimeUse": "instruction_data"
     },
     {
+      "path": "runtime/method/6.10.0/qa-tests.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:a607ac6b0f220948344b6c46a91f22106ccaa9f2e0d4c3cd2767f1efe2f66555",
+      "byteLength": 1106,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/quick-dev.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:2c309dcf47f3f1e7f010424e1f087449e33c0666a2c196c89a168daf6b5c51a5",
+      "byteLength": 1114,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/retrospective.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
+      "byteLength": 1107,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
+      "byteLength": 974,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
@@ -782,6 +1290,15 @@
       "contentRole": "managed_instruction",
       "contentHash": "sha256:e2214bc1fe98b95e074bf36d27f7a47fbe7c448c0320e247999f2fe15c5d734a",
       "byteLength": 1213,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-design.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
+      "byteLength": 1054,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1242,5 +1759,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:8cc20a6fea8c863bc77535f88dfbd145aa86e5d82e6f1a9a10b9f24b83f94e25"
+  "descriptorHash": "sha256:99b94e6eeee69a149efecb3be36b02a3f006c0b421e966e4c7dd7186711a671c"
 }

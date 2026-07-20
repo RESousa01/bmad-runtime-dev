@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_A2ACE8F1D930F131ADF40F74BDE08325C13F47851B5BD4C12967C172833A2428",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-dev-story",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_5EAE6A04389B8717AA7523BF13FB881D00CF4B9DD5E6EB6337EEB0812DEC153E",
+    "sourceIdentityHash": "sha256:a2ace8f1d930f131adf40f74bde08325c13f47851b5bd4c12967c172833a2428",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
+      "contentHash": "sha256:f12801307b157f04d2bde7da104e1ebde3f2898bd3a60326da928d5b9fc793ac",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
+        "contentHash": "sha256:592fa7948c4614609a59b152518f518d35e0178d6aa7c22e169d78157fd9f5aa",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/dev-story.instructions.md",
+      "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:31296071c02c20a731ffda329817709abbc3c2c6986534d6da26fa9d174bea00"
+  },
+  "projectionEnvelopeHash": "sha256:1864790d4fc387b246207da35b84bc5e31879d0b3b86b1acdbc44f55c0257170"
+}

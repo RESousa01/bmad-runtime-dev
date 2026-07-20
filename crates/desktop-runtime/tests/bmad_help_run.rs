@@ -30,6 +30,10 @@ fn source_entry(path: &str, location: BmadLocationClass) -> BmadSourceEntry {
     .expect("valid source entry")
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the sealed snapshot fixture enumerates the full reviewed managed set"
+)]
 fn sealed_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
     let semantic = source_entry(SEMANTIC_LEDGER_PATH, BmadLocationClass::ManagedMetadata);
     let adoption = source_entry(ADOPTION_LEDGER_PATH, BmadLocationClass::ManagedMetadata);
@@ -90,6 +94,50 @@ fn sealed_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
         ),
         source_entry(
             "runtime/method/6.10.0/technical-research.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/code-review.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/correct-course.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/create-story.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/dev-story.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/implementation-readiness.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/qa-tests.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/quick-dev.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/retrospective.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/sprint-planning.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/ux-design.instructions.md",
             BmadLocationClass::ManagedProjection,
         ),
     ];
@@ -182,7 +230,7 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     );
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:6d666649b70d217c783084e9da65f5e662fbcc89100569d7765595baa2ae928b")
+        digest("sha256:ee1ea1bc043398a0892dcdc5b62e9d54b6c5efe87dc2e8d08d62ee4db408fb79")
     );
 
     assert_eq!(help.module_code(), "core");

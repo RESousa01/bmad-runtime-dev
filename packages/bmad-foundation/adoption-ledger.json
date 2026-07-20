@@ -1298,6 +1298,292 @@
           "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
+    },
+    {
+      "sourceMemberId": "method-042",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-043",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-044",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-045",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-046",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-047",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-048",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-049",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-050",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-051",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-052",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-053",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-054",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-055",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-056",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-057",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-058",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-059",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-060",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-061",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-062",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-063",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
     }
   ],
   "runtimeProjections": [
@@ -1782,6 +2068,248 @@
         "method-004",
         "method-040",
         "method-041"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-create-epics-and-stories",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-042",
+        "method-043"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-check-implementation-readiness",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-044",
+        "method-045"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/correct-course.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-correct-course",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-046",
+        "method-047"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-design.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-ux",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-048",
+        "method-049"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/dev-story.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-dev-story",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-050",
+        "method-051"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/quick-dev.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-quick-dev",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-052",
+        "method-053"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/qa-tests.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-qa-generate-e2e-tests",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-054",
+        "method-055"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/code-review.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-code-review",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-056",
+        "method-057"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-sprint-planning",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-058",
+        "method-059"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/create-story.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-create-story",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-060",
+        "method-061"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/retrospective.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-retrospective",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-062",
+        "method-063"
       ]
     }
   ]

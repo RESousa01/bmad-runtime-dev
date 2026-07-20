@@ -34,6 +34,17 @@ fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Diges
         "runtime/method/6.10.0/prfaq.instructions.md",
         "runtime/method/6.10.0/product-brief.instructions.md",
         "runtime/method/6.10.0/technical-research.instructions.md",
+        "runtime/method/6.10.0/code-review.instructions.md",
+        "runtime/method/6.10.0/correct-course.instructions.md",
+        "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+        "runtime/method/6.10.0/create-story.instructions.md",
+        "runtime/method/6.10.0/dev-story.instructions.md",
+        "runtime/method/6.10.0/implementation-readiness.instructions.md",
+        "runtime/method/6.10.0/qa-tests.instructions.md",
+        "runtime/method/6.10.0/quick-dev.instructions.md",
+        "runtime/method/6.10.0/retrospective.instructions.md",
+        "runtime/method/6.10.0/sprint-planning.instructions.md",
+        "runtime/method/6.10.0/ux-design.instructions.md",
     ];
     let managed = managed_paths
         .iter()

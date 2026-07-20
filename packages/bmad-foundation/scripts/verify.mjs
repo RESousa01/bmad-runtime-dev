@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const lockedSemanticLedger = Object.freeze({
-  byteLength: 59993,
-  sha256: "c6eebb08a973e9fcdafe47a11c79ce85bb6927f50e105d4ef0281b612b4d2141",
+  byteLength: 77372,
+  sha256: "2e87789c7404758cbe5f84d9793f8975188645ac1d73fc27e99c7e6e94226f06",
 });
 const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-analyze.instructions.md",
@@ -21,14 +21,25 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
   "runtime/method/6.10.0/brainstorming.instructions.md",
+  "runtime/method/6.10.0/code-review.instructions.md",
+  "runtime/method/6.10.0/correct-course.instructions.md",
+  "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
+  "runtime/method/6.10.0/create-story.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
+  "runtime/method/6.10.0/dev-story.instructions.md",
   "runtime/method/6.10.0/domain-research.instructions.md",
+  "runtime/method/6.10.0/implementation-readiness.instructions.md",
   "runtime/method/6.10.0/market-research.instructions.md",
   "runtime/method/6.10.0/pm-persona.instructions.md",
   "runtime/method/6.10.0/prfaq.instructions.md",
   "runtime/method/6.10.0/product-brief.instructions.md",
+  "runtime/method/6.10.0/qa-tests.instructions.md",
+  "runtime/method/6.10.0/quick-dev.instructions.md",
+  "runtime/method/6.10.0/retrospective.instructions.md",
+  "runtime/method/6.10.0/sprint-planning.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
   "runtime/method/6.10.0/technical-research.instructions.md",
+  "runtime/method/6.10.0/ux-design.instructions.md",
   "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ]);
 const methodRuntimePaths = Object.freeze(
@@ -39,6 +50,12 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
   "normalized/bmad-brainstorming.package.json",
+  "normalized/bmad-check-implementation-readiness.package.json",
+  "normalized/bmad-code-review.package.json",
+  "normalized/bmad-correct-course.package.json",
+  "normalized/bmad-create-epics-and-stories.package.json",
+  "normalized/bmad-create-story.package.json",
+  "normalized/bmad-dev-story.package.json",
   "normalized/bmad-dev.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
@@ -47,9 +64,14 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-pm.package.json",
   "normalized/bmad-prfaq.package.json",
   "normalized/bmad-product-brief.package.json",
+  "normalized/bmad-qa-generate-e2e-tests.package.json",
+  "normalized/bmad-quick-dev.package.json",
+  "normalized/bmad-retrospective.package.json",
+  "normalized/bmad-sprint-planning.package.json",
   "normalized/bmad-tech-writer.package.json",
   "normalized/bmad-technical-research.package.json",
   "normalized/bmad-ux-designer.package.json",
+  "normalized/bmad-ux.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
   "normalized/builder-workflow.package.json",
@@ -457,6 +479,17 @@ export function classifyProjectionFromSourceIdentity(sourceIdentity) {
       "bmad-market-research",
       "bmad-prfaq",
       "bmad-product-brief",
+      "bmad-check-implementation-readiness",
+      "bmad-code-review",
+      "bmad-correct-course",
+      "bmad-create-epics-and-stories",
+      "bmad-create-story",
+      "bmad-dev-story",
+      "bmad-qa-generate-e2e-tests",
+      "bmad-quick-dev",
+      "bmad-retrospective",
+      "bmad-sprint-planning",
+      "bmad-ux",
       "bmad-technical-research",
     ].includes(sourceIdentity.skill)
   ) {
@@ -910,8 +943,8 @@ function verifySourceFacts(semantic) {
     fail("foundation_license_decision_missing", "licenses", "exact license artifacts are required");
   }
 
-  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 88) {
-    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 88 reviewed members are required");
+  if (!Array.isArray(semantic.sourceMembers) || semantic.sourceMembers.length !== 110) {
+    fail("foundation_source_identity_incomplete", "sourceMembers", "exactly 110 reviewed members are required");
   }
   const ids = new Set();
   const identities = new Set();
@@ -931,7 +964,7 @@ function verifySourceFacts(semantic) {
     validateTreatments(member.treatments, `sourceMembers.${member.id}.treatments`);
   }
   const expectedIds = [
-    ...Array.from({ length: 41 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
+    ...Array.from({ length: 63 }, (_, index) => `method-${String(index + 1).padStart(3, "0")}`),
     ...Array.from({ length: 47 }, (_, index) => `builder-${String(index + 1).padStart(3, "0")}`),
   ];
   if (!sameValues([...ids], expectedIds)) {
@@ -1153,6 +1186,116 @@ function verifyAdoption(adoption, semanticState) {
       action: null,
       entrypointKind: null,
       sourceMemberIds: ["method-004", "method-036", "method-037"],
+    }],
+    ["runtime/method/6.10.0/code-review.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-code-review",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-056", "method-057"],
+    }],
+    ["runtime/method/6.10.0/correct-course.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-correct-course",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-046", "method-047"],
+    }],
+    ["runtime/method/6.10.0/create-epics-and-stories.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-create-epics-and-stories",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-042", "method-043"],
+    }],
+    ["runtime/method/6.10.0/create-story.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-create-story",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-060", "method-061"],
+    }],
+    ["runtime/method/6.10.0/dev-story.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-dev-story",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-050", "method-051"],
+    }],
+    ["runtime/method/6.10.0/implementation-readiness.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-check-implementation-readiness",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-044", "method-045"],
+    }],
+    ["runtime/method/6.10.0/qa-tests.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-qa-generate-e2e-tests",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-054", "method-055"],
+    }],
+    ["runtime/method/6.10.0/quick-dev.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-quick-dev",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-052", "method-053"],
+    }],
+    ["runtime/method/6.10.0/retrospective.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-retrospective",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-062", "method-063"],
+    }],
+    ["runtime/method/6.10.0/sprint-planning.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-sprint-planning",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-058", "method-059"],
+    }],
+    ["runtime/method/6.10.0/ux-design.instructions.md", {
+      classification: "method",
+      state: "sealed_read_only",
+      skill: "bmad-ux",
+      profile: "MethodOfficialSkillV6",
+      actions: [],
+      action: null,
+      entrypointKind: null,
+      sourceMemberIds: ["method-004", "method-048", "method-049"],
     }],
     ["runtime/builder/2.1.0/agent-create-rebuild.instructions.md", {
       classification: "builder_agent",

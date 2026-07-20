@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_78BB50409002EC6950B33C392FA429B4BE7B337360FFCE3172DDD72ECE821B49",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-sprint-planning",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_E0F23A005F0567595D807F231BB5E2964384DE261CF564F6FE7D7DC984A24452",
+    "sourceIdentityHash": "sha256:78bb50409002ec6950b33c392fa429b4be7b337360ffce3172ddd72ece821b49",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
+      "contentHash": "sha256:aa828c5ceeb2aa875da324e358844700802c6ad8cb11a97cfb955f37209231de",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/4-implementation/bmad-sprint-planning/customize.toml",
+        "contentHash": "sha256:f7bde2f792e8604f26122ee792c5493e270710296044b07680db7d90e886caf3",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
+      "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:a40efe2fd86be82d83c1d0890bfad987ded0370c7a762cdd7d011e80acc782f7"
+  },
+  "projectionEnvelopeHash": "sha256:806e691e37383a605a4118e5a2f910359328cf0892c47559fdc77f94e20dd516"
+}
