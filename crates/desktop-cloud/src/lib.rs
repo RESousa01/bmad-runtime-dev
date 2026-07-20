@@ -47,8 +47,8 @@ pub use support_contract::{
     ModelContextConsent as CanonicalModelContextConsent, RegistrationBinding, TenantPolicyBinding,
 };
 pub use transport::{
-    HttpExecutor, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor, SupportApiOrigin,
-    SupportApiTransport,
+    HttpExecutor, HttpMethod, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor,
+    SupportApiOrigin, SupportApiTransport, SupportStageRoute,
 };
 #[cfg(windows)]
 pub use windows_broker::{WindowsBrokerConfig, WindowsIdentityBroker};

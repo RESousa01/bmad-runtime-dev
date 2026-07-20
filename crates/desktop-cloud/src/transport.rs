@@ -53,7 +53,14 @@ impl SupportApiOrigin {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HttpMethod {
+    Get,
+    Post,
+}
+
 pub struct OutboundHttpRequest {
+    method: HttpMethod,
     url: Url,
     body: Vec<u8>,
     bearer: Zeroizing<String>,
@@ -61,6 +68,11 @@ pub struct OutboundHttpRequest {
 }
 
 impl OutboundHttpRequest {
+    #[must_use]
+    pub const fn method(&self) -> HttpMethod {
+        self.method
+    }
+
     #[must_use]
     pub fn url(&self) -> &Url {
         &self.url
@@ -81,6 +93,7 @@ impl fmt::Debug for OutboundHttpRequest {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("OutboundHttpRequest")
+            .field("method", &self.method)
             .field("url", &self.url)
             .field("body", &"[REDACTED]")
             .field("body_bytes", &self.body.len())
@@ -153,6 +166,13 @@ where
         Self { origin, executor }
     }
 
+    /// Test-support accessor for scripted executors.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn executor_for_test(&self) -> &E {
+        &self.executor
+    }
+
     /// Sends one sealed request with one currently valid cloud access grant.
     ///
     /// # Errors
@@ -189,6 +209,7 @@ where
         let response = self
             .executor
             .execute(OutboundHttpRequest {
+                method: HttpMethod::Post,
                 url: self.origin.endpoint.clone(),
                 body,
                 bearer,
@@ -200,6 +221,93 @@ where
         }
         let output = validate_response(&response)?;
         Ok((DispatchedModelRequest::new(request), output))
+    }
+}
+
+/// The reviewed desktop support-plane stage routes, mirrored one-to-one
+/// from the C# `/desktop/v1` surface. No other path is reachable through
+/// the stage exchange.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SupportStageRoute {
+    Bootstrap,
+    DeviceRegistrations,
+    PolicyCurrent,
+    EntitlementLeases,
+}
+
+impl SupportStageRoute {
+    #[must_use]
+    pub const fn path(self) -> &'static str {
+        match self {
+            Self::Bootstrap => "/desktop/v1/bootstrap",
+            Self::DeviceRegistrations => "/desktop/v1/devices/registrations",
+            Self::PolicyCurrent => "/desktop/v1/policy/current",
+            Self::EntitlementLeases => "/desktop/v1/entitlements/leases",
+        }
+    }
+
+    #[must_use]
+    pub const fn method(self) -> HttpMethod {
+        match self {
+            Self::Bootstrap | Self::PolicyCurrent => HttpMethod::Get,
+            Self::DeviceRegistrations | Self::EntitlementLeases => HttpMethod::Post,
+        }
+    }
+}
+
+const MAX_STAGE_REQUEST_BYTES: usize = 64 * 1024;
+
+impl<E> SupportApiTransport<E>
+where
+    E: HttpExecutor,
+{
+    /// Exchanges one bounded stage request against a reviewed route. The
+    /// returned bytes are untrusted until a signed-document verifier
+    /// (`accept_policy`, `accept_lease`, `accept_receipt_proof`, or the
+    /// registration verifier) accepts them.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::TransportFailed`] for oversized requests,
+    /// non-success statuses, or oversized/opaque responses.
+    pub async fn exchange_stage(
+        &self,
+        route: SupportStageRoute,
+        bearer: Zeroizing<String>,
+        body: Vec<u8>,
+        idempotency_key: &str,
+    ) -> Result<Vec<u8>, CloudError> {
+        if body.len() > MAX_STAGE_REQUEST_BYTES {
+            return Err(CloudError::TransportFailed);
+        }
+        if matches!(route.method(), HttpMethod::Get) && !body.is_empty() {
+            return Err(CloudError::TransportFailed);
+        }
+        let mut url = self.origin.endpoint.clone();
+        url.set_path(route.path());
+        url.set_query(None);
+        url.set_fragment(None);
+        let response = self
+            .executor
+            .execute(OutboundHttpRequest {
+                method: route.method(),
+                url,
+                body,
+                bearer,
+                idempotency_key: idempotency_key.to_owned(),
+            })
+            .await?;
+        if !(200..300).contains(&response.status) {
+            return Err(CloudError::TransportFailed);
+        }
+        let is_json = response
+            .content_type
+            .as_deref()
+            .is_some_and(|content_type| content_type.starts_with("application/json"));
+        if !is_json || response.body.len() > MAX_RESPONSE_BYTES {
+            return Err(CloudError::TransportFailed);
+        }
+        Ok(response.body)
     }
 }
 
@@ -239,19 +347,24 @@ impl ReqwestHttpExecutor {
 impl HttpExecutor for ReqwestHttpExecutor {
     async fn execute(&self, request: OutboundHttpRequest) -> Result<HttpResponse, CloudError> {
         let OutboundHttpRequest {
+            method,
             url,
             body,
             bearer,
             idempotency_key,
         } = request;
-        let mut response = self
-            .client
-            .post(url)
+        let builder = match method {
+            HttpMethod::Get => self.client.get(url),
+            HttpMethod::Post => self
+                .client
+                .post(url)
+                .header(reqwest::header::CONTENT_TYPE, "application/json")
+                .body(body),
+        };
+        let mut response = builder
             .bearer_auth(bearer.as_str())
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
             .header(reqwest::header::ACCEPT, "application/json")
             .header("Idempotency-Key", idempotency_key)
-            .body(body)
             .send()
             .await
             .map_err(|_| CloudError::TransportFailed)?;
