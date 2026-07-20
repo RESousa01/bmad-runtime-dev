@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 10;
+pub(crate) const LATEST_STORE_VERSION: u32 = 11;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -81,6 +81,28 @@ const V10_TABLES: [&str; 18] = [
     "bmad_builder_analysis_decisions",
     "bmad_builder_drafts",
     "bmad_builder_revisions",
+    "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V11_TABLES: [&str; 20] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
     "bmad_help_run_creations",
     "bmad_method_artifacts",
     "bmad_method_checkpoints",
@@ -514,6 +536,41 @@ const V9_TO_V10_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 10;
  COMMIT;";
 
+const V10_TO_V11_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_capability_runs (
+   run_id TEXT PRIMARY KEY,
+   capability_id TEXT NOT NULL,
+   workspace_id TEXT NOT NULL,
+   instruction_hash TEXT NOT NULL,
+   context_manifest_hash TEXT NOT NULL,
+   output_schema_id TEXT NOT NULL CHECK(output_schema_id IN (
+     'sapphirus.bmad-document-artifact.v1',
+     'sapphirus.bmad-governed-change-set.v1',
+     'sapphirus.bmad-inactive-builder-draft.v1')),
+   consent_evidence_id TEXT NOT NULL UNIQUE,
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991)
+ ) STRICT;
+ CREATE INDEX bmad_capability_runs_by_workspace
+   ON bmad_capability_runs(workspace_id, created_at_ms, run_id);
+ CREATE TABLE bmad_capability_results (
+   run_id TEXT PRIMARY KEY REFERENCES bmad_capability_runs(run_id),
+   result_kind TEXT NOT NULL CHECK(result_kind IN (
+     'document_artifact', 'governed_change_set', 'inactive_builder_draft')),
+   result_content_hash TEXT NOT NULL,
+   result_payload_kind TEXT NOT NULL
+     CHECK(result_payload_kind = 'bmad_capability_result'),
+   result_schema_version TEXT NOT NULL CHECK(result_schema_version IN (
+     'sapphirus.bmad-document-artifact.v1',
+     'sapphirus.bmad-governed-change-set.v1',
+     'sapphirus.bmad-inactive-builder-draft.v1')),
+   recorded_at TEXT NOT NULL,
+   FOREIGN KEY(result_content_hash, result_payload_kind, result_schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ PRAGMA user_version = 11;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -557,8 +614,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V9_TO_V10_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            10 => {
                 require_store_tables(connection, &V10_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V10_TO_V11_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V11_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

@@ -34,10 +34,12 @@ const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
 const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_builder;
+mod bmad_capability;
 mod bmad_method;
 mod execution;
 mod migrations;
 
+pub use bmad_capability::BmadCapabilityRunRecord;
 pub use bmad_method::{
     BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
@@ -2266,7 +2268,9 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE execution_results;
+            "DROP TABLE bmad_capability_results;
+             DROP TABLE bmad_capability_runs;
+             DROP TABLE execution_results;
              DROP TABLE effect_journals;
              DROP TABLE execution_checkpoints;
              DROP TABLE bmad_help_run_creations;
@@ -2311,7 +2315,9 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE execution_results;
+            "DROP TABLE bmad_capability_results;
+             DROP TABLE bmad_capability_runs;
+             DROP TABLE execution_results;
              DROP TABLE effect_journals;
              DROP TABLE execution_checkpoints;
              DROP TABLE bmad_help_run_creations;
@@ -2409,7 +2415,9 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE execution_results;
+            "DROP TABLE bmad_capability_results;
+             DROP TABLE bmad_capability_runs;
+             DROP TABLE execution_results;
              DROP TABLE effect_journals;
              DROP TABLE execution_checkpoints;
              DROP TABLE bmad_help_run_creations;

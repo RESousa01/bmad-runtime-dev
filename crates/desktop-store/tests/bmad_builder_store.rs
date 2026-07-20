@@ -471,7 +471,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 10);
+    assert_eq!(fresh.schema_version()?, 11);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -481,6 +481,8 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         let connection = rusqlite::Connection::open(&database_path)?;
         connection.execute_batch(
             "PRAGMA foreign_keys = OFF;
+             DROP TABLE bmad_capability_results;
+             DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
              DROP TABLE effect_journals;
              DROP TABLE execution_checkpoints;
@@ -500,7 +502,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 10);
+        assert_eq!(reopened.schema_version()?, 11);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
@@ -523,6 +525,8 @@ fn populated_v6_model_analysis_is_refused_without_inventing_consent_history(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE bmad_capability_results;
+         DROP TABLE bmad_capability_runs;
          DROP TABLE execution_results;
          DROP TABLE effect_journals;
          DROP TABLE execution_checkpoints;
