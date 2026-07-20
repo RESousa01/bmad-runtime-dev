@@ -224,6 +224,66 @@ public sealed class SqlAuthorityStoreTests(LocalDbFixture fixture)
     }
 
     [Fact]
+    public async Task Stale_request_claims_from_crashed_replicas_are_reclaimed()
+    {
+        fixture.EnsureAvailable();
+        SqlIdempotencyStore store = new(fixture.ConnectionFactory);
+        string subject = NewSubject();
+
+        await using (SqlConnection connection = await fixture.ConnectionFactory.OpenAsync(Ct))
+        {
+            await using SqlCommand plantStale = connection.CreateCommand();
+            plantStale.CommandText =
+                """
+                INSERT INTO dbo.desktop_request_idempotency
+                    (subject, idempotency_key, request_fingerprint, state,
+                     response_type, response_json, created_at, completed_at)
+                VALUES
+                    (@subject, N'key-stale', N'fingerprint-1', N'started', NULL,
+                     NULL, DATEADD(minute, -30, SYSDATETIMEOFFSET()), NULL);
+                """;
+            plantStale.Parameters.AddWithValue("@subject", subject);
+            await plantStale.ExecuteNonQueryAsync(Ct);
+        }
+
+        DeviceRegistrationResponse recovered = await store.ExecuteAsync(
+            subject,
+            "key-stale",
+            "fingerprint-1",
+            () => Task.FromResult(new DeviceRegistrationResponse(
+                "desktop-device-registration.v1",
+                "dreg_AAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "active",
+                DateTimeOffset.UtcNow)),
+            Ct);
+        Assert.Equal("active", recovered.Status);
+
+        // A fresh started claim is never taken over.
+        await using (SqlConnection connection = await fixture.ConnectionFactory.OpenAsync(Ct))
+        {
+            await using SqlCommand plantLive = connection.CreateCommand();
+            plantLive.CommandText =
+                """
+                INSERT INTO dbo.desktop_request_idempotency
+                    (subject, idempotency_key, request_fingerprint, state,
+                     response_type, response_json, created_at, completed_at)
+                VALUES
+                    (@subject, N'key-live', N'fingerprint-1', N'started', NULL,
+                     NULL, SYSDATETIMEOFFSET(), NULL);
+                """;
+            plantLive.Parameters.AddWithValue("@subject", subject);
+            await plantLive.ExecuteNonQueryAsync(Ct);
+        }
+        await Assert.ThrowsAsync<IdempotencyConflictException>(() =>
+            store.ExecuteAsync(
+                subject,
+                "key-live",
+                "fingerprint-1",
+                () => Task.FromResult(1),
+                Ct));
+    }
+
+    [Fact]
     public async Task Interrupted_model_calls_fail_closed_and_do_not_broaden_retry_authority()
     {
         fixture.EnsureAvailable();

@@ -107,6 +107,11 @@
 
 - `docs/superpowers/plans/2026-07-20-d2-e-rollout-runbook.md`: the ten rollout stages and the rollback procedure mapped onto the concrete artifacts from Tasks 1–11 (migration identity outputs, kill switch via `approvedModelDeployments`, key-rotation contract via `SigningKeyRing`/`ProofKeyRing`, desktop enablement via the `production-support` package values). All stages are operator actions against real Azure with human approval; none run from local gates, per instruction.
 
+## Full-phase review pass (2026-07-20)
+
+- Gates re-run across every phase: `cargo test --workspace --all-features --locked` (59 suites, all P0-P3 crates), workspace clippy `-D warnings` clean, C# 168/168 incl. LocalDB, `pnpm verify:deferred-full` exit 0, `git diff --check` clean.
+- Review fixes applied: `SigningCompositionHealthCheck` now checks `IModelReceiptSigner` (the production-only `IHashSigner` check misreported dev readiness); `PrivacyRedactionProcessor` un-records the entire span if runtime event-clearing ever stops working (redaction can no longer fail open); `SqlIdempotencyStore` reclaims request-level `started` claims abandoned for over 10 minutes by a crashed replica (with a test proving fresh claims are never taken over) — the model-call store deliberately keeps its no-takeover uncertainty semantics.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.

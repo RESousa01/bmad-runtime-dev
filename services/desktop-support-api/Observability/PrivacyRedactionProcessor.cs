@@ -52,6 +52,13 @@ public sealed class PrivacyRedactionProcessor : BaseProcessor<Activity>
         if (activity.Events.Any())
         {
             ClearEvents(activity);
+            if (activity.Events.Any())
+            {
+                // The runtime no longer allows clearing events; failing open
+                // is not an option, so the whole span is un-recorded.
+                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                activity.IsAllDataRequested = false;
+            }
         }
         if (activity.TagObjects.Any(static tag => tag.Key == "http.route"))
         {

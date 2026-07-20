@@ -98,10 +98,11 @@ public sealed class PolicyConfigurationHealthCheck(
 }
 
 /// <summary>
-/// Reports signing readiness from configuration state only. Probing Key
+/// Reports signing readiness from composition state only. Probing Key
 /// Vault with a real signature on every health poll would burn quota and
-/// audit noise, so this check verifies the signer is composed; signing
-/// failures surface through the receipt-signing failure alert instead.
+/// audit noise, so this check verifies a receipt signer is composed (the
+/// development or the vault-backed one); signing failures surface through
+/// the receipt-signing failure alert instead.
 /// </summary>
 public sealed class SigningCompositionHealthCheck(IServiceProvider services) : IHealthCheck
 {
@@ -111,7 +112,7 @@ public sealed class SigningCompositionHealthCheck(IServiceProvider services) : I
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(
-            services.GetService<Signing.IHashSigner>() is not null
+            services.GetService<IModelReceiptSigner>() is not null
                 ? HealthCheckResult.Healthy()
                 : HealthCheckResult.Unhealthy());
     }

@@ -13,6 +13,14 @@ namespace Sapphirus.DesktopSupportApi.Sql;
 public sealed class SqlIdempotencyStore(SqlConnectionFactory connectionFactory)
     : IIdempotencyStore
 {
+    /// <summary>
+    /// A started claim older than this is treated as abandoned by a crashed
+    /// replica and may be taken over. Request-level operations are
+    /// retry-safe; model calls use the dedicated marker store, which never
+    /// takes over an uncertain claim.
+    /// </summary>
+    public static readonly TimeSpan StaleClaimTakeover = TimeSpan.FromMinutes(10);
+
     public async Task<T> ExecuteAsync<T>(
         string subject,
         string key,
@@ -47,8 +55,16 @@ public sealed class SqlIdempotencyStore(SqlConnectionFactory connectionFactory)
                 }
                 if (existing.Value.State != "completed")
                 {
-                    // Another replica holds the claim; the request cannot be
-                    // replayed or re-executed while its outcome is unknown.
+                    if (await TryReclaimStaleClaimAsync(
+                        connection,
+                        subject,
+                        key,
+                        cancellationToken).ConfigureAwait(false))
+                    {
+                        continue;
+                    }
+                    // Another replica holds a live claim; the request cannot
+                    // be replayed or re-executed while its outcome is unknown.
                     throw new IdempotencyConflictException();
                 }
                 if (!string.Equals(
@@ -152,6 +168,31 @@ public sealed class SqlIdempotencyStore(SqlConnectionFactory connectionFactory)
             reader.IsDBNull(1) ? null : reader.GetString(1),
             reader.IsDBNull(2) ? null : reader.GetString(2),
             reader.GetString(3));
+    }
+
+    private static async Task<bool> TryReclaimStaleClaimAsync(
+        SqlConnection connection,
+        string subject,
+        string key,
+        CancellationToken cancellationToken)
+    {
+        await using SqlCommand reclaim = connection.CreateCommand();
+        reclaim.CommandTimeout = SqlConnectionFactory.CommandTimeoutSeconds;
+        reclaim.CommandText =
+            """
+            DELETE FROM dbo.desktop_request_idempotency
+            WHERE subject = @subject AND idempotency_key = @key
+              AND state = N'started'
+              AND created_at < DATEADD(second, -@staleSeconds, SYSDATETIMEOFFSET());
+            """;
+        reclaim.Parameters.AddWithValue("@subject", subject);
+        reclaim.Parameters.AddWithValue("@key", key);
+        reclaim.Parameters.AddWithValue(
+            "@staleSeconds",
+            (int)StaleClaimTakeover.TotalSeconds);
+        return await reclaim
+            .ExecuteNonQueryAsync(cancellationToken)
+            .ConfigureAwait(false) == 1;
     }
 
     private static async Task ReleaseClaimAsync(
