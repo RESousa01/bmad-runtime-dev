@@ -126,9 +126,28 @@ slice's evidence.
   personaSourceHash). Tamper test flips one binding and the foundation
   fails closed. 88 desktop-app tests; workspace 59 suites; deferred-full
   exit 0. No IPC/catalog change.
-- Remaining P5 slices: the deliberate `bmad.method.*` command-family
-  catalog change (agent-bound Method sessions consuming the persona
-  seam, with renderer surface) — a full contract arc with its own
-  packet-level review; then P5-C (PRD workflow) and P5-D (adversarial
-  review of any further projections; the source-fidelity audit above
-  already covers the six personas).
+- Capability wiring executed (2026-07-20) as the `bmad.persona.view`
+  vertical: the READY catalog grew 30 → 31 commands (host
+  `READY_COMMANDS`, envelope allowlist and strict payload parsing,
+  `LocalCommand::ViewBmadPersona`, renderer catalog mirror, client API,
+  closed-shape reply parser, and a library-panel working-stance surface).
+  The projection carries only repository-authored instruction text and
+  its hash — never paths, envelopes, or source bodies — pinned by host
+  and renderer tests (bad agent codes, extra payload fields, foreign
+  shapes, oversized markdown all fail closed).
+- method-026 dispositioned (2026-07-20): the headless-execution
+  remainder is rejected (no headless mode in the desktop delivery;
+  scripts/web/subagent machinery categorically excluded); its
+  assumptions/open-questions discipline was already adapted into the
+  architecture projection.
+- **P5-D closure.** Final denominator: 20 members retain a `defer`, and
+  every one is outside P5's executable scope by prior decision — four
+  are the ADR-0003-excluded Paige prompt references, and sixteen are
+  Builder references whose conversion is Builder-engine activation
+  (`builder_engine_gated`), a future phase requiring its own product
+  decision. Method-source breadth is fully dispositioned. P5-C (PRD
+  workflow) is re-scoped: no PRD-workflow members exist among the 76
+  reviewed sources, so it requires a new source-intake review (the same
+  human gate class as `blocked_provenance`) before any implementation
+  phase can pick it up. Adversarial review of the six personas is the
+  source-fidelity audit recorded above.
