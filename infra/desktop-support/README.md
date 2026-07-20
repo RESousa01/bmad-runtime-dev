@@ -18,10 +18,28 @@ also waits for its identity roles and private DNS resources to be created; the d
 must still retry safely while Azure role assignments converge.
 
 Before enabling production traffic, a database administrator must create the contained database
-user for the emitted `apiManagedIdentityObjectId` and grant only the migration/runtime roles
-defined by the reviewed SQL migration. That data-plane grant is intentionally not hidden in an
-ARM deployment script. The production API adapters remain a D2 work packet; the repository's
-in-memory adapters refuse production signing and model access.
+users for the emitted `apiManagedIdentityObjectId` (runtime DML only) and
+`sqlMigrationIdentityObjectId` (schema migration only) following
+`infra/desktop-support/sql-grants.md`. That data-plane grant is intentionally not hidden in an
+ARM deployment script.
+
+Identity split in this first deployment is logical least privilege: image pull uses its own
+identity (`imagePullIdentityObjectId`), the SQL migration identity is never attached to the API,
+and data/config, signing, and model access share the runtime identity attached to one process.
+The module seams (`modules/`) are preserved so signing and model access can be moved to
+independently deployed workloads if the threat review requires hard isolation.
+
+Operational modules: `modules/monitor-alerts.bicep` (seven scheduled-query alerts including a
+sev-0 privacy canary rule) and `modules/budget.bicep` (monthly budget with action-group
+notifications) deploy when `deployAlerts=true` with an `actionGroupId`. Diagnostic settings for
+Key Vault audit and SQL metrics flow into the workspace. Container probes target
+`/healthz/live` and `/healthz/ready`, which disclose only status and safe dependency classes.
+
+Azure policy assignments for the target subscription must be inspected before any actual
+deployment, and `what-if` output must show no local-auth enablement, public data-plane
+endpoint, plaintext secret, mutable image tag, overly broad role, or caller-controlled model
+endpoint. The actual deployment (validate/what-if/apply) is an operator step and is
+deliberately not run from this repository's local gates.
 
 Validate without deploying:
 

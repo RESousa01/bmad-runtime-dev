@@ -41,6 +41,30 @@ param releaseChannel string = 'beta'
 @description('Deployment-wide resource tags.')
 param tags object = {}
 
+@description('Canonical provider profile hash (sha256:<hex>).')
+param providerProfileHash string
+
+@description('Canonical model profile hash (sha256:<hex>).')
+param modelProfileHash string
+
+@description('Canonical model capability hash (sha256:<hex>).')
+param modelCapabilityHash string
+
+@description('Canonical deployment hash (sha256:<hex>).')
+param deploymentHash string
+
+@description('Deploy scheduled-query alerts and the monthly budget.')
+param deployAlerts bool = false
+
+@description('Action group resource id for alerts; required when deployAlerts is true.')
+param actionGroupId string = ''
+
+@description('Monthly budget amount in the subscription currency.')
+param monthlyBudgetAmount int = 200
+
+@description('Environment tag value used by alerting and budgets.')
+param environmentTag string = 'staging'
+
 assert immutableApiImage = !deployApi || (contains(containerImage, '@sha256:') && length(containerImage) >= 80)
 
 var suffix = uniqueString(subscription().id, resourceGroup().id, namePrefix)
@@ -114,6 +138,24 @@ resource containerAppsSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-
 resource privateEndpointsSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' existing = {
   parent: network
   name: 'private-endpoints'
+}
+
+// Identity split (first deployment = logical least privilege): image pull
+// is isolated from the runtime identity; data/config, signing, and model
+// access share the runtime identity attached to one process, with module
+// seams preserved for independently deployed signing/model workloads if the
+// threat review requires hard isolation later. The migration identity holds
+// schema (DDL) rights only and is never attached to the API.
+resource imagePullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${namePrefix}-pull-id'
+  location: location
+  tags: tags
+}
+
+resource migrationIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${namePrefix}-sqlmigrate-id'
+  location: location
+  tags: tags
 }
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -319,6 +361,7 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
     type: 'UserAssigned'
     userAssignedIdentities: {
       '${identity.id}': {}
+      '${imagePullIdentity.id}': {}
     }
   }
   properties: {
@@ -333,7 +376,7 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
       }
       registries: [
         {
-          identity: identity.id
+          identity: imagePullIdentity.id
           server: registry.properties.loginServer
         }
       ]
@@ -353,7 +396,11 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
             { name: 'Sapphirus__ManagedIdentityClientId', value: identity.properties.clientId }
             { name: 'Sapphirus__AppConfigurationEndpoint', value: configuration.properties.endpoint }
             { name: 'Sapphirus__KeyVaultUri', value: vault.properties.vaultUri }
-            { name: 'Sapphirus__SigningKeyName', value: signingKey.name }
+            { name: 'Sapphirus__ReceiptSigningKeyName', value: signingKey.name }
+            { name: 'Sapphirus__ProviderProfileHash', value: providerProfileHash }
+            { name: 'Sapphirus__ModelProfileHash', value: modelProfileHash }
+            { name: 'Sapphirus__ModelCapabilityHash', value: modelCapabilityHash }
+            { name: 'Sapphirus__DeploymentHash', value: deploymentHash }
             { name: 'Sapphirus__SqlServer', value: sqlServer.properties.fullyQualifiedDomainName }
             { name: 'Sapphirus__SqlDatabase', value: sqlDatabase.name }
             { name: 'Sapphirus__ModelEndpoint', value: openAi.properties.endpoint }
@@ -364,6 +411,27 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
             cpu: json('0.5')
             memory: '1Gi'
           }
+          probes: [
+            {
+              type: 'Startup'
+              httpGet: { path: '/healthz/live', port: 8080 }
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 12
+            }
+            {
+              type: 'Liveness'
+              httpGet: { path: '/healthz/live', port: 8080 }
+              periodSeconds: 15
+              failureThreshold: 3
+            }
+            {
+              type: 'Readiness'
+              httpGet: { path: '/healthz/ready', port: 8080 }
+              periodSeconds: 30
+              failureThreshold: 3
+            }
+          ]
         }
       ]
       scale: {
@@ -392,10 +460,10 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
 }
 
 resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(registry.id, identity.id, roleIds.acrPull)
+  name: guid(registry.id, imagePullIdentity.id, roleIds.acrPull)
   scope: registry
   properties: {
-    principalId: identity.properties.principalId
+    principalId: imagePullIdentity.properties.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleIds.acrPull)
   }
@@ -497,8 +565,55 @@ resource privateDnsZoneGroups 'Microsoft.Network/privateEndpoints/privateDnsZone
   ]
 }]
 
+module monitorAlerts 'modules/monitor-alerts.bicep' = if (deployAlerts) {
+  name: '${namePrefix}-monitor-alerts'
+  params: {
+    logAnalyticsWorkspaceId: logWorkspace.id
+    actionGroupId: actionGroupId
+    location: location
+    environment: environmentTag
+  }
+}
+
+module budget 'modules/budget.bicep' = if (deployAlerts) {
+  name: '${namePrefix}-budget'
+  params: {
+    budgetName: '${namePrefix}-monthly-budget'
+    amount: monthlyBudgetAmount
+    actionGroupId: actionGroupId
+  }
+}
+
+resource vaultDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${namePrefix}-vault-diagnostics'
+  scope: vault
+  properties: {
+    workspaceId: logWorkspace.id
+    logs: [
+      { categoryGroup: 'audit', enabled: true }
+    ]
+  }
+}
+
+resource sqlDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${namePrefix}-sql-diagnostics'
+  scope: sqlDatabase
+  properties: {
+    workspaceId: logWorkspace.id
+    metrics: [
+      { category: 'Basic', enabled: true }
+    ]
+  }
+}
+
 output apiFqdn string = deployApi ? api.properties.configuration.ingress.fqdn : ''
 output apiManagedIdentityObjectId string = identity.properties.principalId
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseName string = sqlDatabase.name
 output registryLoginServer string = registry.properties.loginServer
+output imagePullIdentityObjectId string = imagePullIdentity.properties.principalId
+output sqlMigrationIdentityClientId string = migrationIdentity.properties.clientId
+output sqlMigrationIdentityObjectId string = migrationIdentity.properties.principalId
+output signingKeyUri string = signingKey.properties.keyUri
+output appConfigurationEndpoint string = configuration.properties.endpoint
+output modelEndpoint string = openAi.properties.endpoint

@@ -9,6 +9,11 @@ param sqlAdministratorLogin = 'Sapphirus SQL Administrators'
 param modelName = 'gpt-5'
 param modelVersion = 'replace-with-reviewed-version'
 param releaseChannel = 'beta'
+param providerProfileHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+param modelProfileHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+param modelCapabilityHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+param deploymentHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+param deployAlerts = false
 param tags = {
   application: 'sapphirus'
   distribution: 'internal'

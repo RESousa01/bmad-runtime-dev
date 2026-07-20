@@ -10,7 +10,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "8155367770107476827"
+      "templateHash": "11385567245013441104"
     }
   },
   "parameters": {
@@ -92,6 +92,58 @@
       "defaultValue": {},
       "metadata": {
         "description": "Deployment-wide resource tags."
+      }
+    },
+    "providerProfileHash": {
+      "type": "string",
+      "metadata": {
+        "description": "Canonical provider profile hash (sha256:<hex>)."
+      }
+    },
+    "modelProfileHash": {
+      "type": "string",
+      "metadata": {
+        "description": "Canonical model profile hash (sha256:<hex>)."
+      }
+    },
+    "modelCapabilityHash": {
+      "type": "string",
+      "metadata": {
+        "description": "Canonical model capability hash (sha256:<hex>)."
+      }
+    },
+    "deploymentHash": {
+      "type": "string",
+      "metadata": {
+        "description": "Canonical deployment hash (sha256:<hex>)."
+      }
+    },
+    "deployAlerts": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Deploy scheduled-query alerts and the monthly budget."
+      }
+    },
+    "actionGroupId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Action group resource id for alerts; required when deployAlerts is true."
+      }
+    },
+    "monthlyBudgetAmount": {
+      "type": "int",
+      "defaultValue": 200,
+      "metadata": {
+        "description": "Monthly budget amount in the subscription currency."
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "defaultValue": "staging",
+      "metadata": {
+        "description": "Environment tag value used by alerting and budgets."
       }
     }
   },
@@ -208,6 +260,20 @@
       "dependsOn": [
         "network"
       ]
+    },
+    "imagePullIdentity": {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[format('{0}-pull-id', parameters('namePrefix'))]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]"
+    },
+    "migrationIdentity": {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[format('{0}-sqlmigrate-id', parameters('namePrefix'))]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]"
     },
     "identity": {
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
@@ -438,7 +504,8 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {
-          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')))]": {}
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')))]": {},
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix'))))]": {}
         }
       },
       "properties": {
@@ -453,7 +520,7 @@
           },
           "registries": [
             {
-              "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
+              "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix')))]",
               "server": "[reference('registry').loginServer]"
             }
           ]
@@ -501,8 +568,24 @@
                   "value": "[reference('vault').vaultUri]"
                 },
                 {
-                  "name": "Sapphirus__SigningKeyName",
+                  "name": "Sapphirus__ReceiptSigningKeyName",
                   "value": "[variables('signingKeyName')]"
+                },
+                {
+                  "name": "Sapphirus__ProviderProfileHash",
+                  "value": "[parameters('providerProfileHash')]"
+                },
+                {
+                  "name": "Sapphirus__ModelProfileHash",
+                  "value": "[parameters('modelProfileHash')]"
+                },
+                {
+                  "name": "Sapphirus__ModelCapabilityHash",
+                  "value": "[parameters('modelCapabilityHash')]"
+                },
+                {
+                  "name": "Sapphirus__DeploymentHash",
+                  "value": "[parameters('deploymentHash')]"
                 },
                 {
                   "name": "Sapphirus__SqlServer",
@@ -528,7 +611,37 @@
               "resources": {
                 "cpu": "[json('0.5')]",
                 "memory": "1Gi"
-              }
+              },
+              "probes": [
+                {
+                  "type": "Startup",
+                  "httpGet": {
+                    "path": "/healthz/live",
+                    "port": 8080
+                  },
+                  "initialDelaySeconds": 5,
+                  "periodSeconds": 5,
+                  "failureThreshold": 12
+                },
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/healthz/live",
+                    "port": 8080
+                  },
+                  "periodSeconds": 15,
+                  "failureThreshold": 3
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/healthz/ready",
+                    "port": 8080
+                  },
+                  "periodSeconds": 30,
+                  "failureThreshold": 3
+                }
+              ]
             }
           ],
           "scale": {
@@ -554,6 +667,7 @@
         "configuration",
         "environment",
         "identity",
+        "imagePullIdentity",
         "modelDeployment",
         "modelUser",
         "openAi",
@@ -570,14 +684,14 @@
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "scope": "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]",
-      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), variables('roleIds').acrPull)]",
+      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix'))), variables('roleIds').acrPull)]",
       "properties": {
-        "principalId": "[reference('identity').principalId]",
+        "principalId": "[reference('imagePullIdentity').principalId]",
         "principalType": "ServicePrincipal",
         "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleIds').acrPull)]"
       },
       "dependsOn": [
-        "identity",
+        "imagePullIdentity",
         "registry"
       ]
     },
@@ -732,6 +846,321 @@
         "sqlServer",
         "vault"
       ]
+    },
+    "vaultDiagnostics": {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "scope": "[resourceId('Microsoft.KeyVault/vaults', variables('vaultName'))]",
+      "name": "[format('{0}-vault-diagnostics', parameters('namePrefix'))]",
+      "properties": {
+        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]",
+        "logs": [
+          {
+            "categoryGroup": "audit",
+            "enabled": true
+          }
+        ]
+      },
+      "dependsOn": [
+        "logWorkspace",
+        "vault"
+      ]
+    },
+    "sqlDiagnostics": {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "scope": "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerName'), 'desktop-support')]",
+      "name": "[format('{0}-sql-diagnostics', parameters('namePrefix'))]",
+      "properties": {
+        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]",
+        "metrics": [
+          {
+            "category": "Basic",
+            "enabled": true
+          }
+        ]
+      },
+      "dependsOn": [
+        "logWorkspace",
+        "sqlDatabase"
+      ]
+    },
+    "monitorAlerts": {
+      "condition": "[parameters('deployAlerts')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('{0}-monitor-alerts', parameters('namePrefix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "logAnalyticsWorkspaceId": {
+            "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
+          },
+          "actionGroupId": {
+            "value": "[parameters('actionGroupId')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environment": {
+            "value": "[parameters('environmentTag')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "languageVersion": "2.1-experimental",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+            "_EXPERIMENTAL_FEATURES_ENABLED": [
+              "Asserts"
+            ],
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "3161624791106856836"
+            }
+          },
+          "parameters": {
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics workspace resource id backing Application Insights."
+              }
+            },
+            "actionGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Action group receiving every support-plane alert."
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Deployment location for the alert rules."
+              }
+            },
+            "environment": {
+              "type": "string",
+              "metadata": {
+                "description": "Environment tag value (for example prod or staging)."
+              }
+            }
+          },
+          "variables": {
+            "alertTags": {
+              "workload": "desktop-support",
+              "environment": "[parameters('environment')]"
+            },
+            "scheduledAlerts": [
+              {
+                "name": "desktop-support-authentication-spike",
+                "description": "Authentication denial rate spiked.",
+                "severity": 2,
+                "query": "AppMetrics | where Name == \"sapphirus.support.authentication.outcomes\" | where tostring(Properties[\"outcome\"]) == \"denied\" | summarize denied = sum(Sum) by bin(TimeGenerated, 5m)",
+                "threshold": 50
+              },
+              {
+                "name": "desktop-support-consent-replays",
+                "description": "Consent replay attempts observed.",
+                "severity": 2,
+                "query": "AppMetrics | where Name == \"sapphirus.support.replays.observed\" | summarize replays = sum(Sum) by bin(TimeGenerated, 15m)",
+                "threshold": 10
+              },
+              {
+                "name": "desktop-support-receipt-signing-failures",
+                "description": "Receipt signing dependency failures observed.",
+                "severity": 1,
+                "query": "AppMetrics | where Name == \"sapphirus.support.dependency.latency\" | where tostring(Properties[\"dependency\"]) == \"signing\" and tostring(Properties[\"outcome\"]) == \"failed\" | summarize failures = count() by bin(TimeGenerated, 5m)",
+                "threshold": 1
+              },
+              {
+                "name": "desktop-support-sql-saturation",
+                "description": "Authority SQL latency is saturating.",
+                "severity": 2,
+                "query": "AppMetrics | where Name == \"sapphirus.support.dependency.latency\" | where tostring(Properties[\"dependency\"]) == \"sql\" | summarize p95 = percentile(Sum, 95) by bin(TimeGenerated, 5m) | where p95 > 500",
+                "threshold": 0
+              },
+              {
+                "name": "desktop-support-model-throttling",
+                "description": "Model provider throttling observed.",
+                "severity": 2,
+                "query": "AppMetrics | where Name == \"sapphirus.support.provider.statuses\" | where tostring(Properties[\"provider_status_class\"]) == \"429\" | summarize throttles = sum(Sum) by bin(TimeGenerated, 5m)",
+                "threshold": 5
+              },
+              {
+                "name": "desktop-support-privacy-canary",
+                "description": "A privacy canary marker reached exported telemetry. Sev 0: engage the incident procedure.",
+                "severity": 0,
+                "query": "union AppTraces, AppExceptions, AppRequests, AppDependencies | where tostring(Properties) contains \"CANARY_\" or Message contains \"CANARY_\" | summarize hits = count() by bin(TimeGenerated, 5m)",
+                "threshold": 0
+              },
+              {
+                "name": "desktop-support-slo-burn",
+                "description": "Availability SLO fast burn: server failure ratio over 5 minutes.",
+                "severity": 1,
+                "query": "AppRequests | summarize total = count(), failed = countif(ResultCode startswith \"5\") by bin(TimeGenerated, 5m) | where total > 0 | extend ratio = todouble(failed) / todouble(total) | where ratio > 0.05",
+                "threshold": 0
+              }
+            ]
+          },
+          "resources": {
+            "alertRules": {
+              "copy": {
+                "name": "alertRules",
+                "count": "[length(variables('scheduledAlerts'))]"
+              },
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-12-01",
+              "name": "[variables('scheduledAlerts')[copyIndex()].name]",
+              "location": "[parameters('location')]",
+              "tags": "[variables('alertTags')]",
+              "properties": {
+                "description": "[variables('scheduledAlerts')[copyIndex()].description]",
+                "displayName": "[variables('scheduledAlerts')[copyIndex()].name]",
+                "severity": "[variables('scheduledAlerts')[copyIndex()].severity]",
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT5M",
+                "scopes": [
+                  "[parameters('logAnalyticsWorkspaceId')]"
+                ],
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "[variables('scheduledAlerts')[copyIndex()].query]",
+                      "timeAggregation": "Count",
+                      "operator": "GreaterThan",
+                      "threshold": "[variables('scheduledAlerts')[copyIndex()].threshold]",
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[parameters('actionGroupId')]"
+                  ]
+                },
+                "autoMitigate": true
+              }
+            }
+          },
+          "outputs": {
+            "alertRuleNames": {
+              "type": "array",
+              "copy": {
+                "count": "[length(variables('scheduledAlerts'))]",
+                "input": "[variables('scheduledAlerts')[copyIndex()].name]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "logWorkspace"
+      ]
+    },
+    "budget": {
+      "condition": "[parameters('deployAlerts')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('{0}-budget', parameters('namePrefix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "budgetName": {
+            "value": "[format('{0}-monthly-budget', parameters('namePrefix'))]"
+          },
+          "amount": {
+            "value": "[parameters('monthlyBudgetAmount')]"
+          },
+          "actionGroupId": {
+            "value": "[parameters('actionGroupId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "languageVersion": "2.1-experimental",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+            "_EXPERIMENTAL_FEATURES_ENABLED": [
+              "Asserts"
+            ],
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "5035922606220050433"
+            }
+          },
+          "parameters": {
+            "budgetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Budget resource name."
+              }
+            },
+            "amount": {
+              "type": "int",
+              "metadata": {
+                "description": "Monthly amount in the subscription currency."
+              }
+            },
+            "actionGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Action group notified at the alert thresholds."
+              }
+            }
+          },
+          "resources": {
+            "budget": {
+              "type": "Microsoft.Consumption/budgets",
+              "apiVersion": "2024-08-01",
+              "name": "[parameters('budgetName')]",
+              "properties": {
+                "category": "Cost",
+                "amount": "[parameters('amount')]",
+                "timeGrain": "Monthly",
+                "timePeriod": {
+                  "startDate": "2026-08-01"
+                },
+                "notifications": {
+                  "actual80": {
+                    "enabled": true,
+                    "operator": "GreaterThan",
+                    "threshold": 80,
+                    "contactEmails": [],
+                    "contactGroups": [
+                      "[parameters('actionGroupId')]"
+                    ]
+                  },
+                  "forecast100": {
+                    "enabled": true,
+                    "operator": "GreaterThan",
+                    "threshold": 100,
+                    "thresholdType": "Forecasted",
+                    "contactEmails": [],
+                    "contactGroups": [
+                      "[parameters('actionGroupId')]"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "outputs": {
@@ -754,6 +1183,30 @@
     "registryLoginServer": {
       "type": "string",
       "value": "[reference('registry').loginServer]"
+    },
+    "imagePullIdentityObjectId": {
+      "type": "string",
+      "value": "[reference('imagePullIdentity').principalId]"
+    },
+    "sqlMigrationIdentityClientId": {
+      "type": "string",
+      "value": "[reference('migrationIdentity').clientId]"
+    },
+    "sqlMigrationIdentityObjectId": {
+      "type": "string",
+      "value": "[reference('migrationIdentity').principalId]"
+    },
+    "signingKeyUri": {
+      "type": "string",
+      "value": "[reference('signingKey').keyUri]"
+    },
+    "appConfigurationEndpoint": {
+      "type": "string",
+      "value": "[reference('configuration').endpoint]"
+    },
+    "modelEndpoint": {
+      "type": "string",
+      "value": "[reference('openAi').endpoint]"
     }
   },
   "asserts": {
