@@ -2873,7 +2873,10 @@ mod tests {
             edited_grant_epoch,
             capability,
         );
-        assert!(stale_proposal.is_err(), "a moved workspace must fail closed");
+        assert!(
+            stale_proposal.is_err(),
+            "a moved workspace must fail closed"
+        );
         Ok(())
     }
 
