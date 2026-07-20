@@ -265,6 +265,9 @@ impl HostState {
         }
         let next = current.checked_add(1).ok_or_else(recovery_error)?;
         self.model_auth_epoch.store(next, Ordering::SeqCst);
+        // ADR-0002: sign-out withdraws D2 context-read authority everywhere
+        // without touching D3 proposals or local work.
+        self.workspace.advance_all_context_read_epochs();
         Ok(next)
     }
 

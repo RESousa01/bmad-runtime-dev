@@ -57,6 +57,9 @@ pub(crate) struct PendingChangesProposal {
     pub displayed_diff_hash: Sha256Digest,
     pub workspace_id: String,
     pub workspace_grant_epoch: u64,
+    /// The exact D3 edit-authority version the proposal was reviewed under
+    /// (ADR-0002). Any edit-authority change invalidates the proposal.
+    pub workspace_governed_edit_epoch: u64,
 }
 
 #[derive(Default)]
@@ -90,6 +93,7 @@ pub(crate) struct GovernedWorkspaceIo<'a> {
     broker: &'a WorkspaceBroker,
     workspace_id: String,
     grant_epoch: u64,
+    governed_edit_epoch: u64,
     expected_root_identity_hash: Sha256Digest,
     workspace_target_hash: Sha256Digest,
 }
@@ -103,6 +107,7 @@ impl GovernedWorkspaceIo<'_> {
         broker: &'a WorkspaceBroker,
         workspace_id: &ContractId,
         grant_epoch: u64,
+        governed_edit_epoch: u64,
         expected_root_identity_hash: Sha256Digest,
         workspace_target_hash: Sha256Digest,
     ) -> GovernedWorkspaceIo<'a> {
@@ -110,6 +115,7 @@ impl GovernedWorkspaceIo<'_> {
             broker,
             workspace_id: workspace_id.to_string(),
             grant_epoch,
+            governed_edit_epoch,
             expected_root_identity_hash,
             workspace_target_hash,
         }
@@ -120,7 +126,9 @@ impl GovernedWorkspaceIo<'_> {
             .broker
             .authority_binding(&self.workspace_id)
             .map_err(map_broker_error)?;
-        if binding.grant_epoch != self.grant_epoch {
+        if binding.grant_epoch != self.grant_epoch
+            || binding.governed_edit_epoch != self.governed_edit_epoch
+        {
             return Err(WorkspaceIoError::CapabilityRevoked);
         }
         let root_identity_hash = Sha256Digest::parse(&binding.root_identity_hash)
@@ -147,6 +155,7 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             .read_effect_file(
                 &self.workspace_id,
                 self.grant_epoch,
+                self.governed_edit_epoch,
                 path.as_str(),
                 expected.as_deref(),
             )
@@ -159,7 +168,12 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
     ) -> Result<WorkspaceFileObservation, WorkspaceIoError> {
         let observation = self
             .broker
-            .observe_preimage(&self.workspace_id, self.grant_epoch, path.as_str())
+            .observe_preimage(
+                &self.workspace_id,
+                self.grant_epoch,
+                self.governed_edit_epoch,
+                path.as_str(),
+            )
             .map_err(map_broker_error)?;
         map_recovery_observation(path, observation)
     }
@@ -170,13 +184,18 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
     ) -> Result<(), WorkspaceIoError> {
         let workspace_target_hash = self.current_target_hash()?;
         self.broker
-            .with_governed_recovery(&self.workspace_id, self.grant_epoch, |broker_transaction| {
-                let scoped = ScopedRecoveryWorkspaceIo {
-                    transaction: broker_transaction,
-                    workspace_target_hash,
-                };
-                transaction(&scoped)
-            })
+            .with_governed_recovery(
+                &self.workspace_id,
+                self.grant_epoch,
+                self.governed_edit_epoch,
+                |broker_transaction| {
+                    let scoped = ScopedRecoveryWorkspaceIo {
+                        transaction: broker_transaction,
+                        workspace_target_hash,
+                    };
+                    transaction(&scoped)
+                },
+            )
             .map_err(map_broker_error)?
     }
 
@@ -186,7 +205,13 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
         content: &str,
     ) -> Result<(), WorkspaceIoError> {
         self.broker
-            .create_utf8_durable(&self.workspace_id, self.grant_epoch, path.as_str(), content)
+            .create_utf8_durable(
+                &self.workspace_id,
+                self.grant_epoch,
+                self.governed_edit_epoch,
+                path.as_str(),
+                content,
+            )
             .map_err(map_broker_error)
     }
 
@@ -201,6 +226,7 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             .replace_utf8_durable(
                 &self.workspace_id,
                 self.grant_epoch,
+                self.governed_edit_epoch,
                 path.as_str(),
                 &expected_content_hash.to_string(),
                 &expected_file_identity_hash.to_string(),
@@ -219,6 +245,7 @@ impl WorkspaceFileIo for GovernedWorkspaceIo<'_> {
             .delete_durable(
                 &self.workspace_id,
                 self.grant_epoch,
+                self.governed_edit_epoch,
                 path.as_str(),
                 &expected_content_hash.to_string(),
                 &expected_file_identity_hash.to_string(),
@@ -545,6 +572,9 @@ pub(crate) fn current_workspace_target_hash(
     let scope = WorkspaceEditsScope {
         workspace_id: workspace_id.clone(),
         grant_epoch,
+        // Hash-derivation scope only: it never reaches governed IO, and a
+        // zero edit epoch fails closed everywhere governed IO validates it.
+        governed_edit_epoch: 0,
         root_identity_hash,
     };
     let target = workspace_target(
@@ -645,6 +675,7 @@ fn map_execution_error(error: &ExecutionError) -> LocalError {
 struct WorkspaceEditsScope {
     workspace_id: ContractId,
     grant_epoch: u64,
+    governed_edit_epoch: u64,
     root_identity_hash: Sha256Digest,
 }
 
@@ -664,6 +695,7 @@ fn authorize_edits_scope(
     Ok(WorkspaceEditsScope {
         workspace_id: workspace_id.clone(),
         grant_epoch: binding.grant_epoch,
+        governed_edit_epoch: binding.governed_edit_epoch,
         root_identity_hash,
     })
 }
@@ -723,6 +755,7 @@ fn prepare_review(
             .observe_preimage(
                 scope.workspace_id.as_str(),
                 scope.grant_epoch,
+                scope.governed_edit_epoch,
                 change.relative_path().as_str(),
             )
             .map_err(|error| crate::commands::map_workspace_error(&error))?;
@@ -752,6 +785,7 @@ fn prepare_review(
             displayed_diff_hash,
             workspace_id: scope.workspace_id.as_str().to_owned(),
             workspace_grant_epoch: scope.grant_epoch,
+            workspace_governed_edit_epoch: scope.governed_edit_epoch,
         },
     );
     Ok(HostCommandData::ChangesReview(ChangesReviewWire {
@@ -1040,6 +1074,11 @@ fn apply_pending(
     let workspace_id =
         ContractId::new(pending.workspace_id.clone()).map_err(|_| recovery_error())?;
     let scope = authorize_edits_scope(state, &workspace_id, pending.workspace_grant_epoch)?;
+    if scope.governed_edit_epoch != pending.workspace_governed_edit_epoch {
+        return Err(conflict_error(
+            "Edit authority changed after review; propose the changes again.",
+        ));
+    }
     let (spec, consumption, execution_id) =
         issue_single_use_authorization(state, authority, approval_id, pending, accepted_at)?;
     let candidate = &pending.prepared.candidate;
@@ -1060,6 +1099,7 @@ fn apply_pending(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        governed_edit_epoch: scope.governed_edit_epoch,
         expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: canonical_hash(
             "workspace-target",
@@ -1155,6 +1195,7 @@ fn request_rollback(
         broker: &state.workspace,
         workspace_id: scope.workspace_id.as_str().to_owned(),
         grant_epoch: scope.grant_epoch,
+        governed_edit_epoch: scope.governed_edit_epoch,
         expected_root_identity_hash: scope.root_identity_hash,
         workspace_target_hash: checkpoint.workspace_target_hash,
     };
@@ -1728,6 +1769,83 @@ mod tests {
     }
 
     #[test]
+    fn edit_epoch_change_after_review_invalidates_the_pending_proposal(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = fixture()?;
+        let review = review_from(
+            propose_changes(
+                &fixture.state,
+                &fixture.workspace_id,
+                fixture.grant_epoch,
+                &[ProposedFileChange::SetContent {
+                    relative_path: RelativeWorkspacePath::new("main.rs")?,
+                    content: "fn main() { rebound(); }
+"
+                    .to_owned(),
+                }],
+                now(),
+            )
+            .map_err(|error| error.safe_message)?,
+        )?;
+
+        // Re-enabling edits advances the governed-edit epoch (ADR-0002);
+        // the binding epoch the renderer holds is unchanged, but the
+        // reviewed proposal was pinned to the previous edit authority.
+        fixture
+            .state
+            .workspace
+            .enable_governed_edits(fixture.workspace_id.as_str())?;
+        let result = apply(&fixture, &review, "request_apply_stale_edit_epoch");
+        assert!(result.is_err());
+        assert_eq!(
+            fs::read_to_string(fixture.workspace_root.join("main.rs"))?,
+            "fn main() {}
+"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn context_read_withdrawal_leaves_a_reviewed_proposal_applicable(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = fixture()?;
+        let review = review_from(
+            propose_changes(
+                &fixture.state,
+                &fixture.workspace_id,
+                fixture.grant_epoch,
+                &[ProposedFileChange::SetContent {
+                    relative_path: RelativeWorkspacePath::new("main.rs")?,
+                    content: "fn main() { survives_signout(); }
+"
+                    .to_owned(),
+                }],
+                now(),
+            )
+            .map_err(|error| error.safe_message)?,
+        )?;
+
+        // Withdrawing D2 context-read authority (model sign-out) must not
+        // invalidate D3 edit authority (ADR-0002 independence).
+        fixture
+            .state
+            .workspace
+            .advance_context_read_epoch(fixture.workspace_id.as_str())?;
+        let decision = apply(&fixture, &review, "request_apply_after_signout")
+            .map_err(|error| error.safe_message)?;
+        let HostCommandData::ChangesDecision(decision) = decision else {
+            return Err("expected a decision".into());
+        };
+        assert_eq!(decision.disposition, "applied");
+        assert_eq!(
+            fs::read_to_string(fixture.workspace_root.join("main.rs"))?,
+            "fn main() { survives_signout(); }
+"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn external_edit_after_review_fails_closed_without_effects(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = fixture()?;
@@ -1813,12 +1931,17 @@ mod tests {
             fixture.workspace_id.as_str(),
             fixture.grant_epoch,
         )?;
+        // An epoch from a foreign grant lineage (ADR-0002: the binding
+        // epoch no longer advances on edit enablement); foreign-lineage
+        // journals must quarantine. The past-epoch review-available case is
+        // pinned by recovery_availability_is_closed_and_bound_to_current_
+        // journal_authority.
         seed_journal(
             store,
             101,
             "recovery_required",
             fixture.workspace_id.as_str(),
-            fixture.grant_epoch - 1,
+            fixture.grant_epoch + 1,
         )?;
         seed_journal(
             store,
@@ -1844,7 +1967,7 @@ mod tests {
             availability,
             [
                 RecoveryAvailabilityWire::ReviewAvailable,
-                RecoveryAvailabilityWire::ReviewAvailable,
+                RecoveryAvailabilityWire::Quarantined,
                 RecoveryAvailabilityWire::ManualReview,
             ],
         );
@@ -1859,7 +1982,7 @@ mod tests {
             projected,
             [
                 Some("review_available"),
-                Some("review_available"),
+                Some("quarantined"),
                 Some("manual_review"),
             ],
         );

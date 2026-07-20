@@ -314,6 +314,137 @@ mod prepare {
 
     #[cfg(feature = "deterministic-help")]
     #[test]
+    fn edit_escalation_leaves_a_prepared_help_review_valid() {
+        let foundation = foundation();
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let now = crate::state::now();
+        create_bmad_help_run_for_test(
+            &state,
+            &foundation,
+            &id("request_01J00000000000000000000041"),
+            &id(&workspace_id),
+            1,
+            BmadHelpIntent::new("Review architecture readiness").expect("bounded intent"),
+            now,
+        )
+        .expect("retained Help run");
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let review = {
+            let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+            let mut coordinator = state.bmad_model.lock();
+            coordinator
+                .prepare(
+                    &state,
+                    &authority,
+                    &workspace_authority,
+                    &foundation,
+                    PrepareBmadHelpReviewInput {
+                        renderer_session: &renderer,
+                        workspace_id: id(&workspace_id),
+                        workspace_grant_epoch: 1,
+                        created_at: UnixMillis(now.0 + 1),
+                    },
+                )
+                .expect("prepared review")
+        };
+
+        // ADR-0002 independence: escalating D3 edit authority advances only
+        // the governed-edit epoch; the in-review D2 Help request survives.
+        let escalated = state
+            .workspace
+            .enable_governed_edits(&workspace_id)
+            .expect("enable governed edits");
+        assert_eq!(escalated.grant_epoch, 1);
+        assert!(escalated.governed_edit_epoch > 1);
+
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+        let mut coordinator = state.bmad_model.lock();
+        coordinator
+            .approve(
+                &state,
+                &authority,
+                &workspace_authority,
+                ApproveBmadHelpReviewInput {
+                    renderer_session: &renderer,
+                    workspace_id: id(&workspace_id),
+                    workspace_grant_epoch: 1,
+                    manifest_hash: review.context.manifest_hash,
+                    approved_at: UnixMillis(now.0 + 2),
+                },
+            )
+            .expect("approval survives an edit-authority escalation");
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn context_read_withdrawal_invalidates_a_prepared_help_review() {
+        let foundation = foundation();
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let now = crate::state::now();
+        create_bmad_help_run_for_test(
+            &state,
+            &foundation,
+            &id("request_01J00000000000000000000042"),
+            &id(&workspace_id),
+            1,
+            BmadHelpIntent::new("Review architecture readiness").expect("bounded intent"),
+            now,
+        )
+        .expect("retained Help run");
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let review = {
+            let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+            let mut coordinator = state.bmad_model.lock();
+            coordinator
+                .prepare(
+                    &state,
+                    &authority,
+                    &workspace_authority,
+                    &foundation,
+                    PrepareBmadHelpReviewInput {
+                        renderer_session: &renderer,
+                        workspace_id: id(&workspace_id),
+                        workspace_grant_epoch: 1,
+                        created_at: UnixMillis(now.0 + 1),
+                    },
+                )
+                .expect("prepared review")
+        };
+
+        // ADR-0002: withdrawing context-read authority invalidates the D2
+        // lifecycle even though the binding epoch is unchanged.
+        state
+            .workspace
+            .advance_context_read_epoch(&workspace_id)
+            .expect("advance context-read epoch");
+
+        let (authority, workspace_authority) = transition_authority(&state, &workspace_id);
+        let mut coordinator = state.bmad_model.lock();
+        let rejected = coordinator
+            .approve(
+                &state,
+                &authority,
+                &workspace_authority,
+                ApproveBmadHelpReviewInput {
+                    renderer_session: &renderer,
+                    workspace_id: id(&workspace_id),
+                    workspace_grant_epoch: 1,
+                    manifest_hash: review.context.manifest_hash,
+                    approved_at: UnixMillis(now.0 + 2),
+                },
+            )
+            .expect_err("context-read withdrawal must invalidate the review");
+        assert_eq!(rejected, BmadHelpCoordinatorError::Unauthorized);
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
     fn sign_out_invalidates_a_prepared_review_between_command_boundaries() {
         let foundation = foundation();
         let (state, _storage, _workspace, workspace_id) = ready_workspace_state();

@@ -161,10 +161,15 @@ pub(crate) fn prepare_recovery(
             "Recovery belongs to a different workspace target.",
         ));
     }
+    let live_binding = state
+        .workspace
+        .authority_binding(workspace_id.as_str())
+        .map_err(|error| crate::commands::map_workspace_error(&error))?;
     let io = GovernedWorkspaceIo::new(
         &state.workspace,
         workspace_id,
         workspace_grant_epoch,
+        live_binding.governed_edit_epoch,
         root_identity_hash,
         workspace_target_hash,
     );
@@ -332,10 +337,15 @@ fn reauthenticate_pending_recovery<'a>(
             "Recovery belongs to a different workspace target.",
         ));
     }
+    let live_binding = state
+        .workspace
+        .authority_binding(pending.workspace_id.as_str())
+        .map_err(|error| crate::commands::map_workspace_error(&error))?;
     let io = GovernedWorkspaceIo::new(
         &state.workspace,
         &pending.workspace_id,
         pending.workspace_grant_epoch,
+        live_binding.governed_edit_epoch,
         root_identity_hash,
         workspace_target_hash,
     );
@@ -388,10 +398,15 @@ fn restore_pending_recovery(
         workspace_target_hash,
     } = reauthenticated;
     let store = state.local_store(commit.authority())?;
+    let live_binding = state
+        .workspace
+        .authority_binding(pending.workspace_id.as_str())
+        .map_err(|error| crate::commands::map_workspace_error(&error))?;
     let io = GovernedWorkspaceIo::new(
         &state.workspace,
         &pending.workspace_id,
         pending.workspace_grant_epoch,
+        live_binding.governed_edit_epoch,
         root_identity_hash,
         workspace_target_hash,
     );
@@ -1107,7 +1122,9 @@ mod tests {
         let enabled = restarted
             .workspace
             .enable_governed_edits(workspace_id.as_str())?;
-        assert!(enabled.grant_epoch > original_epoch);
+        // ADR-0002: re-enabling edits advances only the governed-edit epoch.
+        assert_eq!(enabled.grant_epoch, original_epoch);
+        assert!(enabled.governed_edit_epoch > 1);
         restarted
             .persist_workspace_update(
                 &authority,
@@ -1175,7 +1192,10 @@ mod tests {
         let enabled_again = reopened
             .workspace
             .enable_governed_edits(workspace_id.as_str())?;
-        assert!(enabled_again.grant_epoch > enabled.grant_epoch);
+        // ADR-0002: repeated enablement advances only the governed-edit
+        // epoch; the binding epoch the renderer holds stays stable.
+        assert_eq!(enabled_again.grant_epoch, enabled.grant_epoch);
+        assert!(enabled_again.governed_edit_epoch > enabled.governed_edit_epoch);
         reopened
             .persist_workspace_update(
                 &authority,
@@ -1369,7 +1389,10 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = fixture()?;
         let target_hash = fixture_workspace_target_hash(&fixture)?;
-        let substituted_epoch = fixture.grant_epoch.saturating_sub(1);
+        // ADR-0002: the binding epoch no longer moves on edit enablement,
+        // so a substituted historical epoch is any value that differs from
+        // the live binding epoch.
+        let substituted_epoch = fixture.grant_epoch.saturating_add(1);
         assert_ne!(substituted_epoch, fixture.grant_epoch);
         let journal_id = seed_recovery_with_target(
             &fixture,

@@ -106,6 +106,11 @@ pub(super) struct PreparedBmadHelpReview {
     pub renderer_session_id: ContractId,
     pub workspace_id: ContractId,
     pub workspace_grant_epoch: u64,
+    /// The exact D2 context-read authority version the review was prepared
+    /// under (ADR-0002). Withdrawing context-read authority (for example on
+    /// model sign-out) invalidates the lifecycle; D3 edit-authority changes
+    /// do not.
+    pub workspace_context_read_epoch: u64,
     pub workspace_catalog_version: u64,
     pub creation: BmadHelpRunCreationReceipt,
     pub compiled: BmadCompiledHelpInvocation,
@@ -123,6 +128,10 @@ impl fmt::Debug for PreparedBmadHelpReview {
             .field("renderer_session_id", &self.renderer_session_id)
             .field("workspace_id", &self.workspace_id)
             .field("workspace_grant_epoch", &self.workspace_grant_epoch)
+            .field(
+                "workspace_context_read_epoch",
+                &self.workspace_context_read_epoch,
+            )
             .field("workspace_catalog_version", &self.workspace_catalog_version)
             .field("run_id", &self.creation.run_id)
             .field("manifest", &"<redacted>")
@@ -568,6 +577,7 @@ impl BmadHelpCoordinator {
         let workspace = workspace_authority.projection();
         if workspace.workspace_id != approved.prepared.workspace_id.as_str()
             || workspace.grant_epoch != approved.prepared.workspace_grant_epoch
+            || workspace.context_read_epoch != approved.prepared.workspace_context_read_epoch
             || workspace.project_id != approved.prepared.creation.scope.project_id.as_str()
         {
             self.active = Some(ActiveBmadHelp::Approved(approved));
@@ -1049,6 +1059,7 @@ impl BmadHelpCoordinator {
             renderer_session_id: input.renderer_session.session_id().clone(),
             workspace_id: input.workspace_id,
             workspace_grant_epoch: input.workspace_grant_epoch,
+            workspace_context_read_epoch: workspace.context_read_epoch,
             workspace_catalog_version,
             creation,
             compiled,
@@ -1216,6 +1227,7 @@ fn validate_active_authority(
     let workspace = workspace_authority.projection();
     if workspace.workspace_id != workspace_id.as_str()
         || workspace.grant_epoch != workspace_grant_epoch
+        || workspace.context_read_epoch != prepared.workspace_context_read_epoch
         || workspace.project_id != prepared.creation.scope.project_id.as_str()
     {
         return Err(BmadHelpCoordinatorError::Unauthorized);
