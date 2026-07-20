@@ -30,7 +30,7 @@
         "method-006",
         "method-007"
       ],
-      "state": "display_only_unavailable"
+      "state": "managed_projection_inactive"
     },
     {
       "code": "bmad-agent-tech-writer",
@@ -41,7 +41,7 @@
         "method-008",
         "method-009"
       ],
-      "state": "display_only_unavailable"
+      "state": "managed_projection_inactive"
     },
     {
       "code": "bmad-agent-pm",
@@ -52,7 +52,7 @@
         "method-014",
         "method-015"
       ],
-      "state": "display_only_unavailable"
+      "state": "managed_projection_inactive"
     },
     {
       "code": "bmad-agent-ux-designer",
@@ -63,7 +63,7 @@
         "method-016",
         "method-017"
       ],
-      "state": "display_only_unavailable"
+      "state": "managed_projection_inactive"
     },
     {
       "code": "bmad-agent-architect",
@@ -85,7 +85,7 @@
         "method-020",
         "method-021"
       ],
-      "state": "display_only_unavailable"
+      "state": "managed_projection_inactive"
     }
   ],
   "promptReferenceBindings": [
@@ -176,12 +176,12 @@
       "sourceMemberId": "method-006",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Mary's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Mary's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -202,12 +202,12 @@
       "sourceMemberId": "method-008",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Paige's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Paige's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -296,12 +296,12 @@
       "sourceMemberId": "method-014",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind John's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve John's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -322,12 +322,12 @@
       "sourceMemberId": "method-016",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Sally's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Sally's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -378,12 +378,12 @@
       "sourceMemberId": "method-020",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Amelia's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Amelia's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -1170,6 +1170,28 @@
       ]
     },
     {
+      "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-analyst",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-006",
+        "method-007"
+      ]
+    },
+    {
       "path": "runtime/method/6.10.0/architect-persona.instructions.md",
       "classification": "method",
       "sourceIdentity": {
@@ -1218,6 +1240,94 @@
         "method-027",
         "method-028",
         "method-029"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/dev-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-dev",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-020",
+        "method-021"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/pm-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-pm",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-014",
+        "method-015"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-tech-writer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-008",
+        "method-009"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-agent-ux-designer",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-016",
+        "method-017"
       ]
     },
     {

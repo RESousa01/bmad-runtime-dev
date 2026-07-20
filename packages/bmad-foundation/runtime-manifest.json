@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f",
+  "semanticLedgerHash": "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d",
-      "byteLength": 39463,
+      "contentHash": "sha256:2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6",
+      "byteLength": 43386,
       "contentKind": "provenance_ledger"
     },
     {
@@ -28,6 +28,12 @@
       "contentKind": "legal_notice"
     },
     {
+      "path": "normalized/bmad-analyst.package.json",
+      "contentHash": "sha256:a1f79dc9f36c0af5b2559e5cc044af8807811e6bfdc79a4d7d0e3302ecdaeb55",
+      "byteLength": 1977,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-architect.package.json",
       "contentHash": "sha256:4b64e633409de268d5bd3eb9e5b24b1149d04b65e816c43a6fd4950ba694622e",
       "byteLength": 1991,
@@ -40,6 +46,12 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-dev.package.json",
+      "contentHash": "sha256:5ef3d3c090d6da39eccb47cbb56b9497fc8fad7c735879e31e9c15351d63812f",
+      "byteLength": 1973,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-help-action-graph.json",
       "contentHash": "sha256:fa5f77e78ae862b4f35dde71f6fe4f2af21a2407e11eb5bd7c7786a58f4bc8f2",
       "byteLength": 1538,
@@ -47,8 +59,26 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:436475afd864bf1f8a9c4ac2f5e080d6baaa5903700b544b3d8df59d3913cfb4",
-      "byteLength": 29123,
+      "contentHash": "sha256:7131f010081c29cac596d25c9751a121d7c708966c2a4ae691b5731d9f5054da",
+      "byteLength": 38955,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-pm.package.json",
+      "contentHash": "sha256:a4c98434bcfd383208b323456a61947385064f4feb165edeba099753533d383e",
+      "byteLength": 1969,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-tech-writer.package.json",
+      "contentHash": "sha256:9bcd495ca5c506fe24489f4686f613efb8eef306f8adcda4b6faaafb68ee65cc",
+      "byteLength": 1993,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/bmad-ux-designer.package.json",
+      "contentHash": "sha256:6dea4ebacff9f2a95ec746a97aa9840b3d54e29636fb77c0aaba5397bce0d627",
+      "byteLength": 2005,
       "contentKind": "normalized_contract"
     },
     {
@@ -100,6 +130,12 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
+      "contentHash": "sha256:15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9",
+      "byteLength": 868,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "runtime/method/6.10.0/architect-persona.instructions.md",
       "contentHash": "sha256:6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4",
       "byteLength": 899,
@@ -118,11 +154,35 @@
       "contentKind": "managed_instruction"
     },
     {
+      "path": "runtime/method/6.10.0/dev-persona.instructions.md",
+      "contentHash": "sha256:ea8afc7f390824baf6995d53749b6a37fa4ea0558533f4869bf7be8aae194f8d",
+      "byteLength": 888,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/pm-persona.instructions.md",
+      "contentHash": "sha256:2f8bb096945b85deb7825a3f9f9c17dc51e19b6af9ad2a00fba6867b0a780a95",
+      "byteLength": 839,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+      "contentHash": "sha256:46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb",
+      "byteLength": 857,
+      "contentKind": "managed_instruction"
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+      "contentHash": "sha256:87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e",
+      "byteLength": 846,
+      "contentKind": "managed_instruction"
+    },
+    {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f",
-      "byteLength": 48709,
+      "contentHash": "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
+      "byteLength": 50338,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1"
+  "manifestHash": "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7"
 }

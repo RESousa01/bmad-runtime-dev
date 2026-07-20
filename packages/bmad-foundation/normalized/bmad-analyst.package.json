@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_262722C0680F4C2105A9E979971BA951F410A3C8B5125C6E6E38B8D330EE822D",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-analyst",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_15690127B7058D685B71E656D653CA300868D38DEB80BC4B24180D6B9FCAC3E9",
+    "sourceIdentityHash": "sha256:262722c0680f4c2105a9e979971ba951f410a3c8b5125c6e6e38b8d330ee822d",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
+      "contentHash": "sha256:fca38a404e79508ebc39235d0162bcb475b02407a913e3e5bd8c5526b2b261a6",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-analyst/customize.toml",
+        "contentHash": "sha256:7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
+      "contentHash": "sha256:15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:1b5615218e1ffa4a78d675299f56be799c5af550400ce84b920a883c9ddc3fc5"
+  },
+  "projectionEnvelopeHash": "sha256:1e96fd73d691256ad3a77b8bb0cd6fa44a4b92a7b55021bc0d95cf10ae8be89f"
+}

@@ -26,16 +26,26 @@ const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-edit.instructions.md",
   "runtime/builder/2.1.0/workflow-analyze.instructions.md",
   "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+  "runtime/method/6.10.0/analyst-persona.instructions.md",
   "runtime/method/6.10.0/architect-persona.instructions.md",
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
+  "runtime/method/6.10.0/dev-persona.instructions.md",
+  "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+  "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ]);
 
 const normalizedPaths = Object.freeze([
+  "normalized/bmad-analyst.package.json",
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-dev.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
+  "normalized/bmad-pm.package.json",
+  "normalized/bmad-tech-writer.package.json",
+  "normalized/bmad-ux-designer.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
   "normalized/builder-workflow.package.json",
@@ -99,21 +109,21 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-003": ["adopt", "reject"],
   "method-004": ["adopt"],
   "method-005": ["adopt"],
-  "method-006": ["adapt", "defer"],
+  "method-006": ["adopt", "adapt"],
   "method-007": ["adapt", "reject"],
-  "method-008": ["adapt", "defer"],
+  "method-008": ["adopt", "adapt"],
   "method-009": ["adapt", "reject"],
   "method-010": ["adapt", "defer", "reject"],
   "method-011": ["adapt", "defer", "reject"],
   "method-012": ["adapt", "defer", "reject"],
   "method-013": ["adapt", "defer", "reject"],
-  "method-014": ["adapt", "defer"],
+  "method-014": ["adopt", "adapt"],
   "method-015": ["adapt", "reject"],
-  "method-016": ["adapt", "defer"],
+  "method-016": ["adopt", "adapt"],
   "method-017": ["adapt", "reject"],
   "method-018": ["adopt", "adapt"],
   "method-019": ["adopt", "adapt", "reject"],
-  "method-020": ["adapt", "defer"],
+  "method-020": ["adopt", "adapt"],
   "method-021": ["adapt", "reject"],
   "method-022": ["adapt"],
   "method-023": ["adopt", "adapt", "reject"],
@@ -184,6 +194,31 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-004",
     "method-018",
     "method-019",
+  ],
+  "runtime/method/6.10.0/analyst-persona.instructions.md": [
+    "method-004",
+    "method-006",
+    "method-007",
+  ],
+  "runtime/method/6.10.0/tech-writer-persona.instructions.md": [
+    "method-004",
+    "method-008",
+    "method-009",
+  ],
+  "runtime/method/6.10.0/pm-persona.instructions.md": [
+    "method-004",
+    "method-014",
+    "method-015",
+  ],
+  "runtime/method/6.10.0/ux-designer-persona.instructions.md": [
+    "method-004",
+    "method-016",
+    "method-017",
+  ],
+  "runtime/method/6.10.0/dev-persona.instructions.md": [
+    "method-004",
+    "method-020",
+    "method-021",
   ],
   "runtime/method/6.10.0/architecture-create.instructions.md": [
     "method-018",
@@ -551,25 +586,25 @@ test("the adoption ledger closes every citation and grants no runtime authority"
         code: "bmad-agent-analyst",
         name: "Mary",
         title: "Business Analyst",
-        state: "display_only_unavailable",
+        state: "managed_projection_inactive",
       },
       {
         code: "bmad-agent-tech-writer",
         name: "Paige",
         title: "Technical Writer",
-        state: "display_only_unavailable",
+        state: "managed_projection_inactive",
       },
       {
         code: "bmad-agent-pm",
         name: "John",
         title: "Product Manager",
-        state: "display_only_unavailable",
+        state: "managed_projection_inactive",
       },
       {
         code: "bmad-agent-ux-designer",
         name: "Sally",
         title: "UX Designer",
-        state: "display_only_unavailable",
+        state: "managed_projection_inactive",
       },
       {
         code: "bmad-agent-architect",
@@ -581,7 +616,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
         code: "bmad-agent-dev",
         name: "Amelia",
         title: "Senior Software Engineer",
-        state: "display_only_unavailable",
+        state: "managed_projection_inactive",
       },
     ],
   );
@@ -636,7 +671,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 3);
+  assert.equal(method.length, 8);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

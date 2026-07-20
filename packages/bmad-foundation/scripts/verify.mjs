@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const lockedSemanticLedger = Object.freeze({
-  byteLength: 48709,
-  sha256: "574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f",
+  byteLength: 50338,
+  sha256: "019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
 });
 const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-analyze.instructions.md",
@@ -16,18 +16,28 @@ const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-edit.instructions.md",
   "runtime/builder/2.1.0/workflow-analyze.instructions.md",
   "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+  "runtime/method/6.10.0/analyst-persona.instructions.md",
   "runtime/method/6.10.0/architect-persona.instructions.md",
   "runtime/method/6.10.0/architecture-create.instructions.md",
   "runtime/method/6.10.0/bmad-help.instructions.md",
+  "runtime/method/6.10.0/dev-persona.instructions.md",
+  "runtime/method/6.10.0/pm-persona.instructions.md",
+  "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+  "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ]);
 const methodRuntimePaths = Object.freeze(
   runtimePaths.filter((relativePath) => relativePath.startsWith("runtime/method/")),
 );
 const normalizedPaths = Object.freeze([
+  "normalized/bmad-analyst.package.json",
   "normalized/bmad-architect.package.json",
   "normalized/bmad-architecture.package.json",
+  "normalized/bmad-dev.package.json",
   "normalized/bmad-help-action-graph.json",
   "normalized/bmad-help.package.json",
+  "normalized/bmad-pm.package.json",
+  "normalized/bmad-tech-writer.package.json",
+  "normalized/bmad-ux-designer.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
   "normalized/builder-workflow.package.json",
@@ -419,7 +429,16 @@ export function classifyProjectionFromSourceIdentity(sourceIdentity) {
   if (
     sourceIdentity?.sourceId === "method"
     && sourceIdentity.profile === "MethodOfficialSkillV6"
-    && ["bmad-help", "bmad-agent-architect", "bmad-architecture"].includes(sourceIdentity.skill)
+    && [
+      "bmad-help",
+      "bmad-agent-analyst",
+      "bmad-agent-architect",
+      "bmad-agent-dev",
+      "bmad-agent-pm",
+      "bmad-agent-tech-writer",
+      "bmad-agent-ux-designer",
+      "bmad-architecture",
+    ].includes(sourceIdentity.skill)
   ) {
     return "method";
   }
@@ -956,12 +975,12 @@ function verifyAdoption(adoption, semanticState) {
   }
 
   const expectedRoster = [
-    ["bmad-agent-analyst", "Mary", "Business Analyst", "display_only_unavailable", ["method-004", "method-006", "method-007"]],
-    ["bmad-agent-tech-writer", "Paige", "Technical Writer", "display_only_unavailable", ["method-004", "method-008", "method-009"]],
-    ["bmad-agent-pm", "John", "Product Manager", "display_only_unavailable", ["method-004", "method-014", "method-015"]],
-    ["bmad-agent-ux-designer", "Sally", "UX Designer", "display_only_unavailable", ["method-004", "method-016", "method-017"]],
+    ["bmad-agent-analyst", "Mary", "Business Analyst", "managed_projection_inactive", ["method-004", "method-006", "method-007"]],
+    ["bmad-agent-tech-writer", "Paige", "Technical Writer", "managed_projection_inactive", ["method-004", "method-008", "method-009"]],
+    ["bmad-agent-pm", "John", "Product Manager", "managed_projection_inactive", ["method-004", "method-014", "method-015"]],
+    ["bmad-agent-ux-designer", "Sally", "UX Designer", "managed_projection_inactive", ["method-004", "method-016", "method-017"]],
     ["bmad-agent-architect", "Winston", "System Architect", "managed_projection_inactive", ["method-004", "method-018", "method-019"]],
-    ["bmad-agent-dev", "Amelia", "Senior Software Engineer", "display_only_unavailable", ["method-004", "method-020", "method-021"]],
+    ["bmad-agent-dev", "Amelia", "Senior Software Engineer", "managed_projection_inactive", ["method-004", "method-020", "method-021"]],
   ];
   if (!Array.isArray(adoption.methodRoster) || adoption.methodRoster.length !== expectedRoster.length) {
     fail("foundation_source_identity_incomplete", "methodRoster", "exact six-record roster is required");
@@ -1001,7 +1020,27 @@ function verifyAdoption(adoption, semanticState) {
     }
   }
 
+  const personaProjection = (skill, sourceMemberIds) => ({
+    classification: "method",
+    state: "sealed_read_only",
+    skill,
+    profile: "MethodOfficialSkillV6",
+    actions: [],
+    action: null,
+    entrypointKind: null,
+    sourceMemberIds,
+  });
   const expectedProjections = new Map([
+    ["runtime/method/6.10.0/analyst-persona.instructions.md",
+      personaProjection("bmad-agent-analyst", ["method-004", "method-006", "method-007"])],
+    ["runtime/method/6.10.0/dev-persona.instructions.md",
+      personaProjection("bmad-agent-dev", ["method-004", "method-020", "method-021"])],
+    ["runtime/method/6.10.0/pm-persona.instructions.md",
+      personaProjection("bmad-agent-pm", ["method-004", "method-014", "method-015"])],
+    ["runtime/method/6.10.0/tech-writer-persona.instructions.md",
+      personaProjection("bmad-agent-tech-writer", ["method-004", "method-008", "method-009"])],
+    ["runtime/method/6.10.0/ux-designer-persona.instructions.md",
+      personaProjection("bmad-agent-ux-designer", ["method-004", "method-016", "method-017"])],
     ["runtime/method/6.10.0/bmad-help.instructions.md", {
       classification: "method",
       state: "sealed_read_only",
@@ -1423,6 +1462,22 @@ async function verifyNormalizedArtifacts(resources) {
     "bmad-agent-architect",
     null,
   );
+  const personaPackages = [
+    ["normalized/bmad-analyst.package.json", "runtime/method/6.10.0/analyst-persona.instructions.md", "bmad-agent-analyst"],
+    ["normalized/bmad-dev.package.json", "runtime/method/6.10.0/dev-persona.instructions.md", "bmad-agent-dev"],
+    ["normalized/bmad-pm.package.json", "runtime/method/6.10.0/pm-persona.instructions.md", "bmad-agent-pm"],
+    ["normalized/bmad-tech-writer.package.json", "runtime/method/6.10.0/tech-writer-persona.instructions.md", "bmad-agent-tech-writer"],
+    ["normalized/bmad-ux-designer.package.json", "runtime/method/6.10.0/ux-designer-persona.instructions.md", "bmad-agent-ux-designer"],
+  ];
+  for (const [packagePath, instructionPath, skillName] of personaPackages) {
+    verifyProjectionEnvelope(
+      parseJson(await readRegularBytes(packagePath), packagePath),
+      resources,
+      instructionPath,
+      skillName,
+      null,
+    );
+  }
   verifyProjectionEnvelope(
     parseJson(
       await readRegularBytes("normalized/bmad-architecture.package.json"),

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_BF1BD36607BA3D61CB9C9D4107960EF4EFFB65C401A597DCEB3729338A006F89",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-tech-writer",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_46414D6421B90258DF0FF8949F02A251E9F12F25AA062DA8F52B8C312CEB21BB",
+    "sourceIdentityHash": "sha256:bf1bd36607ba3d61cb9c9d4107960ef4effb65c401a597dceb3729338a006f89",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md",
+      "contentHash": "sha256:7544242ff68d0ddfd466274f40ae9f3b0ea06ee5f5f938f68f953e19b3598cd7",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+        "contentHash": "sha256:bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+      "contentHash": "sha256:46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:b7cdf3387cd7ee44988c09a67dbb8a05ca7ef91c3431eada04cb2e907d78a161"
+  },
+  "projectionEnvelopeHash": "sha256:d54f154cc107960b459a1581368c44b2ed9d38856802b26cafb8505fcda3fe64"
+}

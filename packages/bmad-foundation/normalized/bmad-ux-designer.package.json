@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_AF9F0894FFA3E09B3213FC4FDFC4E1611BA6F790B438AB55FD6F4755446F3642",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-agent-ux-designer",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_87FC099FBD548FA1213AE8B2EC80762648B429A5310922C694871D512103E23E",
+    "sourceIdentityHash": "sha256:af9f0894ffa3e09b3213fc4fdfc4e1611ba6f790b438ab55fd6f4755446f3642",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+      "contentHash": "sha256:d780ae59b9fb7e3a94c5ffe4ec75f90942d4a9a3944af4b36c2d279fdd7801db",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/customize.toml",
+        "contentHash": "sha256:3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/module.yaml",
+        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+        "treatment": "adopt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+      "contentHash": "sha256:87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "file_read"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "file_read",
+        "inputKind": "resolved_config",
+        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+      }
+    ],
+    "projectionHash": "sha256:2dcdc63d8482a331f08d44be032bc6b24063ff77dd1f3527a841c2b8407f2387"
+  },
+  "projectionEnvelopeHash": "sha256:7e92b839a3df176fa3195bfa0f46b3fbc1a36d2c154aec8b3131d9b006f0ee39"
+}

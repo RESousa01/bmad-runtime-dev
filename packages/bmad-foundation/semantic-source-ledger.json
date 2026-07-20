@@ -176,12 +176,12 @@
       "sha256": "fca38a404e79508ebc39235d0162bcb475b02407a913e3e5bd8c5526b2b261a6",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Mary's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Mary's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -208,12 +208,12 @@
       "sha256": "7544242ff68d0ddfd466274f40ae9f3b0ea06ee5f5f938f68f953e19b3598cd7",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Paige's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Paige's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -320,12 +320,12 @@
       "sha256": "e2ebea0bf6ee158fcb9e62731a185983f2ac59f664940f4f4320cf10e1bbdf92",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind John's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve John's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -352,12 +352,12 @@
       "sha256": "d780ae59b9fb7e3a94c5ffe4ec75f90942d4a9a3944af4b36c2d279fdd7801db",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Sally's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Sally's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -420,12 +420,12 @@
       "sha256": "54ab6d9d60d7ed7e84d6510cf325734b66feb1b419131436672559584b4bf508",
       "treatments": [
         {
-          "decision": "adapt",
-          "rationale": "Bind Amelia's entrypoint as display/persona evidence."
+          "decision": "adopt",
+          "rationale": "Preserve Amelia's persona working stance and output intent."
         },
         {
-          "decision": "defer",
-          "rationale": "Keep that capability unavailable in this slice."
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, dispatch, and persistent-fact machinery with a sealed host-bounded persona projection (rewritten semantics; no source body distribution)."
         }
       ]
     },
@@ -1362,8 +1362,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 39463,
-      "sha256": "7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d"
+      "byteLength": 43386,
+      "sha256": "2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -1401,6 +1401,11 @@
       "sha256": "6320a2e4665dd959803f0d542c18585227206631ddd67f05aa47087077a14b6c"
     },
     {
+      "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
+      "byteLength": 868,
+      "sha256": "15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9"
+    },
+    {
       "path": "runtime/method/6.10.0/architect-persona.instructions.md",
       "byteLength": 899,
       "sha256": "6d3512c6f9014a2344418ce0b53b1c9ed8521e6bf8b337f2a802ade6307146e4"
@@ -1414,6 +1419,26 @@
       "path": "runtime/method/6.10.0/bmad-help.instructions.md",
       "byteLength": 1283,
       "sha256": "d3d3c91d516d32546c446503d88957f6e499c504370b6749b5936f786643df66"
+    },
+    {
+      "path": "runtime/method/6.10.0/dev-persona.instructions.md",
+      "byteLength": 888,
+      "sha256": "ea8afc7f390824baf6995d53749b6a37fa4ea0558533f4869bf7be8aae194f8d"
+    },
+    {
+      "path": "runtime/method/6.10.0/pm-persona.instructions.md",
+      "byteLength": 839,
+      "sha256": "2f8bb096945b85deb7825a3f9f9c17dc51e19b6af9ad2a00fba6867b0a780a95"
+    },
+    {
+      "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+      "byteLength": 857,
+      "sha256": "46414d6421b90258df0ff8949f02a251e9f12f25aa062da8f52b8c312ceb21bb"
+    },
+    {
+      "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+      "byteLength": 846,
+      "sha256": "87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e"
     }
   ]
 }
