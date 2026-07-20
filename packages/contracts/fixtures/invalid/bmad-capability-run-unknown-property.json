@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "sapphirus.bmad-capability-run.v1",
+  "runId": "run_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "capabilityId": "bmm:bmad-product-brief",
+  "workspaceId": "workspace_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "instructionHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "contextManifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "outputSchemaId": "sapphirus.bmad-document-artifact.v1",
+  "consentEvidenceId": "consent_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "createdAt": "2026-07-20T12:00:00.000Z",
+  "extraAuthority": "admin"
+}

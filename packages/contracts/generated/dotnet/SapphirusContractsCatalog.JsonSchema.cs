@@ -30,6 +30,8 @@ public readonly partial struct SapphirusContractsCatalog
         private static readonly JsonSchemaPathProvider ApprovedExecutionSpecValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/approvedExecutionSpec/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider AuthorityRefSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/authorityRef/$ref/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider BmadCapabilityCatalogValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bmadCapabilityCatalog/$ref"u8, buffer, out written);
+        private static readonly JsonSchemaPathProvider BmadCapabilityResultValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bmadCapabilityResult/$ref"u8, buffer, out written);
+        private static readonly JsonSchemaPathProvider BmadCapabilityRunValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bmadCapabilityRun/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider BmadPackageDescriptorValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bmadPackageDescriptor/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider BmadValidationReportValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bmadValidationReport/$ref"u8, buffer, out written);
         private static readonly JsonSchemaPathProvider BuilderAuthoringObjectValueSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/builderAuthoringObject/$ref"u8, buffer, out written);
@@ -99,10 +101,40 @@ public readonly partial struct SapphirusContractsCatalog
             context.CommitChildContext(childContext2.IsMatch, ref childContext2);
         }
 
-        private static void MatchBmadPackageDescriptorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        private static void MatchBmadCapabilityResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
             JsonSchemaContext childContext3 =
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.JsonSchema.PushChildContextUnescaped(
+                    parentDocument,
+                    parentDocumentIndex,
+                    ref context,
+                    JsonPropertyNames.BmadCapabilityResultValueUtf8,
+                    evaluationPath: BmadCapabilityResultValueSchemaEvaluationPath);
+
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
+            context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+        }
+
+        private static void MatchBmadCapabilityRunValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        {
+            context.AddLocalEvaluatedProperty(propertyCount);
+            JsonSchemaContext childContext4 =
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.JsonSchema.PushChildContextUnescaped(
+                    parentDocument,
+                    parentDocumentIndex,
+                    ref context,
+                    JsonPropertyNames.BmadCapabilityRunValueUtf8,
+                    evaluationPath: BmadCapabilityRunValueSchemaEvaluationPath);
+
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
+            context.CommitChildContext(childContext4.IsMatch, ref childContext4);
+        }
+
+        private static void MatchBmadPackageDescriptorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
+        {
+            context.AddLocalEvaluatedProperty(propertyCount);
+            JsonSchemaContext childContext5 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -110,14 +142,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.BmadPackageDescriptorValueUtf8,
                     evaluationPath: BmadPackageDescriptorValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
-            context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
+            context.CommitChildContext(childContext5.IsMatch, ref childContext5);
         }
 
         private static void MatchBmadValidationReportValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext4 =
+            JsonSchemaContext childContext6 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -125,14 +157,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.BmadValidationReportValueUtf8,
                     evaluationPath: BmadValidationReportValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
-            context.CommitChildContext(childContext4.IsMatch, ref childContext4);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
+            context.CommitChildContext(childContext6.IsMatch, ref childContext6);
         }
 
         private static void MatchBuilderAuthoringObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext5 =
+            JsonSchemaContext childContext7 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -140,14 +172,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.BuilderAuthoringObjectValueUtf8,
                     evaluationPath: BuilderAuthoringObjectValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
-            context.CommitChildContext(childContext5.IsMatch, ref childContext5);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
+            context.CommitChildContext(childContext7.IsMatch, ref childContext7);
         }
 
         private static void MatchCandidateActionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext6 =
+            JsonSchemaContext childContext8 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -155,14 +187,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.CandidateActionValueUtf8,
                     evaluationPath: CandidateActionValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
-            context.CommitChildContext(childContext6.IsMatch, ref childContext6);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext8);
+            context.CommitChildContext(childContext8.IsMatch, ref childContext8);
         }
 
         private static void MatchContractErrorValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext7 =
+            JsonSchemaContext childContext9 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -170,14 +202,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ContractErrorValueUtf8,
                     evaluationPath: ContractErrorValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
-            context.CommitChildContext(childContext7.IsMatch, ref childContext7);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext9);
+            context.CommitChildContext(childContext9.IsMatch, ref childContext9);
         }
 
         private static void MatchDesktopDeviceRegistrationValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext8 =
+            JsonSchemaContext childContext10 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -185,14 +217,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.DesktopDeviceRegistrationValueUtf8,
                     evaluationPath: DesktopDeviceRegistrationValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext8);
-            context.CommitChildContext(childContext8.IsMatch, ref childContext8);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext10);
+            context.CommitChildContext(childContext10.IsMatch, ref childContext10);
         }
 
         private static void MatchDesktopEntitlementLeaseValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext9 =
+            JsonSchemaContext childContext11 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -200,14 +232,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.DesktopEntitlementLeaseValueUtf8,
                     evaluationPath: DesktopEntitlementLeaseValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext9);
-            context.CommitChildContext(childContext9.IsMatch, ref childContext9);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext11);
+            context.CommitChildContext(childContext11.IsMatch, ref childContext11);
         }
 
         private static void MatchDesktopPolicyValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext10 =
+            JsonSchemaContext childContext12 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -215,14 +247,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.DesktopPolicyValueUtf8,
                     evaluationPath: DesktopPolicyValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext10);
-            context.CommitChildContext(childContext10.IsMatch, ref childContext10);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext12);
+            context.CommitChildContext(childContext12.IsMatch, ref childContext12);
         }
 
         private static void MatchDurableObjectValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext11 =
+            JsonSchemaContext childContext13 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -230,14 +262,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.DurableObjectValueUtf8,
                     evaluationPath: DurableObjectValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext11);
-            context.CommitChildContext(childContext11.IsMatch, ref childContext11);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext13);
+            context.CommitChildContext(childContext13.IsMatch, ref childContext13);
         }
 
         private static void MatchEvidenceEventValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext12 =
+            JsonSchemaContext childContext14 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -245,14 +277,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.EvidenceEventValueUtf8,
                     evaluationPath: EvidenceEventValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext12);
-            context.CommitChildContext(childContext12.IsMatch, ref childContext12);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext14);
+            context.CommitChildContext(childContext14.IsMatch, ref childContext14);
         }
 
         private static void MatchExecutionResultManifestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext13 =
+            JsonSchemaContext childContext15 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -260,14 +292,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ExecutionResultManifestValueUtf8,
                     evaluationPath: ExecutionResultManifestValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext13);
-            context.CommitChildContext(childContext13.IsMatch, ref childContext13);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext15);
+            context.CommitChildContext(childContext15.IsMatch, ref childContext15);
         }
 
         private static void MatchFilesystemCapabilitySnapshotValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext14 =
+            JsonSchemaContext childContext16 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -275,14 +307,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.FilesystemCapabilitySnapshotValueUtf8,
                     evaluationPath: FilesystemCapabilitySnapshotValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext14);
-            context.CommitChildContext(childContext14.IsMatch, ref childContext14);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext16);
+            context.CommitChildContext(childContext16.IsMatch, ref childContext16);
         }
 
         private static void MatchMethodAdvanceResult(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext15 =
+            JsonSchemaContext childContext17 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -290,14 +322,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.MethodAdvanceResultUtf8,
                     evaluationPath: MethodAdvanceResultSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext15);
-            context.CommitChildContext(childContext15.IsMatch, ref childContext15);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext17);
+            context.CommitChildContext(childContext17.IsMatch, ref childContext17);
         }
 
         private static void MatchMethodHelpProposalValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext16 =
+            JsonSchemaContext childContext18 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -305,14 +337,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.MethodHelpProposalValueUtf8,
                     evaluationPath: MethodHelpProposalValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext16);
-            context.CommitChildContext(childContext16.IsMatch, ref childContext16);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext18);
+            context.CommitChildContext(childContext18.IsMatch, ref childContext18);
         }
 
         private static void MatchMethodHelpRecommendation(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext17 =
+            JsonSchemaContext childContext19 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -320,14 +352,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.MethodHelpRecommendationUtf8,
                     evaluationPath: MethodHelpRecommendationSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext17);
-            context.CommitChildContext(childContext17.IsMatch, ref childContext17);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext19);
+            context.CommitChildContext(childContext19.IsMatch, ref childContext19);
         }
 
         private static void MatchMethodSessionValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext18 =
+            JsonSchemaContext childContext20 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -335,14 +367,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.MethodSessionValueUtf8,
                     evaluationPath: MethodSessionValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext18);
-            context.CommitChildContext(childContext18.IsMatch, ref childContext18);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext20);
+            context.CommitChildContext(childContext20.IsMatch, ref childContext20);
         }
 
         private static void MatchModelAccessReceiptValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext19 =
+            JsonSchemaContext childContext21 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -350,14 +382,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ModelAccessReceiptValueUtf8,
                     evaluationPath: ModelAccessReceiptValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext19);
-            context.CommitChildContext(childContext19.IsMatch, ref childContext19);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext21);
+            context.CommitChildContext(childContext21.IsMatch, ref childContext21);
         }
 
         private static void MatchModelAccessRequestValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext20 =
+            JsonSchemaContext childContext22 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -365,14 +397,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ModelAccessRequestValueUtf8,
                     evaluationPath: ModelAccessRequestValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext20);
-            context.CommitChildContext(childContext20.IsMatch, ref childContext20);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext22);
+            context.CommitChildContext(childContext22.IsMatch, ref childContext22);
         }
 
         private static void MatchModelAccessResultValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext21 =
+            JsonSchemaContext childContext23 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -380,14 +412,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ModelAccessResultValueUtf8,
                     evaluationPath: ModelAccessResultValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext21);
-            context.CommitChildContext(childContext21.IsMatch, ref childContext21);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext23);
+            context.CommitChildContext(childContext23.IsMatch, ref childContext23);
         }
 
         private static void MatchModelContextConsentValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext22 =
+            JsonSchemaContext childContext24 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -395,14 +427,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.ModelContextConsentValueUtf8,
                     evaluationPath: ModelContextConsentValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext22);
-            context.CommitChildContext(childContext22.IsMatch, ref childContext22);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext24);
+            context.CommitChildContext(childContext24.IsMatch, ref childContext24);
         }
 
         private static void MatchPackageCompatibilityValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext23 =
+            JsonSchemaContext childContext25 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -410,14 +442,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.PackageCompatibilityValueUtf8,
                     evaluationPath: PackageCompatibilityValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext23);
-            context.CommitChildContext(childContext23.IsMatch, ref childContext23);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext25);
+            context.CommitChildContext(childContext25.IsMatch, ref childContext25);
         }
 
         private static void MatchRemoteJobHandoffValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext24 =
+            JsonSchemaContext childContext26 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -425,14 +457,14 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.RemoteJobHandoffValueUtf8,
                     evaluationPath: RemoteJobHandoffValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext24);
-            context.CommitChildContext(childContext24.IsMatch, ref childContext24);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext26);
+            context.CommitChildContext(childContext26.IsMatch, ref childContext26);
         }
 
         private static void MatchSpecConsumptionRecordValue(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, int depdendentSchemasChildHandler_propertyParentDocumentIndex)
         {
             context.AddLocalEvaluatedProperty(propertyCount);
-            JsonSchemaContext childContext25 =
+            JsonSchemaContext childContext27 =
                 Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.JsonSchema.PushChildContextUnescaped(
                     parentDocument,
                     parentDocumentIndex,
@@ -440,8 +472,8 @@ public readonly partial struct SapphirusContractsCatalog
                     JsonPropertyNames.SpecConsumptionRecordValueUtf8,
                     evaluationPath: SpecConsumptionRecordValueSchemaEvaluationPath);
 
-            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext25);
-            context.CommitChildContext(childContext25.IsMatch, ref childContext25);
+            Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext27);
+            context.CommitChildContext(childContext27.IsMatch, ref childContext27);
         }
 
         private static PropertySchemaMatchers<Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator> MatchersBuilder()
@@ -450,6 +482,8 @@ public readonly partial struct SapphirusContractsCatalog
                 (static () => JsonPropertyNames.ApprovedExecutionSpecValueUtf8, MatchApprovedExecutionSpecValue),
                 (static () => JsonPropertyNames.AuthorityRefUtf8, MatchAuthorityRef),
                 (static () => JsonPropertyNames.BmadCapabilityCatalogValueUtf8, MatchBmadCapabilityCatalogValue),
+                (static () => JsonPropertyNames.BmadCapabilityResultValueUtf8, MatchBmadCapabilityResultValue),
+                (static () => JsonPropertyNames.BmadCapabilityRunValueUtf8, MatchBmadCapabilityRunValue),
                 (static () => JsonPropertyNames.BmadPackageDescriptorValueUtf8, MatchBmadPackageDescriptorValue),
                 (static () => JsonPropertyNames.BmadValidationReportValueUtf8, MatchBmadValidationReportValue),
                 (static () => JsonPropertyNames.BuilderAuthoringObjectValueUtf8, MatchBuilderAuthoringObjectValue),

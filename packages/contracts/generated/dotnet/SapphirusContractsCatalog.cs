@@ -103,6 +103,38 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>bmadCapabilityResult</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult BmadCapabilityResultValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadCapabilityResultValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>bmadCapabilityRun</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun BmadCapabilityRunValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadCapabilityRunValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>bmadPackageDescriptor</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor BmadPackageDescriptorValue
@@ -917,6 +949,16 @@ public readonly partial struct SapphirusContractsCatalog
         public const string BmadCapabilityCatalogValue = "bmadCapabilityCatalog";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="BmadCapabilityResultValue"/>.
+        /// </summary>
+        public const string BmadCapabilityResultValue = "bmadCapabilityResult";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadCapabilityRunValue"/>.
+        /// </summary>
+        public const string BmadCapabilityRunValue = "bmadCapabilityRun";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public const string BmadPackageDescriptorValue = "bmadPackageDescriptor";
@@ -1045,6 +1087,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="BmadCapabilityCatalogValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadCapabilityCatalogValueUtf8 => "bmadCapabilityCatalog"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadCapabilityResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityResultValueUtf8 => "bmadCapabilityResult"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadCapabilityRunValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityRunValueUtf8 => "bmadCapabilityRun"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="BmadPackageDescriptorValue"/>.
@@ -1183,6 +1235,16 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> BmadCapabilityCatalogValue => "bmadCapabilityCatalog"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadCapabilityResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityResultValue => "bmadCapabilityResult"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadCapabilityRunValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityRunValue => "bmadCapabilityRun"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadPackageDescriptorValue => "bmadPackageDescriptor"u8;
@@ -1318,6 +1380,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="BmadCapabilityCatalogValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadCapabilityCatalogValue => [0x75, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6C, 0x69, 0x74, 0x79, 0x43, 0x61, 0x74, 0x61, 0x6C, 0x6F, 0x67, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadCapabilityResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityResultValue => [0x65, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6C, 0x69, 0x74, 0x79, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadCapabilityRunValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadCapabilityRunValue => [0x35, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6C, 0x69, 0x74, 0x79, 0x52, 0x75, 0x6E, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="BmadPackageDescriptorValue"/>.

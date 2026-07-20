@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-capability-result.schema.json",
+  "title": "sapphirus.bmad-capability-result.v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resultKind", "documentArtifact"],
+      "properties": {
+        "resultKind": {
+          "const": "document_artifact"
+        },
+        "documentArtifact": {
+          "$ref": "#/$defs/BmadDocumentArtifact"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resultKind", "governedChangeSet"],
+      "properties": {
+        "resultKind": {
+          "const": "governed_change_set"
+        },
+        "governedChangeSet": {
+          "$ref": "#/$defs/BmadGovernedChangeSet"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resultKind", "inactiveBuilderDraft"],
+      "properties": {
+        "resultKind": {
+          "const": "inactive_builder_draft"
+        },
+        "inactiveBuilderDraft": {
+          "$ref": "#/$defs/BmadInactiveBuilderDraft"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "BmadBoundedTitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "BmadBoundedProse": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32768
+    },
+    "BmadDocumentArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "title", "sections", "evidenceRefs", "openQuestions"],
+      "properties": {
+        "schemaVersion": {
+          "const": "sapphirus.bmad-document-artifact.v1"
+        },
+        "title": {
+          "$ref": "#/$defs/BmadBoundedTitle"
+        },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["heading", "body"],
+            "properties": {
+              "heading": {
+                "$ref": "#/$defs/BmadBoundedTitle"
+              },
+              "body": {
+                "$ref": "#/$defs/BmadBoundedProse"
+              }
+            }
+          }
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ContractId"
+          }
+        },
+        "openQuestions": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "mermaidText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        }
+      }
+    },
+    "BmadGovernedChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "summary", "changes"],
+      "properties": {
+        "schemaVersion": {
+          "const": "sapphirus.bmad-governed-change-set.v1"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/BmadCandidateChange"
+          }
+        }
+      }
+    },
+    "BmadCandidateChange": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "path", "content"],
+          "properties": {
+            "operation": {
+              "const": "create"
+            },
+            "path": {
+              "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 262144
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "path", "content", "preimageSha256"],
+          "properties": {
+            "operation": {
+              "const": "replace"
+            },
+            "path": {
+              "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 262144
+            },
+            "preimageSha256": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "path", "preimageSha256"],
+          "properties": {
+            "operation": {
+              "const": "delete"
+            },
+            "path": {
+              "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+            },
+            "preimageSha256": {
+              "$ref": "./common.schema.json#/$defs/Sha256"
+            }
+          }
+        }
+      ]
+    },
+    "BmadInactiveBuilderDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "draftKind", "title", "revisionNote", "files"],
+      "properties": {
+        "schemaVersion": {
+          "const": "sapphirus.bmad-inactive-builder-draft.v1"
+        },
+        "draftKind": {
+          "enum": ["agent", "workflow"]
+        },
+        "title": {
+          "$ref": "#/$defs/BmadBoundedTitle"
+        },
+        "revisionNote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "content"],
+            "properties": {
+              "path": {
+                "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"
+              },
+              "content": {
+                "type": "string",
+                "maxLength": 262144
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

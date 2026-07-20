@@ -48,6 +48,16 @@
           "typeName": "BmadCapabilityCatalog"
         },
         {
+          "file": "bmad-capability-result.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-capability-result.schema.json",
+          "typeName": "BmadCapabilityResult"
+        },
+        {
+          "file": "bmad-capability-run.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-capability-run.schema.json",
+          "typeName": "BmadCapabilityRun"
+        },
+        {
           "file": "bmad-method-advance-result.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-method-advance-result.schema.json",
           "typeName": "MethodAdvanceResult"

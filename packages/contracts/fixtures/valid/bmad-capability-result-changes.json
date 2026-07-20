@@ -1,0 +1,25 @@
+{
+  "resultKind": "governed_change_set",
+  "governedChangeSet": {
+    "schemaVersion": "sapphirus.bmad-governed-change-set.v1",
+    "summary": "Implements the story acceptance tests.",
+    "changes": [
+      {
+        "operation": "create",
+        "path": "src/feature.test.ts",
+        "content": "// test body"
+      },
+      {
+        "operation": "replace",
+        "path": "src/feature.ts",
+        "content": "// new body",
+        "preimageSha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "operation": "delete",
+        "path": "src/dead.ts",
+        "preimageSha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  }
+}

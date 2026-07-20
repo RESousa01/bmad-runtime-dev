@@ -1,0 +1,15 @@
+{
+  "resultKind": "inactive_builder_draft",
+  "inactiveBuilderDraft": {
+    "schemaVersion": "sapphirus.bmad-inactive-builder-draft.v1",
+    "draftKind": "agent",
+    "title": "Draft compliance reviewer",
+    "revisionNote": "First analysis draft; inactive by design.",
+    "files": [
+      {
+        "path": "agent.instructions.md",
+        "content": "# Draft"
+      }
+    ]
+  }
+}

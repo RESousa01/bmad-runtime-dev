@@ -1,0 +1,19 @@
+{
+  "resultKind": "document_artifact",
+  "documentArtifact": {
+    "schemaVersion": "sapphirus.bmad-document-artifact.v1",
+    "title": "Product brief: example",
+    "sections": [
+      {
+        "heading": "Problem",
+        "body": "A bounded problem statement."
+      }
+    ],
+    "evidenceRefs": [
+      "evidence_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+    ],
+    "openQuestions": [
+      "What is the launch market?"
+    ]
+  }
+}

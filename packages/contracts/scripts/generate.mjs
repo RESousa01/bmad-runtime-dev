@@ -1163,6 +1163,8 @@ const typescriptSchemaTargets = [
   "authority-ref",
   "bmad-builder-authoring",
   "bmad-capability-catalog",
+  "bmad-capability-result",
+  "bmad-capability-run",
   "bmad-method-advance-result",
   "bmad-method-help-proposal",
   "bmad-method-help-recommendation",
@@ -1661,6 +1663,8 @@ export class ContractValidationError extends Error {
 const BMAD_CONTRACT_KINDS = new Set([
   "bmad-builder-authoring",
   "bmad-capability-catalog",
+  "bmad-capability-result",
+  "bmad-capability-run",
   "bmad-method-advance-result",
   "bmad-method-help-proposal",
   "bmad-method-help-recommendation",

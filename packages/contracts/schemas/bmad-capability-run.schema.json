@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-capability-run.schema.json",
+  "title": "sapphirus.bmad-capability-run.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "capabilityId",
+    "workspaceId",
+    "instructionHash",
+    "contextManifestHash",
+    "outputSchemaId",
+    "consentEvidenceId",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "sapphirus.bmad-capability-run.v1"
+    },
+    "runId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "capabilityId": {
+      "$ref": "#/$defs/BmadClosureCapabilityId"
+    },
+    "workspaceId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "instructionHash": {
+      "$ref": "./common.schema.json#/$defs/Sha256"
+    },
+    "contextManifestHash": {
+      "$ref": "./common.schema.json#/$defs/Sha256"
+    },
+    "outputSchemaId": {
+      "enum": [
+        "sapphirus.bmad-document-artifact.v1",
+        "sapphirus.bmad-governed-change-set.v1",
+        "sapphirus.bmad-inactive-builder-draft.v1"
+      ]
+    },
+    "consentEvidenceId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "createdAt": {
+      "$ref": "./common.schema.json#/$defs/UtcInstant"
+    }
+  },
+  "$defs": {
+    "BmadClosureCapabilityId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 96,
+      "pattern": "^(bmm|builder):[a-z][a-z0-9._-]{2,80}$"
+    }
+  }
+}

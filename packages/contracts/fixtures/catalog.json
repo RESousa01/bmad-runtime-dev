@@ -1277,5 +1277,59 @@
     "reasonCodes": [
       "UNKNOWN_PROPERTY"
     ]
+  },
+  {
+    "file": "valid/bmad-capability-run.json",
+    "schema": "bmad-capability-run.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/bmad-capability-result-document.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/bmad-capability-result-changes.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/bmad-capability-result-builder-draft.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "invalid/bmad-capability-run-unknown-property.json",
+    "schema": "bmad-capability-run.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/bmad-capability-run-forged-capability-id.json",
+    "schema": "bmad-capability-run.schema.json",
+    "valid": false,
+    "reasonCode": "PATTERN_MISMATCH"
+  },
+  {
+    "file": "invalid/bmad-capability-result-absolute-path.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/bmad-capability-result-authority-claim.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/bmad-capability-result-archetype-substitution.json",
+    "schema": "bmad-capability-result.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
   }
 ]
