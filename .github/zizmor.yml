@@ -3,4 +3,5 @@ rules:
     ignore:
       # These manual, main-only jobs are fail-closed behind organization
       # variables, dedicated protected environments, and purpose-built labels.
-      - release-windows-signed.yml
+      - release-windows-signed.yml:31
+      - release-windows-signed.yml:99
