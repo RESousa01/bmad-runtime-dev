@@ -199,6 +199,8 @@ fn is_known_command(command: &str) -> bool {
             | "app.preferences.get"
             | "app.preferences.set"
             | "app.about"
+            | "app.offboarding.inspect"
+            | "app.offboarding.erase"
             | "workspace.pick_files"
     )
 }
@@ -419,6 +421,11 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
         }
         "bmad.library.snapshot" => parse_bmad_library_snapshot(payload),
         "bmad.persona.view" => parse_bmad_persona_view(payload),
+        "app.offboarding.inspect" => {
+            parse_empty(payload)?;
+            Ok(LocalCommand::OffboardingInspect)
+        }
+        "app.offboarding.erase" => parse_offboarding_erase(payload),
         "model.auth.status" => {
             parse_empty(payload)?;
             Ok(LocalCommand::ModelAuthStatus)
@@ -640,6 +647,23 @@ fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValida
         scope: input.scope,
         cursor: input.cursor,
     })
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct OffboardingErasePayload {
+    confirm: String,
+}
+
+/// The exact ADR-0004 confirmation phrase; anything else fails closed.
+const OFFBOARDING_ERASE_CONFIRMATION: &str = "erase-local-authority-data";
+
+fn parse_offboarding_erase(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: OffboardingErasePayload = parse_payload(payload)?;
+    if input.confirm != OFFBOARDING_ERASE_CONFIRMATION {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::OffboardingErase)
 }
 
 fn parse_bmad_persona_view(payload: Value) -> Result<LocalCommand, IpcValidationError> {
@@ -1085,6 +1109,77 @@ mod tests {
             "changes.recovery.decide".to_owned(),
         ]);
         Ok(value)
+    }
+
+    fn offboarding_context() -> Result<IpcValidationContext, Box<dyn std::error::Error>> {
+        let mut value = context()?;
+        value
+            .allowed_commands
+            .push("app.offboarding.inspect".to_owned());
+        value
+            .allowed_commands
+            .push("app.offboarding.erase".to_owned());
+        Ok(value)
+    }
+
+    fn offboarding_envelope(command: &str, payload: &str) -> String {
+        format!(
+            r#"{{
+              "schemaVersion":"desktop-ipc-command.v1",
+              "requestId":"req_offboarding",
+              "command":"{command}",
+              "windowLabel":"main",
+              "rendererSessionId":"rs_test",
+              "installationId":"install_test",
+              "issuedAt":10000,
+              "payload":{payload}
+            }}"#
+        )
+    }
+
+    #[test]
+    fn parses_offboarding_inspect_with_empty_payload_only() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let valid = offboarding_envelope("app.offboarding.inspect", "{}");
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(valid.as_bytes(), &offboarding_context()?)?.command(),
+            LocalCommand::OffboardingInspect
+        ));
+        let extra = offboarding_envelope("app.offboarding.inspect", r#"{"extra":true}"#);
+        assert!(
+            CommandEnvelopeValidator::parse(extra.as_bytes(), &offboarding_context()?).is_err()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn offboarding_erase_requires_the_exact_confirmation_phrase(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let valid = offboarding_envelope(
+            "app.offboarding.erase",
+            r#"{"confirm":"erase-local-authority-data"}"#,
+        );
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(valid.as_bytes(), &offboarding_context()?)?.command(),
+            LocalCommand::OffboardingErase
+        ));
+        for bad in [
+            "{}",
+            r#"{"confirm":""}"#,
+            r#"{"confirm":"erase"}"#,
+            r#"{"confirm":"Erase-Local-Authority-Data"}"#,
+            r#"{"confirm":"erase-local-authority-data "}"#,
+            r#"{"confirm":"erase-local-authority-data","extra":true}"#,
+            r#"{"confirm":true}"#,
+        ] {
+            let payload = offboarding_envelope("app.offboarding.erase", bad);
+            assert!(
+                CommandEnvelopeValidator::parse(payload.as_bytes(), &offboarding_context()?)
+                    .is_err(),
+                "accepted invalid erase payload: {bad}"
+            );
+        }
+        Ok(())
     }
 
     fn persona_context() -> Result<IpcValidationContext, Box<dyn std::error::Error>> {

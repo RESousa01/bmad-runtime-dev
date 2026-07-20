@@ -93,6 +93,8 @@ pub enum LocalCommand {
     ViewBmadPersona {
         agent_code: String,
     },
+    OffboardingInspect,
+    OffboardingErase,
     CreateBmadHelpRun {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
@@ -202,6 +204,8 @@ impl LocalCommand {
             Self::PickWorkspaceFiles { .. } => "workspace.pick_files",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
             Self::ViewBmadPersona { .. } => "bmad.persona.view",
+            Self::OffboardingInspect => "app.offboarding.inspect",
+            Self::OffboardingErase => "app.offboarding.erase",
             Self::CreateBmadHelpRun { .. } => "run.create",
             Self::ModelAuthStatus => "model.auth.status",
             Self::ModelAuthSignIn => "model.auth.sign_in",
@@ -242,6 +246,7 @@ impl LocalCommand {
                 | Self::ScanBmad { .. }
                 | Self::BmadLibrarySnapshot { .. }
                 | Self::ViewBmadPersona { .. }
+                | Self::OffboardingInspect
                 | Self::ModelAuthStatus
                 | Self::LatestBmadHelpRun { .. }
                 | Self::PreviewContext { .. }

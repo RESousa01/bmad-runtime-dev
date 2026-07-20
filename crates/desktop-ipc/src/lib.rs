@@ -33,6 +33,33 @@ where
 {
     desktop_runtime::deserialize_strict_json(bytes).map_err(|_| IpcValidationError::InvalidJson)
 }
+/// One bounded retention-manifest row for offboarding (ADR-0004).
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RetentionCategoryProjection {
+    pub category: String,
+    pub count: u64,
+}
+
+/// The offboarding retention manifest: category counts and byte totals
+/// only — never paths, identifiers, or content.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RetentionManifestProjection {
+    pub schema_version: String,
+    pub categories: Vec<RetentionCategoryProjection>,
+    pub retained_bytes: u64,
+}
+
+/// The terminal offboarding acknowledgement.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OffboardingErasedProjection {
+    pub schema_version: String,
+    pub status: String,
+    pub restart_required: bool,
+}
+
 pub use bmad::{
     project_bmad_library, project_bmad_library_with_activations, project_bmad_persona_perspective,
     BmadAgentMenuProjection, BmadAgentMenuTargetProjection, BmadAgentProjection,
