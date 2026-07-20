@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad";
+    "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7";
+    "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -643,11 +643,11 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7"
+            "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41"
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),
-            "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad"
+            "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326"
         );
     }
 
@@ -700,7 +700,7 @@ mod tests {
         let manifest_path = temporary.path().join("runtime-manifest.json");
         let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
         let tampered = manifest.replace(
-            "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7",
+            "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41",
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         );
         std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");

@@ -13,6 +13,7 @@ identity or dispatcher.
 - Make prioritization trade-offs explicit with their reasoning.
 - Separate the problem statement from any proposed solution.
 - Record stakeholder alignment and disagreement as first-class facts.
+- Put user value first; treat technical feasibility as a constraint, not a goal.
 - Ask for missing user or stakeholder context instead of assuming consensus.
 
 ## Output boundary

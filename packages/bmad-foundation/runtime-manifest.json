@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
+  "semanticLedgerHash": "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -29,7 +29,7 @@
     },
     {
       "path": "normalized/bmad-analyst.package.json",
-      "contentHash": "sha256:a1f79dc9f36c0af5b2559e5cc044af8807811e6bfdc79a4d7d0e3302ecdaeb55",
+      "contentHash": "sha256:08439e842bb8f17d422f3498b1b4583200da68ce3129d03440e738adcf3818ab",
       "byteLength": 1977,
       "contentKind": "normalized_contract"
     },
@@ -47,7 +47,7 @@
     },
     {
       "path": "normalized/bmad-dev.package.json",
-      "contentHash": "sha256:5ef3d3c090d6da39eccb47cbb56b9497fc8fad7c735879e31e9c15351d63812f",
+      "contentHash": "sha256:79d7bfc30adff3008a005901a986c89cc4505a43ac174a58e017b03d4843787a",
       "byteLength": 1973,
       "contentKind": "normalized_contract"
     },
@@ -59,13 +59,13 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:7131f010081c29cac596d25c9751a121d7c708966c2a4ae691b5731d9f5054da",
+      "contentHash": "sha256:2572b4519da146a8991e606edface2d036f804fa62b609a81140eaeed7e1cca2",
       "byteLength": 38955,
       "contentKind": "normalized_contract"
     },
     {
       "path": "normalized/bmad-pm.package.json",
-      "contentHash": "sha256:a4c98434bcfd383208b323456a61947385064f4feb165edeba099753533d383e",
+      "contentHash": "sha256:6339f5dd6833d173514e5927746eec277058d346c969aa57e05f2fc3aa447eaa",
       "byteLength": 1969,
       "contentKind": "normalized_contract"
     },
@@ -77,7 +77,7 @@
     },
     {
       "path": "normalized/bmad-ux-designer.package.json",
-      "contentHash": "sha256:6dea4ebacff9f2a95ec746a97aa9840b3d54e29636fb77c0aaba5397bce0d627",
+      "contentHash": "sha256:7f69b8a452cfe8069e0a9d687b9a9adf238cf18d9f62a5284248d568d2854426",
       "byteLength": 2005,
       "contentKind": "normalized_contract"
     },
@@ -131,8 +131,8 @@
     },
     {
       "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
-      "contentHash": "sha256:15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9",
-      "byteLength": 868,
+      "contentHash": "sha256:08a661a1ecb51b97a5f1236ee00f9a3f4a1c8e2c83b24203c88d7169f5b16099",
+      "byteLength": 942,
       "contentKind": "managed_instruction"
     },
     {
@@ -155,14 +155,14 @@
     },
     {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
-      "contentHash": "sha256:ea8afc7f390824baf6995d53749b6a37fa4ea0558533f4869bf7be8aae194f8d",
-      "byteLength": 888,
+      "contentHash": "sha256:cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588",
+      "byteLength": 952,
       "contentKind": "managed_instruction"
     },
     {
       "path": "runtime/method/6.10.0/pm-persona.instructions.md",
-      "contentHash": "sha256:2f8bb096945b85deb7825a3f9f9c17dc51e19b6af9ad2a00fba6867b0a780a95",
-      "byteLength": 839,
+      "contentHash": "sha256:d0721b37f735afdbc439073d962c83fb66edb3f92498ca6786fd8393b51dec07",
+      "byteLength": 920,
       "contentKind": "managed_instruction"
     },
     {
@@ -173,16 +173,16 @@
     },
     {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
-      "contentHash": "sha256:87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e",
-      "byteLength": 846,
+      "contentHash": "sha256:b6a21cbb4648bfb588094100ac5cf0b07eebc64b850b7ccbc1255da470974d92",
+      "byteLength": 922,
       "contentKind": "managed_instruction"
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
+      "contentHash": "sha256:10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326",
       "byteLength": 50338,
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7"
+  "manifestHash": "sha256:cd4f620cdeb168f84270df8875937721805b38ef4012ce8b2aae38dab8191e41"
 }

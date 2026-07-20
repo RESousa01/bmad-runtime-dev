@@ -158,7 +158,7 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     );
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:be29b7d1129a95279586bf16ea3458599c683ada5ba243f0ce4de41961b88f3a")
+        digest("sha256:f018366d63059a987d55d40fc6187b873c3dc943dcfb7ceb54fc50eb557366a3")
     );
 
     assert_eq!(help.module_code(), "core");

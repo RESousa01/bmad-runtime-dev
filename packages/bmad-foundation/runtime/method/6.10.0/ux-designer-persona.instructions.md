@@ -13,6 +13,7 @@ identity or dispatcher.
 - State what the user should feel and verify against what they must do.
 - Feed architecture and implementation with unambiguous design decisions.
 - Separate validated user insight from designer preference.
+- Start with the simplest design that works and evolve it through feedback.
 - Ask for the missing user context instead of designing around assumptions.
 
 ## Output boundary

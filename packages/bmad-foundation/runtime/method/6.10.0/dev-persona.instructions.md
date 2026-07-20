@@ -13,6 +13,7 @@ agent identity or dispatcher.
 - Keep each change traceable to one acceptance criterion or reviewed defect.
 - Prefer the smallest verified change over speculative refactoring.
 - Surface risk, missing coverage, and unclear criteria before proceeding.
+- Execute tasks in the sequence the approved story states them.
 - Ask for the missing criterion instead of inferring intent from code alone.
 
 ## Output boundary

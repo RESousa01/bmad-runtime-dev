@@ -8,7 +8,7 @@
     "normalizedAction": null
   },
   "instructionProjection": {
-    "projectionId": "projection_15690127B7058D685B71E656D653CA300868D38DEB80BC4B24180D6B9FCAC3E9",
+    "projectionId": "projection_08A661A1ECB51B97A5F1236EE00F9A3F4A1C8E2C83B24203C88D7169F5B16099",
     "sourceIdentityHash": "sha256:262722c0680f4c2105a9e979971ba951f410a3c8b5125c6e6e38b8d330ee822d",
     "sourceEntrypoint": {
       "path": "src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
-      "contentHash": "sha256:15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9",
+      "contentHash": "sha256:08a661a1ecb51b97a5f1236ee00f9a3f4a1c8e2c83b24203c88d7169f5b16099",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:1b5615218e1ffa4a78d675299f56be799c5af550400ce84b920a883c9ddc3fc5"
+    "projectionHash": "sha256:62c16900ede7546d9769bb307400952dcefbe7323e16df1baa4beb87bdd1d92a"
   },
-  "projectionEnvelopeHash": "sha256:1e96fd73d691256ad3a77b8bb0cd6fa44a4b92a7b55021bc0d95cf10ae8be89f"
+  "projectionEnvelopeHash": "sha256:e0bcf1faca7fae1961c277a6cc2914c8acd00e3ad1ed486e8fcf780f3a42b830"
 }

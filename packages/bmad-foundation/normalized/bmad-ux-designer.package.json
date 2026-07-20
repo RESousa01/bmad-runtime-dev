@@ -8,7 +8,7 @@
     "normalizedAction": null
   },
   "instructionProjection": {
-    "projectionId": "projection_87FC099FBD548FA1213AE8B2EC80762648B429A5310922C694871D512103E23E",
+    "projectionId": "projection_B6A21CBB4648BFB588094100AC5CF0B07EEBC64B850B7CCBC1255DA470974D92",
     "sourceIdentityHash": "sha256:af9f0894ffa3e09b3213fc4fdfc4e1611ba6f790b438ab55fd6f4755446f3642",
     "sourceEntrypoint": {
       "path": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
-      "contentHash": "sha256:87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e",
+      "contentHash": "sha256:b6a21cbb4648bfb588094100ac5cf0b07eebc64b850b7ccbc1255da470974d92",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:2dcdc63d8482a331f08d44be032bc6b24063ff77dd1f3527a841c2b8407f2387"
+    "projectionHash": "sha256:d034ba6ead98bb572bf9fe71e48ead30d92239baa331c7221fb943d368118c3c"
   },
-  "projectionEnvelopeHash": "sha256:7e92b839a3df176fa3195bfa0f46b3fbc1a36d2c154aec8b3131d9b006f0ee39"
+  "projectionEnvelopeHash": "sha256:e47c68788e66cd4abcaa943965a38f52b11cc00d16c3e3c470b31b5e5311d439"
 }

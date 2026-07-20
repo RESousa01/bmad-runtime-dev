@@ -1402,8 +1402,8 @@
     },
     {
       "path": "runtime/method/6.10.0/analyst-persona.instructions.md",
-      "byteLength": 868,
-      "sha256": "15690127b7058d685b71e656d653ca300868d38deb80bc4b24180d6b9fcac3e9"
+      "byteLength": 942,
+      "sha256": "08a661a1ecb51b97a5f1236ee00f9a3f4a1c8e2c83b24203c88d7169f5b16099"
     },
     {
       "path": "runtime/method/6.10.0/architect-persona.instructions.md",
@@ -1422,13 +1422,13 @@
     },
     {
       "path": "runtime/method/6.10.0/dev-persona.instructions.md",
-      "byteLength": 888,
-      "sha256": "ea8afc7f390824baf6995d53749b6a37fa4ea0558533f4869bf7be8aae194f8d"
+      "byteLength": 952,
+      "sha256": "cacf80429f3223860453b8d74541b4afff565115bf307c69801022ffd1754588"
     },
     {
       "path": "runtime/method/6.10.0/pm-persona.instructions.md",
-      "byteLength": 839,
-      "sha256": "2f8bb096945b85deb7825a3f9f9c17dc51e19b6af9ad2a00fba6867b0a780a95"
+      "byteLength": 920,
+      "sha256": "d0721b37f735afdbc439073d962c83fb66edb3f92498ca6786fd8393b51dec07"
     },
     {
       "path": "runtime/method/6.10.0/tech-writer-persona.instructions.md",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",
-      "byteLength": 846,
-      "sha256": "87fc099fbd548fa1213ae8b2ec80762648b429a5310922c694871d512103e23e"
+      "byteLength": 922,
+      "sha256": "b6a21cbb4648bfb588094100ac5cf0b07eebc64b850b7ccbc1255da470974d92"
     }
   ]
 }

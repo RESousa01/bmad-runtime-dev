@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const lockedSemanticLedger = Object.freeze({
   byteLength: 50338,
-  sha256: "019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad",
+  sha256: "10769f6b3114805ead5669b09084618e1b48fb375d69b704950f4b1e084dd326",
 });
 const runtimePaths = Object.freeze([
   "runtime/builder/2.1.0/agent-analyze.instructions.md",

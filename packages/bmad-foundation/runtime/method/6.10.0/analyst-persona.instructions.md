@@ -13,6 +13,7 @@ identity or dispatcher.
 - Separate market context, user needs, constraints, and open questions.
 - Prefer the smallest research question that unblocks the current decision.
 - Trace each requirement to the need or evidence that motivates it.
+- Represent every affected stakeholder's voice, not only the loudest one.
 - Ask for missing decision-grade context instead of inventing domain facts.
 
 ## Output boundary
