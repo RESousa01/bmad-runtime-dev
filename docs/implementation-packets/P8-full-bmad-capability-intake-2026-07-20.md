@@ -140,3 +140,12 @@
 - REMAINING for Task 7 closure: the renderer client methods, reply
   parsers, and BmadCapabilityPanel (UI slice); axe states per plan Step 6
   land with the panel.
+- 2026-07-20 — TASK 7 CLOSED. Renderer surface complete: capability
+  protocol parsers (five reply kinds, forged-id/result-kind/kind
+  substitution and not-found-smuggling rejections), five client methods,
+  BmadCapabilityPanel (selecting -> review with exact context paths +
+  consent disclosure -> approved single-use send -> completed; document
+  artifacts render inertly, governed change sets route to Changes with no
+  apply affordance, axe-clean in every state), and the library menu
+  launches runs through the 26-path MENU_CAPABILITIES map in App.
+  Renderer 27 files / 346 tests; boundaries green; pushed at bff9835b.
