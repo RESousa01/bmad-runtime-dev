@@ -1,0 +1,153 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.1-experimental",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+    "_EXPERIMENTAL_FEATURES_ENABLED": [
+      "Asserts"
+    ],
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "3161624791106856836"
+    }
+  },
+  "parameters": {
+    "logAnalyticsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Log Analytics workspace resource id backing Application Insights."
+      }
+    },
+    "actionGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Action group receiving every support-plane alert."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Deployment location for the alert rules."
+      }
+    },
+    "environment": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment tag value (for example prod or staging)."
+      }
+    }
+  },
+  "variables": {
+    "alertTags": {
+      "workload": "desktop-support",
+      "environment": "[parameters('environment')]"
+    },
+    "scheduledAlerts": [
+      {
+        "name": "desktop-support-authentication-spike",
+        "description": "Authentication denial rate spiked.",
+        "severity": 2,
+        "query": "AppMetrics | where Name == \"sapphirus.support.authentication.outcomes\" | where tostring(Properties[\"outcome\"]) == \"denied\" | summarize denied = sum(Sum) by bin(TimeGenerated, 5m)",
+        "threshold": 50
+      },
+      {
+        "name": "desktop-support-consent-replays",
+        "description": "Consent replay attempts observed.",
+        "severity": 2,
+        "query": "AppMetrics | where Name == \"sapphirus.support.replays.observed\" | summarize replays = sum(Sum) by bin(TimeGenerated, 15m)",
+        "threshold": 10
+      },
+      {
+        "name": "desktop-support-receipt-signing-failures",
+        "description": "Receipt signing dependency failures observed.",
+        "severity": 1,
+        "query": "AppMetrics | where Name == \"sapphirus.support.dependency.latency\" | where tostring(Properties[\"dependency\"]) == \"signing\" and tostring(Properties[\"outcome\"]) == \"failed\" | summarize failures = count() by bin(TimeGenerated, 5m)",
+        "threshold": 1
+      },
+      {
+        "name": "desktop-support-sql-saturation",
+        "description": "Authority SQL latency is saturating.",
+        "severity": 2,
+        "query": "AppMetrics | where Name == \"sapphirus.support.dependency.latency\" | where tostring(Properties[\"dependency\"]) == \"sql\" | summarize p95 = percentile(Sum, 95) by bin(TimeGenerated, 5m) | where p95 > 500",
+        "threshold": 0
+      },
+      {
+        "name": "desktop-support-model-throttling",
+        "description": "Model provider throttling observed.",
+        "severity": 2,
+        "query": "AppMetrics | where Name == \"sapphirus.support.provider.statuses\" | where tostring(Properties[\"provider_status_class\"]) == \"429\" | summarize throttles = sum(Sum) by bin(TimeGenerated, 5m)",
+        "threshold": 5
+      },
+      {
+        "name": "desktop-support-privacy-canary",
+        "description": "A privacy canary marker reached exported telemetry. Sev 0: engage the incident procedure.",
+        "severity": 0,
+        "query": "union AppTraces, AppExceptions, AppRequests, AppDependencies | where tostring(Properties) contains \"CANARY_\" or Message contains \"CANARY_\" | summarize hits = count() by bin(TimeGenerated, 5m)",
+        "threshold": 0
+      },
+      {
+        "name": "desktop-support-slo-burn",
+        "description": "Availability SLO fast burn: server failure ratio over 5 minutes.",
+        "severity": 1,
+        "query": "AppRequests | summarize total = count(), failed = countif(ResultCode startswith \"5\") by bin(TimeGenerated, 5m) | where total > 0 | extend ratio = todouble(failed) / todouble(total) | where ratio > 0.05",
+        "threshold": 0
+      }
+    ]
+  },
+  "resources": {
+    "alertRules": {
+      "copy": {
+        "name": "alertRules",
+        "count": "[length(variables('scheduledAlerts'))]"
+      },
+      "type": "Microsoft.Insights/scheduledQueryRules",
+      "apiVersion": "2023-12-01",
+      "name": "[variables('scheduledAlerts')[copyIndex()].name]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('alertTags')]",
+      "properties": {
+        "description": "[variables('scheduledAlerts')[copyIndex()].description]",
+        "displayName": "[variables('scheduledAlerts')[copyIndex()].name]",
+        "severity": "[variables('scheduledAlerts')[copyIndex()].severity]",
+        "enabled": true,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "scopes": [
+          "[parameters('logAnalyticsWorkspaceId')]"
+        ],
+        "criteria": {
+          "allOf": [
+            {
+              "query": "[variables('scheduledAlerts')[copyIndex()].query]",
+              "timeAggregation": "Count",
+              "operator": "GreaterThan",
+              "threshold": "[variables('scheduledAlerts')[copyIndex()].threshold]",
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        },
+        "actions": {
+          "actionGroups": [
+            "[parameters('actionGroupId')]"
+          ]
+        },
+        "autoMitigate": true
+      }
+    }
+  },
+  "outputs": {
+    "alertRuleNames": {
+      "type": "array",
+      "copy": {
+        "count": "[length(variables('scheduledAlerts'))]",
+        "input": "[variables('scheduledAlerts')[copyIndex()].name]"
+      }
+    }
+  }
+}

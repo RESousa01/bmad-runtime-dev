@@ -73,6 +73,15 @@
 - Coordinator tests (6): consumption strictly precedes egress and provider failure does not restore consent; revocation between admission and commit blocks receipt publication (no receipt readable afterward); terminal uncertainty yields 409 with zero broker/consumption calls; concurrent identical requests converge to one provider call and one consumption; alternate idempotency keys cannot replay one consent; safe replay exposes only receipt id/request hash/result hash.
 - Proof: coordinator class 6/6 (MTP `--filter-class`); full suite 162/162; Release publish clean. Cross-replica equivalents of the concurrency/recovery invariants are covered by the Task 3 LocalDB store tests.
 
+## Task 8 evidence (2026-07-20)
+
+- `Observability/SupportPlaneTelemetry.cs`: one metric surface, fixed allowlisted tag keys (unknown key throws), values that look like hashes/tokens/paths/opaque blobs degrade to `invalid_dimension`; instruments auth outcomes, admission denials, dependency latency, provider status classes, schema outcomes, retries, token/cost aggregates, receipt issuance, replays, revocations. Coordinator emits denial/replay/receipt/usage/revocation events (optional telemetry param — tests unchanged).
+- `Observability/PrivacyRedactionProcessor.cs`: exported spans keep only allowlisted tags, redact unsafe values, drop all events (exception messages/stack traces never export), and force `DisplayName` to the route template.
+- `Health/AzureDependencyHealthChecks.cs`: `/healthz/live` + `/healthz/ready` with a safe writer that renders only status + dependency class (`sql`, `configuration`, `signing`, `model`); SQL/policy probes swallow exception detail; signing/model checks are composition-state only (live probes belong to the deployed smoke gate).
+- Production composition: health checks + Azure Monitor OpenTelemetry export gated on `APPLICATIONINSIGHTS_CONNECTION_STRING`, with the redaction processor in the pipeline.
+- `infra/desktop-support/modules/monitor-alerts.bicep`: seven scheduled-query alerts (auth spike, consent replays, receipt-signing failures, SQL saturation, model throttling, privacy canary sev-0, SLO fast burn) — compiles clean.
+- Proof: Observability tests 5/5 (canaries absent from spans/metrics/health bodies); full suite 167/167; `node tools/check-secrets.mjs` clean (3378 files); `az bicep build` on the module exit 0.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.

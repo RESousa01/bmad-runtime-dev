@@ -67,6 +67,7 @@ builder.Services.AddRateLimiter(rateLimiter =>
 });
 
 builder.Services.AddSingleton(options);
+builder.Services.AddSingleton<Sapphirus.DesktopSupportApi.Observability.SupportPlaneTelemetry>();
 builder.Services.AddSingleton(provider =>
     new Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinator(
         provider.GetRequiredService<IDeviceRegistry>(),
@@ -75,7 +76,13 @@ builder.Services.AddSingleton(provider =>
         provider.GetRequiredService<IContextConsentConsumptionStore>(),
         provider.GetRequiredService<IModelCallIdempotencyStore>(),
         options,
-        TimeProvider.System));
+        TimeProvider.System,
+        provider.GetRequiredService<Sapphirus.DesktopSupportApi.Observability.SupportPlaneTelemetry>()));
+builder.Services.AddHealthChecks()
+    .AddCheck<Sapphirus.DesktopSupportApi.Health.SigningCompositionHealthCheck>(
+        Sapphirus.DesktopSupportApi.Health.AzureDependencyHealthChecks.SigningDependency)
+    .AddCheck<Sapphirus.DesktopSupportApi.Health.ModelCompositionHealthCheck>(
+        Sapphirus.DesktopSupportApi.Health.AzureDependencyHealthChecks.ModelDependency);
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IDeviceRegistry, MemoryDeviceRegistry>();
@@ -335,6 +342,16 @@ desktop.MapGet("/releases/current", (SupportPlaneOptions configuration) =>
         "not-configured-in-development",
         "not-configured-in-development")))
     .RequireAuthorization(DesktopScopes.Access);
+
+app.MapHealthChecks("/healthz/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false,
+    ResponseWriter = Sapphirus.DesktopSupportApi.Health.AzureDependencyHealthChecks.WriteSafeResponseAsync,
+});
+app.MapHealthChecks("/healthz/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    ResponseWriter = Sapphirus.DesktopSupportApi.Health.AzureDependencyHealthChecks.WriteSafeResponseAsync,
+});
 
 app.Run();
 

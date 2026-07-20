@@ -1,3 +1,6 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using OpenTelemetry.Trace;
+using Sapphirus.DesktopSupportApi.Health;
 using Sapphirus.DesktopSupportApi.Model;
 using Sapphirus.DesktopSupportApi.Sql;
 using Sapphirus.DesktopSupportApi.Policy;
@@ -69,5 +72,26 @@ public static class ProductionComposition
                 provider.GetRequiredService<SqlConnectionFactory>()));
         builder.Services.AddSingleton<IContextConsentVerifier>(
             new Security.InstallationConsentVerifier(TimeProvider.System));
+
+        // Privacy-safe observability (Task 8): dependency health probes and
+        // trace redaction; Azure Monitor export activates only when the
+        // platform injects a connection string.
+        builder.Services.AddHealthChecks()
+            .AddCheck<SqlAuthorityHealthCheck>(
+                AzureDependencyHealthChecks.SqlDependency)
+            .AddCheck<PolicyConfigurationHealthCheck>(
+                AzureDependencyHealthChecks.ConfigurationDependency);
+        builder.Services.AddSingleton<SqlAuthorityHealthCheck>();
+        builder.Services.AddSingleton<PolicyConfigurationHealthCheck>(provider =>
+            new PolicyConfigurationHealthCheck(
+                provider.GetRequiredService<AppConfigurationPolicyProvider>()));
+        if (!string.IsNullOrWhiteSpace(
+            builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            builder.Services.AddOpenTelemetry()
+                .UseAzureMonitor()
+                .WithTracing(tracing => tracing.AddProcessor(
+                    new Observability.PrivacyRedactionProcessor()));
+        }
     }
 }

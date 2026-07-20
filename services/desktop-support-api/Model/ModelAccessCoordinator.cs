@@ -1,3 +1,4 @@
+using Sapphirus.DesktopSupportApi.Observability;
 using Sapphirus.DesktopSupportApi.Sql;
 
 namespace Sapphirus.DesktopSupportApi.Model;
@@ -25,7 +26,8 @@ public sealed class ModelAccessCoordinator(
     IContextConsentConsumptionStore consentConsumptionStore,
     IModelCallIdempotencyStore idempotency,
     SupportPlaneOptions configuration,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    SupportPlaneTelemetry? telemetry = null)
 {
     public async Task<ModelAccessCoordinationResult> ExecuteAsync(
         ModelAccessRequest request,
@@ -45,6 +47,7 @@ public sealed class ModelAccessCoordinator(
             out string errorCode,
             out string recomputedManifestHash))
         {
+            telemetry?.RecordAdmissionDenial(errorCode);
             return ModelAccessCoordinationResult.Problem(
                 errorCode,
                 StatusCodes.Status400BadRequest);
@@ -137,6 +140,7 @@ public sealed class ModelAccessCoordinator(
             // Stage: render. Replays expose only the safe completion marker.
             if (execution.PriorCompletion is ModelCallCompletionMarker completion)
             {
+                telemetry?.RecordReplayObserved();
                 return new ModelAccessCoordinationResult(
                     StatusCodes.Status409Conflict,
                     new
@@ -150,12 +154,24 @@ public sealed class ModelAccessCoordinator(
                         resultHash = completion.ResultHash,
                     });
             }
+            telemetry?.RecordReceiptIssued();
+            if (execution.Result is { Receipt: not null } fresh)
+            {
+                telemetry?.RecordUsage(
+                    fresh.Receipt.Usage.InputTokens,
+                    fresh.Receipt.Usage.OutputTokens,
+                    fresh.Receipt.Usage.CostMicrounits,
+                    fresh.Receipt.RetryCount,
+                    request.ModelRole,
+                    request.BudgetClass);
+            }
             return new ModelAccessCoordinationResult(
                 StatusCodes.Status200OK,
                 execution.Result!);
         }
         catch (DeviceRegistrationRevokedException)
         {
+            telemetry?.RecordRevocationObserved();
             return ModelAccessCoordinationResult.Problem(
                 "device_registration_unavailable",
                 StatusCodes.Status403Forbidden);
