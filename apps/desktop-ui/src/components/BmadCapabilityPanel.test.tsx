@@ -157,6 +157,27 @@ describe("BmadCapabilityPanel", () => {
     await expectAccessible(container);
   });
 
+  it("renders builder drafts as inert data with no activation affordance", async () => {
+    const props = createProps({
+      kind: "completed",
+      completed: {
+        capabilityId: "builder:agent.analyze",
+        runId: review.runId,
+        resultKind: "inactive_builder_draft",
+      },
+      resultJson: null,
+    });
+    const { container } = render(<BmadCapabilityPanel {...props} />);
+    expect(
+      screen.getByRole("heading", { name: /inactive draft produced/i }),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(
+      /(?:Install|Activate|Register|Execute|Apply)/u,
+    );
+    expect(screen.queryByRole("button", { name: /install|activate|register/i })).toBeNull();
+    await expectAccessible(container);
+  });
+
   it("surfaces errors and stays accessible", async () => {
     const props = createProps({
       kind: "error",

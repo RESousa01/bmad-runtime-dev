@@ -1381,13 +1381,15 @@ test("capability closure ledger covers every roster menu path exactly once", asy
     assert.equal(record.outputArchetype, "inactive_builder_draft");
   }
 
-  // Task 7 activation: every reviewed menu capability was proven through
-  // the generic lifecycle matrix; Builder operations activate in Task 8.
+  // Tasks 7-8 activation: every reviewed capability (26 menu paths and
+  // the five Builder authoring operations) was proven through the
+  // generic lifecycle matrix. Builder outputs stay inactive drafts
+  // (ADR-0006): activation here means the authoring flow runs, never
+  // that a draft can execute.
   for (const record of records) {
-    const expected = record.capabilityId.startsWith("bmm:") ? "active" : "planned";
     assert.equal(
       record.activationStatus,
-      expected,
+      "active",
       `${record.capabilityId} activation status`,
     );
     assert.ok(

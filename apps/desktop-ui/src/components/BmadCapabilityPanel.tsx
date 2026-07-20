@@ -239,7 +239,19 @@ function CompletedResult({
       : null;
   return (
     <div className="bmad-capability-panel__body">
-      {completed.resultKind === "governed_change_set" ? (
+      {completed.resultKind === "inactive_builder_draft" ? (
+        <section aria-label="Inactive builder draft">
+          <h3>Inactive draft produced</h3>
+          <p>
+            This run produced a versioned Builder draft. It is stored as
+            inactive data: it cannot install, register, execute, or appear
+            in the capability catalog.
+          </p>
+          <p role="note">
+            Draft <code>{completed.runId}</code> stays local and inert.
+          </p>
+        </section>
+      ) : completed.resultKind === "governed_change_set" ? (
         <section aria-label="Candidate change set">
           <h3>Candidate change set produced</h3>
           <p>

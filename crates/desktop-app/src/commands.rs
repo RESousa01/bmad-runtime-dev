@@ -2678,6 +2678,7 @@ mod tests {
             };
             let expected_kind = match binding.output_schema_id {
                 desktop_runtime::BMAD_GOVERNED_CHANGE_SET_SCHEMA => "governed_change_set",
+                desktop_runtime::BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA => "inactive_builder_draft",
                 _ => "document_artifact",
             };
             assert_eq!(completed.result_kind, expected_kind, "{}", binding.id);

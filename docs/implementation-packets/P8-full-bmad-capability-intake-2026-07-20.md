@@ -149,3 +149,16 @@
   apply affordance, axe-clean in every state), and the library menu
   launches runs through the 26-path MENU_CAPABILITIES map in App.
   Renderer 27 files / 346 tests; boundaries green; pushed at bff9835b.
+- 2026-07-20 — TASK 8 CLOSED (ADR-0006). The five Builder authoring
+  operations run through the same generic lifecycle: CAPABILITY_TABLE
+  grew to 29 with the sealed builder projections; the wire verifier
+  gained exact-key enforcement across all three archetypes (activation,
+  registration, command, hook, and network fields in a draft are
+  rejected as authority smuggling — proven by red tests); the 29-entry
+  matrix completes end-to-end; drafts render inertly with an explicit
+  "cannot install, register, execute" state and no activation
+  affordance (axe-clean). All 29 closure records are now active — for
+  Builder, activation means authoring runs, never draft execution
+  (ADR-0003's executable exclusion stands). Deliberate deviation noted
+  in the ADR: drafts persist as capability-run results, not through the
+  legacy Builder revision repository.

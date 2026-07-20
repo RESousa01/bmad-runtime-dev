@@ -373,7 +373,7 @@
       "outputArchetype": "inactive_builder_draft",
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
-      "activationStatus": "planned",
+      "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/agent-analyze.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
     },
@@ -384,7 +384,7 @@
       "outputArchetype": "inactive_builder_draft",
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
-      "activationStatus": "planned",
+      "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
     },
@@ -395,7 +395,7 @@
       "outputArchetype": "inactive_builder_draft",
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
-      "activationStatus": "planned",
+      "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/agent-edit.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
     },
@@ -406,7 +406,7 @@
       "outputArchetype": "inactive_builder_draft",
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
-      "activationStatus": "planned",
+      "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
     },
@@ -417,7 +417,7 @@
       "outputArchetype": "inactive_builder_draft",
       "authorityClass": "model_with_reviewed_context",
       "sourceDecision": "semantic_rewrite_from_reviewed_source",
-      "activationStatus": "planned",
+      "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
     }

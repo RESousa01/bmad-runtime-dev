@@ -37,9 +37,10 @@ pub(crate) struct CapabilityBinding {
     pub projection_path: &'static str,
 }
 
-/// The 24 unique reviewed menu capabilities (ADR-0005). Builder authoring
-/// operations join in the Task 8 lane.
-pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 24] = [
+/// The 29 reviewed capabilities (ADR-0005): 24 unique menu capabilities
+/// plus the five Builder authoring operations (ADR-0006), whose outputs
+/// are inactive drafts and can never install, register, or execute.
+pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 29] = [
     CapabilityBinding {
         id: "bmm:bmad-brainstorming",
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
@@ -160,6 +161,31 @@ pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 24] = [
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
         projection_path: "runtime/method/6.10.0/retrospective.instructions.md",
     },
+    CapabilityBinding {
+        id: "builder:agent.analyze",
+        output_schema_id: BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+        projection_path: "runtime/builder/2.1.0/agent-analyze.instructions.md",
+    },
+    CapabilityBinding {
+        id: "builder:agent.create_rebuild",
+        output_schema_id: BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+        projection_path: "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+    },
+    CapabilityBinding {
+        id: "builder:agent.edit",
+        output_schema_id: BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+        projection_path: "runtime/builder/2.1.0/agent-edit.instructions.md",
+    },
+    CapabilityBinding {
+        id: "builder:workflow.analyze",
+        output_schema_id: BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+        projection_path: "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+    },
+    CapabilityBinding {
+        id: "builder:workflow.build_edit",
+        output_schema_id: BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+        projection_path: "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+    },
 ];
 
 pub(crate) fn capability_binding(capability_id: &str) -> Option<&'static CapabilityBinding> {
@@ -182,6 +208,11 @@ pub(crate) fn parse_capability_result(
         .and_then(Value::as_str)
         .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
     match result_kind {
+        "document_artifact" | "governed_change_set" | "inactive_builder_draft"
+            if object.len() != 2 =>
+        {
+            Err(BmadCapabilityCoordinatorError::OutputRejected)
+        }
         "document_artifact" => parse_document_artifact(
             object
                 .get("documentArtifact")
@@ -207,6 +238,17 @@ pub(crate) fn parse_capability_result(
 fn parse_document_artifact(
     artifact: &serde_json::Map<String, Value>,
 ) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    require_exact_keys(
+        artifact,
+        &[
+            "schemaVersion",
+            "title",
+            "sections",
+            "evidenceRefs",
+            "openQuestions",
+        ],
+        &["mermaidText"],
+    )?;
     {
         {
             if artifact.get("schemaVersion").and_then(Value::as_str)
@@ -258,6 +300,7 @@ fn parse_document_artifact(
 fn parse_governed_change_set(
     change_set: &serde_json::Map<String, Value>,
 ) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    require_exact_keys(change_set, &["schemaVersion", "summary", "changes"], &[])?;
     {
         {
             if change_set.get("schemaVersion").and_then(Value::as_str)
@@ -282,6 +325,17 @@ fn parse_governed_change_set(
 fn parse_inactive_builder_draft(
     draft: &serde_json::Map<String, Value>,
 ) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    require_exact_keys(
+        draft,
+        &[
+            "schemaVersion",
+            "draftKind",
+            "title",
+            "revisionNote",
+            "files",
+        ],
+        &[],
+    )?;
     {
         {
             if draft.get("schemaVersion").and_then(Value::as_str)
@@ -319,6 +373,26 @@ fn parse_inactive_builder_draft(
             .map_err(|_| BmadCapabilityCoordinatorError::OutputRejected)
         }
     }
+}
+
+/// Rejects any key outside the closed reviewed set: an unexpected field is
+/// treated as an authority-smuggling attempt, never ignored.
+fn require_exact_keys(
+    object: &serde_json::Map<String, Value>,
+    required: &[&str],
+    optional: &[&str],
+) -> Result<(), BmadCapabilityCoordinatorError> {
+    for key in object.keys() {
+        if !required.contains(&key.as_str()) && !optional.contains(&key.as_str()) {
+            return Err(BmadCapabilityCoordinatorError::OutputRejected);
+        }
+    }
+    for key in required {
+        if !object.contains_key(*key) {
+            return Err(BmadCapabilityCoordinatorError::OutputRejected);
+        }
+    }
+    Ok(())
 }
 
 fn required_string(value: Option<&Value>) -> Result<String, BmadCapabilityCoordinatorError> {
@@ -409,6 +483,23 @@ impl BmadCapabilityOutputVerifier for WireCapabilityOutputVerifier {
 /// capability's archetype, used only in the deterministic composition.
 pub(crate) fn deterministic_fixture_for(binding: &CapabilityBinding) -> String {
     match binding.output_schema_id {
+        BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA => serde_json::json!({
+            "resultKind": "inactive_builder_draft",
+            "inactiveBuilderDraft": {
+                "schemaVersion": BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+                "draftKind": if binding.id.starts_with("builder:workflow") { "workflow" } else { "agent" },
+                "title": format!("Deterministic draft: {}", binding.id),
+                "revisionNote": "Produced by the deterministic composition; inactive by design.",
+                "files": [{
+                    "path": "draft.instructions.md",
+                    "content": "# Deterministic inactive draft
+
+This draft cannot install, register, or execute.
+",
+                }],
+            },
+        })
+        .to_string(),
         BMAD_GOVERNED_CHANGE_SET_SCHEMA => serde_json::json!({
             "resultKind": "governed_change_set",
             "governedChangeSet": {
@@ -752,4 +843,51 @@ pub(crate) fn context_candidate(
         classification: ContextClassification::Internal,
         content,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::parse_capability_result;
+
+    fn draft_value(extra_draft_keys: &str, extra_top_keys: &str) -> serde_json::Value {
+        let json = format!(
+            r##"{{
+              "resultKind": "inactive_builder_draft"{extra_top_keys},
+              "inactiveBuilderDraft": {{
+                "schemaVersion": "sapphirus.bmad-inactive-builder-draft.v1",
+                "draftKind": "agent",
+                "title": "Draft reviewer",
+                "revisionNote": "First draft.",
+                "files": [{{"path": "agent.instructions.md", "content": "# Draft"}}]{extra_draft_keys}
+              }}
+            }}"##
+        );
+        serde_json::from_str(&json).expect("test JSON")
+    }
+
+    #[test]
+    fn builder_drafts_parse_only_as_inactive_data() {
+        assert!(parse_capability_result(&draft_value("", "")).is_ok());
+    }
+
+    #[test]
+    fn authority_bearing_fields_fail_closed_everywhere() {
+        // Draft-level authority claims are rejected, never ignored.
+        for smuggled in [
+            r#", "activate": true"#,
+            r#", "registration": {"install": true}"#,
+            r#", "command": "pwsh""#,
+            r#", "hooks": []"#,
+            r#", "network": {"allow": "*"}"#,
+        ] {
+            assert!(
+                parse_capability_result(&draft_value(smuggled, "")).is_err(),
+                "accepted draft authority field: {smuggled}"
+            );
+        }
+        // Top-level envelope smuggling is rejected too.
+        assert!(parse_capability_result(&draft_value("", r#", "approved": true"#)).is_err());
+    }
 }
