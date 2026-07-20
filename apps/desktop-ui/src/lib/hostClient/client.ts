@@ -32,6 +32,13 @@ import {
   parseWorkspaceEditsEnabledReply,
 } from "./changesProtocol";
 import {
+  parseCapabilityApprovedReply,
+  parseCapabilityCancelledReply,
+  parseCapabilityCompletedReply,
+  parseCapabilityReviewReply,
+  parseCapabilityRunLatestReply,
+} from "./capabilityProtocol";
+import {
   parseAboutReply,
   parseOffboardingErasedReply,
   parsePreferencesReply,
@@ -43,6 +50,9 @@ import {
   buildChangesRecoveryPrepareEnvelope,
   buildBmadHelpRunEnvelope,
   buildBmadModelEnvelope,
+  buildCapabilityDecisionEnvelope,
+  buildCapabilityLatestEnvelope,
+  buildCapabilityPrepareEnvelope,
   buildEmptyPayloadEnvelope,
   buildOffboardingEraseEnvelope,
   buildLatestBmadHelpRunEnvelope,
@@ -59,6 +69,11 @@ import {
 import {
   type AboutProjection,
   type ApprovalChoice,
+  type CapabilityApprovedProjection,
+  type CapabilityCancelledProjection,
+  type CapabilityCompletedProjection,
+  type CapabilityReviewProjection,
+  type CapabilityRunLatestProjection,
   type OffboardingErasedProjection,
   type RetentionManifestProjection,
   type BmadScanProjection,
@@ -706,6 +721,135 @@ export class DesktopHostClient {
       body: JSON.stringify(envelope),
     });
     const parsed = parseOffboardingErasedReply(reply, requestId);
+    return parsed.projection;
+  }
+
+  async prepareCapabilityRun(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+    contextPaths: string[],
+  ): Promise<CapabilityReviewProjection> {
+    const bootstrap = this.requireCommand("bmad.capability.prepare");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityPrepareEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      capabilityId,
+      contextPaths,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseCapabilityReviewReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async approveCapabilityRun(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+    manifestHash: string,
+  ): Promise<CapabilityApprovedProjection> {
+    const bootstrap = this.requireCommand("bmad.capability.approve");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityDecisionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.capability.approve",
+      { workspaceId, workspaceGrantEpoch, capabilityId, manifestHash },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseCapabilityApprovedReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async cancelCapabilityRun(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+    manifestHash: string,
+    decisionId: string,
+  ): Promise<CapabilityCancelledProjection> {
+    const bootstrap = this.requireCommand("bmad.capability.cancel");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityDecisionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.capability.cancel",
+      { workspaceId, workspaceGrantEpoch, capabilityId, manifestHash, decisionId },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseCapabilityCancelledReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async submitCapabilityRun(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+    manifestHash: string,
+    decisionId: string,
+  ): Promise<CapabilityCompletedProjection> {
+    const bootstrap = this.requireCommand("bmad.capability.submit");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityDecisionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "bmad.capability.submit",
+      { workspaceId, workspaceGrantEpoch, capabilityId, manifestHash, decisionId },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseCapabilityCompletedReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async latestCapabilityRun(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+  ): Promise<CapabilityRunLatestProjection> {
+    const bootstrap = this.requireCommand("bmad.capability.latest");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityLatestEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      capabilityId,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseCapabilityRunLatestReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
     return parsed.projection;
   }
 

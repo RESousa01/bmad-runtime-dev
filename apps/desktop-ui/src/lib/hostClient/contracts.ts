@@ -101,6 +101,40 @@ export interface AboutProjection {
   updateInstallAvailable: boolean;
 }
 
+export interface CapabilityReviewProjection {
+  capabilityId: string;
+  runId: string;
+  manifestHash: string;
+  expiresAt: number;
+}
+
+export interface CapabilityApprovedProjection {
+  capabilityId: string;
+  manifestHash: string;
+  decisionId: string;
+  expiresAt: number;
+}
+
+export interface CapabilityCancelledProjection {
+  capabilityId: string;
+  manifestHash: string;
+  cancelled: true;
+}
+
+export interface CapabilityCompletedProjection {
+  capabilityId: string;
+  runId: string;
+  resultKind: string;
+}
+
+export interface CapabilityRunLatestProjection {
+  capabilityId: string;
+  found: boolean;
+  runId: string | null;
+  resultKind: string | null;
+  resultJson: string | null;
+}
+
 export interface RetentionCategory {
   category: string;
   count: number;

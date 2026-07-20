@@ -96,6 +96,104 @@ export function buildOffboardingEraseEnvelope(
   };
 }
 
+export function buildCapabilityPrepareEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  capabilityId: string,
+  contextPaths: string[],
+): CommandEnvelope<
+  "bmad.capability.prepare",
+  {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    capabilityId: string;
+    contextPaths: string[];
+  }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.capability.prepare",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(workspaceGrantEpoch),
+      capabilityId,
+      contextPaths,
+    },
+  };
+}
+
+export function buildCapabilityDecisionEnvelope<
+  TCommand extends
+    | "bmad.capability.approve"
+    | "bmad.capability.cancel"
+    | "bmad.capability.submit",
+>(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  command: TCommand,
+  payload: TCommand extends "bmad.capability.approve"
+    ? {
+      workspaceId: string;
+      workspaceGrantEpoch: number;
+      capabilityId: string;
+      manifestHash: string;
+    }
+    : {
+      workspaceId: string;
+      workspaceGrantEpoch: number;
+      capabilityId: string;
+      manifestHash: string;
+      decisionId: string;
+    },
+): CommandEnvelope<TCommand, typeof payload> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command,
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload,
+  };
+}
+
+export function buildCapabilityLatestEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  capabilityId: string,
+): CommandEnvelope<
+  "bmad.capability.latest",
+  { workspaceId: string; workspaceGrantEpoch: number; capabilityId: string }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.capability.latest",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(workspaceGrantEpoch),
+      capabilityId,
+    },
+  };
+}
+
 export function buildPreferencesUpdateEnvelope(
   binding: HostBinding,
   requestId: string,
