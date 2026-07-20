@@ -89,6 +89,25 @@ slice's evidence.
 ## Review ledger
 
 - P5-A executed 2026-07-20: ADR-0003 + this packet; denominator measured
-  (76 members / 26 deferred); no ledger, verifier, or product changes, so
-  the standing green gates from P4 (`d9fabb90`) remain the evidence
-  baseline. Remaining slices execute under their own lanes.
+  (76 members / 26 deferred); committed `e47fd9c8`.
+- P5-B foundation lane executed 2026-07-20 (reshaped from a single
+  analyst-workflow vertical to uniform roster persona breadth after the
+  backlog decomposition showed the five deferred agent SKILLs as the
+  coherent slice): five sealed persona projections + envelopes, ledger
+  conversions, verifier/test/manifest chain — committed as the
+  foundation lane and the Rust consumer lane.
+- Denominator after P5-B: 76 members / **21 deferred** (method-006, 008,
+  014, 016, 020 converted to adopt+adapt).
+- Discovery recorded: the desktop-runtime kernel requires the help
+  package descriptor to cover every managed projection
+  (`instructionProjections` and `resourceInventory` are closed over the
+  managed set), and desktop-app pins the manifest/ledger hashes — the
+  sealed chain spans four crates plus the foundation package, all
+  re-verified.
+- Gates: foundation verify green (76 members / 17 managed outputs);
+  foundation tests 69/69; workspace fmt/clippy `-D warnings` clean;
+  59 Rust suites green; `pnpm verify:deferred-full` exit 0 (one
+  transient cargo-typify/rustfmt broken-pipe flake observed and
+  cleared on retry with no change).
+- Remaining P5 slices: capability wiring for the projected personas
+  (catalog/envelope/renderer lanes) and P5-C/P5-D per this packet.
