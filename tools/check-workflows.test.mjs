@@ -61,3 +61,14 @@ test("automated review excludes the read-only upstream source vault", () => {
     "reference-vault integrity verification must remain enabled",
   );
 });
+
+test("generator qualification does not duplicate the desktop all-feature Rust gate", () => {
+  const contractsWorkflow = workflows.find(({ name }) => name === "contracts.yml")?.source;
+  const desktopWorkflow = workflows.find(({ name }) => name === "desktop.yml")?.source;
+  assert.ok(contractsWorkflow, "contracts.yml must exist");
+  assert.ok(desktopWorkflow, "desktop.yml must exist");
+  assert.doesNotMatch(contractsWorkflow, /cargo clippy --workspace --all-targets --all-features/u);
+  assert.doesNotMatch(contractsWorkflow, /cargo test --workspace --all-features/u);
+  assert.match(desktopWorkflow, /cargo clippy --workspace --all-targets --all-features --locked/u);
+  assert.match(desktopWorkflow, /cargo test --workspace --all-features --locked/u);
+});
