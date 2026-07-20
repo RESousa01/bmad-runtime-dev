@@ -162,6 +162,10 @@ impl fmt::Debug for ApprovedBmadHelpReview {
 }
 
 #[derive(Clone, Debug)]
+#[allow(
+    dead_code,
+    reason = "advancing identities are retained for the Task 9 restart matrix"
+)]
 struct BmadHelpAdvancing {
     workspace: ContractId,
     run: ContractId,
@@ -301,6 +305,10 @@ impl BmadHelpCoordinator {
     }
 
     #[must_use]
+    #[allow(
+        dead_code,
+        reason = "renderer bootstrap wiring consumes this in the panel slice"
+    )]
     pub const fn has_active_review(&self) -> bool {
         matches!(
             self.active,

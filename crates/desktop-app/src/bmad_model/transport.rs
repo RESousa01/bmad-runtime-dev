@@ -14,6 +14,13 @@ pub(super) trait BmadHelpTransport: Send + Sync {
 }
 
 #[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "deterministic-help",
+    allow(
+        dead_code,
+        reason = "the offline seam composes when deterministic help is off"
+    )
+)]
 pub(super) struct OfflineHelpTransport;
 
 impl BmadHelpTransport for OfflineHelpTransport {
@@ -32,6 +39,7 @@ impl BmadHelpTransport for OfflineHelpTransport {
 /// deployed support plane round-trip is activated during rollout; it never
 /// degrades to deterministic or unsigned behavior.
 #[cfg(feature = "production-support")]
+#[allow(dead_code, reason = "composed by the Task 9 deployed round trip")]
 pub(super) struct ProductionHelpTransport {
     _client: desktop_cloud::ProductionSupportClient,
 }
@@ -46,6 +54,7 @@ impl std::fmt::Debug for ProductionHelpTransport {
 }
 
 #[cfg(feature = "production-support")]
+#[allow(dead_code, reason = "composed by the Task 9 deployed round trip")]
 impl ProductionHelpTransport {
     pub(super) fn new(client: desktop_cloud::ProductionSupportClient) -> Self {
         Self { _client: client }

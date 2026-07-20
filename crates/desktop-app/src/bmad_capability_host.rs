@@ -182,11 +182,33 @@ pub(crate) fn parse_capability_result(
         .and_then(Value::as_str)
         .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
     match result_kind {
-        "document_artifact" => {
-            let artifact = object
+        "document_artifact" => parse_document_artifact(
+            object
                 .get("documentArtifact")
                 .and_then(Value::as_object)
-                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
+                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?,
+        ),
+        "governed_change_set" => parse_governed_change_set(
+            object
+                .get("governedChangeSet")
+                .and_then(Value::as_object)
+                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?,
+        ),
+        "inactive_builder_draft" => parse_inactive_builder_draft(
+            object
+                .get("inactiveBuilderDraft")
+                .and_then(Value::as_object)
+                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?,
+        ),
+        _ => Err(BmadCapabilityCoordinatorError::OutputRejected),
+    }
+}
+
+fn parse_document_artifact(
+    artifact: &serde_json::Map<String, Value>,
+) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    {
+        {
             if artifact.get("schemaVersion").and_then(Value::as_str)
                 != Some(BMAD_DOCUMENT_ARTIFACT_SCHEMA)
             {
@@ -230,11 +252,14 @@ pub(crate) fn parse_capability_result(
             .map(BmadCapabilityOutput::DocumentArtifact)
             .map_err(|_| BmadCapabilityCoordinatorError::OutputRejected)
         }
-        "governed_change_set" => {
-            let change_set = object
-                .get("governedChangeSet")
-                .and_then(Value::as_object)
-                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
+    }
+}
+
+fn parse_governed_change_set(
+    change_set: &serde_json::Map<String, Value>,
+) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    {
+        {
             if change_set.get("schemaVersion").and_then(Value::as_str)
                 != Some(BMAD_GOVERNED_CHANGE_SET_SCHEMA)
             {
@@ -251,11 +276,14 @@ pub(crate) fn parse_capability_result(
                 .map(BmadCapabilityOutput::GovernedChangeSet)
                 .map_err(|_| BmadCapabilityCoordinatorError::OutputRejected)
         }
-        "inactive_builder_draft" => {
-            let draft = object
-                .get("inactiveBuilderDraft")
-                .and_then(Value::as_object)
-                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
+    }
+}
+
+fn parse_inactive_builder_draft(
+    draft: &serde_json::Map<String, Value>,
+) -> Result<BmadCapabilityOutput, BmadCapabilityCoordinatorError> {
+    {
+        {
             if draft.get("schemaVersion").and_then(Value::as_str)
                 != Some(BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA)
             {
@@ -290,7 +318,6 @@ pub(crate) fn parse_capability_result(
             .map(BmadCapabilityOutput::InactiveBuilderDraft)
             .map_err(|_| BmadCapabilityCoordinatorError::OutputRejected)
         }
-        _ => Err(BmadCapabilityCoordinatorError::OutputRejected),
     }
 }
 
@@ -581,16 +608,56 @@ pub(crate) fn assemble_capability_prepare(
         .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
     let request_id = derived_contract_id("modelreq", run_digest)
         .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
+    let invocation_binding = seal_capability_binding(SealCapabilityBinding {
+        request_id,
+        installation_id: input.installation_id,
+        session_authority_hash,
+        purpose,
+        manifest: &manifest,
+    })?;
+
+    Ok(PrepareCapabilityRunInput {
+        capability_id,
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        workspace_context_read_epoch: input.workspace_context_read_epoch,
+        run_id,
+        instruction_hash,
+        output_schema_id: input.binding.output_schema_id.to_owned(),
+        manifest,
+        invocation_binding,
+        deterministic_fixture: deterministic_fixture_for(input.binding),
+    })
+}
+
+struct SealCapabilityBinding<'a> {
+    request_id: ContractId,
+    installation_id: &'a ContractId,
+    session_authority_hash: Sha256Digest,
+    purpose: String,
+    manifest: &'a desktop_egress::ContextEgressManifest,
+}
+
+fn seal_capability_binding(
+    input: SealCapabilityBinding<'_>,
+) -> Result<desktop_egress::ModelInvocationBinding, BmadCapabilityCoordinatorError> {
+    let SealCapabilityBinding {
+        request_id,
+        installation_id,
+        session_authority_hash,
+        purpose,
+        manifest,
+    } = input;
     let consent_disclosure_hash = sha256_bytes(
         b"Only the exact reviewed context shown here will be sent once. Redaction reduces risk but cannot prove that every secret was detected.",
     );
-    let invocation_binding = ModelInvocationBindingDraft {
+    ModelInvocationBindingDraft {
         schema_version: "sapphirus.model-invocation-binding.v1".to_owned(),
         request_id,
         tenant_ref: manifest.draft.tenant_ref.clone(),
         project_ref: manifest.draft.project_ref.clone(),
         run_ref: manifest.draft.run_ref.clone(),
-        installation_id: input.installation_id.clone(),
+        installation_id: installation_id.clone(),
         session_authority_hash,
         manifest_hash: manifest.manifest_hash,
         purpose,
@@ -606,31 +673,27 @@ pub(crate) fn assemble_capability_prepare(
         consent_disclosure_hash,
     }
     .seal()
-    .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
+    .map_err(|_| BmadCapabilityCoordinatorError::Integrity)
+}
 
-    Ok(PrepareCapabilityRunInput {
-        capability_id,
-        workspace_id: input.workspace_id,
-        workspace_grant_epoch: input.workspace_grant_epoch,
-        workspace_context_read_epoch: input.workspace_context_read_epoch,
-        run_id,
-        instruction_hash,
-        output_schema_id: input.binding.output_schema_id.to_owned(),
-        manifest,
-        invocation_binding,
-        deterministic_fixture: deterministic_fixture_for(input.binding),
-        created_at: input.created_at,
-    })
+pub(crate) struct WorkspaceBindingInput {
+    pub id: ContractId,
+    pub grant_epoch: u64,
+    pub context_read_epoch: u64,
 }
 
 pub(crate) fn approve_input(
     capability_id: &str,
+    workspace: WorkspaceBindingInput,
     manifest_hash: Sha256Digest,
     approved_at: UnixMillis,
 ) -> Result<ApproveCapabilityRunInput, BmadCapabilityCoordinatorError> {
     Ok(ApproveCapabilityRunInput {
         capability_id: BmadClosureCapabilityId::new(capability_id)
             .map_err(|_| BmadCapabilityCoordinatorError::CapabilityBindingMismatch)?,
+        workspace_id: workspace.id,
+        workspace_grant_epoch: workspace.grant_epoch,
+        workspace_context_read_epoch: workspace.context_read_epoch,
         manifest_hash,
         approved_at,
     })
@@ -638,6 +701,7 @@ pub(crate) fn approve_input(
 
 pub(crate) fn cancel_input(
     capability_id: &str,
+    workspace: WorkspaceBindingInput,
     manifest_hash: Sha256Digest,
     decision_id: ContractId,
     cancelled_at: UnixMillis,
@@ -645,6 +709,9 @@ pub(crate) fn cancel_input(
     Ok(CancelCapabilityRunInput {
         capability_id: BmadClosureCapabilityId::new(capability_id)
             .map_err(|_| BmadCapabilityCoordinatorError::CapabilityBindingMismatch)?,
+        workspace_id: workspace.id,
+        workspace_grant_epoch: workspace.grant_epoch,
+        workspace_context_read_epoch: workspace.context_read_epoch,
         manifest_hash,
         decision_id,
         cancelled_at,
@@ -653,6 +720,7 @@ pub(crate) fn cancel_input(
 
 pub(crate) fn submit_input(
     capability_id: &str,
+    workspace: WorkspaceBindingInput,
     manifest_hash: Sha256Digest,
     decision_id: ContractId,
     submitted_at: UnixMillis,
@@ -660,6 +728,9 @@ pub(crate) fn submit_input(
     Ok(SubmitCapabilityRunInput {
         capability_id: BmadClosureCapabilityId::new(capability_id)
             .map_err(|_| BmadCapabilityCoordinatorError::CapabilityBindingMismatch)?,
+        workspace_id: workspace.id,
+        workspace_grant_epoch: workspace.grant_epoch,
+        workspace_context_read_epoch: workspace.context_read_epoch,
         manifest_hash,
         decision_id,
         submitted_at,

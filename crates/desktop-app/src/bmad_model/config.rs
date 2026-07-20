@@ -41,6 +41,7 @@ struct NamedProfile<'a> {
 /// Package-controlled production support values. All-or-nothing: partial
 /// values fail closed so production mode can never start half-configured.
 #[cfg(feature = "production-support")]
+#[allow(dead_code, reason = "consumed by the Task 9 deployed round trip")]
 pub(crate) struct ProductionSupportSettings {
     pub tenant_id: &'static str,
     pub api_client_id: &'static str,

@@ -193,7 +193,6 @@ fn prepare_input(
         manifest,
         invocation_binding: binding,
         deterministic_fixture: "{\"fixture\":\"capability\"}".to_owned(),
-        created_at,
     }
 }
 
@@ -234,6 +233,9 @@ fn approve(lifecycle: &mut Lifecycle) {
     let approved = lifecycle
         .coordinator
         .approve(&ApproveCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
             capability_id: lifecycle.capability.clone(),
             manifest_hash: lifecycle.manifest_hash,
             approved_at: UnixMillis(20_000),
@@ -270,6 +272,9 @@ fn the_same_lifecycle_drives_two_capabilities_to_their_archetypes(
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    workspace_id: id("workspace_01J00000000000000000000000"),
+                    workspace_grant_epoch: 1,
+                    workspace_context_read_epoch: 1,
                     capability_id: lifecycle.capability.clone(),
                     manifest_hash: lifecycle.manifest_hash,
                     decision_id: lifecycle.decision_id.clone().expect("decision"),
@@ -342,6 +347,9 @@ fn decisions_bind_to_one_capability_and_manifest() {
         lifecycle
             .coordinator
             .approve(&ApproveCapabilityRunInput {
+                workspace_id: id("workspace_01J00000000000000000000000"),
+                workspace_grant_epoch: 1,
+                workspace_context_read_epoch: 1,
                 capability_id: capability("bmm:bmad-dev-story"),
                 manifest_hash: lifecycle.manifest_hash,
                 approved_at: UnixMillis(20_000),
@@ -354,6 +362,9 @@ fn decisions_bind_to_one_capability_and_manifest() {
         lifecycle
             .coordinator
             .approve(&ApproveCapabilityRunInput {
+                workspace_id: id("workspace_01J00000000000000000000000"),
+                workspace_grant_epoch: 1,
+                workspace_context_read_epoch: 1,
                 capability_id: lifecycle.capability.clone(),
                 manifest_hash: desktop_runtime::sha256_bytes(b"foreign manifest"),
                 approved_at: UnixMillis(20_000),
@@ -370,6 +381,9 @@ fn decisions_bind_to_one_capability_and_manifest() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    workspace_id: id("workspace_01J00000000000000000000000"),
+                    workspace_grant_epoch: 1,
+                    workspace_context_read_epoch: 1,
                     capability_id: capability("bmm:bmad-dev-story"),
                     manifest_hash: lifecycle.manifest_hash,
                     decision_id: lifecycle.decision_id.clone().expect("decision"),
@@ -400,6 +414,9 @@ fn an_output_of_the_wrong_archetype_terminates_the_flow() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    workspace_id: id("workspace_01J00000000000000000000000"),
+                    workspace_grant_epoch: 1,
+                    workspace_context_read_epoch: 1,
                     capability_id: lifecycle.capability.clone(),
                     manifest_hash: lifecycle.manifest_hash,
                     decision_id: lifecycle.decision_id.clone().expect("decision"),
@@ -437,6 +454,9 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
     lifecycle
         .coordinator
         .cancel(&CancelCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
             capability_id: lifecycle.capability.clone(),
             manifest_hash: lifecycle.manifest_hash,
             decision_id: lifecycle.decision_id.clone().expect("decision"),
@@ -450,6 +470,9 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    workspace_id: id("workspace_01J00000000000000000000000"),
+                    workspace_grant_epoch: 1,
+                    workspace_context_read_epoch: 1,
                     capability_id: lifecycle.capability.clone(),
                     manifest_hash: lifecycle.manifest_hash,
                     decision_id: lifecycle.decision_id.clone().expect("decision"),
@@ -478,6 +501,9 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    workspace_id: id("workspace_01J00000000000000000000000"),
+                    workspace_grant_epoch: 1,
+                    workspace_context_read_epoch: 1,
                     capability_id: expired.capability.clone(),
                     manifest_hash: expired.manifest_hash,
                     decision_id: expired.decision_id.clone().expect("decision"),
@@ -512,6 +538,9 @@ fn invalidation_withdraws_the_active_flow() {
         lifecycle
             .coordinator
             .approve(&ApproveCapabilityRunInput {
+                workspace_id: id("workspace_01J00000000000000000000000"),
+                workspace_grant_epoch: 1,
+                workspace_context_read_epoch: 1,
                 capability_id: lifecycle.capability.clone(),
                 manifest_hash: lifecycle.manifest_hash,
                 approved_at: UnixMillis(25_000),

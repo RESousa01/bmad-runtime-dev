@@ -483,7 +483,9 @@ fn execute_command(
             workspace_id,
             workspace_grant_epoch,
             capability_id,
-        } => latest_bmad_capability_run(state, workspace_id, workspace_grant_epoch, &capability_id),
+        } => {
+            latest_bmad_capability_run(state, &workspace_id, workspace_grant_epoch, &capability_id)
+        }
         LocalCommand::OffboardingInspect => {
             let _authority = state.ready_authority()?;
             offboarding_inspect(state)
@@ -1212,9 +1214,18 @@ fn approve_bmad_capability_run(
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
-    let input =
-        crate::bmad_capability_host::approve_input(capability_id, manifest_hash, approved_at)
-            .map_err(map_capability_error)?;
+    let workspace = workspace_authority.projection();
+    let input = crate::bmad_capability_host::approve_input(
+        capability_id,
+        crate::bmad_capability_host::WorkspaceBindingInput {
+            id: workspace_id,
+            grant_epoch: workspace_grant_epoch,
+            context_read_epoch: workspace.context_read_epoch,
+        },
+        manifest_hash,
+        approved_at,
+    )
+    .map_err(map_capability_error)?;
     let approved = state
         .bmad_capabilities
         .lock()
@@ -1239,8 +1250,14 @@ fn cancel_bmad_capability_run(
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
+    let workspace = workspace_authority.projection();
     let input = crate::bmad_capability_host::cancel_input(
         capability_id,
+        crate::bmad_capability_host::WorkspaceBindingInput {
+            id: workspace_id,
+            grant_epoch: workspace_grant_epoch,
+            context_read_epoch: workspace.context_read_epoch,
+        },
         manifest_hash,
         decision_id,
         cancelled_at,
@@ -1277,8 +1294,14 @@ fn submit_bmad_capability_run(
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
     let store = state.local_store(authority.authority())?;
+    let workspace = workspace_authority.projection();
     let input = crate::bmad_capability_host::submit_input(
         capability_id,
+        crate::bmad_capability_host::WorkspaceBindingInput {
+            id: workspace_id,
+            grant_epoch: workspace_grant_epoch,
+            context_read_epoch: workspace.context_read_epoch,
+        },
         manifest_hash,
         decision_id,
         submitted_at,
@@ -1302,7 +1325,7 @@ fn submit_bmad_capability_run(
 
 fn latest_bmad_capability_run(
     state: &HostState,
-    workspace_id: ContractId,
+    workspace_id: &ContractId,
     workspace_grant_epoch: u64,
     capability_id: &str,
 ) -> Result<HostCommandData, LocalError> {
@@ -1313,7 +1336,7 @@ fn latest_bmad_capability_run(
         .map_err(|error| map_workspace_error(&error))?;
     let store = state.local_store(authority.authority())?;
     let record = store
-        .latest_bmad_capability_run(&workspace_id, capability_id)
+        .latest_bmad_capability_run(workspace_id, capability_id)
         .map_err(|_| {
             LocalError::new(
                 LocalErrorCode::IntegrityFailure,

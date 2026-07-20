@@ -79,17 +79,22 @@ pub(crate) struct PrepareCapabilityRunInput {
     pub manifest: ContextEgressManifest,
     pub invocation_binding: ModelInvocationBinding,
     pub deterministic_fixture: String,
-    pub created_at: UnixMillis,
 }
 
 pub(crate) struct ApproveCapabilityRunInput {
     pub capability_id: BmadClosureCapabilityId,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub workspace_context_read_epoch: u64,
     pub manifest_hash: Sha256Digest,
     pub approved_at: UnixMillis,
 }
 
 pub(crate) struct CancelCapabilityRunInput {
     pub capability_id: BmadClosureCapabilityId,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub workspace_context_read_epoch: u64,
     pub manifest_hash: Sha256Digest,
     pub decision_id: ContractId,
     pub cancelled_at: UnixMillis,
@@ -97,6 +102,9 @@ pub(crate) struct CancelCapabilityRunInput {
 
 pub(crate) struct SubmitCapabilityRunInput {
     pub capability_id: BmadClosureCapabilityId,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub workspace_context_read_epoch: u64,
     pub manifest_hash: Sha256Digest,
     pub decision_id: ContractId,
     pub submitted_at: UnixMillis,
@@ -162,6 +170,19 @@ enum ActiveCapabilityRun {
     Terminal(CapabilityTerminalReason),
 }
 
+const fn terminal_error(reason: CapabilityTerminalReason) -> BmadCapabilityCoordinatorError {
+    match reason {
+        CapabilityTerminalReason::ConsentExpired => BmadCapabilityCoordinatorError::ConsentExpired,
+        CapabilityTerminalReason::ConsentConsumed => {
+            BmadCapabilityCoordinatorError::ConsentAlreadyConsumed
+        }
+        CapabilityTerminalReason::OutputRejected => BmadCapabilityCoordinatorError::OutputRejected,
+        CapabilityTerminalReason::Cancelled | CapabilityTerminalReason::Invalidated => {
+            BmadCapabilityCoordinatorError::Unauthorized
+        }
+    }
+}
+
 #[derive(Serialize)]
 struct CapabilityDecisionIdentity<'a> {
     schema_version: &'static str,
@@ -210,6 +231,21 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::Terminal(reason)) => Some(*reason),
             _ => None,
         }
+    }
+
+    fn validate_workspace_binding(
+        prepared: &PreparedCapabilityRun,
+        workspace_id: &ContractId,
+        workspace_grant_epoch: u64,
+        workspace_context_read_epoch: u64,
+    ) -> Result<(), BmadCapabilityCoordinatorError> {
+        if prepared.workspace_id != *workspace_id
+            || prepared.workspace_grant_epoch != workspace_grant_epoch
+            || prepared.workspace_context_read_epoch != workspace_context_read_epoch
+        {
+            return Err(BmadCapabilityCoordinatorError::Unauthorized);
+        }
+        Ok(())
     }
 
     /// Opens one reviewed capability flow. The manifest and invocation
@@ -278,10 +314,19 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::Approved(_)) => {
                 return Err(BmadCapabilityCoordinatorError::Conflict);
             }
-            Some(ActiveCapabilityRun::Terminal(_)) | None => {
+            Some(ActiveCapabilityRun::Terminal(reason)) => {
+                return Err(terminal_error(*reason));
+            }
+            None => {
                 return Err(BmadCapabilityCoordinatorError::Unauthorized);
             }
         };
+        Self::validate_workspace_binding(
+            prepared,
+            &input.workspace_id,
+            input.workspace_grant_epoch,
+            input.workspace_context_read_epoch,
+        )?;
         if input.capability_id != prepared.capability_id {
             return Err(BmadCapabilityCoordinatorError::CapabilityBindingMismatch);
         }
@@ -362,10 +407,19 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
             }
-            Some(ActiveCapabilityRun::Terminal(_)) | None => {
+            Some(ActiveCapabilityRun::Terminal(reason)) => {
+                return Err(terminal_error(*reason));
+            }
+            None => {
                 return Err(BmadCapabilityCoordinatorError::Unauthorized);
             }
         };
+        Self::validate_workspace_binding(
+            &approved.prepared,
+            &input.workspace_id,
+            input.workspace_grant_epoch,
+            input.workspace_context_read_epoch,
+        )?;
         if input.capability_id != approved.prepared.capability_id {
             return Err(BmadCapabilityCoordinatorError::CapabilityBindingMismatch);
         }
@@ -500,10 +554,19 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
             }
-            Some(ActiveCapabilityRun::Terminal(_)) | None => {
+            Some(ActiveCapabilityRun::Terminal(reason)) => {
+                return Err(terminal_error(*reason));
+            }
+            None => {
                 return Err(BmadCapabilityCoordinatorError::Unauthorized);
             }
         };
+        Self::validate_workspace_binding(
+            &approved.prepared,
+            &input.workspace_id,
+            input.workspace_grant_epoch,
+            input.workspace_context_read_epoch,
+        )?;
         if input.capability_id != approved.prepared.capability_id {
             return Err(BmadCapabilityCoordinatorError::CapabilityBindingMismatch);
         }
