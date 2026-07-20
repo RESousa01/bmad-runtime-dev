@@ -109,5 +109,15 @@ slice's evidence.
   59 Rust suites green; `pnpm verify:deferred-full` exit 0 (one
   transient cargo-typify/rustfmt broken-pipe flake observed and
   cleared on retry with no change).
+- Source-fidelity audit (2026-07-20, brought forward from P5-D at the
+  maintainer's direction): every method (29) and builder (47) ledger
+  member hash re-verified byte-exact against
+  `bmad-runtime-lib/_source_review`; all persona projections compared
+  against their source SKILL overview and customize principles. Findings:
+  Paige and Winston carried their three source principles; Mary, John,
+  Sally, and Amelia each lacked one distinct axis (stakeholder voices /
+  user-value-over-feasibility / start-simple-evolve / stated task
+  sequence). All four amended and the full hash chain regenerated;
+  foundation 69/69, workspace 59 suites, `verify:deferred-full` exit 0.
 - Remaining P5 slices: capability wiring for the projected personas
   (catalog/envelope/renderer lanes) and P5-C/P5-D per this packet.
