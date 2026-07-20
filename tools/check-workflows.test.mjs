@@ -51,6 +51,8 @@ test("automated review excludes the read-only upstream source vault", () => {
   const codeqlWorkflow = workflows.find(({ name }) => name === "codeql.yml")?.source;
   assert.ok(codeqlWorkflow, "codeql.yml must exist");
   assert.match(codeqlWorkflow, /config-file:\s+\.\/\.github\/codeql-config\.yml/u);
+  assert.match(codeqlWorkflow, /language:\s+csharp[\s\S]*?build-mode:\s+none/u);
+  assert.doesNotMatch(codeqlWorkflow, /Build reviewed C# targets/u);
   assert.match(codeqlConfig, /^\s+- bmad-runtime-lib\/\*\*\s*$/mu);
   assert.match(codeRabbitConfig, /^\s+- "!bmad-runtime-lib\/\*\*"\s*$/mu);
   assert.match(

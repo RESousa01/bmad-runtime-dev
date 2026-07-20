@@ -22,30 +22,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [actions, csharp, javascript-typescript]
+        include:
+          - language: actions
+            build-mode: none
+          - language: csharp
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        if: matrix.language == 'csharp'
-        with:
-          global-json-file: global.json
       - uses: github/codeql-action/init@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           config-file: ./.github/codeql-config.yml
-      - name: Build reviewed C# targets
-        if: matrix.language == 'csharp'
-        run: |
-          dotnet restore helpers/windows-auth-broker/Sapphirus.WindowsAuthBroker.csproj --locked-mode -p:EnableWindowsTargeting=true
-          dotnet build helpers/windows-auth-broker/Sapphirus.WindowsAuthBroker.csproj --configuration Release --no-restore -p:EnableWindowsTargeting=true
-          dotnet restore services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --locked-mode
-          dotnet build services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --configuration Release --no-restore
-          dotnet restore tests/conformance/dotnet/Sapphirus.Contracts.Conformance.Tests.csproj --locked-mode
-          dotnet build tests/conformance/dotnet/Sapphirus.Contracts.Conformance.Tests.csproj --configuration Release --no-restore
-          dotnet restore tests/generator-qualification/dotnet/Sapphirus.GeneratorQualification.Tests.csproj --locked-mode
-          dotnet build tests/generator-qualification/dotnet/Sapphirus.GeneratorQualification.Tests.csproj --configuration Release --no-restore
       - uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
