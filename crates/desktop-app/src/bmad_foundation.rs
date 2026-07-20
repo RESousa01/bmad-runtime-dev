@@ -17,28 +17,38 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f";
+    "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1";
+    "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
-const METHOD_RUNTIME_PATHS: [&str; 3] = [
+const METHOD_RUNTIME_PATHS: [&str; 8] = [
+    "runtime/method/6.10.0/analyst-persona.instructions.md",
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
     HELP_INSTRUCTION_PATH,
+    "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/pm-persona.instructions.md",
+    "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+    "runtime/method/6.10.0/ux-designer-persona.instructions.md",
 ];
-const EXPECTED_RESOURCE_PATHS: [&str; 20] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 30] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
+    "normalized/bmad-analyst.package.json",
     "normalized/bmad-architect.package.json",
     "normalized/bmad-architecture.package.json",
+    "normalized/bmad-dev.package.json",
     "normalized/bmad-help-action-graph.json",
     "normalized/bmad-help.package.json",
+    "normalized/bmad-pm.package.json",
+    "normalized/bmad-tech-writer.package.json",
+    "normalized/bmad-ux-designer.package.json",
     "normalized/bmm-agent-roster.json",
     "normalized/builder-agent.package.json",
     "normalized/builder-workflow.package.json",
@@ -47,9 +57,14 @@ const EXPECTED_RESOURCE_PATHS: [&str; 20] = [
     "runtime/builder/2.1.0/agent-edit.instructions.md",
     "runtime/builder/2.1.0/workflow-analyze.instructions.md",
     "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+    "runtime/method/6.10.0/analyst-persona.instructions.md",
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
     "runtime/method/6.10.0/bmad-help.instructions.md",
+    "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/pm-persona.instructions.md",
+    "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+    "runtime/method/6.10.0/ux-designer-persona.instructions.md",
     "semantic-source-ledger.json",
 ];
 
@@ -605,7 +620,7 @@ mod tests {
                 .help_invocation()
                 .adoption_ledger_hash()
                 .to_string(),
-            "sha256:7e187635bfe004dcf01ca30f8d22f1f810dd1e1ddd0646349123305e3025414d"
+            "sha256:2ad7bac02b708f7f795d6e85d781fbd91a72005d6b2b02ebc304fb2faa4e8ff6"
         );
         assert_eq!(foundation.catalog().installed_skills.len(), 2);
         assert_eq!(foundation.catalog().help_actions.len(), 2);
@@ -628,11 +643,11 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1"
+            "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7"
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),
-            "sha256:574ab4d79a8f954c9743741cf9912f5283a255b88a80b07550ed379865d8cc4f"
+            "sha256:019118fcbe6fd66d4843aec53fda9cbaf8e78efca39eaffb7372c2c158a3c9ad"
         );
     }
 
@@ -685,7 +700,7 @@ mod tests {
         let manifest_path = temporary.path().join("runtime-manifest.json");
         let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
         let tampered = manifest.replace(
-            "sha256:ee97e0ebc6cff9d31fbe136a6eb52b28a084fa72351fb4ab68ca79fd66ee1fc1",
+            "sha256:1517762a48c3714fb8ff7254f421d7b9253170c5416ac34c18cd34525f4682b7",
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         );
         std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");

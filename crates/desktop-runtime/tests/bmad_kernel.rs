@@ -20,9 +20,14 @@ fn source_entry(path: &str, bytes: Vec<u8>, location: BmadLocationClass) -> Bmad
 
 fn valid_foundation_snapshot() -> (BmadSourceSnapshot, Sha256Digest, Sha256Digest) {
     let managed_paths = [
+        "runtime/method/6.10.0/analyst-persona.instructions.md",
         "runtime/method/6.10.0/architect-persona.instructions.md",
         "runtime/method/6.10.0/architecture-create.instructions.md",
         "runtime/method/6.10.0/bmad-help.instructions.md",
+        "runtime/method/6.10.0/dev-persona.instructions.md",
+        "runtime/method/6.10.0/pm-persona.instructions.md",
+        "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+        "runtime/method/6.10.0/ux-designer-persona.instructions.md",
     ];
     let managed = managed_paths
         .iter()

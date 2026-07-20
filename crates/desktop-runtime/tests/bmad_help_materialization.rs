@@ -56,6 +56,26 @@ fn loaded_method() -> BmadLoadedMethodPackage {
             BmadLocationClass::ManagedProjection,
         ),
         source_entry(HELP_INSTRUCTION_PATH, BmadLocationClass::ManagedProjection),
+        source_entry(
+            "runtime/method/6.10.0/analyst-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/dev-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/pm-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/tech-writer-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
+            "runtime/method/6.10.0/ux-designer-persona.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
     ])
     .expect("sealed snapshot");
     BmadPackageLoader::load(&snapshot, semantic_hash, adoption_hash).expect("qualified Method")
