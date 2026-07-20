@@ -577,6 +577,16 @@ fn model_auth_status_data(state: &HostState) -> Result<HostCommandData, LocalErr
             ModelAuthModeProjection::DeterministicDevelopment,
             true,
         ),
+        // Production sends fail closed until the gated rollout activates the
+        // deployed round-trip, so the pinned IPC catalog projection remains
+        // truthful as unavailable/offline; the catalog gains a production
+        // variant only alongside that rollout.
+        #[cfg(feature = "production-support")]
+        HelpModelMode::ProductionSupport => (
+            ModelAuthStatusKindProjection::Unavailable,
+            ModelAuthModeProjection::Offline,
+            false,
+        ),
     };
     project_model_auth_status(ModelAuthStatusInput {
         status,

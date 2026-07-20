@@ -10,6 +10,7 @@ mod entitlement;
 mod identity;
 mod installation_identity;
 mod model;
+mod production;
 mod support_contract;
 mod transport;
 #[cfg(windows)]
@@ -20,22 +21,28 @@ pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
 pub use composition::DeterministicModelTransport;
 pub use composition::OfflineModelTransport;
 pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
+pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
+#[cfg(windows)]
+pub use installation_identity::WindowsInstallationIdentity;
 pub use installation_identity::{
     base64url_no_pad, consent_signature_payload, installation_key_id, p256_spki_from_point,
 };
-#[cfg(windows)]
-pub use installation_identity::WindowsInstallationIdentity;
-pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 pub use model::{
     verify_dispatched_model_response, AuthorizedContextItem, AuthorizedModelRequest,
     CanonicalOutputValidator, DispatchedModelRequest, ModelAccessReceipt, ModelReceiptStatus,
     RawModelOutput, ReceiptClock, ReceiptProofVerifier, ReceiptVerifier, ReplaySafeReceiptVerifier,
     SystemReceiptClock, VerifiedModelOutput,
 };
+pub use production::{
+    pinned_key_from_point, verify_canonical_receipt_proof, CanonicalReceiptProof, PinnedProofKey,
+    ProductionSessionProjection, ProductionSupportClient, ProductionSupportConfig, ProofKeyRing,
+    SignedDesktopPolicyDoc, SignedEntitlementLeaseDoc, SignedStateStore, VerifiedLease,
+    VerifiedSignedPolicy,
+};
 pub use support_contract::{
     project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,
-    ConsentWindow,
-    InstallationConsentSigner, LeaseBinding, ModelAccessRequest as CanonicalModelAccessRequest,
+    ConsentWindow, InstallationConsentSigner, LeaseBinding,
+    ModelAccessRequest as CanonicalModelAccessRequest,
     ModelAccessRequestContextItem as CanonicalModelAccessRequestContextItem,
     ModelContextConsent as CanonicalModelContextConsent, RegistrationBinding, TenantPolicyBinding,
 };

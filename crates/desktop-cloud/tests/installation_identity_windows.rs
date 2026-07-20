@@ -14,14 +14,13 @@ use desktop_runtime::sha256_bytes;
 use sha2::{Digest, Sha256};
 use windows::Win32::Security::Cryptography::{
     BCryptCloseAlgorithmProvider, BCryptDestroyKey, BCryptImportKeyPair,
-    BCryptOpenAlgorithmProvider, BCryptVerifySignature, BCRYPT_ALG_HANDLE,
-    BCRYPT_ECDSA_P256_ALGORITHM, BCRYPT_ECCPUBLIC_BLOB, BCRYPT_KEY_HANDLE,
-    BCRYPT_FLAGS, BCRYPT_OPEN_ALGORITHM_PROVIDER_FLAGS,
+    BCryptOpenAlgorithmProvider, BCryptVerifySignature, BCRYPT_ALG_HANDLE, BCRYPT_ECCPUBLIC_BLOB,
+    BCRYPT_ECDSA_P256_ALGORITHM, BCRYPT_FLAGS, BCRYPT_KEY_HANDLE,
+    BCRYPT_OPEN_ALGORITHM_PROVIDER_FLAGS,
 };
 
 fn base64url_decode(value: &str) -> Vec<u8> {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let index = |character: u8| -> u32 {
         u32::try_from(
             ALPHABET
@@ -73,16 +72,9 @@ fn verify_p256_raw_signature(spki: &[u8], payload: &[u8], signature: &[u8]) -> b
         .ok()
         .expect("open ECDSA provider");
         let mut key = BCRYPT_KEY_HANDLE::default();
-        BCryptImportKeyPair(
-            algorithm,
-            None,
-            BCRYPT_ECCPUBLIC_BLOB,
-            &mut key,
-            &blob,
-            0,
-        )
-        .ok()
-        .expect("import public key");
+        BCryptImportKeyPair(algorithm, None, BCRYPT_ECCPUBLIC_BLOB, &mut key, &blob, 0)
+            .ok()
+            .expect("import public key");
         let verified = BCryptVerifySignature(key, None, &digest, signature, BCRYPT_FLAGS(0))
             .ok()
             .is_ok();
@@ -94,7 +86,7 @@ fn verify_p256_raw_signature(spki: &[u8], payload: &[u8], signature: &[u8]) -> b
 
 #[test]
 fn windows_installation_key_signs_the_exact_consent_payload() {
-    let key_name = format!("sapphirus-test-install-{}", std::process::id());
+    let key_name = format!("sapphirus-test-install-{:016x}", rand::random::<u64>());
     let identity =
         WindowsInstallationIdentity::open_or_create(&key_name).expect("open or create key");
 
@@ -118,8 +110,7 @@ fn windows_installation_key_signs_the_exact_consent_payload() {
 
     // Reopening resolves the same persisted key.
     drop(identity);
-    let reopened =
-        WindowsInstallationIdentity::open_or_create(&key_name).expect("reopen key");
+    let reopened = WindowsInstallationIdentity::open_or_create(&key_name).expect("reopen key");
     assert_eq!(reopened.public_key_spki(), spki.as_slice());
     let debug_output = format!("{reopened:?}");
     assert!(debug_output.contains("key_id"));

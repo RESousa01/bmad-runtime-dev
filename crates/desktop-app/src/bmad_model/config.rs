@@ -13,6 +13,8 @@ pub(crate) enum HelpModelMode {
     Offline,
     #[cfg(feature = "deterministic-help")]
     DeterministicDevelopment,
+    #[cfg(feature = "production-support")]
+    ProductionSupport,
 }
 
 #[derive(Clone)]
@@ -36,27 +38,91 @@ struct NamedProfile<'a> {
     mode: &'a str,
 }
 
+/// Package-controlled production support values. All-or-nothing: partial
+/// values fail closed so production mode can never start half-configured.
+#[cfg(feature = "production-support")]
+pub(crate) struct ProductionSupportSettings {
+    pub tenant_id: &'static str,
+    pub api_client_id: &'static str,
+    pub scope: &'static str,
+    pub origin: &'static str,
+    pub region: &'static str,
+}
+
+#[cfg(feature = "production-support")]
+pub(crate) fn production_support_settings() -> Result<ProductionSupportSettings, BmadKernelError> {
+    match (
+        option_env!("SAPPHIRUS_SUPPORT_TENANT_ID"),
+        option_env!("SAPPHIRUS_SUPPORT_API_CLIENT_ID"),
+        option_env!("SAPPHIRUS_SUPPORT_SCOPE"),
+        option_env!("SAPPHIRUS_SUPPORT_ORIGIN"),
+        option_env!("SAPPHIRUS_SUPPORT_REGION"),
+    ) {
+        (Some(tenant_id), Some(api_client_id), Some(scope), Some(origin), Some(region)) => {
+            Ok(ProductionSupportSettings {
+                tenant_id,
+                api_client_id,
+                scope,
+                origin,
+                region,
+            })
+        }
+        _ => Err(configuration_error()),
+    }
+}
+
 pub(crate) fn current_help_model_configuration() -> Result<HelpModelConfiguration, BmadKernelError>
 {
+    // A build is a production package only when the complete
+    // package-controlled value set was present at build time. Otherwise the
+    // explicit development/offline modes below remain behaviorally
+    // unchanged (also under --all-features gates). Actually composing
+    // production support without exact configuration still fails closed in
+    // desktop-cloud's `ProductionSupportConfig`.
+    #[cfg(feature = "production-support")]
+    if let Ok(settings) = production_support_settings() {
+        return build_configuration(
+            HelpModelMode::ProductionSupport,
+            "production_support",
+            "Sapphirus support plane",
+            "azure-openai-fixed-profile",
+            "desktop-planner",
+            "desktop-planner",
+            settings.region,
+        );
+    }
     #[cfg(feature = "deterministic-help")]
-    let (mode, mode_name, destination_label, provider_id, model_id, deployment_id) = (
+    return build_configuration(
         HelpModelMode::DeterministicDevelopment,
         "deterministic_development",
         "Deterministic local model — development only",
         "deterministic-local",
         "bmad-help-fixture-v1",
         "localdev",
+        REGION,
     );
     #[cfg(not(feature = "deterministic-help"))]
-    let (mode, mode_name, destination_label, provider_id, model_id, deployment_id) = (
+    build_configuration(
         HelpModelMode::Offline,
         "offline",
         "Model support unavailable",
         "offline",
         "unavailable",
         "unavailable",
-    );
+        REGION,
+    )
+}
 
+#[allow(clippy::too_many_arguments)]
+fn build_configuration(
+    mode: HelpModelMode,
+    mode_name: &str,
+    destination_label: &'static str,
+    provider_id: &str,
+    model_id: &str,
+    deployment_id: &str,
+    region: &'static str,
+) -> Result<HelpModelConfiguration, BmadKernelError> {
     let provider_profile_hash = named_hash(
         "bmad-help-provider-profile",
         "sapphirus.bmad-help-provider-profile.v1",
@@ -120,7 +186,7 @@ pub(crate) fn current_help_model_configuration() -> Result<HelpModelConfiguratio
     Ok(HelpModelConfiguration {
         mode,
         destination_label,
-        region: REGION,
+        region,
         retention_mode: RetentionMode::TransientNoStore,
         canonical_output_schema_id: ContractId::new(OUTPUT_SCHEMA_ID)
             .map_err(|_| configuration_error())?,

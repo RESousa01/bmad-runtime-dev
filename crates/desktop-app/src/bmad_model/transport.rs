@@ -27,6 +27,47 @@ impl BmadHelpTransport for OfflineHelpTransport {
     }
 }
 
+/// Production transport seam. It validates the package-controlled
+/// configuration at construction and fails closed on send until the
+/// deployed support plane round-trip is activated during rollout; it never
+/// degrades to deterministic or unsigned behavior.
+#[cfg(feature = "production-support")]
+pub(super) struct ProductionHelpTransport {
+    _client: desktop_cloud::ProductionSupportClient,
+}
+
+#[cfg(feature = "production-support")]
+impl std::fmt::Debug for ProductionHelpTransport {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ProductionHelpTransport")
+            .finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "production-support")]
+impl ProductionHelpTransport {
+    pub(super) fn new(client: desktop_cloud::ProductionSupportClient) -> Self {
+        Self { _client: client }
+    }
+}
+
+#[cfg(feature = "production-support")]
+impl BmadHelpTransport for ProductionHelpTransport {
+    fn send(
+        &self,
+        _request: AuthorizedModelRequest,
+        _deterministic_fixture: &str,
+        _now: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+        // The deployed round-trip (bootstrap -> registration -> policy ->
+        // lease -> signed consent -> model call -> verified receipt) is
+        // enabled during the gated rollout; until then production sends
+        // fail closed as offline.
+        Err(CloudError::Offline)
+    }
+}
+
 #[cfg(feature = "deterministic-help")]
 #[derive(Debug, Default)]
 pub(super) struct DeterministicHelpTransport;

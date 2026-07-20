@@ -82,6 +82,15 @@
 - `infra/desktop-support/modules/monitor-alerts.bicep`: seven scheduled-query alerts (auth spike, consent replays, receipt-signing failures, SQL saturation, model throttling, privacy canary sev-0, SLO fast burn) — compiles clean.
 - Proof: Observability tests 5/5 (canaries absent from spans/metrics/health bodies); full suite 167/167; `node tools/check-secrets.mjs` clean (3378 files); `az bicep build` on the module exit 0.
 
+## Task 9 evidence (2026-07-20)
+
+- `crates/desktop-cloud/src/production.rs`: fail-closed `ProductionSupportConfig` (tenant/client GUIDs, `api://` scope, HTTPS origin via `SupportApiOrigin`, region, issuer/audience, pinned policy + receipt `ProofKeyRing`s), ES256 verification over raw canonical digests via BCrypt (matching `KeyVaultHashSigner`, which signs the digest directly — an early draft that re-hashed the payload was caught and fixed in review), strict `deny_unknown_fields` policy/lease documents, downgrade + expiry + registration + issuer/audience + replay fail-closure, `SignedStateStore` last-known-valid cache that re-verifies (a tampered cache is discarded, never trusted), and sign-out session-epoch invalidation that leaves local work untouched.
+- Correctness fix found in review: lease wire instants are parsed and re-rendered canonically (`…fffZ`) before digest recomputation, because the wire encoding (`+00:00`) differs from the rendering the service hashed; the test signs with canonical instants and serves offset-format instants to prove normalization.
+- `crates/desktop-cloud/tests/production_lifecycle.rs` (4 tests, Windows signed-document matrix uses a real NCrypt key as the vault analog via `sign_digest`): configuration fail-closure, bounded session projection + epoch invalidation, full policy/lease/receipt tamper matrix, cache re-verification.
+- desktop-app: new `production-support` feature (deterministic-help not overloaded); production activates only when the complete package-controlled value set (`SAPPHIRUS_SUPPORT_*` build-time values) exists — otherwise explicit development/offline behavior is unchanged, and composing production without exact config still fails closed in desktop-cloud. `ProductionHelpTransport` fails closed (`Offline`) until the gated rollout activates the deployed round-trip; the pinned IPC catalog is untouched (production projects truthfully as unavailable/offline until rollout).
+- `map_cloud_error` covers the two new `CloudError` variants.
+- Proof: `cargo fmt --check` clean; `cargo test -p desktop-cloud -p desktop-app --all-features --locked` all green (15 suites); clippy `-D warnings` clean; `pnpm verify:boundaries` green (test key names switched from `std::process::id()` to `rand` to satisfy the child-process boundary scan).
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.

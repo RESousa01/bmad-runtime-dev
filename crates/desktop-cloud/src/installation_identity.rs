@@ -24,15 +24,14 @@ use desktop_runtime::{sha256_bytes, Sha256Digest};
 /// DER `SubjectPublicKeyInfo` prefix for an uncompressed NIST P-256 point:
 /// `SEQUENCE { SEQUENCE { id-ecPublicKey, prime256v1 }, BIT STRING { 0x04 … } }`.
 const P256_SPKI_PREFIX: [u8; 27] = [
-    0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x08,
-    0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00, 0x04,
+    0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x08, 0x2a,
+    0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00, 0x04,
 ];
 
 /// Encodes bytes as base64url without padding.
 #[must_use]
 pub fn base64url_no_pad(bytes: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut output = String::with_capacity(bytes.len().div_ceil(3) * 4);
     for chunk in bytes.chunks(3) {
         let b0 = chunk[0];
@@ -87,9 +86,8 @@ mod windows_platform {
     use windows::core::PCWSTR;
     use windows::Win32::Security::Cryptography::{
         NCryptCreatePersistedKey, NCryptFinalizeKey, NCryptFreeObject, NCryptOpenKey,
-        NCryptOpenStorageProvider, NCryptSignHash, BCRYPT_ECDSA_P256_ALGORITHM,
-        CERT_KEY_SPEC, MS_KEY_STORAGE_PROVIDER, MS_PLATFORM_CRYPTO_PROVIDER, NCRYPT_FLAGS,
-        NCRYPT_HANDLE,
+        NCryptOpenStorageProvider, NCryptSignHash, BCRYPT_ECDSA_P256_ALGORITHM, CERT_KEY_SPEC,
+        MS_KEY_STORAGE_PROVIDER, MS_PLATFORM_CRYPTO_PROVIDER, NCRYPT_FLAGS, NCRYPT_HANDLE,
         NCRYPT_KEY_HANDLE, NCRYPT_PROV_HANDLE, NCRYPT_SILENT_FLAG,
     };
 
@@ -223,13 +221,39 @@ mod windows_platform {
             base64url_no_pad(&self.spki)
         }
 
+        /// Signs a raw 32-byte digest directly (no additional hashing), the
+        /// way a vault-held proof key signs canonical digests. Test-support
+        /// analog for verifying the production proof path end to end.
+        #[doc(hidden)]
+        pub fn sign_digest(&self, digest: &[u8; 32]) -> Result<String, CloudError> {
+            unsafe {
+                let mut required: u32 = 0;
+                NCryptSignHash(self.key, None, digest, None, &mut required, NCRYPT_FLAGS(0))
+                    .map_err(|_| CloudError::InstallationKeyUnavailable)?;
+                let mut signature = vec![0u8; required as usize];
+                NCryptSignHash(
+                    self.key,
+                    None,
+                    digest,
+                    Some(&mut signature),
+                    &mut required,
+                    NCRYPT_FLAGS(0),
+                )
+                .map_err(|_| CloudError::InstallationKeyUnavailable)?;
+                signature.truncate(required as usize);
+                if signature.len() != 64 {
+                    return Err(CloudError::InstallationKeyUnavailable);
+                }
+                Ok(base64url_no_pad(&signature))
+            }
+        }
+
         /// Deletes the persisted key. Test-support only.
         #[doc(hidden)]
         pub fn delete(self) -> Result<(), CloudError> {
             use windows::Win32::Security::Cryptography::NCryptDeleteKey;
             unsafe {
-                NCryptDeleteKey(self.key, 0)
-                    .map_err(|_| CloudError::InstallationKeyUnavailable)?;
+                NCryptDeleteKey(self.key, 0).map_err(|_| CloudError::InstallationKeyUnavailable)?;
             }
             // NCryptDeleteKey frees the key handle; forget self so Drop does
             // not free it again, then release the provider handle.
@@ -296,8 +320,15 @@ mod windows_platform {
             let digest: [u8; 32] = Sha256::digest(&payload).into();
             unsafe {
                 let mut required: u32 = 0;
-                NCryptSignHash(self.key, None, &digest, None, &mut required, NCRYPT_FLAGS(0))
-                    .map_err(|_| CloudError::InstallationKeyUnavailable)?;
+                NCryptSignHash(
+                    self.key,
+                    None,
+                    &digest,
+                    None,
+                    &mut required,
+                    NCRYPT_FLAGS(0),
+                )
+                .map_err(|_| CloudError::InstallationKeyUnavailable)?;
                 let mut signature = vec![0u8; required as usize];
                 NCryptSignHash(
                     self.key,

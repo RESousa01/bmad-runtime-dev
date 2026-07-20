@@ -51,7 +51,6 @@ fn consent_envelope_hash_matches_the_shared_golden_vector() {
         "expiresAt": "2026-07-16T10:05:00.000Z",
         "nonceHash": HASH,
     });
-    let envelope_hash =
-        canonical_hash("model-context-consent", 1, &draft).expect("canonical hash");
+    let envelope_hash = canonical_hash("model-context-consent", 1, &draft).expect("canonical hash");
     assert_eq!(envelope_hash.to_string(), EXPECTED_ENVELOPE_HASH);
 }

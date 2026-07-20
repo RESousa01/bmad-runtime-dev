@@ -197,7 +197,7 @@ fn projection_emits_only_the_canonical_public_envelope() {
             profile: &profile(),
             signer: &FakeInstallationSigner,
         },
-        )
+    )
     .expect("projection");
 
     let serialized = serde_json::to_value(&projected).expect("serialize");
@@ -265,7 +265,7 @@ fn projection_rejects_a_policy_binding_that_does_not_match_the_request() {
             profile: &profile(),
             signer: &FakeInstallationSigner,
         },
-        )
+    )
     .expect_err("policy drift must fail closed");
     assert_eq!(error, CloudError::CanonicalProjectionInvalid);
 }
@@ -284,7 +284,7 @@ fn projection_rejects_items_without_an_explicit_language() {
             profile: &profile(),
             signer: &FakeInstallationSigner,
         },
-        )
+    )
     .expect_err("missing language must fail closed");
     assert_eq!(error, CloudError::CanonicalProjectionInvalid);
 }
@@ -309,7 +309,7 @@ fn projection_rejects_an_inverted_consent_window() {
             profile: &profile(),
             signer: &FakeInstallationSigner,
         },
-        )
+    )
     .expect_err("inverted window must fail closed");
     assert_eq!(error, CloudError::CanonicalProjectionInvalid);
 }
@@ -328,7 +328,7 @@ fn projection_surfaces_signer_failures_without_emitting_an_envelope() {
             profile: &profile(),
             signer: &FailingSigner,
         },
-        )
+    )
     .expect_err("signer failure must propagate");
     assert_eq!(error, CloudError::IdentityUnavailable);
 }

@@ -11,6 +11,7 @@ publish.workspace = true
 [features]
 default = []
 deterministic-help = ["desktop-cloud/deterministic-fake"]
+production-support = []
 
 [build-dependencies]
 tauri-build.workspace = true

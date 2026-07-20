@@ -1323,6 +1323,8 @@ const fn map_cloud_error(error: &CloudError) -> BmadHelpCoordinatorError {
         CloudError::InvalidSupportOrigin | CloudError::TransportFailed => {
             BmadHelpCoordinatorError::TransportFailed
         }
+        CloudError::CanonicalProjectionInvalid => BmadHelpCoordinatorError::ConsentBindingMismatch,
+        CloudError::InstallationKeyUnavailable => BmadHelpCoordinatorError::Integrity,
     }
 }
 
