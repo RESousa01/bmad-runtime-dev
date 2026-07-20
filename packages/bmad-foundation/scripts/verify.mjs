@@ -62,6 +62,7 @@ const packageFiles = Object.freeze([
   "NOTICE.md",
   "README.md",
   "adoption-ledger.json",
+  "capability-closure-ledger.json",
   "licenses/BMAD-BUILDER-MIT.txt",
   "licenses/BMAD-METHOD-MIT.txt",
   ...normalizedPaths,
@@ -85,6 +86,7 @@ const packageDirectories = Object.freeze([
 ].sort());
 const packageDistributionFiles = Object.freeze([
   "adoption-ledger.json",
+  "capability-closure-ledger.json",
   "semantic-source-ledger.json",
   "NOTICE.md",
   "licenses",

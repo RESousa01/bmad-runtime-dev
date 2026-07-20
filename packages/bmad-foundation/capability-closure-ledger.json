@@ -1,0 +1,425 @@
+{
+  "schemaVersion": "sapphirus.bmad-capability-closure.v1",
+  "decidedBy": "docs/adr/ADR-0005-full-bmad-capability-denominator.md",
+  "capabilities": [
+    {
+      "capabilityId": "bmm:bmad-brainstorming",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "BP"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-market-research",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "MR"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-domain-research",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "DR"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-technical-research",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "TR"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-product-brief",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "CB"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-prfaq",
+      "agentCodes": [
+        "bmad-agent-analyst"
+      ],
+      "menuCodes": [
+        "WB"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-document-project",
+      "agentCodes": [
+        "bmad-agent-analyst",
+        "bmad-agent-tech-writer"
+      ],
+      "menuCodes": [
+        "DP",
+        "DP"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:tech-writer-write-document",
+      "agentCodes": [
+        "bmad-agent-tech-writer"
+      ],
+      "menuCodes": [
+        "WD"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:tech-writer-mermaid-gen",
+      "agentCodes": [
+        "bmad-agent-tech-writer"
+      ],
+      "menuCodes": [
+        "MG"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:tech-writer-validate-doc",
+      "agentCodes": [
+        "bmad-agent-tech-writer"
+      ],
+      "menuCodes": [
+        "VD"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:tech-writer-explain-concept",
+      "agentCodes": [
+        "bmad-agent-tech-writer"
+      ],
+      "menuCodes": [
+        "EC"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-prd",
+      "agentCodes": [
+        "bmad-agent-pm"
+      ],
+      "menuCodes": [
+        "PRD"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "first_party_semantic_rewrite",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-create-epics-and-stories",
+      "agentCodes": [
+        "bmad-agent-pm"
+      ],
+      "menuCodes": [
+        "CE"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-check-implementation-readiness",
+      "agentCodes": [
+        "bmad-agent-pm",
+        "bmad-agent-architect"
+      ],
+      "menuCodes": [
+        "IR",
+        "IR"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-correct-course",
+      "agentCodes": [
+        "bmad-agent-pm"
+      ],
+      "menuCodes": [
+        "CC"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-ux",
+      "agentCodes": [
+        "bmad-agent-ux-designer"
+      ],
+      "menuCodes": [
+        "CU"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-architecture",
+      "agentCodes": [
+        "bmad-agent-architect"
+      ],
+      "menuCodes": [
+        "CA"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/method/6.10.0/architecture-create.instructions.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-dev-story",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "DS"
+      ],
+      "outputArchetype": "governed_change_set",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-governed-change-set.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-quick-dev",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "QD"
+      ],
+      "outputArchetype": "governed_change_set",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-governed-change-set.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-qa-generate-e2e-tests",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "QA"
+      ],
+      "outputArchetype": "governed_change_set",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-governed-change-set.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-code-review",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "CR"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-sprint-planning",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "SP"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-create-story",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "CS"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-retrospective",
+      "agentCodes": [
+        "bmad-agent-dev"
+      ],
+      "menuCodes": [
+        "ER"
+      ],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": null,
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "builder:agent.analyze",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "inactive_builder_draft",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/builder/2.1.0/agent-analyze.instructions.md",
+      "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    },
+    {
+      "capabilityId": "builder:agent.create_rebuild",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "inactive_builder_draft",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",
+      "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    },
+    {
+      "capabilityId": "builder:agent.edit",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "inactive_builder_draft",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/builder/2.1.0/agent-edit.instructions.md",
+      "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    },
+    {
+      "capabilityId": "builder:workflow.analyze",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "inactive_builder_draft",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/builder/2.1.0/workflow-analyze.instructions.md",
+      "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    },
+    {
+      "capabilityId": "builder:workflow.build_edit",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "inactive_builder_draft",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "semantic_rewrite_from_reviewed_source",
+      "activationStatus": "planned",
+      "managedProjection": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
+      "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    }
+  ]
+}

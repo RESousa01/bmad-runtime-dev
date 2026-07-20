@@ -70,6 +70,7 @@ const requiredPackagePaths = Object.freeze([
 
 const packageDistributionFiles = Object.freeze([
   "adoption-ledger.json",
+  "capability-closure-ledger.json",
   "semantic-source-ledger.json",
   "NOTICE.md",
   "licenses",
@@ -432,6 +433,7 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
       "NOTICE.md",
       "README.md",
       "adoption-ledger.json",
+      "capability-closure-ledger.json",
       "licenses",
       "normalized",
       "package.json",
@@ -1063,4 +1065,112 @@ test("verification relocates with the package and fails closed on tampering", as
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
+});
+
+// Readiness Task 4: the complete BMAD capability denominator (ADR-0005).
+// 26 roster menu paths plus the five Builder authoring operations, each
+// bound to exactly one closure-ledger record. The denominator may grow,
+// never shrink.
+const expectedMenuPaths = Object.freeze([
+  ["bmad-agent-analyst", "BP", "bmm:bmad-brainstorming"],
+  ["bmad-agent-analyst", "MR", "bmm:bmad-market-research"],
+  ["bmad-agent-analyst", "DR", "bmm:bmad-domain-research"],
+  ["bmad-agent-analyst", "TR", "bmm:bmad-technical-research"],
+  ["bmad-agent-analyst", "CB", "bmm:bmad-product-brief"],
+  ["bmad-agent-analyst", "WB", "bmm:bmad-prfaq"],
+  ["bmad-agent-analyst", "DP", "bmm:bmad-document-project"],
+  ["bmad-agent-tech-writer", "DP", "bmm:bmad-document-project"],
+  ["bmad-agent-tech-writer", "WD", "bmm:tech-writer-write-document"],
+  ["bmad-agent-tech-writer", "MG", "bmm:tech-writer-mermaid-gen"],
+  ["bmad-agent-tech-writer", "VD", "bmm:tech-writer-validate-doc"],
+  ["bmad-agent-tech-writer", "EC", "bmm:tech-writer-explain-concept"],
+  ["bmad-agent-pm", "PRD", "bmm:bmad-prd"],
+  ["bmad-agent-pm", "CE", "bmm:bmad-create-epics-and-stories"],
+  ["bmad-agent-pm", "IR", "bmm:bmad-check-implementation-readiness"],
+  ["bmad-agent-pm", "CC", "bmm:bmad-correct-course"],
+  ["bmad-agent-ux-designer", "CU", "bmm:bmad-ux"],
+  ["bmad-agent-architect", "CA", "bmm:bmad-architecture"],
+  ["bmad-agent-architect", "IR", "bmm:bmad-check-implementation-readiness"],
+  ["bmad-agent-dev", "DS", "bmm:bmad-dev-story"],
+  ["bmad-agent-dev", "QD", "bmm:bmad-quick-dev"],
+  ["bmad-agent-dev", "QA", "bmm:bmad-qa-generate-e2e-tests"],
+  ["bmad-agent-dev", "CR", "bmm:bmad-code-review"],
+  ["bmad-agent-dev", "SP", "bmm:bmad-sprint-planning"],
+  ["bmad-agent-dev", "CS", "bmm:bmad-create-story"],
+  ["bmad-agent-dev", "ER", "bmm:bmad-retrospective"],
+]);
+
+const expectedBuilderOperations = Object.freeze([
+  "builder:agent.analyze",
+  "builder:agent.create_rebuild",
+  "builder:agent.edit",
+  "builder:workflow.analyze",
+  "builder:workflow.build_edit",
+]);
+
+const capabilityArchetypes = Object.freeze({
+  document_artifact: "sapphirus.bmad-document-artifact.v1",
+  governed_change_set: "sapphirus.bmad-governed-change-set.v1",
+  inactive_builder_draft: "sapphirus.bmad-inactive-builder-draft.v1",
+});
+
+test("capability closure ledger covers every roster menu path exactly once", async () => {
+  const ledger = JSON.parse(
+    await readFile(path.join(packageRoot, "capability-closure-ledger.json"), "utf8"),
+  );
+  assert.equal(ledger.schemaVersion, "sapphirus.bmad-capability-closure.v1");
+  const records = ledger.capabilities;
+  assert.ok(Array.isArray(records));
+
+  const byId = new Map();
+  for (const record of records) {
+    assert.equal(byId.has(record.capabilityId), false, `duplicate ${record.capabilityId}`);
+    byId.set(record.capabilityId, record);
+    assert.ok(
+      Object.hasOwn(capabilityArchetypes, record.outputArchetype),
+      `${record.capabilityId}: unknown archetype ${record.outputArchetype}`,
+    );
+    assert.equal(
+      record.outputSchema,
+      capabilityArchetypes[record.outputArchetype],
+      `${record.capabilityId}: schema must match its archetype`,
+    );
+    assert.ok(
+      ["planned", "active"].includes(record.activationStatus),
+      `${record.capabilityId}: invalid activation status`,
+    );
+    assert.equal(record.agentCodes.length, record.menuCodes.length);
+  }
+
+  const seenPaths = new Set();
+  for (const record of records) {
+    record.agentCodes.forEach((agentCode, index) => {
+      const key = `${agentCode}/${record.menuCodes[index]}`;
+      assert.equal(seenPaths.has(key), false, `duplicate menu path ${agentCode}/${record.menuCodes[index]}`);
+      seenPaths.add(key);
+    });
+  }
+
+  for (const [agentCode, menuCode, capabilityId] of expectedMenuPaths) {
+    const record = byId.get(capabilityId);
+    assert.ok(record, `missing capability ${capabilityId}`);
+    const index = record.agentCodes.findIndex(
+      (code, position) => code === agentCode && record.menuCodes[position] === menuCode,
+    );
+    assert.notEqual(index, -1, `capability ${capabilityId} missing path ${agentCode}/${menuCode}`);
+  }
+  assert.equal(seenPaths.size, expectedMenuPaths.length);
+
+  for (const capabilityId of expectedBuilderOperations) {
+    const record = byId.get(capabilityId);
+    assert.ok(record, `missing builder operation ${capabilityId}`);
+    assert.equal(record.outputArchetype, "inactive_builder_draft");
+  }
+
+  const menuCapabilityIds = new Set(expectedMenuPaths.map(([, , id]) => id));
+  assert.equal(
+    records.length,
+    menuCapabilityIds.size + expectedBuilderOperations.length,
+    "denominator drift: unexpected extra or missing capability records",
+  );
 });

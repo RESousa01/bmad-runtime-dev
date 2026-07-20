@@ -6,6 +6,7 @@
   "type": "module",
   "files": [
     "adoption-ledger.json",
+    "capability-closure-ledger.json",
     "semantic-source-ledger.json",
     "NOTICE.md",
     "licenses",
