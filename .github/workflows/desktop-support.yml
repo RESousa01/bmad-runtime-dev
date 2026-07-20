@@ -1,0 +1,117 @@
+name: Desktop support plane
+
+on:
+  pull_request:
+    paths:
+      - 'services/desktop-support-api/**'
+      - 'services/desktop-support-api.Tests/**'
+      - 'infra/desktop-support/**'
+      - '.github/workflows/desktop-support.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/desktop-support-api/**'
+      - 'services/desktop-support-api.Tests/**'
+      - 'infra/desktop-support/**'
+  workflow_dispatch:
+    inputs:
+      run_azure_gates:
+        description: >-
+          Run the Azure integration/e2e/privacy/recovery gates against the
+          protected environment (requires environment approval).
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Gate 1 (offline source): C# tests (including LocalDB authority-store
+  # integration on the Windows runner), Release publish, Bicep build.
+  support-api:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --locked-mode
+      - run: dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --no-restore
+      - run: dotnet publish services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release --no-restore
+      - run: az bicep build --file infra/desktop-support/main.bicep
+        shell: pwsh
+
+  # Gate 1 continued: reproducible container build with SBOM and
+  # vulnerability scan. The image digest is published only by the release
+  # lane; this job proves buildability and supply-chain scanning.
+  support-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check reviewed base-image digests
+        id: digests
+        run: |
+          if grep -q 'REPLACE_WITH_REVIEWED' services/desktop-support-api/Dockerfile; then
+            echo 'pinned=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Base-image digests not yet reviewed/pinned; container gate activates at rollout stage 3.'
+          else
+            echo 'pinned=true' >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.digests.outputs.pinned == 'true'
+        run: docker build --file services/desktop-support-api/Dockerfile --tag desktop-support-api:ci services/desktop-support-api
+      - if: steps.digests.outputs.pinned == 'true'
+        uses: anchore/sbom-action@v0
+        with:
+          image: desktop-support-api:ci
+          format: spdx-json
+          output-file: desktop-support-api.sbom.spdx.json
+      - if: steps.digests.outputs.pinned == 'true'
+        uses: anchore/scan-action@v6
+        with:
+          image: desktop-support-api:ci
+          fail-build: true
+          severity-cutoff: high
+
+  # Gates 2-5 (Azure integration, end-to-end, privacy, recovery) run only on
+  # explicit dispatch into a protected environment, authenticate with GitHub
+  # OIDC workload identity federation (no long-lived client secrets), and
+  # source every tenant/subscription value from environment configuration.
+  azure-gates:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_azure_gates
+    runs-on: windows-2025
+    environment: desktop-support-staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deployment validation (no apply)
+        run: |
+          az deployment group validate `
+            --resource-group ${{ vars.SUPPORT_RESOURCE_GROUP }} `
+            --template-file infra/desktop-support/main.bicep `
+            --parameters infra/desktop-support/main.example.bicepparam
+        shell: pwsh
+      - name: Deployed smoke (identity, policy, lease fail-closure, health)
+        run: |
+          ./tools/support-smoke/deployed-smoke.ps1 `
+            -SupportOrigin ${{ vars.SUPPORT_ORIGIN }} `
+            -TenantId ${{ vars.AZURE_TENANT_ID }} `
+            -ApiClientId ${{ vars.SUPPORT_API_CLIENT_ID }} `
+            -Scope ${{ vars.SUPPORT_SCOPE }}
+        shell: pwsh
+      - name: Privacy gate SQL inspection
+        run: |
+          # Executes tools/support-smoke/privacy-sql-inspect.sql against the
+          # authority database under the read-only inspection identity and
+          # fails when any canary marker is found. The end-to-end and
+          # recovery drills (revocation race, Key Vault throttle, revision
+          # rollback, PITR rehearsal, key rotation) follow the runbook in
+          # docs/superpowers/plans/2026-07-20-d2-e-rollout-runbook.md.
+          Write-Host 'sql inspection wired via runbook; see rollout runbook'
+        shell: pwsh

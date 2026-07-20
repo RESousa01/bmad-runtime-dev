@@ -91,6 +91,22 @@
 - `map_cloud_error` covers the two new `CloudError` variants.
 - Proof: `cargo fmt --check` clean; `cargo test -p desktop-cloud -p desktop-app --all-features --locked` all green (15 suites); clippy `-D warnings` clean; `pnpm verify:boundaries` green (test key names switched from `std::process::id()` to `rand` to satisfy the child-process boundary scan).
 
+## Task 10 evidence (2026-07-20) — committed `ed92395b`
+
+- `main.bicep` hardening: image-pull identity split from the runtime identity (registry pull now uses `imagePullIdentity`; documented as logical least privilege with module seams for later hard isolation), dedicated never-attached SQL migration identity with client/object-id outputs, startup/liveness/readiness probes on `/healthz/*`, Key Vault audit + SQL metric diagnostic settings, alert + budget modules behind `deployAlerts`, and new outputs (signing key URI, App Configuration endpoint, model endpoint).
+- Config-bug fixes found in review: the container env set `Sapphirus__SigningKeyName` but the options bind `ReceiptSigningKeyName`, and the four required canonical profile hashes were entirely absent — production boot would have failed options validation. Both fixed; example bicepparam updated.
+- Existing digest-pin assert retained; `az bicep build` exit 0 with only the four pre-existing Task-0 baseline warnings. `az deployment group validate`/`what-if` are operator steps, deliberately deferred with the deployment itself.
+
+## Task 11 evidence (2026-07-20)
+
+- `.github/workflows/desktop-support.yml`: offline gate (`support-api` job — locked restore, full C# suite incl. LocalDB stores on `windows-2025`, Release publish, Bicep build) + container gate (`support-container` — docker build, SBOM, vulnerability scan, all gated on reviewed base-image digests being pinned; the Dockerfile intentionally carries `REPLACE_WITH_REVIEWED_*` placeholders until rollout stage 3) + `azure-gates` job (workflow_dispatch only, protected environment, GitHub OIDC federation, zero embedded tenant/subscription values).
+- `tools/support-smoke/deployed-smoke.ps1` (parameterized deployed smoke: token, bounded health shape, bootstrap, signed policy shape, fail-closed lease) and `tools/support-smoke/privacy-sql-inspect.sql` (scans every text column of every `desktop_*` table for canary/token/path markers; empty set = pass).
+- Proof: `pnpm verify:deferred-full` green (see below); `dotnet publish -c Release` clean; local `docker build` correctly fails closed on the unpinned reviewed-digest placeholders (the CI gate mirrors this); `git diff --check` clean.
+
+## Task 12 preparation (2026-07-20) — execution deferred
+
+- `docs/superpowers/plans/2026-07-20-d2-e-rollout-runbook.md`: the ten rollout stages and the rollback procedure mapped onto the concrete artifacts from Tasks 1–11 (migration identity outputs, kill switch via `approvedModelDeployments`, key-rotation contract via `SigningKeyRing`/`ProofKeyRing`, desktop enablement via the `production-support` package values). All stages are operator actions against real Azure with human approval; none run from local gates, per instruction.
+
 ## Change groups
 
 - Contracts: (Task 1) — no schema changes; Rust consumes existing canonical `ModelAccessRequest`/`ModelContextConsent` bindings.
