@@ -68,6 +68,17 @@ const EXPECTED_RESOURCE_PATHS: [&str; 30] = [
     "semantic-source-ledger.json",
 ];
 
+/// Every sealed persona projection envelope, joined to the roster by
+/// `capability.skillName` == the roster agent code (ADR-0003 breadth).
+const PERSONA_ENVELOPE_PATHS: [&str; 6] = [
+    "normalized/bmad-analyst.package.json",
+    "normalized/bmad-architect.package.json",
+    "normalized/bmad-dev.package.json",
+    "normalized/bmad-pm.package.json",
+    "normalized/bmad-tech-writer.package.json",
+    "normalized/bmad-ux-designer.package.json",
+];
+
 type FoundationResources = BTreeMap<String, Arc<[u8]>>;
 
 #[derive(Debug, Error)]
@@ -94,6 +105,56 @@ pub struct BmadLoadedFoundation {
     manifest_hash: Sha256Digest,
     semantic_ledger_hash: Sha256Digest,
     builder_packages: Vec<BmadBuilderPackageSummary>,
+    personas: Vec<BmadSealedPersonaProjection>,
+}
+
+/// One roster agent's sealed persona instruction, verified against its
+/// envelope's canonical hash chain and the roster's persona source hash.
+/// Sealed read-only instruction data: not an agent identity, not a
+/// dispatcher, and never projected to the renderer.
+pub struct BmadSealedPersonaProjection {
+    agent_code: String,
+    instruction_path: String,
+    instruction_hash: Sha256Digest,
+    instruction_bytes: Arc<[u8]>,
+    persona_source_hash: Sha256Digest,
+}
+
+impl BmadSealedPersonaProjection {
+    #[must_use]
+    pub fn agent_code(&self) -> &str {
+        &self.agent_code
+    }
+
+    #[must_use]
+    pub fn instruction_path(&self) -> &str {
+        &self.instruction_path
+    }
+
+    #[must_use]
+    pub const fn instruction_hash(&self) -> Sha256Digest {
+        self.instruction_hash
+    }
+
+    #[must_use]
+    pub fn instruction_bytes(&self) -> &[u8] {
+        &self.instruction_bytes
+    }
+
+    #[must_use]
+    pub const fn persona_source_hash(&self) -> Sha256Digest {
+        self.persona_source_hash
+    }
+}
+
+impl std::fmt::Debug for BmadSealedPersonaProjection {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("BmadSealedPersonaProjection")
+            .field("agent_code", &self.agent_code)
+            .field("instruction_hash", &self.instruction_hash)
+            .finish_non_exhaustive()
+    }
 }
 
 /// Kind of an installed-but-inactive Builder package.
@@ -154,6 +215,21 @@ impl BmadLoadedFoundation {
     #[must_use]
     pub fn builder_packages(&self) -> &[BmadBuilderPackageSummary] {
         &self.builder_packages
+    }
+
+    /// Every roster agent's sealed persona projection (six, sorted by
+    /// agent code).
+    #[must_use]
+    pub fn personas(&self) -> &[BmadSealedPersonaProjection] {
+        &self.personas
+    }
+
+    /// The sealed persona projection for one roster agent code.
+    #[must_use]
+    pub fn persona_for(&self, agent_code: &str) -> Option<&BmadSealedPersonaProjection> {
+        self.personas
+            .iter()
+            .find(|persona| persona.agent_code == agent_code)
     }
 }
 
@@ -267,6 +343,7 @@ pub fn load_bmad_foundation(
         roster_content_hash,
     )?;
     let builder_packages = validate_builder_packages(&resources)?;
+    let personas = load_persona_projections(&resources)?;
 
     Ok(BmadLoadedFoundation {
         method_package,
@@ -275,7 +352,137 @@ pub fn load_bmad_foundation(
         manifest_hash: manifest.manifest_hash,
         semantic_ledger_hash,
         builder_packages,
+        personas,
     })
+}
+
+/// Loads and verifies every sealed persona projection: strict envelope
+/// shape, re-derived canonical projection and envelope hashes, managed
+/// instruction bytes matching the pinned content hash, and the source
+/// entrypoint hash matching the roster's persona source identity.
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear verification chain over the persona envelopes"
+)]
+fn load_persona_projections(
+    resources: &FoundationResources,
+) -> Result<Vec<BmadSealedPersonaProjection>, BmadFoundationError> {
+    use desktop_runtime::canonical_hash_without_field;
+
+    let roster_value: serde_json::Value = serde_json::from_slice(required_bytes(
+        resources,
+        "normalized/bmm-agent-roster.json",
+    )?)
+    .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+    let roster_agents = roster_value
+        .get("agents")
+        .and_then(serde_json::Value::as_array)
+        .ok_or(BmadFoundationError::ResourceMismatch)?;
+    let persona_source_by_agent = roster_agents
+        .iter()
+        .map(|agent| {
+            let code = agent
+                .get("agentCode")
+                .and_then(serde_json::Value::as_str)
+                .ok_or(BmadFoundationError::ResourceMismatch)?;
+            let hash = agent
+                .get("personaSourceHash")
+                .and_then(serde_json::Value::as_str)
+                .ok_or(BmadFoundationError::ResourceMismatch)?;
+            Ok((code.to_owned(), hash.to_owned()))
+        })
+        .collect::<Result<BTreeMap<_, _>, BmadFoundationError>>()?;
+
+    let mut personas = Vec::with_capacity(PERSONA_ENVELOPE_PATHS.len());
+    for envelope_path in PERSONA_ENVELOPE_PATHS {
+        let envelope: serde_json::Value =
+            serde_json::from_slice(required_bytes(resources, envelope_path)?)
+                .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+        let envelope_hash = envelope
+            .get("projectionEnvelopeHash")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let computed_envelope = canonical_hash_without_field(
+            "bmad-foundation-method-projection",
+            1,
+            &envelope,
+            "projectionEnvelopeHash",
+        )
+        .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+        if envelope_hash != computed_envelope.to_string()
+            || envelope
+                .get("schemaVersion")
+                .and_then(serde_json::Value::as_str)
+                != Some("sapphirus.bmad-foundation-method-projection.v1")
+            || envelope
+                .get("lifecycleState")
+                .and_then(serde_json::Value::as_str)
+                != Some("sealed_read_only")
+        {
+            return Err(BmadFoundationError::ResourceMismatch);
+        }
+        let projection = envelope
+            .get("instructionProjection")
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let projection_hash = projection
+            .get("projectionHash")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let computed_projection = canonical_hash_without_field(
+            "bmad-instruction-projection",
+            1,
+            projection,
+            "projectionHash",
+        )
+        .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+        if projection_hash != computed_projection.to_string() {
+            return Err(BmadFoundationError::ResourceMismatch);
+        }
+
+        let agent_code = envelope
+            .pointer("/capability/skillName")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let instruction_path = projection
+            .pointer("/managedInstruction/path")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let declared_hash = projection
+            .pointer("/managedInstruction/contentHash")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let bytes = resources
+            .get(instruction_path)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let observed_hash = sha256_bytes(bytes);
+        if observed_hash.to_string() != declared_hash {
+            return Err(BmadFoundationError::ResourceMismatch);
+        }
+
+        let entrypoint_hash = projection
+            .pointer("/sourceEntrypoint/contentHash")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let roster_hash = persona_source_by_agent
+            .get(agent_code)
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        if entrypoint_hash != roster_hash {
+            return Err(BmadFoundationError::ResourceMismatch);
+        }
+        personas.push(BmadSealedPersonaProjection {
+            agent_code: agent_code.to_owned(),
+            instruction_path: instruction_path.to_owned(),
+            instruction_hash: observed_hash,
+            instruction_bytes: Arc::clone(bytes),
+            persona_source_hash: Sha256Digest::parse(entrypoint_hash)
+                .map_err(|_| BmadFoundationError::ResourceMismatch)?,
+        });
+    }
+    if personas.len() != PERSONA_ENVELOPE_PATHS.len() {
+        return Err(BmadFoundationError::ResourceMismatch);
+    }
+    personas.sort_by(|left, right| left.agent_code.cmp(&right.agent_code));
+    Ok(personas)
 }
 
 fn validate_manifest_identity(manifest: &RuntimeManifest) -> Result<(), BmadFoundationError> {
@@ -596,7 +803,7 @@ mod tests {
     use super::{
         load_bmad_foundation, load_method_package, read_bounded_regular, read_manifest_resources,
         required_bytes, validate_manifest_identity, validate_semantic_ledger, BmadFoundationError,
-        RuntimeManifest, ADOPTION_LEDGER_PATH, HELP_INSTRUCTION_PATH,
+        BmadSealedPersonaProjection, RuntimeManifest, ADOPTION_LEDGER_PATH, HELP_INSTRUCTION_PATH,
     };
     use desktop_ipc::deserialize_strict;
     use desktop_runtime::sha256_bytes;
@@ -707,6 +914,69 @@ mod tests {
         assert!(matches!(
             load_bmad_foundation(temporary.path()),
             Err(BmadFoundationError::ManifestInvalid)
+        ));
+    }
+
+    #[test]
+    fn every_roster_agent_has_a_chain_verified_sealed_persona() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let personas = foundation.personas();
+        assert_eq!(personas.len(), 6);
+        let codes = personas
+            .iter()
+            .map(BmadSealedPersonaProjection::agent_code)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            codes,
+            [
+                "bmad-agent-analyst",
+                "bmad-agent-architect",
+                "bmad-agent-dev",
+                "bmad-agent-pm",
+                "bmad-agent-tech-writer",
+                "bmad-agent-ux-designer",
+            ],
+        );
+        for persona in personas {
+            assert!(!persona.instruction_bytes().is_empty());
+            assert_eq!(
+                persona.instruction_hash(),
+                sha256_bytes(persona.instruction_bytes()),
+            );
+            assert!(persona
+                .instruction_path()
+                .starts_with("runtime/method/6.10.0/"));
+            let debug_output = format!("{persona:?}");
+            assert!(!debug_output.contains("Working stance"));
+        }
+        let mary = foundation
+            .persona_for("bmad-agent-analyst")
+            .expect("Mary's sealed persona");
+        let text = std::str::from_utf8(mary.instruction_bytes()).expect("utf8 instruction");
+        assert!(text.contains("Managed analyst persona guidance"));
+        assert!(foundation.persona_for("bmad-agent-unknown").is_none());
+    }
+
+    #[test]
+    fn a_tampered_persona_envelope_fails_the_foundation_closed() {
+        let temporary = tempfile::tempdir().expect("temporary foundation");
+        copy_tree(&foundation_path(), temporary.path());
+        let envelope_path = temporary
+            .path()
+            .join("normalized")
+            .join("bmad-analyst.package.json");
+        let envelope = std::fs::read_to_string(&envelope_path).expect("persona envelope");
+        // Swap Mary's managed-instruction binding to Amelia's path: every
+        // hash still parses, but the projection hash chain breaks.
+        let tampered = envelope.replace(
+            "analyst-persona.instructions.md",
+            "dev-persona.instructions.md",
+        );
+        assert_ne!(envelope, tampered);
+        std::fs::write(&envelope_path, tampered).expect("tamper persona envelope");
+        assert!(matches!(
+            load_bmad_foundation(temporary.path()),
+            Err(BmadFoundationError::ResourceMismatch | BmadFoundationError::ManifestInvalid)
         ));
     }
 
