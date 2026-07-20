@@ -29,6 +29,24 @@ pub struct VerifiedEntitlement {
 }
 
 impl VerifiedEntitlement {
+    /// Trusted internal bridge for documents already verified by the
+    /// production signed-lease path.
+    pub(crate) const fn from_verified_parts(
+        registration_id: String,
+        required_feature: String,
+        policy_hash: Sha256Digest,
+        expires_at: UnixMillis,
+        offline_grace_ends_at: UnixMillis,
+    ) -> Self {
+        Self {
+            registration_id,
+            required_feature,
+            policy_hash,
+            expires_at,
+            offline_grace_ends_at,
+        }
+    }
+
     #[must_use]
     pub fn registration_id(&self) -> &str {
         &self.registration_id

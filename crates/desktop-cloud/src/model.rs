@@ -426,6 +426,17 @@ impl DispatchedModelRequest {
     pub(crate) const fn new(request: AuthorizedModelRequest) -> Self {
         Self(request)
     }
+
+    /// Verifies that a raw response's receipt binds exactly to this
+    /// dispatched request (identity, hashes, retention, and region).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::InvalidModelOutput`] or a binding-specific
+    /// error on any drift.
+    pub fn verify_receipt_binding(&self, response: &RawModelOutput) -> Result<(), CloudError> {
+        validate_receipt(&self.0, response)
+    }
 }
 
 /// Verifies a response against a request that was consumed by the transport.

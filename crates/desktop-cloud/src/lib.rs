@@ -11,6 +11,7 @@ mod identity;
 mod installation_identity;
 mod model;
 mod production;
+mod production_round_trip;
 mod support_contract;
 mod transport;
 #[cfg(windows)]
@@ -39,6 +40,7 @@ pub use production::{
     SignedDesktopPolicyDoc, SignedEntitlementLeaseDoc, SignedStateStore, VerifiedLease,
     VerifiedSignedPolicy,
 };
+pub use production_round_trip::{ProductionRoundTrip, RegistrationMaterial};
 pub use support_contract::{
     project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,
     ConsentWindow, InstallationConsentSigner, LeaseBinding,

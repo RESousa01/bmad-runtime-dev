@@ -362,6 +362,34 @@ impl VerifiedLease {
     }
 }
 
+impl VerifiedLease {
+    /// Converts this signature-verified lease into the model-call
+    /// entitlement authority.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed when the lease windows or hashes cannot be represented.
+    pub fn entitlement(
+        &self,
+        policy: &VerifiedSignedPolicy,
+    ) -> Result<crate::entitlement::VerifiedEntitlement, CloudError> {
+        let (expires_at, _) = canonical_instant_with_millis(&self.document.expires_at)
+            .ok_or(CloudError::EntitlementUnavailable)?;
+        let (offline_grace_ends_at, _) =
+            canonical_instant_with_millis(&self.document.offline_grace_ends_at)
+                .ok_or(CloudError::EntitlementUnavailable)?;
+        Ok(
+            crate::entitlement::VerifiedEntitlement::from_verified_parts(
+                self.document.registration_id.clone(),
+                "model_access".to_owned(),
+                policy.canonical_hash,
+                expires_at,
+                offline_grace_ends_at,
+            ),
+        )
+    }
+}
+
 /// The canonical receipt proof header served by the support plane.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
