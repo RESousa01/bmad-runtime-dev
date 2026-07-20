@@ -54,6 +54,19 @@ pub struct WorkspaceProjection {
     pub display_name: String,
     pub grant_epoch: u64,
     pub permissions: WorkspacePermissions,
+    /// D2 context-read authority version (ADR-0002). Independent from the
+    /// governed-edit epoch; advanced when context-read authority is
+    /// withdrawn (for example on model sign-out).
+    #[serde(default = "default_vertical_epoch")]
+    pub context_read_epoch: u64,
+    /// D3 governed-edit authority version (ADR-0002). Advanced whenever
+    /// edit authority changes; never advanced by context-read changes.
+    #[serde(default = "default_vertical_epoch")]
+    pub governed_edit_epoch: u64,
+}
+
+const fn default_vertical_epoch() -> u64 {
+    1
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -69,6 +82,8 @@ pub enum WorkspacePermissions {
 pub struct WorkspaceAuthorityBinding {
     pub workspace_id: String,
     pub grant_epoch: u64,
+    pub context_read_epoch: u64,
+    pub governed_edit_epoch: u64,
     pub root_identity_hash: String,
 }
 
@@ -296,6 +311,8 @@ impl WorkspaceBroker {
             display_name,
             grant_epoch: 1,
             permissions: WorkspacePermissions::ReadOnly,
+            context_read_epoch: 1,
+            governed_edit_epoch: 1,
         };
         self.grants.write().insert(
             workspace_id,
@@ -327,6 +344,8 @@ impl WorkspaceBroker {
             || projection.project_id.is_empty()
             || projection.display_name.is_empty()
             || projection.grant_epoch == 0
+            || projection.context_read_epoch == 0
+            || projection.governed_edit_epoch == 0
             || !is_sha256(expected_root_identity_hash)
         {
             return Err(WorkspaceError::GrantUnavailable);
@@ -367,6 +386,46 @@ impl WorkspaceBroker {
             .collect::<Vec<_>>();
         projections.sort_by(|left, right| left.workspace_id.cmp(&right.workspace_id));
         projections
+    }
+
+    /// Advances one workspace's D2 context-read epoch, invalidating every
+    /// Help context binding issued against the previous epoch. Governed-edit
+    /// authority and D1 reads are untouched (ADR-0002).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is absent or revoked; an exhausted
+    /// epoch revokes the grant fail-closed.
+    pub fn advance_context_read_epoch(
+        &self,
+        workspace_id: &str,
+    ) -> Result<WorkspaceProjection, WorkspaceError> {
+        let _authority = self.revocation_barrier.write();
+        let mut grants = self.grants.write();
+        let grant = grants
+            .get_mut(workspace_id)
+            .filter(|grant| !grant.revoked)
+            .ok_or(WorkspaceError::GrantUnavailable)?;
+        let Some(next) = grant.projection.context_read_epoch.checked_add(1) else {
+            grant.revoked = true;
+            return Err(WorkspaceError::GrantUnavailable);
+        };
+        grant.projection.context_read_epoch = next;
+        Ok(grant.projection.clone())
+    }
+
+    /// Advances the context-read epoch of every active grant (model
+    /// sign-out): D2 authority is withdrawn everywhere while D3 proposals
+    /// and local work remain valid.
+    pub fn advance_all_context_read_epochs(&self) {
+        let _authority = self.revocation_barrier.write();
+        let mut grants = self.grants.write();
+        for grant in grants.values_mut().filter(|grant| !grant.revoked) {
+            match grant.projection.context_read_epoch.checked_add(1) {
+                Some(next) => grant.projection.context_read_epoch = next,
+                None => grant.revoked = true,
+            }
+        }
     }
 
     /// Revokes an active workspace grant and advances its epoch.
@@ -854,6 +913,8 @@ impl WorkspaceBroker {
         let authority_binding = WorkspaceAuthorityBinding {
             workspace_id: projection.workspace_id.clone(),
             grant_epoch,
+            context_read_epoch: projection.context_read_epoch,
+            governed_edit_epoch: projection.governed_edit_epoch,
             root_identity_hash: grant.root_identity_hash,
         };
         Ok(WorkspaceScopeAuthorityGuard {
@@ -1737,6 +1798,8 @@ mod tests {
             WorkspaceAuthorityBinding {
                 workspace_id: projection.workspace_id.clone(),
                 grant_epoch: projection.grant_epoch,
+                context_read_epoch: projection.context_read_epoch,
+                governed_edit_epoch: projection.governed_edit_epoch,
                 root_identity_hash: expected_root_identity_hash,
             }
         );
@@ -1938,6 +2001,23 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn persisted_projections_without_vertical_epochs_default_to_one(
+    ) -> Result<(), serde_json::Error> {
+        let legacy = serde_json::json!({
+            "workspaceId": "workspace_test",
+            "projectId": "project_test",
+            "displayName": "Workspace",
+            "grantEpoch": 3,
+            "permissions": "read_only",
+        });
+        let projection: WorkspaceProjection = serde_json::from_value(legacy)?;
+        assert_eq!(projection.grant_epoch, 3);
+        assert_eq!(projection.context_read_epoch, 1);
+        assert_eq!(projection.governed_edit_epoch, 1);
+        Ok(())
+    }
+
     fn broker_with_grant(grant_epoch: u64) -> WorkspaceBroker {
         let broker = WorkspaceBroker::new();
         broker.grants.write().insert(
@@ -1949,6 +2029,8 @@ mod tests {
                     display_name: "Workspace".to_owned(),
                     grant_epoch,
                     permissions: WorkspacePermissions::ReadOnly,
+                    context_read_epoch: 1,
+                    governed_edit_epoch: 1,
                 },
                 root: PathBuf::from(r"C:\workspace"),
                 root_identity_hash: format!("sha256:{}", "0".repeat(64)),

@@ -215,10 +215,16 @@ impl WorkspaceBroker {
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         operation: impl FnOnce(&GovernedRecoveryTransaction<'_>) -> Result<T, E>,
     ) -> Result<Result<T, E>, WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         let transaction = GovernedRecoveryTransaction {
             broker: self,
             authority,
@@ -236,15 +242,19 @@ impl WorkspaceBroker {
         Ok(result)
     }
 
-    /// Enables governed edits for an active grant and advances its epoch.
+    /// Enables governed edits for an active grant and advances its
+    /// governed-edit epoch.
     ///
-    /// The epoch bump invalidates every proposal, spec, and authority binding
-    /// issued against the previous read-only epoch.
+    /// The edit-epoch bump invalidates every proposal, spec, and edit
+    /// authority binding issued against the previous edit epoch. The
+    /// workspace binding epoch and the D2 context-read epoch are untouched
+    /// (ADR-0002): escalating edit authority neither invalidates D1 reads
+    /// nor an in-review Help request.
     ///
     /// # Errors
     ///
     /// Returns an error when the grant is absent or revoked, the root identity
-    /// changed, or the grant epoch cannot advance without wrapping.
+    /// changed, or the governed-edit epoch cannot advance without wrapping.
     pub fn enable_governed_edits(
         &self,
         workspace_id: &str,
@@ -258,10 +268,10 @@ impl WorkspaceBroker {
         revalidate_root(grant)?;
         let next_epoch = grant
             .projection
-            .grant_epoch
+            .governed_edit_epoch
             .checked_add(1)
             .ok_or(WorkspaceError::GrantUnavailable)?;
-        grant.projection.grant_epoch = next_epoch;
+        grant.projection.governed_edit_epoch = next_epoch;
         grant.projection.permissions = WorkspacePermissions::GovernedEdits;
         Ok(grant.projection.clone())
     }
@@ -281,10 +291,16 @@ impl WorkspaceBroker {
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         relative_path: &str,
     ) -> Result<PreimageObservation, WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         let observation = observe_preimage_for_grant(&grant, relative_path)?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(observation)
@@ -303,11 +319,17 @@ impl WorkspaceBroker {
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         relative_path: &str,
         expected_file_identity_hash: Option<&str>,
     ) -> Result<Option<Vec<u8>>, WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         let normalized = validate_effect_path(relative_path)?;
         let bytes = match resolve_existing(&grant.root, &normalized) {
             Ok(path) => {
@@ -341,11 +363,17 @@ impl WorkspaceBroker {
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         relative_path: &str,
         content: &str,
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         create_utf8_for_grant(&grant, relative_path, content)?;
         self.ensure_grant_current(&authority, &grant)?;
         Ok(())
@@ -361,17 +389,27 @@ impl WorkspaceBroker {
     /// epoch, the path is invalid or blocked, the observed content or file
     /// identity does not match the expected preimage, the content is
     /// unsupported, or the durable replacement fails.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the exact dual-epoch authority facts are deliberate parameters"
+    )]
     pub fn replace_utf8_durable(
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         relative_path: &str,
         expected_content_hash: &str,
         expected_file_identity_hash: &str,
         content: &str,
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         replace_utf8_for_grant(
             &grant,
             relative_path,
@@ -396,12 +434,18 @@ impl WorkspaceBroker {
         &self,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
         relative_path: &str,
         expected_content_hash: &str,
         expected_file_identity_hash: &str,
     ) -> Result<(), WorkspaceError> {
         let authority = self.revocation_barrier.read();
-        let grant = self.governed_grant(&authority, workspace_id, expected_grant_epoch)?;
+        let grant = self.governed_grant(
+            &authority,
+            workspace_id,
+            expected_grant_epoch,
+            expected_governed_edit_epoch,
+        )?;
         delete_for_grant(
             &grant,
             relative_path,
@@ -417,9 +461,15 @@ impl WorkspaceBroker {
         authority: &parking_lot::RwLockReadGuard<'_, ()>,
         workspace_id: &str,
         expected_grant_epoch: u64,
+        expected_governed_edit_epoch: u64,
     ) -> Result<WorkspaceGrant, WorkspaceError> {
         let grant = self.active_grant(authority, workspace_id)?;
         if expected_grant_epoch == 0 || grant.projection.grant_epoch != expected_grant_epoch {
+            return Err(WorkspaceError::GrantUnavailable);
+        }
+        if expected_governed_edit_epoch == 0
+            || grant.projection.governed_edit_epoch != expected_governed_edit_epoch
+        {
             return Err(WorkspaceError::GrantUnavailable);
         }
         if grant.projection.permissions != WorkspacePermissions::GovernedEdits {
@@ -1097,8 +1147,9 @@ mod tests {
     use super::MAX_GOVERNED_FILE_BYTES;
     use crate::{WorkspaceBroker, WorkspaceError, WorkspacePermissions};
 
-    fn governed_fixture(
-    ) -> Result<(tempfile::TempDir, WorkspaceBroker, String, u64), Box<dyn std::error::Error>> {
+    type GovernedFixture = (tempfile::TempDir, WorkspaceBroker, String, u64, u64);
+
+    fn governed_fixture() -> Result<GovernedFixture, Box<dyn std::error::Error>> {
         let dir = tempfile::tempdir()?;
         fs::write(dir.path().join("main.rs"), "fn main() {}\n")?;
         fs::create_dir(dir.path().join("src"))?;
@@ -1107,9 +1158,20 @@ mod tests {
         let projection = broker.grant("project_1", dir.path())?;
         let enabled = broker.enable_governed_edits(&projection.workspace_id)?;
         assert_eq!(enabled.permissions, WorkspacePermissions::GovernedEdits);
-        assert_eq!(enabled.grant_epoch, projection.grant_epoch + 1);
-        let epoch = enabled.grant_epoch;
-        Ok((dir, broker, enabled.workspace_id, epoch))
+        // ADR-0002: enabling edits advances only the governed-edit epoch.
+        assert_eq!(enabled.grant_epoch, projection.grant_epoch);
+        assert_eq!(enabled.context_read_epoch, projection.context_read_epoch);
+        assert_eq!(
+            enabled.governed_edit_epoch,
+            projection.governed_edit_epoch + 1
+        );
+        Ok((
+            dir,
+            broker,
+            enabled.workspace_id,
+            enabled.grant_epoch,
+            enabled.governed_edit_epoch,
+        ))
     }
 
     #[cfg(windows)]
@@ -1201,6 +1263,7 @@ mod tests {
         let result = broker.create_utf8_durable(
             &projection.workspace_id,
             projection.grant_epoch,
+            projection.governed_edit_epoch,
             "new.txt",
             "content",
         );
@@ -1210,18 +1273,48 @@ mod tests {
 
     #[test]
     fn mutation_requires_the_exact_grant_epoch() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let result = broker.create_utf8_durable(&workspace_id, epoch + 1, "new.txt", "content");
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let result =
+            broker.create_utf8_durable(&workspace_id, epoch + 1, edit_epoch, "new.txt", "content");
         assert!(matches!(result, Err(WorkspaceError::GrantUnavailable)));
-        let result = broker.create_utf8_durable(&workspace_id, 0, "new.txt", "content");
+        let result = broker.create_utf8_durable(&workspace_id, 0, edit_epoch, "new.txt", "content");
         assert!(matches!(result, Err(WorkspaceError::GrantUnavailable)));
         Ok(())
     }
 
     #[test]
+    fn mutation_requires_the_exact_governed_edit_epoch() -> Result<(), Box<dyn std::error::Error>> {
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let stale =
+            broker.create_utf8_durable(&workspace_id, epoch, edit_epoch + 1, "new.txt", "content");
+        assert!(matches!(stale, Err(WorkspaceError::GrantUnavailable)));
+        let zero = broker.create_utf8_durable(&workspace_id, epoch, 0, "new.txt", "content");
+        assert!(matches!(zero, Err(WorkspaceError::GrantUnavailable)));
+        Ok(())
+    }
+
+    #[test]
+    fn context_read_withdrawal_leaves_governed_mutations_valid(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.advance_context_read_epoch(&workspace_id)?;
+        assert_eq!(before.grant_epoch, epoch);
+        assert_eq!(before.governed_edit_epoch, edit_epoch);
+        broker.create_utf8_durable(
+            &workspace_id,
+            epoch,
+            edit_epoch,
+            "src/after_signout.rs",
+            "pub fn kept() {}\n",
+        )?;
+        assert!(dir.path().join("src").join("after_signout.rs").exists());
+        Ok(())
+    }
+
+    #[test]
     fn observes_existing_and_absent_preimages() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let existing = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let existing = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         assert!(existing.exists);
         assert_eq!(existing.content.as_deref(), Some("fn main() {}\n"));
         assert!(existing
@@ -1230,7 +1323,8 @@ mod tests {
         assert!(existing.file_identity_hash.is_some());
         assert!(existing.metadata_hash.is_some());
 
-        let absent = broker.observe_preimage(&workspace_id, epoch, "src/new_module.rs")?;
+        let absent =
+            broker.observe_preimage(&workspace_id, epoch, edit_epoch, "src/new_module.rs")?;
         assert!(!absent.exists);
         assert!(absent.content_hash.is_none());
         Ok(())
@@ -1238,17 +1332,17 @@ mod tests {
 
     #[test]
     fn observation_rejects_escape_and_sensitive_paths() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
         assert!(matches!(
-            broker.observe_preimage(&workspace_id, epoch, "../outside.txt"),
+            broker.observe_preimage(&workspace_id, epoch, edit_epoch, "../outside.txt"),
             Err(WorkspaceError::InvalidRelativePath)
         ));
         assert!(matches!(
-            broker.observe_preimage(&workspace_id, epoch, ".env"),
+            broker.observe_preimage(&workspace_id, epoch, edit_epoch, ".env"),
             Err(WorkspaceError::PathBlocked)
         ));
         assert!(matches!(
-            broker.observe_preimage(&workspace_id, epoch, "missing_dir/new.txt"),
+            broker.observe_preimage(&workspace_id, epoch, edit_epoch, "missing_dir/new.txt"),
             Err(WorkspaceError::Io(_))
         ));
         Ok(())
@@ -1256,30 +1350,43 @@ mod tests {
 
     #[test]
     fn creates_a_new_file_durably() -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        broker.create_utf8_durable(&workspace_id, epoch, "src/created.rs", "pub fn f() {}\n")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        broker.create_utf8_durable(
+            &workspace_id,
+            epoch,
+            edit_epoch,
+            "src/created.rs",
+            "pub fn f() {}\n",
+        )?;
         let written = fs::read_to_string(dir.path().join("src").join("created.rs"))?;
         assert_eq!(written, "pub fn f() {}\n");
 
-        let duplicate = broker.create_utf8_durable(&workspace_id, epoch, "src/created.rs", "other");
+        let duplicate =
+            broker.create_utf8_durable(&workspace_id, epoch, edit_epoch, "src/created.rs", "other");
         assert!(matches!(duplicate, Err(WorkspaceError::AlreadyExists)));
         Ok(())
     }
 
     #[test]
     fn create_rejects_unsupported_content() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
         assert!(matches!(
-            broker.create_utf8_durable(&workspace_id, epoch, "bad.txt", "nul\0byte"),
+            broker.create_utf8_durable(&workspace_id, epoch, edit_epoch, "bad.txt", "nul\0byte"),
             Err(WorkspaceError::UnsupportedText)
         ));
         let oversized = "a".repeat(usize::try_from(MAX_GOVERNED_FILE_BYTES)? + 1);
         assert!(matches!(
-            broker.create_utf8_durable(&workspace_id, epoch, "big.txt", &oversized),
+            broker.create_utf8_durable(&workspace_id, epoch, edit_epoch, "big.txt", &oversized),
             Err(WorkspaceError::LimitExceeded)
         ));
         assert!(matches!(
-            broker.create_utf8_durable(&workspace_id, epoch, "secrets/token.json", "{}"),
+            broker.create_utf8_durable(
+                &workspace_id,
+                epoch,
+                edit_epoch,
+                "secrets/token.json",
+                "{}"
+            ),
             Err(WorkspaceError::PathBlocked)
         ));
         Ok(())
@@ -1287,14 +1394,15 @@ mod tests {
 
     #[test]
     fn replaces_only_the_exact_verified_preimage() -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         let content_hash = before.content_hash.ok_or("missing content hash")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
 
         broker.replace_utf8_durable(
             &workspace_id,
             epoch,
+            edit_epoch,
             "main.rs",
             &content_hash,
             &identity_hash,
@@ -1309,6 +1417,7 @@ mod tests {
         let stale = broker.replace_utf8_durable(
             &workspace_id,
             epoch,
+            edit_epoch,
             "main.rs",
             &content_hash,
             &identity_hash,
@@ -1320,8 +1429,8 @@ mod tests {
 
     #[test]
     fn replace_detects_external_modification() -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         let content_hash = before.content_hash.ok_or("missing content hash")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
 
@@ -1329,6 +1438,7 @@ mod tests {
         let result = broker.replace_utf8_durable(
             &workspace_id,
             epoch,
+            edit_epoch,
             "main.rs",
             &content_hash,
             &identity_hash,
@@ -1344,8 +1454,8 @@ mod tests {
 
     #[test]
     fn deletes_only_the_exact_verified_preimage() -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "src/lib.rs")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "src/lib.rs")?;
         let content_hash = before.content_hash.ok_or("missing content hash")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
 
@@ -1353,6 +1463,7 @@ mod tests {
         let stale = broker.delete_durable(
             &workspace_id,
             epoch,
+            edit_epoch,
             "src/lib.rs",
             &wrong_hash,
             &identity_hash,
@@ -1363,6 +1474,7 @@ mod tests {
         broker.delete_durable(
             &workspace_id,
             epoch,
+            edit_epoch,
             "src/lib.rs",
             &content_hash,
             &identity_hash,
@@ -1373,30 +1485,37 @@ mod tests {
 
     #[test]
     fn read_effect_file_verifies_identity() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
 
-        let bytes =
-            broker.read_effect_file(&workspace_id, epoch, "main.rs", Some(&identity_hash))?;
+        let bytes = broker.read_effect_file(
+            &workspace_id,
+            epoch,
+            edit_epoch,
+            "main.rs",
+            Some(&identity_hash),
+        )?;
         assert_eq!(bytes.as_deref(), Some(b"fn main() {}\n".as_slice()));
 
         let wrong = crate::hash_bytes(b"other-identity");
         assert!(matches!(
-            broker.read_effect_file(&workspace_id, epoch, "main.rs", Some(&wrong)),
+            broker.read_effect_file(&workspace_id, epoch, edit_epoch, "main.rs", Some(&wrong)),
             Err(WorkspaceError::StalePreimage)
         ));
 
-        let absent = broker.read_effect_file(&workspace_id, epoch, "src/none.rs", None)?;
+        let absent =
+            broker.read_effect_file(&workspace_id, epoch, edit_epoch, "src/none.rs", None)?;
         assert!(absent.is_none());
         Ok(())
     }
 
     #[test]
     fn revocation_fails_governed_operations_closed() -> Result<(), Box<dyn std::error::Error>> {
-        let (_dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let (_dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
         broker.revoke(&workspace_id)?;
-        let result = broker.create_utf8_durable(&workspace_id, epoch, "late.txt", "content");
+        let result =
+            broker.create_utf8_durable(&workspace_id, epoch, edit_epoch, "late.txt", "content");
         assert!(matches!(result, Err(WorkspaceError::GrantUnavailable)));
         Ok(())
     }
@@ -1405,25 +1524,26 @@ mod tests {
     #[test]
     fn recovery_replace_rejects_target_substitution_after_validation(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         let content_hash = before.content_hash.ok_or("missing content hash")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
         let displaced = dir.path().join("main.displaced.rs");
-        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
-            super::recovery_replace_utf8_with_seam(
-                &transaction.grant,
-                "main.rs",
-                &content_hash,
-                &identity_hash,
-                "restored\n",
-                |target, _parent| {
-                    fs::rename(target, &displaced)?;
-                    fs::write(target, "attacker\n")?;
-                    Ok(())
-                },
-            )
-        })?;
+        let result =
+            broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
+                super::recovery_replace_utf8_with_seam(
+                    &transaction.grant,
+                    "main.rs",
+                    &content_hash,
+                    &identity_hash,
+                    "restored\n",
+                    |target, _parent| {
+                        fs::rename(target, &displaced)?;
+                        fs::write(target, "attacker\n")?;
+                        Ok(())
+                    },
+                )
+            })?;
 
         assert!(result.is_err());
         assert_eq!(fs::read(dir.path().join("main.rs"))?, b"fn main() {}\n");
@@ -1435,24 +1555,25 @@ mod tests {
     #[test]
     fn recovery_delete_rejects_target_substitution_after_validation(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        let before = broker.observe_preimage(&workspace_id, epoch, "main.rs")?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
         let content_hash = before.content_hash.ok_or("missing content hash")?;
         let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
         let displaced = dir.path().join("main.displaced.rs");
-        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
-            super::recovery_delete_with_seam(
-                &transaction.grant,
-                "main.rs",
-                &content_hash,
-                &identity_hash,
-                |target, _parent| {
-                    fs::rename(target, &displaced)?;
-                    fs::write(target, "attacker\n")?;
-                    Ok(())
-                },
-            )
-        })?;
+        let result =
+            broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
+                super::recovery_delete_with_seam(
+                    &transaction.grant,
+                    "main.rs",
+                    &content_hash,
+                    &identity_hash,
+                    |target, _parent| {
+                        fs::rename(target, &displaced)?;
+                        fs::write(target, "attacker\n")?;
+                        Ok(())
+                    },
+                )
+            })?;
 
         assert!(result.is_err());
         assert_eq!(fs::read(dir.path().join("main.rs"))?, b"fn main() {}\n");
@@ -1464,20 +1585,21 @@ mod tests {
     #[test]
     fn recovery_create_rejects_parent_substitution_after_validation(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
         let displaced = dir.path().join("src.displaced");
-        let result = broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
-            super::recovery_create_utf8_with_seam(
-                &transaction.grant,
-                "src/new.rs",
-                "restored\n",
-                |_target, parent| {
-                    fs::rename(parent, &displaced)?;
-                    fs::create_dir(parent)?;
-                    Ok(())
-                },
-            )
-        })?;
+        let result =
+            broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
+                super::recovery_create_utf8_with_seam(
+                    &transaction.grant,
+                    "src/new.rs",
+                    "restored\n",
+                    |_target, parent| {
+                        fs::rename(parent, &displaced)?;
+                        fs::create_dir(parent)?;
+                        Ok(())
+                    },
+                )
+            })?;
 
         assert!(result.is_err());
         assert!(dir.path().join("src").join("lib.rs").exists());
@@ -1503,6 +1625,7 @@ mod tests {
         let result = broker.with_governed_recovery(
             &enabled.workspace_id,
             enabled.grant_epoch,
+            enabled.governed_edit_epoch,
             |transaction| {
                 super::recovery_create_utf8_with_seam(
                     &transaction.grant,
@@ -1543,6 +1666,7 @@ mod tests {
         let result = broker.with_governed_recovery(
             &enabled.workspace_id,
             enabled.grant_epoch,
+            enabled.governed_edit_epoch,
             |transaction| {
                 super::recovery_create_utf8_with_seam(
                     &transaction.grant,
@@ -1592,6 +1716,7 @@ mod tests {
         let result = broker.with_governed_recovery(
             &enabled.workspace_id,
             enabled.grant_epoch,
+            enabled.governed_edit_epoch,
             |transaction| {
                 super::recovery_create_utf8_with_seam(
                     &transaction.grant,
@@ -1610,8 +1735,8 @@ mod tests {
     #[test]
     fn governed_recovery_transaction_uses_pinned_handles_for_all_effect_kinds(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let (dir, broker, workspace_id, epoch) = governed_fixture()?;
-        broker.with_governed_recovery(&workspace_id, epoch, |transaction| {
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
             let replace = transaction.observe_preimage("main.rs")?;
             let delete = transaction.observe_preimage("src/lib.rs")?;
             assert!(!transaction.observe_preimage("src/new.rs")?.exists);

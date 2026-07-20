@@ -20,6 +20,7 @@ walkdir.workspace = true
 windows = { workspace = true, features = ["Win32_System_WindowsProgramming"] }
 
 [dev-dependencies]
+serde_json.workspace = true
 tempfile.workspace = true
 
 [lints]
