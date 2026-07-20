@@ -1,6 +1,7 @@
 mod binding;
 mod builder;
 mod builder_ports;
+pub mod capability;
 mod catalog;
 mod config;
 mod error;
@@ -34,6 +35,13 @@ pub use builder::{
     BuilderValidationProfile,
 };
 pub use builder_ports::{BuilderAuthoringService, BuilderDraftRepository, BuilderServiceError};
+pub use capability::{
+    BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
+    BmadCapabilityRun, BmadCapabilityRunError, BmadCapabilityRunParams, BmadClosureCapabilityId,
+    BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
+    BMAD_CAPABILITY_RUN_SCHEMA, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+};
 pub use catalog::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
     BmadCatalog, BmadCatalogAvailability, BmadCatalogBuilder, BmadHelpAction, BmadHelpActionKey,
