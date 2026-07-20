@@ -50,4 +50,31 @@
 
 ## Review ledger
 
-- (filled during execution)
+- 2026-07-20 — Store lane reviewed: erase destroys `store.key` first
+  (crypto-erase before any fallible deletion), swaps the live connection
+  to an inert in-memory handle so Windows releases the database file,
+  and a fresh `LocalStore::open` after erase initializes a clean
+  identity. Manifest labels are compile-time constants; counts only.
+- 2026-07-20 — IPC lane reviewed: both commands admitted through the
+  validated envelope with `deny_unknown_fields`; erase parses only the
+  exact phrase `erase-local-authority-data` (case, whitespace, and
+  extra-field variants fail closed at the boundary, before dispatch).
+- 2026-07-20 — Host lane reviewed: `HostState::offboard_erase` holds the
+  workspace-commit lock, signs out model authority (ADR-0002 context
+  epoch withdrawal; epoch exhaustion deliberately cannot block erasure),
+  revokes every grant, erases the store, then releases the Ready read
+  guard before `enter_recovery` takes the write half — no lock-order
+  inversion. Erase is rejected from recovery mode, so it is not
+  repeatable and is absent from the recovery surface.
+- 2026-07-20 — Renderer lane reviewed: manifest parser rejects any
+  category label outside `^[a-z][a-z_]*$` (path separators, spaces,
+  identifiers), the Settings "Local data" pane arms erase only on the
+  byte-exact typed phrase, and the erased terminal state hides the
+  action. Catalog pins moved 31→33 in lockstep at all five sites
+  (READY_COMMANDS + count test, envelope allowlist, renderer contracts
+  array + union, commandCatalog.test.ts, tools/check-boundaries.mjs).
+- 2026-07-20 — Exit gate: `cargo fmt --check` clean; workspace clippy
+  `-D warnings` clean; 59 workspace test suites ok (incl. 2 new envelope,
+  2 new store, 2 new host tests); renderer 25 files / 336 tests ok;
+  `pnpm verify:deferred-full` ok; boundary scan ok with the 33-command
+  catalog.
