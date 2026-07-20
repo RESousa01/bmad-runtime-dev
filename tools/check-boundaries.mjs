@@ -1267,6 +1267,35 @@ if (config) {
   }
 }
 
+{
+  const scorecardPath = join(root, "docs", "readiness", "100-percent-scorecard.json");
+  const expectedCapabilities = [
+    "bmad_foundation",
+    "full_bmad_breadth",
+    "offline_developer_checkout",
+    "reproducible_installable_offline_prototype",
+    "complete_current_source_installable_exe",
+    "deterministic_help_backend",
+    "user_facing_deterministic_help",
+    "production_model_backed_help",
+    "d3_governed_edits_backend",
+    "user_facing_governed_edits",
+    "integrated_d2_d3_desktop",
+    "first_honest_ai_desktop_prototype",
+    "horizontal_governed_foundation",
+    "internal_pilot_readiness",
+  ];
+  try {
+    const scorecard = JSON.parse(await readFile(scorecardPath, "utf8"));
+    const actual = (scorecard.capabilities ?? []).map((record) => record.capability);
+    if (!sameOrderedValues(actual, expectedCapabilities)) {
+      violations.push("docs/readiness/100-percent-scorecard.json: capability key set drifted from the reviewed 14");
+    }
+  } catch {
+    violations.push("docs/readiness/100-percent-scorecard.json: missing or unreadable readiness scorecard");
+  }
+}
+
 if (violations.length > 0) {
   console.error("Architecture boundary violations:\n" + violations.map((item) => `- ${item}`).join("\n"));
   process.exit(1);

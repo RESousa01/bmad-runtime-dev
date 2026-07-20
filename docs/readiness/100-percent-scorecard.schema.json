@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sapphirus.readiness-scorecard.v1.schema.json",
+  "title": "Sapphirus 100-percent readiness scorecard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceRevision", "capabilities"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.readiness-scorecard.v1" },
+    "sourceRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "capabilities": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "$ref": "#/$defs/capability" }
+    }
+  },
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "status", "percentage", "requiredEvidenceKinds", "evidence"],
+      "properties": {
+        "capability": {
+          "enum": [
+            "bmad_foundation",
+            "full_bmad_breadth",
+            "offline_developer_checkout",
+            "reproducible_installable_offline_prototype",
+            "complete_current_source_installable_exe",
+            "deterministic_help_backend",
+            "user_facing_deterministic_help",
+            "production_model_backed_help",
+            "d3_governed_edits_backend",
+            "user_facing_governed_edits",
+            "integrated_d2_d3_desktop",
+            "first_honest_ai_desktop_prototype",
+            "horizontal_governed_foundation",
+            "internal_pilot_readiness"
+          ]
+        },
+        "status": { "enum": ["incomplete", "complete"] },
+        "percentage": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "requiredEvidenceKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sourceRevision", "observedAt", "urlOrRef"],
+      "properties": {
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+        "sourceRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "observedAt": { "type": "integer", "minimum": 1 },
+        "expiresAt": { "type": "integer", "minimum": 1 },
+        "urlOrRef": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "installerSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "containerDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

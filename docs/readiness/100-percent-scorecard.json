@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "sapphirus.readiness-scorecard.v1",
+  "sourceRevision": "f53645efa09b5cc4ec5a7fc0fae72454fc21f60c",
+  "capabilities": [
+    {
+      "capability": "bmad_foundation",
+      "status": "incomplete",
+      "percentage": 90,
+      "requiredEvidenceKinds": ["clean_checkout_gate", "source_ci"],
+      "evidence": []
+    },
+    {
+      "capability": "full_bmad_breadth",
+      "status": "incomplete",
+      "percentage": 35,
+      "requiredEvidenceKinds": ["menu_path_matrix", "source_ci"],
+      "evidence": []
+    },
+    {
+      "capability": "offline_developer_checkout",
+      "status": "incomplete",
+      "percentage": 85,
+      "requiredEvidenceKinds": ["clean_checkout_gate", "desktop_launch"],
+      "evidence": []
+    },
+    {
+      "capability": "reproducible_installable_offline_prototype",
+      "status": "incomplete",
+      "percentage": 60,
+      "requiredEvidenceKinds": ["reproducibility_compare", "offline_lifecycle"],
+      "evidence": []
+    },
+    {
+      "capability": "complete_current_source_installable_exe",
+      "status": "incomplete",
+      "percentage": 25,
+      "requiredEvidenceKinds": ["signed_installer", "clean_machine", "update_rollback", "release_approval"],
+      "evidence": []
+    },
+    {
+      "capability": "deterministic_help_backend",
+      "status": "incomplete",
+      "percentage": 95,
+      "requiredEvidenceKinds": ["deterministic_matrix", "source_ci"],
+      "evidence": []
+    },
+    {
+      "capability": "user_facing_deterministic_help",
+      "status": "incomplete",
+      "percentage": 90,
+      "requiredEvidenceKinds": ["renderer_suite", "e2e_windows", "accessibility"],
+      "evidence": []
+    },
+    {
+      "capability": "production_model_backed_help",
+      "status": "incomplete",
+      "percentage": 40,
+      "requiredEvidenceKinds": ["azure_e2e", "signed_receipt", "failure_injection"],
+      "evidence": []
+    },
+    {
+      "capability": "d3_governed_edits_backend",
+      "status": "incomplete",
+      "percentage": 90,
+      "requiredEvidenceKinds": ["governed_edit_matrix", "source_ci"],
+      "evidence": []
+    },
+    {
+      "capability": "user_facing_governed_edits",
+      "status": "incomplete",
+      "percentage": 85,
+      "requiredEvidenceKinds": ["renderer_suite", "e2e_windows", "accessibility"],
+      "evidence": []
+    },
+    {
+      "capability": "integrated_d2_d3_desktop",
+      "status": "incomplete",
+      "percentage": 80,
+      "requiredEvidenceKinds": ["integrated_matrix", "e2e_windows"],
+      "evidence": []
+    },
+    {
+      "capability": "first_honest_ai_desktop_prototype",
+      "status": "incomplete",
+      "percentage": 30,
+      "requiredEvidenceKinds": ["azure_e2e", "model_to_d3_matrix"],
+      "evidence": []
+    },
+    {
+      "capability": "horizontal_governed_foundation",
+      "status": "incomplete",
+      "percentage": 85,
+      "requiredEvidenceKinds": ["boundary_scan", "source_ci", "security_review"],
+      "evidence": []
+    },
+    {
+      "capability": "internal_pilot_readiness",
+      "status": "incomplete",
+      "percentage": 10,
+      "requiredEvidenceKinds": ["pilot_acceptance", "security_review", "accessibility", "operations_drills"],
+      "evidence": []
+    }
+  ]
+}
