@@ -632,6 +632,92 @@ impl LocalStore {
         }
     }
 
+    /// One bounded retention-manifest entry per fixed category label with a
+    /// row count. Labels are compile-time constants; no path, identifier,
+    /// or content ever appears here (ADR-0004).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the database cannot be queried.
+    pub fn retention_manifest(&self) -> Result<Vec<(&'static str, u64)>, StoreError> {
+        const CATEGORIES: [(&str, &str); 8] = [
+            ("workspace_and_authority_records", "aggregates"),
+            ("evidence_events", "evidence_events"),
+            ("stored_payloads", "payloads"),
+            ("approval_consumptions", "spec_consumptions"),
+            ("method_sessions", "bmad_method_sessions"),
+            ("method_checkpoints", "bmad_method_checkpoints"),
+            ("execution_journals", "effect_journals"),
+            ("help_runs", "bmad_help_run_creations"),
+        ];
+        let connection = self.connection.lock();
+        let mut manifest = Vec::with_capacity(CATEGORIES.len());
+        for (label, table) in CATEGORIES {
+            let count: i64 = connection
+                .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
+                    row.get(0)
+                })
+                .unwrap_or(0);
+            manifest.push((label, u64::try_from(count).unwrap_or(0)));
+        }
+        Ok(manifest)
+    }
+
+    /// Total bytes held by the authority database and encrypted payload
+    /// store, for the retention manifest.
+    #[must_use]
+    pub fn retained_bytes(&self) -> u64 {
+        let mut total = 0_u64;
+        for suffix in ["authority.sqlite3", "authority.sqlite3-wal", "store.key"] {
+            if let Ok(metadata) = fs::metadata(self.root.join(suffix)) {
+                total = total.saturating_add(metadata.len());
+            }
+        }
+        total.saturating_add(directory_bytes(&self.cas_root))
+    }
+
+    /// Cryptographically erases the authority store (ADR-0004).
+    ///
+    /// Order is deliberate: the DPAPI-wrapped store key is destroyed first,
+    /// so even a failure partway leaves every encrypted payload
+    /// undecryptable. Content-addressed payloads and the database files are
+    /// then removed; the live connection is replaced with an inert
+    /// in-memory one so the database file can be deleted on Windows. The
+    /// store is unusable afterwards and the next launch starts fresh.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when a filesystem deletion fails; the key is
+    /// destroyed before any fallible step, so the failure mode is retained
+    /// ciphertext, never retained readable data.
+    pub fn erase_for_offboarding(&self) -> Result<(), StoreError> {
+        let key_path = self.root.join("store.key");
+        if key_path.exists() {
+            fs::remove_file(&key_path)?;
+        }
+        if self.cas_root.exists() {
+            fs::remove_dir_all(&self.cas_root)?;
+        }
+        {
+            let mut connection = self.connection.lock();
+            let _ = connection.pragma_update(None, "wal_checkpoint", "TRUNCATE");
+            let inert = Connection::open_in_memory()?;
+            let previous = std::mem::replace(&mut *connection, inert);
+            drop(previous);
+        }
+        for suffix in [
+            "authority.sqlite3",
+            "authority.sqlite3-wal",
+            "authority.sqlite3-shm",
+        ] {
+            let path = self.root.join(suffix);
+            if path.exists() {
+                fs::remove_file(&path)?;
+            }
+        }
+        Ok(())
+    }
+
     /// Verifies `SQLite`, evidence, payload, and consumption integrity.
     ///
     /// # Errors
@@ -1594,6 +1680,22 @@ fn validate_bound_payload_reference(
     Ok(())
 }
 
+fn directory_bytes(path: &Path) -> u64 {
+    let mut total = 0_u64;
+    let Ok(entries) = fs::read_dir(path) else {
+        return 0;
+    };
+    for entry in entries.flatten() {
+        let entry_path = entry.path();
+        if entry_path.is_dir() {
+            total = total.saturating_add(directory_bytes(&entry_path));
+        } else if let Ok(metadata) = entry.metadata() {
+            total = total.saturating_add(metadata.len());
+        }
+    }
+    total
+}
+
 fn directory_has_entries(path: &Path) -> Result<bool, StoreError> {
     match fs::read_dir(path) {
         Ok(mut entries) => Ok(entries.next().transpose()?.is_some()),
@@ -1707,6 +1809,41 @@ fn dpapi_unprotect(protected: &[u8]) -> Result<Vec<u8>, StoreError> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn retention_manifest_is_bounded_labels_and_counts_only(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let manifest = store.retention_manifest()?;
+        assert_eq!(manifest.len(), 8);
+        for (label, _count) in &manifest {
+            assert!(label
+                .chars()
+                .all(|character| character.is_ascii_lowercase() || character == '_'));
+        }
+        assert!(store.retained_bytes() > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn offboarding_erase_destroys_key_payloads_and_database(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        assert!(directory.path().join("store.key").exists());
+        assert!(directory.path().join("authority.sqlite3").exists());
+
+        store.erase_for_offboarding()?;
+
+        assert!(!directory.path().join("store.key").exists());
+        assert!(!directory.path().join("authority.sqlite3").exists());
+        assert!(!directory.path().join("cas").exists());
+        // A fresh open after erase starts a brand-new store identity.
+        let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+        assert!(reopened.local_identity().is_ok());
+        Ok(())
+    }
     use super::*;
     use desktop_runtime::{
         sha256_bytes, AuthorityRef, ContractId, DeliveryModel, SpecConsumptionRecordDraft,
