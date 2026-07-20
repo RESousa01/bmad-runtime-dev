@@ -397,23 +397,7 @@ impl BmadCapabilityCoordinator {
         verifier: &dyn BmadCapabilityOutputVerifier,
         store: &LocalStore,
     ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
-        let approved = match self.active.as_ref() {
-            Some(ActiveCapabilityRun::Approved(approved)) => approved,
-            Some(ActiveCapabilityRun::ReviewRequired(_)) => {
-                return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
-            }
-            Some(ActiveCapabilityRun::Terminal(_)) | None => {
-                return Err(BmadCapabilityCoordinatorError::Unauthorized);
-            }
-        };
-        if input.capability_id != approved.prepared.capability_id {
-            return Err(BmadCapabilityCoordinatorError::CapabilityBindingMismatch);
-        }
-        if input.manifest_hash != approved.prepared.manifest.manifest_hash
-            || input.decision_id != *approved.decision.decision_id()
-        {
-            return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
-        }
+        self.validate_approved_binding(input)?;
         let Some(ActiveCapabilityRun::Approved(approved)) = self.active.take() else {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         };
@@ -459,47 +443,19 @@ impl BmadCapabilityCoordinator {
             }
         };
         let decision_id = consumption.decision_id().clone();
-        let authorized_request = match AuthorizedModelRequest::new(
-            &approved.prepared.manifest,
-            &approved.prepared.invocation_binding,
+        let output = match dispatch_and_verify(
+            &approved,
             consumption,
-        ) {
-            Ok(request) => request,
-            Err(_) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(
-                    CapabilityTerminalReason::ConsentConsumed,
-                ));
-                return Err(BmadCapabilityCoordinatorError::Integrity);
-            }
-        };
-        let (_dispatched, raw_output) = match transport.send(
-            authorized_request,
-            &approved.prepared.deterministic_fixture,
             input.submitted_at,
+            transport,
+            verifier,
         ) {
-            Ok(sent) => sent,
-            Err(_) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(
-                    CapabilityTerminalReason::ConsentConsumed,
-                ));
-                return Err(BmadCapabilityCoordinatorError::Transport);
-            }
-        };
-        let output = match verifier.verify(&approved.prepared.capability_id, &raw_output) {
             Ok(output) => output,
-            Err(_) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(
-                    CapabilityTerminalReason::OutputRejected,
-                ));
-                return Err(BmadCapabilityCoordinatorError::OutputRejected);
+            Err((reason, error)) => {
+                self.active = Some(ActiveCapabilityRun::Terminal(reason));
+                return Err(error);
             }
         };
-        if output.schema_id() != approved.prepared.output_schema_id {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::OutputRejected,
-            ));
-            return Err(BmadCapabilityCoordinatorError::ResultArchetypeMismatch);
-        }
 
         let run = BmadCapabilityRun::open(BmadCapabilityRunParams {
             run_id: approved.prepared.run_id.clone(),
@@ -532,6 +488,79 @@ impl BmadCapabilityCoordinator {
         self.active = None;
         Ok(projection)
     }
+}
+
+impl BmadCapabilityCoordinator {
+    fn validate_approved_binding(
+        &self,
+        input: &SubmitCapabilityRunInput,
+    ) -> Result<(), BmadCapabilityCoordinatorError> {
+        let approved = match self.active.as_ref() {
+            Some(ActiveCapabilityRun::Approved(approved)) => approved,
+            Some(ActiveCapabilityRun::ReviewRequired(_)) => {
+                return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
+            }
+            Some(ActiveCapabilityRun::Terminal(_)) | None => {
+                return Err(BmadCapabilityCoordinatorError::Unauthorized);
+            }
+        };
+        if input.capability_id != approved.prepared.capability_id {
+            return Err(BmadCapabilityCoordinatorError::CapabilityBindingMismatch);
+        }
+        if input.manifest_hash != approved.prepared.manifest.manifest_hash
+            || input.decision_id != *approved.decision.decision_id()
+        {
+            return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
+        }
+        Ok(())
+    }
+}
+
+fn dispatch_and_verify(
+    approved: &ApprovedCapabilityRun,
+    consumption: desktop_egress::DecisionConsumption,
+    submitted_at: UnixMillis,
+    transport: &dyn BmadCapabilityTransport,
+    verifier: &dyn BmadCapabilityOutputVerifier,
+) -> Result<BmadCapabilityOutput, (CapabilityTerminalReason, BmadCapabilityCoordinatorError)> {
+    let authorized_request = AuthorizedModelRequest::new(
+        &approved.prepared.manifest,
+        &approved.prepared.invocation_binding,
+        consumption,
+    )
+    .map_err(|_| {
+        (
+            CapabilityTerminalReason::ConsentConsumed,
+            BmadCapabilityCoordinatorError::Integrity,
+        )
+    })?;
+    let (_dispatched, raw_output) = transport
+        .send(
+            authorized_request,
+            &approved.prepared.deterministic_fixture,
+            submitted_at,
+        )
+        .map_err(|_| {
+            (
+                CapabilityTerminalReason::ConsentConsumed,
+                BmadCapabilityCoordinatorError::Transport,
+            )
+        })?;
+    let output = verifier
+        .verify(&approved.prepared.capability_id, &raw_output)
+        .map_err(|_| {
+            (
+                CapabilityTerminalReason::OutputRejected,
+                BmadCapabilityCoordinatorError::OutputRejected,
+            )
+        })?;
+    if output.schema_id() != approved.prepared.output_schema_id {
+        return Err((
+            CapabilityTerminalReason::OutputRejected,
+            BmadCapabilityCoordinatorError::ResultArchetypeMismatch,
+        ));
+    }
+    Ok(output)
 }
 
 const fn map_egress_error(error: EgressError) -> BmadCapabilityCoordinatorError {

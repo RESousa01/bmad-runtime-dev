@@ -1,7 +1,7 @@
 //! Parity and substitution coverage for the generic capability lifecycle
 //! (readiness Task 6): the same reviewed D2 flow drives two different
 //! capabilities, and every cross-capability substitution fails closed.
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::unwrap_used)]
 #![cfg(feature = "deterministic-help")]
 
 use desktop_cloud::{
