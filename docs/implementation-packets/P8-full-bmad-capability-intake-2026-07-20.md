@@ -122,3 +122,21 @@
   projections. All 24 unique menu capabilities and 26 menu paths now carry
   sealed managedProjection bindings. Foundation 116/116, workspace 0
   failures, strict clippy clean, boundaries green.
+- 2026-07-20 — Task 7 EXECUTABLE VERTICAL COMPLETE for the method side:
+  catalog 33 -> 38 in lockstep; host composition
+  (crates/desktop-app/src/bmad_capability_host.rs) binds all 24 reviewed
+  menu capabilities to their sealed projections and archetypes; the
+  generic coordinator now also validates workspace id + grant epoch +
+  context-read epoch at every stage; the wire verifier parses untrusted
+  output through the sealed constructors. Evidence: two end-to-end
+  lifecycle tests (document + change-set archetypes, replay and cancel
+  fail-closed, workspace bytes untouched) plus a 24-capability
+  table-driven matrix completing prepare -> approve -> submit under the
+  deterministic composition. All 24 bmm closure records flipped
+  planned -> active with the activation invariant pinned in the
+  foundation gate (active requires a sealed projection binding); the five
+  Builder records stay planned for Task 8. Workspace 0 failures, strict
+  clippy clean, renderer 336/336, boundaries green.
+- REMAINING for Task 7 closure: the renderer client methods, reply
+  parsers, and BmadCapabilityPanel (UI slice); axe states per plan Step 6
+  land with the panel.

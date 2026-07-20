@@ -1381,6 +1381,26 @@ test("capability closure ledger covers every roster menu path exactly once", asy
     assert.equal(record.outputArchetype, "inactive_builder_draft");
   }
 
+  // Task 7 activation: every reviewed menu capability was proven through
+  // the generic lifecycle matrix; Builder operations activate in Task 8.
+  for (const record of records) {
+    const expected = record.capabilityId.startsWith("bmm:") ? "active" : "planned";
+    assert.equal(
+      record.activationStatus,
+      expected,
+      `${record.capabilityId} activation status`,
+    );
+    assert.ok(
+      record.managedProjection === null
+        || record.managedProjection.startsWith("runtime/"),
+      `${record.capabilityId} projection binding`,
+    );
+    if (record.activationStatus === "active") {
+      assert.notEqual(record.managedProjection, null,
+        `${record.capabilityId} must bind a sealed projection to activate`);
+    }
+  }
+
   const menuCapabilityIds = new Set(expectedMenuPaths.map(([, , id]) => id));
   assert.equal(
     records.length,

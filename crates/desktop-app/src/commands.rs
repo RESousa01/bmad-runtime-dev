@@ -2429,6 +2429,11 @@ mod tests {
         map_workspace_error, model_auth_status_data, offboarding_inspect, revoke_workspace,
         save_preferences, should_cache_reply, supported_commands, view_bmad_persona,
     };
+    #[cfg(feature = "deterministic-help")]
+    use super::{
+        approve_bmad_capability_run, cancel_bmad_capability_run, latest_bmad_capability_run,
+        prepare_bmad_capability_run, submit_bmad_capability_run,
+    };
     use crate::{
         bmad_foundation::load_bmad_foundation, bmad_model::coordinator::BmadHelpCoordinatorError,
         state::HostState, wire::HostCommandData,
@@ -2496,6 +2501,259 @@ mod tests {
         );
         let fresh = HostState::initialize(Some(root)).expect("fresh identity");
         assert!(fresh.ready_authority().is_ok());
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn capability_run_completes_the_reviewed_lifecycle_end_to_end(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        std::fs::write(
+            workspace.path().join("brief-notes.md"),
+            b"# Notes\n\nThe product under discussion.\n",
+        )?;
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_contract = id(&workspace_id);
+        let capability = "bmm:bmad-product-brief";
+
+        // Unknown capabilities fail closed before any authority is touched.
+        let unknown = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_contract.clone(),
+            1,
+            "bmm:not-in-the-ledger",
+            vec![RelativeWorkspacePath::new("brief-notes.md")?],
+            UnixMillis(10_000),
+        );
+        assert!(unknown.is_err());
+
+        let review = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_contract.clone(),
+            1,
+            capability,
+            vec![RelativeWorkspacePath::new("brief-notes.md")?],
+            UnixMillis(10_000),
+        )
+        .expect("prepared capability review");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected a capability review projection".into());
+        };
+        assert_eq!(review.capability_id, capability);
+
+        let approved = approve_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            UnixMillis(20_000),
+        )
+        .expect("approved capability review");
+        let HostCommandData::CapabilityApproved(approved) = approved else {
+            return Err("expected a capability approval projection".into());
+        };
+
+        let completed = submit_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id.clone(),
+            UnixMillis(30_000),
+        )
+        .expect("completed capability run");
+        let HostCommandData::CapabilityCompleted(completed) = completed else {
+            return Err("expected a capability completion projection".into());
+        };
+        assert_eq!(completed.result_kind, "document_artifact");
+        assert_eq!(completed.run_id, review.run_id);
+
+        // The consumed decision cannot be replayed.
+        assert!(submit_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id,
+            UnixMillis(31_000),
+        )
+        .is_err());
+
+        // The durable run replays with its verified result.
+        let latest = latest_bmad_capability_run(&state, &workspace_contract, 1, capability)
+            .expect("latest capability run");
+        let HostCommandData::CapabilityRunLatest(latest) = latest else {
+            return Err("expected a latest-run projection".into());
+        };
+        assert!(latest.found);
+        assert_eq!(latest.result_kind.as_deref(), Some("document_artifact"));
+        assert!(latest
+            .result_json
+            .as_deref()
+            .is_some_and(|json| json.contains("document_artifact")));
+
+        // The workspace file was never modified by the run.
+        assert_eq!(
+            std::fs::read(workspace.path().join("brief-notes.md"))?,
+            b"# Notes\n\nThe product under discussion.\n"
+        );
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[expect(
+        clippy::panic,
+        reason = "the matrix names the failing capability in its panic message"
+    )]
+    #[test]
+    fn every_reviewed_capability_completes_through_the_generic_lifecycle(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        for binding in &crate::bmad_capability_host::CAPABILITY_TABLE {
+            let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+            std::fs::write(
+                workspace.path().join("context.md"),
+                b"# Context
+",
+            )?;
+            state.bind_renderer("main").expect("renderer binding");
+            let renderer = state
+                .renderer_session_authority("main")
+                .expect("renderer authority");
+            let workspace_contract = id(&workspace_id);
+
+            let review = prepare_bmad_capability_run(
+                &state,
+                &foundation,
+                &renderer,
+                workspace_contract.clone(),
+                1,
+                binding.id,
+                vec![RelativeWorkspacePath::new("context.md")?],
+                UnixMillis(10_000),
+            )
+            .unwrap_or_else(|error| panic!("{}: prepare failed: {error:?}", binding.id));
+            let HostCommandData::CapabilityReview(review) = review else {
+                panic!("{}: expected a review projection", binding.id);
+            };
+            let approved = approve_bmad_capability_run(
+                &state,
+                workspace_contract.clone(),
+                1,
+                binding.id,
+                review.manifest_hash,
+                UnixMillis(20_000),
+            )
+            .unwrap_or_else(|error| panic!("{}: approve failed: {error:?}", binding.id));
+            let HostCommandData::CapabilityApproved(approved) = approved else {
+                panic!("{}: expected an approval projection", binding.id);
+            };
+            let completed = submit_bmad_capability_run(
+                &state,
+                workspace_contract.clone(),
+                1,
+                binding.id,
+                review.manifest_hash,
+                approved.decision_id,
+                UnixMillis(30_000),
+            )
+            .unwrap_or_else(|error| panic!("{}: submit failed: {error:?}", binding.id));
+            let HostCommandData::CapabilityCompleted(completed) = completed else {
+                panic!("{}: expected a completion projection", binding.id);
+            };
+            let expected_kind = match binding.output_schema_id {
+                desktop_runtime::BMAD_GOVERNED_CHANGE_SET_SCHEMA => "governed_change_set",
+                _ => "document_artifact",
+            };
+            assert_eq!(completed.result_kind, expected_kind, "{}", binding.id);
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn capability_cancel_blocks_submission() -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        std::fs::write(workspace.path().join("story.md"), b"# Story\n")?;
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_contract = id(&workspace_id);
+        let capability = "bmm:bmad-dev-story";
+
+        let review = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_contract.clone(),
+            1,
+            capability,
+            vec![RelativeWorkspacePath::new("story.md")?],
+            UnixMillis(10_000),
+        )
+        .expect("prepared review");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected a capability review projection".into());
+        };
+        let approved = approve_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            UnixMillis(20_000),
+        )
+        .expect("approved review");
+        let HostCommandData::CapabilityApproved(approved) = approved else {
+            return Err("expected a capability approval projection".into());
+        };
+        cancel_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id.clone(),
+            UnixMillis(21_000),
+        )
+        .expect("cancelled review");
+        assert!(submit_bmad_capability_run(
+            &state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id,
+            UnixMillis(22_000),
+        )
+        .is_err());
+        // Nothing durable exists for the cancelled run.
+        let latest = latest_bmad_capability_run(&state, &workspace_contract, 1, capability)
+            .expect("latest lookup");
+        let HostCommandData::CapabilityRunLatest(latest) = latest else {
+            return Err("expected a latest-run projection".into());
+        };
+        assert!(!latest.found);
+        Ok(())
     }
 
     fn foundation_path() -> std::path::PathBuf {
