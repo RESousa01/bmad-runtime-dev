@@ -67,3 +67,26 @@
   (`sha256:8d9c9d5b…daac93687`, 76 source members, 17 managed outputs).
 - 2026-07-20 — Foundation suite 70/70; boundary scan green; Rust
   foundation pin tests green (6/6, no pin cascade by design).
+- 2026-07-20 — Task 5 complete across all three lanes: sealed
+  `bmad-capability-run`/`bmad-capability-result` contracts generated into
+  Rust/TypeScript/C# (29 schemas, 9 adversarial fixtures), the
+  `BmadCapabilityRun` runtime type (7 integration tests), and store schema
+  v11 (`bmad_capability_runs`/`bmad_capability_results`, encrypted CAS
+  results, consent-evidence uniqueness; legacy v3-v8 migration fixtures
+  extended and green).
+- 2026-07-20 — Task 6 core landed: `BmadCapabilityCoordinator` drives
+  prepare -> single reviewed decision -> single-use consumption ->
+  transport -> output verification -> durable persistence for any ADR-0005
+  capability. Capability identity is bound through the egress purpose
+  label, decision digests, and the declared archetype schema; 7
+  parity/substitution tests prove cross-capability manifest, decision,
+  and output substitution fail closed (desktop-app 98/98, strict clippy
+  clean). Deliberate deferral: Help stays on its existing coordinator —
+  its golden projections remain byte-identical by construction — and the
+  Help-onto-generic migration is re-scheduled to land with Task 7's
+  vertical wiring, where the shared transport composition is decided.
+- NEXT (Task 7): author the managed instruction projections per capability
+  family (18 semantic rewrites; 6 first-party targets pending
+  license/provenance approval), add the five `bmad.capability.*` IPC
+  commands (catalog 33 -> 38 across all five pin sites), the renderer
+  `BmadCapabilityPanel`, and the 26-path table-driven activation matrix.
