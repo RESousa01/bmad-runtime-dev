@@ -443,6 +443,11 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
         "bmad.help.cancel" => parse_bmad_help_cancel(payload),
         "bmad.help.submit" => parse_bmad_help_submit(payload),
         "bmad.help.latest" => parse_bmad_help_latest(payload),
+        "bmad.capability.prepare" => parse_bmad_capability_prepare(payload),
+        "bmad.capability.approve" => parse_bmad_capability_approve(payload),
+        "bmad.capability.cancel" => parse_bmad_capability_cancel(payload),
+        "bmad.capability.submit" => parse_bmad_capability_submit(payload),
+        "bmad.capability.latest" => parse_bmad_capability_latest(payload),
         "run.create" => parse_bmad_run_create(payload),
         "context.preview" => parse_context_preview(payload),
         "workspace.enable_edits" => {
@@ -646,6 +651,130 @@ fn parse_bmad_library_snapshot(payload: Value) -> Result<LocalCommand, IpcValida
     Ok(LocalCommand::BmadLibrarySnapshot {
         scope: input.scope,
         cursor: input.cursor,
+    })
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadCapabilityWorkspacePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadCapabilityPreparePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: String,
+    context_paths: Vec<RelativeWorkspacePath>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadCapabilityManifestPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: String,
+    manifest_hash: Sha256Digest,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct BmadCapabilityDecisionPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: String,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+}
+
+const MAX_CAPABILITY_CONTEXT_PATHS: usize = 100;
+
+/// Validates the closed ADR-0005 closure-ledger capability identifier:
+/// `^(bmm|builder):[a-z][a-z0-9._-]{2,80}$`.
+fn validate_capability_id(value: &str) -> Result<(), IpcValidationError> {
+    let suffix = value
+        .strip_prefix("bmm:")
+        .or_else(|| value.strip_prefix("builder:"))
+        .ok_or(IpcValidationError::InvalidPayload)?;
+    let mut characters = suffix.chars();
+    let first = characters
+        .next()
+        .ok_or(IpcValidationError::InvalidPayload)?;
+    if !first.is_ascii_lowercase()
+        || suffix.len() < 3
+        || suffix.len() > 81
+        || !characters
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, '.' | '_' | '-'))
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(())
+}
+
+fn parse_bmad_capability_prepare(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityPreparePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    if input.context_paths.is_empty() || input.context_paths.len() > MAX_CAPABILITY_CONTEXT_PATHS {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::PrepareBmadCapabilityRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
+        context_paths: input.context_paths,
+    })
+}
+
+fn parse_bmad_capability_approve(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityManifestPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    Ok(LocalCommand::ApproveBmadCapabilityRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
+        manifest_hash: input.manifest_hash,
+    })
+}
+
+fn parse_bmad_capability_cancel(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityDecisionPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    Ok(LocalCommand::CancelBmadCapabilityRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
+        manifest_hash: input.manifest_hash,
+        decision_id: input.decision_id,
+    })
+}
+
+fn parse_bmad_capability_submit(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityDecisionPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    Ok(LocalCommand::SubmitBmadCapabilityRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
+        manifest_hash: input.manifest_hash,
+        decision_id: input.decision_id,
+    })
+}
+
+fn parse_bmad_capability_latest(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: BmadCapabilityWorkspacePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_capability_id(&input.capability_id)?;
+    Ok(LocalCommand::LatestBmadCapabilityRun {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        capability_id: input.capability_id,
     })
 }
 
@@ -1109,6 +1238,120 @@ mod tests {
             "changes.recovery.decide".to_owned(),
         ]);
         Ok(value)
+    }
+
+    #[test]
+    fn capability_parsers_bind_the_closed_closure_identifier(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let manifest_hash = format!("sha256:{}", "a".repeat(64));
+        let prepare = serde_json::json!({
+            "workspaceId": "workspace_01J00000000000000000000000",
+            "workspaceGrantEpoch": 1,
+            "capabilityId": "bmm:bmad-product-brief",
+            "contextPaths": ["docs/brief-notes.md"],
+        });
+        assert!(matches!(
+            super::parse_bmad_capability_prepare(prepare)?,
+            LocalCommand::PrepareBmadCapabilityRun { capability_id, .. }
+                if capability_id == "bmm:bmad-product-brief"
+        ));
+        let approve = serde_json::json!({
+            "workspaceId": "workspace_01J00000000000000000000000",
+            "workspaceGrantEpoch": 1,
+            "capabilityId": "builder:agent.analyze",
+            "manifestHash": manifest_hash,
+        });
+        assert!(matches!(
+            super::parse_bmad_capability_approve(approve)?,
+            LocalCommand::ApproveBmadCapabilityRun { capability_id, .. }
+                if capability_id == "builder:agent.analyze"
+        ));
+        for bad_capability in [
+            "",
+            "bmm:",
+            "bmm:AB",
+            "shell:rm",
+            "bmad-product-brief",
+            "bmm:with space",
+            "bmm:../escape",
+        ] {
+            let latest = serde_json::json!({
+                "workspaceId": "workspace_01J00000000000000000000000",
+                "workspaceGrantEpoch": 1,
+                "capabilityId": bad_capability,
+            });
+            assert!(
+                super::parse_bmad_capability_latest(latest).is_err(),
+                "accepted forged capability id: {bad_capability}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn capability_payloads_stay_closed_bounded_and_uncataloged(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let manifest_hash = format!("sha256:{}", "a".repeat(64));
+        // Unknown fields fail closed.
+        let extra = serde_json::json!({
+            "workspaceId": "workspace_01J00000000000000000000000",
+            "workspaceGrantEpoch": 1,
+            "capabilityId": "bmm:bmad-dev-story",
+            "manifestHash": manifest_hash,
+            "decisionId": "decision_01J00000000000000000000000",
+            "approveAll": true,
+        });
+        assert!(super::parse_bmad_capability_submit(extra).is_err());
+        // Absolute and escaping context paths cannot parse.
+        for bad_path in ["C:/Windows/secret.txt", "../outside.txt"] {
+            let prepare = serde_json::json!({
+                "workspaceId": "workspace_01J00000000000000000000000",
+                "workspaceGrantEpoch": 1,
+                "capabilityId": "bmm:bmad-product-brief",
+                "contextPaths": [bad_path],
+            });
+            assert!(
+                super::parse_bmad_capability_prepare(prepare).is_err(),
+                "accepted invalid context path: {bad_path}"
+            );
+        }
+        // Empty context selections fail closed.
+        let empty = serde_json::json!({
+            "workspaceId": "workspace_01J00000000000000000000000",
+            "workspaceGrantEpoch": 1,
+            "capabilityId": "bmm:bmad-product-brief",
+            "contextPaths": [],
+        });
+        assert!(super::parse_bmad_capability_prepare(empty).is_err());
+        // Until the host composition lands, the reviewed envelope catalog
+        // rejects every capability command outright.
+        for command in [
+            "bmad.capability.prepare",
+            "bmad.capability.approve",
+            "bmad.capability.cancel",
+            "bmad.capability.submit",
+            "bmad.capability.latest",
+        ] {
+            let mut admitted = context()?;
+            admitted.allowed_commands.push(command.to_owned());
+            let envelope = format!(
+                r#"{{
+                  "schemaVersion":"desktop-ipc-command.v1",
+                  "requestId":"req_capability",
+                  "command":"{command}",
+                  "windowLabel":"main",
+                  "rendererSessionId":"rs_test",
+                  "installationId":"install_test",
+                  "issuedAt":10000,
+                  "payload":{{}}
+                }}"#
+            );
+            assert!(matches!(
+                CommandEnvelopeValidator::parse(envelope.as_bytes(), &admitted),
+                Err(IpcValidationError::UnknownCommand)
+            ));
+        }
+        Ok(())
     }
 
     fn offboarding_context() -> Result<IpcValidationContext, Box<dyn std::error::Error>> {

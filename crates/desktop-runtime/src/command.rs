@@ -128,6 +128,37 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
     },
+    PrepareBmadCapabilityRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+        context_paths: Vec<RelativeWorkspacePath>,
+    },
+    ApproveBmadCapabilityRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+        manifest_hash: Sha256Digest,
+    },
+    CancelBmadCapabilityRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+        manifest_hash: Sha256Digest,
+        decision_id: ContractId,
+    },
+    SubmitBmadCapabilityRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+        manifest_hash: Sha256Digest,
+        decision_id: ContractId,
+    },
+    LatestBmadCapabilityRun {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        capability_id: String,
+    },
     PreviewContext {
         workspace_id: ContractId,
         relative_paths: Vec<RelativeWorkspacePath>,
@@ -215,6 +246,11 @@ impl LocalCommand {
             Self::CancelBmadHelpReview { .. } => "bmad.help.cancel",
             Self::SubmitBmadHelpReview { .. } => "bmad.help.submit",
             Self::LatestBmadHelpRun { .. } => "bmad.help.latest",
+            Self::PrepareBmadCapabilityRun { .. } => "bmad.capability.prepare",
+            Self::ApproveBmadCapabilityRun { .. } => "bmad.capability.approve",
+            Self::CancelBmadCapabilityRun { .. } => "bmad.capability.cancel",
+            Self::SubmitBmadCapabilityRun { .. } => "bmad.capability.submit",
+            Self::LatestBmadCapabilityRun { .. } => "bmad.capability.latest",
             Self::PreviewContext { .. } => "context.preview",
             Self::EnableWorkspaceEdits { .. } => "workspace.enable_edits",
             Self::ProposeChanges { .. } => "changes.propose",
@@ -249,6 +285,7 @@ impl LocalCommand {
                 | Self::OffboardingInspect
                 | Self::ModelAuthStatus
                 | Self::LatestBmadHelpRun { .. }
+                | Self::LatestBmadCapabilityRun { .. }
                 | Self::PreviewContext { .. }
                 | Self::ChangesHistory { .. }
                 | Self::PrepareChangesRecovery { .. }

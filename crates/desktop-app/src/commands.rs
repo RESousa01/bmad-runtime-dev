@@ -416,6 +416,19 @@ fn execute_command(
         LocalCommand::PickWorkspaceFiles { workspace_id } => {
             pick_workspace_files(app, state, workspace_id)
         }
+        // The bmad.capability.* verticals stay outside the reviewed READY
+        // catalog until their host composition lands (readiness Task 7);
+        // the envelope allowlist makes these arms unreachable today, and
+        // they fail closed if that ever regresses.
+        LocalCommand::PrepareBmadCapabilityRun { .. }
+        | LocalCommand::ApproveBmadCapabilityRun { .. }
+        | LocalCommand::CancelBmadCapabilityRun { .. }
+        | LocalCommand::SubmitBmadCapabilityRun { .. }
+        | LocalCommand::LatestBmadCapabilityRun { .. } => Err(LocalError::new(
+            LocalErrorCode::TemporarilyUnavailable,
+            "Capability runs are not yet composed in this build.",
+            false,
+        )),
         LocalCommand::OffboardingInspect => {
             let _authority = state.ready_authority()?;
             offboarding_inspect(state)
