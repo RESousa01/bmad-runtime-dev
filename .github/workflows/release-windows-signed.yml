@@ -39,7 +39,7 @@ jobs:
       SAPPHIRUS_TIMESTAMP_URL: ${{ vars.SAPPHIRUS_TIMESTAMP_URL }}
       SAPPHIRUS_EXPECTED_REVISION: ${{ github.sha }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Assert exact protected source
@@ -105,7 +105,7 @@ jobs:
       SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
       SAPPHIRUS_PRIOR_VERSION: ${{ inputs.prior_version }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -191,7 +191,7 @@ jobs:
       SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
       SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
