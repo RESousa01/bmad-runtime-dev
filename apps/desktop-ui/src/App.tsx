@@ -8,6 +8,10 @@ import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
 import {
+  BmadCapabilityPanel,
+  type CapabilityRunPhase,
+} from "./components/BmadCapabilityPanel";
+import {
   type OffboardingStatus,
   SettingsDialog,
   type SettingsSection,
@@ -125,6 +129,44 @@ function applyThemePreference(preference: ThemePreference) {
   );
 }
 
+
+// The reviewed 26 roster menu paths (ADR-0005 closure ledger): every
+// (agentCode, menuCode) pair binds exactly one capability identity.
+const MENU_CAPABILITIES: Readonly<Record<string, string>> = {
+  "bmad-agent-analyst/BP": "bmm:bmad-brainstorming",
+  "bmad-agent-analyst/MR": "bmm:bmad-market-research",
+  "bmad-agent-analyst/DR": "bmm:bmad-domain-research",
+  "bmad-agent-analyst/TR": "bmm:bmad-technical-research",
+  "bmad-agent-analyst/CB": "bmm:bmad-product-brief",
+  "bmad-agent-analyst/WB": "bmm:bmad-prfaq",
+  "bmad-agent-analyst/DP": "bmm:bmad-document-project",
+  "bmad-agent-tech-writer/DP": "bmm:bmad-document-project",
+  "bmad-agent-tech-writer/WD": "bmm:tech-writer-write-document",
+  "bmad-agent-tech-writer/MG": "bmm:tech-writer-mermaid-gen",
+  "bmad-agent-tech-writer/VD": "bmm:tech-writer-validate-doc",
+  "bmad-agent-tech-writer/EC": "bmm:tech-writer-explain-concept",
+  "bmad-agent-pm/PRD": "bmm:bmad-prd",
+  "bmad-agent-pm/CE": "bmm:bmad-create-epics-and-stories",
+  "bmad-agent-pm/IR": "bmm:bmad-check-implementation-readiness",
+  "bmad-agent-pm/CC": "bmm:bmad-correct-course",
+  "bmad-agent-ux-designer/CU": "bmm:bmad-ux",
+  "bmad-agent-architect/CA": "bmm:bmad-architecture",
+  "bmad-agent-architect/IR": "bmm:bmad-check-implementation-readiness",
+  "bmad-agent-dev/DS": "bmm:bmad-dev-story",
+  "bmad-agent-dev/QD": "bmm:bmad-quick-dev",
+  "bmad-agent-dev/QA": "bmm:bmad-qa-generate-e2e-tests",
+  "bmad-agent-dev/CR": "bmm:bmad-code-review",
+  "bmad-agent-dev/SP": "bmm:bmad-sprint-planning",
+  "bmad-agent-dev/CS": "bmm:bmad-create-story",
+  "bmad-agent-dev/ER": "bmm:bmad-retrospective",
+};
+
+interface ActiveCapabilityRunState {
+  readonly capabilityId: string;
+  readonly label: string;
+  readonly phase: CapabilityRunPhase;
+}
+
 export function App({
   hostRuntimeLoader = getDefaultHostRuntime,
   projectionPollIntervalMs = 1_500,
@@ -150,6 +192,7 @@ export function App({
   const [offboardingStatus, setOffboardingStatus] =
     useState<OffboardingStatus>("unavailable");
   const [offboardingNotice, setOffboardingNotice] = useState<string | null>(null);
+  const [capabilityRun, setCapabilityRun] = useState<ActiveCapabilityRunState | null>(null);
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
@@ -645,6 +688,149 @@ export function App({
       setAboutStatus("unavailable");
     }
     await loadRetentionManifest();
+  }
+
+
+  function openCapabilityRun(agentCode: string, menuCode: string, label: string) {
+    const capabilityId = MENU_CAPABILITIES[`${agentCode}/${menuCode}`];
+    if (capabilityId === undefined) {
+      setCapabilityRun({
+        capabilityId: `${agentCode}/${menuCode}`,
+        label,
+        phase: {
+          kind: "error",
+          message: "This menu target is not in the reviewed capability ledger.",
+        },
+      });
+      return;
+    }
+    setCapabilityRun({ capabilityId, label, phase: { kind: "selecting" } });
+  }
+
+  function capabilityWorkspace(): { workspaceId: string; grantEpoch: number } | null {
+    const active = hostWorkspaces[0];
+    if (hostRuntime.kind !== "ready" || active === undefined) return null;
+    return { workspaceId: active.workspaceId, grantEpoch: active.grantEpoch };
+  }
+
+  function failCapabilityRun(error: unknown) {
+    setCapabilityRun((current) =>
+      current === null
+        ? null
+        : { ...current, phase: { kind: "error", message: getSafeHostMessage(error) } },
+    );
+  }
+
+  async function prepareCapabilityRun(contextPaths: readonly string[]) {
+    const run = capabilityRun;
+    const workspace = capabilityWorkspace();
+    if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
+    setCapabilityRun({ ...run, phase: { kind: "preparing" } });
+    try {
+      const review = await hostRuntime.client.prepareCapabilityRun(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        run.capabilityId,
+        [...contextPaths],
+      );
+      setCapabilityRun({
+        ...run,
+        phase: { kind: "review", review, contextPaths },
+      });
+    } catch (error) {
+      failCapabilityRun(error);
+    }
+  }
+
+  async function approveCapabilityRun(manifestHash: string) {
+    const run = capabilityRun;
+    const workspace = capabilityWorkspace();
+    if (
+      run === null
+      || workspace === null
+      || hostRuntime.kind !== "ready"
+      || run.phase.kind !== "review"
+    ) {
+      return;
+    }
+    try {
+      const approved = await hostRuntime.client.approveCapabilityRun(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        run.capabilityId,
+        manifestHash,
+      );
+      setCapabilityRun({
+        ...run,
+        phase: {
+          kind: "approved",
+          review: run.phase.review,
+          approved,
+          contextPaths: run.phase.contextPaths,
+          sending: false,
+        },
+      });
+    } catch (error) {
+      failCapabilityRun(error);
+    }
+  }
+
+  async function cancelCapabilityRun(manifestHash: string, decisionId: string) {
+    const run = capabilityRun;
+    const workspace = capabilityWorkspace();
+    if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
+    try {
+      await hostRuntime.client.cancelCapabilityRun(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        run.capabilityId,
+        manifestHash,
+        decisionId,
+      );
+      setCapabilityRun(null);
+    } catch (error) {
+      failCapabilityRun(error);
+    }
+  }
+
+  async function submitCapabilityRun(manifestHash: string, decisionId: string) {
+    const run = capabilityRun;
+    const workspace = capabilityWorkspace();
+    if (
+      run === null
+      || workspace === null
+      || hostRuntime.kind !== "ready"
+      || run.phase.kind !== "approved"
+    ) {
+      return;
+    }
+    setCapabilityRun({ ...run, phase: { ...run.phase, sending: true } });
+    try {
+      const completed = await hostRuntime.client.submitCapabilityRun(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        run.capabilityId,
+        manifestHash,
+        decisionId,
+      );
+      let resultJson: string | null = null;
+      try {
+        const latest = await hostRuntime.client.latestCapabilityRun(
+          workspace.workspaceId,
+          workspace.grantEpoch,
+          run.capabilityId,
+        );
+        resultJson = latest.found ? latest.resultJson : null;
+      } catch {
+        resultJson = null;
+      }
+      setCapabilityRun({
+        ...run,
+        phase: { kind: "completed", completed, resultJson },
+      });
+    } catch (error) {
+      failCapabilityRun(error);
+    }
   }
 
   async function loadRetentionManifest() {
@@ -1833,7 +2019,23 @@ export function App({
             onSend={sendBmadRequest}
             state={bmadHelpState}
           />
+          {capabilityRun === null ? null : (
+            <BmadCapabilityPanel
+              capabilityId={capabilityRun.capabilityId}
+              capabilityLabel={capabilityRun.label}
+              destinationLabel={modelAccess.label}
+              onApprove={(manifestHash) => void approveCapabilityRun(manifestHash)}
+              onCancel={(manifestHash, decisionId) =>
+                void cancelCapabilityRun(manifestHash, decisionId)}
+              onClose={() => setCapabilityRun(null)}
+              onPrepare={(contextPaths) => void prepareCapabilityRun(contextPaths)}
+              onSubmit={(manifestHash, decisionId) =>
+                void submitCapabilityRun(manifestHash, decisionId)}
+              phase={capabilityRun.phase}
+            />
+          )}
           <BmadLibraryPanel
+            onRunCapability={openCapabilityRun}
             onReload={() => {
               if (methodLibraryClient) {
                 void loadMethodLibrary(methodLibraryClient);

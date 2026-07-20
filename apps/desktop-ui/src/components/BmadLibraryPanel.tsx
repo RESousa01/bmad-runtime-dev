@@ -16,6 +16,11 @@ export interface BmadPersonaPerspectiveView {
 }
 
 export interface BmadLibraryPanelProps {
+  readonly onRunCapability?: (
+    agentCode: string,
+    menuCode: string,
+    label: string,
+  ) => void;
   readonly state: BmadLibraryUiState;
   readonly onReload?: () => void;
   readonly personaPerspectives?: ReadonlyMap<string, BmadPersonaPerspectiveView>;
@@ -96,10 +101,14 @@ function MethodAgentRow({
   agent,
   perspective,
   onViewPersona,
+  onRunCapability,
 }: {
   readonly agent: BmadMethodAgentProjection;
   readonly perspective?: BmadPersonaPerspectiveView | undefined;
   readonly onViewPersona?: ((agentCode: string) => void) | undefined;
+  readonly onRunCapability?:
+    | ((agentCode: string, menuCode: string, label: string) => void)
+    | undefined;
 }) {
   return (
     <li aria-label={`${agent.name}, ${agent.title}`} className="bmad-agent-row">
@@ -147,6 +156,16 @@ function MethodAgentRow({
               <p>{menu.description}</p>
               <span className="bmad-availability">{availabilityLabel(menu.availability)}</span>
               {menu.availabilityReason === null ? null : <p>{menu.availabilityReason}</p>}
+              {onRunCapability === undefined ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRunCapability(agent.agentCode, menu.code, menu.displayLabel);
+                  }}
+                >
+                  Start reviewed run
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -227,10 +246,14 @@ function ReadyLibrary({
   projection,
   personaPerspectives,
   onViewPersona,
+  onRunCapability,
 }: {
   readonly projection: BmadLibraryProjection;
   readonly personaPerspectives?: ReadonlyMap<string, BmadPersonaPerspectiveView> | undefined;
   readonly onViewPersona?: ((agentCode: string) => void) | undefined;
+  readonly onRunCapability?:
+    | ((agentCode: string, menuCode: string, label: string) => void)
+    | undefined;
 }) {
   const skillsHeadingId = useId();
   const actionsHeadingId = useId();
@@ -278,6 +301,7 @@ function ReadyLibrary({
             {projection.methodAgents.map((agent) => (
               <MethodAgentRow
                 agent={agent}
+                onRunCapability={onRunCapability}
                 key={`${agent.moduleCode}\u0000${agent.agentCode}`}
                 onViewPersona={onViewPersona}
                 perspective={personaPerspectives?.get(agent.agentCode)}
@@ -324,6 +348,7 @@ function ReadyLibrary({
 
 export function BmadLibraryPanel({
   onReload,
+  onRunCapability,
   onViewPersona,
   personaPerspectives,
   state,
@@ -355,6 +380,7 @@ export function BmadLibraryPanel({
     case "ready":
       body = (
         <ReadyLibrary
+          onRunCapability={onRunCapability}
           onViewPersona={onViewPersona}
           personaPerspectives={personaPerspectives}
           projection={state.projection}
