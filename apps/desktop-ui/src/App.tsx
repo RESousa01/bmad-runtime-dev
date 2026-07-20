@@ -8,6 +8,7 @@ import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
 import {
+  type OffboardingStatus,
   SettingsDialog,
   type SettingsSection,
 } from "./components/settings/SettingsDialog";
@@ -43,6 +44,7 @@ import {
   getDefaultHostRuntime,
   getSafeHostMessage,
   type AboutProjection,
+  type RetentionManifestProjection,
   type ApprovalChoice,
   type DesktopHostClient,
   HostCapabilityError,
@@ -143,6 +145,11 @@ export function App({
     "unavailable",
   );
   const [preferencesNotice, setPreferencesNotice] = useState<string | null>(null);
+  const [offboardingManifest, setOffboardingManifest] =
+    useState<RetentionManifestProjection | null>(null);
+  const [offboardingStatus, setOffboardingStatus] =
+    useState<OffboardingStatus>("unavailable");
+  const [offboardingNotice, setOffboardingNotice] = useState<string | null>(null);
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
@@ -636,6 +643,46 @@ export function App({
       setAboutStatus("ready");
     } catch {
       setAboutStatus("unavailable");
+    }
+    await loadRetentionManifest();
+  }
+
+  async function loadRetentionManifest() {
+    if (offboardingStatus === "erased") return;
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("app.offboarding.inspect")
+    ) {
+      setOffboardingStatus("unavailable");
+      return;
+    }
+    setOffboardingStatus("loading");
+    try {
+      const manifest = await hostRuntime.client.inspectOffboarding();
+      setOffboardingManifest(manifest);
+      setOffboardingStatus("ready");
+    } catch {
+      setOffboardingStatus("unavailable");
+    }
+  }
+
+  async function eraseOffboardingData(confirm: string) {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("app.offboarding.erase")
+    ) {
+      setOffboardingNotice("Erasing local data is unavailable in this mode.");
+      return;
+    }
+    setOffboardingStatus("erasing");
+    setOffboardingNotice(null);
+    try {
+      await hostRuntime.client.eraseOffboarding(confirm);
+      setOffboardingManifest(null);
+      setOffboardingStatus("erased");
+    } catch (error) {
+      setOffboardingStatus("ready");
+      setOffboardingNotice(getSafeHostMessage(error));
     }
   }
 
@@ -1843,8 +1890,12 @@ export function App({
       key={`${appModal}:${utilitySettingsPage}`}
       modelAccessDetail={modelAccess.detail}
       modelAccessLabel={modelAccess.label}
+      offboardingManifest={offboardingManifest}
+      offboardingNotice={offboardingNotice}
+      offboardingStatus={offboardingStatus}
       onClose={() => dismissUtilityPanel()}
       onDensityChange={changeDensity}
+      onEraseOffboarding={(confirm) => void eraseOffboardingData(confirm)}
       onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
       onOpenSkillsAndAgents={openMethodLibrary}
       onThemeChange={changeTheme}

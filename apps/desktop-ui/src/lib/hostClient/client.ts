@@ -31,7 +31,12 @@ import {
   parseRollbackRequestReply,
   parseWorkspaceEditsEnabledReply,
 } from "./changesProtocol";
-import { parseAboutReply, parsePreferencesReply } from "./appProtocol";
+import {
+  parseAboutReply,
+  parseOffboardingErasedReply,
+  parsePreferencesReply,
+  parseRetentionManifestReply,
+} from "./appProtocol";
 import {
   buildApprovalDecisionEnvelope,
   buildChangesRecoveryDecisionEnvelope,
@@ -39,6 +44,7 @@ import {
   buildBmadHelpRunEnvelope,
   buildBmadModelEnvelope,
   buildEmptyPayloadEnvelope,
+  buildOffboardingEraseEnvelope,
   buildLatestBmadHelpRunEnvelope,
   buildPreferencesUpdateEnvelope,
   buildProposeChangesEnvelope,
@@ -53,6 +59,8 @@ import {
 import {
   type AboutProjection,
   type ApprovalChoice,
+  type OffboardingErasedProjection,
+  type RetentionManifestProjection,
   type BmadScanProjection,
   type BootstrapReply,
   type DensityPreference,
@@ -660,6 +668,44 @@ export class DesktopHostClient {
     const parsed = parseAboutReply(reply, requestId);
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async inspectOffboarding(): Promise<RetentionManifestProjection> {
+    const bootstrap = this.requireCommand("app.offboarding.inspect");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildEmptyPayloadEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "app.offboarding.inspect",
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseRetentionManifestReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  // Irreversible: the host validates the exact confirmation phrase and
+  // drops to read-only recovery after the erase, so no bootstrap or
+  // sequence expectations survive the reply.
+  async eraseOffboarding(confirm: string): Promise<OffboardingErasedProjection> {
+    const bootstrap = this.requireCommand("app.offboarding.erase");
+    const requestId = this.#requestId();
+    const envelope = buildOffboardingEraseEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      confirm,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseOffboardingErasedReply(reply, requestId);
     return parsed.projection;
   }
 

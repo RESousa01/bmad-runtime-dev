@@ -4,7 +4,7 @@ import { desktopHostCommands } from "./contracts";
 // Tripwire ahead of tools/check-boundaries.mjs: the renderer catalog must
 // mirror the host READY_COMMANDS projection exactly, in order.
 describe("desktop host command catalog", () => {
-  it("carries the reviewed 31-command catalog in reviewed order", () => {
+  it("carries the reviewed 33-command catalog in reviewed order", () => {
     expect(desktopHostCommands).toEqual([
       "app.get_boot_state",
       "workspace.select_folder",
@@ -36,6 +36,8 @@ describe("desktop host command catalog", () => {
       "app.preferences.get",
       "app.preferences.set",
       "app.about",
+      "app.offboarding.inspect",
+      "app.offboarding.erase",
       "workspace.pick_files",
     ]);
   });

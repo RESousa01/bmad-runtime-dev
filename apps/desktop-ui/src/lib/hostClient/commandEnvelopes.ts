@@ -56,7 +56,10 @@ export function buildWorkspaceListEnvelope(
 }
 
 export function buildEmptyPayloadEnvelope<
-  TCommand extends "app.preferences.get" | "app.about",
+  TCommand extends
+    | "app.preferences.get"
+    | "app.about"
+    | "app.offboarding.inspect",
 >(
   binding: HostBinding,
   requestId: string,
@@ -72,6 +75,24 @@ export function buildEmptyPayloadEnvelope<
     installationId: asContractId(binding.installationId),
     issuedAt: asUnsignedInteger(issuedAt),
     payload: {},
+  };
+}
+
+export function buildOffboardingEraseEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  confirm: string,
+): CommandEnvelope<"app.offboarding.erase", { confirm: string }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "app.offboarding.erase",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { confirm },
   };
 }
 

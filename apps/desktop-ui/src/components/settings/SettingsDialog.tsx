@@ -13,12 +13,14 @@ import {
   SlidersHorizontal,
   Sparkles,
   Sun,
+  Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type {
   AboutProjection,
   DensityPreference,
+  RetentionManifestProjection,
   ThemePreference,
 } from "../../lib/hostClient";
 
@@ -29,9 +31,44 @@ export type SettingsSection =
   | "workspaces"
   | "skills-agents"
   | "updates"
+  | "offboarding"
   | "about";
 
 export type AboutStatus = "loading" | "unavailable" | "ready";
+
+export type OffboardingStatus =
+  | "loading"
+  | "unavailable"
+  | "ready"
+  | "erasing"
+  | "erased";
+
+// Must match the host-validated ADR-0004 phrase byte for byte.
+export const OFFBOARDING_ERASE_CONFIRMATION = "erase-local-authority-data";
+
+const retentionCategoryLabels: Record<string, string> = {
+  workspace_and_authority_records: "Workspace and authority records",
+  evidence_events: "Evidence events",
+  stored_payloads: "Stored payloads",
+  approval_consumptions: "Approval consumptions",
+  method_sessions: "Method sessions",
+  method_checkpoints: "Method checkpoints",
+  execution_journals: "Execution journals",
+  help_runs: "Help runs",
+};
+
+function retentionCategoryLabel(category: string): string {
+  return (
+    retentionCategoryLabels[category]
+    ?? category.replaceAll("_", " ").replace(/^./u, (c) => c.toUpperCase())
+  );
+}
+
+function formatRetainedBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export interface SettingsDialogProps {
   about: AboutProjection | null;
@@ -43,6 +80,10 @@ export interface SettingsDialogProps {
   modelAccessLabel: string;
   onClose: () => void;
   onDensityChange: (density: DensityPreference) => void;
+  offboardingManifest: RetentionManifestProjection | null;
+  offboardingNotice: string | null;
+  offboardingStatus: OffboardingStatus;
+  onEraseOffboarding: (confirm: string) => void;
   onManageWorkspaces: () => void;
   onOpenSkillsAndAgents: () => void;
   onThemeChange: (theme: ThemePreference) => void;
@@ -67,6 +108,7 @@ const sections: Array<{
   { id: "workspaces", label: "Workspaces", icon: FolderKanban },
   { id: "skills-agents", label: "Skills & agents", icon: Sparkles },
   { id: "updates", label: "Updates", icon: Download },
+  { id: "offboarding", label: "Local data", icon: Trash2 },
   { id: "about", label: "About", icon: Info },
 ];
 
@@ -99,6 +141,10 @@ function Row({
 export function SettingsDialog({
   about,
   aboutStatus,
+  offboardingManifest,
+  offboardingNotice,
+  offboardingStatus,
+  onEraseOffboarding,
   agentStatusLabel,
   density,
   initialSection = "general",
@@ -120,6 +166,8 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
   const panelRef = useRef<HTMLElement>(null);
   const [section, setSection] = useState<SettingsSection>(initialSection);
+  const [eraseConfirmation, setEraseConfirmation] = useState("");
+  const eraseArmed = eraseConfirmation === OFFBOARDING_ERASE_CONFIRMATION;
 
   useEffect(() => {
     panelRef.current
@@ -367,6 +415,87 @@ export function SettingsDialog({
                   value="Unavailable"
                 />
               </div>
+            </section>
+          ) : section === "offboarding" ? (
+            <section aria-labelledby="settings-offboarding-title">
+              <header className="settings-pane__header">
+                <h3 id="settings-offboarding-title">Local data</h3>
+                <p>
+                  What this app keeps on this device, and how to erase it.
+                  Uninstalling never deletes this data; your workspace files
+                  are yours and are never touched.
+                </p>
+              </header>
+              {offboardingStatus === "erased" ? (
+                <p className="settings-pane__copy" role="status">
+                  Local data was erased. The session is now read-only; restart
+                  the app to start with a fresh identity.
+                </p>
+              ) : offboardingStatus === "unavailable" ? (
+                <p className="settings-pane__copy" role="status">
+                  Local data details are unavailable in this mode.
+                </p>
+              ) : offboardingManifest === null ? (
+                <p className="settings-pane__copy" role="status">
+                  Loading local data details…
+                </p>
+              ) : (
+                <>
+                  <div className="settings-list">
+                    {offboardingManifest.categories.map((entry) => (
+                      <Row
+                        detail="Kept under the app's local authority store."
+                        key={entry.category}
+                        label={retentionCategoryLabel(entry.category)}
+                        value={`${entry.count}`}
+                      />
+                    ))}
+                    <Row
+                      detail="Encrypted local store, database, and key material."
+                      label="Total retained"
+                      value={formatRetainedBytes(offboardingManifest.retainedBytes)}
+                    />
+                  </div>
+                  <fieldset
+                    aria-label="Erase local data"
+                    className="settings-choice-group settings-choice-group--danger"
+                  >
+                    <legend>Erase local data</legend>
+                    <p className="settings-pane__copy">
+                      Erasing signs you out, revokes every workspace grant, and
+                      destroys the local store key so remaining bytes are
+                      undecryptable. This cannot be undone. Type{" "}
+                      <code>{OFFBOARDING_ERASE_CONFIRMATION}</code> to confirm.
+                    </p>
+                    <input
+                      aria-label="Erase confirmation phrase"
+                      autoComplete="off"
+                      className="settings-erase-confirmation"
+                      onChange={(event) => setEraseConfirmation(event.target.value)}
+                      placeholder={OFFBOARDING_ERASE_CONFIRMATION}
+                      spellCheck={false}
+                      type="text"
+                      value={eraseConfirmation}
+                    />
+                    <Button
+                      className="settings-pane__action"
+                      isDisabled={!eraseArmed || offboardingStatus === "erasing"}
+                      onPress={() => onEraseOffboarding(eraseConfirmation)}
+                      variant="secondary"
+                    >
+                      <Trash2 aria-hidden="true" size={15} />{" "}
+                      {offboardingStatus === "erasing"
+                        ? "Erasing local data…"
+                        : "Erase all local data"}
+                    </Button>
+                  </fieldset>
+                </>
+              )}
+              {offboardingNotice ? (
+                <p className="settings-pane__copy" role="status">
+                  {offboardingNotice}
+                </p>
+              ) : null}
             </section>
           ) : (
             <section aria-labelledby="settings-about-title">

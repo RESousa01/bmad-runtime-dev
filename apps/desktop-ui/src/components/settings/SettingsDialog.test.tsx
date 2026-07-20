@@ -3,8 +3,15 @@ import "../../test/setup";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { AboutProjection } from "../../lib/hostClient";
-import { SettingsDialog, type SettingsDialogProps } from "./SettingsDialog";
+import type {
+  AboutProjection,
+  RetentionManifestProjection,
+} from "../../lib/hostClient";
+import {
+  OFFBOARDING_ERASE_CONFIRMATION,
+  SettingsDialog,
+  type SettingsDialogProps,
+} from "./SettingsDialog";
 
 const about: AboutProjection = {
   appVersion: "0.1.0",
@@ -17,6 +24,16 @@ const about: AboutProjection = {
   updateInstallAvailable: false,
 };
 
+const retentionManifest: RetentionManifestProjection = {
+  schemaVersion: "sapphirus.retention-manifest.v1",
+  categories: [
+    { category: "workspace_and_authority_records", count: 4 },
+    { category: "evidence_events", count: 128 },
+    { category: "stored_payloads", count: 9 },
+  ],
+  retainedBytes: 262_144,
+};
+
 function createProps(
   overrides: Partial<SettingsDialogProps> = {},
 ): SettingsDialogProps {
@@ -27,8 +44,12 @@ function createProps(
     density: "comfortable",
     modelAccessDetail: "Deterministic development · review required",
     modelAccessLabel: "Development model",
+    offboardingManifest: retentionManifest,
+    offboardingNotice: null,
+    offboardingStatus: "ready",
     onClose: vi.fn(),
     onDensityChange: vi.fn(),
+    onEraseOffboarding: vi.fn(),
     onManageWorkspaces: vi.fn(),
     onOpenSkillsAndAgents: vi.fn(),
     onThemeChange: vi.fn(),
@@ -45,7 +66,7 @@ function createProps(
 }
 
 describe("SettingsDialog", () => {
-  it("navigates all seven sections", async () => {
+  it("navigates all eight sections", async () => {
     const user = userEvent.setup();
     render(<SettingsDialog {...createProps()} />);
 
@@ -56,6 +77,7 @@ describe("SettingsDialog", () => {
       ["Workspaces", "Workspaces"],
       ["Skills & agents", "Skills & agents"],
       ["Updates", "Updates"],
+      ["Local data", "Local data"],
       ["About", "About"],
     ] as const) {
       await user.click(screen.getByRole("button", { name: button }));
@@ -93,6 +115,52 @@ describe("SettingsDialog", () => {
     expect(screen.getByText("Managed by your organization")).toBeTruthy();
     expect(screen.getByText("Not configured")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /install|check for update/i })).toBeNull();
+  });
+
+  it("shows the retention manifest and arms erase only on the exact phrase", async () => {
+    const props = createProps({ initialSection: "offboarding" });
+    const user = userEvent.setup();
+    render(<SettingsDialog {...props} />);
+
+    expect(screen.getByText("Workspace and authority records")).toBeTruthy();
+    expect(screen.getByText("128")).toBeTruthy();
+    expect(screen.getByText("256.0 KB")).toBeTruthy();
+
+    const eraseButton = screen.getByRole("button", {
+      name: /erase all local data/i,
+    });
+    expect(eraseButton.hasAttribute("disabled")).toBe(true);
+
+    const confirmation = screen.getByRole("textbox", {
+      name: "Erase confirmation phrase",
+    });
+    await user.type(confirmation, "erase");
+    expect(eraseButton.hasAttribute("disabled")).toBe(true);
+    expect(props.onEraseOffboarding).not.toHaveBeenCalled();
+
+    await user.clear(confirmation);
+    await user.type(confirmation, OFFBOARDING_ERASE_CONFIRMATION);
+    expect(eraseButton.hasAttribute("disabled")).toBe(false);
+    await user.click(eraseButton);
+    expect(props.onEraseOffboarding).toHaveBeenCalledWith(
+      OFFBOARDING_ERASE_CONFIRMATION,
+    );
+  });
+
+  it("reports the erased terminal state", () => {
+    render(
+      <SettingsDialog
+        {...createProps({
+          initialSection: "offboarding",
+          offboardingManifest: null,
+          offboardingStatus: "erased",
+        })}
+      />,
+    );
+    expect(screen.getByText(/Local data was erased/u)).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: /erase all local data/i }),
+    ).toBeNull();
   });
 
   it("surfaces version and installation identity in About", () => {

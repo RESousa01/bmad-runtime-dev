@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseAboutReply, parsePreferencesReply } from "./appProtocol";
+import {
+  parseAboutReply,
+  parseOffboardingErasedReply,
+  parsePreferencesReply,
+  parseRetentionManifestReply,
+} from "./appProtocol";
 
 const requestId = "req_01ARZ3NDEKTSV4RRFFQ69G5FAV";
 
@@ -120,6 +125,96 @@ describe("app protocol validators", () => {
     expect(() =>
       parseAboutReply(
         dispatchReply({ kind: "preferences", value: aboutValue }),
+        requestId,
+      ),
+    ).toThrow();
+  });
+});
+
+describe("offboarding protocol validators", () => {
+  const manifestValue = {
+    schemaVersion: "sapphirus.retention-manifest.v1",
+    categories: [
+      { category: "workspace_and_authority_records", count: 4 },
+      { category: "evidence_events", count: 128 },
+    ],
+    retainedBytes: 262144,
+  };
+
+  it("accepts an exact retention manifest reply", () => {
+    const parsed = parseRetentionManifestReply(
+      dispatchReply({ kind: "retention_manifest", value: manifestValue }),
+      requestId,
+    );
+    expect(parsed.projection.categories).toHaveLength(2);
+    expect(parsed.projection.categories[1]?.count).toBe(128);
+    expect(parsed.projection.retainedBytes).toBe(262144);
+  });
+
+  it("rejects category labels that could leak paths or identifiers", () => {
+    for (const category of [
+      "C:/Users/someone",
+      String.raw`evidence\events`,
+      "Evidence Events",
+      "install_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "",
+    ]) {
+      expect(() =>
+        parseRetentionManifestReply(
+          dispatchReply({
+            kind: "retention_manifest",
+            value: {
+              ...manifestValue,
+              categories: [{ category, count: 1 }],
+            },
+          }),
+          requestId,
+        ),
+      ).toThrow();
+    }
+  });
+
+  it("rejects retention manifests with extra keys or a wrong kind", () => {
+    expect(() =>
+      parseRetentionManifestReply(
+        dispatchReply({
+          kind: "retention_manifest",
+          value: { ...manifestValue, paths: [] },
+        }),
+        requestId,
+      ),
+    ).toThrow();
+    expect(() =>
+      parseRetentionManifestReply(
+        dispatchReply({ kind: "about", value: manifestValue }),
+        requestId,
+      ),
+    ).toThrow();
+  });
+
+  it("accepts only the erased terminal acknowledgement", () => {
+    const parsed = parseOffboardingErasedReply(
+      dispatchReply({
+        kind: "offboarding_erased",
+        value: {
+          schemaVersion: "sapphirus.offboarding-erased.v1",
+          status: "erased",
+          restartRequired: true,
+        },
+      }),
+      requestId,
+    );
+    expect(parsed.projection.restartRequired).toBe(true);
+    expect(() =>
+      parseOffboardingErasedReply(
+        dispatchReply({
+          kind: "offboarding_erased",
+          value: {
+            schemaVersion: "sapphirus.offboarding-erased.v1",
+            status: "partial",
+            restartRequired: true,
+          },
+        }),
         requestId,
       ),
     ).toThrow();

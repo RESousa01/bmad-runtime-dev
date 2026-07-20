@@ -55,6 +55,8 @@ const reviewedReadyCommands = [
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
+  "app.offboarding.inspect",
+  "app.offboarding.erase",
   "workspace.pick_files",
 ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];

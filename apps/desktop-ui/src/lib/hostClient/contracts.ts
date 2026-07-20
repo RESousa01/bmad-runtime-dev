@@ -63,6 +63,8 @@ export const desktopHostCommands = [
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
+  "app.offboarding.inspect",
+  "app.offboarding.erase",
   "workspace.pick_files",
 ] as const;
 
@@ -92,6 +94,23 @@ export interface AboutProjection {
   inactiveBuilderPackageCount: number;
   updateConfigured: boolean;
   updateInstallAvailable: boolean;
+}
+
+export interface RetentionCategory {
+  category: string;
+  count: number;
+}
+
+export interface RetentionManifestProjection {
+  schemaVersion: "sapphirus.retention-manifest.v1";
+  categories: RetentionCategory[];
+  retainedBytes: number;
+}
+
+export interface OffboardingErasedProjection {
+  schemaVersion: "sapphirus.offboarding-erased.v1";
+  status: "erased";
+  restartRequired: boolean;
 }
 
 export const workspaceReadLimits = {
@@ -520,6 +539,8 @@ export type RendererDispatchCommand =
   | "app.preferences.get"
   | "app.preferences.set"
   | "app.about"
+  | "app.offboarding.inspect"
+  | "app.offboarding.erase"
   | "workspace.pick_files";
 
 export interface CommandEnvelope<
