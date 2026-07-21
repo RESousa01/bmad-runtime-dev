@@ -41,38 +41,40 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-canvas: #06121f;
-  --color-chrome: #071522;
-  --color-surface: #0a1927;
-  --color-surface-raised: #0d1d2b;
-  --color-surface-hover: #10243a;
-  --color-surface-selected: #13283e;
-  --color-border: #26394d;
-  --color-border-subtle: #1b2e41;
-  --color-text: #f1f4f8;
-  --color-text-soft: #c9d0da;
-  --color-text-muted: #98a6b8;
-  --color-accent: #6d88ff;
-  --color-accent-strong: #8da2ff;
-  --color-accent-soft: #162c5c;
-  --color-on-accent: #06121f;
+  /* Warm graphite scale with a peach accent, in the OpenCode style:
+     neutral near-black surfaces, hairline borders, restrained color. */
+  --color-canvas: #161313;
+  --color-chrome: #1b1818;
+  --color-surface: #1f1c1c;
+  --color-surface-raised: #252121;
+  --color-surface-hover: #2d2828;
+  --color-surface-selected: #343030;
+  --color-border: #3e3939;
+  --color-border-subtle: #2d2828;
+  --color-text: #ededed;
+  --color-text-soft: #b7b1b1;
+  --color-text-muted: #8f8a8a;
+  --color-accent: #fab283;
+  --color-accent-strong: #ffc39a;
+  --color-accent-soft: #3a2b20;
+  --color-on-accent: #1b1210;
   --color-success: #64d899;
   --color-warning: #f2ac43;
   --color-danger: #f17884;
-  --color-added: #123b2c;
-  --color-added-strong: #175039;
-  --color-removed: #3b202a;
-  --color-removed-strong: #512832;
-  --color-focus: #91a8ff;
+  --color-added: #14342a;
+  --color-added-strong: #1a4a36;
+  --color-removed: #3d2226;
+  --color-removed-strong: #542b30;
+  --color-focus: #fab283;
   --shadow-popover: 0 24px 65px rgb(0 0 0 / 0.42);
   --shadow-control: 0 1px 0 rgb(255 255 255 / 0.04);
 
   --color-status-active: #4fd08c;
-  --color-status-active-soft: #0e2e20;
+  --color-status-active-soft: #10291e;
   --color-status-pending: #e8a33d;
-  --color-status-pending-soft: #2e2210;
-  --color-status-inactive: #8b99ab;
-  --color-status-inactive-soft: #14212f;
+  --color-status-pending-soft: #2e2413;
+  --color-status-inactive: #8f8a8a;
+  --color-status-inactive-soft: #242020;
 }
 
 .sapphirus-button {
