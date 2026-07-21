@@ -1,10 +1,24 @@
 import { Button } from "@sapphirus/ui";
-import { Maximize2, Minus, X } from "lucide-react";
+import { LayoutGrid, Maximize2, Menu, Minus, Plus, SquarePen, X } from "lucide-react";
 import { useState } from "react";
 import { performWindowAction } from "../lib/windowActions";
 import { BrandMark } from "./BrandMark";
 
-export function TitleBar({ isInert = false }: { isInert?: boolean }) {
+export interface TitleBarProps {
+  isInert?: boolean;
+  onMenu?: (() => void) | undefined;
+  onHome?: (() => void) | undefined;
+  onNewTask?: (() => void) | undefined;
+  taskTitle?: string | undefined;
+}
+
+export function TitleBar({
+  isInert = false,
+  onMenu,
+  onHome,
+  onNewTask,
+  taskTitle,
+}: TitleBarProps) {
   const [windowActionError, setWindowActionError] = useState("");
 
   function invokeWindowAction(action: Parameters<typeof performWindowAction>[0]) {
@@ -24,6 +38,47 @@ export function TitleBar({ isInert = false }: { isInert?: boolean }) {
       <div className="brand-lockup title-bar__brand" data-tauri-drag-region>
         <BrandMark size={23} />
         <span>Sapphirus</span>
+      </div>
+      <div className="title-strip" data-tauri-drag-region>
+        {onMenu === undefined ? null : (
+          <Button
+            aria-label="Open app menu"
+            className="title-strip__button"
+            onPress={onMenu}
+            size="icon"
+            variant="quiet"
+          >
+            <Menu aria-hidden="true" size={15} strokeWidth={1.7} />
+          </Button>
+        )}
+        {onHome === undefined ? null : (
+          <Button
+            aria-label="Show tasks overview"
+            className="title-strip__button"
+            onPress={onHome}
+            size="icon"
+            variant="quiet"
+          >
+            <LayoutGrid aria-hidden="true" size={15} strokeWidth={1.7} />
+          </Button>
+        )}
+        {taskTitle === undefined ? null : (
+          <span className="title-strip__tab">
+            <SquarePen aria-hidden="true" size={13} strokeWidth={1.7} />
+            <span>{taskTitle}</span>
+          </span>
+        )}
+        {onNewTask === undefined ? null : (
+          <Button
+            aria-label="Start a new task"
+            className="title-strip__button"
+            onPress={onNewTask}
+            size="icon"
+            variant="quiet"
+          >
+            <Plus aria-hidden="true" size={15} strokeWidth={1.7} />
+          </Button>
+        )}
       </div>
       <div aria-label="Window controls" className="window-controls title-bar__controls">
         <Button

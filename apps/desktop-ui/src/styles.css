@@ -4440,3 +4440,34 @@ code {
   font-size: 0.6rem;
   padding: 2px 5px;
 }
+
+/* --- Title strip: menu, home, task tab, new task --- */
+.title-strip {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.title-strip__button {
+  color: var(--color-text-muted);
+}
+
+.title-strip__tab {
+  align-items: center;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 7px;
+  color: var(--color-text-soft);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 600;
+  gap: 6px;
+  max-width: 220px;
+  overflow: hidden;
+  padding: 4px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -2184,7 +2184,13 @@ export function App({
         onClose={() => setPaletteOpen(false)}
         open={paletteOpen}
       />
-      <TitleBar isInert={shellOverlayOpen} />
+      <TitleBar
+        isInert={shellOverlayOpen}
+        onHome={openWorkspaceManager}
+        onMenu={() => setPaletteOpen(true)}
+        onNewTask={startNewSession}
+        taskTitle={selectedSession.title}
+      />
       <div className="workbench workbench--task-shell">
         <AppShellLayout
           drawer={drawer}
