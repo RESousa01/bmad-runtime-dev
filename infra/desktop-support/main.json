@@ -10,7 +10,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "11385567245013441104"
+      "templateHash": "16428400739375548611"
     }
   },
   "parameters": {
@@ -195,7 +195,7 @@
         "name": "sql",
         "resourceId": "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]",
         "groupId": "sqlServer",
-        "zone": "privatelink.database.windows.net"
+        "zone": "[format('privatelink{0}', environment().suffixes.sqlServerHostname)]"
       },
       {
         "name": "openai",
@@ -291,10 +291,10 @@
       "properties": {
         "retentionInDays": 30,
         "publicNetworkAccessForIngestion": "Enabled",
-        "publicNetworkAccessForQuery": "Enabled"
-      },
-      "sku": {
-        "name": "PerGB2018"
+        "publicNetworkAccessForQuery": "Enabled",
+        "sku": {
+          "name": "PerGB2018"
+        }
       }
     },
     "applicationInsights": {
@@ -486,7 +486,9 @@
         "appLogsConfiguration": {
           "destination": "azure-monitor"
         },
-        "infrastructureSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('networkName'), 'container-apps')]",
+        "vnetConfiguration": {
+          "infrastructureSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('networkName'), 'container-apps')]"
+        },
         "publicNetworkAccess": "Enabled",
         "zoneRedundant": false
       },
@@ -1166,7 +1168,7 @@
   "outputs": {
     "apiFqdn": {
       "type": "string",
-      "value": "[if(parameters('deployApi'), reference('api').configuration.ingress.fqdn, '')]"
+      "value": "[coalesce(tryGet(if(parameters('deployApi'), reference('api', '2026-01-01', 'full'), null()), 'properties', 'configuration', 'ingress', 'fqdn'), '')]"
     },
     "apiManagedIdentityObjectId": {
       "type": "string",

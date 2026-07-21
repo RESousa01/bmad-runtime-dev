@@ -10,6 +10,15 @@
 
 The uploaded Bicep package now compiles, but deployment is not ready. Three Bicep structural warnings were corrected. Two non-blocking warnings remain. Seven parameter placeholders and a confirmed Microsoft Entra permission restriction still block deployment.
 
+**Repository synchronization (2026-07-21):** the BIC-003, BIC-004, and
+BIC-005 corrections originally applied only to the Cloud Shell working copy
+are now ported to the repository's `infra/desktop-support/main.bicep`, and
+BIC-006 is resolved there with `az.environment().suffixes.sqlServerHostname`
+(the unqualified `environment()` function is shadowed by the managed-environment
+resource symbol). `main.json` was regenerated from the fixed template. The
+only remaining build warning is the intentional BIC-007 experimental-assertions
+notice. All CFG/IAM/GOV/NET/AZR/OPS items remain open as recorded below.
+
 ## Issue register
 
 ### BIC-001 — Example parameter contained a placeholder tenant authority
@@ -94,7 +103,9 @@ output apiFqdn string = api.?properties.configuration.ingress.fqdn ?? ''
 **Diagnostic:** `no-hardcoded-env-urls`  
 **Current value:** `privatelink.database.windows.net`  
 **Impact:** portability warning across Azure clouds; does not block compilation in the current public-Azure target.  
-**Status:** Open, non-blocking for current DEV compilation. Review before production or multi-cloud Azure support.
+**Status:** Resolved in the repository template (2026-07-21) with
+`zone: 'privatelink${az.environment().suffixes.sqlServerHostname}'`, which
+renders identically in public Azure.
 
 ### BIC-007 — Experimental assertions enabled
 

@@ -172,9 +172,9 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
     retentionInDays: 30
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
-  }
-  sku: {
-    name: 'PerGB2018'
+    sku: {
+      name: 'PerGB2018'
+    }
   }
 }
 
@@ -347,7 +347,9 @@ resource environment 'Microsoft.App/managedEnvironments@2026-01-01' = {
     appLogsConfiguration: {
       destination: 'azure-monitor'
     }
-    infrastructureSubnetId: containerAppsSubnet.id
+    vnetConfiguration: {
+      infrastructureSubnetId: containerAppsSubnet.id
+    }
     publicNetworkAccess: 'Enabled'
     zoneRedundant: false
   }
@@ -503,7 +505,7 @@ var privateLinkTargets = [
   { name: 'registry', resourceId: registry.id, groupId: 'registry', zone: 'privatelink.azurecr.io' }
   { name: 'vault', resourceId: vault.id, groupId: 'vault', zone: 'privatelink.vaultcore.azure.net' }
   { name: 'configuration', resourceId: configuration.id, groupId: 'configurationStores', zone: 'privatelink.azconfig.io' }
-  { name: 'sql', resourceId: sqlServer.id, groupId: 'sqlServer', zone: 'privatelink.database.windows.net' }
+  { name: 'sql', resourceId: sqlServer.id, groupId: 'sqlServer', zone: 'privatelink${az.environment().suffixes.sqlServerHostname}' }
   { name: 'openai', resourceId: openAi.id, groupId: 'account', zone: 'privatelink.openai.azure.com' }
 ]
 
@@ -606,7 +608,7 @@ resource sqlDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-previe
   }
 }
 
-output apiFqdn string = deployApi ? api.properties.configuration.ingress.fqdn : ''
+output apiFqdn string = api.?properties.configuration.ingress.fqdn ?? ''
 output apiManagedIdentityObjectId string = identity.properties.principalId
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseName string = sqlDatabase.name
