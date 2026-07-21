@@ -887,7 +887,6 @@ describe("Sapphirus desktop workbench", () => {
 
     expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
     expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
-    expect(screen.getByRole("complementary", { name: "Task navigation" })).toBeTruthy();
     expect(screen.getByRole("main")).toBeTruthy();
     expect(screen.queryByRole("complementary", { name: /Files|Changes|Run details|Skills and agents/ })).toBeNull();
     expect(screen.getByRole("button", { name: "New task" })).toBeTruthy();
@@ -963,21 +962,7 @@ describe("Sapphirus desktop workbench", () => {
     const view = render(<App />);
     try {
       await screen.findAllByText("Browser preview");
-      const taskNavigation = document.querySelector<HTMLElement>(".task-shell-layout__sidebar")!;
-      expect(taskNavigation.getAttribute("role")).toBe("dialog");
-      expect(taskNavigation.getAttribute("aria-label")).toBe("Task navigation");
-      expect(taskNavigation.getAttribute("aria-hidden")).toBe("true");
-      expect(taskNavigation.hasAttribute("inert")).toBe(true);
-
-      const navigationTrigger = screen.getByRole("button", { name: "Open task navigation" });
-      await user.click(navigationTrigger);
-      expect(screen.getByRole("dialog", { name: "Task navigation" })).toBe(taskNavigation);
-      expect(taskNavigation.getAttribute("aria-modal")).toBe("true");
-      expect(taskNavigation.hasAttribute("inert")).toBe(false);
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close task navigation" }));
-
-      await user.keyboard("{Escape}");
-      expect(taskNavigation.getAttribute("aria-hidden")).toBe("true");
+      expect(document.querySelector(".task-shell-layout__sidebar")).toBeNull();
 
       const filesTrigger = screen.getByRole("button", { name: "Attach files" });
       await user.click(filesTrigger);

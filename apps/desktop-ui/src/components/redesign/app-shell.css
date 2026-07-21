@@ -2,9 +2,11 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Sidebar-free shell: navigation lives in the title strip and the workspace
+   breadcrumb, so the layout is one main column with an optional docked
+   drawer. The session rail (when toggled) prepends its own column. */
 .task-shell-layout {
   --task-shell-drawer-width: 420px;
-  --task-shell-sidebar-width: 260px;
   flex: 1 1 auto;
   height: 100%;
   isolation: isolate;
@@ -17,7 +19,7 @@
 
 .task-shell-layout__workspace {
   display: grid;
-  grid-template-columns: var(--task-shell-sidebar-width) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -26,21 +28,14 @@
 .task-shell-layout[data-drawer-open="true"][data-drawer-overlay="false"]
   .task-shell-layout__workspace {
   grid-template-columns:
-    var(--task-shell-sidebar-width)
     minmax(0, 1fr)
     minmax(320px, var(--task-shell-drawer-width));
 }
 
-.task-shell-layout__sidebar,
 .task-shell-layout__main,
 .task-shell-layout__drawer {
   min-height: 0;
   min-width: 0;
-}
-
-.task-shell-layout__sidebar {
-  overflow: hidden;
-  position: relative;
 }
 
 .task-shell-layout__main {
@@ -63,30 +58,6 @@
   position: relative;
 }
 
-.task-shell-layout__close {
-  align-items: center;
-  background: var(--color-surface, Canvas);
-  border: 1px solid var(--color-border, ButtonBorder);
-  border-radius: 8px;
-  color: var(--color-text, ButtonText);
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  height: 34px;
-  justify-content: center;
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  width: 34px;
-  z-index: 2;
-}
-
-.task-shell-layout__close span {
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.task-shell-layout__close:focus-visible,
 .task-shell-layout__scrim:focus-visible {
   outline: 2px solid var(--color-focus, Highlight);
   outline-offset: 2px;
@@ -99,10 +70,6 @@
   inset: 0;
   padding: 0;
   position: absolute;
-}
-
-.task-shell-layout__scrim--sidebar {
-  z-index: 30;
 }
 
 .task-shell-layout__scrim--drawer {
@@ -170,27 +137,6 @@
     .task-shell-layout__workspace {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .task-shell-layout__sidebar {
-    background: var(--color-surface, Canvas);
-    bottom: 0;
-    box-shadow: 18px 0 44px rgb(9 15 27 / 0.24);
-    left: 0;
-    max-width: 100%;
-    position: absolute;
-    top: 0;
-    transform: translateX(-104%);
-    transition: transform 160ms ease, visibility 160ms step-end;
-    visibility: hidden;
-    width: min(var(--task-shell-sidebar-width), calc(100vw - 48px));
-    z-index: 40;
-  }
-
-  .task-shell-layout__sidebar[data-open="true"] {
-    transform: translateX(0);
-    transition: transform 160ms ease;
-    visibility: visible;
-  }
 }
 
 @media (max-width: 520px) {
@@ -209,33 +155,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .task-shell-layout__sidebar {
-    transition: none;
-  }
-}
-
 @media (forced-colors: active) {
   .task-shell-layout__scrim {
     background: Canvas;
     opacity: 0.72;
   }
-}
-
-/* Sidebar-free shell (2026-07-21): navigation lives in the title strip and
-   the workspace breadcrumb, so the layout is a single main column with an
-   optional docked drawer. */
-.task-shell-layout__sidebar {
-  display: none;
-}
-
-.task-shell-layout__workspace {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.task-shell-layout[data-drawer-open="true"][data-drawer-overlay="false"]
-  .task-shell-layout__workspace {
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(320px, var(--task-shell-drawer-width));
 }

@@ -5,7 +5,6 @@ import {
   History,
   Library,
   ListChecks,
-  Menu,
   Paperclip,
   Send,
   ShieldAlert,
@@ -45,7 +44,6 @@ export interface TaskWorkspaceProps {
   onOpenChanges: () => void;
   onOpenMethodLibrary: () => void;
   onOpenRunDetails: () => void;
-  onOpenSidebar: () => void;
   onOpenWorkspaceManager?: (() => void) | undefined;
   onReviewRequest: (intent: string) => Promise<void>;
   sessionTitle: string;
@@ -74,7 +72,6 @@ export function TaskWorkspace({
   onOpenChanges,
   onOpenMethodLibrary,
   onOpenRunDetails,
-  onOpenSidebar,
   onOpenWorkspaceManager,
   onReviewRequest,
   sessionTitle,
@@ -132,15 +129,6 @@ export function TaskWorkspace({
     <main className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""}`} inert={isInert}>
       <header className="task-header">
         <div className="task-header__workspace">
-          <Button
-            aria-label="Open task navigation"
-            className="mobile-panel-button"
-            onPress={onOpenSidebar}
-            size="icon"
-            variant="quiet"
-          >
-            <Menu aria-hidden="true" size={18} />
-          </Button>
           <strong>{workspaceName}</strong>
           <span className="workspace-status">
             <span className="workspace-status__folder" aria-hidden="true" />

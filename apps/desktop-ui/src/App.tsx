@@ -23,7 +23,6 @@ import { CommandPalette, type PaletteAction } from "./components/CommandPalette"
 import {
   AppShellLayout,
   DRAWER_OVERLAY_QUERY,
-  SIDEBAR_OVERLAY_QUERY,
 } from "./components/redesign/AppShellLayout";
 import {
   ContextDrawer,
@@ -179,7 +178,6 @@ export function App({
   const [density, setDensity] = useState<DensityPreference>("comfortable");
   const [sessions, setSessions] = useState<SessionSummary[]>([initialProductSession]);
   const [contextDrawer, setContextDrawer] = useState<ContextDrawerKind | null>(null);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>("dark");
   const [appModal, setAppModal] = useState<AppModalKind>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -226,7 +224,6 @@ export function App({
   const recoveryDecisionRef = useRef(false);
   const recoveryPreparationRef = useRef(false);
   const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
-  const sidebarIsOverlay = useMediaQuery(SIDEBAR_OVERLAY_QUERY);
   const workspaceActionBusyRef = useRef(false);
   const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
   const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -667,7 +664,6 @@ export function App({
         ? activeElement
         : null);
     setContextDrawer(null);
-    setMobileSidebarOpen(false);
     setUtilitySettingsPage(mode === "settings" ? settingsPage : "general");
     setAppModal(mode);
     void loadAboutProjection();
@@ -1000,7 +996,6 @@ export function App({
 
   useEffect(() => {
     invalidateWorkspaceBoundUi();
-    setMobileSidebarOpen(false);
   }, [invalidateWorkspaceBoundUi, workspaceAuthorityKey]);
 
   useEffect(() => {
@@ -1256,7 +1251,6 @@ export function App({
     }
     setPrimaryRoute({ kind: "task", taskId: id });
     setContextDrawer(null);
-    setMobileSidebarOpen(false);
   }
 
   function startNewSession() {
@@ -1279,7 +1273,6 @@ export function App({
     setSessions([session]);
     setPrimaryRoute({ kind: "task", taskId: session.id });
     setContextDrawer(null);
-    setMobileSidebarOpen(false);
   }
 
   function openMethodLibrary() {
@@ -1292,7 +1285,6 @@ export function App({
       dismissUtilityPanel(false);
     }
     openContextDrawer("skills", returnFocus, openingFromUtility);
-    setMobileSidebarOpen(false);
     if (!bmadLibraryRequestedRef.current) {
       void loadMethodLibrary(methodLibraryClient);
     }
@@ -1364,7 +1356,6 @@ export function App({
           throw new HostCapabilityError("The prepared skill-guidance request failed closed.");
         }
         openContextDrawer("skills");
-        setMobileSidebarOpen(false);
         if (!bmadLibraryRequestedRef.current) {
           void loadMethodLibrary(client);
         }
@@ -1957,7 +1948,6 @@ export function App({
       ? document.activeElement
       : null;
     setContextDrawer(null);
-    setMobileSidebarOpen(false);
     setAppModal("workspace-manager");
   }
 
@@ -1966,13 +1956,11 @@ export function App({
     utilityReturnFocusRef.current = null;
     workspaceReturnFocusRef.current = returnFocus;
     setContextDrawer(null);
-    setMobileSidebarOpen(false);
     setAppModal("workspace-manager");
   }
 
   const shellOverlayOpen = appModal !== null
-    || (drawerIsOverlay && contextDrawer !== null)
-    || (sidebarIsOverlay && mobileSidebarOpen);
+    || (drawerIsOverlay && contextDrawer !== null);
 
   const drawer = contextDrawer ? (
     <ContextDrawer
@@ -2218,26 +2206,19 @@ export function App({
               modelAccessDetail={modelAccess.detail}
               modelAccessLabel={modelAccess.label}
               onAttachFiles={() => {
-                setMobileSidebarOpen(false);
                 openContextDrawer("files");
               }}
               onBrowseFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
               attachNotice={attachNotice}
               agentLibrary={bmadLibraryState}
               onOpenChanges={() => {
-                setMobileSidebarOpen(false);
                 openContextDrawer("changes");
               }}
               onOpenMethodLibrary={openMethodLibrary}
               onOpenWorkspaceManager={openWorkspaceManager}
               workspaceStatusLabel={workspaceDescription}
               onOpenRunDetails={() => {
-                setMobileSidebarOpen(false);
                 openContextDrawer("activity");
-              }}
-              onOpenSidebar={() => {
-                setContextDrawer(null);
-                setMobileSidebarOpen(true);
               }}
               onReviewRequest={reviewBmadRequest}
               sessionTitle={selectedSession.title}
@@ -2252,7 +2233,6 @@ export function App({
               />
             </main>
           )}
-          mobileSidebarOpen={mobileSidebarOpen}
           modal={modal}
           onCloseDrawer={dismissContextDrawer}
           onCloseModal={() => {
@@ -2262,8 +2242,6 @@ export function App({
               dismissUtilityPanel();
             }
           }}
-          onCloseSidebar={() => setMobileSidebarOpen(false)}
-          sidebar={null}
         />
       </div>
     </div>

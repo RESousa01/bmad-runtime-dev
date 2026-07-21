@@ -53,7 +53,6 @@ function createProps(
     onOpenChanges: vi.fn(),
     onOpenMethodLibrary: vi.fn(),
     onOpenRunDetails: vi.fn(),
-    onOpenSidebar: vi.fn(),
     onReviewRequest: vi.fn(async () => undefined),
     sessionTitle: "Method guidance",
     workspaceName: "sapphirus",
