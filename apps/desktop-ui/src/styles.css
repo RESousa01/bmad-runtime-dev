@@ -4471,3 +4471,30 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- Home view: centered hero over the composer --- */
+.empty-session {
+  justify-content: center;
+  min-height: 52vh;
+}
+
+.empty-session__wordmark {
+  color: color-mix(in srgb, var(--color-text-muted), transparent 45%);
+  font-size: 2.1rem;
+  font-weight: 750;
+  letter-spacing: 0.28em;
+  margin-top: 10px;
+  text-transform: lowercase;
+}
+
+.empty-session__mark svg {
+  filter: drop-shadow(0 4px 18px color-mix(in srgb, var(--color-accent), transparent 70%));
+}
+
+.empty-session h2 {
+  margin-top: 18px;
+}
+
+.empty-session__starters button {
+  border-radius: 999px;
+}

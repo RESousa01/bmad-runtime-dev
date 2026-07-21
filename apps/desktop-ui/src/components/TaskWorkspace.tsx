@@ -273,8 +273,9 @@ export function TaskWorkspace({
             ) : submittedTask ? null : (
               <section className="empty-session" aria-labelledby="empty-session-title">
                 <div className="empty-session__mark">
-                  <BrandMark size={31} />
+                  <BrandMark size={44} />
                 </div>
+                <span aria-hidden="true" className="empty-session__wordmark">Sapphirus</span>
                 <h2 id="empty-session-title">What do you want skill guidance for?</h2>
                 <p>
                   Describe your intent to create an inert local run and review the exact context.
@@ -303,8 +304,9 @@ export function TaskWorkspace({
         ) : (
           <section className="empty-session" aria-labelledby="empty-session-title">
             <div className="empty-session__mark">
-              <BrandMark size={31} />
+              <BrandMark size={44} />
             </div>
+            <span aria-hidden="true" className="empty-session__wordmark">Sapphirus</span>
             <h2 id="empty-session-title">
               {isBrowserDemo ? "Explore Sapphirus safely" : "What would you like to work on?"}
             </h2>
