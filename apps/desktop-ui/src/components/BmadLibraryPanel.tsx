@@ -44,6 +44,27 @@ function availabilityLabel(availability: BmadAvailability): string {
   }
 }
 
+const blockerExplanations: Readonly<Record<string, string>> = {
+  bmad_capability_disabled:
+    "This capability is not enabled in the sealed foundation. Enabling it is a reviewed organization decision, not an error.",
+  bmad_dependency_unavailable:
+    "A skill this entry depends on is not part of the adopted foundation yet, so it stays disabled until adoption.",
+  bmad_help_catalog_orphan:
+    "This catalog row has no matching installed skill, so it cannot be started.",
+  bmad_network_reference_unavailable:
+    "The source references network content that is not adopted into the offline foundation.",
+  bmad_source_prompt_unavailable:
+    "The original source prompt has not been adopted into the sealed foundation, so nothing can be prepared from it.",
+};
+
+function AvailabilityChip({ availability }: { readonly availability: BmadAvailability }) {
+  return (
+    <span className="bmad-availability" data-availability={availability}>
+      {availabilityLabel(availability)}
+    </span>
+  );
+}
+
 function Blockers({ codes }: { readonly codes: readonly string[] }) {
   if (codes.length === 0) {
     return null;
@@ -52,7 +73,14 @@ function Blockers({ codes }: { readonly codes: readonly string[] }) {
     <div className="bmad-blockers">
       <span>Blockers</span>
       <ul aria-label="Blockers">
-        {codes.map((code) => <li key={code}><code>{code}</code></li>)}
+        {codes.map((code) => (
+          <li key={code}>
+            <code>{code}</code>
+            {code in blockerExplanations ? (
+              <p className="bmad-blockers__explanation">{blockerExplanations[code]}</p>
+            ) : null}
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -63,7 +91,7 @@ function InstalledSkillRow({ skill }: { readonly skill: BmadInstalledSkillProjec
     <li className="bmad-library-row">
       <div className="bmad-library-row__heading">
         <strong>{skill.displayName}</strong>
-        <span className="bmad-availability">{availabilityLabel(skill.availability)}</span>
+        <AvailabilityChip availability={skill.availability} />
       </div>
       <p>{skill.description}</p>
       {skill.actions.length > 0 ? (
@@ -82,7 +110,7 @@ function HelpActionRow({ helpAction }: { readonly helpAction: BmadHelpActionProj
     <li className="bmad-library-row">
       <div className="bmad-library-row__heading">
         <strong>{helpAction.displayName}</strong>
-        <span className="bmad-availability">{availabilityLabel(helpAction.availability)}</span>
+        <AvailabilityChip availability={helpAction.availability} />
       </div>
       <p>{helpAction.description}</p>
       {helpAction.menuCode === null ? <span>No menu code</span> : <span>Menu code {helpAction.menuCode}</span>}
@@ -118,7 +146,7 @@ function MethodAgentRow({
           <strong>{agent.name}</strong>
           <span>{agent.title}</span>
         </div>
-        <span className="bmad-availability">{availabilityLabel(agent.availability)}</span>
+        <AvailabilityChip availability={agent.availability} />
       </div>
       <p>{agent.description}</p>
       <p>{agent.team}</p>
@@ -154,7 +182,7 @@ function MethodAgentRow({
                 </span>
               </div>
               <p>{menu.description}</p>
-              <span className="bmad-availability">{availabilityLabel(menu.availability)}</span>
+              <AvailabilityChip availability={menu.availability} />
               {menu.availabilityReason === null ? null : <p>{menu.availabilityReason}</p>}
               {onRunCapability === undefined ? null : (
                 <button
@@ -322,7 +350,7 @@ function ReadyLibrary({
               >
                 <div className="bmad-library-row__heading">
                   <strong>{builder.displayName}</strong>
-                  <span className="bmad-availability">Inactive</span>
+                  <span className="bmad-availability" data-availability="inactive">Inactive</span>
                 </div>
                 <p>
                   {builder.packageName} {builder.packageVersion} ·{" "}

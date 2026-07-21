@@ -28,6 +28,15 @@
   --color-focus: #366cf4;
   --shadow-popover: 0 20px 55px rgb(26 38 58 / 0.18);
   --shadow-control: 0 1px 1px rgb(20 34 54 / 0.08);
+
+  /* Semantic availability language: green = runnable now, amber = awaiting a
+     reviewed decision (by design, not an error), neutral = descriptive only. */
+  --color-status-active: #178451;
+  --color-status-active-soft: #e2f5ea;
+  --color-status-pending: #a96700;
+  --color-status-pending-soft: #fdf2df;
+  --color-status-inactive: #5f6d82;
+  --color-status-inactive-soft: #eef2f7;
 }
 
 [data-theme="dark"] {
@@ -57,6 +66,13 @@
   --color-focus: #91a8ff;
   --shadow-popover: 0 24px 65px rgb(0 0 0 / 0.42);
   --shadow-control: 0 1px 0 rgb(255 255 255 / 0.04);
+
+  --color-status-active: #4fd08c;
+  --color-status-active-soft: #0e2e20;
+  --color-status-pending: #e8a33d;
+  --color-status-pending-soft: #2e2210;
+  --color-status-inactive: #8b99ab;
+  --color-status-inactive-soft: #14212f;
 }
 
 .sapphirus-button {

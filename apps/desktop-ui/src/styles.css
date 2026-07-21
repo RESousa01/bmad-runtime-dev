@@ -3904,3 +3904,417 @@ code {
     top: var(--shell-titlebar-height);
   }
 }
+
+/* ============================================================
+   Governed-instrument refinement layer (2026-07-21)
+   Status legibility, card hierarchy, atmosphere, and motion for
+   the workbench. Appended as an override layer over the base
+   system above; tokens come from @sapphirus/ui tokens.css.
+   ============================================================ */
+
+/* --- Atmosphere: layered ink depth behind the whole shell --- */
+[data-theme="dark"] .app-shell {
+  background:
+    radial-gradient(1200px 700px at 78% -10%, color-mix(in srgb, var(--color-accent), transparent 94%), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, color-mix(in srgb, var(--color-accent-strong), transparent 96%), transparent 55%),
+    var(--color-canvas);
+}
+
+/* --- Availability chips: a traffic-light status language --- */
+.bmad-availability {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 620;
+  gap: 5px;
+  justify-self: start;
+  letter-spacing: 0.01em;
+}
+
+.bmad-availability::before {
+  border-radius: 999px;
+  content: "";
+  flex: 0 0 auto;
+  height: 6px;
+  width: 6px;
+  background: var(--color-status-inactive);
+}
+
+.bmad-availability[data-availability="available"] {
+  background: var(--color-status-active-soft);
+  border-color: color-mix(in srgb, var(--color-status-active), transparent 55%);
+  color: var(--color-status-active);
+}
+
+.bmad-availability[data-availability="available"]::before {
+  background: var(--color-status-active);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-status-active), transparent 40%);
+}
+
+.bmad-availability[data-availability="capability_disabled"],
+.bmad-availability[data-availability="dependency_unavailable"],
+.bmad-availability[data-availability="source_prompt_unavailable"],
+.bmad-availability[data-availability="network_unavailable"] {
+  background: var(--color-status-pending-soft);
+  border-color: color-mix(in srgb, var(--color-status-pending), transparent 60%);
+  color: var(--color-status-pending);
+}
+
+.bmad-availability[data-availability="capability_disabled"]::before,
+.bmad-availability[data-availability="dependency_unavailable"]::before,
+.bmad-availability[data-availability="source_prompt_unavailable"]::before,
+.bmad-availability[data-availability="network_unavailable"]::before {
+  background: var(--color-status-pending);
+}
+
+.bmad-availability[data-availability="orphan_skill"],
+.bmad-availability[data-availability="inactive"] {
+  background: var(--color-status-inactive-soft);
+  border-color: color-mix(in srgb, var(--color-status-inactive), transparent 60%);
+  color: var(--color-status-inactive);
+}
+
+/* --- Blockers: a quiet, ruled "decision pending" callout --- */
+.bmad-blockers {
+  border-left: 2px solid color-mix(in srgb, var(--color-status-pending), transparent 45%);
+  gap: 6px;
+  padding: 2px 0 2px 10px;
+}
+
+.bmad-blockers > span {
+  color: var(--color-status-pending);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.bmad-blockers ul {
+  display: grid;
+  gap: 6px;
+}
+
+.bmad-blockers code {
+  color: var(--color-text-soft);
+}
+
+.bmad-blockers__explanation {
+  color: var(--color-text-muted);
+  margin: 2px 0 0 !important;
+}
+
+/* --- Agent cards: identity first, one card per person --- */
+.bmad-agent-row {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-control);
+  gap: 9px;
+  padding: 13px 14px;
+}
+
+.bmad-agent-row > .bmad-library-row__heading > div {
+  align-items: center;
+}
+
+.bmad-agent-row__icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-accent), transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--color-accent), transparent 72%);
+  border-radius: 9px;
+  display: inline-flex;
+  font-size: 1.05rem;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.bmad-agent-row > .bmad-library-row__heading strong {
+  font-size: 0.82rem;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+}
+
+.bmad-agent-row > .bmad-library-row__heading strong + span {
+  color: var(--color-text-muted);
+  font-weight: 540;
+}
+
+/* --- Agent menu rows: mono keycap for the command code --- */
+.bmad-agent-menu > li > div > strong {
+  background: var(--color-surface-selected);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-accent-strong);
+  flex: 0 0 auto;
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  font-weight: 640;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 4px 5px;
+}
+
+/* --- Plain-action buttons inside the library --- */
+.bmad-agent-row button,
+.bmad-agent-menu button {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-accent-strong);
+  cursor: default;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  justify-self: start;
+  padding: 4px 9px;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.bmad-agent-row button:hover,
+.bmad-agent-menu button:hover {
+  background: var(--color-surface-hover);
+  border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 45%);
+}
+
+.bmad-agent-row button:focus-visible,
+.bmad-agent-menu button:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px var(--color-focus);
+  outline: none;
+}
+
+/* --- Section headers: tracked kickers over the content --- */
+.bmad-library-section > h3,
+.bmad-library-panel > h2 {
+  color: var(--color-text-muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.bmad-library-panel__source {
+  color: var(--color-text-muted);
+  font-family: var(--font-code);
+  font-size: 0.64rem !important;
+}
+
+/* --- Empty states: intentional, not accidental --- */
+.bmad-library-section > p:only-of-type {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--shell-radius-md);
+  padding: 14px;
+  text-align: center;
+}
+
+/* --- Message state labels: color the state, not just the text --- */
+.message__label {
+  letter-spacing: 0.02em;
+}
+
+.message[role="alert"] .message__label {
+  color: var(--color-status-pending);
+}
+
+/* --- Entrance motion: one staggered reveal, nothing scattered --- */
+@media (prefers-reduced-motion: no-preference) {
+  .bmad-agent-row,
+  .bmad-library-row {
+    animation: bmad-rise 340ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .bmad-agent-row:nth-child(2),
+  .bmad-library-row:nth-child(2) { animation-delay: 40ms; }
+  .bmad-agent-row:nth-child(3),
+  .bmad-library-row:nth-child(3) { animation-delay: 80ms; }
+  .bmad-agent-row:nth-child(4),
+  .bmad-library-row:nth-child(4) { animation-delay: 120ms; }
+  .bmad-agent-row:nth-child(n + 5),
+  .bmad-library-row:nth-child(n + 5) { animation-delay: 160ms; }
+}
+
+@keyframes bmad-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Governed-changes diff view (Claude Code-inspired) --- */
+.diff-view {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--shell-radius-md);
+  font-family: var(--font-code);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.diff-segment {
+  display: grid;
+}
+
+.diff-line {
+  display: grid;
+  grid-template-columns: 3.2ch 3.2ch 1.4ch minmax(0, 1fr);
+  min-width: max-content;
+}
+
+.diff-line__no {
+  color: var(--color-text-muted);
+  opacity: 0.65;
+  padding: 0 0.5ch;
+  text-align: right;
+  user-select: none;
+}
+
+.diff-line__marker {
+  text-align: center;
+  user-select: none;
+}
+
+.diff-line__text {
+  padding-right: 1ch;
+  white-space: pre;
+}
+
+.diff-line--added {
+  background: var(--color-added);
+}
+
+.diff-line--added .diff-line__marker,
+.diff-counts__added {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.diff-line--removed {
+  background: var(--color-removed);
+}
+
+.diff-line--removed .diff-line__marker,
+.diff-counts__removed {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.diff-line--added .diff-line__no,
+.diff-line--removed .diff-line__no {
+  opacity: 0.85;
+}
+
+.diff-collapsed {
+  background: color-mix(in srgb, var(--color-surface-raised), transparent 20%);
+  border: 0;
+  border-block: 1px dashed var(--color-border-subtle);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  font-size: 0.64rem;
+  padding: 3px 0;
+  text-align: center;
+  width: 100%;
+}
+
+.diff-collapsed:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-soft);
+}
+
+.diff-collapsed:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.diff-counts {
+  display: inline-flex;
+  font-family: var(--font-code);
+  font-size: 0.66rem;
+  gap: 6px;
+}
+
+.changes-review-file__icon--create { color: var(--color-success); }
+.changes-review-file__icon--modify { color: var(--color-accent-strong); }
+.changes-review-file__icon--delete { color: var(--color-danger); }
+
+.changes-review-file > summary {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.changes-review-file > summary code {
+  overflow-wrap: anywhere;
+}
+
+/* --- OpenCode-inspired review refinements --- */
+.diff-magnitude {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.diff-magnitude__block {
+  border-radius: 1.5px;
+  height: 8px;
+  width: 8px;
+}
+
+.diff-magnitude__block--added { background: var(--color-status-active); }
+.diff-magnitude__block--removed { background: var(--color-danger); }
+.diff-magnitude__block--neutral { background: var(--color-border); }
+
+.diff-file-path {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.diff-file-path__dir { color: var(--color-text-muted); }
+.diff-file-path__name { color: var(--color-text); font-weight: 620; }
+
+.diff-file-index {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--shell-radius-md);
+  display: grid;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.diff-file-index__row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.6875rem;
+  gap: 8px;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.diff-file-index__row:last-child { border-bottom: 0; }
+
+.diff-file-index__row:hover { background: var(--color-surface-hover); }
+
+.diff-file-index__row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.diff-file-index__row .diff-file-path { flex: 1 1 auto; }
+
+.changes-review-file > summary {
+  background: var(--color-surface-raised);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
