@@ -47,6 +47,8 @@ const recoveryBootstrap: BootstrapReply = {
       displayName: "opaque-workspace-name",
       grantEpoch: 7,
       permissions: "read_only",
+      contextReadEpoch: 1,
+      governedEditEpoch: 1,
     },
   ],
   projectionSequence: 18,
@@ -281,6 +283,8 @@ async function workspaceManagementRuntime(
     displayName: "secondary-workspace",
     grantEpoch: 11,
     permissions: "read_only" as const,
+    contextReadEpoch: 1,
+    governedEditEpoch: 1,
   };
   const bootstrap: BootstrapReply = {
     ...recoveryBootstrap,
@@ -1285,6 +1289,8 @@ describe("Sapphirus desktop workbench", () => {
             displayName: "refreshed-workspace",
             grantEpoch: 8,
             permissions: "read_only",
+            contextReadEpoch: 1,
+            governedEditEpoch: 1,
           }],
         },
       };
@@ -1884,6 +1890,8 @@ describe("Sapphirus desktop workbench", () => {
       displayName: "secondary-workspace",
       grantEpoch: 11,
       permissions: "read_only" as const,
+      contextReadEpoch: 1,
+      governedEditEpoch: 1,
     };
     const primaryRun = bmadHelpRun(primary.workspaceId, "Stale primary guidance", "01K0Q6H5");
     const secondaryRun = bmadHelpRun(secondary.workspaceId, "Current secondary guidance", "01K0Q6H6");

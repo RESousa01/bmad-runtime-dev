@@ -13,6 +13,8 @@ export const primaryShellWorkspace: WorkspaceProjection = {
   displayName: "primary-workspace",
   grantEpoch: 7,
   permissions: "read_only",
+  contextReadEpoch: 1,
+  governedEditEpoch: 1,
 };
 
 export const secondaryShellWorkspace: WorkspaceProjection = {
@@ -21,6 +23,8 @@ export const secondaryShellWorkspace: WorkspaceProjection = {
   displayName: "secondary-workspace",
   grantEpoch: 11,
   permissions: "read_only",
+  contextReadEpoch: 1,
+  governedEditEpoch: 1,
 };
 
 function successfulReply(requestId: string, data: unknown) {

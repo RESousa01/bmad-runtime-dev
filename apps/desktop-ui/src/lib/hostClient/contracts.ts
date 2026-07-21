@@ -178,6 +178,10 @@ export interface WorkspaceProjection {
   displayName: string;
   grantEpoch: number;
   permissions: WorkspacePermission;
+  /** D2 context-read authority version (ADR-0002). */
+  contextReadEpoch: number;
+  /** D3 governed-edit authority version (ADR-0002). */
+  governedEditEpoch: number;
 }
 
 export interface BootstrapReply {

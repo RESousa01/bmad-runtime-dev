@@ -40,6 +40,8 @@ const readyBootstrap: BootstrapReply = {
       displayName: "sapphirus-desktop",
       grantEpoch: 3,
       permissions: "read_only",
+      contextReadEpoch: 1,
+      governedEditEpoch: 1,
     },
   ],
   projectionSequence: 12,

@@ -54,6 +54,8 @@ export function parseWorkspace(value: unknown): WorkspaceProjection {
     "displayName",
     "grantEpoch",
     "permissions",
+    "contextReadEpoch",
+    "governedEditEpoch",
   ]);
   return {
     workspaceId: asContractId(workspace.workspaceId),
@@ -61,6 +63,8 @@ export function parseWorkspace(value: unknown): WorkspaceProjection {
     displayName: asSafeDisplayName(workspace.displayName),
     grantEpoch: asUnsignedInteger(workspace.grantEpoch),
     permissions: asWorkspacePermission(workspace.permissions),
+    contextReadEpoch: asUnsignedInteger(workspace.contextReadEpoch),
+    governedEditEpoch: asUnsignedInteger(workspace.governedEditEpoch),
   };
 }
 

@@ -26,6 +26,8 @@ const bootstrap: BootstrapReply = {
     displayName: "workspace",
     grantEpoch: 4,
     permissions: "governed_edits",
+    contextReadEpoch: 1,
+    governedEditEpoch: 1,
   }],
   projectionSequence: 12,
 };
