@@ -20,6 +20,7 @@ import "./components/settings/settings.css";
 import { WorkspacePanel } from "./components/WorkspacePanel";
 import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
+import { HomeView } from "./components/HomeView";
 import {
   AppShellLayout,
   DRAWER_OVERLAY_QUERY,
@@ -110,7 +111,9 @@ function recoveryManualReviewMessage(
 
 type HostUiRuntime = HostRuntime | { kind: "loading" };
 
-export type PrimaryRoute = { kind: "task"; taskId: string | null };
+export type PrimaryRoute =
+  | { kind: "home" }
+  | { kind: "task"; taskId: string | null };
 export type AppModalKind = "workspace-manager" | "settings" | "account" | null;
 
 export interface AppProps {
@@ -171,10 +174,7 @@ export function App({
   hostRuntimeLoader = getDefaultHostRuntime,
   projectionPollIntervalMs = 1_500,
 }: AppProps = {}) {
-  const [primaryRoute, setPrimaryRoute] = useState<PrimaryRoute>({
-    kind: "task",
-    taskId: initialProductSession.id,
-  });
+  const [primaryRoute, setPrimaryRoute] = useState<PrimaryRoute>({ kind: "home" });
   const [density, setDensity] = useState<DensityPreference>("comfortable");
   const [sessions, setSessions] = useState<SessionSummary[]>([initialProductSession]);
   const [contextDrawer, setContextDrawer] = useState<ContextDrawerKind | null>(null);
@@ -241,7 +241,9 @@ export function App({
   const workspaceAuthorityKeyRef = useRef("");
   const sessionSequenceRef = useRef(0);
 
-  const selectedSessionId = primaryRoute.taskId ?? initialProductSession.id;
+  const selectedSessionId = primaryRoute.kind === "task"
+    ? primaryRoute.taskId ?? initialProductSession.id
+    : initialProductSession.id;
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId) ?? initialProductSession,
     [selectedSessionId, sessions],
@@ -2180,7 +2182,10 @@ export function App({
       />
       <TitleBar
         isInert={shellOverlayOpen}
-        onHome={openWorkspaceManager}
+        onHome={() => {
+          setContextDrawer(null);
+          setPrimaryRoute({ kind: "home" });
+        }}
         onMenu={() => setPaletteOpen(true)}
         onNewTask={startNewSession}
         onOpenAccount={() => openUtilityPanel("account")}
@@ -2190,7 +2195,21 @@ export function App({
       <div className="workbench workbench--task-shell">
         <AppShellLayout
           drawer={drawer}
-          main={activeWorkspace ? (
+          main={primaryRoute.kind === "home" ? (
+            <HomeView
+              composerDisabled={hostRuntime.kind !== "ready" || !activeWorkspace || methodRequestInFlight}
+              hasWorkspace={activeWorkspace !== null}
+              onOpenWorkspace={() => void selectWorkspace()}
+              onOpenWorkspaceManager={openWorkspaceManager}
+              onSubmitIntent={(intent) => {
+                startNewSession();
+                void reviewBmadRequest(intent);
+              }}
+              statusHint="Nothing is sent until you approve the exact context."
+              workspaceName={workspaceName}
+              workspaceStatusLabel={workspaceDescription}
+            />
+          ) : activeWorkspace ? (
             <TaskWorkspace
               canAttachFiles={workspaceSource !== null}
               contextPreview={contextPreview}

@@ -3757,3 +3757,58 @@ code {
   gap: 2px;
   padding-right: 4px;
 }
+
+/* --- Home view: centered landing --- */
+.home-view {
+  align-content: center;
+  background: var(--color-canvas);
+  display: grid;
+  gap: 22px;
+  height: 100%;
+  justify-items: center;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.home-view__hero {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.home-view__composer {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-control);
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  width: min(640px, 100%);
+}
+
+.home-view__input {
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  padding: 4px 0;
+}
+
+.home-view__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.home-view__composer-row {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.home-view__hint {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+}

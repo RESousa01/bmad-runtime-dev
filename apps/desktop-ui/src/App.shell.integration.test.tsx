@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "./test/setup";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { App } from "./App";
@@ -16,6 +16,11 @@ function contextualSurface(name: string): HTMLElement | null {
     ?? screen.queryByRole("dialog", { name });
 }
 
+async function enterFirstTask(): Promise<void> {
+  const openTask = await screen.findByRole("button", { name: "New task" });
+  fireEvent.click(openTask);
+}
+
 describe("App task-shell integration", () => {
   it("keeps one Task route while Files is a contextual drawer and Settings is a modal", async () => {
     const { runtime } = await createReadyShellRuntime([primaryShellWorkspace]);
@@ -26,6 +31,7 @@ describe("App task-shell integration", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
     await screen.findAllByText("Local host ready");
 
     const task = screen.getByRole("main");
@@ -57,9 +63,9 @@ describe("App task-shell integration", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
-    await screen.findByRole("region", { name: "No workspace open" });
-    const openWorkspaceActions = screen.getAllByRole("button", { name: "Open workspace" });
+    const openWorkspaceActions = await screen.findAllByRole("button", { name: "Open workspace" });
     expect(openWorkspaceActions).toHaveLength(1);
 
     await user.click(openWorkspaceActions[0]!);
@@ -77,6 +83,7 @@ describe("App task-shell integration", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await screen.findAllByText("Local host ready");
     expect(dispatchedCommands(invoke)).toEqual([]);
@@ -109,6 +116,7 @@ describe("App task-shell integration", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: "Run details" }));
@@ -146,6 +154,7 @@ describe("App task-shell integration", () => {
     });
     const user = userEvent.setup();
     const view = render(<App />);
+    await enterFirstTask();
 
     try {
       await screen.findAllByText("Browser preview");

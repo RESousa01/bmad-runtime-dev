@@ -810,6 +810,11 @@ async function readyMethodGuidanceComposer(): Promise<HTMLTextAreaElement> {
   return composer;
 }
 
+async function enterFirstTask(): Promise<void> {
+  const openTask = await screen.findByRole("button", { name: "New task" });
+  fireEvent.click(openTask);
+}
+
 describe("Sapphirus desktop workbench", () => {
   it("drops a stale Explorer page when the workspace source changes", async () => {
     let resolveStalePage!: (value: Awaited<ReturnType<ReadonlyWorkspaceSource["listEntries"]>>) => void;
@@ -882,6 +887,7 @@ describe("Sapphirus desktop workbench", () => {
   it("starts on current-product onboarding without seeded demo sessions or effects", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
 
     await screen.findAllByText("Browser preview");
 
@@ -922,6 +928,7 @@ describe("Sapphirus desktop workbench", () => {
   it("offers native folder selection from Workspaces but keeps browser QA inert", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
 
     const workspaceTrigger = screen.getByRole("button", { name: /Manage workspace/ });
@@ -960,6 +967,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     const user = userEvent.setup();
     const view = render(<App />);
+    await enterFirstTask();
     try {
       await screen.findAllByText("Browser preview");
       expect(document.querySelector(".task-shell-layout__sidebar")).toBeNull();
@@ -985,6 +993,7 @@ describe("Sapphirus desktop workbench", () => {
   it("moves focus into the modal settings dialog and returns it on close", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
     const settingsTrigger = screen.getByRole("button", { name: "Settings" });
 
@@ -1001,6 +1010,7 @@ describe("Sapphirus desktop workbench", () => {
   it("keeps the agent selector self-contained without a settings shortcut", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
     await screen.findByText("Browser preview");
 
     const agentTrigger = screen.getByRole("button", { name: "Agent and model settings" });
@@ -1018,6 +1028,7 @@ describe("Sapphirus desktop workbench", () => {
   it("provides an interactive but unmistakable browser-demo Files drawer", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
 
     await user.click(screen.getByRole("button", { name: "Attach files" }));
@@ -1044,6 +1055,7 @@ describe("Sapphirus desktop workbench", () => {
   it("returns focus to the task action after closing a side-by-side drawer", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
     await screen.findByText("Browser preview");
 
     const attachFiles = screen.getByRole("button", { name: "Attach files" });
@@ -1062,6 +1074,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.click(await screen.findByRole("button", { name: "Attach files" }));
     expect(await screen.findByText("Validated local projection")).toBeTruthy();
@@ -1103,6 +1116,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
@@ -1152,6 +1166,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
@@ -1177,6 +1192,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
     const dialog = screen.getByRole("dialog", { name: "Local workspaces" });
@@ -1195,6 +1211,7 @@ describe("Sapphirus desktop workbench", () => {
     const runtime = await recoveryRuntime();
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} />);
+    await enterFirstTask();
 
     expect(await screen.findByRole("status")).toHaveProperty("textContent", expect.stringContaining("Read-only recovery"));
     expect(screen.getAllByText("opaque-workspace-name").length).toBeGreaterThan(0);
@@ -1292,6 +1309,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={5}
       />,
     );
+    await enterFirstTask();
 
     expect(await screen.findByRole("status")).toHaveProperty(
       "textContent",
@@ -1307,6 +1325,7 @@ describe("Sapphirus desktop workbench", () => {
   it("opens each task-scoped context surface through its canonical drawer trigger", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await enterFirstTask();
 
     await screen.findAllByText("Browser preview");
     await user.click(screen.getByRole("button", { name: "Attach files" }));
@@ -1327,6 +1346,7 @@ describe("Sapphirus desktop workbench", () => {
     const { runtime, invoke } = await reviewedRecoveryRuntime();
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
 
     await user.click(screen.getByRole("button", { name: "Changes" }));
@@ -1390,6 +1410,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
     await user.click(screen.getByRole("button", { name: "Changes" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
@@ -1421,6 +1442,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
     await user.click(screen.getByRole("button", { name: "Changes" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
@@ -1462,6 +1484,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
     await user.click(screen.getByRole("button", { name: "Changes" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
@@ -1508,6 +1531,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
     await user.click(screen.getByRole("button", { name: "Changes" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
@@ -1531,6 +1555,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await waitFor(() => {
       const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -1565,6 +1590,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await waitFor(() => {
       const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -1596,6 +1622,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await waitFor(() => {
       const latestCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -1635,6 +1662,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await waitFor(() => {
       const commands = invoke.mock.calls
@@ -1665,6 +1693,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     const composer = await readyMethodGuidanceComposer();
     await user.type(composer, "  Choose the next safe architecture step.  ");
@@ -1703,6 +1732,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.type(
       await readyMethodGuidanceComposer(),
@@ -1732,6 +1762,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.type(
       await readyMethodGuidanceComposer(),
@@ -1773,6 +1804,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.type(
       await readyMethodGuidanceComposer(),
@@ -1806,6 +1838,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.type(
       await readyMethodGuidanceComposer(),
@@ -1820,6 +1853,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
     await waitFor(() => {
       const latestCalls = currentHost.invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
         && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest");
@@ -1850,6 +1884,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.type(
       await readyMethodGuidanceComposer(),
@@ -1895,6 +1930,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await screen.findAllByText("primary-workspace");
     await user.click(screen.getByRole("button", { name: /Manage workspace/ }));
@@ -1922,6 +1958,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     const trigger = await screen.findByRole("button", { name: "Skills and agents" });
     await user.click(trigger);
@@ -1954,6 +1991,7 @@ describe("Sapphirus desktop workbench", () => {
 
   it("does not fabricate a Method library in browser preview or recovery", async () => {
     const browser = render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
     expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
@@ -1961,6 +1999,7 @@ describe("Sapphirus desktop workbench", () => {
 
     const runtime = await recoveryRuntime();
     render(<App hostRuntimeLoader={async () => runtime} />);
+    await enterFirstTask();
     await screen.findAllByText("Read-only recovery");
     expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
     expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
@@ -1975,6 +2014,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={5}
       />,
     );
+    await enterFirstTask();
 
     await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
@@ -1993,6 +2033,7 @@ describe("Sapphirus desktop workbench", () => {
     const { runtime } = await bmadLibraryRuntime();
     const user = userEvent.setup();
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
+    await enterFirstTask();
 
     const settingsTrigger = await screen.findByRole("button", { name: "Settings" });
     await user.click(settingsTrigger);
@@ -2014,6 +2055,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     await waitFor(() => {
@@ -2044,6 +2086,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={60_000}
       />,
     );
+    await enterFirstTask();
 
     await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     await waitFor(() => {
@@ -2066,6 +2109,7 @@ describe("Sapphirus desktop workbench", () => {
         projectionPollIntervalMs={5}
       />,
     );
+    await enterFirstTask();
 
     await waitFor(() => {
       expect(invoke.mock.calls.some(([command]) => command === "host_projection_events")).toBe(true);
@@ -2094,6 +2138,7 @@ describe("Sapphirus desktop workbench", () => {
 
   it("has no automated accessibility violations in the default state", async () => {
     const { container } = render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
     const results = await axe.run(container, {
       rules: {
@@ -2107,6 +2152,7 @@ describe("Sapphirus desktop workbench", () => {
   it("has no automated accessibility violations in the populated Files drawer", async () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
+    await enterFirstTask();
     await screen.findAllByText("Browser preview");
     await user.click(screen.getByRole("button", { name: "Attach files" }));
     await screen.findByRole("button", { name: /README\.md/i });
