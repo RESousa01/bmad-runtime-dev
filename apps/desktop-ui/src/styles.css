@@ -3812,3 +3812,100 @@ code {
   color: var(--color-text-muted);
   font-size: 0.68rem;
 }
+
+/* --- Workspace switcher dropdown --- */
+.workspace-switcher {
+  position: relative;
+}
+
+.workspace-switcher__popover {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  bottom: calc(100% + 8px);
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  left: 50%;
+  overflow: hidden;
+  position: absolute;
+  transform: translateX(-50%);
+  width: min(320px, calc(100vw - 48px));
+  z-index: 55;
+}
+
+.workspace-switcher__search {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+}
+
+.workspace-switcher__search input {
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  flex: 1 1 auto;
+  font: inherit;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.workspace-switcher__list {
+  display: grid;
+  list-style: none;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.workspace-switcher__empty {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  padding: 12px;
+  text-align: center;
+}
+
+.workspace-switcher__row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.75rem;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 8px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.workspace-switcher__row:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.workspace-switcher__row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.workspace-switcher__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-switcher__manage,
+.workspace-switcher__open {
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  color: var(--color-text-muted);
+  justify-content: flex-start;
+}

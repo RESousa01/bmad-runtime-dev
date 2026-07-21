@@ -2197,8 +2197,12 @@ export function App({
           drawer={drawer}
           main={primaryRoute.kind === "home" ? (
             <HomeView
+              activeWorkspaceId={activeWorkspaceId}
+              canOpenFolder={canSelectWorkspace}
               composerDisabled={hostRuntime.kind !== "ready" || !activeWorkspace || methodRequestInFlight}
               hasWorkspace={activeWorkspace !== null}
+              onActivateWorkspace={activateWorkspace}
+              workspaces={hostWorkspaces}
               onOpenWorkspace={() => void selectWorkspace()}
               onOpenWorkspaceManager={openWorkspaceManager}
               onSubmitIntent={(intent) => {
@@ -2206,7 +2210,6 @@ export function App({
                 void reviewBmadRequest(intent);
               }}
               statusHint="Nothing is sent until you approve the exact context."
-              workspaceName={workspaceName}
               workspaceStatusLabel={workspaceDescription}
             />
           ) : activeWorkspace ? (

@@ -1,16 +1,21 @@
 import { Button } from "@sapphirus/ui";
-import { ChevronDown, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { WorkspaceProjection } from "../lib/hostClient";
 import { BrandMark } from "./BrandMark";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 export interface HomeViewProps {
+  readonly activeWorkspaceId: string | null;
+  readonly canOpenFolder: boolean;
   readonly composerDisabled: boolean;
   readonly hasWorkspace: boolean;
+  readonly onActivateWorkspace: (workspaceId: string) => void;
   readonly onOpenWorkspaceManager: () => void;
   readonly onOpenWorkspace: () => void;
   readonly onSubmitIntent: (intent: string) => void;
   readonly statusHint: string;
-  readonly workspaceName: string;
+  readonly workspaces: readonly WorkspaceProjection[];
   readonly workspaceStatusLabel: string;
 }
 
@@ -19,13 +24,16 @@ export interface HomeViewProps {
  * as a quiet breadcrumb underneath. Submitting routes into a fresh task.
  */
 export function HomeView({
+  activeWorkspaceId,
+  canOpenFolder,
   composerDisabled,
   hasWorkspace,
+  onActivateWorkspace,
   onOpenWorkspaceManager,
   onOpenWorkspace,
   onSubmitIntent,
   statusHint,
-  workspaceName,
+  workspaces,
   workspaceStatusLabel,
 }: HomeViewProps) {
   const [intent, setIntent] = useState("");
@@ -82,17 +90,15 @@ export function HomeView({
         </div>
       </form>
       {hasWorkspace ? (
-        <button
-          aria-label={`Manage workspace ${workspaceName}`}
-          className="workspace-crumb"
-          onClick={onOpenWorkspaceManager}
-          type="button"
-        >
-          <span className="workspace-crumb__name">{workspaceName}</span>
-          <ChevronDown aria-hidden="true" size={13} strokeWidth={1.8} />
-          <span aria-hidden="true" className="workspace-crumb__divider">/</span>
-          <span>{workspaceStatusLabel}</span>
-        </button>
+        <WorkspaceSwitcher
+          activeWorkspaceId={activeWorkspaceId}
+          canOpenFolder={canOpenFolder}
+          onActivate={onActivateWorkspace}
+          onOpenFolder={onOpenWorkspace}
+          onOpenManager={onOpenWorkspaceManager}
+          statusLabel={workspaceStatusLabel}
+          workspaces={workspaces}
+        />
       ) : (
         <Button onPress={onOpenWorkspace} size="small" variant="secondary">
           Open workspace
