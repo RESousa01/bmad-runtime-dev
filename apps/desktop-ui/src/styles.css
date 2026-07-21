@@ -4498,3 +4498,47 @@ code {
 .empty-session__starters button {
   border-radius: 999px;
 }
+
+/* --- Workspace breadcrumb under the composer --- */
+.workspace-crumb {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.72rem;
+  gap: 6px;
+  justify-self: center;
+  margin: 8px auto 12px;
+  padding: 4px 10px;
+  width: fit-content;
+}
+
+.workspace-crumb:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-soft);
+}
+
+.workspace-crumb:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.workspace-crumb__name {
+  color: var(--color-text-soft);
+  font-weight: 620;
+}
+
+.workspace-crumb__divider {
+  opacity: 0.5;
+}
+
+.title-strip__end {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  padding-right: 4px;
+}

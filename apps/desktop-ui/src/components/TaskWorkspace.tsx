@@ -1,6 +1,7 @@
 import { Button } from "@sapphirus/ui";
 import {
   FileCode2,
+  ChevronDown,
   History,
   Library,
   ListChecks,
@@ -45,9 +46,11 @@ export interface TaskWorkspaceProps {
   onOpenMethodLibrary: () => void;
   onOpenRunDetails: () => void;
   onOpenSidebar: () => void;
+  onOpenWorkspaceManager?: (() => void) | undefined;
   onReviewRequest: (intent: string) => Promise<void>;
   sessionTitle: string;
   workspaceName: string;
+  workspaceStatusLabel?: string | undefined;
 }
 
 export function TaskWorkspace({
@@ -72,9 +75,11 @@ export function TaskWorkspace({
   onOpenMethodLibrary,
   onOpenRunDetails,
   onOpenSidebar,
+  onOpenWorkspaceManager,
   onReviewRequest,
   sessionTitle,
   workspaceName,
+  workspaceStatusLabel,
 }: TaskWorkspaceProps) {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
@@ -457,6 +462,23 @@ export function TaskWorkspace({
             : "This local workspace remains available for Files and governed Changes. Model-backed skill guidance is unavailable until access is ready."}
         </p>
       </form>
+      {onOpenWorkspaceManager === undefined ? null : (
+        <button
+          aria-label={`Manage workspace ${workspaceName}`}
+          className="workspace-crumb"
+          onClick={onOpenWorkspaceManager}
+          type="button"
+        >
+          <span className="workspace-crumb__name">{workspaceName}</span>
+          <ChevronDown aria-hidden="true" size={13} strokeWidth={1.8} />
+          {workspaceStatusLabel === undefined ? null : (
+            <>
+              <span aria-hidden="true" className="workspace-crumb__divider">/</span>
+              <span>{workspaceStatusLabel}</span>
+            </>
+          )}
+        </button>
+      )}
     </main>
   );
 }

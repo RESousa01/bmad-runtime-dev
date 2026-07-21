@@ -886,7 +886,7 @@ describe("Sapphirus desktop workbench", () => {
     await screen.findAllByText("Browser preview");
 
     expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
-    expect(screen.getByRole("navigation", { name: "Sidebar" })).toBeTruthy();
+    expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
     expect(screen.getByRole("complementary", { name: "Task navigation" })).toBeTruthy();
     expect(screen.getByRole("main")).toBeTruthy();
     expect(screen.queryByRole("complementary", { name: /Files|Changes|Run details|Skills and agents/ })).toBeNull();

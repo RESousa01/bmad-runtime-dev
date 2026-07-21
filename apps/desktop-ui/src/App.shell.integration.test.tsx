@@ -131,7 +131,7 @@ describe("App task-shell integration", () => {
     expect(contextualSurface("Files")).toBeNull();
   });
 
-  it("keeps named Settings and Account reachable in the narrow Sidebar", async () => {
+  it("keeps named Settings and Account reachable from the title strip in narrow mode", async () => {
     const originalMatchMedia = window.matchMedia;
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -149,15 +149,11 @@ describe("App task-shell integration", () => {
 
     try {
       await screen.findAllByText("Browser preview");
-      await user.click(screen.getByRole("button", { name: "Open task navigation" }));
-      let navigation = screen.getByRole("dialog", { name: "Task navigation" });
-      await user.click(within(navigation).getByRole("button", { name: "Settings" }));
+      await user.click(screen.getByRole("button", { name: "Settings" }));
       expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
       await user.click(screen.getByRole("button", { name: "Close settings" }));
 
-      await user.click(screen.getByRole("button", { name: "Open task navigation" }));
-      navigation = screen.getByRole("dialog", { name: "Task navigation" });
-      await user.click(within(navigation).getByRole("button", { name: "Account" }));
+      await user.click(screen.getByRole("button", { name: "Account" }));
       expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
     } finally {
       view.unmount();

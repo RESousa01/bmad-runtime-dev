@@ -25,7 +25,6 @@ import {
   DRAWER_OVERLAY_QUERY,
   SIDEBAR_OVERLAY_QUERY,
 } from "./components/redesign/AppShellLayout";
-import { AppSidebar } from "./components/redesign/AppSidebar";
 import {
   ContextDrawer,
   type ContextDrawerKind,
@@ -1250,6 +1249,7 @@ export function App({
     document.documentElement.dataset.density = density;
   }, [density]);
 
+  // Retained for the multi-task tab slice of the shell rework.
   function selectSession(id: string) {
     if (!sessions.some((session) => session.id === id)) {
       return;
@@ -2126,6 +2126,12 @@ export function App({
   const paletteActions: readonly PaletteAction[] = [
     { id: "new-task", label: "New task", hint: "chat", run: startNewSession },
     {
+      id: "current-task",
+      label: `Go to task: ${selectedSession.title}`,
+      hint: "tab",
+      run: () => selectSession(selectedSessionId),
+    },
+    {
       id: "open-workspace",
       label: "Open or switch workspace",
       hint: "workspace",
@@ -2189,6 +2195,8 @@ export function App({
         onHome={openWorkspaceManager}
         onMenu={() => setPaletteOpen(true)}
         onNewTask={startNewSession}
+        onOpenAccount={() => openUtilityPanel("account")}
+        onOpenSettings={() => openUtilityPanel("settings")}
         taskTitle={selectedSession.title}
       />
       <div className="workbench workbench--task-shell">
@@ -2221,6 +2229,8 @@ export function App({
                 openContextDrawer("changes");
               }}
               onOpenMethodLibrary={openMethodLibrary}
+              onOpenWorkspaceManager={openWorkspaceManager}
+              workspaceStatusLabel={workspaceDescription}
               onOpenRunDetails={() => {
                 setMobileSidebarOpen(false);
                 openContextDrawer("activity");
@@ -2253,20 +2263,7 @@ export function App({
             }
           }}
           onCloseSidebar={() => setMobileSidebarOpen(false)}
-          sidebar={(
-            <AppSidebar
-              canCreateTask={hostRuntime.kind === "ready" && activeWorkspace !== null && !methodRequestInFlight}
-              onNewTask={startNewSession}
-              onOpenAccount={() => openUtilityPanel("account")}
-              onOpenSettings={() => openUtilityPanel("settings")}
-              onOpenWorkspaceManager={openWorkspaceManager}
-              onSelectTask={selectSession}
-              selectedTaskId={activeWorkspace ? selectedSessionId : null}
-              tasks={activeWorkspace ? sessions : []}
-              workspaceLabel={activeWorkspace?.displayName ?? "No workspace"}
-              workspaceStatus={workspaceDescription}
-            />
-          )}
+          sidebar={null}
         />
       </div>
     </div>

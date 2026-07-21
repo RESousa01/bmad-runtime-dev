@@ -1,5 +1,5 @@
 import { Button } from "@sapphirus/ui";
-import { LayoutGrid, Maximize2, Menu, Minus, Plus, SquarePen, X } from "lucide-react";
+import { CircleUserRound, LayoutGrid, Maximize2, Menu, Minus, Plus, Settings, SquarePen, X } from "lucide-react";
 import { useState } from "react";
 import { performWindowAction } from "../lib/windowActions";
 import { BrandMark } from "./BrandMark";
@@ -9,6 +9,8 @@ export interface TitleBarProps {
   onMenu?: (() => void) | undefined;
   onHome?: (() => void) | undefined;
   onNewTask?: (() => void) | undefined;
+  onOpenAccount?: (() => void) | undefined;
+  onOpenSettings?: (() => void) | undefined;
   taskTitle?: string | undefined;
 }
 
@@ -17,6 +19,8 @@ export function TitleBar({
   onMenu,
   onHome,
   onNewTask,
+  onOpenAccount,
+  onOpenSettings,
   taskTitle,
 }: TitleBarProps) {
   const [windowActionError, setWindowActionError] = useState("");
@@ -70,13 +74,37 @@ export function TitleBar({
         )}
         {onNewTask === undefined ? null : (
           <Button
-            aria-label="Start a new task"
+            aria-label="New task"
             className="title-strip__button"
             onPress={onNewTask}
             size="icon"
             variant="quiet"
           >
             <Plus aria-hidden="true" size={15} strokeWidth={1.7} />
+          </Button>
+        )}
+      </div>
+      <div className="title-strip__end">
+        {onOpenSettings === undefined ? null : (
+          <Button
+            aria-label="Settings"
+            className="title-strip__button"
+            onPress={onOpenSettings}
+            size="icon"
+            variant="quiet"
+          >
+            <Settings aria-hidden="true" size={15} strokeWidth={1.7} />
+          </Button>
+        )}
+        {onOpenAccount === undefined ? null : (
+          <Button
+            aria-label="Account"
+            className="title-strip__button"
+            onPress={onOpenAccount}
+            size="icon"
+            variant="quiet"
+          >
+            <CircleUserRound aria-hidden="true" size={15} strokeWidth={1.7} />
           </Button>
         )}
       </div>

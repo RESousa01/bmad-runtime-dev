@@ -221,3 +221,21 @@
     opacity: 0.72;
   }
 }
+
+/* Sidebar-free shell (2026-07-21): navigation lives in the title strip and
+   the workspace breadcrumb, so the layout is a single main column with an
+   optional docked drawer. */
+.task-shell-layout__sidebar {
+  display: none;
+}
+
+.task-shell-layout__workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.task-shell-layout[data-drawer-open="true"][data-drawer-overlay="false"]
+  .task-shell-layout__workspace {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(320px, var(--task-shell-drawer-width));
+}
