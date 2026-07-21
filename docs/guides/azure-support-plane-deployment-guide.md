@@ -1,10 +1,18 @@
-# Azure support-plane deployment guide (operator, self-service)
+# Azure support-plane deployment guide (organization-controlled operator runbook)
 
 This is the step-by-step operator guide for readiness-program **Task 10**:
 deploying and qualifying the D2 support plane on Azure. It expands the
 [rollout runbook](../superpowers/plans/2026-07-20-d2-e-rollout-runbook.md)
-into concrete commands you run yourself. Nothing here runs from repository
-gates; every stage is a human action against your subscription.
+into concrete operator checks and commands.
+
+This document is a technical runbook, **not authorization to create or change
+Azure resources**. The organization's cloud platform, identity, security,
+privacy, FinOps, release, and change-management procedures take precedence.
+Every stage must run against an organization-vended workload landing zone,
+under an approved change record, through an approved deployment identity and
+execution path. Never substitute a personal subscription, personal Azure
+Owner assignment, self-created Entra object, or local container push for a
+missing organization control.
 
 **What gets created** (all from `infra/desktop-support/main.bicep`, one
 resource group): a VNet-integrated Container Apps environment, a private
@@ -17,14 +25,80 @@ authentication and public data-plane access disabled; the API alone has
 public TLS ingress, restricted to your tenant and audience.
 
 **Cost note:** the stack runs continuously once deployed (Container Apps,
-SQL, OpenAI, Log Analytics). Deploy `deployAlerts=true` with
-`monthlyBudgetAmount` set so you get budget notifications from day one.
+SQL, OpenAI, Log Analytics). Deploy `deployAlerts=true` with an approved
+`monthlyBudgetAmount` and organization-owned notification action group.
+Azure budgets notify; they do not cap usage or stop resources. FinOps approval
+and a separate overrun response are therefore required.
 
 ---
 
-## 0. Prerequisites
+## 0. Authorization and prerequisites
 
-Tooling on your workstation:
+### 0.1 Organization intake and approval gate
+
+Open the organization's workload-onboarding and change records before doing
+anything in Azure. Record the identifiers, owners, and approvals below. A chat,
+verbal approval, or successful CLI command is not a substitute.
+
+| Required record | Minimum content | Accountable approval |
+|---|---|---|
+| Workload / landing-zone intake | workload name, business owner, technical owner, criticality, environment, subscription, management group, region and resource-group boundary | Cloud platform owner |
+| Data and AI review | data classification, prompt/output handling, regional/data-residency decision, retention, approved Azure OpenAI model/version, abuse/safety controls | Data owner plus Security/Privacy |
+| Network design | VNet/IPAM allocation, private DNS ownership, ingress and egress paths, operator/runner path to private endpoints | Network/platform owner |
+| Identity design | Entra applications, groups, workload identities, federated credentials, Conditional Access impact, RBAC scopes, PIM eligibility | Identity owner |
+| Cost plan | cost centre, budget owner, approved monthly amount, quota, alert recipients, overrun action | FinOps/business owner |
+| Operations plan | service owner, on-call route, health/alert ownership, backup/restore RPO/RTO, incident and key-rotation procedures | Operations owner |
+| Release/change record | immutable source revision and image digest, what-if artifact, test evidence, maintenance window, rollback owner, approvals | Release/change authority |
+| Evidence location | access-controlled evidence store, retention period, reviewer list, scorecard-summary policy | Security/release owner |
+
+Do not start Stage 1 until every row has a real organization record and named
+owner. If the organization already provides a subscription-vending or
+application-landing-zone workflow, use that front door; do not create an
+independent resource group in an arbitrary subscription.
+
+### 0.2 Access and separation of duties
+
+- Assign Azure roles to organization-managed Entra groups or workload
+  identities, not directly to an operator. Use PIM/JIT activation for
+  privileged human access and the narrowest approved scope.
+- The application operator does **not** require standing Owner access. The
+  deployment identity needs resource writes at the target resource group and,
+  because this template creates scoped role assignments,
+  `Microsoft.Authorization/roleAssignments/write` only where those assignments
+  are created. Prefer a constrained custom role or have the platform team own
+  the role-assignment step. Do not grant subscription Owner merely to make the
+  template pass.
+- Identity administrators own the Entra app registrations, groups, consent,
+  app ownership, and federated credentials. The workload team supplies the
+  requested names, redirect/audience/scope values, and owners.
+- Keep deployment, SQL administration, SQL migration, runtime, read-only
+  inspection, and approval identities distinct. Runtime identity never gets
+  DDL or Azure control-plane rights.
+- Production approval must follow the organization's separation-of-duties
+  rule. The requester/developer must not silently self-approve a protected
+  environment or policy exemption.
+- Break-glass access follows the organization's incident process and is not a
+  normal deployment path.
+
+### 0.3 Approved execution path and tooling
+
+The preferred path is an organization-managed deployment pipeline using
+GitHub OIDC/workload identity federation and a protected environment with
+required reviewers and branch/tag restrictions. Configure
+`desktop-support-staging` (and a separate production environment) before
+running Azure gates. Store tenant, subscription, resource-group, and endpoint
+values as protected environment configuration; do not create a long-lived
+client secret.
+
+The current `.github/workflows/desktop-support.yml` Azure job validates and
+tests an existing deployment; it does **not** deploy infrastructure or publish
+an image. Until an organization-reviewed deployment/release lane exists, do
+not describe the workflow as a production deployment lane.
+
+The following workstation commands are reference commands for an authorized
+operator. Use them only when the change record explicitly permits the manual
+path and the device satisfies organization management and Conditional Access
+requirements:
 
 ```powershell
 winget install Microsoft.AzureCLI
@@ -34,28 +108,72 @@ az login --tenant <your-tenant-id>
 az account set --subscription <subscription-id>
 ```
 
-Azure permissions you personally need:
+Repository state must be the approved, clean revision (record the 40-character
+SHA; every evidence item must cite it). Parameter files and what-if artifacts
+belong in the organization's approved restricted workspace or CI artifact
+store, never in the repository.
 
-- **Owner** (or Contributor + User Access Administrator) on the target
-  subscription or resource group — the template creates role assignments.
-- Ability to create **Entra security groups** and one **app registration**.
-- Membership in (or control of) the SQL administrators group you create
-  below, so you can run the SQL grant scripts.
+### 0.4 Cloud Shell and portal use
 
-Repository state: `origin/main` at the revision you intend to qualify
-(record the 40-char SHA now — every piece of evidence must cite it).
+Cloud Shell or portal deployment is optional, not a governance bypass. Use it
+only if the organization approves browser-based administration, source upload,
+storage, session logging, and the operator's Conditional Access posture.
+
+- Default Cloud Shell runs outside your workload VNet and cannot reach this
+  stack's private SQL, Key Vault, App Configuration, ACR, or Azure OpenAI
+  endpoints. Stage 2 and private data-plane checks require an
+  organization-provisioned VNet-isolated Cloud Shell, a VNet-connected
+  managed runner, or an approved privileged access workstation/jump host.
+- Ephemeral Cloud Shell avoids persistence but does not remove data-handling,
+  audit, egress, or device-policy requirements. Do not upload a filled
+  parameter file or repository archive unless that transfer is approved.
+- Portal custom-template deployment is not a replacement for the recorded
+  CLI/REST what-if artifact, independent review, and change approval.
+- ACR Tasks or an interactive Docker push is not a replacement for the
+  signed/SBOM-attested organization release lane required by Stage 3.
+
+### 0.5 Hard stop conditions
+
+Stop and return to the accountable owner when any of these is true:
+
+- a required intake, security/privacy, cost, change, or production approval is
+  missing;
+- the target is not an organization-vended workload subscription/landing zone,
+  or its management-group/policy inheritance is unknown;
+- deployment requires standing personal Owner access, an unapproved policy
+  exemption, a client secret, public access to a private dependency, or an
+  unreviewed egress path;
+- what-if contains an unexpected delete, replacement, scope change, public
+  endpoint, broad role assignment, or policy remediation;
+- the protected environment, OIDC subject, deployment identity, approver set,
+  or evidence store is not configured and independently reviewed;
+- Azure OpenAI approval, quota, region, model/version review, or canonical
+  profile hashes are unresolved;
+- the image is mutable, locally pushed, unsigned/unattested, not SBOM-bound, or
+  not tied to the approved source revision; or
+- private DNS/operator connectivity, monitoring ownership, backup/restore,
+  incident response, or rollback proof is missing.
 
 ---
 
 ## 1. One-time Entra setup
 
+The identity team provisions or approves these objects under the identity
+intake record. The commands below are implementation examples for an authorized
+identity administrator; they are not an instruction for the application
+operator to grant themselves directory privileges. Require organization naming,
+at least two accountable application owners where policy requires it, group-
+based lifecycle management, and an offboarding owner.
+
 ### 1.1 SQL administrators group
 
 ```powershell
 az ad group create --display-name "Sapphirus SQL Administrators" --mail-nickname sapphirus-sql-admins
-az ad group member add --group "Sapphirus SQL Administrators" --member-id (az ad signed-in-user show --query id -o tsv)
 az ad group show --group "Sapphirus SQL Administrators" --query id -o tsv   # -> sqlAdministratorObjectId
 ```
+
+Membership is assigned through the organization's access-request/PIM process;
+do not add the deploying user directly as an undocumented convenience.
 
 ### 1.2 API app registration (the token audience)
 
@@ -74,22 +192,29 @@ Then, in the Entra portal for that app:
    client and grant it that scope. Record its client ID for
    `SAPPHIRUS_SUPPORT_API_CLIENT_ID`.
 
+The identity review must also record the API and desktop app owners, consent
+model, authorized redirect URIs/public-client settings, pilot-group assignment,
+federated deployment credential subject, and periodic access-review owner. No
+client secret is needed for the desktop or GitHub deployment path.
+
 `entraAuthority` is your tenant-specific authority:
 `https://login.microsoftonline.com/<tenant-id>/v2.0`. The template rejects
 the `common` authority by design.
 
 ### 1.3 Test group
 
-Create a small Entra group for pilot/test users; only these accounts should
-be exercised against the deployment until Stage 7 passes.
+Have the identity team create or approve a small lifecycle-managed Entra group
+for pilot/test users. Only these accounts should be entitled to the deployment
+until Stage 7 and the pilot approval gate pass.
 
 ---
 
-## 2. Prepare your parameter file (never commit it)
+## 2. Prepare the reviewed parameter set (never commit it)
 
-Copy the example and fill it in **outside the repository** (e.g.
-`C:\secrets\sapphirus-int.bicepparam`) or add it to a path git ignores.
-`main.example.bicepparam` documents every parameter:
+Copy the example into the organization's approved restricted workspace or
+protected pipeline artifact/configuration store. Do not rely on a merely
+git-ignored local file for production. `main.example.bicepparam` documents
+every parameter:
 
 ```bicep
 using 'C:/Users/rodri/source/bmad-runtime-dev/infra/desktop-support/main.bicep'
@@ -111,10 +236,19 @@ param deployAlerts = true
 param actionGroupId = '<action group resource id>'   // create one first, see below
 param monthlyBudgetAmount = 200
 param environmentTag = 'staging'
-param tags = { application: 'sapphirus', distribution: 'internal' }
+param tags = {
+  application: 'sapphirus'
+  distribution: 'internal'
+  owner: '<organization-owner-id>'
+  costCenter: '<approved-cost-centre>'
+  dataClassification: '<approved-classification>'
+}
 ```
 
-**The four canonical hashes** bind the server to the exact reviewed
+**The four canonical hashes** (stage-1 note: the example's
+placeholder values are acceptable while `deployApi = false`; the real
+reviewed values are required before stage 4 sets `deployApi = true`)
+bind the server to the exact reviewed
 provider/model/capability/deployment documents the desktop client also
 pins (`crates/desktop-cloud`). They must be the canonical
 `sapphirus:<purpose>:v1` document hashes of the reviewed profile documents
@@ -125,9 +259,14 @@ version, the hashes must be re-derived and re-reviewed together.
 
 **Action group** (for alerts and the budget):
 
+Prefer an existing organization-owned action group whose recipients and
+escalation path are maintained by Operations. If the change record authorizes
+a workload-specific group, create it under the Operations owner rather than a
+personal mailbox:
+
 ```powershell
 az monitor action-group create --resource-group <rg> --name sapphirus-support-alerts `
-  --short-name sapph-sup --action email admin <your-email>
+  --short-name sapph-sup --action email operations <operations-distribution-list>
 az monitor action-group show --resource-group <rg> --name sapphirus-support-alerts --query id -o tsv
 ```
 
@@ -137,48 +276,80 @@ az monitor action-group show --resource-group <rg> --name sapphirus-support-aler
 
 ### 3.1 Resource group and policy inspection
 
+The platform team must vend or hand off the target subscription/resource group,
+place the subscription under the approved management group, register required
+resource providers, allocate network ranges/private DNS, and confirm naming and
+tag policy. The workload operator verifies that handoff; they do not create an
+ad hoc resource group as part of this runbook.
+
 ```powershell
-az group create --name sapphirus-support-rg --location <region>
-az policy assignment list --disable-scope-strict-match --query "[].{name:displayName, enforcement:enforcementMode}" -o table
+az account show --query "{tenant:tenantId,subscription:id,name:name}" -o json
+$rgId = az group show --name <approved-resource-group> --query id -o tsv
+az policy assignment list --scope $rgId --disable-scope-strict-match `
+  --query "[].{name:displayName,scope:scope,enforcement:enforcementMode}" -o table
 ```
 
-Read the policy list: nothing may auto-enable local auth, inject public
-network access, or attach mutable-tag requirements. If a policy conflicts,
-resolve it before deploying — do not add exemptions silently.
+Attach the account output and inherited policy list to the change record. A
+`modify` or `deployIfNotExists` policy may legitimately alter or add resources;
+its effects must be represented in the what-if review. If a policy conflicts,
+return to the platform/security owner. Never add, request, or rely on an
+exemption without the organization's documented exception process, owner, and
+expiry.
 
 ### 3.2 Validate and what-if
 
 ```powershell
 az bicep build --file infra/desktop-support/main.bicep
-az deployment group validate --resource-group sapphirus-support-rg --parameters C:\secrets\sapphirus-int.bicepparam
-az deployment group what-if  --resource-group sapphirus-support-rg --parameters C:\secrets\sapphirus-int.bicepparam
+az deployment group validate --resource-group <approved-resource-group> `
+  --parameters <approved-parameter-file>
+az deployment group what-if --resource-group <approved-resource-group> `
+  --parameters <approved-parameter-file> --result-format FullResourcePayloads
 ```
 
-Review the complete what-if output against this checklist (all must be
-absent):
+Export the complete what-if result to the protected change/evidence store and
+have a reviewer who did not author the change compare it with the approved
+architecture and prior environment. What-if predicts changes but is not an
+approval and can report noise for unresolved template expressions.
 
+Review against this checklist:
+
+- [ ] no unexpected delete, replacement, location, SKU, network, DNS, policy, or tag change
 - [ ] no resource with `localAuth`/`disableLocalAuth=false` or shared-key access enabled
-- [ ] no data service with `publicNetworkAccess: Enabled` (the API ingress is the only public endpoint)
+- [ ] ACR, Key Vault, App Configuration, SQL, and Azure OpenAI public data-plane access remain disabled
+- [ ] public Container Apps ingress is the only workload ingress; Log Analytics/Application Insights public ingestion/query in the current template is explicitly accepted by Security or the template is changed before deployment
 - [ ] no plaintext secret or connection string in properties
 - [ ] no container image referenced by mutable tag (digest only)
-- [ ] no role assignment broader than the module comments state
+- [ ] role assignments are limited to the documented managed identities, roles, and resource scopes; no human or subscription-wide assignment is introduced
 - [ ] no caller-controlled model endpoint (the OpenAI endpoint is template-owned)
+- [ ] every policy-added or modified resource is understood and owned
+
+The cloud platform, Security/Privacy, Operations, and FinOps reviewers sign the
+change record as applicable. Production also requires the release/change
+authority and tested rollback evidence.
 
 ### 3.3 Deploy
 
 ```powershell
-az deployment group create --resource-group sapphirus-support-rg `
-  --name support-stage1 --parameters C:\secrets\sapphirus-int.bicepparam
-az deployment group show --resource-group sapphirus-support-rg --name support-stage1 --query properties.outputs
+az deployment group create --resource-group <approved-resource-group> `
+  --name support-stage1 --parameters <approved-parameter-file>
+az deployment group show --resource-group <approved-resource-group> `
+  --name support-stage1 --query "{id:id,outputs:properties.outputs,correlationId:properties.correlationId}"
 ```
+
+Run this apply only from the approved deployment identity/path after the change
+record is authorized and, for a manual path, the operator's time-bound PIM role
+is active. A locally authenticated apply is not the production default. Record
+the deployment ID, correlation ID, operator/workload identity, approver,
+timestamp, source SHA, parameter-set hash, and what-if artifact reference.
 
 Record every output — you need `sqlServerFqdn`, `sqlDatabaseName`,
 `registryLoginServer`, `apiManagedIdentityObjectId`,
 `sqlMigrationIdentityObjectId`, `sqlMigrationIdentityClientId`,
 `signingKeyUri`, `appConfigurationEndpoint`, `modelEndpoint`.
 
-Role-assignment convergence can take minutes; re-running the same
-deployment is safe and idempotent.
+Role-assignment convergence can take minutes. Diagnose propagation first;
+re-run only under the same open change record and after confirming a new
+what-if has no unexpected changes.
 
 ---
 
