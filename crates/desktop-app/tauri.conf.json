@@ -55,5 +55,9 @@
       }
     }
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": ""
+    }
+  }
 }
