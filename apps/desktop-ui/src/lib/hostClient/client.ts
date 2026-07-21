@@ -52,6 +52,7 @@ import {
   buildBmadModelEnvelope,
   buildCapabilityDecisionEnvelope,
   buildCapabilityLatestEnvelope,
+  buildCapabilityProposeChangesEnvelope,
   buildCapabilityPrepareEnvelope,
   buildEmptyPayloadEnvelope,
   buildOffboardingEraseEnvelope,
@@ -1238,6 +1239,45 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async proposeCapabilityChanges(
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+    capabilityId: string,
+  ): Promise<ChangesReviewEnvelopeProjection> {
+    const bootstrap = this.requireGovernedEditsCommand(
+      workspaceIdValue,
+      workspaceGrantEpoch,
+      "bmad.capability.propose_changes",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const workspaceId = asContractId(workspaceIdValue);
+    const requestId = this.#requestId();
+    const envelope = buildCapabilityProposeChangesEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      capabilityId,
+    );
+    const issuedAfterSequence = this.#projectionSequence;
+    if (issuedAfterSequence === null) {
+      return fail();
+    }
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseChangesReviewReply(reply, requestId, {
+      workspaceId,
+      workspaceGrantEpoch,
+      proposalKind: "edit",
+      sourceExecutionId: null,
+    });
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceMutationSequence(parsed.sequence, issuedAfterSequence);
+    return parsed.projection;
+  }
+
   async decideApproval(
     review: ChangesReviewEnvelopeProjection,
     choice: ApprovalChoice,
@@ -1588,6 +1628,7 @@ export class DesktopHostClient {
       | "changes.history"
       | "changes.recovery.prepare"
       | "changes.recovery.decide"
+      | "bmad.capability.propose_changes"
     >,
   ): BootstrapReply {
     const bootstrap = this.requireBootstrap();

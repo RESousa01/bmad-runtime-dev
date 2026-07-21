@@ -9,7 +9,7 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import type {
   ApprovalChoice,
   ChangesExecutionProjection,
@@ -18,9 +18,9 @@ import type {
   ChangesReviewEnvelopeProjection,
   ChangesReviewFileProjection,
   ChangesUndoUnavailableProjection,
-  ProposedChange,
   RecoveryApprovalChoice,
 } from "../lib/hostClient";
+import { ChangeDiff, ChangeMagnitude, diffCounts, FilePathLabel } from "./ChangeDiff";
 import { RecoveryReview } from "./RecoveryReview";
 
 export type GovernedChangesUiState =
@@ -43,7 +43,6 @@ export interface GovernedChangesPanelProps {
   onDecideRecovery: (choice: RecoveryApprovalChoice) => void;
   onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
   onRefreshHistory: () => void;
-  onPropose: (changes: readonly ProposedChange[]) => void;
   onStartNewProposal: () => void;
   onUndo: (executionId: string) => void;
   recoveryBusy: boolean;
@@ -170,180 +169,83 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024).toFixed(bytes < 10 * 1024 ? 1 : 0)} KB`;
 }
 
-function ProposalComposer({
-  disabled,
-  onPropose,
-}: {
-  disabled: boolean;
-  onPropose: (changes: readonly ProposedChange[]) => void;
-}) {
-  const operationFieldId = useId();
-  const pathFieldId = useId();
-  const contentFieldId = useId();
-  const [operation, setOperation] = useState<ProposedChange["change"]>("set_content");
-  const [relativePath, setRelativePath] = useState("");
-  const [content, setContent] = useState("");
-  const [changes, setChanges] = useState<ProposedChange[]>([]);
-  const normalizedPath = relativePath.trim();
-  const duplicatePath = changes.some((change) => change.relativePath === normalizedPath);
-  const currentChange = normalizedPath.length === 0 || duplicatePath
-    ? null
-    : operation === "delete"
-      ? { change: "delete" as const, relativePath: normalizedPath }
-      : { change: "set_content" as const, relativePath: normalizedPath, content };
-  const addDisabled = disabled || currentChange === null || changes.length >= 20;
-  const submitDisabled = disabled || (changes.length === 0 && currentChange === null)
-    || (normalizedPath.length > 0 && duplicatePath);
-
-  const resetCurrentChange = () => {
-    setOperation("set_content");
-    setRelativePath("");
-    setContent("");
-  };
-
-  const addCurrentChange = () => {
-    if (!addDisabled && currentChange !== null) {
-      setChanges((current) => [...current, currentChange]);
-      resetCurrentChange();
-    }
-  };
-
+function DiffCountBadge({ added, removed }: { added: number; removed: number }) {
   return (
-    <form
-      className="changes-composer"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!submitDisabled) {
-          onPropose(currentChange === null ? changes : [...changes, currentChange]);
-        }
-      }}
-    >
-      <div className="inspector-section-heading">
-        <h2>Proposed changes</h2>
-        <span>Governed local edit</span>
-      </div>
-      <p className="changes-composer__hint">
-        Compose up to 20 workspace-relative create, modify, or delete operations. The host
-        observes every current file, and nothing changes until you review and apply.
-      </p>
-      <label htmlFor={operationFieldId}>Change operation</label>
-      <select
-        disabled={disabled}
-        id={operationFieldId}
-        onChange={(event) => setOperation(event.target.value as ProposedChange["change"])}
-        value={operation}
-      >
-        <option value="set_content">Create or replace content</option>
-        <option value="delete">Delete file</option>
-      </select>
-      <label htmlFor={pathFieldId}>Relative path</label>
-      <input
-        autoComplete="off"
-        disabled={disabled}
-        id={pathFieldId}
-        onChange={(event) => setRelativePath(event.target.value)}
-        placeholder="src/example.ts"
-        spellCheck={false}
-        type="text"
-        value={relativePath}
-      />
-      {operation === "set_content" ? (
-        <>
-          <label htmlFor={contentFieldId}>Proposed content</label>
-          <textarea
-            disabled={disabled}
-            id={contentFieldId}
-            onChange={(event) => setContent(event.target.value)}
-            rows={10}
-            spellCheck={false}
-            value={content}
-          />
-        </>
-      ) : (
-        <p className="changes-composer__warning">
-          Delete is exact and fail-closed: the host will reject the proposal if the file changes
-          before approval.
-        </p>
-      )}
-      {duplicatePath ? (
-        <p className="changes-composer__warning" role="alert">
-          Each relative path can appear only once in a proposal.
-        </p>
-      ) : null}
-      <Button
-        isDisabled={addDisabled}
-        onPress={addCurrentChange}
-        size="large"
-        type="button"
-        variant="secondary"
-      >
-        <FilePlus2 aria-hidden="true" size={17} />
-        Add file change
-      </Button>
-      {changes.length > 0 ? (
-        <div aria-label="Draft file changes" className="changes-draft-list" role="list">
-          {changes.map((change) => (
-            <div className="changes-draft-row" key={change.relativePath} role="listitem">
-              {change.change === "delete"
-                ? <FileX2 aria-hidden="true" size={16} />
-                : <PencilLine aria-hidden="true" size={16} />}
-              <code>{change.relativePath}</code>
-              <span>{change.change === "delete" ? "Delete" : "Set content"}</span>
-              <Button
-                aria-label={`Remove ${change.relativePath}`}
-                isDisabled={disabled}
-                onPress={() => setChanges((current) => current.filter(
-                  (candidate) => candidate.relativePath !== change.relativePath,
-                ))}
-                size="small"
-                type="button"
-                variant="quiet"
-              >
-                <Trash2 aria-hidden="true" size={14} />
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      <Button isDisabled={submitDisabled} size="large" type="submit" variant="primary">
-        <PencilLine aria-hidden="true" size={17} />
-        {changes.length === 0
-          ? "Review changes"
-          : `Review ${changes.length + (currentChange === null ? 0 : 1)} file changes`}
-      </Button>
-    </form>
+    <span className="diff-counts">
+      {added > 0 ? <span className="diff-counts__added">+{added}</span> : null}
+      {removed > 0 ? <span className="diff-counts__removed">-{removed}</span> : null}
+    </span>
   );
 }
 
+function OperationIcon({ operation }: { readonly operation: ChangesReviewFileProjection["operation"] }) {
+  return operation === "delete"
+    ? <FileX2 aria-hidden="true" className="changes-review-file__icon--delete" size={16} />
+    : operation === "create"
+      ? <FilePlus2 aria-hidden="true" className="changes-review-file__icon--create" size={16} />
+      : <PencilLine aria-hidden="true" className="changes-review-file__icon--modify" size={16} />;
+}
+
 function ReviewFiles({ files }: { files: ChangesReviewFileProjection[] }) {
+  const [openFiles, setOpenFiles] = useState<ReadonlySet<string>>(
+    () => new Set(files[0] === undefined ? [] : [files[0].relativePath]),
+  );
+  const counts = files.map((file) => diffCounts(file.beforeContent, file.afterContent));
+  const toggleFile = (relativePath: string, open: boolean) => {
+    setOpenFiles((current) => {
+      const next = new Set(current);
+      if (open) {
+        next.add(relativePath);
+      } else {
+        next.delete(relativePath);
+      }
+      return next;
+    });
+  };
   return (
     <div className="changes-review-files">
+      {files.length > 1 ? (
+        <nav aria-label="Changed files" className="diff-file-index">
+          {files.map((file, index) => (
+            <button
+              className="diff-file-index__row"
+              key={file.relativePath}
+              onClick={() => toggleFile(file.relativePath, true)}
+              type="button"
+            >
+              <OperationIcon operation={file.operation} />
+              <FilePathLabel relativePath={file.relativePath} />
+              <ChangeMagnitude added={counts[index]!.added} removed={counts[index]!.removed} />
+              <DiffCountBadge added={counts[index]!.added} removed={counts[index]!.removed} />
+            </button>
+          ))}
+        </nav>
+      ) : null}
       {files.map((file, index) => (
-        <details className="changes-review-file" key={file.relativePath} open={index === 0}>
+        <details
+          className="changes-review-file"
+          key={file.relativePath}
+          onToggle={(event) => {
+            toggleFile(file.relativePath, event.currentTarget.open);
+          }}
+          open={openFiles.has(file.relativePath)}
+        >
           <summary>
-            {file.operation === "delete"
-              ? <FileX2 aria-hidden="true" size={16} />
-              : <FilePlus2 aria-hidden="true" size={16} />}
-            <code>{file.relativePath}</code>
+            <OperationIcon operation={file.operation} />
+            <FilePathLabel relativePath={file.relativePath} />
+            <ChangeMagnitude added={counts[index]!.added} removed={counts[index]!.removed} />
+            <DiffCountBadge added={counts[index]!.added} removed={counts[index]!.removed} />
             <span>
               {operationLabel(file.operation)}
               {` · ${formatBytes(file.beforeBytes)} → ${formatBytes(file.afterBytes)}`}
             </span>
           </summary>
-          {file.beforeContent !== null ? (
-            <section aria-label={`Current content of ${file.relativePath}`}>
-              <h4>Current</h4>
-              <pre tabIndex={0}><code>{file.beforeContent}</code></pre>
-            </section>
-          ) : null}
-          {file.afterContent !== null ? (
-            <section aria-label={`Proposed content of ${file.relativePath}`}>
-              <h4>Proposed</h4>
-              <pre tabIndex={0}><code>{file.afterContent}</code></pre>
-            </section>
-          ) : (
-            <p>The file is deleted by this change.</p>
-          )}
+          <ChangeDiff
+            afterContent={file.afterContent}
+            beforeContent={file.beforeContent}
+            relativePath={file.relativePath}
+          />
+          {file.afterContent === null ? <p>The file is deleted by this change.</p> : null}
         </details>
       ))}
     </div>
@@ -361,7 +263,6 @@ export function GovernedChangesPanel({
   onDecideRecovery,
   onPrepareRecovery,
   onRefreshHistory,
-  onPropose,
   onStartNewProposal,
   onUndo,
   recoveryBusy,
@@ -410,7 +311,15 @@ export function GovernedChangesPanel({
             review={recoveryReview}
           />
         ) : (
-          <ProposalComposer disabled={state.kind === "preparing"} onPropose={onPropose} />
+          <div className="inspector-empty-state">
+            <ShieldCheck aria-hidden="true" size={24} />
+            <h3>No proposed changes</h3>
+            <p>
+              Ask an agent in the task chat to make changes. Completed
+              change-set runs appear here as reviewable diffs, and nothing
+              touches your files until you apply.
+            </p>
+          </div>
         )}
         {errorBanner}
         <ChangeHistory
@@ -428,12 +337,21 @@ export function GovernedChangesPanel({
 
   if (state.kind === "review") {
     const { review } = state.review;
+    const totals = review.files.reduce(
+      (sum, file) => {
+        const counts = diffCounts(file.beforeContent, file.afterContent);
+        return { added: sum.added + counts.added, removed: sum.removed + counts.removed };
+      },
+      { added: 0, removed: 0 },
+    );
     return (
       <>
         <div className="inspector-section-heading">
           <h2>{state.review.review.proposalKind === "undo" ? "Undo changes" : "Review changes"}</h2>
           <span>
             {review.files.length} {review.files.length === 1 ? "file" : "files"}
+            {" · "}
+            <DiffCountBadge added={totals.added} removed={totals.removed} />
             {` · ${formatBytes(review.totalChangedBytes)} proposed`}
           </span>
         </div>

@@ -39,6 +39,7 @@ export interface BmadCapabilityPanelProps {
   readonly onCancel: (manifestHash: string, decisionId: string) => void;
   readonly onClose: () => void;
   readonly onPrepare: (contextPaths: readonly string[]) => void;
+  readonly onReviewChangeSet?: () => void;
   readonly onSubmit: (manifestHash: string, decisionId: string) => void;
   readonly phase: CapabilityRunPhase;
 }
@@ -104,6 +105,7 @@ export function BmadCapabilityPanel({
   onCancel,
   onClose,
   onPrepare,
+  onReviewChangeSet,
   onSubmit,
   phase,
 }: BmadCapabilityPanelProps) {
@@ -212,6 +214,7 @@ export function BmadCapabilityPanel({
       ) : phase.kind === "completed" ? (
         <CompletedResult
           completed={phase.completed}
+          onReviewChangeSet={onReviewChangeSet}
           resultJson={phase.resultJson}
         />
       ) : (
@@ -228,9 +231,11 @@ export function BmadCapabilityPanel({
 
 function CompletedResult({
   completed,
+  onReviewChangeSet,
   resultJson,
 }: {
   readonly completed: CapabilityCompletedProjection;
+  readonly onReviewChangeSet?: (() => void) | undefined;
   readonly resultJson: string | null;
 }) {
   const artifact =
@@ -259,7 +264,13 @@ function CompletedResult({
             changed nothing: review and approve it in Governed changes before
             any file is touched.
           </p>
-          <p role="note">Open the Changes panel to review the candidate.</p>
+          {onReviewChangeSet === undefined ? (
+            <p role="note">Open the Changes panel to review the candidate.</p>
+          ) : (
+            <Button onPress={onReviewChangeSet} variant="primary">
+              Review changes
+            </Button>
+          )}
         </section>
       ) : artifact === null ? (
         <section aria-label="Completed capability run">

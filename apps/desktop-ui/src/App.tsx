@@ -57,7 +57,6 @@ import {
   type ChangesHistoryProjection,
   type ChangesRecoveryPrepared,
   type HostRuntime,
-  type ProposedChange,
   type RecoveryApprovalChoice,
   type WorkspaceProjection,
 } from "./lib/hostClient";
@@ -94,6 +93,8 @@ const browserDemoWorkspace: WorkspaceProjection = {
   displayName: "bmad-runtime-dev",
   grantEpoch: 0,
   permissions: "read_only",
+  contextReadEpoch: 1,
+  governedEditEpoch: 1,
 };
 
 const retainedHelpProjectionUnavailableMessage =
@@ -1759,7 +1760,8 @@ export function App({
     }
   }
 
-  async function proposeGovernedChange(changes: readonly ProposedChange[]) {
+  async function proposeCapabilityChangeSet(capabilityId: string) {
+    openContextDrawer("changes");
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
       return;
     }
@@ -1770,10 +1772,10 @@ export function App({
     setChangesFlow({ kind: "preparing" });
     setChangesError(null);
     try {
-      const review = await client.proposeChanges(
+      const review = await client.proposeCapabilityChanges(
         workspace.workspaceId,
         workspace.grantEpoch,
-        changes,
+        capabilityId,
       );
       if (generation === changesGenerationRef.current) {
         setChangesFlow({ kind: "review", busy: false, review });
@@ -2002,7 +2004,6 @@ export function App({
           onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
           onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
           onRefreshHistory={() => void refreshChangesHistory()}
-          onPropose={(changes) => void proposeGovernedChange(changes)}
           onStartNewProposal={resetChangesFlow}
           onUndo={(executionId) => void undoGovernedChange(executionId)}
           recoveryBusy={recoveryBusy}
@@ -2029,6 +2030,8 @@ export function App({
                 void cancelCapabilityRun(manifestHash, decisionId)}
               onClose={() => setCapabilityRun(null)}
               onPrepare={(contextPaths) => void prepareCapabilityRun(contextPaths)}
+              onReviewChangeSet={() =>
+                void proposeCapabilityChangeSet(capabilityRun.capabilityId)}
               onSubmit={(manifestHash, decisionId) =>
                 void submitCapabilityRun(manifestHash, decisionId)}
               phase={capabilityRun.phase}

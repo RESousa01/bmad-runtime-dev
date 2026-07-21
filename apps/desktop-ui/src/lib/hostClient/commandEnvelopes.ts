@@ -167,6 +167,33 @@ export function buildCapabilityDecisionEnvelope<
   };
 }
 
+export function buildCapabilityProposeChangesEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  capabilityId: string,
+): CommandEnvelope<
+  "bmad.capability.propose_changes",
+  { workspaceId: string; workspaceGrantEpoch: number; capabilityId: string }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.capability.propose_changes",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(workspaceGrantEpoch),
+      capabilityId,
+    },
+  };
+}
+
 export function buildCapabilityLatestEnvelope(
   binding: HostBinding,
   requestId: string,

@@ -93,7 +93,6 @@ function createProps(
     onDecideRecovery: vi.fn(),
     onPrepareRecovery: vi.fn(),
     onRefreshHistory: vi.fn(),
-    onPropose: vi.fn(),
     onStartNewProposal: vi.fn(),
     onUndo: vi.fn(),
     history: null,
@@ -165,69 +164,30 @@ describe("GovernedChangesPanel", () => {
     expect(screen.queryByRole("button", { name: "Allow governed edits" })).toBeNull();
   });
 
-  it("submits a trimmed set-content proposal from the composer", () => {
-    const props = createProps({ state: { kind: "idle" } });
-    render(<GovernedChangesPanel {...props} />);
-    fireEvent.change(screen.getByLabelText("Relative path"), {
-      target: { value: "  src/new.rs " },
-    });
-    fireEvent.change(screen.getByLabelText("Proposed content"), {
-      target: { value: "pub fn created() {}\n" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Review changes" }));
-    expect(props.onPropose).toHaveBeenCalledWith([{
-      change: "set_content",
-      relativePath: "src/new.rs",
-      content: "pub fn created() {}\n",
-    }]);
-  });
-
-  it("authors one bounded review containing set-content and delete operations", () => {
-    const props = createProps({ state: { kind: "idle" } });
-    render(<GovernedChangesPanel {...props} />);
-
-    fireEvent.change(screen.getByLabelText("Relative path"), {
-      target: { value: "src/updated.rs" },
-    });
-    fireEvent.change(screen.getByLabelText("Proposed content"), {
-      target: { value: "pub fn updated() {}\n" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Add file change" }));
-
-    fireEvent.change(screen.getByLabelText("Change operation"), {
-      target: { value: "delete" },
-    });
-    fireEvent.change(screen.getByLabelText("Relative path"), {
-      target: { value: "src/obsolete.rs" },
-    });
+  it("presents an idle chat-first empty state without a manual composer", () => {
+    render(<GovernedChangesPanel {...createProps({ state: { kind: "idle" } })} />);
+    expect(screen.getByRole("heading", { name: "No proposed changes" })).toBeTruthy();
+    expect(
+      screen.getByText(/Ask an agent in the task chat to make changes/u),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText("Relative path")).toBeNull();
     expect(screen.queryByLabelText("Proposed content")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Add file change" }));
-
-    expect(screen.getByText("src/updated.rs")).toBeTruthy();
-    expect(screen.getByText("src/obsolete.rs")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Review 2 file changes" }));
-    expect(props.onPropose).toHaveBeenCalledWith([
-      {
-        change: "set_content",
-        relativePath: "src/updated.rs",
-        content: "pub fn updated() {}\n",
-      },
-      { change: "delete", relativePath: "src/obsolete.rs" },
-    ]);
+    expect(screen.queryByRole("button", { name: /Review .*changes/u })).toBeNull();
   });
 
-  it("renders the exact reviewed content and binds each decision", () => {
+  it("renders the exact reviewed content as a line diff and binds each decision", () => {
     const props = createProps({
       state: { kind: "review", busy: false, review: reviewEnvelope },
     });
     render(<GovernedChangesPanel {...props} />);
     expect(screen.getByRole("heading", { name: "Review changes" })).toBeTruthy();
-    expect(
-      screen.getByLabelText("Current content of src/main.rs").textContent,
-    ).toContain("fn main() {}");
-    expect(
-      screen.getByLabelText("Proposed content of src/main.rs").textContent,
-    ).toContain("fn main() { updated(); }");
+    const diff = screen.getByRole("region", { name: "Changes to src/main.rs" });
+    expect(diff.textContent).toContain("fn main() {}");
+    expect(diff.textContent).toContain("fn main() { updated(); }");
+    expect(diff.querySelector(".diff-line--removed")?.textContent).toContain("fn main() {}");
+    expect(diff.querySelector(".diff-line--added")?.textContent).toContain(
+      "fn main() { updated(); }",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
     fireEvent.click(screen.getByRole("button", { name: "Revise" }));
