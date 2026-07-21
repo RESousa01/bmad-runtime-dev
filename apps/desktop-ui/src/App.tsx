@@ -19,6 +19,7 @@ import {
 import "./components/settings/settings.css";
 import { WorkspacePanel } from "./components/WorkspacePanel";
 import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
+import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
 import {
   AppShellLayout,
   DRAWER_OVERLAY_QUERY,
@@ -182,6 +183,7 @@ export function App({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>("dark");
   const [appModal, setAppModal] = useState<AppModalKind>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsSection>("general");
   const [aboutProjection, setAboutProjection] = useState<AboutProjection | null>(null);
   const [aboutStatus, setAboutStatus] = useState<"loading" | "unavailable" | "ready">(
@@ -2121,8 +2123,67 @@ export function App({
     />
   ) : undefined;
 
+  const paletteActions: readonly PaletteAction[] = [
+    { id: "new-task", label: "New task", hint: "chat", run: startNewSession },
+    {
+      id: "open-workspace",
+      label: "Open or switch workspace",
+      hint: "workspace",
+      run: openWorkspaceManager,
+    },
+    {
+      id: "drawer-files",
+      label: "Show workspace files",
+      hint: "drawer",
+      run: () => openContextDrawer("files"),
+    },
+    {
+      id: "drawer-changes",
+      label: "Show proposed changes",
+      hint: "drawer",
+      run: () => openContextDrawer("changes"),
+    },
+    {
+      id: "drawer-activity",
+      label: "Show run activity",
+      hint: "drawer",
+      run: () => openContextDrawer("activity"),
+    },
+    {
+      id: "drawer-skills",
+      label: "Show skills and agents",
+      hint: "drawer",
+      run: () => openContextDrawer("skills"),
+    },
+    {
+      id: "settings",
+      label: "Open settings",
+      hint: "app",
+      run: () => openUtilityPanel("settings"),
+    },
+    {
+      id: "account",
+      label: "Open account",
+      hint: "app",
+      run: () => openUtilityPanel("account"),
+    },
+  ];
+
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      onKeyDown={(event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          setPaletteOpen((current) => !current);
+        }
+      }}
+    >
+      <CommandPalette
+        actions={paletteActions}
+        onClose={() => setPaletteOpen(false)}
+        open={paletteOpen}
+      />
       <TitleBar isInert={shellOverlayOpen} />
       <div className="workbench workbench--task-shell">
         <AppShellLayout
