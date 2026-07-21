@@ -1,0 +1,37 @@
+# Local Docker emulation of the Azure Container Apps deployment.
+# Testing only: runs the same image the Azure lane builds, but in the
+# ASP.NET Development environment (in-memory adapters, development signing
+# and model brokerage). No Entra, SQL, Key Vault, App Configuration, or
+# Azure OpenAI dependency is reachable or emulated as a real service; the
+# placeholder tenant/client GUIDs below satisfy configuration validation
+# only, so every authenticated route fails closed with 401. See README.md.
+name: desktop-support-local
+
+services:
+  desktop-support-api:
+    build:
+      # Same build context and Dockerfile as the CI image job.
+      context: ../../../services/desktop-support-api
+      dockerfile: Dockerfile
+    image: desktop-support-api:local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Placeholder identifiers in the exact shapes SupportPlaneOptions
+      # validates. They are not real Entra objects.
+      Sapphirus__Authority: https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0
+      Sapphirus__Audience: api://22222222-2222-2222-2222-222222222222
+      Sapphirus__ApprovedDesktopClientId: 33333333-3333-3333-3333-333333333333
+      Sapphirus__Region: local-docker
+      Sapphirus__ReleaseChannel: beta
+      Sapphirus__DevelopmentSigningEnabled: "true"
+      Sapphirus__DevelopmentModelEnabled: "true"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # Mirrors the Container Apps liveness probe path.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/healthz/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
