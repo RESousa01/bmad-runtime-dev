@@ -1,0 +1,46 @@
+- generic [ref=e3]:
+  - banner "Sapphirus application" [ref=e4]:
+    - generic [ref=e5]: Sapphirus
+    - generic [ref=e11]:
+      - button "Open app menu" [ref=e12]
+      - button "Show tasks overview" [ref=e14]
+      - generic [ref=e20]: New task
+      - button "New task" [active] [ref=e25]
+    - generic [ref=e27]:
+      - button "Settings" [ref=e28]
+      - button "Account" [ref=e32]
+    - generic "Window controls" [ref=e37]:
+      - button "Minimize window" [ref=e38]
+      - button "Maximize or restore window" [ref=e40]
+      - button "Close window" [ref=e46]
+  - main [ref=e78]:
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - strong [ref=e81]: bmad-runtime-dev
+        - generic [ref=e82]: Browser preview
+      - generic [ref=e84]:
+        - button "Changes" [ref=e85]
+        - button "Run details" [ref=e89]
+      - generic [ref=e94]:
+        - generic [ref=e95]: Task
+        - heading "New task" [level=1] [ref=e96]
+    - region [ref=e98]:
+      - text: Sapphirus
+      - heading "Explore Sapphirus safely" [level=2] [ref=e104]
+      - paragraph [ref=e105]: Browse the included sample project structure and explore the desktop task flow.
+    - form "Task composer" [ref=e106]:
+      - generic [ref=e107]:
+        - button "Attach files" [ref=e108]
+        - generic [ref=e111]: Describe a task
+        - textbox "Describe a task" [disabled] [ref=e112]:
+          - /placeholder: Describe a task, ask a question, or request a review…
+      - generic [ref=e113]:
+        - button "Agent and model settings" [ref=e115]:
+          - generic [ref=e119]: Agent
+          - generic [ref=e120]: No model access
+        - button "Send task" [disabled] [ref=e124]
+      - paragraph [ref=e128]: "Read only: sample data only. No access to your device or a model."
+    - button "Manage workspace bmad-runtime-dev" [ref=e129] [cursor=pointer]:
+      - generic [ref=e130]: bmad-runtime-dev
+      - generic [ref=e133]: /
+      - generic [ref=e134]: Sample data · Read only
