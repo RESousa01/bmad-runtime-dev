@@ -1,0 +1,27 @@
+- generic [ref=e3]:
+  - banner "Sapphirus application" [ref=e4]:
+    - generic [ref=e5]: Sapphirus
+    - generic [ref=e11]:
+      - button "Open app menu" [ref=e12]
+      - button "Show tasks overview" [ref=e14]
+      - generic [ref=e20]: New task
+      - button "New task" [ref=e25]
+    - generic [ref=e27]:
+      - button "Settings" [ref=e28]
+      - button "Account" [ref=e32]
+    - generic "Window controls" [ref=e37]:
+      - button "Minimize window" [ref=e38]
+      - button "Maximize or restore window" [ref=e40]
+      - button "Close window" [ref=e46]
+  - main "Home" [ref=e55]:
+    - generic [ref=e56]: Sapphirus
+    - form "Start a task" [ref=e63]:
+      - textbox "Describe your intent" [disabled] [ref=e64]:
+        - /placeholder: Describe your intent — nothing is sent until you approve it…
+      - generic [ref=e65]:
+        - generic [ref=e66]: Nothing is sent until you approve the exact context.
+        - button "Start task" [disabled] [ref=e67]
+    - button "Manage workspace bmad-runtime-dev" [ref=e72] [cursor=pointer]:
+      - generic [ref=e73]: bmad-runtime-dev
+      - generic [ref=e76]: /
+      - generic [ref=e77]: Sample data · Read only

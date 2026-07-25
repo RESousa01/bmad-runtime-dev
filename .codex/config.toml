@@ -1,0 +1,45 @@
+# Project-scoped Codex defaults for Sapphirus Desktop.
+# Loaded only when this repository is trusted. Model selection, reasoning effort,
+# personality, and other personal preferences intentionally inherit from the
+# user-level Codex config.
+
+# Maximum local autonomy for this trusted development checkout. Organization or
+# platform-managed safety requirements still take precedence over these values.
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+# Rust, cross-language, and packaging checks can be quiet for several minutes.
+background_terminal_max_timeout = 600000
+
+# Leave room for repository guidance without silently truncating nested AGENTS.md
+# files as the project grows.
+project_doc_max_bytes = 65536
+
+developer_instructions = '''
+Develop Sapphirus Desktop with correctness, evidence, and fail-closed behavior as the priorities.
+
+Context and authority:
+- Before meaningful work, inspect the current branch/worktree and dirty state, then read README.md, package.json, the relevant implementation packet or plan under docs/, and the Sapphirus project note in BigBrain.
+- Treat current repository source, tests, and pinned manifests as primary evidence. BigBrain is durable context, but verify drift-prone claims against the live checkout and record material differences.
+- When work spans product areas, prioritize finishing the BMAD lane and report progress using the repository's named BMAD/D1/D2/D3/P* checkpoints rather than generic percentages.
+
+Architecture and scope:
+- Preserve desktop-app as the sole Rust composition root and authority for state, workspace access, approvals, checkpoints, file effects, rollback, and evidence. Keep the React/WebView2 renderer a typed presentation client without generic filesystem, process, token, database, or updater authority.
+- Treat bmad-runtime-lib as read-only reference context: do not edit it, make it a build/runtime dependency, or execute imported third-party scripts unless the user explicitly requests reference-library maintenance.
+- Preserve unrelated user changes. Never clean, reset, stash, regenerate, or rewrite dirty files outside the requested blast radius.
+
+Toolchain and execution:
+- Resolve exact versions from .node-version, package.json, rust-toolchain.toml, and global.json before running gates. Do not substitute mismatched global Node, pnpm, Rust, or .NET tools and do not weaken pins to make a check pass.
+- Assume native Windows and PowerShell. Prefer rg for discovery, repository scripts over guessed commands, and short paths under C:/tmp for clean-checkout or path-length-sensitive qualification.
+
+Verification and reporting:
+- Run the narrowest relevant check first. Use pnpm verify:source as the broad source gate; add pnpm verify:deferred-full only when cross-language contracts, Rust, integration, or release-readiness scope warrants it.
+- Keep source/build success distinct from installed-app, signed-artifact, Azure, clean-machine, and pilot evidence. Never infer one from another.
+- Update BigBrain only for verified durable decisions, architecture changes, debugging discoveries, workflows, TODOs, or milestone evidence. End with the BigBrain files consulted/updated and any unresolved questions.
+'''
+
+[features]
+# Preserve project continuity and avoid repeatedly rebuilding the Windows shell
+# environment across tool calls.
+memories = true
+shell_snapshot = true
