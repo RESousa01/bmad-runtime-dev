@@ -830,6 +830,13 @@ impl WorkspaceBroker {
         let authority = self.revocation_barrier.read();
         let grant = self.active_grant(&authority, workspace_id)?;
         revalidate_root(&grant)?;
+        // The same denylist `read_text` applies. A diff returns file *content*,
+        // so without this a caller could read `.env`, `.git/config` credential
+        // helpers, or `.ssh/*` through the Review panel after `read_text`
+        // refused them — the sibling command was the whole bypass.
+        if is_sensitive_relative_path(relative_path) {
+            return Err(WorkspaceError::PathBlocked);
+        }
         let diff = git::read_git_diff(&grant.root, relative_path, comparison)
             .map_err(map_git_read_error)?;
         self.ensure_grant_current(&authority, &grant)?;

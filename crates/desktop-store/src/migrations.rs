@@ -117,7 +117,7 @@ const V11_TABLES: [&str; 20] = [
     "spec_consumptions",
     "store_meta",
 ];
-const V12_TABLES: [&str; 22] = [
+pub(crate) const V12_TABLES: [&str; 22] = [
     "aggregates",
     "bmad_builder_analyses",
     "bmad_builder_analysis_decisions",

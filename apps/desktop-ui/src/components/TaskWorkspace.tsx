@@ -282,18 +282,16 @@ export function TaskWorkspace({
             </span>
           </div>
         ) : null}
+        {/*
+          The transcript is the record of what was said. `onSendRequest` is the
+          chat lane, which echoes the user's own message back into `chatLane`,
+          so re-rendering `submittedTask` here as a second user bubble showed
+          every sent message twice. `submittedTask` still gates the guidance
+          view, the failed-submission state, and the title.
+        */}
         <ChatTranscript lane={chatLane} />
         {methodGuidanceView ? (
           <>
-            {submittedTask ? (
-              <article className="message message--user">
-                <div className="message__avatar message__avatar--user">You</div>
-                <div>
-                  <p>{submittedTask}</p>
-                  <time>Now</time>
-                </div>
-              </article>
-            ) : null}
             {methodGuidanceState.kind === "creating" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar">

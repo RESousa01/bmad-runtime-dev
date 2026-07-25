@@ -191,9 +191,41 @@ fn bounded_utf8(bytes: &[u8]) -> (Option<String>, bool) {
     let bounded = &bytes[..bytes.len().min(MAX_GIT_DIFF_BYTES)];
     match std::str::from_utf8(bounded) {
         Ok(text) => (Some(text.to_owned()), truncated),
-        // Binary content is reported as unavailable rather than mangled.
-        Err(_) => (None, truncated),
+        Err(error) => {
+            // A cut at the byte limit can land mid-character, which is not the
+            // same thing as binary content. Keep the valid prefix so a large
+            // text file still shows a bounded diff instead of being reported
+            // as unavailable.
+            let valid = error.valid_up_to();
+            if truncated && valid > 0 {
+                match std::str::from_utf8(&bounded[..valid]) {
+                    Ok(text) => (Some(text.to_owned()), true),
+                    Err(_) => (None, truncated),
+                }
+            } else {
+                // Genuinely not text: reported as unavailable rather than
+                // mangled.
+                (None, truncated)
+            }
+        }
     }
+}
+
+/// Reads at most `MAX_GIT_DIFF_BYTES + 1` bytes, so the caller can still tell
+/// that the content was truncated without holding the whole file.
+fn read_bounded_worktree_file(path: &Path) -> Option<Vec<u8>> {
+    use std::io::Read as _;
+
+    let file = std::fs::File::open(path).ok()?;
+    let mut bounded = Vec::new();
+    file.take(
+        u64::try_from(MAX_GIT_DIFF_BYTES)
+            .unwrap_or(u64::MAX)
+            .saturating_add(1),
+    )
+    .read_to_end(&mut bounded)
+    .ok()?;
+    Some(bounded)
 }
 
 /// Reads one file's HEAD blob and current working-tree content, both
@@ -211,7 +243,10 @@ pub fn read_git_diff(
     let head = head_blob(&repository, &repository_relative_path);
     let index = index_blob(&repository, &repository_relative_path);
     let worktree_path = bounded_worktree_path(root, &bounded_relative_path)?;
-    let worktree = std::fs::read(&worktree_path).ok();
+    // Read at most one byte past the bound rather than the whole file: an
+    // unbounded `read` here would materialise a multi-gigabyte workspace file
+    // in host memory before `bounded_utf8` ever got to trim it.
+    let worktree = read_bounded_worktree_file(&worktree_path);
     let (before, after) = match comparison {
         GitComparison::HeadToWorktree => (head, worktree),
         GitComparison::HeadToIndex => (head, index),

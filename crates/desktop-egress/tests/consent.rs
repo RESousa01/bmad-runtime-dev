@@ -1,6 +1,8 @@
 #![allow(
     clippy::expect_used,
-    reason = "invalid static fixtures should fail the test at construction"
+    clippy::panic,
+    reason = "invalid static fixtures should fail the test at construction, and a \
+              failing assertion needs the iteration index to be diagnosable"
 )]
 
 use desktop_egress::{
@@ -18,7 +20,13 @@ fn id(value: &str) -> ContractId {
 
 fn fixture_manifest() -> ContextEgressManifest {
     ContextPreparer::new(PatternSecretScanner)
-        .prepare(PrepareContextInput {
+        .prepare(prepare_input_fixture())
+        .expect("fixture manifest")
+}
+
+fn prepare_input_fixture() -> PrepareContextInput {
+    {
+        PrepareContextInput {
             tenant_ref: id("tenant_ref"),
             project_ref: id("project_ref"),
             run_ref: id("run_ref"),
@@ -48,8 +56,8 @@ fn fixture_manifest() -> ContextEgressManifest {
                 content: "safe context".to_owned(),
             }],
             exclusions: Vec::new(),
-        })
-        .expect("fixture manifest")
+        }
+    }
 }
 
 fn fixture_binding(manifest: &ContextEgressManifest) -> ModelInvocationBindingDraft {
@@ -529,4 +537,50 @@ fn terminal_or_unregistered_decisions_cannot_expose_bridge_evidence() {
         }),
         Err(EgressError::DecisionUnknown)
     ));
+}
+
+/// Regression guard: the replay-tombstone set was unbounded-but-capped — once
+/// full, the ledger returned `DecisionAlreadyExists` for *every* subsequent
+/// approval for the life of the process. Chat mints one decision per message,
+/// so a long conversation silently bricked all model egress until restart.
+#[test]
+fn a_long_lived_ledger_keeps_approving_past_the_tombstone_capacity() {
+    // A long-lived manifest, so decisions can be issued across enough
+    // simulated time for the bounded `decisions` map to prune between
+    // approvals without tripping the manifest window.
+    let manifest = ContextPreparer::new(PatternSecretScanner)
+        .prepare(PrepareContextInput {
+            created_at: UnixMillis(1_000),
+            expires_at: UnixMillis(901_000),
+            ..prepare_input_fixture()
+        })
+        .expect("long-lived manifest");
+    let binding = fixture_binding(&manifest).seal().expect("binding");
+    let ledger = MemoryDecisionLedger::default();
+    let service = ConsentService::new(&ledger);
+
+    // Well past the tombstone capacity. Each decision is consumed and allowed
+    // to expire, so the bounded `decisions` map never saturates.
+    for index in 0..6_000_u32 {
+        let issued_at = UnixMillis(u64::from(index) * 100 + 1_500);
+        let decision = service
+            .approve(ApproveDecisionInput {
+                manifest: &manifest,
+                binding: &binding,
+                decision_id: id(&format!("decision_long_{index:05}")),
+                issued_at,
+                expires_at: UnixMillis(issued_at.0 + 1_000),
+            })
+            .unwrap_or_else(|error| {
+                panic!("approval {index} failed after {index} prior decisions: {error:?}")
+            });
+        service
+            .consume(ConsumeDecisionInput {
+                decision: &decision,
+                binding: &binding,
+                invocation_id: id(&format!("invocation_long_{index:05}")),
+                consumed_at: UnixMillis(issued_at.0 + 10),
+            })
+            .expect("consumption");
+    }
 }

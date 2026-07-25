@@ -22,12 +22,25 @@ export function CommandPalette({ actions, onClose, open }: CommandPaletteProps) 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open) {
+      // Remember where focus came from. Without this the palette dropped focus
+      // on <body> when it closed, leaving the next keystroke with nowhere
+      // sensible to land.
+      const active = document.activeElement;
+      returnFocusRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
       setQuery("");
       setSelected(0);
       inputRef.current?.focus();
+      return;
+    }
+    const target = returnFocusRef.current;
+    returnFocusRef.current = null;
+    if (target?.isConnected && !target.closest("[inert]")) {
+      target.focus();
     }
   }, [open]);
 

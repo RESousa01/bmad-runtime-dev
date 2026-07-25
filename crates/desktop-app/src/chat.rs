@@ -46,7 +46,17 @@ use crate::bmad_model::context::derived_contract_id;
 /// long session with many tasks; the oldest idle conversation is evicted.
 const MAX_CHAT_SESSIONS: usize = 64;
 const CHAT_MANIFEST_LIFETIME_MS: u64 = 10 * 60 * 1_000;
-const MAX_CHAT_CONTEXT_ITEMS: u32 = 320;
+/// Single-use consent decisions are capped by `desktop-egress`
+/// (`MAX_DECISION_LIFETIME_MS`, 5 minutes). The chat manifest deliberately
+/// lives longer than that, so the decision window is clamped against it the
+/// same way the capability lane does — a manifest may outlive the one approval
+/// minted from it, never the reverse.
+const CHAT_DECISION_WINDOW_MS: u64 = 5 * 60 * 1_000;
+/// Upper bound on sealed context items in one chat manifest: at most
+/// `MAX_CAPABILITY_CONTEXT_PATHS` (100) user attachments plus the single
+/// persona candidate. Must stay at or under `desktop-egress`'s
+/// `HARD_MAX_CONTEXT_ITEMS` (128), which rejects the manifest outright.
+const MAX_CHAT_CONTEXT_ITEMS: u32 = 101;
 const MAX_CHAT_CONTEXT_BYTES: u64 = 512 * 1024;
 /// The egress purpose label for the chat lane. Distinct from every capability
 /// purpose, so a chat manifest can never be replayed as a capability manifest.
@@ -407,7 +417,15 @@ impl ChatCoordinator {
                 binding: input.binding,
                 decision_id: input.decision_id,
                 issued_at: input.now,
-                expires_at: input.manifest.draft.expires_at,
+                expires_at: UnixMillis(
+                    input
+                        .now
+                        .0
+                        .checked_add(CHAT_DECISION_WINDOW_MS)
+                        .map_or(input.manifest.draft.expires_at.0, |window| {
+                            window.min(input.manifest.draft.expires_at.0)
+                        }),
+                ),
             })
             .map_err(|_| ChatCoordinatorError::Integrity)?;
         let consumption = consent
@@ -650,8 +668,151 @@ fn deterministic_chat_fixture() -> String {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{parse_chat_turn, ChatCoordinatorError, CHAT_PURPOSE};
-    use desktop_runtime::CHAT_TURN_SCHEMA;
+    use super::{
+        parse_chat_turn, ChatCoordinatorError, CHAT_DECISION_WINDOW_MS, CHAT_MANIFEST_LIFETIME_MS,
+        CHAT_PURPOSE, MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_CONTEXT_ITEMS,
+    };
+    use desktop_egress::{
+        ApproveDecisionInput, ConsentService, ContextCandidate, ContextClassification,
+        ContextPreparer, EgressLimits, MemoryDecisionLedger, ModelInvocationBindingDraft,
+        PatternSecretScanner, PrepareContextInput, RetentionMode,
+    };
+    use desktop_runtime::{
+        ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, CHAT_TURN_SCHEMA,
+    };
+
+    fn id(value: &str) -> ContractId {
+        ContractId::new(value).expect("identifier")
+    }
+
+    fn digest(seed: u8) -> Sha256Digest {
+        Sha256Digest::from_bytes([seed; 32])
+    }
+
+    fn candidate(index: usize) -> ContextCandidate {
+        ContextCandidate {
+            client_item_id: id(&format!("chatctx_{index:03}")),
+            relative_label: RelativeWorkspacePath::new(format!("src/file-{index}.rs"))
+                .expect("path"),
+            semantic_role: "workspace_file".to_owned(),
+            language: Some("rust".to_owned()),
+            classification: ContextClassification::Internal,
+            content: format!("// line {index}\n"),
+        }
+    }
+
+    /// Seals a manifest with exactly the limits and lifetime `seal_chat_manifest`
+    /// uses, so the egress hard caps are exercised rather than restated.
+    fn seal_with_chat_limits(
+        now: UnixMillis,
+        candidates: Vec<ContextCandidate>,
+    ) -> Result<desktop_egress::ContextEgressManifest, desktop_egress::EgressError> {
+        ContextPreparer::new(PatternSecretScanner).prepare(PrepareContextInput {
+            tenant_ref: id("install_chat"),
+            project_ref: id("project_chat"),
+            run_ref: id("ws_chat"),
+            purpose: CHAT_PURPOSE.to_owned(),
+            model_role: "assistant".to_owned(),
+            canonical_output_schema_id: id(CHAT_TURN_SCHEMA),
+            canonical_output_schema_hash: digest(1),
+            provider_profile_hash: digest(2),
+            model_profile_hash: digest(3),
+            deployment_hash: digest(4),
+            policy_hash: digest(5),
+            region: "local".to_owned(),
+            retention_mode: RetentionMode::TransientNoStore,
+            created_at: now,
+            expires_at: UnixMillis(now.0 + CHAT_MANIFEST_LIFETIME_MS),
+            limits: EgressLimits {
+                maximum_context_items: MAX_CHAT_CONTEXT_ITEMS,
+                maximum_context_bytes: MAX_CHAT_CONTEXT_BYTES,
+                maximum_token_estimate: MAX_CHAT_CONTEXT_BYTES,
+            },
+            candidates,
+            exclusions: Vec::new(),
+        })
+    }
+
+    /// Regression guard: the chat manifest declared 320 context items against
+    /// the egress hard cap of 128, so *every* `chat.send` failed to seal and
+    /// the app's default lane was inert. Nothing exercised this path before.
+    #[test]
+    fn a_chat_manifest_seals_under_the_egress_hard_caps() {
+        let manifest = seal_with_chat_limits(UnixMillis(1_000), vec![candidate(0)])
+            .expect("chat limits must satisfy the egress hard caps");
+        assert_eq!(manifest.draft.purpose, CHAT_PURPOSE);
+        assert_eq!(
+            manifest.draft.limits.maximum_context_items,
+            MAX_CHAT_CONTEXT_ITEMS
+        );
+    }
+
+    /// The 100 attachments the IPC envelope admits, plus the persona, must all
+    /// fit — the declared ceiling is only honest if the full load seals.
+    #[test]
+    fn a_full_chat_context_load_seals() {
+        let candidates = (0..MAX_CHAT_CONTEXT_ITEMS as usize)
+            .map(candidate)
+            .collect();
+        seal_with_chat_limits(UnixMillis(1_000), candidates)
+            .expect("a full chat context load must seal");
+    }
+
+    /// Regression guard: the decision inherited the manifest's 10-minute
+    /// expiry, but `desktop-egress` caps a single-use decision at 5 minutes, so
+    /// approval failed with `InvalidLifetime` even once the limits were fixed.
+    #[test]
+    fn the_chat_decision_window_stays_inside_the_consent_cap() {
+        let now = UnixMillis(1_000);
+        let manifest = seal_with_chat_limits(now, vec![candidate(0)]).expect("manifest");
+        let binding = ModelInvocationBindingDraft {
+            schema_version: "sapphirus.model-invocation-binding.v1".to_owned(),
+            request_id: id("req_chat_001"),
+            tenant_ref: manifest.draft.tenant_ref.clone(),
+            project_ref: manifest.draft.project_ref.clone(),
+            run_ref: manifest.draft.run_ref.clone(),
+            installation_id: id("install_chat"),
+            session_authority_hash: digest(9),
+            manifest_hash: manifest.manifest_hash,
+            purpose: CHAT_PURPOSE.to_owned(),
+            model_role: manifest.draft.model_role.clone(),
+            canonical_output_schema_id: manifest.draft.canonical_output_schema_id.clone(),
+            canonical_output_schema_hash: manifest.draft.canonical_output_schema_hash,
+            provider_profile_hash: manifest.draft.provider_profile_hash,
+            model_profile_hash: manifest.draft.model_profile_hash,
+            deployment_hash: manifest.draft.deployment_hash,
+            policy_hash: manifest.draft.policy_hash,
+            region: manifest.draft.region.clone(),
+            retention_mode: manifest.draft.retention_mode,
+            consent_disclosure_hash: digest(10),
+        }
+        .seal()
+        .expect("binding");
+
+        // The clamp `seal`/`authorize` applies: never past the consent cap.
+        let expires_at = UnixMillis(
+            now.0
+                .checked_add(CHAT_DECISION_WINDOW_MS)
+                .map_or(manifest.draft.expires_at.0, |window| {
+                    window.min(manifest.draft.expires_at.0)
+                }),
+        );
+        assert!(
+            expires_at.0 < manifest.draft.expires_at.0,
+            "the manifest deliberately outlives the decision minted from it"
+        );
+
+        let ledger = MemoryDecisionLedger::default();
+        ConsentService::new(&ledger)
+            .approve(ApproveDecisionInput {
+                manifest: &manifest,
+                binding: &binding,
+                decision_id: id("decision_chat_001"),
+                issued_at: now,
+                expires_at,
+            })
+            .expect("the clamped chat decision must satisfy the consent lifetime cap");
+    }
 
     #[test]
     fn a_bounded_reply_is_accepted() {

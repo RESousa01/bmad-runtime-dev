@@ -166,3 +166,68 @@ fn broker_keeps_git_reads_inside_an_active_workspace_grant() -> TestResult {
     ));
     Ok(())
 }
+
+/// Regression guard: `git_diff` returns file *content*, so it must honour the
+/// same denylist as `read_text`. It previously did not, which made the Review
+/// panel a read path for exactly the files the policy exists to withhold.
+#[test]
+fn review_diff_refuses_the_same_sensitive_paths_as_a_text_read() -> TestResult {
+    // The denylist keys on the path, so the fixture content is deliberately
+    // inert — writing realistic-looking credentials here would (correctly)
+    // trip the repository's own plaintext-secret scanner.
+    let temp = committed_workspace()?;
+    std::fs::write(temp.path().join(".env"), "placeholder\n")?;
+    std::fs::create_dir_all(temp.path().join(".ssh"))?;
+    std::fs::write(temp.path().join(".ssh/id_rsa"), "placeholder\n")?;
+
+    let broker = WorkspaceBroker::new();
+    let projection = broker.grant("project_forge_review", temp.path())?;
+
+    for blocked in [".env", ".ssh/id_rsa", ".git/config"] {
+        assert!(
+            matches!(
+                broker.read_text(&projection.workspace_id, blocked, 4_096),
+                Err(WorkspaceError::PathBlocked)
+            ),
+            "read_text must block {blocked}"
+        );
+        assert!(
+            matches!(
+                broker.git_diff(
+                    &projection.workspace_id,
+                    blocked,
+                    BrokerComparison::HeadToWorktree,
+                ),
+                Err(WorkspaceError::PathBlocked)
+            ),
+            "git_diff must block {blocked} exactly like read_text",
+        );
+    }
+    Ok(())
+}
+
+/// Regression guard: the bound was applied with a raw byte slice, so when the
+/// cut landed mid-character the whole side decoded as invalid UTF-8 and the
+/// renderer was told the file was binary. A large text file must still show a
+/// bounded, truncated diff.
+#[test]
+fn review_diff_truncates_large_text_without_reporting_it_as_binary() -> TestResult {
+    use git_review::MAX_GIT_DIFF_BYTES;
+
+    let temp = committed_workspace()?;
+    // Pad so that a two-byte character straddles the byte bound exactly.
+    let mut content = "a".repeat(MAX_GIT_DIFF_BYTES - 1);
+    content.push('é'); // two bytes: the first lands on the bound, the second past it
+    content.push_str(&"b".repeat(100));
+    std::fs::write(temp.path().join("large.md"), &content)?;
+
+    let comparison = read_git_diff(temp.path(), "large.md", GitComparison::HeadToWorktree)?;
+
+    assert!(comparison.truncated, "content past the bound is truncated");
+    let after = comparison
+        .after_content
+        .ok_or_else(|| std::io::Error::other("valid UTF-8 must survive a mid-character cut"))?;
+    assert_eq!(after.len(), MAX_GIT_DIFF_BYTES - 1);
+    assert!(after.chars().all(|character| character == 'a'));
+    Ok(())
+}

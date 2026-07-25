@@ -45,9 +45,19 @@ export function BmadWorkflowPanel({
     );
   }
   if (state === null) {
+    // The load control has to live here too: `onRefresh` is the only caller of
+    // the host's workflow-state command, and without a button in the unloaded
+    // branch the panel was a dead end — method progress could never be read.
     return (
       <section aria-label="Method progress" className="workflow-panel">
-        <p role="status">{loading ? "Reading method progress…" : "Method progress not loaded."}</p>
+        <p role="status">
+          {loading
+            ? "Reading method progress…"
+            : "Method progress has not been read for this workspace yet."}
+        </p>
+        <button disabled={loading} onClick={onRefresh} type="button">
+          {loading ? "Reading…" : "Read method progress"}
+        </button>
       </section>
     );
   }

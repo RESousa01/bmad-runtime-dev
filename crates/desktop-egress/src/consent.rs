@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
+use std::{collections::HashMap, fmt};
 
 use desktop_runtime::{canonical_hash, ContractId, Sha256Digest, UnixMillis};
 use parking_lot::{Mutex, MutexGuard};
@@ -562,7 +559,22 @@ pub struct MemoryDecisionLedger {
 #[derive(Default)]
 struct MemoryDecisionLedgerState {
     decisions: HashMap<ContractId, DecisionState>,
-    seen_decision_ids: HashSet<ContractId>,
+    /// Replay tombstones: decision id -> insertion sequence.
+    ///
+    /// A spent id must stay spent even after its decision expires, otherwise
+    /// an id the receipt trail already attributes to a completed egress could
+    /// mint a second one. So these are deliberately *not* pruned by expiry.
+    ///
+    /// They are bounded instead by evicting the oldest. Previously the ledger
+    /// returned `DecisionAlreadyExists` once the set was full, which meant that
+    /// after `DEFAULT_MAX_SEEN_DECISION_IDS` approvals *every* later approval
+    /// failed for the life of the process — fail-closed, but silent and
+    /// unrecoverable without a restart. Bounding by eviction keeps the
+    /// guarantee for the most recent `DEFAULT_MAX_SEEN_DECISION_IDS` ids, which
+    /// is the window in which a host-minted id could plausibly recur.
+    seen_decision_ids: HashMap<ContractId, u64>,
+    /// Monotonic insertion counter for `seen_decision_ids` eviction order.
+    seen_sequence: u64,
 }
 
 impl fmt::Debug for MemoryDecisionLedger {
@@ -586,13 +598,27 @@ impl DecisionLedger for MemoryDecisionLedger {
         state
             .decisions
             .retain(|_, entry| entry.expires_at() >= decision.issued_at);
-        if state.seen_decision_ids.contains(&decision.decision_id)
+        if state.seen_decision_ids.contains_key(&decision.decision_id)
             || state.decisions.len() >= DEFAULT_MAX_TRACKED_DECISIONS
-            || state.seen_decision_ids.len() >= DEFAULT_MAX_SEEN_DECISION_IDS
         {
             return Err(EgressError::DecisionAlreadyExists);
         }
-        state.seen_decision_ids.insert(decision.decision_id.clone());
+        if state.seen_decision_ids.len() >= DEFAULT_MAX_SEEN_DECISION_IDS {
+            // Evict the oldest tombstone so a long-lived process keeps working.
+            if let Some(oldest) = state
+                .seen_decision_ids
+                .iter()
+                .min_by_key(|(_, sequence)| **sequence)
+                .map(|(id, _)| id.clone())
+            {
+                state.seen_decision_ids.remove(&oldest);
+            }
+        }
+        state.seen_sequence = state.seen_sequence.wrapping_add(1);
+        let sequence = state.seen_sequence;
+        state
+            .seen_decision_ids
+            .insert(decision.decision_id.clone(), sequence);
         state.decisions.insert(
             decision.decision_id.clone(),
             DecisionState::Pending(Box::new(decision.stored_copy())),

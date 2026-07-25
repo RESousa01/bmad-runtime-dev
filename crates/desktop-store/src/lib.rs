@@ -19,6 +19,41 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use tempfile::NamedTempFile;
 use thiserror::Error;
+
+/// The offboarding disclosure surface: `(product label, table)`.
+///
+/// Every table holding user-originated content must appear here. Erasure
+/// destroys the whole database regardless, but a user asking what is retained
+/// is entitled to see their conversations and capability results counted —
+/// this list silently fell behind two migrations and reported neither.
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 20] = [
+    ("workspace_and_authority_records", "aggregates"),
+    ("evidence_events", "evidence_events"),
+    ("stored_payloads", "payloads"),
+    ("approval_consumptions", "spec_consumptions"),
+    ("chat_conversations", "chat_sessions"),
+    ("chat_messages", "chat_messages"),
+    ("method_sessions", "bmad_method_sessions"),
+    ("method_checkpoints", "bmad_method_checkpoints"),
+    ("method_artifacts", "bmad_method_artifacts"),
+    (
+        "method_decision_consumptions",
+        "bmad_method_decision_consumptions",
+    ),
+    ("capability_runs", "bmad_capability_runs"),
+    ("capability_results", "bmad_capability_results"),
+    ("builder_drafts", "bmad_builder_drafts"),
+    ("builder_draft_revisions", "bmad_builder_revisions"),
+    ("builder_analyses", "bmad_builder_analyses"),
+    (
+        "builder_analysis_decisions",
+        "bmad_builder_analysis_decisions",
+    ),
+    ("execution_journals", "effect_journals"),
+    ("execution_checkpoints", "execution_checkpoints"),
+    ("execution_results", "execution_results"),
+    ("help_runs", "bmad_help_run_creations"),
+];
 use time::OffsetDateTime;
 use ulid::Ulid;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -644,19 +679,9 @@ impl LocalStore {
     ///
     /// Returns [`StoreError`] when the database cannot be queried.
     pub fn retention_manifest(&self) -> Result<Vec<(&'static str, u64)>, StoreError> {
-        const CATEGORIES: [(&str, &str); 8] = [
-            ("workspace_and_authority_records", "aggregates"),
-            ("evidence_events", "evidence_events"),
-            ("stored_payloads", "payloads"),
-            ("approval_consumptions", "spec_consumptions"),
-            ("method_sessions", "bmad_method_sessions"),
-            ("method_checkpoints", "bmad_method_checkpoints"),
-            ("execution_journals", "effect_journals"),
-            ("help_runs", "bmad_help_run_creations"),
-        ];
         let connection = self.connection.lock();
-        let mut manifest = Vec::with_capacity(CATEGORIES.len());
-        for (label, table) in CATEGORIES {
+        let mut manifest = Vec::with_capacity(RETENTION_CATEGORIES.len());
+        for (label, table) in RETENTION_CATEGORIES {
             let count: i64 = connection
                 .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
                     row.get(0)
@@ -1820,13 +1845,51 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         let manifest = store.retention_manifest()?;
-        assert_eq!(manifest.len(), 8);
         for (label, _count) in &manifest {
             assert!(label
                 .chars()
                 .all(|character| character.is_ascii_lowercase() || character == '_'));
         }
         assert!(store.retained_bytes() > 0);
+        Ok(())
+    }
+
+    /// Regression guard: the disclosure list was a hand-maintained constant
+    /// that silently fell behind two migrations, so `app.offboarding.inspect`
+    /// reported nothing about chat transcripts or capability results. Any new
+    /// user-content table must be disclosed or explicitly exempted here.
+    #[test]
+    fn retention_manifest_discloses_every_user_content_table(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        /// Tables that hold no user-originated content: schema bookkeeping and
+        /// the transient dispatch queue.
+        const NOT_USER_CONTENT: [&str; 3] = ["store_meta", "user_version", "outbox"];
+
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let disclosed = store
+            .retention_manifest()?
+            .into_iter()
+            .map(|(label, _)| label)
+            .collect::<std::collections::BTreeSet<_>>();
+
+        // The manifest labels are product wording, so match on the tables the
+        // categories are built from rather than on the labels themselves.
+        let covered_tables = RETENTION_CATEGORIES
+            .iter()
+            .map(|(_, table)| *table)
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(disclosed.len(), RETENTION_CATEGORIES.len());
+
+        for table in crate::migrations::V12_TABLES {
+            if NOT_USER_CONTENT.contains(&table) {
+                continue;
+            }
+            assert!(
+                covered_tables.contains(table),
+                "table `{table}` holds user content but is absent from the retention disclosure",
+            );
+        }
         Ok(())
     }
 

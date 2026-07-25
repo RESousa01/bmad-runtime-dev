@@ -3106,7 +3106,24 @@ mod tests {
             return Err("expected a retention manifest projection".into());
         };
         assert_eq!(manifest.schema_version, "sapphirus.retention-manifest.v1");
-        assert_eq!(manifest.categories.len(), 8);
+        // The disclosure must name the personal records, not just some of them.
+        // Chat transcripts and capability results were silently omitted.
+        let disclosed = manifest
+            .categories
+            .iter()
+            .map(|category| category.category.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        for expected in [
+            "chat_conversations",
+            "chat_messages",
+            "capability_runs",
+            "capability_results",
+        ] {
+            assert!(
+                disclosed.contains(expected),
+                "retention disclosure omits `{expected}`",
+            );
+        }
         let serialized = serde_json::to_string(&manifest).expect("serializable manifest");
         // The manifest may never leak paths, separators, or identifiers.
         assert!(!serialized.contains('/') && !serialized.contains('\\'));

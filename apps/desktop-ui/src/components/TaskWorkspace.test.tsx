@@ -297,7 +297,12 @@ describe("TaskWorkspace Method guidance", () => {
 
     expect(onSendRequest).toHaveBeenCalledOnce();
     expect(onSendRequest).toHaveBeenCalledWith("Help me choose the next architecture step.");
-    expect(screen.getByText("Help me choose the next architecture step.")).toBeTruthy();
+    // The composer clears on a successful send. The sent text itself is the
+    // transcript's to render — it arrives in `chatLane` when the host echoes
+    // the turn back, which is asserted separately.
+    expect(
+      screen.getByLabelText("Describe what you want skill guidance for"),
+    ).toHaveProperty("value", "");
 
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(screen.queryByText("Ready for review")).toBeNull();
@@ -370,6 +375,18 @@ describe("TaskWorkspace Method guidance", () => {
     async () => {
       const user = userEvent.setup();
       const onSendRequest = vi.fn(async (_intent: string) => undefined);
+      // Production echoes the sent turn back into the lane, so model this the
+      // way the host actually behaves rather than relying on a local echo.
+      const sentLane = {
+        ...emptyChatLane,
+        messages: [
+          {
+            role: "user" as const,
+            text: "Recommend a safe next skill-guided step",
+            createdAt: 1_000,
+          },
+        ],
+      };
       const { rerender } = render(
         <TaskWorkspace {...createProps({ onSendRequest })} />,
       );
@@ -381,18 +398,27 @@ describe("TaskWorkspace Method guidance", () => {
       await user.click(
         screen.getByRole("button", { name: "Send message" }),
       );
-      expect(await screen.findByText("Recommend a safe next skill-guided step")).toBeTruthy();
+      expect(onSendRequest).toHaveBeenCalledOnce();
+
+      rerender(
+        <TaskWorkspace
+          {...createProps({ chatLane: sentLane, onSendRequest })} />,
+      );
+      // Exactly one copy: the transcript's. A second, locally-echoed bubble
+      // used to render the same text twice on every send.
+      expect(screen.getAllByText("Recommend a safe next skill-guided step")).toHaveLength(1);
 
       rerender(
         <TaskWorkspace
           {...createProps({
+            chatLane: sentLane,
             methodGuidanceAvailable: false,
             onSendRequest,
           })}
         />,
       );
 
-      expect(screen.getByText("Recommend a safe next skill-guided step")).toBeTruthy();
+      expect(screen.getAllByText("Recommend a safe next skill-guided step")).toHaveLength(1);
       expect(screen.queryByText("Demo response")).toBeNull();
       expect(screen.queryByText("Ready for review")).toBeNull();
     },

@@ -152,4 +152,26 @@ describe("BmadWorkflowPanel", () => {
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(onRefresh).toHaveBeenCalledOnce();
   });
+
+  /// Regression guard: the unloaded branch rendered only a status line, and
+  /// `onRefresh` is the sole caller of the host's workflow-state command — so
+  /// method progress could never be read at all.
+  it("offers a load control before any state has been read", async () => {
+    const onRefresh = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <BmadWorkflowPanel error={null} loading={false} onRefresh={onRefresh} state={null} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Read method progress" }));
+    expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
+  it("disables the load control while a read is in flight", () => {
+    render(
+      <BmadWorkflowPanel error={null} loading onRefresh={vi.fn()} state={null} />,
+    );
+
+    expect(screen.getByRole("button", { name: "Reading…" })).toHaveProperty("disabled", true);
+  });
 });

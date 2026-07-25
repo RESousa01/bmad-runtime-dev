@@ -18,7 +18,11 @@
   --color-border-subtle: rgb(255 255 255 / 0.07);
   --color-text: #f2f2f2;
   --color-text-soft: #b9b9b9;
-  --color-text-muted: #777777;
+  /* #777777 measured 4.47:1 on the canvas and 3.96:1 on raised surfaces —
+     both under the 4.5:1 WCAG AA floor for the small sizes this token is used
+     at. #949494 clears every dark surface the token lands on: 6.6:1 on the
+     canvas, 5.9:1 on #181818, and 5.0:1 on the deepest raised #262626. */
+  --color-text-muted: #949494;
   --color-accent: #7698fd;
   --color-accent-strong: #a2bcff;
   --color-accent-soft: #1b2852;
@@ -53,7 +57,9 @@
   --color-border-subtle: rgb(0 0 0 / 0.07);
   --color-text: #171717;
   --color-text-soft: #555555;
-  --color-text-muted: #7a7a7a;
+  /* Light theme needs the inverse correction: #7a7a7a was too light against
+     the near-white canvas. #6e6e6e clears 4.5:1. */
+  --color-text-muted: #6e6e6e;
   --color-accent: #3b5cf6;
   --color-accent-strong: #3250df;
   --color-accent-soft: #ecf1fe;

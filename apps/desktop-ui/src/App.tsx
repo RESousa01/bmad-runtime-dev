@@ -343,6 +343,7 @@ export function App({
   // optional overlay on it rather than the only way to say something.
   const chatSessions = useChatSessions(selectedSessionId);
   const chatLane = chatSessions.lane;
+  const { clearAll: clearAllChatLanes } = chatSessions;
   // Deterministic method progress: computed by the host, never a model claim.
   const [workflowState, setWorkflowState] = useState<{
     state: BmadWorkflowStateProjection | null;
@@ -879,6 +880,12 @@ export function App({
   }, []);
 
   const invalidateWorkspaceBoundUi = useCallback(() => {
+    // Transcripts and the persona bound to them are workspace-scoped: the
+    // agent roster differs per workspace, so a lane carried across a switch
+    // would keep showing the old workspace's messages and would send its
+    // agentCode to the new one while the selector displayed "Plain chat".
+    clearAllChatLanes();
+    setWorkflowState({ state: null, loading: false, error: null });
     changesGenerationRef.current += 1;
     clearAllChangesFlows();
     setChangesError(null);
@@ -897,7 +904,7 @@ export function App({
     setContextPreview(null);
     setContextSelectionMode("manual");
     setContextDrawer(null);
-  }, []);
+  }, [clearAllChatLanes]);
 
   const invalidateHostBoundUi = useCallback(() => {
     invalidateWorkspaceBoundUi();
@@ -1754,6 +1761,13 @@ export function App({
   function selectSession(id: string) {
     if (id !== initialProductSession.id && !sessions.some((session) => session.id === id)) {
       return;
+    }
+    if (id !== selectedSessionId) {
+      // Attached context is scoped to the message about to be sent, and the
+      // projection is app-global. Without this, files pinned in one task stayed
+      // pinned after switching and were sent with the next task's message —
+      // files the user never attached there.
+      clearContext();
     }
     setPrimaryRoute({ kind: "task", taskId: id });
     setContextDrawer(null);
@@ -2874,6 +2888,22 @@ export function App({
     />
   ) : undefined;
 
+  // The palette shortcut has to be a real document listener, not a React
+  // handler on the shell. React attaches at the root container, so a keydown
+  // whose target is <body> — the state on first paint, and again every time
+  // the palette or a disabled composer blurs — never reached the shell and
+  // Ctrl+K silently did nothing.
+  useEffect(() => {
+    function onShortcut(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((current) => !current);
+      }
+    }
+    document.addEventListener("keydown", onShortcut);
+    return () => document.removeEventListener("keydown", onShortcut);
+  }, []);
+
   const paletteActions: readonly PaletteAction[] = [
     { id: "new-task", label: "New task", hint: "chat", run: () => { startNewSession(); } },
     {
@@ -2921,15 +2951,7 @@ export function App({
   ];
 
   return (
-    <div
-      className="app-shell app-shell--forge-v2"
-      onKeyDown={(event) => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-          event.preventDefault();
-          setPaletteOpen((current) => !current);
-        }
-      }}
-    >
+    <div className="app-shell app-shell--forge-v2">
       <CommandPalette
         actions={paletteActions}
         onClose={() => setPaletteOpen(false)}

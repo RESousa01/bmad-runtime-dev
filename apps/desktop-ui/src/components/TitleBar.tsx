@@ -78,7 +78,35 @@ export function TitleBar({
           </Button>
         )}
         {visibleTaskTabs.length === 0 ? null : (
-          <div aria-label="Open tasks" className="title-strip__tabs" role="tablist">
+          <div
+            aria-label="Open tasks"
+            className="title-strip__tabs"
+            onKeyDown={(event) => {
+              // Roving tabindex means only the active tab is reachable by Tab,
+              // so without arrow handling the other tasks could not be reached
+              // from the keyboard at all.
+              const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+              if (!keys.includes(event.key)) return;
+              const current = visibleTaskTabs.findIndex((task) => task.id === selectedTaskId);
+              const last = visibleTaskTabs.length - 1;
+              const index = current < 0 ? 0 : current;
+              const next =
+                event.key === "Home"
+                  ? 0
+                  : event.key === "End"
+                    ? last
+                    : event.key === "ArrowLeft"
+                      ? (index === 0 ? last : index - 1)
+                      : (index === last ? 0 : index + 1);
+              const target = visibleTaskTabs[next];
+              if (!target) return;
+              event.preventDefault();
+              onSelectTask?.(target.id);
+              const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+              tabs[next]?.focus();
+            }}
+            role="tablist"
+          >
             {visibleTaskTabs.map((task) => {
               const active = task.id === selectedTaskId;
               return (

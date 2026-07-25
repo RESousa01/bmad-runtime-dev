@@ -970,7 +970,18 @@ pub(crate) struct AssembleCapabilityPrepareInput<'a> {
 }
 
 const CAPABILITY_MANIFEST_LIFETIME_MS: u64 = 10 * 60 * 1_000;
-const MAX_CAPABILITY_CONTEXT_ITEMS: u32 = 101;
+/// The declared ceiling has to cover the host-injected candidates as well as
+/// the user's attachments, otherwise a full attachment set plus the host's own
+/// context overflows and surfaces as an opaque integrity failure rather than
+/// "attach fewer files":
+///
+/// * up to `MAX_CAPABILITY_CONTEXT_PATHS` (100) user attachments,
+/// * 1 sealed instruction candidate,
+/// * 2 architecture progression candidates (selected step + decision log),
+/// * 1 adopted-instruction boundary preamble for core-skill capabilities.
+///
+/// Must stay at or under `desktop-egress`'s `HARD_MAX_CONTEXT_ITEMS` (128).
+const MAX_CAPABILITY_CONTEXT_ITEMS: u32 = 104;
 const MAX_CAPABILITY_CONTEXT_BYTES: u64 = 256 * 1024;
 
 /// Assembles the sealed manifest, invocation binding, and coordinator

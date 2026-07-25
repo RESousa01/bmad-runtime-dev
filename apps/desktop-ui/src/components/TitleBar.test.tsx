@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "../test/setup";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TitleBar } from "./TitleBar";
 
@@ -40,6 +41,38 @@ describe("TitleBar Forge identity", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "First task" }));
     expect(onSelectTask).toHaveBeenCalledWith("task-1");
+  });
+
+  /// Regression guard: roving tabindex makes every inactive tab unreachable by
+  /// Tab, so without arrow handling the tablist could not be operated from the
+  /// keyboard at all.
+  it("moves between open tasks with the arrow, Home and End keys", async () => {
+    const onSelectTask = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TitleBar
+        activeTaskId="task-2"
+        onSelectTask={onSelectTask}
+        taskTabs={[
+          { id: "task-1", title: "First task" },
+          { id: "task-2", title: "Second task" },
+          { id: "task-3", title: "Third task" },
+        ]}
+      />,
+    );
+
+    screen.getByRole("tab", { name: "Second task" }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(onSelectTask).toHaveBeenLastCalledWith("task-3");
+
+    await user.keyboard("{ArrowLeft}");
+    expect(onSelectTask).toHaveBeenLastCalledWith("task-1");
+
+    await user.keyboard("{Home}");
+    expect(onSelectTask).toHaveBeenLastCalledWith("task-1");
+
+    await user.keyboard("{End}");
+    expect(onSelectTask).toHaveBeenLastCalledWith("task-3");
   });
 
   it("uses the plus action only to create another task", () => {
