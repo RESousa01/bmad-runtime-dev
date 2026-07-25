@@ -17,12 +17,14 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:0813c069f75518a659fc7ec75cbd72f5c4b9ca896748e94b2e4d1777d870aa94";
+    "sha256:4c93f2cbc075a2891feeb16ed6655822d6ddd9e7c138abca69f1f125a0e17f95";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:e0320ac6c913fd06ec4cb7522c2772869afbcc83914c4199f10a48b008de06bd";
+    "sha256:4bdb7c8ad27f9da368b8304bc2128538005fe1d19fb53b7a20f418f7f74a33e8";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
+/// The adopted upstream method graph (ADR-0008).
+const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-help.csv";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
 const METHOD_RUNTIME_PATHS: [&str; 31] = [
@@ -58,6 +60,8 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
     "runtime/method/6.10.0/validate-doc.instructions.md",
     "runtime/method/6.10.0/write-document.instructions.md",
 ];
+/// ADR-0008 adopted upstream bodies live only here.
+const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
 const EXPECTED_RESOURCE_PATHS: [&str; 76] = [
     "NOTICE.md",
     "adoption-ledger.json",
@@ -176,6 +180,7 @@ pub struct BmadLoadedFoundation {
     semantic_ledger_hash: Sha256Digest,
     builder_packages: Vec<BmadBuilderPackageSummary>,
     personas: Vec<BmadSealedPersonaProjection>,
+    workflow_graph: Option<desktop_runtime::BmadWorkflowGraph>,
 }
 
 /// One roster agent's sealed persona instruction, verified against its
@@ -301,6 +306,14 @@ impl BmadLoadedFoundation {
         self.resources.get(relative_path).cloned()
     }
 
+    /// The sealed method workflow graph, parsed from the adopted upstream
+    /// `module-help.csv` (ADR-0008). Parsed on demand from bytes the manifest
+    /// already pinned, so a drifted graph cannot reach the runtime.
+    #[must_use]
+    pub fn workflow_graph(&self) -> Option<&desktop_runtime::BmadWorkflowGraph> {
+        self.workflow_graph.as_ref()
+    }
+
     /// The sealed persona projection for one roster agent code.
     #[must_use]
     pub fn persona_for(&self, agent_code: &str) -> Option<&BmadSealedPersonaProjection> {
@@ -329,9 +342,12 @@ struct RuntimeResource {
     content_kind: RuntimeContentKind,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum RuntimeContentKind {
+    /// ADR-0008: upstream method text shipped verbatim. Instruction *data*
+    /// only — adopting a body never adopts its authority.
+    AdoptedSource,
     LegalNotice,
     ManagedInstruction,
     NormalizedContract,
@@ -421,6 +437,14 @@ pub fn load_bmad_foundation(
     )?;
     let builder_packages = validate_builder_packages(&resources)?;
     let personas = load_persona_projections(&resources)?;
+    // The workflow graph is adopted upstream data (ADR-0008). Its bytes are
+    // already manifest-pinned; a graph that no longer parses is reported as
+    // absent rather than failing the whole foundation, because navigation is
+    // an aid and must never block the runtime from loading.
+    let workflow_graph = resources
+        .get(WORKFLOW_GRAPH_PATH)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .and_then(|text| desktop_runtime::BmadWorkflowGraph::parse(text).ok());
 
     Ok(BmadLoadedFoundation {
         method_package,
@@ -431,6 +455,7 @@ pub fn load_bmad_foundation(
         semantic_ledger_hash,
         builder_packages,
         personas,
+        workflow_graph,
     })
 }
 
@@ -575,17 +600,29 @@ fn validate_manifest_identity(manifest: &RuntimeManifest) -> Result<(), BmadFoun
         "manifestHash",
     )
     .map_err(|_| BmadFoundationError::ManifestInvalid)?;
-    let paths = manifest
+    // The managed set is pinned exactly; ADR-0008 adopted bodies are pinned by
+    // the manifest hash above and constrained here to the adopted-source root,
+    // so a manifest can never smuggle a resource in under another path.
+    let managed = manifest
         .resources
         .iter()
         .map(|resource| resource.path.as_str())
+        .filter(|path| !path.starts_with(ADOPTED_SOURCE_ROOT))
         .collect::<Vec<_>>();
+    let adopted_are_bounded = manifest.resources.iter().all(|resource| {
+        !resource.path.starts_with(ADOPTED_SOURCE_ROOT)
+            || resource.content_kind == RuntimeContentKind::AdoptedSource
+    }) && manifest.resources.iter().all(|resource| {
+        resource.content_kind != RuntimeContentKind::AdoptedSource
+            || resource.path.starts_with(ADOPTED_SOURCE_ROOT)
+    });
     if manifest.schema_version != "sapphirus.bmad-foundation-runtime-manifest.v1"
         || manifest.foundation_version != "0.1.0-beta.1"
         || manifest.manifest_hash != computed
         || manifest.manifest_hash != expected_manifest
         || manifest.semantic_ledger_hash != expected_ledger
-        || paths != EXPECTED_RESOURCE_PATHS
+        || managed != EXPECTED_RESOURCE_PATHS
+        || !adopted_are_bounded
     {
         return Err(BmadFoundationError::ManifestInvalid);
     }
@@ -842,6 +879,10 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
                 "adoption-ledger.json" | "semantic-source-ledger.json"
             )
         )
+        || matches!(
+            (kind, path),
+            (RuntimeContentKind::AdoptedSource, value) if value.starts_with(ADOPTED_SOURCE_ROOT)
+        )
 }
 
 fn read_bounded_regular(root: &Path, relative: &str) -> Result<Vec<u8>, BmadFoundationError> {
@@ -905,7 +946,7 @@ mod tests {
                 .help_invocation()
                 .adoption_ledger_hash()
                 .to_string(),
-            "sha256:c0a97ffddb064e06bcfe11f8a72789ffb02dc06c0c1706cad100ee4d6dd1e72f"
+            "sha256:671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
         );
         assert_eq!(foundation.catalog().installed_skills.len(), 2);
         assert_eq!(foundation.catalog().help_actions.len(), 2);
@@ -928,11 +969,11 @@ mod tests {
             .all(|skill| !skill.capability_enabled));
         assert_eq!(
             foundation.manifest_hash().to_string(),
-            "sha256:e0320ac6c913fd06ec4cb7522c2772869afbcc83914c4199f10a48b008de06bd"
+            super::EXPECTED_MANIFEST_HASH
         );
         assert_eq!(
             foundation.semantic_ledger_hash().to_string(),
-            "sha256:0813c069f75518a659fc7ec75cbd72f5c4b9ca896748e94b2e4d1777d870aa94"
+            super::EXPECTED_SEMANTIC_LEDGER_HASH
         );
     }
 
@@ -985,7 +1026,7 @@ mod tests {
         let manifest_path = temporary.path().join("runtime-manifest.json");
         let manifest = std::fs::read_to_string(&manifest_path).expect("runtime manifest");
         let tampered = manifest.replace(
-            "sha256:e0320ac6c913fd06ec4cb7522c2772869afbcc83914c4199f10a48b008de06bd",
+            super::EXPECTED_MANIFEST_HASH,
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         );
         std::fs::write(manifest_path, tampered).expect("tamper runtime manifest");

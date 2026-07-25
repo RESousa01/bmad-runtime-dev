@@ -10,7 +10,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "16428400739375548611"
+      "templateHash": "17401685880391787415"
     }
   },
   "parameters": {
@@ -53,6 +53,14 @@
       "type": "string",
       "metadata": {
         "description": "Microsoft Entra application ID URI expected in desktop access tokens."
+      }
+    },
+    "approvedDesktopClientId": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "metadata": {
+        "description": "Application (client) ID of the reviewed desktop public client allowed in delegated access tokens."
       }
     },
     "sqlAdministratorObjectId": {
@@ -548,6 +556,10 @@
                 {
                   "name": "Sapphirus__Audience",
                   "value": "[parameters('entraAudience')]"
+                },
+                {
+                  "name": "Sapphirus__ApprovedDesktopClientId",
+                  "value": "[parameters('approvedDesktopClientId')]"
                 },
                 {
                   "name": "Sapphirus__Region",
@@ -1174,6 +1186,14 @@
       "type": "string",
       "value": "[reference('identity').principalId]"
     },
+    "apiManagedIdentityClientId": {
+      "type": "string",
+      "value": "[reference('identity').clientId]"
+    },
+    "apiManagedIdentityName": {
+      "type": "string",
+      "value": "[variables('identityName')]"
+    },
     "sqlServerFqdn": {
       "type": "string",
       "value": "[reference('sqlServer').fullyQualifiedDomainName]"
@@ -1190,6 +1210,10 @@
       "type": "string",
       "value": "[reference('imagePullIdentity').principalId]"
     },
+    "imagePullIdentityResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix')))]"
+    },
     "sqlMigrationIdentityClientId": {
       "type": "string",
       "value": "[reference('migrationIdentity').clientId]"
@@ -1197,6 +1221,14 @@
     "sqlMigrationIdentityObjectId": {
       "type": "string",
       "value": "[reference('migrationIdentity').principalId]"
+    },
+    "sqlMigrationIdentityResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-sqlmigrate-id', parameters('namePrefix')))]"
+    },
+    "sqlMigrationIdentityName": {
+      "type": "string",
+      "value": "[format('{0}-sqlmigrate-id', parameters('namePrefix'))]"
     },
     "signingKeyUri": {
       "type": "string",

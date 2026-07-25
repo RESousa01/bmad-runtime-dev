@@ -155,6 +155,37 @@ struct ApprovedCapabilityRun {
     issued_at: UnixMillis,
 }
 
+/// The finalize-time record for a run whose decision has already been
+/// consumed and whose authorized request has been handed to the caller for
+/// transport dispatch. The coordinator mutex is *not* held while the model
+/// round trip runs, so this is the durable metadata the coordinator needs to
+/// record the result once the caller returns.
+struct DispatchingCapabilityRun {
+    /// Identifies this exact dispatch so a stale `finalize_dispatch` /
+    /// `abort_dispatch` (whose transport was still in flight while `invalidate`
+    /// then a fresh run replaced the slot) cannot act on a newer dispatch.
+    dispatch_id: u64,
+    capability_id: BmadClosureCapabilityId,
+    run_id: ContractId,
+    workspace_id: ContractId,
+    instruction_hash: Sha256Digest,
+    context_manifest_hash: Sha256Digest,
+    output_schema_id: String,
+    consent_evidence_id: ContractId,
+    submitted_at: UnixMillis,
+}
+
+/// Everything the caller needs to run one transport round trip *without*
+/// holding the coordinator mutex. Returned by [`begin_dispatch`]; the caller
+/// sends it and hands the raw output back to [`finalize_dispatch`], quoting
+/// [`Self::dispatch_id`] so the coordinator can reject a superseded dispatch.
+pub(crate) struct CapabilityDispatchRequest {
+    pub dispatch_id: u64,
+    pub authorized_request: AuthorizedModelRequest,
+    pub deterministic_fixture: String,
+    pub submitted_at: UnixMillis,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum CapabilityTerminalReason {
     Cancelled,
@@ -167,6 +198,11 @@ pub(crate) enum CapabilityTerminalReason {
 enum ActiveCapabilityRun {
     ReviewRequired(Box<PreparedCapabilityRun>),
     Approved(Box<ApprovedCapabilityRun>),
+    /// The decision is consumed and the authorized request is in flight at the
+    /// caller; the coordinator mutex is released. A concurrent `invalidate`
+    /// (sign-out / workspace revocation) can still overwrite this with
+    /// `Terminal(Invalidated)`, which makes `finalize_dispatch` drop the result.
+    Dispatching(Box<DispatchingCapabilityRun>),
     Terminal(CapabilityTerminalReason),
 }
 
@@ -205,6 +241,9 @@ struct CapabilityInvocationIdentity<'a> {
 pub(crate) struct BmadCapabilityCoordinator {
     ledger: MemoryDecisionLedger,
     active: Option<ActiveCapabilityRun>,
+    /// Monotonic id stamped on each dispatch so a stale finalize/abort cannot
+    /// act on a dispatch that replaced it while the lock was released.
+    dispatch_seq: u64,
 }
 
 impl BmadCapabilityCoordinator {
@@ -212,6 +251,7 @@ impl BmadCapabilityCoordinator {
         Self {
             ledger: MemoryDecisionLedger::default(),
             active: None,
+            dispatch_seq: 0,
         }
     }
 
@@ -258,7 +298,11 @@ impl BmadCapabilityCoordinator {
     ) -> Result<CapabilityReviewProjection, BmadCapabilityCoordinatorError> {
         if matches!(
             self.active,
-            Some(ActiveCapabilityRun::ReviewRequired(_) | ActiveCapabilityRun::Approved(_))
+            Some(
+                ActiveCapabilityRun::ReviewRequired(_)
+                    | ActiveCapabilityRun::Approved(_)
+                    | ActiveCapabilityRun::Dispatching(_)
+            )
         ) {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         }
@@ -311,7 +355,7 @@ impl BmadCapabilityCoordinator {
     ) -> Result<CapabilityApprovedProjection, BmadCapabilityCoordinatorError> {
         let prepared = match self.active.as_ref() {
             Some(ActiveCapabilityRun::ReviewRequired(prepared)) => prepared,
-            Some(ActiveCapabilityRun::Approved(_)) => {
+            Some(ActiveCapabilityRun::Approved(_) | ActiveCapabilityRun::Dispatching(_)) => {
                 return Err(BmadCapabilityCoordinatorError::Conflict);
             }
             Some(ActiveCapabilityRun::Terminal(reason)) => {
@@ -407,6 +451,9 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
             }
+            Some(ActiveCapabilityRun::Dispatching(_)) => {
+                return Err(BmadCapabilityCoordinatorError::Conflict);
+            }
             Some(ActiveCapabilityRun::Terminal(reason)) => {
                 return Err(terminal_error(*reason));
             }
@@ -441,16 +488,16 @@ impl BmadCapabilityCoordinator {
         Ok(())
     }
 
-    /// Consumes the decision exactly once, dispatches through the
-    /// transport, verifies the output, and durably records the run and its
-    /// result.
-    pub(crate) fn submit(
+    /// Begins one capability dispatch **under the coordinator lock**: it
+    /// consumes the single-use decision, builds the authorized model request,
+    /// and parks the run in `Dispatching`. The caller then runs the transport
+    /// round trip with the mutex released and hands the raw output back to
+    /// [`Self::finalize_dispatch`]. On any transport failure the caller must
+    /// call [`Self::abort_dispatch`].
+    pub(crate) fn begin_dispatch(
         &mut self,
         input: &SubmitCapabilityRunInput,
-        transport: &dyn BmadCapabilityTransport,
-        verifier: &dyn BmadCapabilityOutputVerifier,
-        store: &LocalStore,
-    ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
+    ) -> Result<CapabilityDispatchRequest, BmadCapabilityCoordinatorError> {
         self.validate_approved_binding(input)?;
         let Some(ActiveCapabilityRun::Approved(approved)) = self.active.take() else {
             return Err(BmadCapabilityCoordinatorError::Conflict);
@@ -496,30 +543,99 @@ impl BmadCapabilityCoordinator {
                 return Err(map_egress_error(error));
             }
         };
-        let decision_id = consumption.decision_id().clone();
-        let output = match dispatch_and_verify(
-            &approved,
+        let consent_evidence_id = consumption.decision_id().clone();
+        let Ok(authorized_request) = AuthorizedModelRequest::new(
+            &approved.prepared.manifest,
+            &approved.prepared.invocation_binding,
             consumption,
-            input.submitted_at,
-            transport,
-            verifier,
-        ) {
-            Ok(output) => output,
-            Err((reason, error)) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(reason));
-                return Err(error);
-            }
+        ) else {
+            self.active = Some(ActiveCapabilityRun::Terminal(
+                CapabilityTerminalReason::ConsentConsumed,
+            ));
+            return Err(BmadCapabilityCoordinatorError::Integrity);
         };
 
+        self.dispatch_seq = self.dispatch_seq.wrapping_add(1);
+        let dispatch_id = self.dispatch_seq;
+        let approved = *approved;
+        let ApprovedCapabilityRun { prepared, .. } = approved;
+        let dispatch = CapabilityDispatchRequest {
+            dispatch_id,
+            authorized_request,
+            deterministic_fixture: prepared.deterministic_fixture,
+            submitted_at: input.submitted_at,
+        };
+        self.active = Some(ActiveCapabilityRun::Dispatching(Box::new(
+            DispatchingCapabilityRun {
+                dispatch_id,
+                capability_id: prepared.capability_id,
+                run_id: prepared.run_id,
+                workspace_id: prepared.workspace_id,
+                instruction_hash: prepared.instruction_hash,
+                context_manifest_hash: prepared.manifest.manifest_hash,
+                output_schema_id: prepared.output_schema_id,
+                consent_evidence_id,
+                submitted_at: input.submitted_at,
+            },
+        )));
+        Ok(dispatch)
+    }
+
+    /// Finalizes an in-flight dispatch **under the coordinator lock**: verifies
+    /// the raw output, records the run and its result in one durable step, and
+    /// clears the active slot. If the run left `Dispatching` while the round
+    /// trip ran — e.g. a concurrent `invalidate` from sign-out or workspace
+    /// revocation — the result is dropped and the terminal reason preserved.
+    pub(crate) fn finalize_dispatch(
+        &mut self,
+        dispatch_id: u64,
+        raw_output: &RawModelOutput,
+        verifier: &dyn BmadCapabilityOutputVerifier,
+        store: &LocalStore,
+    ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
+        let dispatching = match self.active.take() {
+            Some(ActiveCapabilityRun::Dispatching(dispatching))
+                if dispatching.dispatch_id == dispatch_id =>
+            {
+                dispatching
+            }
+            Some(ActiveCapabilityRun::Dispatching(dispatching)) => {
+                // A newer dispatch replaced this one while its transport was in
+                // flight; leave it in place and drop this stale result.
+                self.active = Some(ActiveCapabilityRun::Dispatching(dispatching));
+                return Err(BmadCapabilityCoordinatorError::Conflict);
+            }
+            Some(ActiveCapabilityRun::Terminal(reason)) => {
+                self.active = Some(ActiveCapabilityRun::Terminal(reason));
+                return Err(terminal_error(reason));
+            }
+            other => {
+                self.active = other;
+                return Err(BmadCapabilityCoordinatorError::Conflict);
+            }
+        };
+        let Ok(output) = verifier.verify(&dispatching.capability_id, raw_output) else {
+            self.active = Some(ActiveCapabilityRun::Terminal(
+                CapabilityTerminalReason::OutputRejected,
+            ));
+            return Err(BmadCapabilityCoordinatorError::OutputRejected);
+        };
+        if output.schema_id() != dispatching.output_schema_id {
+            self.active = Some(ActiveCapabilityRun::Terminal(
+                CapabilityTerminalReason::OutputRejected,
+            ));
+            return Err(BmadCapabilityCoordinatorError::ResultArchetypeMismatch);
+        }
+
         let run = BmadCapabilityRun::open(BmadCapabilityRunParams {
-            run_id: approved.prepared.run_id.clone(),
-            capability_id: approved.prepared.capability_id.clone(),
-            workspace_id: approved.prepared.workspace_id.clone(),
-            instruction_hash: approved.prepared.instruction_hash,
-            context_manifest_hash: approved.prepared.manifest.manifest_hash,
-            output_schema_id: approved.prepared.output_schema_id.clone(),
-            consent_evidence_id: decision_id,
-            created_at: input.submitted_at,
+            run_id: dispatching.run_id.clone(),
+            capability_id: dispatching.capability_id.clone(),
+            workspace_id: dispatching.workspace_id.clone(),
+            instruction_hash: dispatching.instruction_hash,
+            context_manifest_hash: dispatching.context_manifest_hash,
+            output_schema_id: dispatching.output_schema_id.clone(),
+            consent_evidence_id: dispatching.consent_evidence_id.clone(),
+            created_at: dispatching.submitted_at,
         })
         .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
         store
@@ -535,12 +651,51 @@ impl BmadCapabilityCoordinator {
             .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
 
         let projection = CapabilityCompletedProjection {
-            capability_id: approved.prepared.capability_id.as_str().to_owned(),
-            run_id: approved.prepared.run_id.clone(),
+            capability_id: dispatching.capability_id.as_str().to_owned(),
+            run_id: dispatching.run_id,
             result_kind: result_kind.to_owned(),
         };
         self.active = None;
         Ok(projection)
+    }
+
+    /// Marks *this* in-flight dispatch terminal after a transport failure at the
+    /// caller. A no-op if the run already left `Dispatching` or was superseded by
+    /// a newer dispatch (e.g. it was invalidated then replaced concurrently).
+    pub(crate) fn abort_dispatch(&mut self, dispatch_id: u64, reason: CapabilityTerminalReason) {
+        if matches!(
+            &self.active,
+            Some(ActiveCapabilityRun::Dispatching(dispatching))
+                if dispatching.dispatch_id == dispatch_id
+        ) {
+            self.active = Some(ActiveCapabilityRun::Terminal(reason));
+        }
+    }
+
+    /// One-shot dispatch that holds the coordinator across the transport round
+    /// trip. Production command handlers use
+    /// [`Self::begin_dispatch`]/[`Self::finalize_dispatch`] so the mutex is
+    /// released during the network wait; this wrapper preserves the original
+    /// single-call contract for the in-process coordinator tests.
+    #[cfg(test)]
+    pub(crate) fn submit(
+        &mut self,
+        input: &SubmitCapabilityRunInput,
+        transport: &dyn BmadCapabilityTransport,
+        verifier: &dyn BmadCapabilityOutputVerifier,
+        store: &LocalStore,
+    ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
+        let dispatch = self.begin_dispatch(input)?;
+        let dispatch_id = dispatch.dispatch_id;
+        let Ok((_dispatched, raw_output)) = transport.send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        ) else {
+            self.abort_dispatch(dispatch_id, CapabilityTerminalReason::ConsentConsumed);
+            return Err(BmadCapabilityCoordinatorError::Transport);
+        };
+        self.finalize_dispatch(dispatch_id, &raw_output, verifier, store)
     }
 }
 
@@ -553,6 +708,9 @@ impl BmadCapabilityCoordinator {
             Some(ActiveCapabilityRun::Approved(approved)) => approved,
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
+            }
+            Some(ActiveCapabilityRun::Dispatching(_)) => {
+                return Err(BmadCapabilityCoordinatorError::Conflict);
             }
             Some(ActiveCapabilityRun::Terminal(reason)) => {
                 return Err(terminal_error(*reason));
@@ -577,53 +735,6 @@ impl BmadCapabilityCoordinator {
         }
         Ok(())
     }
-}
-
-fn dispatch_and_verify(
-    approved: &ApprovedCapabilityRun,
-    consumption: desktop_egress::DecisionConsumption,
-    submitted_at: UnixMillis,
-    transport: &dyn BmadCapabilityTransport,
-    verifier: &dyn BmadCapabilityOutputVerifier,
-) -> Result<BmadCapabilityOutput, (CapabilityTerminalReason, BmadCapabilityCoordinatorError)> {
-    let authorized_request = AuthorizedModelRequest::new(
-        &approved.prepared.manifest,
-        &approved.prepared.invocation_binding,
-        consumption,
-    )
-    .map_err(|_| {
-        (
-            CapabilityTerminalReason::ConsentConsumed,
-            BmadCapabilityCoordinatorError::Integrity,
-        )
-    })?;
-    let (_dispatched, raw_output) = transport
-        .send(
-            authorized_request,
-            &approved.prepared.deterministic_fixture,
-            submitted_at,
-        )
-        .map_err(|_| {
-            (
-                CapabilityTerminalReason::ConsentConsumed,
-                BmadCapabilityCoordinatorError::Transport,
-            )
-        })?;
-    let output = verifier
-        .verify(&approved.prepared.capability_id, &raw_output)
-        .map_err(|_| {
-            (
-                CapabilityTerminalReason::OutputRejected,
-                BmadCapabilityCoordinatorError::OutputRejected,
-            )
-        })?;
-    if output.schema_id() != approved.prepared.output_schema_id {
-        return Err((
-            CapabilityTerminalReason::OutputRejected,
-            BmadCapabilityCoordinatorError::ResultArchetypeMismatch,
-        ));
-    }
-    Ok(output)
 }
 
 const fn map_egress_error(error: EgressError) -> BmadCapabilityCoordinatorError {

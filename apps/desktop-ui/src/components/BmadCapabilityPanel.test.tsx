@@ -17,6 +17,7 @@ const review = {
   runId: "caprun_01ARZ3NDEKTSV4RRFFQ69G5FAV",
   manifestHash,
   expiresAt: 1_725_000_600_000,
+  architecture: null,
 };
 
 const approved = {
@@ -122,6 +123,7 @@ describe("BmadCapabilityPanel", () => {
         capabilityId: "bmm:bmad-product-brief",
         runId: review.runId,
         resultKind: "document_artifact",
+        architecture: null,
       },
       resultJson,
     });
@@ -144,6 +146,7 @@ describe("BmadCapabilityPanel", () => {
         capabilityId: "bmm:bmad-dev-story",
         runId: review.runId,
         resultKind: "governed_change_set",
+        architecture: null,
       },
       resultJson: null,
     });
@@ -164,6 +167,7 @@ describe("BmadCapabilityPanel", () => {
         capabilityId: "builder:agent.analyze",
         runId: review.runId,
         resultKind: "inactive_builder_draft",
+        architecture: null,
       },
       resultJson: null,
     });
@@ -195,10 +199,118 @@ describe("BmadCapabilityPanel", () => {
         capabilityId: "bmm:bmad-product-brief",
         runId: review.runId,
         resultKind: "document_artifact",
+        architecture: null,
       },
       resultJson: '{"resultKind":"document_artifact","documentArtifact":{"title":7}}',
     });
     render(<BmadCapabilityPanel {...props} />);
     expect(screen.getByText(/stored locally under run/u)).toBeTruthy();
+  });
+});
+
+describe("BmadCapabilityPanel — ordered architecture progression", () => {
+  const architectureReview = {
+    capabilityId: "bmm:bmad-architecture",
+    runId: "caprun_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    manifestHash,
+    expiresAt: 1_725_000_600_000,
+    architecture: {
+      stepCode: "trust_boundaries",
+      stepTitle: "Trust boundaries",
+      stepNumber: 3,
+      stepCount: 8,
+      finalized: false,
+      spine: null,
+    },
+  };
+
+  function architectureProps(phase: CapabilityRunPhase): BmadCapabilityPanelProps {
+    return {
+      ...createProps(phase),
+      capabilityId: "bmm:bmad-architecture",
+      capabilityLabel: "Create Architecture",
+    };
+  }
+
+  it("announces which host-selected step the review covers", async () => {
+    const props = architectureProps({
+      kind: "review",
+      review: architectureReview,
+      contextPaths: ["docs/design-notes.md"],
+    });
+    const { container } = render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.getByText("Step 3 of 8 — Trust boundaries")).toBeTruthy();
+    await expectAccessible(container);
+  });
+
+  it("reports an intermediate step as recorded, with no skip affordance", async () => {
+    const props = architectureProps({
+      kind: "completed",
+      completed: {
+        capabilityId: "bmm:bmad-architecture",
+        runId: architectureReview.runId,
+        resultKind: "document_artifact",
+        architecture: architectureReview.architecture,
+      },
+      resultJson: null,
+    });
+    const { container } = render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.getByRole("heading", { name: /step answered/i })).toBeTruthy();
+    expect(screen.getByText(/will not let a step be skipped or repeated/iu)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /skip|finalize|apply/i })).toBeNull();
+    await expectAccessible(container);
+  });
+
+  it("renders the distilled spine inertly on the final step", async () => {
+    const props = architectureProps({
+      kind: "completed",
+      completed: {
+        capabilityId: "bmm:bmad-architecture",
+        runId: architectureReview.runId,
+        resultKind: "document_artifact",
+        architecture: {
+          stepCode: "verification",
+          stepTitle: "Verification",
+          stepNumber: 8,
+          stepCount: 8,
+          finalized: true,
+          spine: {
+            title: "Architecture spine",
+            sections: [
+              { heading: "1. System context", body: "AD-1 — Scope\nBounded to one workspace." },
+              { heading: "8. Verification", body: "AD-8 — Evidence\nEach decision is testable." },
+            ],
+            openQuestions: ["Which tenant model?"],
+            mermaidText: null,
+          },
+        },
+      },
+      resultJson: null,
+    });
+    const { container } = render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.getByText("All 8 steps answered — spine distilled.")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Architecture spine" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "1. System context" })).toBeTruthy();
+    expect(screen.getByText(/No model was contacted for this artifact/iu)).toBeTruthy();
+    expect(screen.getByText("Which tenant model?")).toBeTruthy();
+    // The spine is a document, not an effect: nothing here can apply or publish.
+    expect(document.body.textContent).not.toMatch(
+      /\b(?:Apply|Install|Execute|Activate|Publish)\b/u,
+    );
+    await expectAccessible(container);
+  });
+
+  it("shows no progression for a one-shot capability", () => {
+    const props = createProps({
+      kind: "review",
+      review,
+      contextPaths: ["docs/brief.md"],
+    });
+    render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.queryByText(/Step \d+ of \d+/u)).toBeNull();
   });
 });

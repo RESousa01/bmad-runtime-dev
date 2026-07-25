@@ -4,6 +4,57 @@ use desktop_cloud::{
 };
 use desktop_runtime::UnixMillis;
 
+#[cfg(feature = "direct-model-providers")]
+pub(crate) struct DirectModelTransport {
+    runtime: tokio::runtime::Runtime,
+    transport: desktop_cloud::DirectProviderTransport,
+}
+
+#[cfg(feature = "direct-model-providers")]
+impl std::fmt::Debug for DirectModelTransport {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DirectModelTransport")
+            .field("transport", &self.transport)
+            .finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "direct-model-providers")]
+impl DirectModelTransport {
+    pub(crate) fn new(
+        config: desktop_cloud::DirectProviderConfig,
+    ) -> Result<Self, desktop_cloud::CloudError> {
+        Ok(Self {
+            runtime: tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .map_err(|_| desktop_cloud::CloudError::TransportFailed)?,
+            transport: desktop_cloud::DirectProviderTransport::new(config)?,
+        })
+    }
+
+    pub(crate) fn send_authorized(
+        &self,
+        request: AuthorizedModelRequest,
+        now: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+        self.runtime.block_on(self.transport.send(request, now))
+    }
+}
+
+#[cfg(feature = "direct-model-providers")]
+impl BmadHelpTransport for DirectModelTransport {
+    fn send(
+        &self,
+        request: AuthorizedModelRequest,
+        _deterministic_fixture: &str,
+        now: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+        self.send_authorized(request, now)
+    }
+}
+
 pub(super) trait BmadHelpTransport: Send + Sync {
     fn send(
         &self,

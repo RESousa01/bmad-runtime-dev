@@ -1,8 +1,10 @@
 #![allow(clippy::expect_used)]
 
 use desktop_ipc::{
-    project_bmad_library, BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext,
-    IpcValidationError, MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+    project_bmad_library, project_bmad_library_with_runtime_menu_bindings,
+    BmadProjectionAvailability, BmadProjectionError, BmadRuntimeMenuCapabilityBinding,
+    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
+    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
 use desktop_runtime::{
     sha256_bytes, BmadAgentRoster, BmadCatalog, BmadCatalogBuilder, BmadEntrypointKind,
@@ -14,6 +16,133 @@ use serde_json::{json, Value};
 
 const PACKAGE_VERSION_ID: &str =
     "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86";
+const REVIEWED_METHOD_MENU_BINDINGS: [BmadRuntimeMenuCapabilityBinding<'static>; 25] = [
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "BP",
+        capability_id: "bmm:bmad-brainstorming",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "MR",
+        capability_id: "bmm:bmad-market-research",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "DR",
+        capability_id: "bmm:bmad-domain-research",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "TR",
+        capability_id: "bmm:bmad-technical-research",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "CB",
+        capability_id: "bmm:bmad-product-brief",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "WB",
+        capability_id: "bmm:bmad-prfaq",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-analyst",
+        menu_code: "DP",
+        capability_id: "bmm:bmad-document-project",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-tech-writer",
+        menu_code: "DP",
+        capability_id: "bmm:bmad-document-project",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-tech-writer",
+        menu_code: "WD",
+        capability_id: "bmm:tech-writer-write-document",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-tech-writer",
+        menu_code: "MG",
+        capability_id: "bmm:tech-writer-mermaid-gen",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-tech-writer",
+        menu_code: "VD",
+        capability_id: "bmm:tech-writer-validate-doc",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-tech-writer",
+        menu_code: "EC",
+        capability_id: "bmm:tech-writer-explain-concept",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-pm",
+        menu_code: "PRD",
+        capability_id: "bmm:bmad-prd",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-pm",
+        menu_code: "CE",
+        capability_id: "bmm:bmad-create-epics-and-stories",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-pm",
+        menu_code: "IR",
+        capability_id: "bmm:bmad-check-implementation-readiness",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-pm",
+        menu_code: "CC",
+        capability_id: "bmm:bmad-correct-course",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-ux-designer",
+        menu_code: "CU",
+        capability_id: "bmm:bmad-ux",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-architect",
+        menu_code: "IR",
+        capability_id: "bmm:bmad-check-implementation-readiness",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "DS",
+        capability_id: "bmm:bmad-dev-story",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "QD",
+        capability_id: "bmm:bmad-quick-dev",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "QA",
+        capability_id: "bmm:bmad-qa-generate-e2e-tests",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "CR",
+        capability_id: "bmm:bmad-code-review",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "SP",
+        capability_id: "bmm:bmad-sprint-planning",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "CS",
+        capability_id: "bmm:bmad-create-story",
+    },
+    BmadRuntimeMenuCapabilityBinding {
+        agent_code: "bmad-agent-dev",
+        menu_code: "ER",
+        capability_id: "bmm:bmad-retrospective",
+    },
+];
 
 fn package() -> BmadLoadedPackage {
     BmadLoadedPackage {
@@ -264,6 +393,186 @@ fn sealed_library_projection_is_bounded_separate_and_disclosure_safe() {
     ] {
         assert!(!safe.contains(forbidden), "leaked {forbidden}");
     }
+}
+
+fn assert_projected_menu_capability(
+    projection: &desktop_ipc::BmadLibrarySnapshotProjection,
+    agent_code: &str,
+    menu_code: &str,
+    expected: Option<&str>,
+) {
+    let menu = projection
+        .method_agents
+        .iter()
+        .find(|agent| agent.agent_code == agent_code)
+        .and_then(|agent| agent.menus.iter().find(|menu| menu.code == menu_code))
+        .expect("reviewed menu projection");
+    assert_eq!(menu.capability_id.as_deref(), expected);
+    assert_eq!(
+        serde_json::to_value(menu).expect("menu projection JSON")["capabilityId"],
+        expected.map_or(Value::Null, |value| Value::String(value.to_owned())),
+        "the validated capability identity must cross IPC with its menu path"
+    );
+}
+
+#[test]
+fn runtime_menu_bindings_project_all_reviewed_method_menus_as_available_skill_targets() {
+    let (package, catalog) = sealed_catalog();
+    let roster = sealed_roster(&catalog, &package);
+    let projection = project_bmad_library_with_runtime_menu_bindings(
+        &package,
+        &catalog,
+        &roster,
+        BmadLibraryProjectionScope::InstalledMethod,
+        None,
+        &[("core", "bmad-help")],
+        &REVIEWED_METHOD_MENU_BINDINGS,
+        Vec::new(),
+    )
+    .expect("runtime capability overlay");
+
+    let help = projection
+        .installed_skills
+        .iter()
+        .find(|skill| skill.skill_name == "bmad-help")
+        .expect("Help skill");
+    assert_eq!(help.availability, BmadProjectionAvailability::Available);
+
+    assert_eq!(
+        projection
+            .method_agents
+            .iter()
+            .flat_map(|agent| &agent.menus)
+            .count(),
+        26
+    );
+    assert!(projection
+        .method_agents
+        .iter()
+        .all(|agent| agent.availability == BmadProjectionAvailability::Available));
+    assert_eq!(
+        projection
+            .method_agents
+            .iter()
+            .flat_map(|agent| &agent.menus)
+            .filter(|menu| menu.availability == BmadProjectionAvailability::Available)
+            .count(),
+        25
+    );
+    assert!(projection
+        .method_agents
+        .iter()
+        .flat_map(|agent| &agent.menus)
+        .filter(|menu| menu.availability == BmadProjectionAvailability::Available)
+        .all(|menu| {
+            menu.availability == BmadProjectionAvailability::Available
+                && menu.target_kind.as_str() == "skill_target"
+        }));
+
+    for (menu_code, capability_id) in [
+        ("MR", "bmm:bmad-market-research"),
+        ("DR", "bmm:bmad-domain-research"),
+    ] {
+        assert_projected_menu_capability(
+            &projection,
+            "bmad-agent-analyst",
+            menu_code,
+            Some(capability_id),
+        );
+    }
+
+    let architecture = projection
+        .method_agents
+        .iter()
+        .find(|agent| agent.agent_code == "bmad-agent-architect")
+        .and_then(|agent| agent.menus.iter().find(|menu| menu.code == "CA"))
+        .expect("deferred architecture menu");
+    assert_eq!(
+        architecture.availability,
+        BmadProjectionAvailability::CapabilityDisabled
+    );
+    assert_projected_menu_capability(&projection, "bmad-agent-architect", "CA", None);
+
+    let paige = projection
+        .method_agents
+        .iter()
+        .find(|agent| agent.agent_code == "bmad-agent-tech-writer")
+        .expect("Paige");
+    for (menu_code, display_label) in [
+        ("WD", "Write Document"),
+        ("MG", "Generate Mermaid"),
+        ("VD", "Validate Document"),
+        ("EC", "Explain Concept"),
+    ] {
+        let menu = paige
+            .menus
+            .iter()
+            .find(|menu| menu.code == menu_code)
+            .expect("reviewed Paige menu path");
+        assert_eq!(menu.availability, BmadProjectionAvailability::Available);
+        assert_eq!(menu.target_kind.as_str(), "skill_target");
+        assert_eq!(menu.display_label, display_label);
+    }
+}
+
+#[test]
+fn runtime_menu_bindings_reject_unknown_duplicate_and_mismatched_bindings() {
+    let (package, catalog) = sealed_catalog();
+    let roster = sealed_roster(&catalog, &package);
+    assert_eq!(
+        project_bmad_library_with_runtime_menu_bindings(
+            &package,
+            &catalog,
+            &roster,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+            &[],
+            &[BmadRuntimeMenuCapabilityBinding {
+                agent_code: "bmad-agent-analyst",
+                menu_code: "not-reviewed",
+                capability_id: "bmm:bmad-brainstorming",
+            }],
+            Vec::new(),
+        )
+        .expect_err("unknown runtime capability must fail closed"),
+        BmadProjectionError::Unavailable
+    );
+    assert_eq!(
+        project_bmad_library_with_runtime_menu_bindings(
+            &package,
+            &catalog,
+            &roster,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+            &[],
+            &[
+                REVIEWED_METHOD_MENU_BINDINGS[0],
+                REVIEWED_METHOD_MENU_BINDINGS[0],
+            ],
+            Vec::new(),
+        )
+        .expect_err("duplicate runtime menu path must fail closed"),
+        BmadProjectionError::Unavailable
+    );
+
+    let mut swapped_capabilities = REVIEWED_METHOD_MENU_BINDINGS;
+    let first_capability = swapped_capabilities[1].capability_id;
+    swapped_capabilities[1].capability_id = swapped_capabilities[2].capability_id;
+    swapped_capabilities[2].capability_id = first_capability;
+    assert_eq!(
+        project_bmad_library_with_runtime_menu_bindings(
+            &package,
+            &catalog,
+            &roster,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+            &[],
+            &swapped_capabilities,
+            Vec::new(),
+        )
+        .expect_err("known capability IDs bound to the wrong paths must fail closed"),
+        BmadProjectionError::Unavailable
+    );
 }
 
 #[test]

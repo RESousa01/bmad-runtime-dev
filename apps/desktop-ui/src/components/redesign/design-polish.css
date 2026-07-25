@@ -74,162 +74,6 @@
     background: var(--color-canvas);
   }
 
-  .app-sidebar {
-    background: color-mix(
-      in srgb,
-      var(--color-chrome),
-      var(--color-canvas) 18%
-    );
-    border-right-color: var(--color-border-subtle);
-    padding: 15px 13px 12px;
-  }
-
-  .app-sidebar__brand {
-    border-bottom: 1px solid
-      color-mix(in srgb, var(--color-border-subtle), transparent 28%);
-    font-size: 0.9rem;
-    letter-spacing: -0.015em;
-    min-height: 42px;
-    padding: 0 9px 10px;
-  }
-
-  .app-sidebar__brand .brand-mark {
-    transition:
-      filter 180ms ease,
-      transform 180ms ease;
-  }
-
-  .app-sidebar__brand:hover .brand-mark {
-    filter: drop-shadow(
-      0 4px 8px color-mix(in srgb, var(--color-accent), transparent 66%)
-    );
-    transform: translateY(-1px);
-  }
-
-  .app-sidebar__workspace.sapphirus-button {
-    background: color-mix(in srgb, var(--color-surface), transparent 24%);
-    border-color: var(--color-border-subtle);
-    border-radius: 12px;
-    box-shadow: var(--shadow-control);
-    margin-top: 12px;
-    min-height: 74px;
-    padding: 11px 12px;
-    transition:
-      background-color 160ms ease,
-      border-color 160ms ease,
-      box-shadow 160ms ease,
-      transform 160ms ease;
-  }
-
-  .app-sidebar__workspace.sapphirus-button[data-hovered] {
-    background: var(--color-surface-raised);
-    border-color: color-mix(
-      in srgb,
-      var(--color-accent),
-      var(--color-border) 72%
-    );
-    box-shadow: var(--polish-shadow-card);
-    transform: translateY(-1px);
-  }
-
-  .app-sidebar__workspace > svg {
-    color: var(--color-text-muted);
-    transition:
-      color 160ms ease,
-      transform 160ms ease;
-  }
-
-  .app-sidebar__workspace[data-hovered] > svg {
-    color: var(--color-accent-strong);
-    transform: translateY(1px);
-  }
-
-  .app-sidebar__workspace-copy strong {
-    font-size: 0.8125rem;
-    letter-spacing: -0.012em;
-  }
-
-  .app-sidebar__new-task.sapphirus-button {
-    border-radius: 10px;
-    box-shadow: 0 9px 24px
-      color-mix(in srgb, var(--color-accent), transparent 78%);
-    margin-top: 11px;
-    min-height: 42px;
-  }
-
-  .app-sidebar__new-task.sapphirus-button[data-hovered] {
-    box-shadow: 0 12px 30px
-      color-mix(in srgb, var(--color-accent), transparent 70%);
-  }
-
-  .app-sidebar__tasks {
-    padding-top: 22px;
-  }
-
-  .app-sidebar__tasks h2 {
-    font-weight: 700;
-    padding-bottom: 9px;
-  }
-
-  .app-sidebar__task.sapphirus-button {
-    border: 1px solid transparent;
-    border-radius: 9px;
-    min-height: 50px;
-    padding: 9px 10px;
-    transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
-      box-shadow 150ms ease,
-      transform 150ms ease;
-  }
-
-  .app-sidebar__task.sapphirus-button[data-hovered] {
-    background: color-mix(in srgb, var(--color-surface-hover), transparent 20%);
-    border-color: color-mix(
-      in srgb,
-      var(--color-border-subtle),
-      transparent 18%
-    );
-    transform: translateX(2px);
-  }
-
-  .app-sidebar__task[aria-current="page"] {
-    background: var(--color-surface-selected);
-    border-color: color-mix(
-      in srgb,
-      var(--color-accent),
-      var(--color-border-subtle) 78%
-    );
-    box-shadow:
-      inset 2px 0 0 var(--color-accent),
-      var(--shadow-control);
-  }
-
-  .app-sidebar__task-title {
-    letter-spacing: -0.006em;
-  }
-
-  .app-sidebar__utilities {
-    gap: 3px;
-    padding-top: 10px;
-  }
-
-  .app-sidebar__utility.sapphirus-button {
-    border-radius: 9px;
-    transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      transform 150ms ease;
-  }
-
-  .app-sidebar__utility.sapphirus-button[data-hovered] {
-    background: var(--color-surface-hover);
-    color: var(--color-text);
-    transform: translateX(2px);
-  }
-
-  /* Task surface */
-
   .task-workspace {
     background: color-mix(
       in srgb,
@@ -355,7 +199,6 @@
     max-width: 540px;
   }
 
-  .empty-session__mark,
   .no-workspace-state__icon {
     background: color-mix(
       in srgb,
@@ -370,13 +213,6 @@
     box-shadow:
       0 0 0 7px color-mix(in srgb, var(--color-accent-soft), transparent 60%),
       0 14px 32px color-mix(in srgb, var(--color-accent), transparent 80%);
-  }
-
-  .empty-session__mark {
-    border-radius: 17px;
-    height: 62px;
-    margin-bottom: 24px;
-    width: 62px;
   }
 
   .empty-session h2 {
@@ -587,7 +423,7 @@
   .composer__right
     .sapphirus-button[aria-label="Send task"]:not([data-disabled]),
   .composer__right
-    .sapphirus-button[aria-label="Review request"]:not([data-disabled]) {
+    .sapphirus-button[aria-label="Send message"]:not([data-disabled]) {
     background: var(--color-accent);
     border-color: color-mix(in srgb, var(--color-accent), white 12%);
     box-shadow: 0 8px 20px
@@ -600,7 +436,7 @@
       [data-disabled]
     )[data-hovered],
   .composer__right
-    .sapphirus-button[aria-label="Review request"]:not(
+    .sapphirus-button[aria-label="Send message"]:not(
       [data-disabled]
     )[data-hovered] {
     background: var(--color-accent-strong);
@@ -982,9 +818,7 @@
   .task-shell-layout__modal > .utility-panel,
   .task-shell-layout__modal > .workspace-panel,
   .composer,
-  .agent-control__popover,
-  .app-sidebar__workspace,
-  .app-sidebar__task[aria-current="page"] {
+  .agent-control__popover {
     box-shadow: none;
   }
 }

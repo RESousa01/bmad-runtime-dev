@@ -42,7 +42,7 @@ const demoHash = (character: string) => `sha256:${character.repeat(64)}`;
 const demoTexts = new Map<string, string>([
   [
     "README.md",
-    "# Sapphirus desktop\n\nA governed Windows workspace companion with a narrow, read-only renderer boundary.\n",
+    "# Forge desktop\n\nA governed Windows workspace companion with a narrow, read-only renderer boundary.\n",
   ],
   [
     "package.json",

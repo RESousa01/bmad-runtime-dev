@@ -189,8 +189,10 @@ Then, in the Entra portal for that app:
    `api://<app-client-id>/Desktop.Support` — this is the
    `SAPPHIRUS_SUPPORT_SCOPE` value at desktop-enablement time.
 3. Create (or reuse) the **desktop client** app registration as a public
-   client and grant it that scope. Record its client ID for
-   `SAPPHIRUS_SUPPORT_API_CLIENT_ID`.
+   client and grant it that scope. Record its Application (client) ID as
+   `approvedDesktopClientId`; the API requires this reviewed desktop
+   public-client app registration in the delegated token's `azp`/`appid`
+   claim. The same ID is used for `SAPPHIRUS_SUPPORT_API_CLIENT_ID`.
 
 The identity review must also record the API and desktop app owners, consent
 model, authorized redirect URIs/public-client settings, pilot-group assignment,
@@ -223,6 +225,7 @@ param namePrefix = 'sapphirus-int'          // 3-18 chars, lowercase
 param deployApi = false                     // stage 1 is always false
 param entraAuthority = 'https://login.microsoftonline.com/<tenant-id>/v2.0'
 param entraAudience = 'api://<api-app-client-id>'
+param approvedDesktopClientId = '<desktop-public-client-app-id>'
 param sqlAdministratorObjectId = '<group object id from 1.1>'
 param sqlAdministratorLogin = 'Sapphirus SQL Administrators'
 param modelName = 'gpt-5'                   // the reviewed Azure OpenAI model
@@ -344,7 +347,10 @@ timestamp, source SHA, parameter-set hash, and what-if artifact reference.
 
 Record every output — you need `sqlServerFqdn`, `sqlDatabaseName`,
 `registryLoginServer`, `apiManagedIdentityObjectId`,
+`apiManagedIdentityClientId`, `apiManagedIdentityName`,
+`imagePullIdentityObjectId`, `imagePullIdentityResourceId`,
 `sqlMigrationIdentityObjectId`, `sqlMigrationIdentityClientId`,
+`sqlMigrationIdentityResourceId`, `sqlMigrationIdentityName`,
 `signingKeyUri`, `appConfigurationEndpoint`, `modelEndpoint`.
 
 Role-assignment convergence can take minutes. Diagnose propagation first;
@@ -353,70 +359,141 @@ what-if has no unexpected changes.
 
 ---
 
-## 4. Stage 2 — SQL authority
+## 4. Stage 2 — bootstrap SQL migration authority
 
-Everything here runs as a member of the SQL administrators group.
+The bootstrap step runs as a member of the SQL administrators group.
 `sqlcmd -G` uses Entra authentication; the SQL public endpoint is disabled,
-so run from a network path allowed by the private endpoint (the simplest
-operator route is a temporary Azure VM / Cloud Shell inside the VNet, or a
-temporary approved private-endpoint peering — never enable public access).
+so run it from a network path allowed by the private endpoint (the simplest
+operator route is a temporary Azure VM inside the VNet or temporary approved
+private-endpoint peering — never enable public access).
 
-### 4.1 Create the two contained users
+### 4.1 Bootstrap the migration identity and ledger
 
-Using the exact statements in
-[sql-grants.md](../../infra/desktop-support/sql-grants.md) — with the
-**actual identity names** (`<namePrefix>-migration-id` and the API identity
-name shown in the deployment outputs; adjust the bracketed names in the
-script to match):
-
-```powershell
-sqlcmd -G -S <sqlServerFqdn> -d <sqlDatabaseName> -i infra/desktop-support/sql-grants-filled.sql
-```
-
-(Copy `sql-grants.md`'s two SQL blocks into a local scratch file with the
-real identity names; keep migration and runtime grants exactly as written —
-the runtime identity must never receive DDL.)
-
-### 4.2 Apply migrations under the migration identity
-
-Apply `services/desktop-support-api/Sql/Migrations/*.sql` **in name order**
-(currently `0001_support_authority.sql`), recording each script name and
-SHA-256 into `dbo.desktop_schema_migrations` — this is what
-`SqlMigrationRunner.ApplyAsync` does. Two options:
-
-- Run the API's migration runner once from a machine that holds the
-  migration identity (client ID = `sqlMigrationIdentityClientId`), or
-- Apply the script manually via `sqlcmd -G` as the migrator identity, then
-  insert the `(name, sha256)` row yourself:
+Copy the **migration identity block only** from
+[sql-grants.md](../../infra/desktop-support/sql-grants.md) into an approved
+scratch file. Replace the bracketed placeholder with the actual
+`sqlMigrationIdentityName` output (`<namePrefix>-sqlmigrate-id`), then run
+that block as an Entra SQL administrator:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 services/desktop-support-api/Sql/Migrations/0001_support_authority.sql
+sqlcmd -G -S <sqlServerFqdn> -d <sqlDatabaseName> -i <migration-bootstrap-filled.sql>
 ```
 
-The runner refuses hash-divergent re-application; never edit an applied
-migration — add a new numbered script instead.
+This creates the migration user, assigns its DDL role, creates the empty
+`dbo.desktop_schema_migrations` ledger, and only then grants the migrator
+SELECT/INSERT on that existing ledger. Do not apply the runtime block yet:
+the application tables do not exist on a clean database.
 
 ---
 
-## 5. Stage 3 — publish the API image by digest
+## 5. Stage 3 — publish the image and apply SQL migrations
 
-CI (`.github/workflows/desktop-support.yml`, `support-container` job)
-proves the image builds and scans cleanly, but the publish is yours:
+### 5.1 Consume the trusted release image by digest
+
+The repository's current `support-container` CI job builds, tests, scans, and
+creates an SBOM for an ephemeral image, but it deliberately does not publish
+that image. Production requires an organization release lane that checks out
+the exact approved source revision, builds the image once, runs the required
+tests and scan against that same artifact, publishes it under the unique
+`sha-<40-character-source-revision>` tag, and emits:
+
+- the full source revision and immutable image digest;
+- the SBOM and vulnerability-scan result bound to that digest; and
+- the organization-approved image signature and provenance attestation bound
+  to the same source revision, workflow identity, and digest.
+
+This repository does not currently contain that trusted publisher. Deployment
+is **blocked until** the organization release lane exists and an independent
+reviewer accepts all of the exact-digest evidence above. Never substitute a
+local `docker build` or `docker push`.
+
+After the trusted lane completes, take its protected outputs — do not derive
+the source revision or digest from the operator checkout — and verify that the
+source-specific ACR tag still resolves to the exact published digest:
 
 ```powershell
-az acr login --name <registry name from registryLoginServer>
-docker build -t <registryLoginServer>/desktop-support-api:build services/desktop-support-api
-docker push <registryLoginServer>/desktop-support-api:build
-az acr repository show-manifests --name <registry> --repository desktop-support-api --query "[0].digest" -o tsv
+$registryName = '<registry-name>'
+$registryLoginServer = '<registryLoginServer output>'
+$sourceRevision = '<release-lane source revision>'
+$publishedDigest = '<release-lane image digest>'
+if ($sourceRevision -cnotmatch '^[0-9a-f]{40}$') {
+  throw 'The release source revision must be one full lowercase Git SHA.'
+}
+if ($publishedDigest -cnotmatch '^sha256:[0-9a-f]{64}$') {
+  throw 'The release lane did not emit one valid immutable image digest.'
+}
+$imageTag = "sha-$sourceRevision"
+$resolvedDigest = (az acr repository show --name $registryName `
+  --image "desktop-support-api:$imageTag" --query digest --output tsv).Trim()
+if ($LASTEXITCODE -ne 0 `
+    -or $resolvedDigest -cnotmatch '^sha256:[0-9a-f]{64}$' `
+    -or $resolvedDigest -cne $publishedDigest) {
+  throw 'The source-revision tag does not match the approved release digest.'
+}
+$immutableImage = "$registryLoginServer/desktop-support-api@$publishedDigest"
 ```
 
-Record the immutable reference:
-`<registryLoginServer>/desktop-support-api@sha256:<digest>`. From here on,
-**only the digest form is ever used** — the Bicep asserts this
-(`immutableApiImage`). Note: the Dockerfile base images carry reviewed
-digest pins (readiness Task 3); if it still contains
-`REPLACE_WITH_REVIEWED_*` placeholders, resolve and review those digests
-first — the build fails closed on purpose until then.
+Record `$sourceRevision`, `$imageTag`, `$publishedDigest`, `$immutableImage`,
+the release workflow run, SBOM, scan, signature, attestation, and independent
+approval together. From here on, **only the digest form is ever used** — the
+Bicep asserts this (`immutableApiImage`).
+
+### 5.2 Apply migrations under the migration identity
+
+Run the published support image as a one-shot, manually triggered Azure
+Container Apps Job in the same VNet-integrated managed environment. The
+platform-owned job definition must satisfy all of these conditions:
+
+- use the exact immutable image digest recorded in section 5.1;
+- attach the `imagePullIdentityResourceId` and
+  `sqlMigrationIdentityResourceId` outputs only — never attach the API
+  runtime identity;
+- inherit the image `ENTRYPOINT` and pass exactly one argument,
+  `migrate-sql`; do not configure ingress, a listening port, or HTTP probes;
+- set `ASPNETCORE_ENVIRONMENT=Production`, the same validated non-secret
+  `Sapphirus__*` Production values intended for the API, and
+  `Sapphirus__SqlMigrationIdentityClientId=<sqlMigrationIdentityClientId>`;
+  set `Sapphirus__ManagedIdentityClientId=<apiManagedIdentityClientId>` so the
+  command can verify identity separation, but do not attach that runtime
+  identity to the job;
+- set parallelism and replica completion count to `1`, retries to `0`, and a
+  bounded execution timeout; and
+- retain the execution record in the protected deployment evidence.
+
+The container contract is therefore:
+
+```text
+$immutableImage migrate-sql
+```
+
+The command composes and validates Production configuration, verifies that the
+migration and runtime client IDs are both present and distinct, constructs
+`SqlMigrationRunner` with the migration client ID, applies embedded migrations
+in name order, and records the runner-computed `sha256:<lowercase-hex>` plus
+`applied_at`. It never starts the web server. Success exits `0`; any invalid
+configuration, identity mismatch, connectivity failure, hash divergence, or
+SQL error exits nonzero and blocks the deployment.
+
+Start the approved job once and inspect its terminal execution status. Do not
+continue unless the sole replica completed successfully. The runner is the
+only supported migration path: never apply embedded scripts or write ledger
+rows manually. It refuses hash-divergent re-application; never edit an applied
+migration — add a new numbered script instead.
+
+### 5.3 Create the runtime identity and apply DML grants
+
+After the migration job exits `0`, copy the **runtime identity block only**
+from `sql-grants.md` into a separate approved scratch file. Replace the
+bracketed placeholder with the `apiManagedIdentityName` output, then run it as
+an Entra SQL administrator from the approved private network path:
+
+```powershell
+sqlcmd -G -S <sqlServerFqdn> -d <sqlDatabaseName> -i <runtime-grants-filled.sql>
+```
+
+Keep the grants exactly as written. The runtime identity must never receive
+DDL, and object grants must not be attempted before migrations create their
+tables.
 
 ---
 
@@ -429,15 +506,21 @@ param deployApi = true
 param containerImage = '<registryLoginServer>/desktop-support-api@sha256:<digest>'
 ```
 
+Before this first API revision, replace the stage-1 placeholder
+`approvedDesktopClientId` with the reviewed desktop public-client Application
+(client) ID from section 1.2. The API validates this value at startup and
+rejects delegated tokens whose authorized-party client does not match.
+
 ```powershell
 az deployment group create --resource-group sapphirus-support-rg `
   --name support-stage4 --parameters C:\secrets\sapphirus-int.bicepparam
 ```
 
-Then ensure the App Configuration policy's `approvedModelDeployments` list
-is **empty** — with no approved deployment, the fixed-profile broker
-refuses model access at profile resolution, so the API is live but the
-model path is closed. Verify ingress:
+Then retain the required App Configuration
+`approvedModelDeployments` key and set its value to the exact empty string
+(`""`). Do not delete the key or use whitespace. With no approved
+deployment, the fixed-profile broker refuses model access at profile
+resolution, so the API is live but the model path is closed. Verify ingress:
 
 ```powershell
 $fqdn = az deployment group show -g sapphirus-support-rg -n support-stage4 --query properties.outputs.apiFqdn.value -o tsv
@@ -502,7 +585,7 @@ behavior:
 | Key rotation overlap | New Key Vault key version, keep old for verification | Client accepts documented overlap only |
 | Revision rollback | `az containerapp revision` route to prior revision | Old digest serves, health green |
 | Point-in-time restore | Rehearse SQL PITR to a scratch database | Restore succeeds; production untouched |
-| Kill switch | Clear `approvedModelDeployments` | New admissions blocked within one policy refresh; local history/rollback unaffected |
+| Kill switch | Retain `approvedModelDeployments` with the exact empty-string value (`""`); do not delete it or use whitespace | New admissions blocked within one policy refresh; local history/rollback unaffected |
 
 ---
 
@@ -522,7 +605,8 @@ behavior:
 ## 11. Rollback (always available)
 
 1. Route traffic to the prior Container Apps revision.
-2. Clear `approvedModelDeployments` (model kill switch).
+2. Retain `approvedModelDeployments` with the exact empty-string value (`""`)
+   (model kill switch); do not delete the required key or use whitespace.
 3. Revoke signing-key versions or identity assignments only through the
    audited incident procedure.
 4. Never destructively roll back a SQL migration — forward repair only.

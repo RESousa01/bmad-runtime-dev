@@ -1,11 +1,6 @@
 import { Button } from "@sapphirus/ui";
 import {
-  FileCode2,
   ChevronDown,
-  History,
-  Library,
-  ListChecks,
-  Paperclip,
   Send,
   ShieldAlert,
 } from "lucide-react";
@@ -13,7 +8,14 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
 import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { ChatLaneState } from "../state/chatSessions";
+import { brandIdentity } from "../lib/brand";
 import { BrandMark } from "./BrandMark";
+import { OpenCodeIcon } from "./OpenCodeIcon";
+import {
+  ContextWindow,
+  type ContextSelectionMode,
+} from "./ContextWindow";
 import { AgentSelector } from "./composer/AgentSelector";
 import "./composer/agent-selector.css";
 
@@ -26,7 +28,10 @@ const STARTER_INTENTS = [
 export interface TaskWorkspaceProps {
   canAttachFiles: boolean;
   contextPreview: ContextPreviewProjection | null;
+  contextSelectionMode: ContextSelectionMode;
+  contextSuggestionBusy: boolean;
   hostStatusLabel: string;
+  initialDraft?: string | undefined;
   interactionDisabled: boolean;
   isBrowserDemo: boolean;
   isInert?: boolean;
@@ -34,27 +39,99 @@ export interface TaskWorkspaceProps {
   isReadOnlyRecovery: boolean;
   methodGuidanceAvailable: boolean;
   methodGuidanceState: BmadRequestState;
+  /// The task's conversation. Chat is the default lane; BMAD is optional.
+  chatLane: ChatLaneState;
+  /// Explicitly ask the BMAD Help advisor which skill fits — no longer what
+  /// an ordinary message does.
+  onAskMethodGuidance: (intent: string) => Promise<void>;
+  /// Bind or clear the BMAD agent persona for this conversation.
+  onSelectAgent: (agentCode: string | null) => void;
   methodLibraryAvailable: boolean;
   modelAccessDetail: string;
   modelAccessLabel: string;
-  onAttachFiles: () => void;
+  onAttachFiles?: (() => Promise<void>) | undefined;
+  onAttachFolder?: (() => Promise<void>) | undefined;
+  onClearContext: () => void;
   agentLibrary: BmadLibraryUiState;
   attachNotice: string | null;
-  onBrowseFiles?: (() => Promise<void>) | undefined;
   onOpenChanges: () => void;
+  onOpenContext?: (() => void) | undefined;
   onOpenMethodLibrary: () => void;
+  onOpenProviders?: (() => void) | undefined;
   onOpenRunDetails: () => void;
+  onSuggestContext: (intent: string) => Promise<void>;
+  onDraftChange?: ((draft: string) => void) | undefined;
   onOpenWorkspaceManager?: (() => void) | undefined;
-  onReviewRequest: (intent: string) => Promise<void>;
+  onSendRequest: (intent: string) => Promise<void>;
   sessionTitle: string;
   workspaceName: string;
   workspaceStatusLabel?: string | undefined;
 }
 
+/// The task's conversation. This is the app's ordinary surface: a plain
+/// exchange of messages that needs no BMAD concept to work.
+function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
+  if (lane.messages.length === 0 && lane.pending === null && lane.error === null) {
+    return null;
+  }
+  return (
+    <section aria-label="Conversation" className="chat-transcript">
+      {lane.messages.map((message, index) => (
+        <article
+          className={message.role === "user" ? "message message--user" : "message message--agent"}
+          key={`${message.createdAt}-${index}`}
+        >
+          <div
+            className={
+              message.role === "user"
+                ? "message__avatar message__avatar--user"
+                : "message__avatar"
+            }
+          >
+            {message.role === "user" ? "You" : <BrandMark size={22} />}
+          </div>
+          <div>
+            <p>{message.text}</p>
+            <time dateTime={new Date(message.createdAt).toISOString()}>
+              {new Date(message.createdAt).toLocaleTimeString()}
+            </time>
+          </div>
+        </article>
+      ))}
+      {lane.pending !== null ? (
+        <>
+          <article className="message message--user">
+            <div className="message__avatar message__avatar--user">You</div>
+            <div>
+              <p>{lane.pending}</p>
+            </div>
+          </article>
+          <article className="message message--agent message--compact" role="status">
+            <div className="message__avatar">
+              <BrandMark size={22} />
+            </div>
+            <div>
+              <p>Thinking…</p>
+            </div>
+          </article>
+        </>
+      ) : null}
+      {lane.error !== null ? (
+        <p className="chat-transcript__error" role="alert">
+          {lane.error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 export function TaskWorkspace({
   canAttachFiles,
   contextPreview,
+  contextSelectionMode,
+  contextSuggestionBusy,
   hostStatusLabel,
+  initialDraft = "",
   interactionDisabled,
   isBrowserDemo,
   isInert = false,
@@ -62,18 +139,26 @@ export function TaskWorkspace({
   isReadOnlyRecovery,
   methodGuidanceAvailable,
   methodGuidanceState,
+  chatLane,
+  onAskMethodGuidance,
+  onSelectAgent,
   methodLibraryAvailable,
   modelAccessDetail,
   modelAccessLabel,
   onAttachFiles,
+  onAttachFolder,
+  onClearContext,
   agentLibrary,
   attachNotice,
-  onBrowseFiles,
   onOpenChanges,
+  onOpenContext,
   onOpenMethodLibrary,
+  onOpenProviders,
   onOpenRunDetails,
+  onSuggestContext,
+  onDraftChange,
   onOpenWorkspaceManager,
-  onReviewRequest,
+  onSendRequest,
   sessionTitle,
   workspaceName,
   workspaceStatusLabel,
@@ -81,7 +166,12 @@ export function TaskWorkspace({
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialDraft);
+
+  function updateDraft(value: string) {
+    setDraft(value);
+    onDraftChange?.(value);
+  }
 
   useEffect(() => {
     if (!attachMenuOpen) return undefined;
@@ -105,11 +195,15 @@ export function TaskWorkspace({
   const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
     && methodGuidanceState.activity === "recovering";
   const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
-  const composerDisabled = interactionDisabled || !methodGuidanceAvailable || guidancePending || failedSubmission;
+  // A chat turn in flight disables the composer for the same reason a Help
+  // request does: the transcript accepts one question at a time.
+  const composerDisabled =
+    interactionDisabled || guidancePending || failedSubmission || chatLane.sending;
+  const submitDisabled = composerDisabled || !methodGuidanceAvailable;
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (composerDisabled) {
+    if (submitDisabled) {
       return;
     }
     const value = draft.trim();
@@ -117,16 +211,19 @@ export function TaskWorkspace({
       return;
     }
     try {
-      await onReviewRequest(value);
+      await onSendRequest(value);
       setSubmittedTask(value);
-      setDraft("");
+      updateDraft("");
     } catch {
-      setDraft(value);
+      updateDraft(value);
     }
   }
 
   return (
-    <main className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""}`} inert={isInert}>
+    <main
+      className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""} task-workspace--opencode-v2`}
+      inert={isInert}
+    >
       <header className="task-header">
         <div className="task-header__workspace">
           <strong>{workspaceName}</strong>
@@ -138,11 +235,11 @@ export function TaskWorkspace({
         </div>
         <div className="task-header__actions">
           <Button onPress={onOpenChanges} size="small" variant="quiet">
-            <ListChecks aria-hidden="true" size={16} />
-            Changes
+            <OpenCodeIcon name="review" />
+            Review
           </Button>
           <Button onPress={onOpenRunDetails} size="small" variant="quiet">
-            <History aria-hidden="true" size={16} />
+            <OpenCodeIcon name="status" />
             Run details
           </Button>
           {methodLibraryAvailable ? (
@@ -153,14 +250,14 @@ export function TaskWorkspace({
               size="small"
               variant="secondary"
             >
-              <Library aria-hidden="true" size={16} />
+              <OpenCodeIcon name="grid-plus" />
               Skills and agents
             </Button>
           ) : null}
         </div>
         <div className="task-title-row">
           <span className="task-kicker">Task</span>
-          <h1>{isNewSession && !submittedTask ? "New task" : sessionTitle}</h1>
+          <h1>{isNewSession && !submittedTask && sessionTitle === "New task" ? "New task" : sessionTitle}</h1>
         </div>
       </header>
 
@@ -169,7 +266,7 @@ export function TaskWorkspace({
           <ShieldAlert aria-hidden="true" size={17} />
           <div>
             <strong>Read-only recovery</strong>
-            <span>Sapphirus could not verify its local workspace data. Workspace changes remain blocked.</span>
+            <span>{brandIdentity.displayName} could not verify its local workspace data. Workspace changes remain blocked.</span>
           </div>
         </div>
       ) : null}
@@ -177,14 +274,15 @@ export function TaskWorkspace({
       <div className="task-scroll-region">
         {!isBrowserDemo ? (
           <div className="preview-notice" role="note">
-            <strong>{methodGuidanceView ? "Local skill guidance" : "Current local product"}</strong>
+            <strong>{methodGuidanceView ? "BMAD Help" : "Current local product"}</strong>
             <span>
               {methodGuidanceView
-                ? "Reviewing an intent creates an inert local BMAD Help run and prepares the exact outbound context. Nothing is sent until you approve context and choose Send request."
+                ? "Send a message to BMAD Help. Local files are included only when you add them."
                 : "This workspace is open locally. Files and governed changes remain available; model-backed skill guidance stays disabled until access is ready."}
             </span>
           </div>
         ) : null}
+        <ChatTranscript lane={chatLane} />
         {methodGuidanceView ? (
           <>
             {submittedTask ? (
@@ -203,12 +301,12 @@ export function TaskWorkspace({
                 </div>
                 <div>
                   <span className="message__label">
-                    {checkingRetainedGuidance ? "Checking · Local only" : "Preparing · Local only"}
+                    {checkingRetainedGuidance ? "Checking" : "Preparing"}
                   </span>
                   <p>
                     {checkingRetainedGuidance
-                      ? "Checking for retained skill guidance without sending a model request or changing the workspace…"
-                      : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request…"}
+                      ? "Checking for a retained BMAD session…"
+                      : "Preparing and sending your message…"}
                   </p>
                 </div>
               </article>
@@ -222,36 +320,42 @@ export function TaskWorkspace({
                 <div>
                   <span className="message__label">
                     {methodGuidanceState.kind === "review_required"
-                      ? "Review required · Nothing sent"
+                      ? "Preparing attached files"
                       : methodGuidanceState.kind === "approving"
-                        ? "Approving · Nothing sent"
-                        : "Approved · Ready to send"}
+                        ? "Preparing attached files"
+                        : "Sending"}
                   </span>
                   <p>
-                    Inspect the exact context in Skills and agents. Approval alone
-                    does not contact the model.
+                    Sending your message with the files you attached.
                   </p>
                 </div>
               </article>
             ) : methodGuidanceState.kind === "submitting" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar"><BrandMark size={22} /></div>
-                <div><span className="message__label">Sending · One shot</span><p>Sending the approved exact context once…</p></div>
+                <div><span className="message__label">Sending</span><p>Waiting for the selected model…</p></div>
               </article>
             ) : methodGuidanceState.kind === "completed" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar"><BrandMark size={22} /></div>
-                <div><span className="message__label">Completed · Verified</span><p>Review the canonical recommendation and safe receipt in Skills and agents.</p></div>
+                <div>
+                  <span className="message__label">BMAD Help</span>
+                  <p>
+                    {methodGuidanceState.result.recommendation.recommendationKind === "recommended_capability"
+                      ? `${methodGuidanceState.result.recommendation.displayName}: ${methodGuidanceState.result.recommendation.rationaleSummary}`
+                      : "BMAD could not identify a supported next action from the available project context."}
+                  </p>
+                </div>
               </article>
             ) : methodGuidanceState.kind === "interrupted" ? (
               <article className="message message--agent message--compact" role="alert">
                 <div className="message__avatar"><BrandMark size={22} /></div>
-                <div><span className="message__label">Interrupted · Cannot resume</span><p>Start a fresh review; this request cannot be sent again.</p></div>
+                <div><span className="message__label">Interrupted</span><p>This message cannot resume. Send it again.</p></div>
               </article>
             ) : methodGuidanceState.kind === "terminal" ? (
               <article className="message message--agent message--compact" role="status">
                 <div className="message__avatar"><BrandMark size={22} /></div>
-                <div><span className="message__label">Review ended</span><p>No request authority remains. Start a fresh review when ready.</p></div>
+                <div><span className="message__label">Message cancelled</span><p>Nothing was sent. You can edit the message and try again.</p></div>
               </article>
             ) : methodGuidanceState.kind === "unavailable" ? (
               <article className="message message--agent message--compact" role="alert">
@@ -265,14 +369,9 @@ export function TaskWorkspace({
               </article>
             ) : submittedTask ? null : (
               <section className="empty-session" aria-labelledby="empty-session-title">
-                <div className="empty-session__mark">
-                  <BrandMark size={44} />
-                </div>
-                <span aria-hidden="true" className="empty-session__wordmark">Sapphirus</span>
-                <h2 id="empty-session-title">What do you want skill guidance for?</h2>
+                <h2 id="empty-session-title">What do you want to build?</h2>
                 <p>
-                  Describe your intent to create an inert local run and review the exact context.
-                  Nothing is sent until you separately approve and send the request.
+                  Describe what you want to accomplish. Add local files only when they help.
                 </p>
                 {composerDisabled ? null : (
                   <ul aria-label="Starter intents" className="empty-session__starters">
@@ -280,7 +379,7 @@ export function TaskWorkspace({
                       <li key={intent}>
                         <button
                           onClick={() => {
-                            setDraft(intent);
+                            updateDraft(intent);
                             composerRef.current?.focus();
                           }}
                           type="button"
@@ -296,108 +395,85 @@ export function TaskWorkspace({
           </>
         ) : (
           <section className="empty-session" aria-labelledby="empty-session-title">
-            <div className="empty-session__mark">
-              <BrandMark size={44} />
-            </div>
-            <span aria-hidden="true" className="empty-session__wordmark">Sapphirus</span>
-            <h2 id="empty-session-title">
-              {isBrowserDemo ? "Explore Sapphirus safely" : "What would you like to work on?"}
-            </h2>
+            <h2 id="empty-session-title">What do you want to build?</h2>
             <p>
               {isBrowserDemo
                 ? "Browse the included sample project structure and explore the desktop task flow."
                 : methodGuidanceAvailable
                   ? "Ask the Agent to inspect your local workspace, explain code, create a plan, or prepare skill-guided work."
-                  : "Use Files to inspect local context or Changes to review governed workspace activity. Agent requests stay disabled until model access is ready."}
+                  : "Connect OpenAI in Settings to send prompts. Files and Review remain available while disconnected."}
             </p>
           </section>
         )}
       </div>
 
       <form aria-label="Task composer" className="composer" onSubmit={submitTask}>
-        {contextPreview && contextPreview.items.length > 0 ? (
-          <section className="attached-context" aria-labelledby="attached-context-title">
-            <div className="attached-context__heading" id="attached-context-title">
-              <FileCode2 aria-hidden="true" size={15} />
-              Local context preview
-            </div>
-            <ul className="attached-context__chips">
-              {contextPreview.items.map((item) => (
-                <li key={item.relativePath} title={item.relativePath}>
-                  {item.relativePath}
-                </li>
-              ))}
-            </ul>
-            <p className="attached-context__note">
-              Reviewed locally. Files are not included in a model request unless they appear in the exact request review.
-            </p>
-          </section>
-        ) : null}
+        <ContextWindow
+          canSuggest={canAttachFiles && draft.trim().length > 0}
+          onClear={onClearContext}
+          onOpen={onOpenContext}
+          onSuggest={() => {
+            const intent = draft.trim();
+            if (intent.length > 0) void onSuggestContext(intent);
+          }}
+          preview={contextPreview}
+          selectionMode={contextSelectionMode}
+          suggestionBusy={contextSuggestionBusy}
+        />
         {attachNotice ? (
           <p className="attach-notice" role="status">{attachNotice}</p>
         ) : null}
         <div className="composer__input-row">
-          {onBrowseFiles ? (
-            <div
-              className="attach-menu"
-              onKeyDown={(event) => {
-                if (event.key === "Escape" && attachMenuOpen) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  setAttachMenuOpen(false);
-                }
-              }}
-              ref={attachMenuRef}
-            >
-              <Button
-                aria-label="Attach files"
-                aria-expanded={attachMenuOpen}
-                aria-haspopup="menu"
-                isDisabled={!canAttachFiles}
-                onPress={() => setAttachMenuOpen((open) => !open)}
-                size="small"
-                variant="quiet"
-              >
-                <Paperclip aria-hidden="true" size={19} />
-                Attach files
-              </Button>
-              {attachMenuOpen ? (
-                <div className="attach-menu__popover" role="menu">
-                  <button
-                    onClick={() => {
-                      setAttachMenuOpen(false);
-                      void onBrowseFiles();
-                    }}
-                    role="menuitem"
-                    type="button"
-                  >
-                    Browse files…
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAttachMenuOpen(false);
-                      onAttachFiles();
-                    }}
-                    role="menuitem"
-                    type="button"
-                  >
-                    From workspace panel
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : (
+          <div
+            className="attach-menu"
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && attachMenuOpen) {
+                event.preventDefault();
+                event.stopPropagation();
+                setAttachMenuOpen(false);
+              }
+            }}
+            ref={attachMenuRef}
+          >
             <Button
-              aria-label="Attach files"
-              isDisabled={!canAttachFiles}
-              onPress={onAttachFiles}
+              aria-label="Add files or folder"
+              aria-expanded={attachMenuOpen}
+              aria-haspopup="menu"
+              isDisabled={!canAttachFiles || (!onAttachFiles && !onAttachFolder)}
+              onPress={() => setAttachMenuOpen((open) => !open)}
               size="small"
               variant="quiet"
             >
-              <Paperclip aria-hidden="true" size={19} />
-              Attach files
+              <OpenCodeIcon name="folder-add-left" />
+              <span className="composer__attach-label">Add context</span>
             </Button>
-          )}
+            {attachMenuOpen ? (
+              <div className="attach-menu__popover" role="menu">
+                <button
+                  disabled={!onAttachFiles}
+                  onClick={() => {
+                    setAttachMenuOpen(false);
+                    void onAttachFiles?.();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  Add files…
+                </button>
+                <button
+                  disabled={!onAttachFolder}
+                  onClick={() => {
+                    setAttachMenuOpen(false);
+                    void onAttachFolder?.();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  Add folder…
+                </button>
+              </div>
+            ) : null}
+          </div>
           <label className="sr-only" htmlFor="task-composer">
             {methodGuidanceView
               ? "Describe what you want skill guidance for"
@@ -408,46 +484,54 @@ export function TaskWorkspace({
             ref={composerRef}
             aria-describedby="task-composer-availability"
             disabled={composerDisabled}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => updateDraft(event.target.value)}
             placeholder={methodGuidanceView
-              ? "Describe your intent for skill guidance…"
-              : "Describe a task, ask a question, or request a review…"}
-            rows={3}
+              ? "Ask BMAD Help…"
+              : "Ask Forge…"}
+            rows={2}
             value={draft}
           />
         </div>
         <div className="composer__toolbar">
           <AgentSelector
-            isBrowserDemo={isBrowserDemo}
             library={agentLibrary}
-            methodGuidanceAvailable={methodGuidanceAvailable}
-            methodGuidanceView={methodGuidanceView}
             modelAccessDetail={modelAccessDetail}
             modelAccessLabel={modelAccessLabel}
+            onOpenMethodLibrary={methodLibraryAvailable ? onOpenMethodLibrary : undefined}
+            onOpenProviders={onOpenProviders}
+            selectedAgentCode={chatLane.agentCode}
+            onSelectAgent={onSelectAgent}
+            onAskMethodGuidance={draft.trim().length > 0
+              ? () => void onAskMethodGuidance(draft.trim()).catch(() => undefined)
+              : undefined}
           />
           <div className="composer__right">
             <Button
-              aria-label={methodGuidanceView ? "Review request" : "Send task"}
-              isDisabled={composerDisabled || !draft.trim()}
-              size={methodGuidanceView ? "small" : "icon"}
+              aria-label={methodGuidanceView ? "Send message" : "Send task"}
+              className="composer__submit"
+              isDisabled={submitDisabled || !draft.trim()}
+              size="icon"
+              title={methodGuidanceView ? "Send message" : "Send task"}
               type="submit"
-              variant="secondary"
+              variant="primary"
             >
-              <Send aria-hidden="true" size={18} />
-              {methodGuidanceView ? "Review request" : null}
+              <Send aria-hidden="true" size={16} />
             </Button>
           </div>
         </div>
-        <p className="composer__availability" id="task-composer-availability">
+        <p
+          className="composer__availability sr-only"
+          id="task-composer-availability"
+        >
           {isBrowserDemo
             ? "Read only: sample data only. No access to your device or a model."
             : methodGuidanceView
             ? methodGuidanceState.kind === "creating"
               ? checkingRetainedGuidance
-                ? "Checking for retained local skill guidance. No model request or workspace change is being made."
-                : "Preparing the exact outbound review. Nothing is sent until you approve context and choose Send request."
-              : "Creates an inert local run and prepares exact outbound context. Nothing is sent until you approve context and choose Send request."
-            : "This local workspace remains available for Files and governed Changes. Model-backed skill guidance is unavailable until access is ready."}
+                ? "Checking for a retained BMAD session."
+                : "Preparing and sending your message."
+              : "Messages are sent through the selected model with only the files you attach."
+            : "Connect OpenAI in Settings to send prompts. Files and Review remain available while disconnected."}
         </p>
       </form>
       {onOpenWorkspaceManager === undefined ? null : (

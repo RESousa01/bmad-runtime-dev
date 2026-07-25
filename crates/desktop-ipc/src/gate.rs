@@ -99,7 +99,7 @@ impl RequestGate {
             Some(MutationIdentity::DurableHelpRun)
         } else if matches!(
             &envelope.command,
-            desktop_runtime::LocalCommand::ModelAuthSignIn
+            desktop_runtime::LocalCommand::ModelAuthSignIn { .. }
                 | desktop_runtime::LocalCommand::ModelAuthSignOut
                 | desktop_runtime::LocalCommand::PrepareBmadHelpReview { .. }
                 | desktop_runtime::LocalCommand::ApproveBmadHelpReview { .. }

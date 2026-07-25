@@ -577,10 +577,6 @@ impl MemoryDecisionLedger {
     /// Maximum number of simultaneously relevant decisions retained in one
     /// in-process authority ledger.
     pub const MAX_TRACKED_DECISIONS: usize = DEFAULT_MAX_TRACKED_DECISIONS;
-
-    /// Maximum number of identifier replay tombstones retained for one
-    /// process lifetime. Saturation rejects new approvals fail-closed.
-    pub const MAX_SEEN_DECISION_IDS: usize = DEFAULT_MAX_SEEN_DECISION_IDS;
 }
 
 impl DecisionLedger for MemoryDecisionLedger {

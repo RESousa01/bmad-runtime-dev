@@ -32,6 +32,7 @@ jobs:
     timeout-minutes: 180
     outputs:
       product_version: ${{ steps.release-metadata.outputs.product_version }}
+      application_name: ${{ steps.release-metadata.outputs.application_name }}
       installer_name: ${{ steps.release-metadata.outputs.installer_name }}
       sbom_name: ${{ steps.release-metadata.outputs.sbom_name }}
     env:
@@ -86,7 +87,7 @@ jobs:
           name: signed-current-source-candidate-${{ github.sha }}
           path: |
             target/release/bundle/nsis/${{ steps.release-metadata.outputs.installer_name }}
-            target/release/sapphirus.exe
+            target/release/${{ steps.release-metadata.outputs.application_name }}
             ${{ runner.temp }}/${{ steps.release-metadata.outputs.sbom_name }}
             ${{ runner.temp }}/sapphirus-signed-build-evidence.json
           if-no-files-found: error
@@ -188,6 +189,7 @@ jobs:
       contents: read
       id-token: write
     env:
+      SAPPHIRUS_APPLICATION_NAME: ${{ needs.build-signed-installer.outputs.application_name }}
       SAPPHIRUS_INSTALLER_NAME: ${{ needs.build-signed-installer.outputs.installer_name }}
       SAPPHIRUS_SBOM_NAME: ${{ needs.build-signed-installer.outputs.sbom_name }}
     steps:
@@ -207,7 +209,7 @@ jobs:
         shell: bash
         run: |
           mapfile -t installers < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name "$SAPPHIRUS_INSTALLER_NAME")
-          mapfile -t applications < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name 'sapphirus.exe')
+          mapfile -t applications < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name "$SAPPHIRUS_APPLICATION_NAME")
           mapfile -t sboms < <(find "$RUNNER_TEMP/sapphirus-attestation-candidate" -type f -name "$SAPPHIRUS_SBOM_NAME")
           mapfile -t build_evidence < <(find "$RUNNER_TEMP/sapphirus-attestation-qualification" -type f -name 'sapphirus-signed-build-evidence.json')
           mapfile -t lifecycle_evidence < <(find "$RUNNER_TEMP/sapphirus-attestation-qualification" -type f -name 'sapphirus-signed-lifecycle-evidence.json')

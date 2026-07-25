@@ -81,6 +81,103 @@ test("desktop support changes always trigger their own workflow and run a real S
   );
 });
 
+test("desktop support CI smokes the exact built image and the Production boot contract", () => {
+  const source = workflows.find(({ name }) => name === "desktop-support.yml")?.source;
+  assert.ok(source, "desktop-support.yml must exist");
+  const triggerSource = source.split(/^permissions:\s*$/mu)[0];
+
+  for (const path of [
+    ".dockerignore",
+    ".node-version",
+    "apps/desktop-ui/**",
+    "infra/local/**",
+    "packages/**",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json",
+    "tools/forge-local.test.mjs",
+    "tools/support-cloud-contracts.test.mjs",
+    "tools/check-workflows.test.mjs",
+    "tools/support-smoke/**",
+    "package.json",
+  ]) {
+    const occurrences = triggerSource.match(
+      new RegExp(path.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "gu"),
+    ) ?? [];
+    assert.equal(occurrences.length, 2, `${path} must trigger on pull_request and push`);
+  }
+
+  assert.match(source, /--tag desktop-support-api:ci/u);
+  assert.match(
+    source,
+    /node --test [^\n]*tools\/support-cloud-contracts\.test\.mjs/u,
+  );
+  assert.match(
+    source,
+    /docker run --rm[\s\S]*?desktop-support-api:ci migrate-sql/u,
+  );
+  assert.match(source, /migration_exit[\s\S]*?-ne 1/u);
+  assert.match(
+    source,
+    /ASPNETCORE_ENVIRONMENT=Production[\s\S]*?Sapphirus__ManagedIdentityClientId=44444444-4444-4444-4444-444444444444[\s\S]*?Sapphirus__SqlMigrationIdentityClientId=44444444-4444-4444-4444-444444444444[\s\S]*?desktop-support-api:ci migrate-sql/u,
+  );
+  assert.match(source, /production_identity_exit[\s\S]*?-ne 1/u);
+  assert.match(
+    source,
+    /--network none[\s\S]*?ASPNETCORE_ENVIRONMENT=Production/u,
+  );
+  assert.match(source, /DESKTOP_SUPPORT_IMAGE=desktop-support-api:ci/u);
+  assert.match(source, /--no-build --wait desktop-support-api/u);
+  assert.match(source, /tools\/support-smoke\/local-smoke\.ps1/u);
+  assert.match(source, /--profile production-configuration-contract/u);
+  assert.match(source, /--no-build --wait production-configuration-contract/u);
+  assert.match(source, /docker image inspect desktop-support-api:ci/u);
+  assert.match(source, /docker inspect [^\n]*\{\{\.Image\}\}/u);
+  assert.match(source, /trap cleanup EXIT/u);
+  assert.match(source, /down --volumes --remove-orphans/u);
+});
+
+test("desktop support CI builds and smokes the exact frontend image", () => {
+  const source = workflows.find(({ name }) => name === "desktop-support.yml")?.source;
+  assert.ok(source, "desktop-support.yml must exist");
+
+  assert.match(
+    source,
+    /docker build --file infra\/local\/frontend\.Dockerfile --tag forge-frontend:ci \./u,
+  );
+  assert.match(source, /FORGE_FRONTEND_IMAGE=forge-frontend:ci/u);
+  assert.match(source, /FORGE_FRONTEND_PORT=1420/u);
+  assert.match(source, /frontend_compose_file=infra\/local\/compose\.yaml/u);
+  assert.match(source, /frontend_project=forge-frontend-ci/u);
+  assert.match(
+    source,
+    /docker compose -p "\$frontend_project" -f "\$frontend_compose_file" up\s+--detach --no-build --wait frontend/u,
+  );
+  assert.match(source, /docker image inspect forge-frontend:ci/u);
+  assert.match(
+    source,
+    /docker compose -p "\$frontend_project" -f "\$frontend_compose_file" ps -q frontend/u,
+  );
+  assert.match(
+    source,
+    /assert_exact_image "\$frontend_expected_image" "\$frontend_container_id" frontend/u,
+  );
+  assert.match(source, /State\.Health\.Status/u);
+  assert.match(
+    source,
+    /frontend_http_status="\$\(curl --silent --show-error --output \/dev\/null --write-out '%\{http_code\}' http:\/\/127\.0\.0\.1:1420\/\)"/u,
+  );
+  assert.match(
+    source,
+    /if \[ "\$frontend_http_status" != "200" \]; then/u,
+  );
+  assert.match(
+    source,
+    /cleanup\(\)[\s\S]*?\$frontend_compose_file[\s\S]*?down --volumes --remove-orphans[\s\S]*?\$support_compose_file[\s\S]*?down --volumes --remove-orphans/u,
+  );
+  assert.match(source, /trap cleanup EXIT/u);
+});
+
 test("automated review excludes the read-only upstream source vault", () => {
   const codeqlWorkflow = workflows.find(({ name }) => name === "codeql.yml")?.source;
   assert.ok(codeqlWorkflow, "codeql.yml must exist");

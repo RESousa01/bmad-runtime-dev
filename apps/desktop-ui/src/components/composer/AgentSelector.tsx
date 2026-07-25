@@ -1,53 +1,46 @@
 import { Button } from "@sapphirus/ui";
-import { Bot, Check, ChevronDown, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type {
-  BmadBlockerCode,
-  BmadLibraryUiState,
-  BmadMethodAgentProjection,
-} from "../../lib/bmadProjection";
+import type { BmadLibraryUiState } from "../../lib/bmadProjection";
 
 export interface AgentSelectorProps {
-  isBrowserDemo: boolean;
   library: BmadLibraryUiState;
-  methodGuidanceAvailable: boolean;
-  methodGuidanceView: boolean;
   modelAccessDetail: string;
   modelAccessLabel: string;
-}
-
-function blockerLabel(code: BmadBlockerCode): string {
-  switch (code) {
-    case "bmad_capability_disabled":
-      return "Capability disabled";
-    case "bmad_dependency_unavailable":
-      return "Dependency unavailable";
-    case "bmad_help_catalog_orphan":
-      return "Catalog entry unavailable";
-    case "bmad_network_reference_unavailable":
-      return "Network reference unavailable";
-    case "bmad_source_prompt_unavailable":
-      return "Source prompt unavailable";
-  }
-}
-
-function agentBlockerSummary(agent: BmadMethodAgentProjection): string {
-  if (agent.blockerCodes.length === 0) {
-    return "Not selectable in this build";
-  }
-  return agent.blockerCodes.map(blockerLabel).join(" · ");
+  onOpenMethodLibrary?: (() => void) | undefined;
+  onOpenProviders?: (() => void) | undefined;
+  /// The agent bound to this conversation, or `null` for plain chat.
+  selectedAgentCode: string | null;
+  /// Bind or clear the persona. Clearing is always offered: BMAD is optional,
+  /// so "no agent" must stay reachable in one click.
+  onSelectAgent: (agentCode: string | null) => void;
+  /// Ask the BMAD Help advisor which skill fits. Explicit, because an ordinary
+  /// message is an ordinary message.
+  onAskMethodGuidance?: (() => void) | undefined;
 }
 
 export function AgentSelector({
-  isBrowserDemo,
   library,
-  methodGuidanceAvailable,
-  methodGuidanceView,
   modelAccessDetail,
   modelAccessLabel,
+  onOpenMethodLibrary,
+  onOpenProviders,
+  selectedAgentCode,
+  onSelectAgent,
+  onAskMethodGuidance,
 }: AgentSelectorProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const installedAgentCount = library.kind === "ready"
+    ? library.projection.methodAgents.length
+    : null;
+  const agents = library.kind === "ready" ? library.projection.methodAgents : [];
+  const selectedAgent = agents.find((agent) => agent.agentCode === selectedAgentCode) ?? null;
+  // "Plain chat" rather than a bare "Chat": the trigger names the *mode*, and
+  // an unqualified "Chat" reads as a tab label rather than an agent choice.
+  const triggerLabel = selectedAgent === null
+    ? "Plain chat"
+    : `${selectedAgent.icon} ${selectedAgent.name}`;
 
   function close(restoreFocus = false) {
     const trigger = rootRef.current?.querySelector<HTMLButtonElement>(
@@ -70,12 +63,6 @@ export function AgentSelector({
     return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
   }, [open]);
 
-  const statusLabel = methodGuidanceAvailable
-    ? "Available"
-    : isBrowserDemo
-      ? "Read only"
-      : "Unavailable";
-
   return (
     <div
       className="agent-control"
@@ -95,14 +82,11 @@ export function AgentSelector({
         className="agent-control__trigger"
         onPress={() => setOpen((current) => !current)}
         size="small"
+        title={modelAccessDetail}
         variant="quiet"
       >
-        <Bot aria-hidden="true" size={15} />
-        <span>Agent</span>
-        <span className="agent-control__summary">
-          {methodGuidanceView ? "BMAD Help" : modelAccessLabel}
-        </span>
-        <ChevronDown aria-hidden="true" size={14} />
+        <span>{triggerLabel}</span>
+        <ChevronDown aria-hidden="true" size={13} strokeWidth={1.8} />
       </Button>
       {open ? (
         <section
@@ -111,78 +95,94 @@ export function AgentSelector({
           id="agent-model-access"
           role="region"
         >
-          <header>
-            <h2>Agent</h2>
-            <span className="agent-control__status">
-              <span
-                className={`status-dot ${methodGuidanceAvailable ? "" : "status-dot--warning"}`}
-              />
-              {statusLabel}
-            </span>
-          </header>
-          <ul aria-label="Agent capabilities" className="agent-selector__list">
-            <li>
-              <div
-                aria-current={methodGuidanceView || methodGuidanceAvailable ? "true" : undefined}
-                className={`agent-selector__option ${
-                  methodGuidanceAvailable ? "" : "agent-selector__option--disabled"
-                }`}
+          <fieldset className="agent-selector__agents">
+            <legend className="agent-selector__label">Agent</legend>
+            {/* Plain chat is first and always available: BMAD is an overlay on
+                the conversation, never a prerequisite for having one. */}
+            <button
+              aria-pressed={selectedAgentCode === null}
+              className="agent-selector__row"
+              onClick={() => {
+                onSelectAgent(null);
+                close(true);
+              }}
+              type="button"
+            >
+              <span className="agent-selector__value">No agent — plain chat</span>
+            </button>
+            {agents.map((agent) => (
+              <button
+                aria-pressed={selectedAgentCode === agent.agentCode}
+                className="agent-selector__row"
+                key={agent.agentCode}
+                onClick={() => {
+                  onSelectAgent(agent.agentCode);
+                  close(true);
+                }}
+                title={`${agent.name} — ${agent.title}`}
+                type="button"
               >
-                <span className="agent-selector__option-main">
-                  <strong>BMAD Help</strong>
-                  <small>Skill-guided request flow with review before send.</small>
+                <span className="agent-selector__value">
+                  {agent.icon} {agent.name} — {agent.title}
                 </span>
-                {methodGuidanceAvailable ? (
-                  <Check aria-hidden="true" size={15} />
-                ) : (
-                  <small className="agent-selector__blocker">{statusLabel}</small>
-                )}
-              </div>
-            </li>
-            {library.kind === "ready"
-              ? library.projection.methodAgents.map((agent) => (
-                <li key={`${agent.moduleCode}:${agent.agentCode}`}>
-                  <div
-                    className={`agent-selector__option ${
-                      agent.availability === "available"
-                        ? ""
-                        : "agent-selector__option--disabled"
-                    }`}
-                  >
-                    <span aria-hidden="true" className="agent-selector__icon">
-                      {agent.icon}
-                    </span>
-                    <span className="agent-selector__option-main">
-                      <strong>{agent.name}</strong>
-                      <small>{agent.title}</small>
-                    </span>
-                    {agent.availability === "available" ? null : (
-                      <small className="agent-selector__blocker">
-                        {agentBlockerSummary(agent)}
-                      </small>
-                    )}
-                  </div>
-                </li>
-              ))
-              : null}
-          </ul>
-          {library.kind === "loading" || library.kind === "idle" ? (
-            <p className="agent-selector__note" role="status">
-              Loading installed agents…
-            </p>
-          ) : library.kind === "unavailable" ? (
-            <p className="agent-selector__note" role="status">
-              Installed agents are unavailable right now.
-            </p>
+              </button>
+            ))}
+          </fieldset>
+          {onAskMethodGuidance ? (
+            <button
+              className="agent-selector__row"
+              onClick={() => {
+                close();
+                onAskMethodGuidance();
+              }}
+              type="button"
+            >
+              <span className="agent-selector__label">Ask</span>
+              <span className="agent-selector__value">BMAD Help — what should I do next?</span>
+            </button>
           ) : null}
-          <footer className="agent-selector__footer">
-            <span className="agent-selector__model" title={modelAccessDetail}>
-              {modelAccessLabel}
-            </span>
-            <span className="agent-selector__policy">
-              <ShieldCheck aria-hidden="true" size={13} /> Review before send
-            </span>
-          </footer>
+          <button
+            aria-label="Open skills and agents"
+            className="agent-selector__row"
+            disabled={onOpenMethodLibrary === undefined}
+            onClick={() => {
+              close();
+              onOpenMethodLibrary?.();
+            }}
+            title={onOpenMethodLibrary === undefined
+              ? "Installed BMAD agents require the Forge desktop host"
+              : installedAgentCount === null
+                ? "Open the installed BMAD agents"
+                : `Open ${installedAgentCount} installed BMAD agents`}
+            type="button"
+          >
+            <span className="agent-selector__label">Skills</span>
+            <span className="agent-selector__value">Open skills and workflows</span>
+            {onOpenMethodLibrary ? (
+              <ChevronRight aria-hidden="true" size={14} strokeWidth={1.7} />
+            ) : (
+              <span aria-hidden="true" className="agent-selector__row-spacer" />
+            )}
+          </button>
+          <button
+            aria-label="Open model settings"
+            className="agent-selector__row"
+            disabled={onOpenProviders === undefined}
+            onClick={() => {
+              close();
+              onOpenProviders?.();
+            }}
+            title={modelAccessDetail}
+            type="button"
+          >
+            <span className="agent-selector__label">Model</span>
+            <span className="agent-selector__value">{modelAccessLabel}</span>
+            {onOpenProviders ? (
+              <ChevronRight aria-hidden="true" size={14} strokeWidth={1.7} />
+            ) : (
+              <span aria-hidden="true" className="agent-selector__row-spacer" />
+            )}
+          </button>
         </section>
       ) : null}
     </div>

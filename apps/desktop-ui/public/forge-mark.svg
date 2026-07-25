@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Forge application mark</title>
+  <desc id="desc">A warm anvil containing a precise code aperture on a dark rounded field.</desc>
+  <defs>
+    <linearGradient id="field" x1="128" y1="96" x2="896" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#172330"/>
+      <stop offset="1" stop-color="#080E15"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="276" y1="262" x2="705" y2="780" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF9F0"/>
+      <stop offset="1" stop-color="#CFC8BE"/>
+    </linearGradient>
+    <linearGradient id="ember" x1="338" y1="328" x2="691" y2="443" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB17E"/>
+      <stop offset="1" stop-color="#E7794F"/>
+    </linearGradient>
+  </defs>
+  <rect x="48" y="48" width="928" height="928" rx="224" fill="url(#field)"/>
+  <path d="M166 275h692v57c0 63-70 119-177 145h-88l-55 82v94h126v119H360V653h126v-94l-62-82H320c-90-28-154-82-154-145v-57Z" fill="url(#steel)"/>
+  <path d="m335 332 55 50-55 50m354-100-55 50 55 50M541 318l-49 128" fill="none" stroke="url(#ember)" stroke-width="31" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M218 309h588" fill="none" stroke="#FFF" stroke-opacity=".28" stroke-width="10" stroke-linecap="round"/>
+</svg>

@@ -8,7 +8,8 @@ All data services have local authentication and public network access disabled.
 
 This is an internal, single-tenant deployment. The API itself has public TLS ingress so managed
 employee devices can reach it, but tokens are accepted only for the configured organization tenant
-and audience; there is no public registration or multi-tenant onboarding path.
+and audience and the reviewed `approvedDesktopClientId`; there is no public registration or
+multi-tenant onboarding path.
 
 The template deliberately does not assign an Entra application registration or publish an image.
 Its first stage uses `deployApi=false`, so the registry and support infrastructure can be created

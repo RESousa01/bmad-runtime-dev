@@ -15,12 +15,12 @@ const build = {
   productVersion: "1.2.3",
   releaseMetadata: {
     schemaVersion: 1,
-    product: { name: "Sapphirus", version: "1.2.3", identifier: "dev.sapphirus", applicationName: "sapphirus.exe", installerName: "Sapphirus_1.2.3_x64-setup.exe", sbomName: "Sapphirus_1.2.3.cdx.json" },
+    product: { name: "Forge", version: "1.2.3", identifier: "com.sapphirus.desktop", applicationName: "forge.exe", installerName: "Forge_1.2.3_x64-setup.exe", sbomName: "Forge_1.2.3.cdx.json" },
     toolchain: { node: "24.18.0", pnpm: "11.12.0", rust: "1.97.0", typescript: "7.0.2", tauriCli: "2.11.4" },
     locks: { cargo: { path: "Cargo.lock", sha256: "11".repeat(32) }, pnpm: { path: "pnpm-lock.yaml", sha256: "22".repeat(32) } },
   },
   toolchain: { node: "24.18.0", pnpm: "11.12.0", rustc: "rustc 1.97.0 (test 2026-01-01)", tauriCli: "tauri-cli 2.11.4" },
-  sbom: { fileName: "Sapphirus_1.2.3.cdx.json", sha256: digest(sbomBytes), format: "CycloneDX", specVersion: "1.6" },
+  sbom: { fileName: "Forge_1.2.3.cdx.json", sha256: digest(sbomBytes), format: "CycloneDX", specVersion: "1.6" },
   certificateThumbprint: "AB".repeat(20),
   certificateNotAfterUtc: "2027-01-01T00:00:00.000Z",
   timestampProtocol: "rfc3161",
@@ -30,8 +30,8 @@ const build = {
 const lifecycle = {
   schemaVersion: 1,
   generatedAtUtc: "2026-07-18T00:00:00.000Z",
-  artifact: { fileName: "Sapphirus_1.2.3_x64-setup.exe", byteLength: installerBytes.length, sha256: digest(installerBytes), expectedVersion: "1.2.3", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
-  priorArtifact: { fileName: "Sapphirus_1.2.2_x64-setup.exe", byteLength: 1, sha256: "33".repeat(32), expectedVersion: "1.2.2", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
+  artifact: { fileName: "Forge_1.2.3_x64-setup.exe", byteLength: installerBytes.length, sha256: digest(installerBytes), expectedVersion: "1.2.3", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
+  priorArtifact: { fileName: "Forge_1.2.2_x64-setup.exe", byteLength: 1, sha256: "33".repeat(32), expectedVersion: "1.2.2", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
   lifecycle: { freshInstall: true, upgradedFromVersion: "1.2.2", installedVersion: "1.2.3", installedExecutableSha256: digest(applicationBytes), installedExecutableAuthenticodeStatus: "Valid", installedExecutableSignerThumbprint: "AB".repeat(20), installedExecutableTimestamperThumbprint: "CD".repeat(20), launchSmoke: true, uninstall: true, installRootRemoved: true, uninstallRegistrationRemoved: true, residueScope: "install-root-and-uninstall-registration" },
   bundledFoundation: { exactFileCount: 10, missing: 0, unexpected: 0, hashMismatches: 0 },
 };

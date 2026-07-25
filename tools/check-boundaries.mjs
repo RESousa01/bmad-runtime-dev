@@ -31,6 +31,8 @@ const reviewedReadyCommands = [
   "workspace.revoke",
   "workspace.list_entries",
   "workspace.read_text",
+  "workspace.git_status",
+  "workspace.git_diff",
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
@@ -38,6 +40,10 @@ const reviewedReadyCommands = [
   "model.auth.status",
   "model.auth.sign_in",
   "model.auth.sign_out",
+  "model.selection.set",
+  "chat.send",
+  "chat.history",
+  "bmad.workflow.state",
   "bmad.help.prepare",
   "bmad.help.approve",
   "bmad.help.cancel",
@@ -61,10 +67,11 @@ const reviewedReadyCommands = [
   "app.preferences.get",
   "app.preferences.set",
   "app.about",
-  "app.offboarding.inspect",
-  "app.offboarding.erase",
-  "workspace.pick_files",
-];
+    "app.offboarding.inspect",
+    "app.offboarding.erase",
+    "workspace.pick_files",
+    "workspace.pick_folder",
+  ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
 const updateBlockingRecoveryStates = ["recovery_required", "restoring", "manual_review"];
 const boundedProcessAdapterPaths = new Set([
@@ -81,6 +88,7 @@ const referenceVaultVerificationPattern =
   /\b(?:pnpm(?:\.cmd)?\s+(?:run\s+)?vault:check|node(?:\.exe)?\s+(?:\.?[\\/])?tools[\\/]verify-reference-vault\.mjs)\b/iu;
 const referenceVaultAllowlist = new Set([
   ".coderabbit.yaml",
+  ".dockerignore",
   ".gitignore",
   ".github/codeql-config.yml",
   "README.md",
@@ -162,6 +170,7 @@ function expandBmadModelCommandAliases(source) {
     .replaceAll("bmadModelCommands.authStatus", '"model.auth.status"')
     .replaceAll("bmadModelCommands.authSignIn", '"model.auth.sign_in"')
     .replaceAll("bmadModelCommands.authSignOut", '"model.auth.sign_out"')
+    .replaceAll("bmadModelCommands.setSelection", '"model.selection.set"')
     .replaceAll("bmadModelCommands.prepare", '"bmad.help.prepare"')
     .replaceAll("bmadModelCommands.approve", '"bmad.help.approve"')
     .replaceAll("bmadModelCommands.cancel", '"bmad.help.cancel"')
@@ -692,7 +701,7 @@ if (installerQualificationSource !== undefined) {
   for (const [pattern, message] of [
     [/Get-AuthenticodeSignature/u, "must record Authenticode status"],
     [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
-    [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Sapphirus installation"],
+    [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Forge or legacy installation"],
     [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
     [/Prior and current installers use different publishers/u, "must reject a prior installer from another publisher"],
     [/Compare-CanonicalSemVer[\s\S]*prior installer version must precede/u, "must reject same-version reinstall and downgrade qualification"],
@@ -1257,8 +1266,8 @@ if (config) {
     violations.push(`${relative(root, configPath)}: production frontendDist is not the reviewed renderer output`);
   }
   const expectedBeforeDevCommand =
-    "pnpm --filter @sapphirus/desktop-ui dev --host 127.0.0.1";
-  const expectedBeforeBuildCommand = "pnpm --filter @sapphirus/desktop-ui build";
+    "pnpm --filter @forge/desktop-ui dev --host 127.0.0.1";
+  const expectedBeforeBuildCommand = "pnpm --filter @forge/desktop-ui build";
   if (config.build?.beforeDevCommand !== expectedBeforeDevCommand) {
     violations.push(
       `${relative(root, configPath)}: beforeDevCommand must stay in the repository workspace`,

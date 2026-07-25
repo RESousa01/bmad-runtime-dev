@@ -30,6 +30,7 @@ import {
   BMAD_MODEL_RECEIPT_SCHEMA,
   type LatestBmadHelpRunResult,
 } from "./contracts";
+import { asCapabilityId } from "./capabilityProtocol";
 import { bmadProjectionLimits } from "./bmadProtocolConstants";
 import {
   asBmadAvailability,
@@ -243,6 +244,8 @@ export function parseModelAuthStatus(
     "authEpoch",
     "developmentOnly",
     "destinationLabel",
+    "providerId",
+    "modelId",
     "signInAvailable",
     "signOutAvailable",
   ]);
@@ -250,11 +253,17 @@ export function parseModelAuthStatus(
     (status.status !== "unavailable" &&
       status.status !== "development_ready") ||
     (status.mode !== "offline" &&
-      status.mode !== "deterministic_development") ||
-    status.signInAvailable !== false ||
-    status.signOutAvailable !== true ||
+      status.mode !== "deterministic_development" &&
+      status.mode !== "direct_provider_development") ||
+    typeof status.signInAvailable !== "boolean" ||
+    typeof status.signOutAvailable !== "boolean" ||
+    typeof status.providerId !== "string" ||
+    typeof status.modelId !== "string" ||
+    (status.signOutAvailable && status.status !== "development_ready") ||
     (status.status === "development_ready"
-      ? status.mode !== "deterministic_development" || developmentOnly !== true
+      ? (status.mode !== "deterministic_development" &&
+          status.mode !== "direct_provider_development") ||
+        developmentOnly !== true
       : status.mode !== "offline" || developmentOnly !== false)
   ) {
     return fail();
@@ -265,8 +274,10 @@ export function parseModelAuthStatus(
     authEpoch: asUnsignedInteger(status.authEpoch),
     developmentOnly,
     destinationLabel: asBmadRendererText(status.destinationLabel, 256),
-    signInAvailable: false,
-    signOutAvailable: true,
+    providerId: asBmadRendererText(status.providerId, 128),
+    modelId: asBmadRendererText(status.modelId, 128),
+    signInAvailable: status.signInAvailable,
+    signOutAvailable: status.signOutAvailable,
   };
 }
 
@@ -726,9 +737,17 @@ export function parseBmadAgentMenu(value: unknown): BmadAgentMenuProjection {
     "description",
     "targetKind",
     "displayLabel",
+    "capabilityId",
     "availability",
     "availabilityReason",
   ]);
+  const capabilityId = menu.capabilityId === null
+    ? null
+    : asCapabilityId(menu.capabilityId);
+  const availability = asBmadAvailability(menu.availability);
+  if ((availability === "available") !== (capabilityId !== null)) {
+    return fail();
+  }
   return {
     code: asBmadIdentifier(menu.code),
     description: asBmadSafeText(
@@ -740,7 +759,8 @@ export function parseBmadAgentMenu(value: unknown): BmadAgentMenuProjection {
       menu.displayLabel,
       bmadProjectionLimits.identifierBytes,
     ),
-    availability: asBmadAvailability(menu.availability),
+    capabilityId,
+    availability,
     availabilityReason: asNullableBmadBlockerCode(menu.availabilityReason),
   };
 }

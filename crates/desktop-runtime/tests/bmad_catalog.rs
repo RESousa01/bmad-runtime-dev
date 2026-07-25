@@ -352,6 +352,7 @@ fn roster_parser_keeps_skill_and_prompt_targets_closed_and_unavailable() {
         "menus": [
             {
                 "code": "DP",
+                "displayName": "Document Project",
                 "description": "Document project",
                 "target": {
                     "targetKind": "skill_target",
@@ -362,6 +363,7 @@ fn roster_parser_keeps_skill_and_prompt_targets_closed_and_unavailable() {
             },
             {
                 "code": "WD",
+                "displayName": "Write Document",
                 "description": "Write document",
                 "target": {
                     "targetKind": "prompt_reference",
@@ -406,6 +408,7 @@ fn roster_parser_keeps_skill_and_prompt_targets_closed_and_unavailable() {
         roster.agents[0].menus[1].availability,
         BmadCatalogAvailability::SourcePromptUnavailable
     );
+    assert_eq!(roster.agents[0].menus[1].display_label, "Write Document");
     assert!(!serde_json::to_string(&roster)
         .expect("safe roster projection")
         .contains("write-document.md"));
@@ -603,8 +606,8 @@ fn roster_rejects_prompt_transplant_ambiguous_targets_and_duplicate_menu_codes()
             "personaGraphHash": sha256_bytes(b"persona graph").to_string(),
             "sourceMemberIds": ["method-004"],
             "menus": [
-                {"code": "WD", "description": "One", "target": target},
-                {"code": "WD", "description": "Two", "target": {
+                {"code": "WD", "displayName": "Write Document", "description": "One", "target": target},
+                {"code": "WD", "displayName": "Write Document Again", "description": "Two", "target": {
                     "targetKind": "skill_target", "moduleCode": "bmm",
                     "skillName": "bmad-architecture", "action": null
                 }}

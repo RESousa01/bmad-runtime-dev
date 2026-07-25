@@ -13,18 +13,22 @@ complete and referenced below.
    what-if must show no local-auth enablement, public data-plane endpoint,
    plaintext secret, mutable image tag, overly broad role, or
    caller-controlled model endpoint.
-2. **SQL authority** — apply `services/desktop-support-api/Sql/Migrations/`
-   through the emitted `sqlMigrationIdentity*` identity, then apply the
-   least-privilege data-plane grants from
-   `infra/desktop-support/sql-grants.md`. Never grant the runtime identity
-   schema rights.
+2. **SQL authority** — as the Entra SQL administrator, bootstrap the migration
+   identity and `dbo.desktop_schema_migrations` ledger using the first block
+   in `infra/desktop-support/sql-grants.md`; apply
+   `services/desktop-support-api/Sql/Migrations/` through the emitted
+   `sqlMigrationIdentity*` identity; then create the runtime identity and
+   apply the second block's least-privilege data-plane grants. Never grant the
+   runtime identity schema rights or grant permissions on tables before they
+   exist.
 3. **Image publication** — publish the signed, SBOM-attested API image by
    immutable digest (the `support-container` CI job proves buildability and
    scanning; the release lane signs and pushes).
 4. **First revision, model disabled** — set `deployApi=true` with the digest
-   and an App Configuration policy whose `approvedModelDeployments` is
-   empty; the fixed-profile broker then refuses model access at profile
-   resolution.
+   and an App Configuration policy that retains the required
+   `approvedModelDeployments` key with the exact empty-string value (`""`);
+   do not delete the key or use whitespace. The fixed-profile broker then
+   refuses model access at profile resolution.
 5. **Gate verification** — run
    `tools/support-smoke/deployed-smoke.ps1` (identity, signed policy,
    fail-closed lease), `tools/support-smoke/privacy-sql-inspect.sql`, and
@@ -52,15 +56,18 @@ complete and referenced below.
    the deployed round-trip in `ProductionHelpTransport` in the same change.
    Partial values leave the client in explicit offline/development
    behavior.
-10. **Kill switch** — clearing `approvedModelDeployments` in App
-    Configuration blocks new model admission within one policy refresh
-    interval without affecting local history, inspect, export, rollback, or
-    recovery.
+10. **Kill switch** — retaining `approvedModelDeployments` in App
+    Configuration with the exact empty-string value (`""`) blocks new model
+    admission within one policy refresh interval without affecting local
+    history, inspect, export, rollback, or recovery. Do not delete the
+    required key or replace it with whitespace.
 
 ## Rollback
 
 - Route traffic back to the prior Container Apps revision.
-- Disable model admission via the signed policy (`approvedModelDeployments`).
+- Disable model admission by retaining the required
+  `approvedModelDeployments` key with exact value `""`; do not delete it or
+  use whitespace.
 - Revoke the affected signing key version or model identity assignment only
   through the audited incident procedure; clients accept the documented
   active/verification overlap and nothing else.

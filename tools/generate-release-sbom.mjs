@@ -128,10 +128,10 @@ export function createCycloneDxSbom({ releaseMetadata, pnpmLock, cargoLock }) {
     metadata: {
       component: {
         type: "application",
-        "bom-ref": `pkg:generic/sapphirus@${encodeURIComponent(releaseMetadata.product.version)}`,
+        "bom-ref": `pkg:generic/forge@${encodeURIComponent(releaseMetadata.product.version)}`,
         name: releaseMetadata.product.name,
         version: releaseMetadata.product.version,
-        purl: `pkg:generic/sapphirus@${encodeURIComponent(releaseMetadata.product.version)}`,
+        purl: `pkg:generic/forge@${encodeURIComponent(releaseMetadata.product.version)}`,
       },
       properties: [
         { name: `sapphirus:lock:${releaseMetadata.locks.cargo.path}:sha256`, value: releaseMetadata.locks.cargo.sha256 },

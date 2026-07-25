@@ -258,6 +258,21 @@ public sealed class ModelBrokerTests
             supportPlane));
     }
 
+    [Theory]
+    [InlineData("desktop-planner")]
+    [InlineData("secondary-model")]
+    [InlineData("model_2026")]
+    public void An_empty_policy_allowlist_refuses_every_configured_model(
+        string modelDeployment)
+    {
+        PolicySnapshot policy = CreatePolicy() with { ApprovedModelDeployments = [] };
+
+        Assert.Throws<InvalidOperationException>(() => ModelAccessProfile.Resolve(
+            policy,
+            CreateProduction(modelDeployment),
+            CreateSupportPlane()));
+    }
+
     private static AzureOpenAiModelAccessBroker CreateBroker(
         FakeExecutor executor,
         IModelReceiptSigner signer) => new(
@@ -280,21 +295,22 @@ public sealed class ModelBrokerTests
         "transient_no_store",
         DateTimeOffset.Parse("2026-07-20T10:00:00.000Z"));
 
-    private static ProductionOptions CreateProduction() => new()
-    {
-        ManagedIdentityClientId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-        AppConfigurationEndpoint = "https://configuration.azconfig.io/",
-        KeyVaultUri = "https://signing.vault.azure.net/",
-        ReceiptSigningKeyName = "model-receipt-signing",
-        SqlServer = "authority.database.windows.net",
-        SqlDatabase = "desktop-authority",
-        ModelEndpoint = "https://models.openai.azure.com/",
-        ModelDeployment = "desktop-planner",
-        ProviderProfileHash = Hash,
-        ModelProfileHash = Hash,
-        ModelCapabilityHash = Hash,
-        DeploymentHash = Hash,
-    };
+    private static ProductionOptions CreateProduction(
+        string modelDeployment = "desktop-planner") => new()
+        {
+            ManagedIdentityClientId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+            AppConfigurationEndpoint = "https://configuration.azconfig.io/",
+            KeyVaultUri = "https://signing.vault.azure.net/",
+            ReceiptSigningKeyName = "model-receipt-signing",
+            SqlServer = "authority.database.windows.net",
+            SqlDatabase = "desktop-authority",
+            ModelEndpoint = "https://models.openai.azure.com/",
+            ModelDeployment = modelDeployment,
+            ProviderProfileHash = Hash,
+            ModelProfileHash = Hash,
+            ModelCapabilityHash = Hash,
+            DeploymentHash = Hash,
+        };
 
     private static SupportPlaneOptions CreateSupportPlane() => new()
     {

@@ -1,53 +1,48 @@
-**Design QA — unified Sapphirus desktop sidebar**
+# Design QA — Forge simplified composer
 
-- source visual truth: `C:\tmp\sapphirus-design-prototype\Sapphirus.dc.html`
-- source sidebar reference: `C:\tmp\sapphirus-design-prototype\uploads\pasted-1783955522965-0.png`
-- implementation: `http://127.0.0.1:1420/`
-- implementation screenshot evidence: Codex in-app Browser session `Sapphirus unified sidebar QA`, captured on 2026-07-15
-- primary viewport: 1600 × 992, dark theme, Agent task review with Changes inspector selected
-- responsive viewports: 1024 × 768 and 390 × 844
-- interactions tested: mobile Sessions drawer open/close contract, responsive Inspector contract, navigation control discovery
-- console errors checked: yes; no warnings or errors were reported in the captured desktop, tablet, or mobile states
+## Visual sources
 
-**Full-view comparison evidence**
+- Removed authority-profile reference: `C:\Users\rodri\AppData\Local\Temp\codex-clipboard-a4b2eda3-542b-4e26-a016-a7d4b27db8d7.png` (379 × 309).
+- Composer reference: `C:\Users\rodri\AppData\Local\Temp\codex-clipboard-dc0af350-f1bb-4fdc-98ab-72c69a8d3e51.png`.
+- Codex selector reference: `C:\Users\rodri\AppData\Local\Temp\codex-clipboard-e11fe669-e49a-4946-9df9-decb88c3c328.png`.
+- Verified local implementation: `http://127.0.0.1:1420/`.
+- Browser state: dark theme, browser-preview task, empty context, compact agent/model selector open.
 
-The rendered desktop shell was compared with the prototype's three-column composition and its ChatGPT-style sidebar reference. The implementation now uses the prototype's single full-height 264px navigation surface instead of separate global and session rails. Product identity, search affordance, new-session action, compact navigation, flat session history, pinned workspace, Settings, and local account controls share one visual hierarchy. The center workspace and 444px Inspector retain the existing governed product content and Sapphirus colors.
+## Result
 
-**Focused sidebar comparison evidence**
+The authority-profile control and its Observe / Assist / Build popover are absent. The native host still enforces its existing grants internally, but those implementation details no longer compete with the task flow.
 
-The sidebar was reviewed independently at its exact 264px desktop width. The reference and implementation use the same major rhythm: compact product switcher, one-line actions, understated section label, flat selected history row, large scrollable history region, and utility information anchored at the bottom. Sapphirus intentionally retains the approved `Agent`, `Sessions`, and `Workspaces` vocabulary instead of copying Codex product labels.
+The composer now presents only the controls needed to work:
 
-**Findings**
+- a compact context strip;
+- one direct add-files-or-folder control;
+- the task input;
+- a two-row Agent / Model selector;
+- one Send action.
 
-- No actionable P0, P1, or P2 visual mismatches remain.
-- Typography: compact Inter UI typography and JetBrains Mono code typography retain the existing token mapping, with hierarchy and truncation tuned for a 264px sidebar.
-- Spacing and layout rhythm: the previous 104px + 296px double rail is removed. Desktop now uses a 264px sidebar, flexible workspace, and 444px inspector; tablet retains the unified sidebar while the Inspector becomes an overlay.
-- Colors and visual tokens: existing Sapphirus semantic palette declarations remain unchanged and are protected by the palette contract test.
-- Image and asset fidelity: the existing Sapphirus brand mark and Lucide icons are reused. No placeholder, emoji, handcrafted SVG, or CSS-drawn replacement assets were added.
-- Copy and content: existing governed preview language remains intact. Only the navigation composition changed; unavailable capabilities were not made to appear enabled.
-- Responsiveness: at mobile width the unified sidebar becomes a five-item bottom navigation and the Sessions list becomes a correctly spaced modal drawer above that navigation.
+There is no `Review request` action. A message without local attachments follows one send path. When local files are attached, Forge shows one concise `Send attached context?` confirmation listing only those files before sending.
 
-**Open Questions**
+## Reference comparison
 
-- None blocking. Search and new-session creation remain visibly present but disabled because the current capability build does not authorize them.
+The supplied authority-profile capture and the current selector-open task state were inspected together. The old state devoted an entire dense card to three internal permission tiers and explanatory policy copy. The current state replaces that surface with a small two-row selector and leaves the surrounding workspace visually quiet. No authority vocabulary, selected-profile badge, or redundant grant explanation remains.
 
-**Implementation Checklist**
+The task surface was also checked at the normal desktop viewport for overflow, cropped controls, incorrect padding, heavy borders, and inconsistent radii. No P0 or P1 visual defects were found.
 
-- [x] Replace the two desktop rails with one prototype-aligned navigation sidebar.
-- [x] Redesign session rows as a flat history list.
-- [x] Integrate workspace identity, settings, and account into the sidebar footer.
-- [x] Preserve existing semantic colors, component behavior, and capability restrictions.
-- [x] Verify desktop, tablet, and mobile states in the in-app browser.
-- [x] Run renderer tests, type checking, linting, architecture boundaries, production build, and diff-integrity checks.
+## Interaction evidence
 
-**Comparison History**
+- The rendered task DOM contains neither `Authority profile` nor `Review request`.
+- `Agent and model settings` opens the compact selector.
+- The selector contains only `Agent` and `Model`.
+- The composer attachment control is announced as `Add files or folder`.
+- In the native host, that control offers `Add files…` and `Add folder…`; it does not navigate to Files.
+- Browser preview keeps native file picking disabled because it has no device grant.
+- The final browser pass reported no console warnings or errors.
+- The Docker preview returns HTTP 200 and its container reports healthy.
+- The complete source gate passed, including 36 frontend files / 382 tests and the production build.
+- The all-feature locked Rust workspace suite passed with zero failures.
 
-- Previous pass: blocked by a P1 fidelity issue—the implementation retained two visually separate rails and therefore did not adopt the prototype's defining navigation model.
-- Fix: introduced a unified `desktop-sidebar` composition, changed global navigation to compact horizontal rows, flattened session history, moved workspace/account utilities into the same surface, and added responsive resets for the mobile drawer.
-- Post-fix evidence: desktop 1600 × 992 and tablet 1024 × 768 captures show one full-height sidebar; mobile 390 × 844 shows five-item bottom navigation and a correctly ordered Sessions drawer. No console warnings or errors were present.
+## Remaining proof boundary
 
-**Follow-up Polish**
-
-- P3: once session creation and search are authorized, add their real active, loading, empty, and error states without changing the navigation structure.
+The browser preview cannot display an operating-system file/folder chooser. Its renderer behavior, command contract, bounded workspace resolution, context preparation, and native host integration are covered by frontend integration and Rust tests.
 
 final result: passed

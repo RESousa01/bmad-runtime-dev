@@ -53,7 +53,7 @@ function helpSummary(helpState: BmadRequestState): {
     case "interrupted":
       return { label: "Skill guidance", detail: "Interrupted · cannot resume" };
     case "terminal":
-      return { label: "Skill guidance", detail: "Review ended" };
+      return { label: "Skill guidance", detail: "Message ended" };
     case "unavailable":
       return { label: "Skill guidance", detail: helpState.message };
     default:

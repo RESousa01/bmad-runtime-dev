@@ -9,7 +9,7 @@ param(
 
     [string] $ConfigPath = 'crates/desktop-app/tauri.conf.json',
 
-    [string] $ApplicationPath = 'target/release/sapphirus.exe',
+    [string] $ApplicationPath = 'target/release/forge.exe',
 
     [string] $InstallerPath,
 

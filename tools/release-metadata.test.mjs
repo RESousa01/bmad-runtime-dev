@@ -23,7 +23,7 @@ function createFixture() {
   writeFileSync(
     join(root, "package.json"),
     `${JSON.stringify({
-      name: "sapphirus-desktop",
+      name: "forge-desktop",
       version: "1.2.3",
       packageManager: "pnpm@11.12.0",
       engines: { node: "24.18.0", pnpm: "11.12.0" },
@@ -32,15 +32,15 @@ function createFixture() {
   );
   writeFileSync(
     join(root, "apps", "desktop-ui", "package.json"),
-    `${JSON.stringify({ name: "@sapphirus/desktop-ui", version: "1.2.3" })}\n`,
+    `${JSON.stringify({ name: "@forge/desktop-ui", version: "1.2.3" })}\n`,
   );
   writeFileSync(
     join(root, "crates", "desktop-app", "tauri.conf.json"),
     `${JSON.stringify({
-      productName: "Sapphirus",
+      productName: "Forge",
       version: "1.2.3",
       identifier: "com.sapphirus.desktop",
-      mainBinaryName: "sapphirus",
+      mainBinaryName: "forge",
     })}\n`,
   );
   return root;
@@ -51,12 +51,12 @@ test("release metadata centralizes product, toolchain, and lock identities", () 
   try {
     const metadata = resolveReleaseMetadata(root);
     assert.deepEqual(metadata.product, {
-      name: "Sapphirus",
+      name: "Forge",
       version: "1.2.3",
       identifier: "com.sapphirus.desktop",
-      applicationName: "sapphirus.exe",
-      installerName: "Sapphirus_1.2.3_x64-setup.exe",
-      sbomName: "Sapphirus_1.2.3.cdx.json",
+      applicationName: "forge.exe",
+      installerName: "Forge_1.2.3_x64-setup.exe",
+      sbomName: "Forge_1.2.3.cdx.json",
     });
     assert.deepEqual(metadata.toolchain, {
       node: "24.18.0",
@@ -103,7 +103,7 @@ test("metadata CLI writes GitHub outputs from the same authority", () => {
     );
     assert.equal(
       readFileSync(outputPath, "utf8"),
-      "product_version=1.2.3\ninstaller_name=Sapphirus_1.2.3_x64-setup.exe\nsbom_name=Sapphirus_1.2.3.cdx.json\n",
+      "product_version=1.2.3\napplication_name=forge.exe\ninstaller_name=Forge_1.2.3_x64-setup.exe\nsbom_name=Forge_1.2.3.cdx.json\n",
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

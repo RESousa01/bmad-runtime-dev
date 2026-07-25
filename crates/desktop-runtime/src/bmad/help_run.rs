@@ -448,7 +448,7 @@ fn validate_package_identity(
     if string_field(source_identity, "sourceId")? != "method"
         || string_field(source_identity, "packageName")? != "bmad-method"
         || string_field(source_identity, "packageVersion")? != "6.10.0"
-        || string_field(source_identity, "provenanceStatus")? != "blocked_provenance"
+        || string_field(source_identity, "provenanceStatus")? != "reviewed_snapshot_only"
         || digest_map_field(source_identity, "sourceTreeHash")? != source_snapshot_hash
         || string_field(root, "distributionProfile")? != "sapphirus_package"
         || string_field(root, "installProfile")? != HELP_INSTRUCTION_FORMAT
@@ -773,7 +773,7 @@ fn verify_ledger_closure(
             != Some("sapphirus.bmad.adoption-ledger/v1")
         || adoption.get("operationalAuthority").and_then(Value::as_str) != Some("none")
         || adoption.get("promotionEligibility").and_then(Value::as_str)
-            != Some("blocked_provenance")
+            != Some("owner_attested_release")
     {
         return sealed_mismatch();
     }

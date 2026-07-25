@@ -8,8 +8,8 @@
 //! grants nothing.
 
 use desktop_runtime::{
-    sha256_bytes, BmadCandidateChange, BmadCapabilityOutput, LocalError, LocalErrorCode,
-    ProposedFileChange,
+    deserialize_strict_json, sha256_bytes, BmadCandidateChange, BmadCapabilityOutput, LocalError,
+    LocalErrorCode, ProposedFileChange,
 };
 
 use crate::bmad_capability_host::parse_capability_result;
@@ -36,7 +36,7 @@ pub(crate) fn proposed_changes_from_stored_result(
     workspace_id: &str,
     result_json: &str,
 ) -> Result<Vec<ProposedFileChange>, LocalError> {
-    let value: serde_json::Value = serde_json::from_str(result_json)
+    let value: serde_json::Value = deserialize_strict_json(result_json.as_bytes())
         .map_err(|_| integrity_error("The stored capability result is unreadable."))?;
     let output = parse_capability_result(&value)
         .map_err(|_| integrity_error("The stored capability result failed verification."))?;

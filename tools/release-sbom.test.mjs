@@ -14,12 +14,12 @@ const cargoChecksum = "11".repeat(32);
 const releaseMetadata = {
   schemaVersion: 1,
   product: {
-    name: "Sapphirus",
+    name: "Forge",
     version: "1.2.3",
     identifier: "com.sapphirus.desktop",
-    applicationName: "sapphirus.exe",
-    installerName: "Sapphirus_1.2.3_x64-setup.exe",
-    sbomName: "Sapphirus_1.2.3.cdx.json",
+    applicationName: "forge.exe",
+    installerName: "Forge_1.2.3_x64-setup.exe",
+    sbomName: "Forge_1.2.3.cdx.json",
   },
   toolchain: {
     node: "24.18.0",
@@ -67,6 +67,8 @@ test("SBOM deterministically inventories pnpm and Cargo locks", () => {
   assert.equal(first.bomFormat, "CycloneDX");
   assert.equal(first.specVersion, "1.6");
   assert.equal(first.metadata.component.version, "1.2.3");
+  assert.equal(first.metadata.component.name, "Forge");
+  assert.equal(first.metadata.component.purl, "pkg:generic/forge@1.2.3");
   assert.deepEqual(
     first.components.map((component) => component.purl),
     [

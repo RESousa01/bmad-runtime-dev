@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "../test/setup";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -90,6 +90,7 @@ const baseProjection: BmadLibraryProjection = {
           description: "Create the architecture spine.",
           targetKind: "skill_target",
           displayLabel: "Create Architecture",
+          capabilityId: null,
           availability: "capability_disabled",
           availabilityReason: "bmad_capability_disabled",
         },
@@ -110,6 +111,7 @@ const baseProjection: BmadLibraryProjection = {
         description: `Descriptive prompt reference ${code}.`,
         targetKind: "prompt_reference" as const,
         displayLabel: "Source prompt reference",
+        capabilityId: null,
         availability: "source_prompt_unavailable" as const,
         availabilityReason: "bmad_source_prompt_unavailable",
       })),
@@ -129,14 +131,18 @@ function readyState(
 }
 
 describe("BmadLibraryPanel", () => {
-  it("presents installed skills, available actions, and agents as separate catalog sections", () => {
+  it("leads with reviewed agents and keeps raw source catalog rows collapsed", () => {
     render(<BmadLibraryPanel state={readyState()} />);
 
-    const skills = screen.getByRole("region", { name: "Installed skills" });
-    const actions = screen.getByRole("region", { name: "Available actions" });
-    const agents = screen.getByRole("region", { name: "Agents" });
+    const agents = screen.getByRole("region", { name: "Reviewed agents" });
+    const sourceDetails = screen.getByText(/Source catalog details/u).closest("details");
 
-    expect(screen.getByRole("heading", { level: 2, name: "BMAD library" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Skills & agents" })).toBeTruthy();
+    expect(sourceDetails).not.toBeNull();
+    expect(sourceDetails).toHaveProperty("open", false);
+    fireEvent.click(within(sourceDetails!).getByText(/Source catalog details/u));
+    const skills = screen.getByRole("region", { name: "Installed skills" });
+    const actions = screen.getByRole("region", { name: "Source actions" });
 
     expect(within(skills).getByText("Create Architecture")).toBeTruthy();
     expect(within(skills).queryByText("Architecture")).toBeNull();
@@ -149,7 +155,9 @@ describe("BmadLibraryPanel", () => {
   it("scopes duplicate menu aliases by module, skill, and action identity", () => {
     render(<BmadLibraryPanel state={readyState()} />);
 
-    const actions = screen.getByRole("region", { name: "Available actions" });
+    const sourceDetails = screen.getByText(/Source catalog details/u).closest("details");
+    fireEvent.click(within(sourceDetails!).getByText(/Source catalog details/u));
+    const actions = screen.getByRole("region", { name: "Source actions" });
     expect(within(actions).getAllByText("Menu code DP")).toHaveLength(2);
 
     const identifiers = screen.getByText("Internal identifiers").closest("details");
@@ -168,10 +176,76 @@ describe("BmadLibraryPanel", () => {
     render(<BmadLibraryPanel state={readyState()} />);
 
     const paige = screen.getByRole("listitem", { name: "Paige, Technical Writer" });
-    expect(within(paige).getAllByText("Source prompt reference — unavailable")).toHaveLength(4);
+    expect(within(paige).getAllByText("Source-only prompt")).toHaveLength(4);
     expect(within(paige).getAllByText("Source prompt unavailable")).toHaveLength(5);
-    expect(within(paige).queryByRole("button")).toBeNull();
+    expect(within(paige).queryByRole("button", { name: "Start reviewed run" })).toBeNull();
     expect(within(paige).queryByRole("link")).toBeNull();
+  });
+
+  it("starts only agent menus projected as available", () => {
+    const onRunCapability = vi.fn();
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={onRunCapability}
+        state={readyState({
+          methodAgents: [
+            {
+              ...architect,
+              availability: "available",
+              blockerCodes: [],
+              menus: architect.menus.map((menu) => ({
+                ...menu,
+                capabilityId: "bmm:bmad-architecture",
+                availability: "available",
+                availabilityReason: null,
+              })),
+            },
+            baseProjection.methodAgents[1]!,
+          ],
+        })}
+      />,
+    );
+
+    const runs = screen.getAllByRole("button", { name: "Start reviewed run" });
+    expect(runs).toHaveLength(1);
+    const run = runs[0]!;
+    fireEvent.click(run);
+    expect(onRunCapability).toHaveBeenCalledWith(
+      "bmm:bmad-architecture",
+      "Create Architecture",
+    );
+    const paige = screen.getByRole("listitem", { name: "Paige, Technical Writer" });
+    expect(within(paige).queryByRole("button", { name: "Start reviewed run" })).toBeNull();
+  });
+
+  it("labels a runnable capability as an adapted one-shot", () => {
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          methodAgents: [
+            {
+              ...architect,
+              availability: "available",
+              blockerCodes: [],
+              menus: architect.menus.map((menu) => ({
+                ...menu,
+                capabilityId: "bmm:bmad-product-brief",
+                availability: "available",
+                availabilityReason: null,
+              })),
+            },
+          ],
+        })}
+      />,
+    );
+
+    // The runnable capability is marked "Adapted" so it is not mistaken for the
+    // full upstream workflow.
+    expect(screen.getAllByText("Adapted").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Start reviewed run" })).toBeTruthy();
   });
 
   it("renders HTML-like projected strings as inert text", () => {
@@ -230,7 +304,7 @@ describe("BmadLibraryPanel", () => {
     );
 
     expect(screen.getByText("No installed skills available.")).toBeTruthy();
-    expect(screen.getByText("No available actions.")).toBeTruthy();
+    expect(screen.getByText("No source actions recorded.")).toBeTruthy();
     expect(screen.getByText("No agents available.")).toBeTruthy();
   });
 
@@ -266,10 +340,53 @@ describe("BmadLibraryPanel", () => {
     const { container } = render(<BmadLibraryPanel state={readyState()} />);
 
     expect(screen.getAllByText("Capability disabled").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Source catalog details/u).closest("details")).toHaveProperty("open", false);
     expect(container.querySelector("button, a, input, select, textarea")).toBeNull();
     expect(document.body.textContent).not.toMatch(
       /\b(?:Chat|Run|Execute|Install|Activate|Convert|Evaluate)\b|Approve & apply locally/i,
     );
+  });
+
+  it("starts the five reviewed Builder authoring operations while keeping outputs inactive", () => {
+    const onRunBuilderCapability = vi.fn();
+    render(
+      <BmadLibraryPanel
+        onRunBuilderCapability={onRunBuilderCapability}
+        state={readyState({
+          builderPackages: [
+            {
+              packageName: "bmad-builder",
+              packageVersion: "2.1.0",
+              packageKind: "agent",
+              displayName: "Builder agent",
+              activationState: "installed_inactive",
+              resourceCount: 4,
+              blockerCodes: ["builder_engine_gated"],
+              descriptorDigest: "0123456789ab",
+            },
+            {
+              packageName: "bmad-builder",
+              packageVersion: "2.1.0",
+              packageKind: "workflow",
+              displayName: "Builder workflow",
+              activationState: "installed_inactive",
+              resourceCount: 2,
+              blockerCodes: ["builder_engine_gated"],
+              descriptorDigest: "abcdef012345",
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getAllByText("Inactive output")).toHaveLength(2);
+    const create = screen.getByRole("button", { name: "Create or rebuild agent" });
+    fireEvent.click(create);
+    expect(onRunBuilderCapability).toHaveBeenCalledWith(
+      "builder:agent.create_rebuild",
+      "Create or rebuild agent",
+    );
+    expect(screen.getAllByRole("button", { name: /agent|workflow/i })).toHaveLength(5);
   });
 
   it("has no automated accessibility violations in the ready state", async () => {

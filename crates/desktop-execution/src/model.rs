@@ -352,13 +352,6 @@ pub enum JournalState {
     ManualReview,
 }
 
-impl JournalState {
-    #[must_use]
-    pub const fn is_terminal(self) -> bool {
-        matches!(self, Self::Completed | Self::Recovered | Self::ManualReview)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum JournalOperationState {

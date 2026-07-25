@@ -164,6 +164,7 @@ function appendGithubOutputs(path, metadata) {
     absolutePath,
     [
       `product_version=${metadata.product.version}`,
+      `application_name=${metadata.product.applicationName}`,
       `installer_name=${metadata.product.installerName}`,
       `sbom_name=${metadata.product.sbomName}`,
       "",

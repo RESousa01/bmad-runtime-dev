@@ -33,6 +33,12 @@ pub(crate) struct HelpContextInput<'a> {
     pub project_ref: ContractId,
     pub run_ref: ContractId,
     pub created_at: desktop_runtime::UnixMillis,
+    pub workspace_context: &'a [WorkspaceHelpContextItem],
+}
+
+pub(crate) struct WorkspaceHelpContextItem {
+    pub relative_path: desktop_runtime::RelativeWorkspacePath,
+    pub content: String,
 }
 
 #[derive(Debug, Error)]
@@ -168,14 +174,60 @@ pub(crate) fn prepare_help_context(
         project_ref,
         run_ref,
         created_at,
+        workspace_context,
     } = input;
+    let mut candidates = base_context_candidates(compiled, intent)?;
+    add_evidence_candidate(&mut candidates, policy)?;
+    add_workspace_context_candidates(&mut candidates, workspace_context)?;
+    let expires_at = desktop_runtime::UnixMillis(
+        created_at
+            .0
+            .checked_add(5 * 60 * 1_000)
+            .ok_or(HelpContextError::Invalid)?,
+    );
+    ContextPreparer::new(PatternSecretScanner)
+        .prepare(PrepareContextInput {
+            tenant_ref,
+            project_ref,
+            run_ref,
+            purpose: "bmad_help".to_owned(),
+            model_role: "method_help".to_owned(),
+            canonical_output_schema_id: configuration.canonical_output_schema_id.clone(),
+            canonical_output_schema_hash: compiled.proposal_schema_closure_hash(),
+            provider_profile_hash: configuration.provider_profile_hash,
+            model_profile_hash: compiled
+                .exact_binding()
+                .model_binding
+                .data
+                .model_profile_hash,
+            deployment_hash: configuration.deployment_hash,
+            policy_hash: configuration.policy_hash,
+            region: configuration.region.clone(),
+            retention_mode: configuration.retention_mode,
+            created_at,
+            expires_at,
+            limits: EgressLimits {
+                maximum_context_items: 104,
+                maximum_context_bytes: 256 * 1024,
+                maximum_token_estimate: 65_536,
+            },
+            candidates,
+            exclusions: Vec::new(),
+        })
+        .map_err(Into::into)
+}
+
+fn base_context_candidates(
+    compiled: &BmadCompiledHelpInvocation,
+    intent: &BmadHelpIntent,
+) -> Result<Vec<ContextCandidate>, HelpContextError> {
     let instruction = std::str::from_utf8(compiled.instruction_bytes())
         .map_err(|_| HelpContextError::Invalid)?
         .to_owned();
     let architecture = architecture_action(compiled).map_err(|_| HelpContextError::Invalid)?;
     let catalog_candidate =
         canonical_string(architecture).map_err(|_| HelpContextError::Invalid)?;
-    let mut candidates = vec![
+    Ok(vec![
         candidate(
             "context_01J00000000000000000000001",
             "review/bmad-help/instruction.md",
@@ -200,7 +252,13 @@ pub(crate) fn prepare_help_context(
             ContextClassification::Internal,
             catalog_candidate,
         )?,
-    ];
+    ])
+}
+
+fn add_evidence_candidate(
+    candidates: &mut Vec<ContextCandidate>,
+    policy: &DeterministicHelpPolicy,
+) -> Result<(), HelpContextError> {
     if let Some(fact) = policy.evidence_facts.first() {
         if policy.evidence_facts.len() != 1 || policy.evidence_tokens.len() != 1 {
             return Err(HelpContextError::Invalid);
@@ -216,42 +274,39 @@ pub(crate) fn prepare_help_context(
     } else if !policy.evidence_tokens.is_empty() {
         return Err(HelpContextError::Invalid);
     }
-    let expires_at = desktop_runtime::UnixMillis(
-        created_at
-            .0
-            .checked_add(5 * 60 * 1_000)
-            .ok_or(HelpContextError::Invalid)?,
-    );
-    ContextPreparer::new(PatternSecretScanner)
-        .prepare(PrepareContextInput {
-            tenant_ref,
-            project_ref,
-            run_ref,
-            purpose: "bmad_help".to_owned(),
-            model_role: "method_help".to_owned(),
-            canonical_output_schema_id: configuration.canonical_output_schema_id.clone(),
-            canonical_output_schema_hash: compiled.proposal_schema_closure_hash(),
-            provider_profile_hash: configuration.provider_profile_hash,
-            model_profile_hash: compiled
-                .exact_binding()
-                .model_binding
-                .data
-                .model_profile_hash,
-            deployment_hash: configuration.deployment_hash,
-            policy_hash: configuration.policy_hash,
-            region: configuration.region.to_owned(),
-            retention_mode: configuration.retention_mode,
-            created_at,
-            expires_at,
-            limits: EgressLimits {
-                maximum_context_items: 4,
-                maximum_context_bytes: 64 * 1024,
-                maximum_token_estimate: 16_000,
-            },
-            candidates,
-            exclusions: Vec::new(),
-        })
-        .map_err(Into::into)
+    Ok(())
+}
+
+fn add_workspace_context_candidates(
+    candidates: &mut Vec<ContextCandidate>,
+    workspace_context: &[WorkspaceHelpContextItem],
+) -> Result<(), HelpContextError> {
+    for item in workspace_context {
+        let content_hash = sha256_bytes(item.content.as_bytes());
+        let item_hash = canonical_hash(
+            "bmad-help-workspace-context",
+            1,
+            &(item.relative_path.as_str(), content_hash),
+        )
+        .map_err(|_| HelpContextError::Invalid)?;
+        let client_item_id =
+            derived_contract_id("context", item_hash).map_err(|_| HelpContextError::Invalid)?;
+        let language = item
+            .relative_path
+            .as_str()
+            .rsplit_once('.')
+            .map(|(_, extension)| extension)
+            .filter(|extension| !extension.contains('/'));
+        candidates.push(candidate(
+            client_item_id.as_str(),
+            item.relative_path.as_str(),
+            "workspace_context",
+            language,
+            ContextClassification::Confidential,
+            item.content.clone(),
+        )?);
+    }
+    Ok(())
 }
 
 fn candidate(
@@ -327,13 +382,13 @@ mod tests {
     use desktop_runtime::{
         canonical_hash, canonical_json_bytes, sha256_bytes, BmadHelpBindingCompiler,
         BmadHelpIntent, BmadTrustedHelpModelProfile, BmadTrustedHelpModelProfileData, ContractId,
-        UnixMillis,
+        RelativeWorkspacePath, UnixMillis,
     };
     use serde_json::{json, Value};
 
     use super::{
         classify_architecture_signal, derive_deterministic_policy, prepare_help_context,
-        HelpContextInput,
+        HelpContextInput, WorkspaceHelpContextItem,
     };
     use crate::bmad_foundation::load_bmad_foundation;
     use crate::bmad_model::config::current_help_model_configuration;
@@ -391,6 +446,30 @@ mod tests {
 
     fn id(value: &str) -> ContractId {
         ContractId::new(value).expect("qualified fixture identifier")
+    }
+
+    fn assert_changed_intent_changes_manifest(
+        manifest: &desktop_egress::ContextEgressManifest,
+        compiled: &desktop_runtime::BmadCompiledHelpInvocation,
+    ) {
+        let changed_intent =
+            BmadHelpIntent::new("Review the architecture").expect("changed bounded intent");
+        let changed_policy =
+            derive_deterministic_policy(compiled, &changed_intent).expect("changed policy");
+        let configuration = current_help_model_configuration().expect("host configuration");
+        let changed = prepare_help_context(HelpContextInput {
+            compiled,
+            intent: &changed_intent,
+            policy: &changed_policy,
+            configuration: &configuration,
+            tenant_ref: id("tenant_01J00000000000000000000000"),
+            project_ref: id("project_01J00000000000000000000000"),
+            run_ref: id("run_01J000000000000000000000000"),
+            created_at: UnixMillis(1_000),
+            workspace_context: &[],
+        })
+        .expect("changed exact context");
+        assert_ne!(changed.manifest_hash, manifest.manifest_hash);
     }
 
     #[test]
@@ -475,13 +554,14 @@ mod tests {
             project_ref: id("project_01J00000000000000000000000"),
             run_ref: id("run_01J000000000000000000000000"),
             created_at: UnixMillis(1_000),
+            workspace_context: &[],
         })
         .expect("exact prepared context");
 
         assert_eq!(manifest.draft.expires_at, UnixMillis(301_000));
-        assert_eq!(manifest.draft.limits.maximum_context_items, 4);
-        assert_eq!(manifest.draft.limits.maximum_context_bytes, 64 * 1024);
-        assert_eq!(manifest.draft.limits.maximum_token_estimate, 16_000);
+        assert_eq!(manifest.draft.limits.maximum_context_items, 104);
+        assert_eq!(manifest.draft.limits.maximum_context_bytes, 256 * 1024);
+        assert_eq!(manifest.draft.limits.maximum_token_estimate, 65_536);
         assert_eq!(manifest.draft.items.len(), 4);
 
         let items = &manifest.draft.items;
@@ -549,22 +629,46 @@ mod tests {
         let reordered = reordered.seal().expect("valid reordered manifest");
         assert_ne!(reordered.manifest_hash, manifest.manifest_hash);
 
-        let changed_intent =
-            BmadHelpIntent::new("Review the architecture").expect("changed bounded intent");
-        let changed_policy =
-            derive_deterministic_policy(&compiled, &changed_intent).expect("changed policy");
-        let changed = prepare_help_context(HelpContextInput {
+        assert_changed_intent_changes_manifest(&manifest, &compiled);
+    }
+
+    #[test]
+    fn selected_workspace_context_is_included_and_secret_scanned() {
+        let compiled = compiled_help();
+        let intent = BmadHelpIntent::new("Explain this module").expect("bounded intent");
+        let policy = derive_deterministic_policy(&compiled, &intent).expect("closed policy");
+        let configuration = current_help_model_configuration().expect("host configuration");
+        let workspace_context = [WorkspaceHelpContextItem {
+            relative_path: RelativeWorkspacePath::new("src/module.ts").expect("relative path"),
+            content: "export const API_KEY=must-not-cross-workspace;\n".to_owned(),
+        }];
+
+        let manifest = prepare_help_context(HelpContextInput {
             compiled: &compiled,
-            intent: &changed_intent,
-            policy: &changed_policy,
+            intent: &intent,
+            policy: &policy,
             configuration: &configuration,
             tenant_ref: id("tenant_01J00000000000000000000000"),
             project_ref: id("project_01J00000000000000000000000"),
             run_ref: id("run_01J000000000000000000000000"),
             created_at: UnixMillis(1_000),
+            workspace_context: &workspace_context,
         })
-        .expect("changed exact context");
-        assert_ne!(changed.manifest_hash, manifest.manifest_hash);
+        .expect("prepared workspace context");
+
+        let item = manifest
+            .draft
+            .items
+            .iter()
+            .find(|item| item.semantic_role == "workspace_context")
+            .expect("workspace context item");
+        assert_eq!(item.relative_label.as_str(), "src/module.ts");
+        assert_eq!(item.language.as_deref(), Some("ts"));
+        assert_eq!(
+            item.outbound_content,
+            "export const API_KEY=[REDACTED:credential]\n"
+        );
+        assert_eq!(manifest.draft.secret_findings.len(), 1);
     }
 
     #[test]
@@ -586,6 +690,7 @@ mod tests {
             project_ref: id("project_01J00000000000000000000000"),
             run_ref: id("run_01J000000000000000000000000"),
             created_at: UnixMillis(1_000),
+            workspace_context: &[],
         })
         .expect("redacted exact context");
 

@@ -1,9 +1,9 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
+use std::fmt;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
-    BmadHelpIntent, ContractId, LocalResult, ProposedFileChange, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis,
+    BmadHelpIntent, ContractId, ProposedFileChange, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 
 /// User-facing approval outcomes. Only `Apply` can lead to spec issuance.
@@ -52,10 +52,65 @@ pub enum DensityPreference {
     Compact,
 }
 
+/// Renderer-selected direct model provider.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelProviderId {
+    #[serde(rename = "openai")]
+    OpenAi,
+    Azure,
+}
+
+/// A short-lived provider secret accepted only by the native connection
+/// command. Debugging and serialization are always redacted, and the backing
+/// bytes are wiped when the command leaves memory.
+#[derive(Clone, Deserialize, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[serde(transparent)]
+pub struct ModelProviderCredential(String);
+
+impl ModelProviderCredential {
+    #[must_use]
+    pub fn is_valid(&self) -> bool {
+        (8..=4_096).contains(&self.0.len())
+            && !self.0.chars().any(char::is_whitespace)
+            && !self.0.chars().any(char::is_control)
+    }
+
+    #[must_use]
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Debug for ModelProviderCredential {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("[REDACTED]")
+    }
+}
+
+impl Serialize for ModelProviderCredential {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str("[REDACTED]")
+    }
+}
+
+/// Read-only Git snapshots exposed to the desktop Review surface.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GitComparison {
+    HeadToWorktree,
+    HeadToIndex,
+    IndexToWorktree,
+}
+
 /// Narrow desktop commands accepted by the local runtime.
 ///
-/// Notably absent: arbitrary paths, SQL, shell text, executable paths, provider
-/// endpoints, access tokens, and a direct "execute spec" primitive.
+/// Notably absent: arbitrary paths, SQL, shell text, executable paths, and a
+/// direct "execute spec" primitive. Provider secrets may appear only in the
+/// redacted, zeroizing model connection variant.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "type", content = "input", rename_all = "snake_case")]
 pub enum LocalCommand {
@@ -75,6 +130,14 @@ pub enum LocalCommand {
         relative_path: RelativeWorkspacePath,
         max_bytes: u32,
     },
+    ReadGitStatus {
+        workspace_id: ContractId,
+    },
+    ReadGitDiff {
+        workspace_id: ContractId,
+        relative_path: RelativeWorkspacePath,
+        comparison: GitComparison,
+    },
     SearchWorkspace {
         workspace_id: ContractId,
         query: String,
@@ -84,6 +147,9 @@ pub enum LocalCommand {
         workspace_id: ContractId,
     },
     PickWorkspaceFiles {
+        workspace_id: ContractId,
+    },
+    PickWorkspaceFolder {
         workspace_id: ContractId,
     },
     BmadLibrarySnapshot {
@@ -101,11 +167,22 @@ pub enum LocalCommand {
         current_intent: BmadHelpIntent,
     },
     ModelAuthStatus,
-    ModelAuthSignIn,
+    ModelAuthSignIn {
+        provider_id: ModelProviderId,
+        model_id: String,
+        credential: ModelProviderCredential,
+        endpoint: Option<String>,
+        region: Option<String>,
+    },
     ModelAuthSignOut,
+    SetModelSelection {
+        provider_id: ModelProviderId,
+        model_id: String,
+    },
     PrepareBmadHelpReview {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
+        context_paths: Vec<RelativeWorkspacePath>,
     },
     ApproveBmadHelpReview {
         workspace_id: ContractId,
@@ -163,6 +240,23 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
         capability_id: String,
+    },
+    SendChatMessage {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        client_session_ref: String,
+        agent_code: Option<String>,
+        text: String,
+        context_paths: Vec<RelativeWorkspacePath>,
+    },
+    ChatHistory {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        client_session_ref: String,
+    },
+    BmadWorkflowState {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
     },
     PreviewContext {
         workspace_id: ContractId,
@@ -235,17 +329,24 @@ impl LocalCommand {
             Self::RevokeWorkspace { .. } => "workspace.revoke",
             Self::ListWorkspaceEntries { .. } => "workspace.list_entries",
             Self::ReadWorkspaceText { .. } => "workspace.read_text",
+            Self::ReadGitStatus { .. } => "workspace.git_status",
+            Self::ReadGitDiff { .. } => "workspace.git_diff",
             Self::SearchWorkspace { .. } => "workspace.search",
             Self::ScanBmad { .. } => "bmad.scan",
             Self::PickWorkspaceFiles { .. } => "workspace.pick_files",
+            Self::PickWorkspaceFolder { .. } => "workspace.pick_folder",
             Self::BmadLibrarySnapshot { .. } => "bmad.library.snapshot",
             Self::ViewBmadPersona { .. } => "bmad.persona.view",
             Self::OffboardingInspect => "app.offboarding.inspect",
             Self::OffboardingErase => "app.offboarding.erase",
             Self::CreateBmadHelpRun { .. } => "run.create",
             Self::ModelAuthStatus => "model.auth.status",
-            Self::ModelAuthSignIn => "model.auth.sign_in",
+            Self::ModelAuthSignIn { .. } => "model.auth.sign_in",
             Self::ModelAuthSignOut => "model.auth.sign_out",
+            Self::SetModelSelection { .. } => "model.selection.set",
+            Self::SendChatMessage { .. } => "chat.send",
+            Self::ChatHistory { .. } => "chat.history",
+            Self::BmadWorkflowState { .. } => "bmad.workflow.state",
             Self::PrepareBmadHelpReview { .. } => "bmad.help.prepare",
             Self::ApproveBmadHelpReview { .. } => "bmad.help.approve",
             Self::CancelBmadHelpReview { .. } => "bmad.help.cancel",
@@ -284,6 +385,8 @@ impl LocalCommand {
                 | Self::ListWorkspaces
                 | Self::ListWorkspaceEntries { .. }
                 | Self::ReadWorkspaceText { .. }
+                | Self::ReadGitStatus { .. }
+                | Self::ReadGitDiff { .. }
                 | Self::SearchWorkspace { .. }
                 | Self::ScanBmad { .. }
                 | Self::BmadLibrarySnapshot { .. }
@@ -292,6 +395,8 @@ impl LocalCommand {
                 | Self::ModelAuthStatus
                 | Self::LatestBmadHelpRun { .. }
                 | Self::LatestBmadCapabilityRun { .. }
+                | Self::ChatHistory { .. }
+                | Self::BmadWorkflowState { .. }
                 | Self::PreviewContext { .. }
                 | Self::ChangesHistory { .. }
                 | Self::PrepareChangesRecovery { .. }
@@ -315,17 +420,6 @@ pub struct CommandReceipt {
     pub accepted_at: UnixMillis,
     pub operation_id: Option<ContractId>,
 }
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ProjectionScope {
-    pub workspace_id: Option<ContractId>,
-    pub session_id: Option<ContractId>,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(transparent)]
-pub struct ProjectionCursor(pub u64);
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -390,31 +484,11 @@ pub enum ProjectionEventKind {
     },
 }
 
-#[async_trait]
-pub trait LocalRuntimeCommandBus: Send + Sync {
-    async fn execute(
-        &self,
-        request_id: ContractId,
-        command: LocalCommand,
-    ) -> LocalResult<CommandReceipt>;
-}
-
-#[async_trait]
-pub trait RendererProjection: Send + Sync {
-    async fn snapshot(&self, scope: ProjectionScope) -> LocalResult<ProjectionSnapshot>;
-
-    async fn events_after(
-        &self,
-        scope: ProjectionScope,
-        cursor: ProjectionCursor,
-    ) -> LocalResult<Vec<ProjectionEvent>>;
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
-        ApprovalChoice, BmadLibraryProjectionScope, LocalCommand, ProjectionEventKind,
-        RecoveryApprovalChoice,
+        ApprovalChoice, BmadLibraryProjectionScope, GitComparison, LocalCommand,
+        ProjectionEventKind, RecoveryApprovalChoice,
     };
     use crate::{sha256_bytes, ContractId, RelativeWorkspacePath};
 
@@ -545,6 +619,30 @@ mod tests {
 
         assert_eq!(command.name(), "bmad.help.latest");
         assert!(!command.is_mutating());
+        Ok(())
+    }
+
+    #[test]
+    fn git_review_commands_are_explicit_read_only_capabilities(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let workspace_id = id("workspace_1")?;
+        let status = LocalCommand::ReadGitStatus {
+            workspace_id: workspace_id.clone(),
+        };
+        let diff = LocalCommand::ReadGitDiff {
+            workspace_id,
+            relative_path: RelativeWorkspacePath::new("src/App.tsx")?,
+            comparison: GitComparison::IndexToWorktree,
+        };
+
+        assert_eq!(status.name(), "workspace.git_status");
+        assert!(!status.is_mutating());
+        assert_eq!(diff.name(), "workspace.git_diff");
+        assert!(!diff.is_mutating());
+        assert_eq!(
+            serde_json::to_value(GitComparison::HeadToWorktree)?,
+            serde_json::json!("head_to_worktree")
+        );
         Ok(())
     }
 

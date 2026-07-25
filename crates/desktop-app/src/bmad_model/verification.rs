@@ -1,5 +1,5 @@
 use desktop_cloud::{CanonicalOutputValidator, CloudError};
-#[cfg(feature = "deterministic-help")]
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
 use desktop_cloud::{
     ModelAccessReceipt, ReceiptProofVerifier, ReplaySafeReceiptVerifier, SystemReceiptClock,
 };
@@ -39,28 +39,32 @@ impl CanonicalOutputValidator for BmadHelpProposalValidator {
     }
 }
 
-#[cfg(feature = "deterministic-help")]
-#[derive(Clone, Copy, Debug, Default)]
-pub(super) struct DeterministicReceiptProofVerifier;
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+#[derive(Clone, Copy, Debug)]
+pub(super) struct DevelopmentReceiptProofVerifier {
+    expected_proof: &'static str,
+}
 
-#[cfg(feature = "deterministic-help")]
-impl ReceiptProofVerifier for DeterministicReceiptProofVerifier {
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+impl ReceiptProofVerifier for DevelopmentReceiptProofVerifier {
     fn verify_proof(&self, receipt: &ModelAccessReceipt) -> Result<(), CloudError> {
-        if receipt.proof != "deterministic-fake-no-trust" {
+        if receipt.proof != self.expected_proof {
             return Err(CloudError::ReceiptInvalid);
         }
         Ok(())
     }
 }
 
-#[cfg(feature = "deterministic-help")]
-pub(super) type DeterministicReceiptVerifier =
-    ReplaySafeReceiptVerifier<DeterministicReceiptProofVerifier, SystemReceiptClock>;
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+pub(super) type DevelopmentReceiptVerifier =
+    ReplaySafeReceiptVerifier<DevelopmentReceiptProofVerifier, SystemReceiptClock>;
 
-#[cfg(feature = "deterministic-help")]
-pub(super) fn deterministic_receipt_verifier() -> Result<DeterministicReceiptVerifier, CloudError> {
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+pub(super) fn development_receipt_verifier(
+    expected_proof: &'static str,
+) -> Result<DevelopmentReceiptVerifier, CloudError> {
     ReplaySafeReceiptVerifier::new(
-        DeterministicReceiptProofVerifier,
+        DevelopmentReceiptProofVerifier { expected_proof },
         SystemReceiptClock,
         5 * 60 * 1_000,
         30 * 1_000,
@@ -72,18 +76,18 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use desktop_cloud::{CanonicalOutputValidator, CloudError};
-    #[cfg(feature = "deterministic-help")]
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
     use desktop_cloud::{ModelAccessReceipt, ReceiptProofVerifier};
-    #[cfg(feature = "deterministic-help")]
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
     use desktop_egress::RetentionMode;
-    #[cfg(feature = "deterministic-help")]
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
     use desktop_runtime::UnixMillis;
     use desktop_runtime::{sha256_bytes, ContractId};
     use serde_json::json;
 
     use super::BmadHelpProposalValidator;
-    #[cfg(feature = "deterministic-help")]
-    use super::DeterministicReceiptProofVerifier;
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+    use super::DevelopmentReceiptProofVerifier;
 
     fn id(value: &str) -> ContractId {
         ContractId::new(value).expect("qualified fixture identifier")
@@ -120,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "deterministic-help")]
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
     fn deterministic_proof_accepts_only_the_explicit_no_trust_marker() {
         let mut receipt = ModelAccessReceipt {
             schema_version: "sapphirus.model-access-receipt.v1".to_owned(),
@@ -145,12 +149,18 @@ mod tests {
             proof: "deterministic-fake-no-trust".to_owned(),
         };
         assert_eq!(
-            DeterministicReceiptProofVerifier.verify_proof(&receipt),
+            DevelopmentReceiptProofVerifier {
+                expected_proof: "deterministic-fake-no-trust",
+            }
+            .verify_proof(&receipt),
             Ok(())
         );
         receipt.proof = "forged".to_owned();
         assert_eq!(
-            DeterministicReceiptProofVerifier.verify_proof(&receipt),
+            DevelopmentReceiptProofVerifier {
+                expected_proof: "deterministic-fake-no-trust",
+            }
+            .verify_proof(&receipt),
             Err(CloudError::ReceiptInvalid)
         );
     }

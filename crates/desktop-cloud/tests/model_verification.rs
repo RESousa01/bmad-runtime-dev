@@ -387,6 +387,19 @@ async fn valid_typed_response_and_receipt_are_verified() {
 }
 
 #[tokio::test]
+async fn duplicate_decoded_keys_are_rejected_before_schema_validation() {
+    let request = authorized_fixture();
+    let response = raw_response_with_payload(&request, r#"{"summary":"first","summary":"second"}"#);
+    let (dispatched, response) = dispatch(request, response).await;
+
+    assert_eq!(
+        verify_dispatched_model_response(dispatched, response, &KnownSchema, &KnownReceipt)
+            .expect_err("duplicate decoded keys must fail closed"),
+        CloudError::InvalidModelOutput
+    );
+}
+
+#[tokio::test]
 async fn verified_output_retains_exact_original_utf8_json_bytes() {
     let exact_payload = "{\n  \"z\": \"\\u00e9\",\n  \"a\": \"é\"\n}";
     let request = authorized_fixture();

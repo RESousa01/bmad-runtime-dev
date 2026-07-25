@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
 import type { ContextPreviewProjection } from "../lib/hostClient";
 import { TaskWorkspace, type TaskWorkspaceProps } from "./TaskWorkspace";
+import { emptyChatLane } from "../state/chatSessions";
 
 function createContextPreview(
   relativePaths: readonly string[],
@@ -36,7 +37,12 @@ function createProps(
 ): TaskWorkspaceProps {
   return {
     canAttachFiles: true,
+    chatLane: emptyChatLane,
+    onAskMethodGuidance: vi.fn(async () => undefined),
+    onSelectAgent: vi.fn(),
     contextPreview: null,
+    contextSelectionMode: "manual",
+    contextSuggestionBusy: false,
     hostStatusLabel: "Desktop host ready",
     interactionDisabled: false,
     isBrowserDemo: false,
@@ -49,11 +55,14 @@ function createProps(
     modelAccessLabel: "Development model",
     agentLibrary: { kind: "idle" },
     attachNotice: null,
-    onAttachFiles: vi.fn(),
+    onAttachFiles: vi.fn(async () => undefined),
+    onAttachFolder: vi.fn(async () => undefined),
+    onClearContext: vi.fn(),
     onOpenChanges: vi.fn(),
     onOpenMethodLibrary: vi.fn(),
     onOpenRunDetails: vi.fn(),
-    onReviewRequest: vi.fn(async () => undefined),
+    onSuggestContext: vi.fn(async () => undefined),
+    onSendRequest: vi.fn(async () => undefined),
     sessionTitle: "Method guidance",
     workspaceName: "sapphirus",
     ...overrides,
@@ -67,25 +76,31 @@ describe("TaskWorkspace Method guidance", () => {
     expect(
       screen.getByLabelText("Describe what you want skill guidance for"),
     ).toHaveProperty("disabled", false);
-    expect(screen.getByRole("button", { name: "Attach files" })).toHaveProperty(
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toHaveProperty(
       "disabled",
       false,
     );
     expect(screen.getByRole("button", { name: "Agent and model settings" })).toBeTruthy();
+    expect(screen.queryByText("Authority profile")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Review request" }),
+      screen.getByRole("button", { name: "Send message" }),
     ).toHaveProperty("disabled", true);
-    expect(screen.getAllByText("Local skill guidance").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Review request")).toBeNull();
+    expect(screen.queryByText("Local skill guidance")).toBeNull();
+    expect(screen.getAllByText("BMAD Help").length).toBeGreaterThan(0);
     expect(
-      screen.getAllByText(/inert local BMAD Help run/i).length,
+      screen.getAllByText(/Local files are included only when you add them/i).length,
     ).toBeGreaterThan(0);
+    expect(screen.queryByText(/confirmation/i)).toBeNull();
   });
 
-  it("presents the agent capabilities, installed agents, and review policy", async () => {
+  it("presents compact agent and model settings without loading or policy clutter", async () => {
     const user = userEvent.setup();
+    const onOpenMethodLibrary = vi.fn();
     render(
       <TaskWorkspace
         {...createProps({
+          onOpenMethodLibrary,
           agentLibrary: {
             kind: "ready",
             projection: {
@@ -135,13 +150,44 @@ describe("TaskWorkspace Method guidance", () => {
     await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
 
     const dialog = screen.getByRole("region", { name: "Agent and model" });
-    expect(within(dialog).getByText("BMAD Help")).toBeTruthy();
-    expect(within(dialog).getByText("Winston")).toBeTruthy();
-    expect(within(dialog).getByText("Amelia")).toBeTruthy();
-    expect(within(dialog).getByText("Capability disabled")).toBeTruthy();
+    expect(within(dialog).getByText("Agent")).toBeTruthy();
+    expect(within(dialog).getByText("Model")).toBeTruthy();
+    // Plain chat is the default and is always one click away: BMAD is an
+    // overlay on the conversation, never a prerequisite for having one.
+    expect(within(dialog).getByText("No agent — plain chat")).toBeTruthy();
     expect(within(dialog).getByText("Development model")).toBeTruthy();
-    expect(within(dialog).getByText("Review before send")).toBeTruthy();
-    expect(within(dialog).queryByRole("button", { name: "Open settings" })).toBeNull();
+    expect(within(dialog).queryByText("Winston")).toBeNull();
+    expect(within(dialog).queryByText("Amelia")).toBeNull();
+    expect(within(dialog).queryByText("Loading installed agents…")).toBeNull();
+    expect(within(dialog).queryByText("Review before send")).toBeNull();
+
+    await user.click(within(dialog).getByRole("button", { name: "Open skills and agents" }));
+    expect(onOpenMethodLibrary).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("region", { name: "Agent and model" })).toBeNull();
+  });
+
+  it("does not claim installed agents are loading in browser preview", async () => {
+    const user = userEvent.setup();
+    render(
+      <TaskWorkspace
+        {...createProps({
+          agentLibrary: { kind: "idle" },
+          isBrowserDemo: true,
+          methodGuidanceAvailable: false,
+          methodLibraryAvailable: false,
+          modelAccessLabel: "No model access",
+        })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
+    const dialog = screen.getByRole("region", { name: "Agent and model" });
+    expect(within(dialog).getByText("No agent — plain chat")).toBeTruthy();
+    expect(within(dialog).getByText("No model access")).toBeTruthy();
+    expect(within(dialog).queryByText("Loading installed agents…")).toBeNull();
+    expect(
+      within(dialog).getByRole("button", { name: "Open skills and agents" }),
+    ).toHaveProperty("disabled", true);
   });
 
   it("returns focus to the Agent trigger when Escape closes its menu", async () => {
@@ -161,32 +207,50 @@ describe("TaskWorkspace Method guidance", () => {
     const { container } = render(<TaskWorkspace {...createProps()} />);
 
     expect(screen.getByText("Task")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "New task" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Method guidance" })).toBeTruthy();
     expect(screen.getAllByRole("form", { name: "Task composer" })).toHaveLength(1);
     expect(container.querySelectorAll("textarea")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: /review context/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /session|inspector/i })).toBeNull();
   });
 
-  it("opens Files, Changes, Run details, and Skills and agents through presentation callbacks", async () => {
+  it("attaches files and folders directly without opening the Files page", async () => {
     const user = userEvent.setup();
-    const onAttachFiles = vi.fn();
+    const onAttachFiles = vi.fn(async () => undefined);
+    const onAttachFolder = vi.fn(async () => undefined);
+    const onOpenContext = vi.fn();
+    render(<TaskWorkspace {...createProps({
+      onAttachFiles,
+      onAttachFolder,
+      onOpenContext,
+    })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
+    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    expect(onAttachFiles).toHaveBeenCalledOnce();
+    expect(onOpenContext).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
+    await user.click(screen.getByRole("menuitem", { name: "Add folder…" }));
+    expect(onAttachFolder).toHaveBeenCalledOnce();
+    expect(onOpenContext).not.toHaveBeenCalled();
+  });
+
+  it("opens Review, Run details, and Skills and agents through presentation callbacks", async () => {
+    const user = userEvent.setup();
     const onOpenChanges = vi.fn();
     const onOpenMethodLibrary = vi.fn();
     const onOpenRunDetails = vi.fn();
     render(<TaskWorkspace {...createProps({
-      onAttachFiles,
       onOpenChanges,
       onOpenMethodLibrary,
       onOpenRunDetails,
     })} />);
 
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
     await user.click(screen.getByRole("button", { name: "Run details" }));
     await user.click(screen.getByRole("button", { name: "Skills and agents" }));
 
-    expect(onAttachFiles).toHaveBeenCalledOnce();
     expect(onOpenChanges).toHaveBeenCalledOnce();
     expect(onOpenRunDetails).toHaveBeenCalledOnce();
     expect(onOpenMethodLibrary).toHaveBeenCalledOnce();
@@ -200,29 +264,40 @@ describe("TaskWorkspace Method guidance", () => {
       ]),
     })} />);
 
-    expect(screen.getByText("Local context preview")).toBeTruthy();
-    expect(screen.getByText(/not included in a model request unless/i)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();
+    expect(screen.getByText(/only files you add are included with your message/i)).toBeTruthy();
     expect(screen.getByText("src/main.ts")).toBeTruthy();
     expect(screen.getByText("src/features/task.tsx")).toBeTruthy();
     expect(screen.queryByText("authenticated source content")).toBeNull();
   });
 
-  it("submits the trimmed intent for review without claiming a send", async () => {
+  it("uses the current task intent for bounded local auto-context", async () => {
     const user = userEvent.setup();
-    const onReviewRequest = vi.fn(async (_intent: string) => undefined);
-    render(<TaskWorkspace {...createProps({ onReviewRequest })} />);
+    const onSuggestContext = vi.fn(async (_intent: string) => undefined);
+    render(<TaskWorkspace {...createProps({ onSuggestContext })} />);
+
+    await user.type(
+      screen.getByLabelText("Describe what you want skill guidance for"),
+      "  Review the workspace authority boundary  ",
+    );
+    await user.click(screen.getByRole("button", { name: "Auto-select context" }));
+    expect(onSuggestContext).toHaveBeenCalledWith("Review the workspace authority boundary");
+  });
+
+  it("submits the trimmed intent as one send action", async () => {
+    const user = userEvent.setup();
+    const onSendRequest = vi.fn(async (_intent: string) => undefined);
+    render(<TaskWorkspace {...createProps({ onSendRequest })} />);
 
     await user.type(
       screen.getByLabelText("Describe what you want skill guidance for"),
       "  Help me choose the next architecture step.  ",
     );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await user.click(screen.getByRole("button", { name: "Send message" }));
 
-    expect(onReviewRequest).toHaveBeenCalledOnce();
-    expect(onReviewRequest).toHaveBeenCalledWith("Help me choose the next architecture step.");
+    expect(onSendRequest).toHaveBeenCalledOnce();
+    expect(onSendRequest).toHaveBeenCalledWith("Help me choose the next architecture step.");
     expect(screen.getByText("Help me choose the next architecture step.")).toBeTruthy();
-    expect(screen.getAllByText(/nothing is sent until you approve context and choose Send request/i).length)
-      .toBeGreaterThan(0);
 
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(screen.queryByText("Ready for review")).toBeNull();
@@ -234,20 +309,20 @@ describe("TaskWorkspace Method guidance", () => {
     render(<TaskWorkspace {...createProps({ interactionDisabled: true })} />);
 
     expect(screen.getByLabelText("Describe what you want skill guidance for")).toHaveProperty("disabled", true);
-    expect(screen.getByRole("button", { name: "Review request" })).toHaveProperty("disabled", true);
-    expect(screen.getByRole("button", { name: "Attach files" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Send message" })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toHaveProperty("disabled", false);
   });
 
   it("preserves the draft when request creation rejects", async () => {
     const user = userEvent.setup();
-    const onReviewRequest = vi.fn(async () => Promise.reject(new Error("closed")));
-    const { container } = render(<TaskWorkspace {...createProps({ onReviewRequest })} />);
+    const onSendRequest = vi.fn(async () => Promise.reject(new Error("closed")));
+    const { container } = render(<TaskWorkspace {...createProps({ onSendRequest })} />);
 
     const composer = screen.getByLabelText("Describe what you want skill guidance for");
     await user.type(composer, "Keep this exact intent");
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await user.click(screen.getByRole("button", { name: "Send message" }));
 
-    await waitFor(() => expect(onReviewRequest).toHaveBeenCalledOnce());
+    await waitFor(() => expect(onSendRequest).toHaveBeenCalledOnce());
     await waitFor(() => expect(composer).toHaveProperty("value", "Keep this exact intent"));
     expect(container.querySelector(".message--user")).toBeNull();
   });
@@ -261,32 +336,32 @@ describe("TaskWorkspace Method guidance", () => {
       screen.getByLabelText("Describe what you want skill guidance for"),
     ).toHaveProperty("disabled", true);
     expect(
-      screen.getByRole("button", { name: "Review request" }),
+      screen.getByRole("button", { name: "Send message" }),
     ).toHaveProperty("disabled", true);
-    expect(screen.getAllByText(/Checking for retained local skill guidance/i).length)
+    expect(screen.getAllByText(/Checking for a retained BMAD session/i).length)
       .toBeGreaterThan(0);
-    expect(screen.getByText("Checking · Local only")).toBeTruthy();
-    expect(screen.queryByText("Preparing · Local only")).toBeNull();
+    expect(screen.getByText("Checking")).toBeTruthy();
+    expect(screen.queryByText("Preparing")).toBeNull();
   });
 
   it("claims creation only after the user submits an intent", async () => {
     const user = userEvent.setup();
-    const onReviewRequest = vi.fn(() => new Promise<void>(() => undefined));
-    const { rerender } = render(<TaskWorkspace {...createProps({ onReviewRequest })} />);
+    const onSendRequest = vi.fn(() => new Promise<void>(() => undefined));
+    const { rerender } = render(<TaskWorkspace {...createProps({ onSendRequest })} />);
 
     await user.type(
       screen.getByLabelText("Describe what you want skill guidance for"),
       "Choose the next safe skill-guided step",
     );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await user.click(screen.getByRole("button", { name: "Send message" }));
 
     rerender(<TaskWorkspace {...createProps({
       methodGuidanceState: { kind: "creating", activity: "creating" },
-      onReviewRequest,
+      onSendRequest,
     })} />);
 
-    expect(await screen.findByText("Preparing · Local only")).toBeTruthy();
-    expect(screen.getAllByText(/Preparing the exact outbound review/i).length)
+    expect(await screen.findByText("Preparing")).toBeTruthy();
+    expect(screen.getAllByText(/Preparing and sending your message/i).length)
       .toBeGreaterThan(0);
   });
 
@@ -294,9 +369,9 @@ describe("TaskWorkspace Method guidance", () => {
     "never turns a real guidance submission into demo content if availability changes",
     async () => {
       const user = userEvent.setup();
-      const onReviewRequest = vi.fn(async (_intent: string) => undefined);
+      const onSendRequest = vi.fn(async (_intent: string) => undefined);
       const { rerender } = render(
-        <TaskWorkspace {...createProps({ onReviewRequest })} />,
+        <TaskWorkspace {...createProps({ onSendRequest })} />,
       );
 
       await user.type(
@@ -304,7 +379,7 @@ describe("TaskWorkspace Method guidance", () => {
         "Recommend a safe next skill-guided step",
       );
       await user.click(
-        screen.getByRole("button", { name: "Review request" }),
+        screen.getByRole("button", { name: "Send message" }),
       );
       expect(await screen.findByText("Recommend a safe next skill-guided step")).toBeTruthy();
 
@@ -312,7 +387,7 @@ describe("TaskWorkspace Method guidance", () => {
         <TaskWorkspace
           {...createProps({
             methodGuidanceAvailable: false,
-            onReviewRequest,
+            onSendRequest,
           })}
         />,
       );
@@ -323,7 +398,7 @@ describe("TaskWorkspace Method guidance", () => {
     },
   );
 
-  it("shows product onboarding without preview or demonstration content when Method guidance is unavailable", () => {
+  it("keeps local drafting available without pretending model guidance is ready", () => {
     render(
       <TaskWorkspace
         {...createProps({
@@ -336,14 +411,14 @@ describe("TaskWorkspace Method guidance", () => {
 
     expect(screen.getByLabelText("Describe a task")).toHaveProperty(
       "disabled",
-      true,
+      false,
     );
     expect(screen.getByRole("button", { name: "Send task" })).toHaveProperty(
       "disabled",
       true,
     );
     expect(screen.getByText(/This workspace is open locally/i)).toBeTruthy();
-    expect(screen.queryByText(/preview/i)).toBeNull();
+    expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();
     expect(screen.queryByText(/demonstration/i)).toBeNull();
     expect(screen.queryByText("Demo response")).toBeNull();
   });

@@ -5,7 +5,8 @@ use desktop_egress::{
     ModelInvocationBinding, RedactionRecord, RetentionMode,
 };
 use desktop_runtime::{
-    canonical_hash, sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    canonical_hash, deserialize_strict_json, sha256_bytes, ContractId, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis,
 };
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
@@ -727,8 +728,8 @@ where
     {
         return Err(CloudError::InvalidModelOutput);
     }
-    let payload: Value =
-        serde_json::from_str(&response.payload_json).map_err(|_| CloudError::InvalidModelOutput)?;
+    let payload: Value = deserialize_strict_json(response.payload_json.as_bytes())
+        .map_err(|_| CloudError::InvalidModelOutput)?;
     output_validator.validate(
         &request.canonical_output_schema_id,
         request.canonical_output_schema_hash,

@@ -4,6 +4,8 @@ import {
   type BmadHelpContextReviewProjection,
   type BmadHelpRunCompletedProjection,
   type ModelAuthStatusProjection,
+  type ModelProviderConnection,
+  type ModelProviderId,
 } from "../bmadModelProjection";
 import {
   type BmadHelpRunCreatedProjection,
@@ -38,6 +40,13 @@ import {
   parseCapabilityReviewReply,
   parseCapabilityRunLatestReply,
 } from "./capabilityProtocol";
+import { parseChatHistoryReply, parseChatTurnReply } from "./chatProtocol";
+import { parseWorkflowStateReply } from "./workflowProtocol";
+import {
+  asGitComparison,
+  parseGitDiffReply,
+  parseGitStatusReply,
+} from "./gitProtocol";
 import {
   parseAboutReply,
   parseOffboardingErasedReply,
@@ -54,6 +63,9 @@ import {
   buildCapabilityLatestEnvelope,
   buildCapabilityProposeChangesEnvelope,
   buildCapabilityPrepareEnvelope,
+  buildChatHistoryEnvelope,
+  buildChatSendEnvelope,
+  buildWorkflowStateEnvelope,
   buildEmptyPayloadEnvelope,
   buildOffboardingEraseEnvelope,
   buildLatestBmadHelpRunEnvelope,
@@ -65,10 +77,14 @@ import {
   buildWorkspaceListEnvelope,
   buildWorkspaceRevocationEnvelope,
   buildWorkspaceFilePickEnvelope,
+  buildWorkspaceFolderPickEnvelope,
   buildWorkspaceSelectionEnvelope,
 } from "./commandEnvelopes";
 import {
   type AboutProjection,
+  type BmadWorkflowStateProjection,
+  type ChatHistoryProjection,
+  type ChatTurnProjection,
   type ApprovalChoice,
   type CapabilityApprovedProjection,
   type CapabilityCancelledProjection,
@@ -80,6 +96,9 @@ import {
   type BmadScanProjection,
   type BootstrapReply,
   type DensityPreference,
+  type GitComparison,
+  type GitFileComparisonProjection,
+  type GitStatusProjection,
   type PreferencesProjection,
   type ThemePreference,
   type ChangesDecisionProjection,
@@ -254,6 +273,26 @@ export class DesktopHostClient {
     const parsed = parseWorkspaceFilePickReply(reply, requestId);
     this.requireBootstrapGeneration(bootstrapGeneration);
     this.requireCommand("workspace.pick_files");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.pick;
+  }
+
+  async pickWorkspaceFolder(workspaceId: string): Promise<WorkspaceFilePick> {
+    const bootstrap = this.requireCommand("workspace.pick_folder");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildWorkspaceFolderPickEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseWorkspaceFilePickReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireCommand("workspace.pick_folder");
     this.advanceProjectionSequence(parsed.sequence);
     return parsed.pick;
   }
@@ -519,6 +558,65 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  async readGitStatus(workspaceId: string): Promise<GitStatusProjection> {
+    const bootstrap = this.requireWorkspaceCommand(
+      workspaceId,
+      "workspace.git_status",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildReadOnlyEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "workspace.git_status",
+      { workspaceId },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseGitStatusReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireWorkspaceCommand(workspaceId, "workspace.git_status");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async readGitDiff(
+    workspaceId: string,
+    relativePathValue: string,
+    comparisonValue: GitComparison,
+  ): Promise<GitFileComparisonProjection> {
+    const bootstrap = this.requireWorkspaceCommand(
+      workspaceId,
+      "workspace.git_diff",
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const relativePath = asRelativePath(relativePathValue);
+    const comparison = asGitComparison(comparisonValue);
+    const requestId = this.#requestId();
+    const envelope = buildReadOnlyEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      "workspace.git_diff",
+      { workspaceId, relativePath, comparison },
+    );
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseGitDiffReply(
+      reply,
+      requestId,
+      relativePath,
+      comparison,
+    );
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.requireWorkspaceCommand(workspaceId, "workspace.git_diff");
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async searchWorkspace(
     workspaceId: string,
     queryValue: string,
@@ -725,6 +823,67 @@ export class DesktopHostClient {
     return parsed.projection;
   }
 
+  /// Where this workspace stands in the BMAD method. Computed by the host
+  /// from the sealed graph plus governed reads: no model call, no receipt.
+  async bmadWorkflowState(input: {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+  }): Promise<BmadWorkflowStateProjection> {
+    const bootstrap = this.requireCommand("bmad.workflow.state");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildWorkflowStateEnvelope(bootstrap, requestId, this.#now(), input);
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseWorkflowStateReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  /// Sends one ordinary chat turn. BMAD is optional here: `agentCode` of
+  /// `null` is a plain assistant conversation; naming an agent binds that
+  /// agent's sealed persona to the conversation for this and later turns.
+  async sendChatMessage(input: {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    clientSessionRef: string;
+    agentCode: string | null;
+    text: string;
+    contextPaths: string[];
+  }): Promise<ChatTurnProjection> {
+    const bootstrap = this.requireCommand("chat.send");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildChatSendEnvelope(bootstrap, requestId, this.#now(), input);
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseChatTurnReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  async chatHistory(input: {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    clientSessionRef: string;
+  }): Promise<ChatHistoryProjection> {
+    const bootstrap = this.requireCommand("chat.history");
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildChatHistoryEnvelope(bootstrap, requestId, this.#now(), input);
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseChatHistoryReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
   async prepareCapabilityRun(
     workspaceId: string,
     workspaceGrantEpoch: number,
@@ -871,17 +1030,53 @@ export class DesktopHostClient {
     return this.dispatchModelAuthCommand("model.auth.status");
   }
 
-  async modelAuthSignIn(): Promise<ModelAuthStatusProjection> {
-    return this.dispatchModelAuthCommand("model.auth.sign_in");
+  async modelAuthSignIn(
+    connection: ModelProviderConnection,
+  ): Promise<ModelAuthStatusProjection> {
+    const { apiKey, endpoint, modelId, providerId, region } = connection;
+    if (
+      apiKey.length < 8
+      || apiKey.length > 4_096
+      || /[\s\u0000-\u001f\u007f]/u.test(apiKey)
+      || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u.test(modelId)
+      || (providerId === "openai" && (endpoint !== null || region !== null))
+      || (providerId === "azure"
+        && (endpoint === null
+          || !/^https:\/\/[A-Za-z0-9.-]+(?:\/openai\/v1\/?)?$/u.test(endpoint)
+          || (region !== null && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/u.test(region))))
+    ) {
+      throw new HostCapabilityError("Enter valid provider connection details.");
+    }
+    return this.dispatchModelAuthCommand("model.auth.sign_in", {
+      providerId,
+      modelId,
+      apiKey,
+      endpoint,
+      region,
+    });
   }
 
   async modelAuthSignOut(): Promise<ModelAuthStatusProjection> {
     return this.dispatchModelAuthCommand("model.auth.sign_out");
   }
 
+  async setModelSelection(
+    providerId: ModelProviderId,
+    modelId: string,
+  ): Promise<ModelAuthStatusProjection> {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u.test(modelId)) {
+      throw new HostCapabilityError("Choose a valid model or deployment identifier.");
+    }
+    return this.dispatchModelAuthCommand("model.selection.set", {
+      providerId,
+      modelId,
+    });
+  }
+
   async prepareBmadHelp(
     workspaceIdValue: string,
     workspaceGrantEpoch: number,
+    contextPathValues: readonly string[] = [],
   ): Promise<BmadHelpContextReviewProjection> {
     const command = "bmad.help.prepare" as const;
     const bootstrap = this.requireBmadHelpWorkspaceCommand(
@@ -891,6 +1086,11 @@ export class DesktopHostClient {
     );
     const bootstrapGeneration = this.#bootstrapGeneration;
     const workspaceId = asContractId(workspaceIdValue);
+    if (contextPathValues.length > 100) {
+      throw new HostCapabilityError("Select no more than 100 context files.");
+    }
+    const contextPaths = contextPathValues.map(asRelativePath);
+    assertUniqueRelativePaths(contextPaths);
     const requestId = this.#requestId();
     const envelope = buildBmadModelEnvelope(
       bootstrap,
@@ -900,6 +1100,7 @@ export class DesktopHostClient {
       {
         workspaceId,
         workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+        contextPaths,
       },
     );
     const reply = await this.#invoke("host_dispatch", {
@@ -1599,6 +1800,8 @@ export class DesktopHostClient {
       | "workspace.list_entries"
       | "workspace.read_text"
       | "workspace.search"
+      | "workspace.git_status"
+      | "workspace.git_diff"
       | "bmad.scan"
       | "context.preview"
     >,
@@ -1666,7 +1869,21 @@ export class DesktopHostClient {
   }
 
   private async dispatchModelAuthCommand(
-    command: "model.auth.status" | "model.auth.sign_in" | "model.auth.sign_out",
+    command:
+      | "model.auth.status"
+      | "model.auth.sign_in"
+      | "model.auth.sign_out"
+      | "model.selection.set",
+    payload:
+      | Record<string, never>
+      | { providerId: ModelProviderId; modelId: string }
+      | {
+          providerId: ModelProviderId;
+          modelId: string;
+          apiKey: string;
+          endpoint: string | null;
+          region: string | null;
+        } = {},
   ): Promise<ModelAuthStatusProjection> {
     const bootstrap = this.requireModelAuthCommand(command);
     const bootstrapGeneration = this.#bootstrapGeneration;
@@ -1676,7 +1893,7 @@ export class DesktopHostClient {
       requestId,
       this.#now(),
       command,
-      {},
+      payload,
     );
     const reply = await this.#invoke("host_dispatch", {
       body: JSON.stringify(envelope),
@@ -1689,7 +1906,11 @@ export class DesktopHostClient {
   }
 
   private requireModelAuthCommand(
-    command: "model.auth.status" | "model.auth.sign_in" | "model.auth.sign_out",
+    command:
+      | "model.auth.status"
+      | "model.auth.sign_in"
+      | "model.auth.sign_out"
+      | "model.selection.set",
   ): BootstrapReply {
     const bootstrap = this.requireBootstrap();
     if (

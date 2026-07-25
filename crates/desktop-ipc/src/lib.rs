@@ -13,8 +13,8 @@ mod envelope;
 mod gate;
 
 pub use envelope::{
-    CommandEnvelopeValidator, IpcReply, IpcValidationContext, IpcValidationError,
-    ProjectionEventEnvelope, ValidatedCommandEnvelope, MAX_COMMAND_BYTES,
+    CommandEnvelopeValidator, IpcValidationContext, IpcValidationError, ValidatedCommandEnvelope,
+    MAX_COMMAND_BYTES,
 };
 pub use gate::{Admission, AdmissionPolicy, RequestGate};
 
@@ -61,12 +61,14 @@ pub struct OffboardingErasedProjection {
 }
 
 pub use bmad::{
-    project_bmad_library, project_bmad_library_with_activations, project_bmad_persona_perspective,
+    project_bmad_library, project_bmad_library_with_activations,
+    project_bmad_library_with_runtime_menu_bindings, project_bmad_persona_perspective,
     BmadAgentMenuProjection, BmadAgentMenuTargetProjection, BmadAgentProjection,
     BmadBuilderPackageKind, BmadBuilderPackageProjection, BmadHelpActionProjection,
     BmadInstalledSkillProjection, BmadLibrarySnapshotProjection, BmadLibrarySourceKind,
     BmadLibrarySourceProjection, BmadPersonaPerspectiveProjection, BmadProjectionAvailability,
-    BmadProjectionBlockerCode, BmadProjectionError, MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+    BmadProjectionBlockerCode, BmadProjectionError, BmadRuntimeMenuCapabilityBinding,
+    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
 pub use bmad_completion::{
     decode_retained_bmad_help_completion, project_completed_bmad_help_run,

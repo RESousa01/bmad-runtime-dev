@@ -4,6 +4,7 @@ import { useState } from "react";
 import type {
   CapabilityApprovedProjection,
   CapabilityCompletedProjection,
+  CapabilityDocumentArtifact,
   CapabilityReviewProjection,
 } from "../lib/hostClient";
 
@@ -128,6 +129,8 @@ export function BmadCapabilityPanel({
         </Button>
       </header>
 
+      <StepProgress phase={phase} />
+
       {phase.kind === "selecting" || phase.kind === "preparing" ? (
         <div className="bmad-capability-panel__body">
           <p>
@@ -229,6 +232,58 @@ export function BmadCapabilityPanel({
   );
 }
 
+/// The one stepwise capability announces which host-selected step this run
+/// answers. The host owns progression: this is a readout, never a control.
+function StepProgress({ phase }: { readonly phase: CapabilityRunPhase }) {
+  const progress =
+    phase.kind === "review"
+      ? phase.review.architecture
+      : phase.kind === "approved"
+        ? phase.review.architecture
+        : phase.kind === "completed"
+          ? phase.completed.architecture
+          : null;
+  if (progress === null) return null;
+  return (
+    <p className="bmad-capability-panel__progress" role="status">
+      {progress.finalized
+        ? `All ${progress.stepCount} steps answered — spine distilled.`
+        : `Step ${progress.stepNumber} of ${progress.stepCount} — ${progress.stepTitle}`}
+    </p>
+  );
+}
+
+/// The distilled spine arrives inline on the final step rather than as a
+/// stored run result, because it is a local distillation of the steps already
+/// stored — not a fresh model claim.
+function ArchitectureSpine({ spine }: { readonly spine: CapabilityDocumentArtifact }) {
+  return (
+    <article aria-label={spine.title}>
+      <h3>{spine.title}</h3>
+      <p role="note">
+        Distilled locally from the answered steps. No model was contacted for
+        this artifact, and nothing in your workspace changed.
+      </p>
+      {spine.sections.map((section) => (
+        <section key={section.heading}>
+          <h4>{section.heading}</h4>
+          <p>{section.body}</p>
+        </section>
+      ))}
+      {spine.openQuestions.length > 0 ? (
+        <section aria-label="Open questions">
+          <h4>Open questions</h4>
+          <ul>
+            {spine.openQuestions.map((question) => (
+              <li key={question}>{question}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </article>
+  );
+}
+
 function CompletedResult({
   completed,
   onReviewChangeSet,
@@ -242,9 +297,22 @@ function CompletedResult({
     completed.resultKind === "document_artifact"
       ? documentArtifactView(resultJson)
       : null;
+  const spine = completed.architecture?.spine ?? null;
   return (
     <div className="bmad-capability-panel__body">
-      {completed.resultKind === "inactive_builder_draft" ? (
+      {spine !== null ? (
+        <ArchitectureSpine spine={spine} />
+      ) : completed.architecture !== null ? (
+        <section aria-label="Architecture step answered">
+          <h3>Step answered</h3>
+          <p>
+            Step {completed.architecture.stepNumber} of{" "}
+            {completed.architecture.stepCount} —{" "}
+            {completed.architecture.stepTitle} is recorded. Run the next step to
+            continue; the host will not let a step be skipped or repeated.
+          </p>
+        </section>
+      ) : completed.resultKind === "inactive_builder_draft" ? (
         <section aria-label="Inactive builder draft">
           <h3>Inactive draft produced</h3>
           <p>

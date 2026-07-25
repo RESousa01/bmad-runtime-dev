@@ -6,25 +6,41 @@ identity can never alter schema.
 
 ## Migration identity (deployment step only)
 
-Run once per deployment, as an Entra administrator of the database:
+Run once for a clean database, as an Entra administrator of the database.
+The administrator creates the migration ledger before granting object
+permissions so the bootstrap works when no schema exists yet:
 
 ```sql
 CREATE USER [sapphirus-support-migrator] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_ddladmin ADD MEMBER [sapphirus-support-migrator];
+IF OBJECT_ID(N'dbo.desktop_schema_migrations', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.desktop_schema_migrations (
+        migration_name NVARCHAR(128) NOT NULL,
+        script_sha256 NVARCHAR(96) NOT NULL,
+        applied_at DATETIMEOFFSET(3) NOT NULL,
+        CONSTRAINT pk_desktop_schema_migrations
+            PRIMARY KEY (migration_name)
+    );
+END;
 GRANT SELECT, INSERT ON dbo.desktop_schema_migrations
     TO [sapphirus-support-migrator];
 ```
 
-Then apply migrations with `SqlMigrationRunner.ApplyAsync` (or by executing
-`services/desktop-support-api/Sql/Migrations/*.sql` in name order and
-recording each script's name and SHA-256 in `dbo.desktop_schema_migrations`).
-The runner refuses to re-apply a migration whose recorded hash differs from
-the embedded script.
+Then run the published support API image once with the exact `migrate-sql`
+argument under the migration identity, as documented in the deployment guide.
+That command is the only supported migration path. It composes Production
+configuration, invokes `SqlMigrationRunner.ApplyAsync`, and exits nonzero on
+any failure without starting the web server. Never execute an embedded script
+or write a migration-ledger row manually. The runner refuses to re-apply a
+migration whose recorded hash differs from the embedded script.
 
 ## Runtime identity (user-assigned managed identity of the API)
 
-Runtime DML only — no CREATE/ALTER/DROP, and no access to
-`desktop_schema_migrations` beyond read:
+Run this block as an Entra administrator only **after every migration has
+completed**. The referenced application tables do not exist on a clean
+database before that point. Runtime DML only — no CREATE/ALTER/DROP, and no
+access to `desktop_schema_migrations` beyond read:
 
 ```sql
 CREATE USER [sapphirus-support-api] FROM EXTERNAL PROVIDER;

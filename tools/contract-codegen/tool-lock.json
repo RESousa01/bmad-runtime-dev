@@ -9,7 +9,7 @@
     },
     "cargo": {
       "file": "Cargo.lock",
-      "sha256": "49ad67660adbbebcf3653ada3a472cadaed3c777bdeefe89a637f5f43b0f5c85",
+      "sha256": "5e1d1eac5e22e101626abbf038fae78e38e0acf32375ecf53e96fd53b9f5aa9b",
       "status": "reviewed"
     },
     "dotnetTools": {

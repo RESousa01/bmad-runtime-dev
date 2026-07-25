@@ -1,7 +1,6 @@
 use super::{
     MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactProvenance,
     MethodExactBinding, MethodPersistenceEvent, MethodSession, MethodSessionScope,
-    MethodVerifiedAdvanceResult,
 };
 use crate::ContractId;
 
@@ -113,21 +112,4 @@ where
     ) -> Result<(), Self::Error> {
         (**self).validate_method_artifact_refs(provenance, binding, disposition, refs)
     }
-}
-
-/// Trusted-host model bridge. It may return sealed evidence but cannot persist
-/// or transition a Method session. Implementations remain responsible for D2
-/// output opacity and receipt authenticity before constructing that evidence.
-pub trait MethodModelPort: Send + Sync {
-    type Error;
-
-    /// Requests model content without granting persistence or transition authority.
-    ///
-    /// # Errors
-    ///
-    /// Returns the adapter error when the bounded model call fails.
-    fn advance(
-        &self,
-        request: &MethodAdvanceRequest,
-    ) -> Result<MethodVerifiedAdvanceResult, Self::Error>;
 }

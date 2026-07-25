@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad.adoption-ledger/v1",
   "operationalAuthority": "none",
-  "promotionEligibility": "blocked_provenance",
+  "promotionEligibility": "owner_attested_release",
   "trademarkDecision": {
     "status": "product_naming_not_approved",
     "rationale": "BMAD marks are retained only for source attribution; Sapphirus product naming remains independent."
@@ -195,6 +195,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -221,6 +225,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -299,6 +307,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -325,6 +337,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -381,6 +397,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -390,6 +410,10 @@
         {
           "decision": "adapt",
           "rationale": "Translate architecture-create intent into the later capability-specific host state machine."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -420,6 +444,10 @@
         {
           "decision": "reject",
           "rationale": "Do not copy the source template bytes into runtime."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -433,6 +461,10 @@
         {
           "decision": "reject",
           "rationale": "Do not run source scripts or subagents."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -446,6 +478,10 @@
         {
           "decision": "reject",
           "rationale": "The desktop delivery has no headless mode: script invocation, web verification, subagent reviewer lenses, and artifact-path outputs are categorically excluded; the assumptions/open-questions discipline is already carried by the architecture projection."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -459,6 +495,10 @@
         {
           "decision": "reject",
           "rationale": "Never dispatch arbitrary forwarded text."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -468,6 +508,10 @@
         {
           "decision": "adapt",
           "rationale": "Retain only the four legacy fields through the typed resolver."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -477,6 +521,2120 @@
         {
           "decision": "reject",
           "rationale": "Treat executable source content as evidence only; never bundle, run, or line-port it."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-030",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-031",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-032",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-033",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-034",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-035",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-036",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-037",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-038",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-039",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-040",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-041",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-042",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-043",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-044",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-045",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-046",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-047",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-048",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-049",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-050",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-051",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-052",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-053",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-054",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-055",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-056",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-057",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-058",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-059",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-060",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-061",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-062",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-063",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-064",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-065",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-066",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-067",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-068",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-069",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-070",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-071",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-072",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-073",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-074",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-075",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-076",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-077",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-078",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-079",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-080",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-081",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-082",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-083",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-084",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-085",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-086",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-087",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-088",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-089",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-090",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-091",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-092",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-093",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-094",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-095",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-096",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-097",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-098",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-099",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-100",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-101",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-102",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-103",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-104",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-105",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-106",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-107",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-108",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-109",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-110",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-111",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-112",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-113",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-114",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-115",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-116",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-117",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-118",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-119",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-120",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-121",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-122",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-123",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-124",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-125",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-126",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-127",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-128",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-129",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-130",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-131",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-132",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-133",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-134",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-135",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-136",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-137",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-138",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-139",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-140",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-141",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-142",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-143",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-144",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-145",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-146",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-147",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-148",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-149",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-150",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-151",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-152",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-153",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-154",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-155",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-156",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-157",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-158",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-159",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-160",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-161",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-162",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-163",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-164",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-165",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-166",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-167",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-168",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-169",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-170",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-171",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-172",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-173",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-174",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-175",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-176",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-177",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-178",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-179",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-180",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-181",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-182",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-183",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-184",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-185",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-186",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-187",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-188",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-189",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-190",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-191",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-192",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-193",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-194",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-195",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-196",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-197",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-198",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-199",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-200",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-201",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-202",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-203",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-204",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-205",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-206",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-207",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-208",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-209",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-210",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-211",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-212",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-213",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-214",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-215",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-216",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-217",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-218",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-219",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-220",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-221",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-222",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-223",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-224",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-225",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-226",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-227",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-228",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-229",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-230",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-231",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-232",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-233",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-234",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-235",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-236",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-237",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-238",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-239",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-240",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-241",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-242",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-243",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-244",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-245",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-246",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-247",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
         }
       ]
     },
@@ -1124,500 +3282,6 @@
         {
           "decision": "reject",
           "rationale": "Exclude Python, uv, and script output or execution."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-030",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-031",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the brainstorming facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-032",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-033",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the market research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-034",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-035",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the domain research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-036",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-037",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the technical research working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-038",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-039",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the product brief facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-040",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-041",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the PRFAQ stress-testing working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-042",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-043",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the epics-and-stories decomposition working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-044",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-045",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the implementation-readiness review working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-046",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-047",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the course-correction analysis working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-048",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-049",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the UX planning working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-050",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-051",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the story implementation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-052",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-053",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the quick development working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-054",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-055",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the QA test generation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-056",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-057",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the code review working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-058",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-059",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the sprint planning working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-060",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-061",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the story preparation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-062",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-063",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the retrospective facilitation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-064",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-065",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the brownfield project documentation working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-066",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
-        }
-      ]
-    },
-    {
-      "sourceMemberId": "method-067",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Preserve the facilitated PRD authoring working stance, sequence intent, and output shape."
-        },
-        {
-          "decision": "adapt",
-          "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
         }
       ]
     }

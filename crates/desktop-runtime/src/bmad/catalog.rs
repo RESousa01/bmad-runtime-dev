@@ -738,6 +738,7 @@ pub enum BmadMenuTargetKind {
 #[derive(Clone, Debug)]
 struct BmadAgentMenuSource {
     code: String,
+    display_label: String,
     description: String,
     target: Value,
 }
@@ -871,8 +872,9 @@ fn parse_agent_menu_source(value: &Value) -> Result<BmadAgentMenuSource, BmadKer
     let object = value
         .as_object()
         .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
-    exact_keys(object, &["code", "description", "target"])?;
+    exact_keys(object, &["code", "displayName", "description", "target"])?;
     let code = map_string(object, "code")?.to_owned();
+    let display_label = map_string(object, "displayName")?.to_owned();
     let description = map_string(object, "description")?.to_owned();
     let target = object
         .get("target")
@@ -880,14 +882,18 @@ fn parse_agent_menu_source(value: &Value) -> Result<BmadAgentMenuSource, BmadKer
         .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?
         .clone();
     if !valid_menu_code(&code)
+        || display_label.is_empty()
+        || !valid_display_cell(&display_label)
         || description.is_empty()
         || !valid_display_cell(&description)
+        || contains_authority_directive(&display_label)
         || contains_authority_directive(&description)
     {
         return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
     }
     Ok(BmadAgentMenuSource {
         code,
+        display_label,
         description,
         target,
     })
@@ -947,6 +953,10 @@ pub struct BmadAgentMenuRecord {
     pub target_kind: BmadMenuTargetKind,
     pub display_label: String,
     pub availability: BmadCatalogAvailability,
+    #[serde(skip_serializing)]
+    pub target_module_code: Option<String>,
+    #[serde(skip_serializing)]
+    pub target_skill_name: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -1113,7 +1123,7 @@ fn load_normalized_menus(
                 .get("target")
                 .and_then(Value::as_object)
                 .ok_or(BmadKernelErrorCode::AgentMenuTargetInvalid)?;
-            let (target_kind, availability) =
+            let (target_kind, availability, target_module_code, target_skill_name) =
                 load_normalized_menu_target(target, catalog, expected_package_version_id)?;
             Ok(BmadAgentMenuRecord {
                 code,
@@ -1121,6 +1131,8 @@ fn load_normalized_menus(
                 target_kind,
                 display_label: map_string(menu, "displayName")?.to_owned(),
                 availability,
+                target_module_code,
+                target_skill_name,
             })
         })
         .collect()
@@ -1130,12 +1142,26 @@ fn load_normalized_menu_target(
     target: &Map<String, Value>,
     catalog: &BmadCatalog,
     expected_package_version_id: &ContractId,
-) -> Result<(BmadMenuTargetKind, BmadCatalogAvailability), BmadKernelError> {
+) -> Result<
+    (
+        BmadMenuTargetKind,
+        BmadCatalogAvailability,
+        Option<String>,
+        Option<String>,
+    ),
+    BmadKernelError,
+> {
     match map_string(target, "targetKind")? {
-        "skill_target" => Ok((
-            BmadMenuTargetKind::SkillTarget,
-            normalized_skill_availability(target, catalog, expected_package_version_id)?,
-        )),
+        "skill_target" => {
+            let (availability, module_code, skill_name) =
+                normalized_skill_target(target, catalog, expected_package_version_id)?;
+            Ok((
+                BmadMenuTargetKind::SkillTarget,
+                availability,
+                Some(module_code),
+                Some(skill_name),
+            ))
+        }
         "prompt_reference" => {
             if map_string(target, "availability")? != "unavailable_source_prompt" {
                 return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
@@ -1143,6 +1169,8 @@ fn load_normalized_menu_target(
             Ok((
                 BmadMenuTargetKind::PromptReference,
                 BmadCatalogAvailability::SourcePromptUnavailable,
+                None,
+                None,
             ))
         }
         _ => Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into()),
@@ -1181,11 +1209,11 @@ fn verify_normalized_agent_hashes(
     Ok(())
 }
 
-fn normalized_skill_availability(
+fn normalized_skill_target(
     target: &Map<String, Value>,
     catalog: &BmadCatalog,
     expected_package_version_id: &ContractId,
-) -> Result<BmadCatalogAvailability, BmadKernelError> {
+) -> Result<(BmadCatalogAvailability, String, String), BmadKernelError> {
     let key = target
         .get("capabilityKey")
         .and_then(Value::as_object)
@@ -1210,7 +1238,11 @@ fn normalized_skill_availability(
         .iter()
         .find(|skill| skill.module_code == module_code && skill.skill_name == skill_name)
     else {
-        return Ok(BmadCatalogAvailability::DependencyUnavailable);
+        return Ok((
+            BmadCatalogAvailability::DependencyUnavailable,
+            module_code.to_owned(),
+            skill_name.to_owned(),
+        ));
     };
     let action_known = normalized_action.map_or_else(
         || skill.actions.is_empty(),
@@ -1219,11 +1251,15 @@ fn normalized_skill_availability(
     if !action_known {
         return Err(BmadKernelErrorCode::AgentMenuTargetInvalid.into());
     }
-    Ok(if skill.capability_enabled {
-        BmadCatalogAvailability::Available
-    } else {
-        BmadCatalogAvailability::CapabilityDisabled
-    })
+    Ok((
+        if skill.capability_enabled {
+            BmadCatalogAvailability::Available
+        } else {
+            BmadCatalogAvailability::CapabilityDisabled
+        },
+        module_code.to_owned(),
+        skill_name.to_owned(),
+    ))
 }
 
 fn required_value<'a>(
@@ -1444,8 +1480,10 @@ fn resolve_skill_target(
         code: menu.code.clone(),
         description: menu.description.clone(),
         target_kind: BmadMenuTargetKind::SkillTarget,
-        display_label: skill_name.to_owned(),
+        display_label: menu.display_label.clone(),
         availability,
+        target_module_code: Some(module_code.to_owned()),
+        target_skill_name: Some(skill_name.to_owned()),
     })
 }
 
@@ -1477,8 +1515,10 @@ fn resolve_prompt_target(
         code: menu.code.clone(),
         description: menu.description.clone(),
         target_kind: BmadMenuTargetKind::PromptReference,
-        display_label: "Source prompt reference".to_owned(),
+        display_label: menu.display_label.clone(),
         availability: BmadCatalogAvailability::SourcePromptUnavailable,
+        target_module_code: None,
+        target_skill_name: None,
     })
 }
 

@@ -182,6 +182,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(2_000),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared deterministic review");
@@ -261,6 +262,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -346,6 +348,7 @@ mod prepare {
                         workspace_id: id(&workspace_id),
                         workspace_grant_epoch: 1,
                         created_at: UnixMillis(now.0 + 1),
+                        workspace_context: Vec::new(),
                     },
                 )
                 .expect("prepared review")
@@ -412,6 +415,7 @@ mod prepare {
                         workspace_id: id(&workspace_id),
                         workspace_grant_epoch: 1,
                         created_at: UnixMillis(now.0 + 1),
+                        workspace_context: Vec::new(),
                     },
                 )
                 .expect("prepared review")
@@ -478,6 +482,7 @@ mod prepare {
                         workspace_id: id(&workspace_id),
                         workspace_grant_epoch: 1,
                         created_at: UnixMillis(now.0 + 1),
+                        workspace_context: Vec::new(),
                     },
                 )
                 .expect("prepared review")
@@ -544,6 +549,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -625,6 +631,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -743,6 +750,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -867,6 +875,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -988,6 +997,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(now.0 + 1),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect("prepared review");
@@ -1055,6 +1065,7 @@ mod prepare {
                     workspace_id: id(&workspace_id),
                     workspace_grant_epoch: 1,
                     created_at: UnixMillis(2_000),
+                    workspace_context: Vec::new(),
                 },
             )
             .expect_err("default model composition is offline");

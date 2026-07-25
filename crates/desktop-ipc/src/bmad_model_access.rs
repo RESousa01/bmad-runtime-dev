@@ -34,6 +34,7 @@ pub enum ModelAuthStatusKindProjection {
 pub enum ModelAuthModeProjection {
     Offline,
     DeterministicDevelopment,
+    DirectProviderDevelopment,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -43,6 +44,10 @@ pub struct ModelAuthStatusInput {
     pub auth_epoch: u64,
     pub development_only: bool,
     pub destination_label: String,
+    pub provider_id: Option<String>,
+    pub model_id: Option<String>,
+    pub sign_in_available: bool,
+    pub sign_out_available: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -53,6 +58,8 @@ pub struct ModelAuthStatusProjection {
     auth_epoch: u64,
     development_only: bool,
     destination_label: String,
+    provider_id: Option<String>,
+    model_id: Option<String>,
     sign_in_available: bool,
     sign_out_available: bool,
 }
@@ -249,7 +256,8 @@ pub enum BmadHelpModelAccessProjectionError {
 }
 
 /// Builds the closed authentication-status projection for the current host
-/// composition. D2-D never advertises an interactive sign-in capability.
+/// composition. Runtime direct-provider builds may advertise the narrow,
+/// native-host connection command without exposing any retained credential.
 ///
 /// # Errors
 ///
@@ -266,11 +274,23 @@ pub fn project_model_auth_status(
             false
         ) | (
             ModelAuthStatusKindProjection::DevelopmentReady,
-            ModelAuthModeProjection::DeterministicDevelopment,
+            ModelAuthModeProjection::DeterministicDevelopment
+                | ModelAuthModeProjection::DirectProviderDevelopment,
             true
         )
     );
+    let provider_is_consistent = match (&input.provider_id, &input.model_id) {
+        (Some(provider_id), Some(model_id)) => {
+            valid_provider_model_identifier(provider_id)
+                && valid_provider_model_identifier(model_id)
+        }
+        _ => false,
+    };
+    let actions_are_consistent = !input.sign_out_available
+        || input.status == ModelAuthStatusKindProjection::DevelopmentReady;
     if !mode_is_consistent
+        || !provider_is_consistent
+        || !actions_are_consistent
         || !valid_safe_integer(input.auth_epoch)
         || !valid_display_text(&input.destination_label, MAX_DESTINATION_BYTES)
     {
@@ -282,8 +302,10 @@ pub fn project_model_auth_status(
         auth_epoch: input.auth_epoch,
         development_only: input.development_only,
         destination_label: input.destination_label,
-        sign_in_available: false,
-        sign_out_available: true,
+        provider_id: input.provider_id,
+        model_id: input.model_id,
+        sign_in_available: input.sign_in_available,
+        sign_out_available: input.sign_out_available,
     })
 }
 
@@ -486,6 +508,14 @@ fn valid_identifier(value: &str, max_bytes: usize) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.'))
+}
+
+fn valid_provider_model_identifier(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= MAX_KIND_BYTES
+        && value.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b':' | b'/')
+        })
 }
 
 fn valid_region(value: &str) -> bool {

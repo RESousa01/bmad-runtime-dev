@@ -105,6 +105,61 @@ pub(crate) struct CapabilityCancelledProjection {
     pub cancelled: bool,
 }
 
+/// The reviewed capability projection plus, for the one stepwise capability,
+/// which step the host selected. Every other capability omits `architecture`
+/// entirely, so its wire shape is unchanged.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CapabilityReviewWire {
+    pub capability_id: String,
+    pub run_id: ContractId,
+    pub manifest_hash: Sha256Digest,
+    pub expires_at: UnixMillis,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub architecture: Option<crate::bmad_architecture::ArchitectureProgressProjection>,
+}
+
+impl CapabilityReviewWire {
+    pub(crate) fn new(
+        review: crate::bmad_model::capability_coordinator::CapabilityReviewProjection,
+        architecture: Option<crate::bmad_architecture::ArchitectureProgressProjection>,
+    ) -> Self {
+        Self {
+            capability_id: review.capability_id,
+            run_id: review.run_id,
+            manifest_hash: review.manifest_hash,
+            expires_at: review.expires_at,
+            architecture,
+        }
+    }
+}
+
+/// The completed capability projection plus, for the stepwise capability, the
+/// progression it advanced and the distilled spine on the final step.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct CapabilityCompletedWire {
+    pub capability_id: String,
+    pub run_id: ContractId,
+    pub result_kind: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub architecture: Option<crate::bmad_architecture::ArchitectureProgressProjection>,
+}
+
+impl CapabilityCompletedWire {
+    pub(crate) fn new(
+        completed: crate::bmad_model::capability_coordinator::CapabilityCompletedProjection,
+        architecture: Option<crate::bmad_architecture::ArchitectureProgressProjection>,
+    ) -> Self {
+        Self {
+            capability_id: completed.capability_id,
+            run_id: completed.run_id,
+            result_kind: completed.result_kind,
+            architecture,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CapabilityRunLatestProjection {
@@ -128,15 +183,20 @@ pub enum HostCommandData {
     WorkspaceRevoked(WorkspaceProjection),
     WorkspaceEntries(WorkspaceEntriesProjection),
     WorkspaceText(TextPreview),
+    GitStatus(desktop_workspace::GitStatusSummary),
+    GitDiff(desktop_workspace::GitFileComparison),
     SearchResults(Vec<SearchMatch>),
     BmadScan(BmadScanProjection),
     BmadLibrarySnapshot(BmadLibrarySnapshotProjection),
     BmadPersonaPerspective(BmadPersonaPerspectiveProjection),
-    CapabilityReview(crate::bmad_model::capability_coordinator::CapabilityReviewProjection),
+    CapabilityReview(CapabilityReviewWire),
     CapabilityApproved(crate::bmad_model::capability_coordinator::CapabilityApprovedProjection),
     CapabilityCancelled(CapabilityCancelledProjection),
-    CapabilityCompleted(crate::bmad_model::capability_coordinator::CapabilityCompletedProjection),
+    CapabilityCompleted(CapabilityCompletedWire),
     CapabilityRunLatest(CapabilityRunLatestProjection),
+    BmadWorkflowState(crate::bmad_workflow::BmadWorkflowStateProjection),
+    ChatTurn(crate::chat::ChatTurnProjection),
+    ChatHistory(crate::chat::ChatHistoryProjection),
     RetentionManifest(desktop_ipc::RetentionManifestProjection),
     OffboardingErased(desktop_ipc::OffboardingErasedProjection),
     ModelAuthStatus(ModelAuthStatusProjection),
@@ -416,6 +476,41 @@ pub struct ModelTargetProjection {
     pub retention: String,
     pub schema_hash: String,
     pub profile_hash: String,
+}
+
+#[cfg(test)]
+mod git_review_tests {
+    use desktop_runtime::GitComparison;
+    use desktop_workspace::{GitFileComparison, GitFileState, GitStatusEntry, GitStatusSummary};
+
+    use super::HostCommandData;
+
+    #[test]
+    fn git_review_wire_tags_and_fields_are_renderer_safe() -> Result<(), serde_json::Error> {
+        let status = serde_json::to_value(HostCommandData::GitStatus(GitStatusSummary {
+            branch: Some("main".to_owned()),
+            entries: vec![GitStatusEntry {
+                relative_path: "src/App.tsx".to_owned(),
+                index_state: Some(GitFileState::Modified),
+                worktree_state: None,
+            }],
+            truncated: false,
+        }))?;
+        assert_eq!(status["kind"], "git_status");
+        assert_eq!(status["value"]["entries"][0]["relativePath"], "src/App.tsx");
+        assert_eq!(status["value"]["entries"][0]["indexState"], "modified");
+
+        let diff = serde_json::to_value(HostCommandData::GitDiff(GitFileComparison {
+            relative_path: "src/App.tsx".to_owned(),
+            comparison: GitComparison::HeadToWorktree,
+            before_content: Some("before\n".to_owned()),
+            after_content: Some("after\n".to_owned()),
+            truncated: false,
+        }))?;
+        assert_eq!(diff["kind"], "git_diff");
+        assert_eq!(diff["value"]["comparison"], "head_to_worktree");
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]

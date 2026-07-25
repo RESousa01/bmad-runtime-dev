@@ -1,6 +1,6 @@
 [package]
 name = "desktop-app"
-description = "Sapphirus Windows desktop composition root"
+description = "Forge Windows desktop composition root"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,9 +9,10 @@ authors.workspace = true
 publish.workspace = true
 
 [features]
-default = []
+default = ["direct-model-providers"]
 deterministic-help = ["desktop-cloud/deterministic-fake"]
 production-support = []
+direct-model-providers = ["desktop-cloud/direct-provider"]
 
 [build-dependencies]
 tauri-build.workspace = true

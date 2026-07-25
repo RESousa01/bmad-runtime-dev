@@ -6,6 +6,8 @@ use thiserror::Error;
 
 mod broker_protocol;
 mod composition;
+#[cfg(feature = "direct-provider")]
+mod direct_provider;
 mod entitlement;
 mod identity;
 mod installation_identity;
@@ -21,6 +23,11 @@ pub use broker_protocol::{BrokerExchange, BrokerOutcome, BrokerProtocol};
 #[cfg(feature = "deterministic-fake")]
 pub use composition::DeterministicModelTransport;
 pub use composition::OfflineModelTransport;
+#[cfg(feature = "direct-provider")]
+pub use direct_provider::{
+    DirectProviderConfig, DirectProviderKind, DirectProviderTransport,
+    DIRECT_PROVIDER_DEVELOPMENT_PROOF,
+};
 pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
 pub use identity::{BrokerToken, CloudAccess, CloudSession, IdentityBroker, SessionSnapshot};
 #[cfg(windows)]
@@ -54,14 +61,6 @@ pub use transport::{
 };
 #[cfg(windows)]
 pub use windows_broker::{WindowsBrokerConfig, WindowsIdentityBroker};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Connectivity {
-    Offline,
-    Limited,
-    Online,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

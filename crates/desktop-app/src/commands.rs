@@ -2,16 +2,16 @@ use desktop_egress::{ContextClassification, ContextReviewProjection, RetentionMo
 use desktop_ipc::{
     decode_retained_bmad_help_completion, decode_retained_bmad_help_run, deserialize_strict,
     project_bmad_help_approved, project_bmad_help_approved_lifecycle, project_bmad_help_cancelled,
-    project_bmad_help_review, project_bmad_help_terminal, project_bmad_library_with_activations,
-    project_created_bmad_help_run, project_model_auth_status, Admission, BmadHelpApprovalInput,
-    BmadHelpApprovedLifecycleInput, BmadHelpCancellationInput,
-    BmadHelpContextClassificationProjection, BmadHelpModelAccessProjectionError,
-    BmadHelpProjectionError, BmadHelpRetentionProjection, BmadHelpReviewExclusionInput,
-    BmadHelpReviewInput, BmadHelpReviewItemInput, BmadHelpReviewRedactionInput,
-    BmadHelpSecretFindingInput, BmadHelpTerminalInput, BmadHelpTerminalReasonProjection,
-    BmadProjectionError, CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
-    ModelAuthModeProjection, ModelAuthStatusInput, ModelAuthStatusKindProjection,
-    ValidatedCommandEnvelope,
+    project_bmad_help_review, project_bmad_help_terminal,
+    project_bmad_library_with_runtime_menu_bindings, project_created_bmad_help_run,
+    project_model_auth_status, Admission, BmadHelpApprovalInput, BmadHelpApprovedLifecycleInput,
+    BmadHelpCancellationInput, BmadHelpContextClassificationProjection,
+    BmadHelpModelAccessProjectionError, BmadHelpProjectionError, BmadHelpRetentionProjection,
+    BmadHelpReviewExclusionInput, BmadHelpReviewInput, BmadHelpReviewItemInput,
+    BmadHelpReviewRedactionInput, BmadHelpSecretFindingInput, BmadHelpTerminalInput,
+    BmadHelpTerminalReasonProjection, BmadProjectionError, CommandEnvelopeValidator,
+    IpcValidationContext, IpcValidationError, ModelAuthModeProjection, ModelAuthStatusInput,
+    ModelAuthStatusKindProjection, ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
     canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
@@ -29,7 +29,7 @@ use tauri_plugin_dialog::DialogExt as _;
 use ulid::Ulid;
 
 use crate::bmad_foundation::BmadLoadedFoundation;
-use crate::bmad_model::config::{current_help_model_configuration, HelpModelMode};
+use crate::bmad_model::config::HelpModelMode;
 use crate::bmad_model::coordinator::{
     ApproveBmadHelpReviewInput, BmadHelpCoordinatorError, BmadHelpInMemoryLifecycle,
     BmadHelpTerminalReason, CancelBmadHelpReviewInput, PrepareBmadHelpReviewInput,
@@ -49,13 +49,15 @@ use crate::wire::{
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 39] = [
+const READY_COMMANDS: [&str; 46] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
     "workspace.revoke",
     "workspace.list_entries",
     "workspace.read_text",
+    "workspace.git_status",
+    "workspace.git_diff",
     "workspace.search",
     "bmad.scan",
     "bmad.library.snapshot",
@@ -63,6 +65,10 @@ const READY_COMMANDS: [&str; 39] = [
     "model.auth.status",
     "model.auth.sign_in",
     "model.auth.sign_out",
+    "model.selection.set",
+    "chat.send",
+    "chat.history",
+    "bmad.workflow.state",
     "bmad.help.prepare",
     "bmad.help.approve",
     "bmad.help.cancel",
@@ -89,6 +95,7 @@ const READY_COMMANDS: [&str; 39] = [
     "app.offboarding.inspect",
     "app.offboarding.erase",
     "workspace.pick_files",
+    "workspace.pick_folder",
 ];
 const RECOVERY_COMMANDS: [&str; 2] = ["app.get_boot_state", "workspace.list"];
 
@@ -163,7 +170,7 @@ fn should_cache_reply(command: &LocalCommand) -> bool {
         && !matches!(
             command,
             LocalCommand::CreateBmadHelpRun { .. }
-                | LocalCommand::ModelAuthSignIn
+                | LocalCommand::ModelAuthSignIn { .. }
                 | LocalCommand::ModelAuthSignOut
                 | LocalCommand::PrepareBmadHelpReview { .. }
                 | LocalCommand::ApproveBmadHelpReview { .. }
@@ -399,6 +406,26 @@ fn execute_command(
             relative_path,
             max_bytes,
         } => read_workspace_text(state, &workspace_id, &relative_path, max_bytes),
+        LocalCommand::ReadGitStatus { workspace_id } => {
+            let _authority = state.ready_authority()?;
+            state
+                .workspace
+                .git_status(workspace_id.as_str())
+                .map(HostCommandData::GitStatus)
+                .map_err(|error| map_workspace_error(&error))
+        }
+        LocalCommand::ReadGitDiff {
+            workspace_id,
+            relative_path,
+            comparison,
+        } => {
+            let _authority = state.ready_authority()?;
+            state
+                .workspace
+                .git_diff(workspace_id.as_str(), relative_path.as_str(), comparison)
+                .map(HostCommandData::GitDiff)
+                .map_err(|error| map_workspace_error(&error))
+        }
         LocalCommand::SearchWorkspace {
             workspace_id,
             query,
@@ -421,6 +448,9 @@ fn execute_command(
         }
         LocalCommand::PickWorkspaceFiles { workspace_id } => {
             pick_workspace_files(app, state, workspace_id)
+        }
+        LocalCommand::PickWorkspaceFolder { workspace_id } => {
+            pick_workspace_folder(app, state, workspace_id)
         }
         LocalCommand::PrepareBmadCapabilityRun {
             workspace_id,
@@ -542,20 +572,45 @@ fn execute_command(
             });
         }
         LocalCommand::ModelAuthStatus => model_auth_status_data(state),
-        LocalCommand::ModelAuthSignIn => Err(model_sign_in_unavailable()),
+        LocalCommand::ModelAuthSignIn {
+            provider_id,
+            model_id,
+            credential,
+            endpoint,
+            region,
+        } => {
+            state.sign_in_model(
+                provider_id,
+                model_id,
+                &credential,
+                endpoint.as_deref(),
+                region.as_deref(),
+                accepted_at,
+            )?;
+            model_auth_status_data(state)
+        }
         LocalCommand::ModelAuthSignOut => {
             state.sign_out_model()?;
+            model_auth_status_data(state)
+        }
+        LocalCommand::SetModelSelection {
+            provider_id,
+            model_id,
+        } => {
+            state.set_model_selection(provider_id, model_id, accepted_at)?;
             model_auth_status_data(state)
         }
         LocalCommand::PrepareBmadHelpReview {
             workspace_id,
             workspace_grant_epoch,
+            context_paths,
         } => prepare_bmad_help_review(
             state,
             foundation,
             renderer_session,
             workspace_id,
             workspace_grant_epoch,
+            context_paths,
             accepted_at,
         ),
         LocalCommand::ApproveBmadHelpReview {
@@ -602,6 +657,40 @@ fn execute_command(
             workspace_id,
             workspace_grant_epoch,
         } => latest_bmad_help_run(state, &workspace_id, workspace_grant_epoch),
+        LocalCommand::SendChatMessage {
+            workspace_id,
+            workspace_grant_epoch,
+            client_session_ref,
+            agent_code,
+            text,
+            context_paths,
+        } => send_chat_message(
+            state,
+            foundation,
+            SendChatMessageInput {
+                workspace_id,
+                workspace_grant_epoch,
+                client_session_ref,
+                agent_code,
+                text,
+                context_paths,
+                now: accepted_at,
+            },
+        ),
+        LocalCommand::BmadWorkflowState {
+            workspace_id,
+            workspace_grant_epoch,
+        } => bmad_workflow_state(state, foundation, &workspace_id, workspace_grant_epoch),
+        LocalCommand::ChatHistory {
+            workspace_id,
+            workspace_grant_epoch,
+            client_session_ref,
+        } => chat_history(
+            state,
+            &workspace_id,
+            workspace_grant_epoch,
+            &client_session_ref,
+        ),
         LocalCommand::PreviewContext {
             workspace_id,
             relative_paths,
@@ -662,7 +751,7 @@ fn execute_command(
 }
 
 fn model_auth_status_data(state: &HostState) -> Result<HostCommandData, LocalError> {
-    let configuration = current_help_model_configuration().map_err(|_| {
+    let configuration = state.model_configuration().map_err(|_| {
         LocalError::new(
             LocalErrorCode::IntegrityFailure,
             "The model-access configuration could not be verified.",
@@ -681,6 +770,12 @@ fn model_auth_status_data(state: &HostState) -> Result<HostCommandData, LocalErr
             ModelAuthModeProjection::DeterministicDevelopment,
             true,
         ),
+        #[cfg(feature = "direct-model-providers")]
+        HelpModelMode::DirectProviderDevelopment => (
+            ModelAuthStatusKindProjection::DevelopmentReady,
+            ModelAuthModeProjection::DirectProviderDevelopment,
+            true,
+        ),
         // Production sends fail closed until the gated rollout activates the
         // deployed round-trip, so the pinned IPC catalog projection remains
         // truthful as unavailable/offline; the catalog gains a production
@@ -692,23 +787,23 @@ fn model_auth_status_data(state: &HostState) -> Result<HostCommandData, LocalErr
             false,
         ),
     };
+    #[cfg(feature = "direct-model-providers")]
+    let sign_out_available = configuration.mode == HelpModelMode::DirectProviderDevelopment;
+    #[cfg(not(feature = "direct-model-providers"))]
+    let sign_out_available = false;
     project_model_auth_status(ModelAuthStatusInput {
         status,
         mode,
         auth_epoch: state.model_auth_epoch(),
         development_only,
-        destination_label: configuration.destination_label.to_owned(),
+        destination_label: configuration.destination_label,
+        provider_id: Some(configuration.provider_id),
+        model_id: Some(configuration.model_id),
+        sign_in_available: cfg!(feature = "direct-model-providers"),
+        sign_out_available,
     })
     .map(HostCommandData::ModelAuthStatus)
     .map_err(map_bmad_model_projection_error)
-}
-
-fn model_sign_in_unavailable() -> LocalError {
-    LocalError::new(
-        LocalErrorCode::IdentityUnavailable,
-        "Interactive model sign-in is unavailable in this desktop composition.",
-        false,
-    )
 }
 
 fn prepare_bmad_help_review(
@@ -717,9 +812,45 @@ fn prepare_bmad_help_review(
     renderer_session: &RendererSessionGuard<'_>,
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
+    context_paths: Vec<RelativeWorkspacePath>,
     created_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_workspace_commit()?;
+    let mut workspace_context = Vec::with_capacity(context_paths.len());
+    let mut total_bytes = 0_u64;
+    for relative_path in context_paths {
+        let preview = state
+            .workspace
+            .read_text(
+                workspace_id.as_str(),
+                relative_path.as_str(),
+                MAX_CONTEXT_FILE_BYTES,
+            )
+            .map_err(|error| map_workspace_error(&error))?;
+        if preview.truncated {
+            return Err(resource_limit_error(
+                "A selected context file exceeds the per-file limit.",
+            ));
+        }
+        total_bytes =
+            total_bytes.saturating_add(u64::try_from(preview.content.len()).unwrap_or(u64::MAX));
+        if total_bytes > MAX_CONTEXT_BYTES {
+            return Err(resource_limit_error(
+                "The selected context exceeds the per-request byte limit.",
+            ));
+        }
+        let relative_path = RelativeWorkspacePath::new(&preview.relative_path).map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "A governed read returned an invalid relative path.",
+                false,
+            )
+        })?;
+        workspace_context.push(crate::bmad_model::context::WorkspaceHelpContextItem {
+            relative_path,
+            content: preview.content,
+        });
+    }
     let workspace_authority = state
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
@@ -737,6 +868,7 @@ fn prepare_bmad_help_review(
                 workspace_id,
                 workspace_grant_epoch,
                 created_at,
+                workspace_context,
             },
         )
         .map_err(map_bmad_model_error)?;
@@ -1008,10 +1140,13 @@ fn bmad_library_snapshot(
     scope: BmadLibraryProjectionScope,
     cursor: Option<&str>,
 ) -> Result<HostCommandData, LocalError> {
-    #[cfg(feature = "deterministic-help")]
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
     let activations = &[("core", "bmad-help")][..];
-    #[cfg(not(feature = "deterministic-help"))]
+    #[cfg(not(any(feature = "deterministic-help", feature = "direct-model-providers")))]
     let activations = &[][..];
+    let runtime_menu_bindings =
+        crate::bmad_capability_host::reviewed_method_menu_bindings(foundation.roster())
+            .map_err(map_bmad_projection_error)?;
     let builder_packages = foundation
         .builder_packages()
         .iter()
@@ -1040,13 +1175,14 @@ fn bmad_library_snapshot(
             blocker_codes: vec!["builder_engine_gated".to_owned()],
         })
         .collect();
-    project_bmad_library_with_activations(
+    project_bmad_library_with_runtime_menu_bindings(
         foundation.package(),
         foundation.catalog(),
         foundation.roster(),
         scope,
         cursor,
         activations,
+        &runtime_menu_bindings,
         builder_packages,
     )
     .map(HostCommandData::BmadLibrarySnapshot)
@@ -1106,45 +1242,201 @@ fn map_capability_error(
     }
 }
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "the dispatch surface passes each validated envelope field explicitly"
-)]
-fn prepare_bmad_capability_run(
+/// Where the project stands in the BMAD method, computed rather than asked.
+///
+/// This is the one place the runtime deliberately outperforms upstream: the
+/// answer comes from the sealed workflow graph plus governed workspace reads,
+/// so it costs no model call and cannot be hallucinated.
+fn bmad_workflow_state(
     state: &HostState,
     foundation: &BmadLoadedFoundation,
-    renderer_session: &RendererSessionGuard<'_>,
-    workspace_id: ContractId,
+    workspace_id: &ContractId,
     workspace_grant_epoch: u64,
-    capability_id: &str,
-    context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
-    created_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
-    let binding =
-        crate::bmad_capability_host::capability_binding(capability_id).ok_or_else(|| {
-            LocalError::new(
-                LocalErrorCode::NotFound,
-                "The capability is not in the reviewed closure ledger.",
-                false,
-            )
-        })?;
     let authority = state.ready_workspace_commit()?;
     let workspace_authority = state
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
+    let graph = foundation.workflow_graph().ok_or_else(|| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The sealed method workflow graph is unavailable.",
+            false,
+        )
+    })?;
+    let projection = crate::bmad_workflow::compute_workflow_state(
+        &state.workspace,
+        workspace_id.as_str(),
+        graph,
+    );
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::BmadWorkflowState(projection))
+}
+
+fn map_chat_error(error: crate::chat::ChatCoordinatorError) -> LocalError {
+    use crate::chat::ChatCoordinatorError as E;
+    match error {
+        E::Unauthorized => LocalError::new(
+            LocalErrorCode::Unauthorized,
+            "The conversation is not available for this workspace grant.",
+            false,
+        ),
+        E::Conflict => LocalError::new(
+            LocalErrorCode::Conflict,
+            "A reply is already in flight for this conversation.",
+            true,
+        ),
+        E::OutputRejected => LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The model reply failed verification and was discarded.",
+            true,
+        ),
+        E::Transport => LocalError::new(
+            LocalErrorCode::FeatureDisabled,
+            "Connect a model provider in Settings before sending a message.",
+            false,
+        ),
+        E::Integrity => LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The message could not be sealed for sending.",
+            false,
+        ),
+    }
+}
+
+pub(crate) struct SendChatMessageInput {
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub client_session_ref: String,
+    pub agent_code: Option<String>,
+    pub text: String,
+    pub context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+    pub now: UnixMillis,
+}
+
+/// One ordinary chat turn — the app's default lane.
+///
+/// BMAD is optional here: with no agent selected this is a plain assistant.
+/// Selecting one binds that agent's *sealed* persona projection as reviewed
+/// context, which is how the BMAD method is practised in Forge without a
+/// separate LLM runtime. The persona grants nothing; it is instruction text
+/// that travels through the same manifest as any other context item.
+fn send_chat_message(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    input: SendChatMessageInput,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(input.workspace_id.as_str(), input.workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
     let workspace = workspace_authority.projection();
 
-    let instruction_bytes = foundation
-        .resource_bytes(binding.projection_path)
-        .ok_or_else(|| {
+    // A selected agent must be one the sealed foundation actually carries.
+    // An unknown code fails closed rather than silently becoming a plain chat.
+    let persona = match input.agent_code.as_deref() {
+        Some(agent_code) => Some(foundation.persona_for(agent_code).ok_or_else(|| {
             LocalError::new(
-                LocalErrorCode::IntegrityFailure,
-                "The sealed capability instruction projection is missing.",
+                LocalErrorCode::NotFound,
+                "No sealed persona exists for that agent.",
                 false,
             )
-        })?;
+        })?),
+        None => None,
+    };
+    let attachments = reviewed_context_candidates(state, &input.workspace_id, input.context_paths)?;
+    let project_id = ContractId::new(workspace.project_id.clone()).map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The workspace project identity is invalid.",
+            false,
+        )
+    })?;
+    let configuration = state.model_configuration()?;
+    let store = state.local_store(authority.authority())?;
+    let transport = crate::bmad_capability_host::active_capability_transport(state);
 
+    // Seal under the lock, dispatch unlocked, complete under the lock: a slow
+    // reply never blocks sign-out, revocation, or another conversation.
+    let dispatch = state
+        .chat
+        .lock()
+        .begin_turn(crate::chat::BeginChatTurn {
+            installation_id: state.installation_id(),
+            project_id: &project_id,
+            workspace_id: &input.workspace_id,
+            client_session_ref: &input.client_session_ref,
+            agent_code: input.agent_code,
+            persona_instruction: persona
+                .map(super::bmad_foundation::BmadSealedPersonaProjection::instruction_bytes),
+            text: input.text,
+            attachments,
+            configuration: &configuration,
+            now: input.now,
+        })
+        .map_err(map_chat_error)?;
+    let dispatch_id = dispatch.dispatch_id;
+    let Ok((_dispatched, raw_output)) = transport.send(
+        dispatch.authorized_request,
+        &dispatch.deterministic_fixture,
+        dispatch.sent_at,
+    ) else {
+        state.chat.lock().abort_turn(dispatch_id);
+        return Err(map_chat_error(crate::chat::ChatCoordinatorError::Transport));
+    };
+    let turn = match state
+        .chat
+        .lock()
+        .finalize_turn(dispatch_id, &raw_output, input.now, store)
+    {
+        Ok(turn) => turn,
+        Err(error) => {
+            state.chat.lock().abort_turn(dispatch_id);
+            return Err(map_chat_error(error));
+        }
+    };
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::ChatTurn(turn))
+}
+
+fn chat_history(
+    state: &HostState,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+    client_session_ref: &str,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let store = state.local_store(authority.authority())?;
+    let history = state
+        .chat
+        .lock()
+        .history(
+            state.installation_id(),
+            workspace_id,
+            client_session_ref,
+            store,
+        )
+        .map_err(map_chat_error)?;
+    drop(workspace_authority);
+    drop(authority);
+    Ok(HostCommandData::ChatHistory(history))
+}
+
+/// Reads each selected workspace path through the governed broker into one
+/// bounded reviewed-context candidate.
+fn reviewed_context_candidates(
+    state: &HostState,
+    workspace_id: &ContractId,
+    context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+) -> Result<Vec<desktop_egress::ContextCandidate>, LocalError> {
     let mut candidates = Vec::with_capacity(context_paths.len());
     let mut total_bytes = 0_u64;
     for (index, relative_path) in context_paths.into_iter().enumerate() {
@@ -1181,6 +1473,93 @@ fn prepare_bmad_capability_run(
                 .map_err(map_capability_error)?,
         );
     }
+    Ok(candidates)
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the dispatch surface passes each validated envelope field explicitly"
+)]
+fn prepare_bmad_capability_run(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+    created_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let binding =
+        crate::bmad_capability_host::capability_binding(capability_id).ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::NotFound,
+                "The capability is not in the reviewed closure ledger.",
+                false,
+            )
+        })?;
+    if !crate::bmad_capability_host::runtime_capability_enabled(foundation.roster(), binding)
+        .map_err(map_bmad_projection_error)?
+    {
+        return Err(LocalError::new(
+            LocalErrorCode::FeatureDisabled,
+            "The capability is reviewed but is not enabled by the current runtime.",
+            false,
+        ));
+    }
+    let authority = state.ready_workspace_commit()?;
+    let workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let workspace = workspace_authority.projection();
+
+    let instruction_bytes = foundation
+        .resource_bytes(binding.projection_path)
+        .ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The sealed capability instruction projection is missing.",
+                false,
+            )
+        })?;
+
+    // The stepwise capability places the host-selected step and the accepted
+    // decision log in the reviewed context, so the step the user consents to
+    // sending is covered by the manifest hash like any other context item.
+    let architecture_step = if crate::bmad_architecture::is_architecture_capability(capability_id) {
+        Some(
+            state
+                .bmad_architecture
+                .lock()
+                .select_step(&workspace_id, created_at)
+                .map_err(map_capability_error)?,
+        )
+    } else {
+        None
+    };
+    let mut candidates = match architecture_step {
+        Some(step) => state
+            .bmad_architecture
+            .lock()
+            .step_context_candidates(step)
+            .map_err(map_capability_error)?,
+        None => Vec::new(),
+    };
+    // A verbatim upstream body is always read under the host's boundary
+    // statement, so its tool directives cannot be taken at face value.
+    if crate::bmad_capability_host::is_core_skill_binding(binding) {
+        candidates.insert(
+            0,
+            crate::bmad_capability_host::adopted_instruction_preamble()
+                .map_err(map_capability_error)?,
+        );
+    }
+    candidates.extend(reviewed_context_candidates(
+        state,
+        &workspace_id,
+        context_paths,
+    )?);
 
     let project_id = ContractId::new(workspace.project_id.clone()).map_err(|_| {
         LocalError::new(
@@ -1189,9 +1568,11 @@ fn prepare_bmad_capability_run(
             false,
         )
     })?;
+    let configuration = state.model_configuration()?;
     let prepare_input = crate::bmad_capability_host::assemble_capability_prepare(
         crate::bmad_capability_host::AssembleCapabilityPrepareInput {
             binding,
+            configuration: &configuration,
             instruction_bytes: &instruction_bytes,
             renderer_session_id: renderer_session.session_id(),
             installation_id: state.installation_id(),
@@ -1211,7 +1592,12 @@ fn prepare_bmad_capability_run(
         .map_err(map_capability_error)?;
     drop(workspace_authority);
     drop(authority);
-    Ok(HostCommandData::CapabilityReview(review))
+    Ok(HostCommandData::CapabilityReview(
+        crate::wire::CapabilityReviewWire::new(
+            review,
+            architecture_step.map(crate::bmad_architecture::selected_step_progress),
+        ),
+    ))
 }
 
 fn approve_bmad_capability_run(
@@ -1308,6 +1694,11 @@ fn submit_bmad_capability_run(
         .map_err(|error| map_workspace_error(&error))?;
     let store = state.local_store(authority.authority())?;
     let workspace = workspace_authority.projection();
+    // Retained only for the stepwise capability, whose progression is keyed by
+    // workspace; every other capability consumes the identity outright.
+    let architecture_workspace =
+        crate::bmad_architecture::is_architecture_capability(capability_id)
+            .then(|| workspace_id.clone());
     let input = crate::bmad_capability_host::submit_input(
         capability_id,
         crate::bmad_capability_host::WorkspaceBindingInput {
@@ -1320,20 +1711,122 @@ fn submit_bmad_capability_run(
         submitted_at,
     )
     .map_err(map_capability_error)?;
-    let transport = crate::bmad_capability_host::active_capability_transport();
+    let transport = crate::bmad_capability_host::active_capability_transport(state);
+    // Begin the dispatch under the coordinator lock, then release the lock for
+    // the model round trip so a slow request cannot block sign-out, workspace
+    // revocation (`invalidate`), or other capability operations. Re-acquire the
+    // lock only to record the verified result.
+    let dispatch = state
+        .bmad_capabilities
+        .lock()
+        .begin_dispatch(&input)
+        .map_err(map_capability_error)?;
+    let dispatch_id = dispatch.dispatch_id;
+    let Ok((_dispatched, raw_output)) = transport.send(
+        dispatch.authorized_request,
+        &dispatch.deterministic_fixture,
+        dispatch.submitted_at,
+    ) else {
+        state.bmad_capabilities.lock().abort_dispatch(
+            dispatch_id,
+            crate::bmad_model::capability_coordinator::CapabilityTerminalReason::ConsentConsumed,
+        );
+        return Err(map_capability_error(
+            crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError::Transport,
+        ));
+    };
     let completed = state
         .bmad_capabilities
         .lock()
-        .submit(
-            &input,
-            transport.as_ref(),
+        .finalize_dispatch(
+            dispatch_id,
+            &raw_output,
             &crate::bmad_capability_host::WireCapabilityOutputVerifier,
             store,
         )
         .map_err(map_capability_error)?;
+    // The stepwise capability advances only on a result that is already
+    // durably stored. Reading it back and re-parsing it means the progression
+    // can never advance on anything the store and the strict archetype
+    // constructors have not both accepted. The coordinator lock is released
+    // before the architecture lock is taken; the inverse order never occurs.
+    let architecture = match architecture_workspace {
+        Some(workspace_id) => Some(advance_architecture_progression(
+            state,
+            store,
+            &workspace_id,
+            &completed.run_id,
+            submitted_at,
+        )?),
+        None => None,
+    };
     drop(workspace_authority);
     drop(authority);
-    Ok(HostCommandData::CapabilityCompleted(completed))
+    Ok(HostCommandData::CapabilityCompleted(
+        crate::wire::CapabilityCompletedWire::new(completed, architecture),
+    ))
+}
+
+/// Feeds one completed architecture step into the ordered progression and
+/// reports the result, distilling the spine on the final step.
+fn advance_architecture_progression(
+    state: &HostState,
+    store: &desktop_store::LocalStore,
+    workspace_id: &ContractId,
+    run_id: &ContractId,
+    submitted_at: UnixMillis,
+) -> Result<crate::bmad_architecture::ArchitectureProgressProjection, LocalError> {
+    let step = state
+        .bmad_architecture
+        .lock()
+        .current_step(workspace_id)
+        .ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::Conflict,
+                "No architecture progression is active for this workspace.",
+                false,
+            )
+        })?;
+    let record = store
+        .bmad_capability_run(run_id)
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The capability run history could not be read.",
+                false,
+            )
+        })?
+        .and_then(|record| record.result_json)
+        .ok_or_else(|| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The completed architecture step has no stored result.",
+                false,
+            )
+        })?;
+    let value: serde_json::Value = desktop_runtime::deserialize_strict_json(record.as_bytes())
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The stored architecture step could not be re-verified.",
+                false,
+            )
+        })?;
+    let desktop_runtime::BmadCapabilityOutput::DocumentArtifact(artifact) =
+        crate::bmad_capability_host::parse_capability_result(&value)
+            .map_err(map_capability_error)?
+    else {
+        return Err(LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The architecture step returned a result outside its declared archetype.",
+            false,
+        ));
+    };
+    state
+        .bmad_architecture
+        .lock()
+        .accept_step(workspace_id, step, artifact, submitted_at)
+        .map_err(map_capability_error)
 }
 
 /// ADR-0007: converts the latest stored change-set result for one
@@ -1349,6 +1842,46 @@ fn propose_bmad_capability_changes(
     workspace_grant_epoch: u64,
     capability_id: &str,
 ) -> Result<HostCommandData, LocalError> {
+    // The stepwise capability proposes its *run folder* — the derived spine
+    // and the append-only memlog it came from — rather than a change set,
+    // because that is what a real architecture run leaves behind. It still
+    // enters the same D3 review as any other proposed edit.
+    if crate::bmad_architecture::is_architecture_capability(capability_id) {
+        let files = {
+            let authority = state.ready_workspace_commit()?;
+            let workspace_authority = state
+                .workspace
+                .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+                .map_err(|error| map_workspace_error(&error))?;
+            let files = state
+                .bmad_architecture
+                .lock()
+                .finalized_run_files(&workspace_id)
+                .map_err(map_capability_error)?;
+            drop(workspace_authority);
+            drop(authority);
+            files
+        };
+        let proposed = files
+            .into_iter()
+            .map(
+                |(relative_path, content)| desktop_runtime::ProposedFileChange::SetContent {
+                    relative_path,
+                    content,
+                },
+            )
+            .collect::<Vec<_>>();
+        return crate::edits::execute_changes_command(
+            state,
+            request_id,
+            accepted_at,
+            LocalCommand::ProposeChanges {
+                workspace_id,
+                workspace_grant_epoch,
+                changes: proposed,
+            },
+        );
+    }
     let proposed = {
         let authority = state.ready_workspace_commit()?;
         let workspace_authority = state
@@ -1981,6 +2514,46 @@ fn pick_workspace_files(
     ))
 }
 
+fn pick_workspace_folder(
+    app: &tauri::AppHandle,
+    state: &HostState,
+    workspace_id: ContractId,
+) -> Result<HostCommandData, LocalError> {
+    {
+        let _authority = state.ready_authority()?;
+        state
+            .workspace
+            .authority_binding(workspace_id.as_str())
+            .map_err(|error| map_workspace_error(&error))?;
+    }
+    let selected = app
+        .dialog()
+        .file()
+        .set_title("Add a folder from this workspace")
+        .blocking_pick_folder();
+    let _authority = state.ready_authority()?;
+    let Some(selected) = selected else {
+        return Ok(HostCommandData::NoSelection);
+    };
+    let candidate = selected
+        .into_path()
+        .map_err(|_| invalid_request("The selected folder is not a local filesystem path."))?;
+    let picked = state
+        .workspace
+        .resolve_picked_folder(workspace_id.as_str(), &candidate, MAX_PICKED_FILES)
+        .map_err(|error| map_workspace_error(&error))?;
+    Ok(HostCommandData::PickedFiles(
+        crate::wire::PickedFilesProjection {
+            workspace_id,
+            selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
+            relative_paths: picked.relative_paths,
+            rejected_outside_root: u32::try_from(picked.rejected_outside_root).unwrap_or(u32::MAX),
+            rejected_unreadable: u32::try_from(picked.rejected_unreadable).unwrap_or(u32::MAX),
+            truncated: picked.truncated,
+        },
+    ))
+}
+
 fn select_workspace(
     app: &tauri::AppHandle,
     state: &HostState,
@@ -2467,6 +3040,12 @@ pub(crate) fn map_workspace_error(error: &WorkspaceError) -> LocalError {
         WorkspaceError::RootIdentityChanged => {
             conflict_error("The local workspace identity changed; select the folder again.")
         }
+        WorkspaceError::NotGitRepository => {
+            invalid_request("The selected workspace is not a Git repository.")
+        }
+        WorkspaceError::GitUnavailable => temporarily_unavailable(
+            "The Git repository could not be read. Check access and retry.",
+        ),
         WorkspaceError::EditsNotEnabled => conflict_error(
             "Governed edits are not enabled for this workspace. Review its permissions before retrying.",
         ),
@@ -2491,7 +3070,7 @@ mod tests {
 
     use desktop_runtime::{
         sha256_bytes, BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalCommand,
-        LocalErrorCode, UnixMillis,
+        LocalErrorCode, ModelProviderId, UnixMillis,
     };
     use desktop_store::{
         BmadHelpRunCompletionReceipt, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2501,10 +3080,11 @@ mod tests {
     #[cfg(feature = "deterministic-help")]
     use super::prepare_bmad_help_review;
     use super::{
-        about_projection, admit_dispatch_envelope, bmad_library_snapshot, create_bmad_help_run,
-        latest_bmad_help_run, latest_bmad_help_run_data, load_preferences, map_bmad_model_error,
-        map_workspace_error, model_auth_status_data, offboarding_inspect, revoke_workspace,
-        save_preferences, should_cache_reply, supported_commands, view_bmad_persona,
+        about_projection, admit_dispatch_envelope, bmad_library_snapshot, bmad_workflow_state,
+        create_bmad_help_run, latest_bmad_help_run, latest_bmad_help_run_data, load_preferences,
+        map_bmad_model_error, map_workspace_error, model_auth_status_data, offboarding_inspect,
+        revoke_workspace, save_preferences, should_cache_reply, supported_commands,
+        view_bmad_persona,
     };
     #[cfg(feature = "deterministic-help")]
     use super::{
@@ -2690,18 +3270,190 @@ mod tests {
         Ok(())
     }
 
+    /// Architecture is the one stepwise capability. Preparing it must open the
+    /// The deterministic navigation lane, end to end against a real workspace.
+    /// Upstream must ask a model where the user is; this proves Forge computes
+    /// it from config plus governed reads, with no model call at all.
+    #[test]
+    fn workflow_state_is_computed_from_config_and_artifacts_without_a_model(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        let root = workspace.path();
+
+        // No `_bmad` install: the panel must say so rather than invent a phase.
+        let empty = bmad_workflow_state(&state, &foundation, &id(&workspace_id), 1)
+            .map_err(|error| format!("workflow state: {error:?}"))?;
+        let HostCommandData::BmadWorkflowState(empty) = empty else {
+            return Err("expected a workflow-state projection".into());
+        };
+        assert!(!empty.method_installed);
+        assert_eq!(empty.next_required.as_deref(), Some("bmad-prd"));
+        assert!(empty.steps.iter().all(|step| !step.completed));
+
+        // Install the method and point planning artifacts at a real folder.
+        std::fs::create_dir_all(root.join("_bmad"))?;
+        std::fs::write(
+            root.join("_bmad/config.toml"),
+            b"[modules.bmm]
+planning_artifacts = \"{project-root}/docs/plan\"
+",
+        )?;
+        std::fs::create_dir_all(root.join("docs/plan"))?;
+        std::fs::write(
+            root.join("docs/plan/prd-checkout.md"),
+            b"# PRD
+",
+        )?;
+        std::fs::write(
+            root.join("docs/plan/ARCHITECTURE-SPINE.md"),
+            b"# Spine
+",
+        )?;
+
+        let data = bmad_workflow_state(&state, &foundation, &id(&workspace_id), 1)
+            .map_err(|error| format!("workflow state: {error:?}"))?;
+        let HostCommandData::BmadWorkflowState(projection) = data else {
+            return Err("expected a workflow-state projection".into());
+        };
+
+        assert!(projection.method_installed);
+        let step = |key: &str| {
+            projection
+                .steps
+                .iter()
+                .find(|step| step.key == key)
+                .expect("known step")
+        };
+        // Both artifacts were detected from their file names alone.
+        assert!(step("bmad-prd").completed);
+        assert_eq!(
+            step("bmad-prd").evidence_path.as_deref(),
+            Some("docs/plan/prd-checkout.md")
+        );
+        assert!(step("bmad-architecture").completed);
+        // The next unmet gate advances accordingly, with no model consulted.
+        assert_eq!(
+            projection.next_required.as_deref(),
+            Some("bmad-create-epics-and-stories")
+        );
+        assert_eq!(projection.phase_code, "3-solutioning");
+        // A step whose artifact is absent stays incomplete — never guessed.
+        assert!(!step("bmad-create-epics-and-stories").completed);
+        assert!(step("bmad-create-epics-and-stories").available);
+        Ok(())
+    }
+
+    /// ordered progression at step one and say so in the review projection —
+    /// the sealed guidance's "current host-selected step".
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    #[expect(
+        clippy::panic,
+        reason = "the destructure names the unexpected projection variant"
+    )]
+    fn architecture_prepares_the_first_host_selected_step() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+
+        let data = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            id(&workspace_id),
+            1,
+            crate::bmad_architecture::ARCHITECTURE_CAPABILITY_ID,
+            Vec::new(),
+            UnixMillis(10_000),
+        )
+        .expect("architecture prepares through the ordered lane");
+
+        let HostCommandData::CapabilityReview(review) = data else {
+            panic!("architecture prepare must return a capability review");
+        };
+        let progress = review.architecture.expect("stepwise progression");
+        assert_eq!(progress.step_code, "system_context");
+        assert_eq!(progress.step_number, 1);
+        assert_eq!(progress.step_count, 8);
+        assert!(!progress.finalized);
+        assert!(progress.spine.is_none());
+    }
+
+    /// Every other capability answers one request and terminates, so its wire
+    /// shape must stay free of any progression block.
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    #[expect(
+        clippy::panic,
+        reason = "the destructure names the unexpected projection variant"
+    )]
+    fn one_shot_capabilities_carry_no_progression() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+
+        let data = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            id(&workspace_id),
+            1,
+            "bmm:bmad-product-brief",
+            Vec::new(),
+            UnixMillis(10_000),
+        )
+        .expect("one-shot capability prepares");
+
+        let HostCommandData::CapabilityReview(review) = data else {
+            panic!("prepare must return a capability review");
+        };
+        assert!(review.architecture.is_none());
+        assert!(!serde_json::to_string(&review)
+            .expect("review serializes")
+            .contains("architecture"));
+    }
+
     #[cfg(feature = "deterministic-help")]
     #[expect(
         clippy::panic,
         reason = "the matrix names the failing capability in its panic message"
     )]
     #[test]
-    fn every_reviewed_capability_completes_through_the_generic_lifecycle(
+    fn every_runtime_enabled_capability_completes_through_the_generic_lifecycle(
     ) -> Result<(), Box<dyn std::error::Error>> {
         use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
 
         let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
-        for binding in &crate::bmad_capability_host::CAPABILITY_TABLE {
+        // All 38 reviewed capabilities are enabled: 24 menu capabilities, five
+        // Builder operations, and nine ADR-0008 core skills. Architecture
+        // completes one *step* here; its full progression is proven separately
+        // by `the_architecture_progression_runs_ordered_to_a_distilled_spine`.
+        let enabled = crate::bmad_capability_host::CAPABILITY_TABLE
+            .iter()
+            .collect::<Vec<_>>();
+        assert_eq!(enabled.len(), 38);
+        assert_eq!(
+            enabled
+                .iter()
+                .filter(|binding| crate::bmad_capability_host::is_core_skill_binding(binding))
+                .count(),
+            9
+        );
+        assert_eq!(
+            enabled
+                .iter()
+                .filter(|binding| binding.id.starts_with("builder:"))
+                .count(),
+            5
+        );
+        for binding in enabled {
             let (state, _storage, workspace, workspace_id) = ready_workspace_state();
             std::fs::write(
                 workspace.path().join("context.md"),
@@ -2761,6 +3513,166 @@ mod tests {
             assert_eq!(completed.result_kind, expected_kind, "{}", binding.id);
         }
         Ok(())
+    }
+
+    /// The state-machine packet the sealed `architecture-create` guidance
+    /// requires, end to end through the real command lane: eight ordered
+    /// steps, each one an ordinary reviewed capability run, distilled into one
+    /// inert spine — and no workspace byte touched along the way.
+    #[cfg(feature = "deterministic-help")]
+    #[expect(
+        clippy::panic,
+        reason = "the progression names the failing step in its panic message"
+    )]
+    #[test]
+    fn the_architecture_progression_runs_ordered_to_a_distilled_spine(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{BmadArchitectureStep, RelativeWorkspacePath, UnixMillis};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        let notes = b"# Notes\n\nThe system under design.\n";
+        std::fs::write(workspace.path().join("design-notes.md"), notes)?;
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_contract = id(&workspace_id);
+        let capability = crate::bmad_architecture::ARCHITECTURE_CAPABILITY_ID;
+
+        let mut completions = Vec::new();
+        for (offset, expected) in BmadArchitectureStep::ORDERED.into_iter().enumerate() {
+            let base = 100_000_u64 + u64::try_from(offset).unwrap_or(0) * 1_000;
+            let review = prepare_bmad_capability_run(
+                &state,
+                &foundation,
+                &renderer,
+                workspace_contract.clone(),
+                1,
+                capability,
+                vec![RelativeWorkspacePath::new("design-notes.md")?],
+                UnixMillis(base),
+            )
+            .unwrap_or_else(|error| panic!("{}: prepare failed: {error:?}", expected.code()));
+            let HostCommandData::CapabilityReview(review) = review else {
+                panic!("{}: expected a review projection", expected.code());
+            };
+            let selected = review.architecture.clone().expect("stepwise progression");
+            assert_eq!(selected.step_code, expected.code());
+            assert_eq!(selected.step_number, offset + 1);
+            assert!(!selected.finalized);
+
+            let approved = approve_bmad_capability_run(
+                &state,
+                workspace_contract.clone(),
+                1,
+                capability,
+                review.manifest_hash,
+                UnixMillis(base + 100),
+            )
+            .unwrap_or_else(|error| panic!("{}: approve failed: {error:?}", expected.code()));
+            let HostCommandData::CapabilityApproved(approved) = approved else {
+                panic!("{}: expected an approval projection", expected.code());
+            };
+            let completed = submit_bmad_capability_run(
+                &state,
+                workspace_contract.clone(),
+                1,
+                capability,
+                review.manifest_hash,
+                approved.decision_id,
+                UnixMillis(base + 200),
+            )
+            .unwrap_or_else(|error| panic!("{}: submit failed: {error:?}", expected.code()));
+            let HostCommandData::CapabilityCompleted(completed) = completed else {
+                panic!("{}: expected a completion projection", expected.code());
+            };
+            assert_eq!(completed.result_kind, "document_artifact");
+            completions.push(completed.architecture.expect("stepwise completion"));
+        }
+
+        // Only the final step finalizes, and only it carries the spine.
+        for (offset, completion) in completions.iter().enumerate() {
+            let last = offset + 1 == BmadArchitectureStep::count();
+            assert_eq!(completion.finalized, last, "step {}", offset + 1);
+            assert_eq!(completion.spine.is_some(), last, "step {}", offset + 1);
+        }
+        let spine = completions
+            .last()
+            .and_then(|completion| completion.spine.clone())
+            .expect("distilled spine");
+        assert_eq!(spine.title, "Architecture spine");
+        assert_eq!(spine.sections.len(), BmadArchitectureStep::count());
+        for (offset, step) in BmadArchitectureStep::ORDERED.into_iter().enumerate() {
+            let section = &spine.sections[offset];
+            assert_eq!(section.heading, format!("{}. {}", offset + 1, step.title()));
+            assert!(section.body.starts_with(&format!("AD-{}", offset + 1)));
+        }
+
+        // Every step is durably recorded, and the spine is a distillation of
+        // stored evidence rather than a fresh model claim.
+        let authority = state
+            .ready_workspace_commit()
+            .unwrap_or_else(|error| panic!("ready authority: {error:?}"));
+        let store = state
+            .local_store(authority.authority())
+            .unwrap_or_else(|error| panic!("local store: {error:?}"));
+        let latest = store
+            .latest_bmad_capability_run(&workspace_contract, capability)?
+            .expect("stored architecture run");
+        assert_eq!(latest.result_kind.as_deref(), Some("document_artifact"));
+
+        // The progression never wrote to the workspace.
+        assert_eq!(
+            std::fs::read(workspace.path().join("design-notes.md"))?,
+            notes
+        );
+        Ok(())
+    }
+
+    /// A crafted submit cannot re-run an already-answered step: the host owns
+    /// progression, so a replayed step is a conflict, never a silent overwrite.
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn the_architecture_progression_refuses_a_replayed_step() {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let workspace_contract = id(&workspace_id);
+        let first = {
+            let mut coordinator = state.bmad_architecture.lock();
+            coordinator
+                .select_step(&workspace_contract, UnixMillis(10_000))
+                .expect("first step")
+        };
+        let artifact = desktop_runtime::BmadDocumentArtifact::new(
+            "System context".to_owned(),
+            vec![desktop_runtime::BmadDocumentSection {
+                heading: "Scope".to_owned(),
+                body: "Bounded.".to_owned(),
+            }],
+            Vec::new(),
+            Vec::new(),
+            None,
+        )
+        .expect("artifact");
+
+        let mut coordinator = state.bmad_architecture.lock();
+        coordinator
+            .accept_step(
+                &workspace_contract,
+                first,
+                artifact.clone(),
+                UnixMillis(10_001),
+            )
+            .expect("first acceptance");
+        let replayed =
+            coordinator.accept_step(&workspace_contract, first, artifact, UnixMillis(10_002));
+
+        assert_eq!(
+            replayed.err(),
+            Some(
+                crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError::Conflict
+            )
+        );
     }
 
     #[cfg(feature = "deterministic-help")]
@@ -2875,6 +3787,92 @@ mod tests {
         assert!(
             stale_proposal.is_err(),
             "a moved workspace must fail closed"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn replace_and_delete_results_require_exact_preimages_before_proposal(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{
+            sha256_bytes, BmadCandidateChange, BmadCapabilityOutput, BmadGovernedChangeSet,
+            ProposedFileChange, RelativeWorkspacePath,
+        };
+
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        let replace_content = "# Existing\n";
+        let delete_content = "# Obsolete\n";
+        std::fs::write(workspace.path().join("replace.md"), replace_content)?;
+        std::fs::write(workspace.path().join("delete.md"), delete_content)?;
+        let output = BmadCapabilityOutput::GovernedChangeSet(
+            BmadGovernedChangeSet::new(
+                "Update the reviewed workspace.".to_owned(),
+                vec![
+                    BmadCandidateChange::Replace {
+                        path: RelativeWorkspacePath::new("replace.md")?,
+                        content: "# Replaced\n".to_owned(),
+                        preimage_sha256: sha256_bytes(replace_content.as_bytes()),
+                    },
+                    BmadCandidateChange::Delete {
+                        path: RelativeWorkspacePath::new("delete.md")?,
+                        preimage_sha256: sha256_bytes(delete_content.as_bytes()),
+                    },
+                ],
+            )
+            .expect("valid governed change set"),
+        );
+        let result_json = serde_json::to_string(&output)?;
+        let preimage_field = format!(
+            "\"preimageSha256\":\"{}\"",
+            sha256_bytes(replace_content.as_bytes())
+        );
+        let duplicate_preimage_json = result_json.replacen(
+            &preimage_field,
+            &format!("{preimage_field},{preimage_field}"),
+            1,
+        );
+        assert_ne!(
+            duplicate_preimage_json, result_json,
+            "fixture must duplicate the serialized preimage key"
+        );
+        assert!(
+            crate::bmad_governed_proposal::proposed_changes_from_stored_result(
+                &state,
+                &workspace_id,
+                &duplicate_preimage_json,
+            )
+            .is_err(),
+            "stored-result reparsing must reject duplicate decoded keys"
+        );
+
+        let proposed = crate::bmad_governed_proposal::proposed_changes_from_stored_result(
+            &state,
+            &workspace_id,
+            &result_json,
+        )
+        .expect("replace/delete proposal conversion");
+        assert!(matches!(
+            &proposed[0],
+            ProposedFileChange::SetContent {
+                relative_path,
+                content
+            } if relative_path.as_str() == "replace.md" && content == "# Replaced\n"
+        ));
+        assert!(matches!(
+            &proposed[1],
+            ProposedFileChange::Delete { relative_path }
+                if relative_path.as_str() == "delete.md"
+        ));
+
+        std::fs::write(workspace.path().join("replace.md"), b"# Moved\n")?;
+        assert!(
+            crate::bmad_governed_proposal::proposed_changes_from_stored_result(
+                &state,
+                &workspace_id,
+                &result_json,
+            )
+            .is_err(),
+            "a changed preimage must fail closed"
         );
         Ok(())
     }
@@ -3171,29 +4169,80 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn host_projects_the_sealed_method_library_without_authority_bytes(
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
-        let data = bmad_library_snapshot(
-            &foundation,
-            BmadLibraryProjectionScope::InstalledMethod,
-            None,
-        )
-        .expect("library snapshot");
-        let HostCommandData::BmadLibrarySnapshot(projection) = &data else {
-            return Err("expected BMAD library projection".into());
-        };
-        assert_eq!(projection.installed_skills.len(), 2);
-        assert_eq!(projection.help_actions.len(), 2);
-        assert_eq!(projection.method_agents.len(), 6);
-        assert_eq!(projection.builder_packages.len(), 2);
+    fn assert_method_menu_projection(projection: &desktop_ipc::BmadLibrarySnapshotProjection) {
+        assert!(projection.method_agents.iter().all(|agent| {
+            agent.availability == desktop_ipc::BmadProjectionAvailability::Available
+        }));
+        assert_eq!(
+            projection
+                .method_agents
+                .iter()
+                .flat_map(|agent| &agent.menus)
+                .filter(|menu| {
+                    menu.availability == desktop_ipc::BmadProjectionAvailability::Available
+                })
+                .count(),
+            26
+        );
+        assert_eq!(
+            projection
+                .method_agents
+                .iter()
+                .flat_map(|agent| &agent.menus)
+                .filter(|menu| {
+                    menu.availability
+                        == desktop_ipc::BmadProjectionAvailability::SourcePromptUnavailable
+                })
+                .count(),
+            0
+        );
+        let architecture = projection
+            .method_agents
+            .iter()
+            .find(|agent| agent.agent_code == "bmad-agent-architect")
+            .and_then(|agent| agent.menus.iter().find(|menu| menu.code == "CA"))
+            .expect("architecture menu");
+        // Enabled by the ordered progression, not by the one-shot lane.
+        assert_eq!(
+            architecture.availability,
+            desktop_ipc::BmadProjectionAvailability::Available
+        );
+        assert_eq!(
+            architecture.capability_id.as_deref(),
+            Some(crate::bmad_architecture::ARCHITECTURE_CAPABILITY_ID)
+        );
+        let paige = projection
+            .method_agents
+            .iter()
+            .find(|agent| agent.agent_code == "bmad-agent-tech-writer")
+            .expect("Paige");
+        for (menu_code, display_label) in [
+            ("WD", "Write Document"),
+            ("MG", "Generate Mermaid"),
+            ("VD", "Validate Document"),
+            ("EC", "Explain Concept"),
+        ] {
+            let menu = paige
+                .menus
+                .iter()
+                .find(|menu| menu.code == menu_code)
+                .expect("reviewed Paige menu path");
+            assert_eq!(
+                menu.availability,
+                desktop_ipc::BmadProjectionAvailability::Available
+            );
+            assert_eq!(menu.target_kind.as_str(), "skill_target");
+            assert_eq!(menu.display_label, display_label);
+        }
+    }
+
+    fn assert_builder_and_help_projection(projection: &desktop_ipc::BmadLibrarySnapshotProjection) {
         for builder in &projection.builder_packages {
             assert_eq!(builder.activation_state, "installed_inactive");
             assert_eq!(builder.blocker_codes, vec!["builder_engine_gated"]);
             assert_eq!(builder.descriptor_digest.len(), 12);
         }
-        #[cfg(feature = "deterministic-help")]
+        #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
         {
             let help = projection
                 .installed_skills
@@ -3216,7 +4265,10 @@ mod tests {
             assert!(help.blocker_codes.is_empty());
             assert!(help_action.blocker_codes.is_empty());
         }
-        let serialized = serde_json::to_string(&data).expect("wire projection");
+    }
+
+    fn assert_no_bmad_authority_bytes(data: &HostCommandData) {
+        let serialized = serde_json::to_string(data).expect("wire projection");
         for forbidden in [
             "sha256:",
             "sourceLocalMemberLabel",
@@ -3226,7 +4278,29 @@ mod tests {
         ] {
             assert!(!serialized.contains(forbidden), "leaked {forbidden}");
         }
-        Ok(())
+    }
+
+    #[test]
+    fn host_projects_the_sealed_method_library_without_authority_bytes() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let data = bmad_library_snapshot(
+            &foundation,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+        )
+        .expect("library snapshot");
+        let projection = match &data {
+            HostCommandData::BmadLibrarySnapshot(projection) => Some(projection),
+            _ => None,
+        }
+        .expect("expected BMAD library projection");
+        assert_eq!(projection.installed_skills.len(), 2);
+        assert_eq!(projection.help_actions.len(), 2);
+        assert_eq!(projection.method_agents.len(), 6);
+        assert_eq!(projection.builder_packages.len(), 2);
+        assert_method_menu_projection(projection);
+        assert_builder_and_help_projection(projection);
+        assert_no_bmad_authority_bytes(&data);
     }
 
     #[test]
@@ -3589,6 +4663,7 @@ mod tests {
             &renderer,
             id(&workspace_id),
             1,
+            Vec::new(),
             UnixMillis(now.0 + 1),
         )
         .expect("prepared Help review");
@@ -3611,11 +4686,22 @@ mod tests {
         let manifest_hash = sha256_bytes(b"review manifest");
         let decision_id = id("decision_01J00000000000000000000000");
         for command in [
-            LocalCommand::ModelAuthSignIn,
+            LocalCommand::ModelAuthSignIn {
+                provider_id: ModelProviderId::OpenAi,
+                model_id: "gpt-5-mini".to_owned(),
+                credential: serde_json::from_value(serde_json::json!([
+                    "sk", "test", "runtime", "only"
+                ]
+                .join("-")))
+                .expect("test credential"),
+                endpoint: None,
+                region: None,
+            },
             LocalCommand::ModelAuthSignOut,
             LocalCommand::PrepareBmadHelpReview {
                 workspace_id: workspace_id.clone(),
                 workspace_grant_epoch: 1,
+                context_paths: Vec::new(),
             },
             LocalCommand::ApproveBmadHelpReview {
                 workspace_id: workspace_id.clone(),
@@ -3658,7 +4744,7 @@ mod tests {
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 39);
+        assert_eq!(ready.len(), 46);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]
@@ -3678,6 +4764,25 @@ mod tests {
         ] {
             assert!(!should_cache_reply(&command), "{}", command.name());
         }
+    }
+
+    #[test]
+    fn git_review_capabilities_are_projected_only_in_ready_mode() {
+        let ready = supported_commands(crate::wire::BootMode::Ready);
+        assert_eq!(ready.len(), 46);
+        assert_eq!(
+            &ready[4..9],
+            [
+                "workspace.list_entries",
+                "workspace.read_text",
+                "workspace.git_status",
+                "workspace.git_diff",
+                "workspace.search",
+            ]
+        );
+        assert!(!supported_commands(crate::wire::BootMode::ReadOnlyRecovery)
+            .iter()
+            .any(|command| command.starts_with("workspace.git_")));
     }
 
     #[test]
@@ -3801,8 +4906,11 @@ mod tests {
         .expect("auth status serializes");
         assert_eq!(value["kind"], "model_auth_status");
         assert_eq!(value["value"]["authEpoch"], 1);
-        assert_eq!(value["value"]["signInAvailable"], false);
-        assert_eq!(value["value"]["signOutAvailable"], true);
+        assert_eq!(
+            value["value"]["signInAvailable"],
+            cfg!(feature = "direct-model-providers")
+        );
+        assert_eq!(value["value"]["signOutAvailable"], false);
         #[cfg(feature = "deterministic-help")]
         {
             assert_eq!(value["value"]["status"], "development_ready");

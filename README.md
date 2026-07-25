@@ -1,6 +1,6 @@
-# Sapphirus Desktop
+# Forge Desktop
 
-Sapphirus is an internal Windows desktop workspace for governed AI-assisted development. Its
+Forge is an internal Windows desktop workspace for governed AI-assisted development. Its
 locked architecture assigns local state, workspace access, approvals, checkpoints, file effects,
 rollback, and evidence to `desktop-app`, the sole Rust composition root. That host is intended to
 be Authenticode-signed for organization distribution; signing evidence remains deferred. The
@@ -16,17 +16,23 @@ an exact review projection whose canonical hash the approval decision binds; dur
 spec consumption; checkpointed, journaled, atomic UTF-8 patch application with postimage
 verification; governed `Undo changes` through a fresh reviewed rollback proposal; and boot-time
 journal reconciliation that fails closed to manual review. The deterministic Help adapter creates
-an inert local review and one-shot consent flow without contacting a provider. Production model
-brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
+an inert local review and one-shot consent flow without contacting a provider. An explicit
+prototype mode can instead send that already-reviewed request directly from the Rust host to the
+OpenAI or Azure OpenAI Responses API. The API key is entered through the frontend provider form,
+submitted once over typed IPC, cleared from the form immediately, and retained only in zeroizing
+native memory until disconnect or process exit. Its receipt is marked development-only rather than production trust evidence.
+Production model brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
 on Windows; the offline NSIS installer has local install, launch, prior-version upgrade, exact
 BMAD-resource, uninstall, and install-root removal evidence. Authenticode signing, timestamping, and an
-independent clean-machine release run remain outstanding. Governed proposals currently originate
-from the renderer's review flow, not from a model.
+independent clean-machine release run remain outstanding. Governed proposals
+may originate from the renderer or from a verified model capability result;
+model origin grants no authority, and every proposed change re-enters the same
+host-owned D3 review, approval, apply, and rollback boundary.
 
 Interrupted governed edits now have an explicit reviewed restart-recovery path.
 Boot never changes workspace files: it retains the authenticated journal as
 `recovery_required` and continues to block updates. After governed edits are
-re-enabled for the exact workspace, Changes or Activity can open the same
+re-enabled for the exact workspace, Review or Activity can open the same
 bounded recovery review and issue a fresh, short-lived, single-use restore
 decision. A successful restore verifies the exact checkpoint bytes and
 finalizes once; an interrupted restore becomes terminal `manual_review` and is
@@ -40,8 +46,9 @@ independent re-review at `23d9add3` are recorded in
 
 ## Repository map
 
-- `apps/desktop-ui` — Agent + Sessions renderer
+- `apps/desktop-ui` — the Forge workbench renderer (`@forge/desktop-ui`): entry point, components, and tests
 - `crates/desktop-*` — native authority and adapters
+- `packages/bmad-foundation` — the sealed BMAD Method source, ledgers, and runtime projections
 - `packages/contracts` — JSON Schema 2020-12 source, fixtures, and generated boundaries
 - `packages/ui` — accessible product design system
 - `helpers/windows-auth-broker` — frozen, non-integrated WAM broker scaffold (D2)
@@ -51,6 +58,47 @@ The tracked `bmad-runtime-lib` folder is a reference-only context vault. It is n
 package, build input, CI dependency, application resource, or distribution artifact, and its
 imported third-party scripts are never executed by the product toolchain.
 
+## Prototype model providers
+
+Direct model access is opt-in and has no account or interactive authentication. Provider, model,
+API key, and optional Azure endpoint/region live in **Forge Settings > Providers**. Connecting
+submits the key once to the native host, clears the password field, and never writes it to frontend
+settings or disk. The Rust host keeps the credential in zeroizing process memory and removes the
+provider transport on disconnect.
+
+Forge uses the Responses API with storage disabled. Connecting a key does not send workspace
+content: each call still requires exact-context review and one-shot approval, and credentials are
+never returned by IPC. This direct path is for prototype validation only; the managed Azure
+support-plane broker remains the production boundary.
+
+## Local Docker prototype
+
+Compose builds the active Forge V2 frontend and the existing desktop-support API test seam. The
+support API uses its Development adapters and placeholder cloud identifiers; the production Azure
+SQL, Key Vault, App Configuration, managed-identity, private-network, and Azure OpenAI architecture
+under `infra/desktop-support` is unchanged. The Tauri/Rust authority host still runs natively on
+Windows so workspace access, WebView2, DPAPI, and typed IPC behave like the desktop product.
+Model credentials are entered only in the native app's provider form and are never passed to
+Compose.
+
+```powershell
+pnpm desktop:local
+```
+
+Then choose **OpenAI** or **Azure OpenAI**, enter the model and API key in
+**Settings > Providers**, and connect. Stop the stack with
+`pnpm local:down` after testing. See `infra/local/README.md` for service boundaries and direct
+Compose commands.
+
+The support API also has an optional
+`production-configuration-contract` Compose profile. It starts the same
+support image with Production option validation, no network, and a liveness
+check. This proves only Production boot/configuration shape; it does not
+emulate or call Azure SQL, Key Vault, App Configuration, Entra, managed
+identity, private networking, or Azure OpenAI. See
+`infra/desktop-support/local/README.md` for the exact command and fidelity
+boundary.
+
 ## Local verification
 
 Tauri does not need a global installation. The exact CLI is a root development dependency and is
@@ -58,7 +106,7 @@ invoked by the root `pnpm` scripts; installing the pinned Rust toolchain is suff
 
 ```powershell
 pnpm install --frozen-lockfile
-pnpm tauri:version
+pnpm exec tauri --version
 pnpm verify:source
 ```
 
@@ -67,8 +115,9 @@ deterministic TypeScript 7.0.2 contract generation and conformance, sealed BMAD 
 renderer/UI typechecks and tests, the first-party secret scan, Node-based boundary inspection, and
 the Vite web-asset build. It does not read or execute imported context-vault content. The optional
 `vault:check` command is a development audit only. The contract generator-qualification job is an
-unconditional Windows CI gate with pinned Rust and .NET tools. Desktop packaging remains a manual
-native CI job guarded by the organization-controlled `SAPPHIRUS_NATIVE_LANE_ENABLED` setting.
+unconditional Windows CI gate with pinned Rust and .NET tools. The native desktop lane runs unless
+the organization sets `SAPPHIRUS_NATIVE_LANE_FROZEN` to `true`; the signed-release workflow is the
+opt-in one, requiring `SAPPHIRUS_NATIVE_LANE_ENABLED`.
 The P1 signed-installer qualification job is additionally guarded by
 `SAPPHIRUS_SIGNING_LANE_ENABLED`, a protected `windows-signing` environment, and an
 organization-managed signing runner. A separate qualification runner executes the required prior

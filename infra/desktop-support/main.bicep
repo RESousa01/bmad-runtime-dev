@@ -20,6 +20,11 @@ param entraAuthority string
 @description('Microsoft Entra application ID URI expected in desktop access tokens.')
 param entraAudience string
 
+@description('Application (client) ID of the reviewed desktop public client allowed in delegated access tokens.')
+@minLength(36)
+@maxLength(36)
+param approvedDesktopClientId string
+
 @description('Object ID of the Entra group that administers the Azure SQL logical server.')
 param sqlAdministratorObjectId string
 
@@ -393,6 +398,7 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
             { name: 'ASPNETCORE_ENVIRONMENT', value: 'Production' }
             { name: 'Sapphirus__Authority', value: entraAuthority }
             { name: 'Sapphirus__Audience', value: entraAudience }
+            { name: 'Sapphirus__ApprovedDesktopClientId', value: approvedDesktopClientId }
             { name: 'Sapphirus__Region', value: location }
             { name: 'Sapphirus__ReleaseChannel', value: releaseChannel }
             { name: 'Sapphirus__ManagedIdentityClientId', value: identity.properties.clientId }
@@ -610,12 +616,17 @@ resource sqlDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-previe
 
 output apiFqdn string = api.?properties.configuration.ingress.fqdn ?? ''
 output apiManagedIdentityObjectId string = identity.properties.principalId
+output apiManagedIdentityClientId string = identity.properties.clientId
+output apiManagedIdentityName string = identity.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseName string = sqlDatabase.name
 output registryLoginServer string = registry.properties.loginServer
 output imagePullIdentityObjectId string = imagePullIdentity.properties.principalId
+output imagePullIdentityResourceId string = imagePullIdentity.id
 output sqlMigrationIdentityClientId string = migrationIdentity.properties.clientId
 output sqlMigrationIdentityObjectId string = migrationIdentity.properties.principalId
+output sqlMigrationIdentityResourceId string = migrationIdentity.id
+output sqlMigrationIdentityName string = migrationIdentity.name
 output signingKeyUri string = signingKey.properties.keyUri
 output appConfigurationEndpoint string = configuration.properties.endpoint
 output modelEndpoint string = openAi.properties.endpoint

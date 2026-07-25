@@ -1,13 +1,9 @@
-import {
-  useEffect,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, type KeyboardEvent, type ReactNode } from "react";
 import {
   containModalPanelFocus,
   useModalPanelFocus,
 } from "../../lib/panelFocus";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 
 export const DRAWER_OVERLAY_QUERY = "(max-width: 1240px)";
 
@@ -17,24 +13,6 @@ export interface AppShellLayoutProps {
   modal?: ReactNode;
   onCloseDrawer: () => void;
   onCloseModal: () => void;
-}
-
-function readMediaQuery(query: string): boolean {
-  return typeof window !== "undefined" && window.matchMedia(query).matches;
-}
-
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => readMediaQuery(query));
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    const update = () => setMatches(mediaQuery.matches);
-    update();
-    mediaQuery.addEventListener("change", update);
-    return () => mediaQuery.removeEventListener("change", update);
-  }, [query]);
-
-  return matches;
 }
 
 export function AppShellLayout({

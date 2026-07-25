@@ -16,6 +16,7 @@ sha2.workspace = true
 thiserror.workspace = true
 unicode-normalization.workspace = true
 regress.workspace = true
+zeroize.workspace = true
 
 [lints]
 workspace = true

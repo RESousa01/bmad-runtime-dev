@@ -51,13 +51,28 @@ fn envelope(command: &str, payload: &Value) -> Vec<u8> {
 }
 
 fn exact_commands() -> [(&'static str, Value, bool); 8] {
+    let runtime_credential = ["sk", "test", "runtime", "only"].join("-");
     [
         ("model.auth.status", json!({}), false),
-        ("model.auth.sign_in", json!({}), true),
+        (
+            "model.auth.sign_in",
+            json!({
+                "providerId": "openai",
+                "modelId": "gpt-5-mini",
+                "apiKey": runtime_credential,
+                "endpoint": null,
+                "region": null,
+            }),
+            true,
+        ),
         ("model.auth.sign_out", json!({}), true),
         (
             "bmad.help.prepare",
-            json!({"workspaceId": "workspace_test", "workspaceGrantEpoch": 1}),
+            json!({
+                "workspaceId": "workspace_test",
+                "workspaceGrantEpoch": 1,
+                "contextPaths": ["src/context.ts"],
+            }),
             true,
         ),
         (
@@ -116,13 +131,10 @@ fn exact_eight_commands_are_capability_gated_and_correctly_classified(
 }
 
 #[test]
-fn every_payload_is_closed_against_renderer_authority_fields(
+fn every_payload_is_closed_against_extra_renderer_authority_fields(
 ) -> Result<(), Box<dyn std::error::Error>> {
     for forbidden in [
-        "provider",
-        "model",
         "deployment",
-        "region",
         "schema",
         "package",
         "destination",
@@ -150,6 +162,45 @@ fn every_payload_is_closed_against_renderer_authority_fields(
                 "{command} accepted {forbidden}: {error:?}"
             );
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn model_sign_in_accepts_only_bounded_redacted_runtime_credentials(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let runtime_credential = ["sk", "test", "runtime", "only"].join("-");
+    let bytes = envelope(
+        "model.auth.sign_in",
+        &json!({
+            "providerId": "openai",
+            "modelId": "gpt-5-mini",
+            "apiKey": runtime_credential,
+            "endpoint": null,
+            "region": null,
+        }),
+    );
+    let validated = CommandEnvelopeValidator::parse(&bytes, &context(&["model.auth.sign_in"])?)?;
+    let debug = format!("{:?}", validated.command());
+    let serialized = serde_json::to_string(validated.command())?;
+    assert!(!debug.contains(&runtime_credential));
+    assert!(!serialized.contains(&runtime_credential));
+
+    for api_key in ["short".to_owned(), "x".repeat(4_097)] {
+        let invalid = envelope(
+            "model.auth.sign_in",
+            &json!({
+                "providerId": "openai",
+                "modelId": "gpt-5-mini",
+                "apiKey": api_key,
+                "endpoint": null,
+                "region": null,
+            }),
+        );
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(&invalid, &context(&["model.auth.sign_in"])?),
+            Err(IpcValidationError::InvalidPayload)
+        ));
     }
     Ok(())
 }
@@ -257,6 +308,10 @@ fn auth_projection_is_closed_mode_consistent_and_bounded() -> Result<(), Box<dyn
         auth_epoch: 7,
         development_only: true,
         destination_label: "Deterministic local model - development only".to_owned(),
+        provider_id: Some("forge-local".to_owned()),
+        model_id: Some("bmad-help-fixture-v1".to_owned()),
+        sign_in_available: false,
+        sign_out_available: false,
     })?;
     let value = serde_json::to_value(&projection)?;
     assert_eq!(
@@ -267,10 +322,28 @@ fn auth_projection_is_closed_mode_consistent_and_bounded() -> Result<(), Box<dyn
             "authEpoch": 7,
             "developmentOnly": true,
             "destinationLabel": "Deterministic local model - development only",
+            "providerId": "forge-local",
+            "modelId": "bmad-help-fixture-v1",
             "signInAvailable": false,
-            "signOutAvailable": true,
+            "signOutAvailable": false,
         })
     );
+
+    let direct = project_model_auth_status(ModelAuthStatusInput {
+        status: ModelAuthStatusKindProjection::DevelopmentReady,
+        mode: ModelAuthModeProjection::DirectProviderDevelopment,
+        auth_epoch: 8,
+        development_only: true,
+        destination_label: "OpenAI - ft:gpt-5-mini:forge".to_owned(),
+        provider_id: Some("openai".to_owned()),
+        model_id: Some("ft:gpt-5-mini:forge".to_owned()),
+        sign_in_available: true,
+        sign_out_available: true,
+    })?;
+    let direct_value = serde_json::to_value(direct)?;
+    assert_eq!(direct_value["mode"], "direct_provider_development");
+    assert_eq!(direct_value["providerId"], "openai");
+    assert_eq!(direct_value["modelId"], "ft:gpt-5-mini:forge");
 
     assert!(project_model_auth_status(ModelAuthStatusInput {
         status: ModelAuthStatusKindProjection::DevelopmentReady,
@@ -278,6 +351,10 @@ fn auth_projection_is_closed_mode_consistent_and_bounded() -> Result<(), Box<dyn
         auth_epoch: 7,
         development_only: true,
         destination_label: "Model support unavailable".to_owned(),
+        provider_id: None,
+        model_id: None,
+        sign_in_available: true,
+        sign_out_available: false,
     })
     .is_err());
     assert!(project_model_auth_status(ModelAuthStatusInput {
@@ -286,6 +363,10 @@ fn auth_projection_is_closed_mode_consistent_and_bounded() -> Result<(), Box<dyn
         auth_epoch: 0,
         development_only: false,
         destination_label: "Model support unavailable".to_owned(),
+        provider_id: None,
+        model_id: None,
+        sign_in_available: true,
+        sign_out_available: false,
     })
     .is_err());
     Ok(())

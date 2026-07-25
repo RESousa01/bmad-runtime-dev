@@ -2,36 +2,43 @@ import { Button } from "@sapphirus/ui";
 import { Send } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { WorkspaceProjection } from "../lib/hostClient";
-import { BrandMark } from "./BrandMark";
-import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { OpenCodeIcon } from "./OpenCodeIcon";
 
 export interface HomeViewProps {
   readonly activeWorkspaceId: string | null;
   readonly canOpenFolder: boolean;
   readonly composerDisabled: boolean;
-  readonly hasWorkspace: boolean;
   readonly onActivateWorkspace: (workspaceId: string) => void;
   readonly onOpenWorkspaceManager: () => void;
   readonly onOpenWorkspace: () => void;
+  readonly onSelectTask: (taskId: string) => void;
   readonly onSubmitIntent: (intent: string) => void;
+  readonly onNewTask: () => void;
+  readonly recentTasks: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly updatedAt: string;
+  }[];
   readonly statusHint: string;
   readonly workspaces: readonly WorkspaceProjection[];
   readonly workspaceStatusLabel: string;
 }
 
 /**
- * The landing view: a centered hero and composer with the bound workspace
- * as a quiet breadcrumb underneath. Submitting routes into a fresh task.
+ * The landing view: projects on the left, a composer and recent tasks on the
+ * right. Submitting routes into a fresh task.
  */
 export function HomeView({
   activeWorkspaceId,
   canOpenFolder,
   composerDisabled,
-  hasWorkspace,
   onActivateWorkspace,
   onOpenWorkspaceManager,
   onOpenWorkspace,
+  onSelectTask,
   onSubmitIntent,
+  onNewTask,
+  recentTasks,
   statusHint,
   workspaces,
   workspaceStatusLabel,
@@ -55,55 +62,103 @@ export function HomeView({
   };
 
   return (
-    <main aria-label="Home" className="home-view">
-      <div className="home-view__hero">
-        <div className="empty-session__mark">
-          <BrandMark size={44} />
-        </div>
-        <span aria-hidden="true" className="empty-session__wordmark">Sapphirus</span>
+    <main
+      aria-label="Home"
+      className="home-view home-view--opencode-v2"
+    >
+      <h1 className="sr-only">Forge workspace</h1>
+      <div className="home-view__overview">
+        <section className="home-view__projects">
+          <header className="home-view__section-header">
+            <h2>Projects</h2>
+            <button
+              aria-label="Open workspace"
+              disabled={!canOpenFolder}
+              onClick={onOpenWorkspace}
+              type="button"
+            >
+              <OpenCodeIcon name="folder-add-left" size={14} />
+            </button>
+          </header>
+          {workspaces.length === 0 ? (
+            <button className="home-view__empty-action" onClick={onOpenWorkspace} type="button">
+              <OpenCodeIcon name="folder" size={14} />
+              Open a local workspace
+            </button>
+          ) : (
+            <ul aria-label="Projects" className="home-view__project-list">
+              {workspaces.map((workspace) => (
+                <li key={workspace.workspaceId}>
+                  <button
+                    aria-current={workspace.workspaceId === activeWorkspaceId ? "page" : undefined}
+                    onClick={() => onActivateWorkspace(workspace.workspaceId)}
+                    type="button"
+                  >
+                    <OpenCodeIcon name="folder" size={14} />
+                    <span>{workspace.displayName}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="home-view__project-actions">
+            <button onClick={onOpenWorkspaceManager} type="button">
+              <OpenCodeIcon name="settings-gear" size={14} />
+              Manage workspaces
+            </button>
+            <span>{workspaceStatusLabel}</span>
+          </div>
+        </section>
+
+        <section className="home-view__tasks">
+          <form aria-label="Start a task" className="home-view__composer" onSubmit={submit}>
+            <input
+              aria-label="Describe your intent"
+              autoComplete="off"
+              className="home-view__input"
+              disabled={composerDisabled}
+              onChange={(event) => setIntent(event.target.value)}
+              placeholder="Ask Forge to inspect, plan, or review…"
+              ref={inputRef}
+              spellCheck={false}
+              type="text"
+              value={intent}
+            />
+            <div className="home-view__composer-row">
+              <span className="home-view__hint">{statusHint}</span>
+              <Button
+                aria-label="Start task"
+                isDisabled={composerDisabled || trimmed.length === 0}
+                size="small"
+                type="submit"
+                variant="primary"
+              >
+                <Send aria-hidden="true" size={14} />
+                Start task
+              </Button>
+            </div>
+          </form>
+
+          <header className="home-view__section-header home-view__section-header--tasks">
+            <h2>Recent tasks</h2>
+            <button onClick={onNewTask} type="button">
+              <OpenCodeIcon name="edit" size={14} />
+              New task
+            </button>
+          </header>
+          <ul aria-label="Recent tasks" className="home-view__task-list">
+            {recentTasks.map((task) => (
+              <li key={task.id}>
+                <button onClick={() => onSelectTask(task.id)} type="button">
+                  <OpenCodeIcon name="edit" size={14} />
+                  <span>{task.title}</span>
+                  <time>{task.updatedAt}</time>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
-      <form aria-label="Start a task" className="home-view__composer" onSubmit={submit}>
-        <input
-          aria-label="Describe your intent"
-          autoComplete="off"
-          className="home-view__input"
-          disabled={composerDisabled}
-          onChange={(event) => setIntent(event.target.value)}
-          placeholder="Describe your intent — nothing is sent until you approve it…"
-          ref={inputRef}
-          spellCheck={false}
-          type="text"
-          value={intent}
-        />
-        <div className="home-view__composer-row">
-          <span className="home-view__hint">{statusHint}</span>
-          <Button
-            aria-label="Start task"
-            isDisabled={composerDisabled || trimmed.length === 0}
-            size="small"
-            type="submit"
-            variant="primary"
-          >
-            <Send aria-hidden="true" size={14} />
-            Start task
-          </Button>
-        </div>
-      </form>
-      {hasWorkspace ? (
-        <WorkspaceSwitcher
-          activeWorkspaceId={activeWorkspaceId}
-          canOpenFolder={canOpenFolder}
-          onActivate={onActivateWorkspace}
-          onOpenFolder={onOpenWorkspace}
-          onOpenManager={onOpenWorkspaceManager}
-          statusLabel={workspaceStatusLabel}
-          workspaces={workspaces}
-        />
-      ) : (
-        <Button onPress={onOpenWorkspace} size="small" variant="secondary">
-          Open workspace
-        </Button>
-      )}
     </main>
   );
 }

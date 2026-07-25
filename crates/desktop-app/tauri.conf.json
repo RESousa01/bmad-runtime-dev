@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Sapphirus",
+  "productName": "Forge",
   "version": "0.1.0",
   "identifier": "com.sapphirus.desktop",
-  "mainBinaryName": "sapphirus",
+  "mainBinaryName": "forge",
   "build": {
-    "beforeDevCommand": "pnpm --filter @sapphirus/desktop-ui dev --host 127.0.0.1",
-    "beforeBuildCommand": "pnpm --filter @sapphirus/desktop-ui build",
+    "beforeDevCommand": "pnpm --filter @forge/desktop-ui dev --host 127.0.0.1",
+    "beforeBuildCommand": "pnpm --filter @forge/desktop-ui build",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../../apps/desktop-ui/dist",
     "removeUnusedCommands": true
@@ -29,6 +29,13 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "resources": {
       "../../packages/bmad-foundation/NOTICE.md": "bmad-foundation/NOTICE.md",
       "../../packages/bmad-foundation/adoption-ledger.json": "bmad-foundation/adoption-ledger.json",
@@ -41,7 +48,7 @@
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
     "shortDescription": "Read-only AI workspace companion for internal organization use.",
-    "longDescription": "Sapphirus is an organization-managed Windows desktop workbench for bounded local workspace inspection and context review.",
+    "longDescription": "Forge is an organization-managed Windows desktop workbench for bounded local workspace inspection, context review, and governed software changes.",
     "windows": {
       "webviewInstallMode": {
         "type": "offlineInstaller",

@@ -1,0 +1,582 @@
+.review-panel {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.git-review button,
+.git-review input,
+.git-review select,
+.review-panel__governed-header button {
+  border: 0;
+  color: inherit;
+  font: inherit;
+}
+
+.review-panel__governed,
+.git-review {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.git-review {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.git-review__secondary-fallback {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+}
+
+.git-review__window {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+.git-review__sidebar {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--color-border-subtle);
+  background: color-mix(in srgb, var(--color-surface) 97%, var(--color-text) 3%);
+}
+
+.git-review__sidebar-header {
+  display: flex;
+  min-height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  padding: 0 8px;
+}
+
+.git-review__comparison-select,
+.git-review__summary,
+.git-review__toolbar,
+.git-review__toolbar-group,
+.git-review__toolbar-controls,
+.git-review__segmented,
+.git-review__filter,
+.git-review__folder,
+.git-review__file,
+.git-review__states,
+.git-review__stats {
+  display: flex;
+  align-items: center;
+}
+
+.git-review__comparison-select {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.72rem;
+}
+
+.git-review__comparison-select select {
+  width: 100%;
+  min-width: 0;
+  appearance: none;
+  padding: 4px 18px 4px 5px;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-review__comparison-select > svg {
+  position: absolute;
+  right: 3px;
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+.git-review__summary {
+  flex: 0 0 auto;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.git-review__proposals,
+.git-review__refresh {
+  position: relative;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.git-review__proposals:hover,
+.git-review__refresh:hover:not(:disabled) {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+
+.git-review__refresh:disabled { opacity: 0.35; }
+
+.git-review__attention {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
+.git-review__summary b,
+.git-review__summary i {
+  font-style: normal;
+  font-weight: 620;
+}
+
+.git-review__summary b,
+.git-review__added {
+  color: var(--color-success);
+}
+
+.git-review__summary i,
+.git-review__removed {
+  color: var(--color-danger);
+}
+
+.git-review__comparisons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 0 9px 7px;
+  padding: 2px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 5px;
+}
+
+.git-review__comparison {
+  min-height: 23px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.64rem;
+}
+
+.git-review__comparison:hover,
+.git-review__comparison[aria-pressed="true"] {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+
+.git-review__filter {
+  min-height: 30px;
+  flex: 0 0 30px;
+  gap: 7px;
+  margin: 0 8px 8px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 5px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+.review-panel__governed-shell {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.review-panel__governed-header {
+  display: flex;
+  min-height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.review-panel__governed-header button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.review-panel__governed-header button:hover {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+
+.review-panel__governed-header strong {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.git-review__filter:focus-within {
+  border-color: color-mix(in srgb, var(--color-text) 30%, var(--color-border-subtle));
+}
+
+.git-review__filter input {
+  width: 100%;
+  min-width: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.68rem;
+}
+
+.git-review__filter input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.git-review__filter button {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.git-review__branch {
+  min-height: 30px;
+  flex: 0 0 30px;
+  gap: 6px;
+  padding: 0 11px;
+  border-block: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.61rem;
+}
+
+.git-review__branch > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-review__branch button {
+  margin-left: auto;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.61rem;
+}
+
+.git-review__files {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 5px 5px 10px;
+}
+
+.git-review__folder {
+  min-height: 24px;
+  gap: 4px;
+  padding: 0 6px 0 calc(5px + var(--tree-depth, 0) * 13px);
+  color: var(--color-text-muted);
+  font-size: 0.67rem;
+}
+
+.git-review__folder span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-review__file {
+  width: 100%;
+  min-height: 25px;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 0 5px 0 calc(27px + var(--tree-depth, 0) * 13px);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.git-review__file:hover,
+.git-review__file[aria-pressed="true"] {
+  background: var(--color-surface-selected);
+}
+
+.git-review__file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-review__states {
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.git-review__state {
+  display: inline-grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+}
+
+.git-review__state--staged { color: var(--color-success); }
+.git-review__state--unstaged { color: var(--color-warning, var(--color-text-muted)); }
+
+.git-review__tree-empty {
+  padding: 18px 8px;
+  color: var(--color-text-muted);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+.git-review__main {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: 42px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.git-review__toolbar {
+  min-width: 0;
+  justify-content: space-between;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.git-review__toolbar-group,
+.git-review__toolbar-controls,
+.git-review__segmented {
+  gap: 2px;
+}
+
+.git-review__toolbar-controls { gap: 10px; }
+
+.git-review__toolbar button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.git-review__toolbar button:hover:not(:disabled),
+.git-review__toolbar button[aria-pressed="true"] {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+
+.git-review__toolbar button:disabled { cursor: default; opacity: 0.28; }
+
+.git-review__segmented {
+  padding: 2px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-surface) 90%, var(--color-text) 10%);
+}
+
+.git-review__segmented button { width: 25px; height: 25px; }
+
+.git-review__diff {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--color-surface);
+}
+
+.git-review__diff-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.git-review__diff-header .diff-file-path {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-review__stats {
+  flex: 0 0 auto;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.git-review__notice {
+  margin: 0;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: 0.63rem;
+}
+
+.git-review__diff-region { min-width: 690px; }
+
+.split-diff {
+  min-width: 690px;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.62;
+}
+
+.split-diff__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.split-diff__cell {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 42px 16px minmax(0, 1fr);
+  border-right: 1px solid var(--color-border-subtle);
+}
+
+.split-diff__cell:last-child { border-right: 0; }
+
+.split-diff__line-number {
+  padding: 0 8px 0 4px;
+  color: var(--color-text-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.split-diff__marker {
+  color: var(--color-text-muted);
+  text-align: center;
+  user-select: none;
+}
+
+.split-diff__text {
+  min-width: 0;
+  padding: 0 8px;
+  overflow-wrap: normal;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.split-diff__cell--removed {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  box-shadow: inset -3px 0 color-mix(in srgb, var(--color-danger) 70%, transparent);
+}
+
+.split-diff__cell--added {
+  background: color-mix(in srgb, var(--color-success) 9%, transparent);
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--color-success) 70%, transparent);
+}
+
+.split-diff__cell--removed .split-diff__marker { color: var(--color-danger); }
+.split-diff__cell--added .split-diff__marker { color: var(--color-success); }
+.split-diff__cell--empty { background: color-mix(in srgb, var(--color-surface) 94%, var(--color-text) 6%); }
+
+.split-diff__collapsed,
+.diff-collapsed {
+  width: 100%;
+  min-height: 25px;
+  border-block: 1px solid var(--color-border-subtle) !important;
+  background: color-mix(in srgb, var(--color-surface) 95%, var(--color-text) 5%);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.61rem;
+}
+
+.git-review__diff .diff-view {
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.git-review__empty {
+  display: grid;
+  width: 100%;
+  min-height: 160px;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  padding: 28px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.git-review__empty p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.74rem;
+}
+
+.git-review button:focus-visible,
+.git-review input:focus-visible,
+.git-review select:focus-visible,
+.review-panel__governed-header button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+@media (max-width: 760px) {
+  .git-review__window { grid-template-columns: 190px minmax(0, 1fr); }
+  .git-review__comparisons { grid-template-columns: 1fr; }
+  .git-review__comparison { min-height: 21px; }
+}

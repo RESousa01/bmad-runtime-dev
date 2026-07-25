@@ -14,6 +14,7 @@
     "runtime",
     "runtime-manifest.json",
     "scripts",
+    "source",
     "tests",
     "README.md"
   ],

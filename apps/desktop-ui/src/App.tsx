@@ -1,16 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BmadHelpCard } from "./components/BmadHelpCard";
 import {
   BmadLibraryPanel,
   type BmadPersonaPerspectiveView,
 } from "./components/BmadLibraryPanel";
 import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
+import {
+  ReviewPanel,
+  type GitReviewSource,
+} from "./components/GitReviewPanel";
+import type { ContextSelectionMode } from "./components/ContextWindow";
+import {
+  SessionContextPanel,
+  type SessionContextMessage,
+} from "./components/SessionContextPanel";
+import "./components/review-panel.css";
 import { TaskWorkspace } from "./components/TaskWorkspace";
 import { TitleBar } from "./components/TitleBar";
+import { BmadCapabilityPanel } from "./components/BmadCapabilityPanel";
+import { BmadWorkflowPanel } from "./components/BmadWorkflowPanel";
 import {
-  BmadCapabilityPanel,
-  type CapabilityRunPhase,
-} from "./components/BmadCapabilityPanel";
+  type CapabilityRouting,
+  MAX_LANE_SESSIONS,
+  useCapabilitySessions,
+} from "./state/taskSessions";
+import { useChatSessions } from "./state/chatSessions";
+import { matchMenuIntent } from "./lib/menuIntent";
 import {
   type OffboardingStatus,
   SettingsDialog,
@@ -34,23 +48,22 @@ import { ActivityPanel } from "./components/panels/ActivityPanel";
 import "./components/panels/activity-panel.css";
 import "./components/redesign/app-shell.css";
 import "./components/redesign/context-drawer.css";
-import "./components/redesign/sidebar.css";
+import "./components/redesign/no-workspace-state.css";
 import "./components/redesign/task-surface.css";
 import "./components/redesign/utility-panel.css";
 import "./components/redesign/design-polish.css";
 import "./components/redesign/design-refinement.css";
 import {
-  type DensityPreference,
-  type SessionSummary,
-  type ThemePreference,
-} from "./data/demo";
-import {
   getDefaultHostRuntime,
   getSafeHostMessage,
+  latestResultForRun,
   type AboutProjection,
+  type BmadWorkflowStateProjection,
   type RetentionManifestProjection,
   type ApprovalChoice,
+  type DensityPreference,
   type DesktopHostClient,
+  type ThemePreference,
   HostCapabilityError,
   HostCommandError,
   type ContextPreviewProjection,
@@ -59,6 +72,8 @@ import {
   type HostRuntime,
   type RecoveryApprovalChoice,
   type WorkspaceProjection,
+  type WorkspaceFilePick,
+  type WorkspaceSearchMatch,
 } from "./lib/hostClient";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
@@ -73,19 +88,37 @@ import {
   type BmadRequestEvent,
   type BmadRequestState,
   type ModelAuthStatusProjection,
+  type ModelProviderConnection,
+  type ModelSelection,
 } from "./lib/bmadModelProjection";
 import {
   browserDemoWorkspaceSource,
   createHostWorkspaceSource,
-  type WorkspaceProjectionProvenance,
 } from "./lib/workspaceReadSource";
 import { useMediaQuery } from "./lib/useMediaQuery";
+import {
+  contextSearchTerms,
+  rankContextPaths,
+} from "./lib/contextSuggestions";
+
+export interface SessionSummary {
+  id: string;
+  title: string;
+  updatedAt: string;
+  unread?: boolean;
+}
 
 const initialProductSession: SessionSummary = {
   id: "new-0",
   title: "New task",
   updatedAt: "Now",
 };
+
+function taskTitleFromIntent(intent?: string): string {
+  const value = intent?.trim();
+  if (!value) return "New task";
+  return value.length <= 64 ? value : `${value.slice(0, 63).trimEnd()}…`;
+}
 
 const browserDemoWorkspace: WorkspaceProjection = {
   workspaceId: "workspace_browser_demo",
@@ -95,6 +128,87 @@ const browserDemoWorkspace: WorkspaceProjection = {
   permissions: "read_only",
   contextReadEpoch: 1,
   governedEditEpoch: 1,
+};
+
+const browserDemoGitReviewSource: GitReviewSource = {
+  async readStatus() {
+    return {
+      branch: "codex/forge-v2",
+      entries: [
+        {
+          relativePath: "src/components/TaskWorkspace.tsx",
+          indexState: "modified",
+          worktreeState: null,
+        },
+        {
+          relativePath: "src/components/GitReviewPanel.tsx",
+          indexState: "added",
+          worktreeState: "modified",
+        },
+        {
+          relativePath: "src/components/review-panel.css",
+          indexState: null,
+          worktreeState: "untracked",
+        },
+      ],
+      truncated: false,
+    };
+  },
+  async readDiff(relativePath, comparison) {
+    const contents = relativePath.endsWith("TaskWorkspace.tsx")
+      ? {
+          beforeContent: [
+            "import { Composer } from \"./Composer\";",
+            "import { ContextSummary } from \"./ContextSummary\";",
+            "",
+            "export function TaskWorkspace() {",
+            "  const files = [\"README.md\", \"src/App.tsx\", \"Cargo.toml\"];",
+            "",
+            "  return (",
+            "    <main>",
+            "      <ContextSummary files={files.length} />",
+            "      <Composer placeholder=\"Describe a task\" />",
+            "    </main>",
+            "  );",
+            "}",
+            "",
+          ].join("\n"),
+          afterContent: [
+            "import { Composer } from \"./Composer\";",
+            "import { ContextInspector } from \"./ContextInspector\";",
+            "import { ReviewTrigger } from \"./ReviewTrigger\";",
+            "",
+            "export function TaskWorkspace() {",
+            "  const files = [\"README.md\", \"src/App.tsx\", \"Cargo.toml\"];",
+            "  const tokenBudget = 128_000;",
+            "",
+            "  return (",
+            "    <main>",
+            "      <ContextInspector files={files} tokenBudget={tokenBudget} />",
+            "      <Composer placeholder=\"Describe a task\" />",
+            "      <ReviewTrigger label=\"Review exact context\" />",
+            "    </main>",
+            "  );",
+            "}",
+            "",
+          ].join("\n"),
+        }
+      : relativePath.endsWith("review-panel.css")
+        ? {
+            beforeContent: null,
+            afterContent: ".git-review {\n  display: flex;\n  flex-direction: column;\n}\n",
+          }
+        : {
+            beforeContent: "<ChangesPanel />\n",
+            afterContent: "<GitReviewPanel comparison=\"head_to_worktree\" />\n",
+          };
+    return {
+      relativePath,
+      comparison,
+      ...contents,
+      truncated: false,
+    };
+  },
 };
 
 const retainedHelpProjectionUnavailableMessage =
@@ -131,52 +245,14 @@ function applyThemePreference(preference: ThemePreference) {
     resolved === "dark" ? "#06121f" : "#f4f7fb",
   );
 }
-
-
-// The reviewed 26 roster menu paths (ADR-0005 closure ledger): every
-// (agentCode, menuCode) pair binds exactly one capability identity.
-const MENU_CAPABILITIES: Readonly<Record<string, string>> = {
-  "bmad-agent-analyst/BP": "bmm:bmad-brainstorming",
-  "bmad-agent-analyst/MR": "bmm:bmad-market-research",
-  "bmad-agent-analyst/DR": "bmm:bmad-domain-research",
-  "bmad-agent-analyst/TR": "bmm:bmad-technical-research",
-  "bmad-agent-analyst/CB": "bmm:bmad-product-brief",
-  "bmad-agent-analyst/WB": "bmm:bmad-prfaq",
-  "bmad-agent-analyst/DP": "bmm:bmad-document-project",
-  "bmad-agent-tech-writer/DP": "bmm:bmad-document-project",
-  "bmad-agent-tech-writer/WD": "bmm:tech-writer-write-document",
-  "bmad-agent-tech-writer/MG": "bmm:tech-writer-mermaid-gen",
-  "bmad-agent-tech-writer/VD": "bmm:tech-writer-validate-doc",
-  "bmad-agent-tech-writer/EC": "bmm:tech-writer-explain-concept",
-  "bmad-agent-pm/PRD": "bmm:bmad-prd",
-  "bmad-agent-pm/CE": "bmm:bmad-create-epics-and-stories",
-  "bmad-agent-pm/IR": "bmm:bmad-check-implementation-readiness",
-  "bmad-agent-pm/CC": "bmm:bmad-correct-course",
-  "bmad-agent-ux-designer/CU": "bmm:bmad-ux",
-  "bmad-agent-architect/CA": "bmm:bmad-architecture",
-  "bmad-agent-architect/IR": "bmm:bmad-check-implementation-readiness",
-  "bmad-agent-dev/DS": "bmm:bmad-dev-story",
-  "bmad-agent-dev/QD": "bmm:bmad-quick-dev",
-  "bmad-agent-dev/QA": "bmm:bmad-qa-generate-e2e-tests",
-  "bmad-agent-dev/CR": "bmm:bmad-code-review",
-  "bmad-agent-dev/SP": "bmm:bmad-sprint-planning",
-  "bmad-agent-dev/CS": "bmm:bmad-create-story",
-  "bmad-agent-dev/ER": "bmm:bmad-retrospective",
-};
-
-interface ActiveCapabilityRunState {
-  readonly capabilityId: string;
-  readonly label: string;
-  readonly phase: CapabilityRunPhase;
-}
-
 export function App({
   hostRuntimeLoader = getDefaultHostRuntime,
   projectionPollIntervalMs = 1_500,
 }: AppProps = {}) {
   const [primaryRoute, setPrimaryRoute] = useState<PrimaryRoute>({ kind: "home" });
   const [density, setDensity] = useState<DensityPreference>("comfortable");
-  const [sessions, setSessions] = useState<SessionSummary[]>([initialProductSession]);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [taskDrafts, setTaskDrafts] = useState<ReadonlyMap<string, string>>(new Map());
   const [contextDrawer, setContextDrawer] = useState<ContextDrawerKind | null>(null);
   const [theme, setTheme] = useState<ThemePreference>("dark");
   const [appModal, setAppModal] = useState<AppModalKind>(null);
@@ -192,7 +268,9 @@ export function App({
   const [offboardingStatus, setOffboardingStatus] =
     useState<OffboardingStatus>("unavailable");
   const [offboardingNotice, setOffboardingNotice] = useState<string | null>(null);
-  const [capabilityRun, setCapabilityRun] = useState<ActiveCapabilityRunState | null>(null);
+  // Per-task capability execution state lives in `capabilitySessions` (keyed by
+  // task session id) so a late completion routes to its owning task instead of
+  // whichever tab is visible. Bound after `selectedSessionId` is derived.
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
@@ -201,14 +279,28 @@ export function App({
   const [workspaceRemovalBusyId, setWorkspaceRemovalBusyId] = useState<string | null>(null);
   const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null);
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
-  const [, setContextProvenance] = useState<WorkspaceProjectionProvenance | null>(null);
+  const [contextSelectionMode, setContextSelectionMode] =
+    useState<ContextSelectionMode>("manual");
+  const [contextSuggestionBusy, setContextSuggestionBusy] = useState(false);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
   const [personaPerspectives, setPersonaPerspectives] = useState<
     ReadonlyMap<string, BmadPersonaPerspectiveView>
   >(new Map());
   const [bmadHelpState, setBmadHelpState] = useState<BmadRequestState>(initialBmadRequestState);
+  const [currentBmadIntent, setCurrentBmadIntent] = useState<{
+    readonly createdAt?: number | undefined;
+    readonly text: string;
+  } | null>(null);
   const [modelAuthStatus, setModelAuthStatus] = useState<ModelAuthStatusProjection | null>(null);
-  const [changesFlow, setChangesFlow] = useState<GovernedChangesUiState | null>(null);
+  const [modelSelectionBusy, setModelSelectionBusy] = useState(false);
+  const [modelSelectionNotice, setModelSelectionNotice] = useState<string | null>(null);
+  // Per-task governed-changes flow: a slow proposal/decision must land on the
+  // task it was started from, not whichever tab is visible when it resolves. The
+  // shared `changesGenerationRef` still coordinates the whole changes subsystem
+  // (history, undo, enable), so concurrent cross-task ops over-drop rather than
+  // mis-display — strictly safer than a single global flow.
+  const [changesFlowByTask, setChangesFlowByTask] =
+    useState<ReadonlyMap<string, GovernedChangesUiState | null>>(new Map());
   const [changesError, setChangesError] = useState<string | null>(null);
   const [changesHistory, setChangesHistory] = useState<ChangesHistoryProjection | null>(null);
   const [changesHistoryBusy, setChangesHistoryBusy] = useState(false);
@@ -239,14 +331,64 @@ export function App({
   const bmadHelpOperationRef = useRef<"approve" | "cancel" | "submit" | null>(null);
   const bmadHelpStateRef = useRef<BmadRequestState>(initialBmadRequestState);
   const workspaceAuthorityKeyRef = useRef("");
+  const contextSuggestionGenerationRef = useRef(0);
+  const contextSuggestionInFlightRef = useRef(false);
   const sessionSequenceRef = useRef(0);
 
   const selectedSessionId = primaryRoute.kind === "task"
     ? primaryRoute.taskId ?? initialProductSession.id
     : initialProductSession.id;
+  const capabilitySessions = useCapabilitySessions(selectedSessionId);
+  // Chat is the default lane: every task owns a conversation, and BMAD is an
+  // optional overlay on it rather than the only way to say something.
+  const chatSessions = useChatSessions(selectedSessionId);
+  const chatLane = chatSessions.lane;
+  // Deterministic method progress: computed by the host, never a model claim.
+  const [workflowState, setWorkflowState] = useState<{
+    state: BmadWorkflowStateProjection | null;
+    loading: boolean;
+    error: string | null;
+  }>({ state: null, loading: false, error: null });
+  const capabilityRun = capabilitySessions.capabilityRun;
+  // Destructured because it is session-independent and referentially stable, so
+  // it is safe to capture inside a `useCallback`. The other members are bound to
+  // the *active* task, so a stale capture of them would write to the wrong task:
+  // reach for them only from render-scoped handlers, never from a memoized
+  // callback that omits `capabilitySessions` from its dependencies.
+  const { clearAllCapabilityRuns } = capabilitySessions;
+  const changesFlow = changesFlowByTask.get(selectedSessionId) ?? null;
+  const setChangesFlowForTask = useCallback(
+    (taskId: string, value: GovernedChangesUiState | null) => {
+      setChangesFlowByTask((current) => {
+        const next = new Map(current);
+        // `changesState` derives "idle" from both a missing entry and an explicit
+        // `{kind:"idle"}`, so drop idle/null to keep the map bounded to active or
+        // terminal flows rather than accumulating an entry per task ever touched.
+        if (value === null || value.kind === "idle") {
+          next.delete(taskId);
+        } else {
+          next.set(taskId, value);
+          // Terminal flows (applied/discarded/undo_unavailable) persist, so bound
+          // the map the same way the capability store is bounded: evict the
+          // oldest entries (Map keeps insertion order), never the one just set.
+          for (const key of next.keys()) {
+            if (next.size <= MAX_LANE_SESSIONS) break;
+            if (key !== taskId) next.delete(key);
+          }
+        }
+        return next;
+      });
+    },
+    [],
+  );
+  const clearAllChangesFlows = useCallback(() => setChangesFlowByTask(new Map()), []);
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId) ?? initialProductSession,
     [selectedSessionId, sessions],
+  );
+  const openTaskTabs = useMemo(
+    () => [initialProductSession, ...sessions.toReversed()],
+    [sessions],
   );
   const isNewSession = selectedSession.id.startsWith("new-");
   const activeWorkspace = hostWorkspaces.find(({ workspaceId }) => workspaceId === activeWorkspaceId)
@@ -322,6 +464,7 @@ export function App({
       "model.auth.status",
       "model.auth.sign_in",
       "model.auth.sign_out",
+      "model.selection.set",
       "bmad.help.prepare",
       "bmad.help.approve",
       "bmad.help.cancel",
@@ -341,6 +484,8 @@ export function App({
     || bmadHelpState.kind === "approving"
     || bmadHelpState.kind === "approved"
     || bmadHelpState.kind === "submitting";
+  const localTaskDraftingAvailable = hostRuntime.kind === "ready"
+    || hostRuntime.kind === "browser_demo";
   const modelAccess = (() => {
     if (hostRuntime.kind === "browser_demo") {
       return {
@@ -349,8 +494,15 @@ export function App({
       };
     }
     if (modelAuthStatus?.status === "development_ready") {
+      const modeLabel = modelAuthStatus.mode === "deterministic_development"
+        ? "Deterministic development"
+        : modelAuthStatus.providerId === "azure"
+          ? "Azure OpenAI"
+          : modelAuthStatus.providerId === "openai"
+            ? "OpenAI"
+            : "Direct provider";
       return {
-        detail: `${modelAuthStatus.mode === "deterministic_development" ? "Deterministic development" : "Offline"} · review required`,
+        detail: `${modeLabel} · ready`,
         label: modelAuthStatus.destinationLabel || "Development model",
       };
     }
@@ -358,22 +510,36 @@ export function App({
       return { detail: "Waiting for the native desktop host.", label: "Checking access" };
     }
     if (methodGuidanceClient !== null && modelAuthStatus === null) {
-      return { detail: "The desktop host is verifying the current model authorization.", label: "Checking model access" };
+      return { detail: "The desktop host is checking the current model connection.", label: "Checking model access" };
     }
     return {
       detail: methodLibraryAvailable
-        ? "The host catalog can be opened without creating a model request."
-        : "No model request or skills catalog capability is active.",
-      label: "Model access unavailable",
+        ? "Choose OpenAI or Azure OpenAI in Settings to send messages."
+        : "No model provider or skills catalog is active.",
+      label: "Connect a provider",
     };
   })();
+  const modelProviderLabel = modelAuthStatus?.providerId === "azure"
+    ? "Azure OpenAI"
+    : modelAuthStatus?.providerId === "openai"
+      ? "OpenAI"
+      : modelAuthStatus?.providerId === "forge-local"
+        ? "Forge local"
+        : "Forge BMAD";
+  const sessionContextModelId = hostRuntime.kind === "browser_demo"
+    ? "forge-bmad-preview"
+    : modelAuthStatus?.modelId;
+  const modelSelection: ModelSelection = {
+    providerId: modelAuthStatus?.providerId === "azure" ? "azure" : "openai",
+    modelId: modelAuthStatus?.modelId ?? "gpt-5-mini",
+  };
   const methodStatusLabel = methodRequestAvailable
     ? "Model ready"
     : methodGuidanceAvailable
       ? "Local only"
     : hostRuntime.kind === "browser_demo"
       ? "Demo only"
-      : "Unavailable";
+      : "Not connected";
   const workspaceAuthorityKey = hostRuntime.kind === "ready"
     || hostRuntime.kind === "read_only_recovery"
     ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
@@ -399,20 +565,57 @@ export function App({
     }
     return createHostWorkspaceSource(hostRuntime.client, activeWorkspace.workspaceId);
   }, [activeWorkspace, hostRuntime]);
+  const gitReviewSource = useMemo<GitReviewSource | null>(() => {
+    if (hostRuntime.kind === "browser_demo") {
+      return browserDemoGitReviewSource;
+    }
+    if (hostRuntime.kind !== "ready" || activeWorkspace === null) {
+      return null;
+    }
+    if (!([
+      "workspace.git_status",
+      "workspace.git_diff",
+    ] as const).every((command) => hostRuntime.bootstrap.supportedCommands.includes(command))) {
+      return null;
+    }
+    const client = hostRuntime.client;
+    const workspaceId = activeWorkspace.workspaceId;
+    return {
+      readStatus: () => client.readGitStatus(workspaceId),
+      readDiff: (relativePath, comparison) =>
+        client.readGitDiff(workspaceId, relativePath, comparison),
+    };
+  }, [activeWorkspace, hostRuntime]);
+  const gitReviewAvailabilityMessage = hostRuntime.kind === "read_only_recovery"
+    ? "Git review is paused while Forge is in read-only recovery."
+    : hostRuntime.kind === "unavailable"
+      ? "Git review requires the signed Forge desktop host."
+      : activeWorkspace === null
+        ? "Choose a workspace to review its Git changes."
+        : "Git review is unavailable in this host version.";
   const canBrowseFiles = hostRuntime.kind === "ready"
     && activeWorkspace !== null
     && workspaceSource !== null
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.pick_files");
+  const canBrowseFolder = hostRuntime.kind === "ready"
+    && activeWorkspace !== null
+    && workspaceSource !== null
+    && hostRuntime.bootstrap.supportedCommands.includes("workspace.pick_folder");
 
-  async function browseAndAttachFiles() {
+  async function browseAndAttach(
+    picker: (client: DesktopHostClient, workspaceId: string) => Promise<WorkspaceFilePick>,
+  ) {
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !workspaceSource) {
       return;
     }
+    const client = hostRuntime.client;
+    const workspaceId = activeWorkspace.workspaceId;
+    const existingPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
+    const generation = ++contextSuggestionGenerationRef.current;
+    const authorityKey = workspaceAuthorityKey;
     setAttachNotice(null);
     try {
-      const pick = await hostRuntime.client.pickWorkspaceFiles(
-        activeWorkspace.workspaceId,
-      );
+      const pick = await picker(client, workspaceId);
       if (pick.kind === "no_selection" || pick.value.relativePaths.length === 0) {
         const rejected = pick.kind === "picked"
           ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
@@ -424,20 +627,114 @@ export function App({
         }
         return;
       }
+      const combined = new Map<string, string>();
+      for (const relativePath of [...existingPaths, ...pick.value.relativePaths]) {
+        combined.set(relativePath.toLocaleLowerCase("en-US"), relativePath);
+      }
+      const relativePaths = [...combined.values()].slice(0, 100);
       const projection = await workspaceSource.previewContext(
-        pick.value.relativePaths,
+        relativePaths,
       );
+      if (
+        generation !== contextSuggestionGenerationRef.current
+        || authorityKey !== workspaceAuthorityKeyRef.current
+      ) {
+        return;
+      }
       setContextPreview(projection);
-      setContextProvenance(workspaceSource.provenance);
+      setContextSelectionMode("manual");
       const skipped = pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable;
+      const truncated = pick.value.truncated || combined.size > relativePaths.length;
       setAttachNotice(
         skipped > 0
-          ? `Attached ${pick.value.selectedCount} files. ${skipped} were outside the workspace and skipped.`
-          : null,
+          ? `Added ${pick.value.selectedCount} files. ${skipped} unsupported files were skipped.`
+          : truncated
+            ? "Added the first 100 supported files."
+            : null,
       );
     } catch (error) {
-      setAttachNotice(getSafeHostMessage(error));
+      if (generation === contextSuggestionGenerationRef.current) {
+        setAttachNotice(getSafeHostMessage(error));
+      }
     }
+  }
+
+  function browseAndAttachFiles(): Promise<void> {
+    return browseAndAttach((client, workspaceId) => client.pickWorkspaceFiles(workspaceId));
+  }
+
+  function browseAndAttachFolder(): Promise<void> {
+    return browseAndAttach((client, workspaceId) => client.pickWorkspaceFolder(workspaceId));
+  }
+
+  async function suggestContext(intent: string) {
+    const terms = contextSearchTerms(intent);
+    if (
+      workspaceSource === null
+      || terms.length === 0
+      || contextSuggestionInFlightRef.current
+    ) {
+      if (terms.length === 0) {
+        setAttachNotice("Add a more specific task description before auto-selecting context.");
+      }
+      return;
+    }
+    const source = workspaceSource;
+    const authorityKey = workspaceAuthorityKey;
+    const generation = ++contextSuggestionGenerationRef.current;
+    contextSuggestionInFlightRef.current = true;
+    setContextSuggestionBusy(true);
+    setAttachNotice(null);
+    try {
+      const resultGroups: WorkspaceSearchMatch[][] = [];
+      for (const term of terms) {
+        resultGroups.push(await source.search(term, 20));
+        if (
+          generation !== contextSuggestionGenerationRef.current
+          || authorityKey !== workspaceAuthorityKeyRef.current
+        ) {
+          return;
+        }
+      }
+      const relativePaths = rankContextPaths(resultGroups, 8);
+      if (relativePaths.length === 0) {
+        setAttachNotice("Forge found no local files matching this task. Pin files from Files instead.");
+        return;
+      }
+      const projection = await source.previewContext(relativePaths);
+      if (
+        generation !== contextSuggestionGenerationRef.current
+        || authorityKey !== workspaceAuthorityKeyRef.current
+      ) {
+        return;
+      }
+      setContextPreview(projection);
+      setContextSelectionMode("automatic");
+      setAttachNotice(
+        `Auto-selected ${projection.items.length} local ${projection.items.length === 1 ? "file" : "files"} for review.`,
+      );
+    } catch (error) {
+      if (generation === contextSuggestionGenerationRef.current) {
+        setAttachNotice(getSafeHostMessage(error));
+      }
+    } finally {
+      // `contextSuggestionInFlightRef` guards against a second concurrent
+      // suggestion, so no other suggestContext can be running when this one
+      // settles. Reset it (and the spinner) unconditionally: a concurrent
+      // browseAndAttach/clearContext may have advanced the generation without
+      // clearing the in-flight flag, which would otherwise strand auto-select.
+      contextSuggestionInFlightRef.current = false;
+      setContextSuggestionBusy(false);
+    }
+  }
+
+  function clearContext() {
+    contextSuggestionGenerationRef.current += 1;
+    contextSuggestionInFlightRef.current = false;
+    setContextSuggestionBusy(false);
+    setContextPreview(null);
+    setContextSelectionMode("manual");
+    setAttachNotice(null);
   }
   const explorerAvailabilityMessage = (() => {
     switch (hostRuntime.kind) {
@@ -532,8 +829,11 @@ export function App({
         bmadLibraryRequestedRef.current = false;
         bmadProjectionGenerationRef.current += 1;
         setBmadLibraryState({ kind: "idle" });
+        contextSuggestionGenerationRef.current += 1;
+        contextSuggestionInFlightRef.current = false;
+        setContextSuggestionBusy(false);
         setContextPreview(null);
-        setContextProvenance(null);
+        setContextSelectionMode("manual");
         setHostRuntime((current) => current.kind === "ready" && current.client === client
           ? {
             kind: "unavailable",
@@ -575,11 +875,12 @@ export function App({
       : initialBmadRequestState;
     bmadHelpStateRef.current = next;
     setBmadHelpState(next);
+    setCurrentBmadIntent(null);
   }, []);
 
   const invalidateWorkspaceBoundUi = useCallback(() => {
     changesGenerationRef.current += 1;
-    setChangesFlow(null);
+    clearAllChangesFlows();
     setChangesError(null);
     setChangesHistory(null);
     setChangesHistoryBusy(false);
@@ -590,16 +891,65 @@ export function App({
     setRecoveryReview(null);
     setRecoveryBusy(false);
     setRecoveryReturnFocusTarget(null);
+    contextSuggestionGenerationRef.current += 1;
+    contextSuggestionInFlightRef.current = false;
+    setContextSuggestionBusy(false);
     setContextPreview(null);
-    setContextProvenance(null);
+    setContextSelectionMode("manual");
     setContextDrawer(null);
   }, []);
 
-  function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
-    hostBindingGenerationRef.current += 1;
+  const invalidateHostBoundUi = useCallback(() => {
     invalidateWorkspaceBoundUi();
     clearMethodLibraryProjection();
     clearBmadHelpProjection();
+    setPersonaPerspectives(new Map());
+    clearAllCapabilityRuns();
+    setAboutProjection(null);
+    setAboutStatus("unavailable");
+    setOffboardingManifest(null);
+    setOffboardingStatus("unavailable");
+    setOffboardingNotice(null);
+    setModelSelectionBusy(false);
+    setModelSelectionNotice(null);
+    setPreferencesNotice(null);
+    setAttachNotice(null);
+    workspaceActionBusyRef.current = false;
+    setWorkspaceSelectionBusy(false);
+    setWorkspaceRemovalBusyId(null);
+    setWorkspaceActionError(null);
+  }, [
+    clearAllCapabilityRuns,
+    clearBmadHelpProjection,
+    clearMethodLibraryProjection,
+    invalidateWorkspaceBoundUi,
+  ]);
+
+  const adoptHostRuntime = useCallback((
+    runtime: HostRuntime,
+    preserveActiveWorkspace: boolean,
+  ) => {
+    hostBindingGenerationRef.current += 1;
+    invalidateHostBoundUi();
+    setHostRuntime(runtime);
+    const workspaces = runtime.kind === "browser_demo"
+      ? [browserDemoWorkspace]
+      : runtime.kind === "ready" || runtime.kind === "read_only_recovery"
+        ? runtime.bootstrap.workspaces
+        : [];
+    setHostWorkspaces(workspaces);
+    setActiveWorkspaceId((current) => (
+      preserveActiveWorkspace
+      && current !== null
+      && workspaces.some(({ workspaceId }) => workspaceId === current)
+        ? current
+        : workspaces[0]?.workspaceId ?? null
+    ));
+  }, [invalidateHostBoundUi]);
+
+  function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
+    hostBindingGenerationRef.current += 1;
+    invalidateHostBoundUi();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -621,15 +971,13 @@ export function App({
       };
     });
     setWorkspaceActionError(
-      "Sapphirus entered read-only recovery. Workspace access was not changed.",
+      "Forge entered read-only recovery. Workspace access was not changed.",
     );
   }
 
   function markHostUnavailable(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"]) {
     hostBindingGenerationRef.current += 1;
-    invalidateWorkspaceBoundUi();
-    clearMethodLibraryProjection();
-    clearBmadHelpProjection();
+    invalidateHostBoundUi();
     setHostRuntime((current) => {
       if (
         (current.kind !== "ready" && current.kind !== "read_only_recovery")
@@ -691,30 +1039,26 @@ export function App({
   }
 
 
-  function openCapabilityRun(agentCode: string, menuCode: string, label: string) {
-    const capabilityId = MENU_CAPABILITIES[`${agentCode}/${menuCode}`];
-    if (capabilityId === undefined) {
-      setCapabilityRun({
-        capabilityId: `${agentCode}/${menuCode}`,
-        label,
-        phase: {
-          kind: "error",
-          message: "This menu target is not in the reviewed capability ledger.",
-        },
-      });
-      return;
-    }
-    setCapabilityRun({ capabilityId, label, phase: { kind: "selecting" } });
+  // Method and Builder capabilities open the same reviewed run; the panel's
+  // separate props keep the caller-side distinction (Builder output stays inert).
+  function openCapabilityRun(capabilityId: string, label: string) {
+    capabilitySessions.openActiveCapabilityRun({
+      capabilityId,
+      label,
+      phase: { kind: "selecting" },
+    });
   }
 
   function capabilityWorkspace(): { workspaceId: string; grantEpoch: number } | null {
-    const active = hostWorkspaces[0];
-    if (hostRuntime.kind !== "ready" || active === undefined) return null;
-    return { workspaceId: active.workspaceId, grantEpoch: active.grantEpoch };
+    if (hostRuntime.kind !== "ready" || activeWorkspace === null) return null;
+    return {
+      workspaceId: activeWorkspace.workspaceId,
+      grantEpoch: activeWorkspace.grantEpoch,
+    };
   }
 
-  function failCapabilityRun(error: unknown) {
-    setCapabilityRun((current) =>
+  function failCapabilityRun(routing: CapabilityRouting, error: unknown) {
+    capabilitySessions.routeCapabilityRun(routing, (current) =>
       current === null
         ? null
         : { ...current, phase: { kind: "error", message: getSafeHostMessage(error) } },
@@ -725,7 +1069,8 @@ export function App({
     const run = capabilityRun;
     const workspace = capabilityWorkspace();
     if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
-    setCapabilityRun({ ...run, phase: { kind: "preparing" } });
+    const routing = capabilitySessions.captureActive();
+    capabilitySessions.setActiveCapabilityRun({ ...run, phase: { kind: "preparing" } });
     try {
       const review = await hostRuntime.client.prepareCapabilityRun(
         workspace.workspaceId,
@@ -733,12 +1078,13 @@ export function App({
         run.capabilityId,
         [...contextPaths],
       );
-      setCapabilityRun({
-        ...run,
-        phase: { kind: "review", review, contextPaths },
-      });
+      capabilitySessions.routeCapabilityRun(routing, (current) =>
+        current === null
+          ? null
+          : { ...current, phase: { kind: "review", review, contextPaths } },
+      );
     } catch (error) {
-      failCapabilityRun(error);
+      failCapabilityRun(routing, error);
     }
   }
 
@@ -753,6 +1099,8 @@ export function App({
     ) {
       return;
     }
+    const routing = capabilitySessions.captureActive();
+    const reviewPhase = run.phase;
     try {
       const approved = await hostRuntime.client.approveCapabilityRun(
         workspace.workspaceId,
@@ -760,18 +1108,22 @@ export function App({
         run.capabilityId,
         manifestHash,
       );
-      setCapabilityRun({
-        ...run,
-        phase: {
-          kind: "approved",
-          review: run.phase.review,
-          approved,
-          contextPaths: run.phase.contextPaths,
-          sending: false,
-        },
-      });
+      capabilitySessions.routeCapabilityRun(routing, (current) =>
+        current === null
+          ? null
+          : {
+              ...current,
+              phase: {
+                kind: "approved",
+                review: reviewPhase.review,
+                approved,
+                contextPaths: reviewPhase.contextPaths,
+                sending: false,
+              },
+            },
+      );
     } catch (error) {
-      failCapabilityRun(error);
+      failCapabilityRun(routing, error);
     }
   }
 
@@ -779,6 +1131,7 @@ export function App({
     const run = capabilityRun;
     const workspace = capabilityWorkspace();
     if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
+    const routing = capabilitySessions.captureActive();
     try {
       await hostRuntime.client.cancelCapabilityRun(
         workspace.workspaceId,
@@ -787,9 +1140,9 @@ export function App({
         manifestHash,
         decisionId,
       );
-      setCapabilityRun(null);
+      capabilitySessions.routeCapabilityRun(routing, null);
     } catch (error) {
-      failCapabilityRun(error);
+      failCapabilityRun(routing, error);
     }
   }
 
@@ -804,7 +1157,11 @@ export function App({
     ) {
       return;
     }
-    setCapabilityRun({ ...run, phase: { ...run.phase, sending: true } });
+    const routing = capabilitySessions.captureActive();
+    capabilitySessions.setActiveCapabilityRun({
+      ...run,
+      phase: { ...run.phase, sending: true },
+    });
     try {
       const completed = await hostRuntime.client.submitCapabilityRun(
         workspace.workspaceId,
@@ -820,16 +1177,17 @@ export function App({
           workspace.grantEpoch,
           run.capabilityId,
         );
-        resultJson = latest.found ? latest.resultJson : null;
+        resultJson = latestResultForRun(latest, completed.runId);
       } catch {
         resultJson = null;
       }
-      setCapabilityRun({
-        ...run,
-        phase: { kind: "completed", completed, resultJson },
-      });
+      capabilitySessions.routeCapabilityRun(routing, (current) =>
+        current === null
+          ? null
+          : { ...current, phase: { kind: "completed", completed, resultJson } },
+      );
     } catch (error) {
-      failCapabilityRun(error);
+      failCapabilityRun(routing, error);
     }
   }
 
@@ -905,6 +1263,94 @@ export function App({
     persistPreferences(theme, nextDensity);
   }
 
+  async function changeModelSelection(selection: ModelSelection) {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("model.selection.set")
+    ) {
+      setModelSelectionNotice("Model selection requires the Forge desktop host.");
+      return;
+    }
+    setModelSelectionBusy(true);
+    setModelSelectionNotice(null);
+    try {
+      const status = await hostRuntime.client.setModelSelection(
+        selection.providerId,
+        selection.modelId,
+      );
+      bmadHelpGenerationRef.current += 1;
+      bmadHelpCreationRef.current = null;
+      bmadHelpOperationRef.current = null;
+      bmadHelpStateRef.current = initialBmadRequestState;
+      setBmadHelpState(initialBmadRequestState);
+      setCurrentBmadIntent(null);
+      clearAllCapabilityRuns();
+      setModelAuthStatus(status);
+      setModelSelectionNotice(
+        status.status === "development_ready"
+          ? `${status.destinationLabel} is ready.`
+          : `${status.destinationLabel} is selected. Enter its API key below to connect.`,
+      );
+    } catch (error) {
+      setModelSelectionNotice(getSafeHostMessage(error));
+    } finally {
+      setModelSelectionBusy(false);
+    }
+  }
+
+  function resetModelBoundUi(status: ModelAuthStatusProjection) {
+    bmadHelpGenerationRef.current += 1;
+    bmadHelpCreationRef.current = null;
+    bmadHelpOperationRef.current = null;
+    bmadHelpStateRef.current = initialBmadRequestState;
+    setBmadHelpState(initialBmadRequestState);
+    setCurrentBmadIntent(null);
+    clearAllCapabilityRuns();
+    setModelAuthStatus(status);
+  }
+
+  async function connectModelProvider(connection: ModelProviderConnection) {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_in")
+    ) {
+      setModelSelectionNotice("Provider connection requires the Forge desktop host.");
+      return;
+    }
+    setModelSelectionBusy(true);
+    setModelSelectionNotice(null);
+    try {
+      const status = await hostRuntime.client.modelAuthSignIn(connection);
+      resetModelBoundUi(status);
+      setModelSelectionNotice(`${status.destinationLabel} is connected for this session.`);
+    } catch (error) {
+      setModelSelectionNotice(getSafeHostMessage(error));
+    } finally {
+      setModelSelectionBusy(false);
+    }
+  }
+
+  async function disconnectModelProvider() {
+    if (
+      hostRuntime.kind !== "ready"
+      || !hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_out")
+    ) {
+      setModelSelectionNotice("Provider disconnection requires the Forge desktop host.");
+      return;
+    }
+    setModelSelectionBusy(true);
+    setModelSelectionNotice(null);
+    try {
+      const status = await hostRuntime.client.modelAuthSignOut();
+      resetModelBoundUi(status);
+      setModelSelectionNotice("Provider disconnected. The in-memory API key was cleared.");
+    } catch (error) {
+      setModelSelectionNotice(getSafeHostMessage(error));
+    } finally {
+      setModelSelectionBusy(false);
+    }
+  }
+
   function dismissUtilityPanel(restoreFocus = true) {
     pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
     setAppModal(null);
@@ -967,34 +1413,23 @@ export function App({
         if (!isCurrent) {
           return;
         }
-        hostBindingGenerationRef.current += 1;
-        setHostRuntime(runtime);
-        const workspaces = runtime.kind === "browser_demo"
-          ? [browserDemoWorkspace]
-          : runtime.kind === "ready" || runtime.kind === "read_only_recovery"
-            ? runtime.bootstrap.workspaces
-            : [];
-        setHostWorkspaces(workspaces);
-        setActiveWorkspaceId(workspaces[0]?.workspaceId ?? null);
+        adoptHostRuntime(runtime, false);
       })
       .catch(() => {
         if (!isCurrent) {
           return;
         }
-        hostBindingGenerationRef.current += 1;
-        setHostRuntime({
+        adoptHostRuntime({
           kind: "unavailable",
           client: null,
           bootstrap: null,
           message: "The signed Windows host could not be verified. Local actions remain unavailable.",
-        });
-        setHostWorkspaces([]);
-        setActiveWorkspaceId(null);
+        }, false);
       });
     return () => {
       isCurrent = false;
     };
-  }, [hostRuntimeLoader]);
+  }, [adoptHostRuntime, hostRuntimeLoader]);
 
   useEffect(() => {
     invalidateWorkspaceBoundUi();
@@ -1004,8 +1439,15 @@ export function App({
     clearMethodLibraryProjection();
     if (!methodLibraryClient) {
       setContextDrawer((current) => current === "skills" ? null : current);
+      return;
     }
-  }, [activeWorkspaceId, clearMethodLibraryProjection, methodLibraryClient]);
+    void loadMethodLibrary(methodLibraryClient);
+  }, [
+    activeWorkspaceId,
+    clearMethodLibraryProjection,
+    loadMethodLibrary,
+    methodLibraryClient,
+  ]);
 
   useEffect(() => {
     const generation = ++bmadHelpGenerationRef.current;
@@ -1033,14 +1475,17 @@ export function App({
         }
         setModelAuthStatus(authStatus);
         if (result.kind === "no_run") {
+          setCurrentBmadIntent(null);
           applyBmadEvent({ type: "recovered", run: null });
           return;
         }
         if (result.kind === "retained") {
+          setCurrentBmadIntent({ text: result.run.currentIntent });
           applyBmadEvent({ type: "recovered", run: result.run });
           return;
         }
         if (result.kind === "interrupted") {
+          setCurrentBmadIntent({ text: result.run.currentIntent });
           applyBmadEvent({ type: "interrupted", result: result.run });
           return;
         }
@@ -1137,6 +1582,28 @@ export function App({
     let timerId: number | undefined;
     const isStale = () => cancelled
       || hostBindingGeneration !== hostBindingGenerationRef.current;
+    const handleProjectionFailure = (error: unknown) => {
+      if (
+        error instanceof HostCommandError
+        && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+      ) {
+        markReadOnlyRecovery(client, cursor);
+      } else if (!(error instanceof HostCommandError && error.details.retryable)) {
+        markHostUnavailable(client);
+      }
+    };
+    const refreshWorkspaceProjection = async () => {
+      const workspaces = await client.listWorkspaces();
+      if (isStale()) {
+        return false;
+      }
+      setHostWorkspaces(workspaces);
+      setActiveWorkspaceId((current) => current !== null
+        && workspaces.some(({ workspaceId }) => workspaceId === current)
+        ? current
+        : workspaces[0]?.workspaceId ?? null);
+      return true;
+    };
 
     const poll = async () => {
       try {
@@ -1162,15 +1629,9 @@ export function App({
           }
         }
         if (refreshWorkspaces) {
-          const workspaces = await client.listWorkspaces();
-          if (isStale()) {
+          if (!(await refreshWorkspaceProjection())) {
             return;
           }
-          setHostWorkspaces(workspaces);
-          setActiveWorkspaceId((current) => current !== null
-            && workspaces.some(({ workspaceId }) => workspaceId === current)
-            ? current
-            : workspaces[0]?.workspaceId ?? null);
         }
         if (enterReadOnlyRecovery) {
           markReadOnlyRecovery(client, cursor);
@@ -1185,11 +1646,54 @@ export function App({
         }
         if (
           error instanceof HostCommandError
-          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+          && error.details.code === "conflict"
         ) {
-          markReadOnlyRecovery(client, cursor);
-        } else if (!(error instanceof HostCommandError && error.details.retryable)) {
-          markHostUnavailable(client);
+          try {
+            const snapshot = await client.projectionSnapshot();
+            if (isStale()) {
+              return;
+            }
+            if (snapshot.bootMode === "read_only_recovery") {
+              cursor = snapshot.sequence;
+              markReadOnlyRecovery(client, cursor);
+              return;
+            }
+            // The snapshot is intentionally summary-only. A cursor gap can
+            // hide session, approval, execution, evidence, connectivity, and
+            // update events, so establish a fresh renderer authority instead
+            // of advancing past projections this renderer cannot reconstruct.
+            let reboundBootstrap: Awaited<ReturnType<DesktopHostClient["bootstrap"]>>;
+            try {
+              reboundBootstrap = await client.bootstrap();
+            } catch {
+              if (!isStale()) {
+                markHostUnavailable(client);
+              }
+              return;
+            }
+            if (isStale()) {
+              return;
+            }
+            const reloadMethodLibrary = bmadLibraryRequestedRef.current
+              && reboundBootstrap.bootMode === "ready"
+              && reboundBootstrap.supportedCommands.includes("bmad.library.snapshot");
+            adoptHostRuntime({
+              kind: reboundBootstrap.bootMode === "ready"
+                ? "ready"
+                : "read_only_recovery",
+              client,
+              bootstrap: reboundBootstrap,
+            }, true);
+            if (reloadMethodLibrary) {
+              void loadMethodLibrary(client);
+            }
+          } catch (snapshotError) {
+            if (!isStale()) {
+              handleProjectionFailure(snapshotError);
+            }
+          }
+        } else {
+          handleProjectionFailure(error);
         }
       } finally {
         if (!isStale()) {
@@ -1205,7 +1709,7 @@ export function App({
         window.clearTimeout(timerId);
       }
     };
-  }, [hostRuntime, loadMethodLibrary, projectionPollIntervalMs]);
+  }, [adoptHostRuntime, hostRuntime, loadMethodLibrary, projectionPollIntervalMs]);
 
   useEffect(() => {
     if (
@@ -1248,21 +1752,25 @@ export function App({
 
   // Retained for the multi-task tab slice of the shell rework.
   function selectSession(id: string) {
-    if (!sessions.some((session) => session.id === id)) {
+    if (id !== initialProductSession.id && !sessions.some((session) => session.id === id)) {
       return;
     }
     setPrimaryRoute({ kind: "task", taskId: id });
     setContextDrawer(null);
   }
 
-  function startNewSession() {
-    if (methodRequestInFlight) {
-      return;
-    }
+  function startNewSession(intent?: string, preserveIntentAsDraft = false): string | null {
+    const currentRequest = bmadHelpStateRef.current;
+    if (
+      currentRequest.kind === "creating"
+      || currentRequest.kind === "approving"
+      || currentRequest.kind === "approved"
+      || currentRequest.kind === "submitting"
+    ) return null;
     sessionSequenceRef.current += 1;
     const session: SessionSummary = {
       id: `new-${sessionSequenceRef.current}`,
-      title: "New task",
+      title: taskTitleFromIntent(intent),
       updatedAt: "Now",
     };
     bmadHelpGenerationRef.current += 1;
@@ -1270,11 +1778,21 @@ export function App({
     bmadHelpOperationRef.current = null;
     bmadHelpStateRef.current = initialBmadRequestState;
     setBmadHelpState(initialBmadRequestState);
-    setContextPreview(null);
-    setContextProvenance(null);
-    setSessions([session]);
+    setCurrentBmadIntent(null);
+    clearContext();
+    if (preserveIntentAsDraft && intent?.trim()) {
+      setTaskDrafts((current) => {
+        const next = new Map(current);
+        next.set(session.id, intent.trim());
+        return next;
+      });
+    }
+    setSessions((current) => [session, ...current.filter(({ id }) => id !== session.id)].slice(0, 20));
     setPrimaryRoute({ kind: "task", taskId: session.id });
     setContextDrawer(null);
+    // The new task starts with no capability run of its own; other tasks keep
+    // theirs (per-task isolation), so no global capability reset here.
+    return session.id;
   }
 
   function openMethodLibrary() {
@@ -1292,7 +1810,173 @@ export function App({
     }
   }
 
-  function reviewBmadRequest(currentIntent: string): Promise<void> {
+  async function approveAndSubmitBmadRequest(
+    prepared: Extract<BmadRequestState, { readonly kind: "review_required" }>,
+  ): Promise<void> {
+    if (
+      !methodGuidanceClient
+      || !activeWorkspace
+      || bmadHelpOperationRef.current !== null
+    ) {
+      throw new HostCapabilityError("The message can no longer be sent.");
+    }
+    const authority = currentBmadAuthority(prepared.run.runId);
+    if (!authority || !bmadRequestAuthorityIsCurrent(prepared, authority)) {
+      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
+      throw new HostCapabilityError("The message authority changed. Send it again.");
+    }
+
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    const generation = authority.rendererGeneration;
+    bmadHelpOperationRef.current = "approve";
+    applyBmadEvent({ type: "approve_started" });
+    try {
+      const approval = await client.approveBmadHelp(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        prepared.authority.manifestHash,
+      );
+      const approving = bmadHelpStateRef.current;
+      const approvingAuthority = currentBmadAuthority(prepared.run.runId);
+      if (
+        generation !== bmadHelpGenerationRef.current
+        || approving.kind !== "approving"
+        || !approvingAuthority
+        || !bmadRequestAuthorityIsCurrent(approving, approvingAuthority)
+      ) {
+        throw new HostCapabilityError("The message authority changed before sending.");
+      }
+      const approved = applyBmadEvent({ type: "approved", approval });
+      if (approved.kind !== "approved") {
+        throw new HostCapabilityError("The message approval did not match this request.");
+      }
+
+      bmadHelpOperationRef.current = "submit";
+      applyBmadEvent({ type: "submit_started" });
+      const result = await client.submitBmadHelp(
+        workspace.workspaceId,
+        workspace.grantEpoch,
+        approved.authority.manifestHash,
+        approved.approval.decisionId,
+      );
+      if (
+        generation !== bmadHelpGenerationRef.current
+        || bmadHelpStateRef.current.kind !== "submitting"
+      ) {
+        throw new HostCapabilityError("The completed response no longer belongs to this task.");
+      }
+      applyBmadEvent({ type: "completed", result });
+    } catch (error: unknown) {
+      const current = bmadHelpStateRef.current;
+      if (
+        generation === bmadHelpGenerationRef.current
+        && (
+          current.kind === "approving"
+          || current.kind === "approved"
+          || current.kind === "submitting"
+        )
+      ) {
+        applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
+      }
+      throw error;
+    } finally {
+      bmadHelpOperationRef.current = null;
+    }
+  }
+
+  /// The composer's default action. An ordinary conversation turn: no BMAD
+  /// concept is required to say something. When the task has an agent bound,
+  /// that agent's sealed persona travels with the request, which is how the
+  /// method is practised here without a separate LLM runtime.
+  async function sendChatMessage(intent: string, sessionId?: string): Promise<void> {
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    if (!client || !workspace) {
+      throw new HostCapabilityError("Choose a local workspace before sending a message.");
+    }
+    if (modelAuthStatus?.status !== "development_ready") {
+      throw new HostCapabilityError(
+        "Connect a model provider in Settings before sending a message.",
+      );
+    }
+    // One question at a time per task. Without this, a double-click sends the
+    // same message twice and the host's strict user->assistant alternation
+    // rejects the second, losing it.
+    if (chatLane.sending) return;
+    // With an agent bound, a message that unambiguously names one of that
+    // agent's menu items dispatches it instead — the behaviour the method's
+    // own activation describes. Anything else stays an ordinary conversation.
+    const boundAgent = chatLane.agentCode;
+    if (boundAgent !== null && bmadLibraryState.kind === "ready") {
+      const agent = bmadLibraryState.projection.methodAgents.find(
+        (candidate) => candidate.agentCode === boundAgent,
+      );
+      const dispatched = agent ? matchMenuIntent(intent, agent.menus) : null;
+      if (dispatched?.menu.capabilityId != null) {
+        openCapabilityRun(dispatched.menu.capabilityId, dispatched.menu.displayLabel);
+        return;
+      }
+    }
+    // The Home composer creates the task and sends in the same tick, so the
+    // active-session state has not settled yet. Binding to the id the caller
+    // just created keeps the exchange on the task that asked for it.
+    const routing = sessionId === undefined
+      ? chatSessions.captureRouting()
+      : chatSessions.routingFor(sessionId);
+    const contextPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
+    const agentCode = chatLane.agentCode;
+    chatSessions.applyToLane(routing, (lane) => ({
+      ...lane,
+      sending: true,
+      pending: intent,
+      error: null,
+    }));
+    try {
+      const turn = await client.sendChatMessage({
+        workspaceId: workspace.workspaceId,
+        workspaceGrantEpoch: workspace.grantEpoch,
+        clientSessionRef: routing.sessionId,
+        agentCode,
+        text: intent,
+        contextPaths,
+      });
+      chatSessions.applyToLane(routing, (lane) => ({
+        ...lane,
+        messages: [...lane.messages, turn.userMessage, turn.assistantMessage],
+        agentCode: turn.agentCode,
+        sending: false,
+        pending: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      chatSessions.applyToLane(routing, (lane) => ({
+        ...lane,
+        sending: false,
+        pending: null,
+        error: getSafeHostMessage(error),
+      }));
+      throw error;
+    }
+  }
+
+  async function refreshWorkflowState(): Promise<void> {
+    const client = methodGuidanceClient;
+    const workspace = activeWorkspace;
+    if (!client || !workspace) return;
+    setWorkflowState((current) => ({ ...current, loading: true, error: null }));
+    try {
+      const state = await client.bmadWorkflowState({
+        workspaceId: workspace.workspaceId,
+        workspaceGrantEpoch: workspace.grantEpoch,
+      });
+      setWorkflowState({ state, loading: false, error: null });
+    } catch (error: unknown) {
+      setWorkflowState({ state: null, loading: false, error: getSafeHostMessage(error) });
+    }
+  }
+
+  function sendBmadMessage(currentIntent: string): Promise<void> {
     if (bmadHelpCreationRef.current) {
       return bmadHelpCreationRef.current;
     }
@@ -1311,10 +1995,12 @@ export function App({
 
     const client = methodGuidanceClient;
     const workspace = activeWorkspace;
+    const contextPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
     const projectionSequence = hostRuntime.kind === "ready"
       ? hostRuntime.bootstrap.projectionSequence
       : 0;
     const generation = ++bmadHelpGenerationRef.current;
+    setCurrentBmadIntent({ createdAt: Date.now(), text: currentIntent });
     applyBmadEvent({ type: "create_started" });
 
     const creation = (async () => {
@@ -1332,13 +2018,14 @@ export function App({
         const review = await client.prepareBmadHelp(
           workspace.workspaceId,
           workspace.grantEpoch,
+          contextPaths,
         );
         if (
           generation !== bmadHelpGenerationRef.current
           || modelAuthStatus.status !== "development_ready"
         ) {
           throw new HostCapabilityError(
-            "The request authority changed before review opened.",
+            "The model connection changed before the message could be sent.",
           );
         }
         const next = applyBmadEvent({
@@ -1357,22 +2044,19 @@ export function App({
         if (next.kind !== "review_required") {
           throw new HostCapabilityError("The prepared skill-guidance request failed closed.");
         }
-        openContextDrawer("skills");
-        if (!bmadLibraryRequestedRef.current) {
-          void loadMethodLibrary(client);
-        }
+        await approveAndSubmitBmadRequest(next);
       } catch (error: unknown) {
-      if (generation === bmadHelpGenerationRef.current) {
-        if (
-          error instanceof HostCommandError
-          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-        ) {
-          markReadOnlyRecovery(client, projectionSequence);
-        } else {
-          applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
+        if (generation === bmadHelpGenerationRef.current) {
+          if (
+            error instanceof HostCommandError
+            && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
+          ) {
+            markReadOnlyRecovery(client, projectionSequence);
+          } else {
+            applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
+          }
         }
-      }
-      throw error;
+        throw error;
       }
     })().finally(() => {
       if (bmadHelpCreationRef.current === creation) {
@@ -1381,112 +2065,6 @@ export function App({
     });
     bmadHelpCreationRef.current = creation;
     return creation;
-  }
-
-  function approveBmadContext() {
-    const state = bmadHelpStateRef.current;
-    if (
-      state.kind !== "review_required"
-      || !methodGuidanceClient
-      || !activeWorkspace
-      || bmadHelpOperationRef.current !== null
-    ) return;
-    const authority = currentBmadAuthority(state.run.runId);
-    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
-      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
-      return;
-    }
-    const generation = authority.rendererGeneration;
-    bmadHelpOperationRef.current = "approve";
-    applyBmadEvent({ type: "approve_started" });
-    void methodGuidanceClient.approveBmadHelp(
-      activeWorkspace.workspaceId,
-      activeWorkspace.grantEpoch,
-      state.authority.manifestHash,
-    ).then((approval) => {
-      const current = bmadHelpStateRef.current;
-      const snapshot = currentBmadAuthority(state.run.runId);
-      if (
-        generation !== bmadHelpGenerationRef.current
-        || current.kind !== "approving"
-        || !snapshot
-        || !bmadRequestAuthorityIsCurrent(current, snapshot)
-      ) return;
-      applyBmadEvent({ type: "approved", approval });
-    }).catch((error: unknown) => {
-      if (generation === bmadHelpGenerationRef.current) {
-        applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
-      }
-    }).finally(() => {
-      if (bmadHelpOperationRef.current === "approve") bmadHelpOperationRef.current = null;
-    });
-  }
-
-  function cancelBmadContext() {
-    const state = bmadHelpStateRef.current;
-    if (state.kind === "review_required") {
-      applyBmadEvent({ type: "terminal", reason: "cancelled" });
-      return;
-    }
-    if (
-      state.kind !== "approved"
-      || !methodGuidanceClient
-      || !activeWorkspace
-      || bmadHelpOperationRef.current !== null
-    ) return;
-    const authority = currentBmadAuthority(state.run.runId);
-    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
-      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
-      return;
-    }
-    bmadHelpOperationRef.current = "cancel";
-    applyBmadEvent({ type: "terminal", reason: "cancelled" });
-    void methodGuidanceClient.cancelBmadHelp(
-      activeWorkspace.workspaceId,
-      activeWorkspace.grantEpoch,
-      state.authority.manifestHash,
-      state.approval.decisionId,
-    ).catch(() => undefined).finally(() => {
-      if (bmadHelpOperationRef.current === "cancel") bmadHelpOperationRef.current = null;
-    });
-  }
-
-  function sendBmadRequest() {
-    const state = bmadHelpStateRef.current;
-    if (
-      state.kind !== "approved"
-      || !methodGuidanceClient
-      || !activeWorkspace
-      || bmadHelpOperationRef.current !== null
-    ) return;
-    const authority = currentBmadAuthority(state.run.runId);
-    if (!authority || !bmadRequestAuthorityIsCurrent(state, authority)) {
-      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
-      return;
-    }
-    const workspace = activeWorkspace;
-    const generation = authority.rendererGeneration;
-    const manifestHash = state.authority.manifestHash;
-    const decisionId = state.approval.decisionId;
-    bmadHelpOperationRef.current = "submit";
-    applyBmadEvent({ type: "submit_started" });
-    void methodGuidanceClient.submitBmadHelp(
-      workspace.workspaceId,
-      workspace.grantEpoch,
-      manifestHash,
-      decisionId,
-    ).then((result) => {
-      if (
-        generation === bmadHelpGenerationRef.current
-        && bmadHelpStateRef.current.kind === "submitting"
-      ) applyBmadEvent({ type: "completed", result });
-    }).catch(() => {
-      if (generation === bmadHelpGenerationRef.current) {
-        applyBmadEvent({ type: "terminal", reason: "failed" });
-      }
-    }).finally(() => {
-      if (bmadHelpOperationRef.current === "submit") bmadHelpOperationRef.current = null;
-    });
   }
 
   const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
@@ -1534,9 +2112,154 @@ export function App({
     return changesFlow ?? { kind: "idle" };
   })();
 
+  const sessionContext = useMemo(() => {
+    const reviewState = bmadHelpState.kind === "review_required"
+      || bmadHelpState.kind === "approving"
+      || bmadHelpState.kind === "approved"
+      || bmadHelpState.kind === "submitting"
+      ? bmadHelpState
+      : null;
+    const sessionId = reviewState?.run.sessionId
+      ?? (bmadHelpState.kind === "completed" || bmadHelpState.kind === "interrupted"
+        ? bmadHelpState.result.sessionId
+        : bmadHelpState.kind === "idle" || bmadHelpState.kind === "unavailable"
+          ? bmadHelpState.run?.sessionId
+          : undefined)
+      ?? selectedSession.id;
+    const messages: SessionContextMessage[] = [];
+    const demoCreatedAt = hostRuntime.kind === "browser_demo" ? 1_784_731_394_657 : undefined;
+    if (demoCreatedAt !== undefined && currentBmadIntent === null) {
+      const userId = "msg_forge_demo_user";
+      const assistantId = "msg_forge_demo_assistant";
+      messages.push({
+        id: userId,
+        role: "user",
+        createdAt: demoCreatedAt,
+        value: {
+          message: {
+            id: userId,
+            sessionID: sessionId,
+            role: "user",
+            time: { created: demoCreatedAt },
+          },
+          agent: "bmad",
+          model: {
+            modelID: "forge-bmad-preview",
+            providerID: "forge",
+          },
+          summary: {
+            title: "Review the next BMAD milestone",
+            diffs: [],
+          },
+          parts: [{
+            id: "part_forge_demo_intent",
+            type: "text",
+            text: "Review this workspace and identify the next BMAD milestone.",
+          }],
+        },
+      });
+      messages.push({
+        id: assistantId,
+        role: "assistant",
+        createdAt: demoCreatedAt + 8_412,
+        value: {
+          message: {
+            id: assistantId,
+            sessionID: sessionId,
+            role: "assistant",
+            time: { created: demoCreatedAt + 1_205, completed: demoCreatedAt + 8_412 },
+          },
+          agent: "bmad",
+          model: {
+            modelID: "forge-bmad-preview",
+            providerID: "forge",
+          },
+          parts: [{
+            id: "part_forge_demo_result",
+            type: "text",
+            text: "Continue the governed Help request path, then review the exact context before model access.",
+          }],
+          bmad: {
+            status: "browser_demo",
+            authority: "read_only",
+            recommendation: "Governed BMAD Help",
+          },
+        },
+      });
+    }
+    if (currentBmadIntent) {
+      const id = `msg_user_${sessionId}`;
+      messages.push({
+        id,
+        role: "user",
+        createdAt: currentBmadIntent.createdAt,
+        value: {
+          message: {
+            id,
+            sessionID: sessionId,
+            role: "user",
+            time: currentBmadIntent.createdAt === undefined
+              ? undefined
+              : { created: currentBmadIntent.createdAt },
+          },
+          agent: "bmad",
+          model: {
+            modelID: sessionContextModelId,
+            providerID: "forge",
+          },
+          parts: [{ type: "text", text: currentBmadIntent.text }],
+        },
+      });
+    }
+    if (bmadHelpState.kind === "completed") {
+      const { result } = bmadHelpState;
+      const id = `msg_assistant_${result.runId}`;
+      const recommendation = result.recommendation.recommendationKind === "recommended_capability"
+        ? `${result.recommendation.displayName}: ${result.recommendation.rationaleSummary}`
+        : `No recommendation: ${result.recommendation.reasonCode}`;
+      messages.push({
+        id,
+        role: "assistant",
+        createdAt: result.receipt.completedAt,
+        value: {
+          message: {
+            id,
+            sessionID: sessionId,
+            role: "assistant",
+            time: {
+              created: result.receipt.startedAt,
+              completed: result.receipt.completedAt,
+            },
+          },
+          agent: "bmad",
+          model: {
+            modelID: sessionContextModelId,
+            providerID: "forge",
+          },
+          parts: [{ type: "text", text: recommendation }],
+          bmad: result,
+        },
+      });
+    }
+    return {
+      createdAt: currentBmadIntent?.createdAt
+        ?? (bmadHelpState.kind === "completed" ? bmadHelpState.result.receipt.startedAt : demoCreatedAt),
+      inputTokens: reviewState?.review.totalTokenEstimate
+        ?? contextPreview?.estimatedTokens
+        ?? (demoCreatedAt === undefined ? undefined : 1_842),
+      messages,
+    };
+  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, hostRuntime.kind, selectedSession.id, sessionContextModelId]);
+
   function resetChangesFlow() {
     changesGenerationRef.current += 1;
-    setChangesFlow(null);
+    setChangesFlowForTask(selectedSessionId, null);
+    setChangesError(null);
+  }
+
+  function resetAllChangesFlows() {
+    changesGenerationRef.current += 1;
+    clearAllChangesFlows();
     setChangesError(null);
   }
 
@@ -1742,7 +2465,7 @@ export function App({
         ...current.filter(({ workspaceId }) => workspaceId !== enabled.workspaceId),
       ]);
       setActiveWorkspaceId(enabled.workspaceId);
-      setChangesFlow({ kind: "idle" });
+      clearAllChangesFlows();
       setChangesHistory(null);
     } catch (error) {
       if (generation === changesGenerationRef.current) {
@@ -1763,8 +2486,9 @@ export function App({
     const client = hostRuntime.client;
     const workspace = activeWorkspace;
     const sequence = hostRuntime.bootstrap.projectionSequence;
+    const originTask = selectedSessionId;
     const generation = ++changesGenerationRef.current;
-    setChangesFlow({ kind: "preparing" });
+    setChangesFlowForTask(originTask, { kind: "preparing" });
     setChangesError(null);
     try {
       const review = await client.proposeCapabilityChanges(
@@ -1773,11 +2497,11 @@ export function App({
         capabilityId,
       );
       if (generation === changesGenerationRef.current) {
-        setChangesFlow({ kind: "review", busy: false, review });
+        setChangesFlowForTask(originTask, { kind: "review", busy: false, review });
       }
     } catch (error) {
       if (generation === changesGenerationRef.current) {
-        setChangesFlow({ kind: "idle" });
+        setChangesFlowForTask(originTask, { kind: "idle" });
         handleChangesFailure(client, error, sequence);
       }
     }
@@ -1790,8 +2514,9 @@ export function App({
     const client = hostRuntime.client;
     const sequence = hostRuntime.bootstrap.projectionSequence;
     const review = changesState.review;
+    const originTask = selectedSessionId;
     const generation = ++changesGenerationRef.current;
-    setChangesFlow({ kind: "review", busy: true, review });
+    setChangesFlowForTask(originTask, { kind: "review", busy: true, review });
     setChangesError(null);
     try {
       const decision = await client.decideApproval(review, choice);
@@ -1799,18 +2524,22 @@ export function App({
         return;
       }
       if (decision.disposition === "applied" && decision.execution) {
-        setChangesFlow({ kind: "applied", busy: false, execution: decision.execution });
+        setChangesFlowForTask(originTask, {
+          kind: "applied",
+          busy: false,
+          execution: decision.execution,
+        });
         setChangesHistory(null);
       } else if (decision.disposition === "discarded") {
-        setChangesFlow({ kind: "discarded" });
+        setChangesFlowForTask(originTask, { kind: "discarded" });
       } else {
-        setChangesFlow({ kind: "idle" });
+        setChangesFlowForTask(originTask, { kind: "idle" });
       }
     } catch (error) {
       if (generation === changesGenerationRef.current) {
         // The host consumes a pending proposal on any decision attempt, so a
         // failed apply requires a fresh review.
-        setChangesFlow({ kind: "idle" });
+        setChangesFlowForTask(originTask, { kind: "idle" });
         handleChangesFailure(client, error, sequence);
       }
     }
@@ -1822,10 +2551,14 @@ export function App({
     }
     const client = hostRuntime.client;
     const sequence = hostRuntime.bootstrap.projectionSequence;
+    const originTask = selectedSessionId;
     const generation = ++changesGenerationRef.current;
-    setChangesFlow(changesState.kind === "applied"
-      ? { kind: "applied", busy: true, execution: changesState.execution }
-      : { kind: "preparing" });
+    setChangesFlowForTask(
+      originTask,
+      changesState.kind === "applied"
+        ? { kind: "applied", busy: true, execution: changesState.execution }
+        : { kind: "preparing" },
+    );
     setChangesError(null);
     try {
       const result = await client.requestRollback(executionId);
@@ -1833,13 +2566,13 @@ export function App({
         return;
       }
       if (result.kind === "review") {
-        setChangesFlow({ kind: "review", busy: false, review: result.value });
+        setChangesFlowForTask(originTask, { kind: "review", busy: false, review: result.value });
       } else {
-        setChangesFlow({ kind: "undo_unavailable", value: result.value });
+        setChangesFlowForTask(originTask, { kind: "undo_unavailable", value: result.value });
       }
     } catch (error) {
       if (generation === changesGenerationRef.current) {
-        setChangesFlow({ kind: "idle" });
+        setChangesFlowForTask(originTask, { kind: "idle" });
         handleChangesFailure(client, error, sequence);
       }
     }
@@ -1890,8 +2623,9 @@ export function App({
     }
     setWorkspaceActionError(null);
     if (workspaceId !== activeWorkspaceId) {
-      resetChangesFlow();
+      resetAllChangesFlows();
       setChangesHistory(null);
+      clearAllCapabilityRuns();
     }
     setActiveWorkspaceId(workspaceId);
   }
@@ -1976,42 +2710,55 @@ export function App({
           asPanel
           availabilityMessage={explorerAvailabilityMessage}
           key={`${workspaceSource?.provenance ?? "unavailable"}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`}
-          onContextReview={(projection, provenance) => {
+          onContextReview={(projection) => {
+            contextSuggestionGenerationRef.current += 1;
+            contextSuggestionInFlightRef.current = false;
+            setContextSuggestionBusy(false);
             setContextPreview(projection);
-            setContextProvenance(provenance);
+            setContextSelectionMode("manual");
             dismissContextDrawer();
           }}
           source={workspaceSource}
           workspaceName={workspaceName}
         />
       ) : contextDrawer === "changes" ? (
-        <GovernedChangesPanel
-          canEnableEdits={canEnableEdits}
-          enableEditsBusy={enableEditsBusy}
-          errorMessage={changesError}
-          history={changesHistory}
-          historyBusy={changesHistoryBusy}
-          onDecide={(choice) => void decideGovernedChange(choice)}
-          onEnableEdits={() => void enableGovernedEdits()}
-          onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
-          onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
-          onRefreshHistory={() => void refreshChangesHistory()}
-          onStartNewProposal={resetChangesFlow}
-          onUndo={(executionId) => void undoGovernedChange(executionId)}
-          recoveryBusy={recoveryBusy}
-          recoveryReturnFocusTarget={recoveryReturnFocusTarget}
-          recoveryReview={recoveryReview}
-          state={changesState}
+        <ReviewPanel
+          availabilityMessage={gitReviewAvailabilityMessage}
+          governedReview={(
+            <GovernedChangesPanel
+              canEnableEdits={canEnableEdits}
+              enableEditsBusy={enableEditsBusy}
+              errorMessage={changesError}
+              history={changesHistory}
+              historyBusy={changesHistoryBusy}
+              onDecide={(choice) => void decideGovernedChange(choice)}
+              onEnableEdits={() => void enableGovernedEdits()}
+              onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
+              onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
+              onRefreshHistory={() => void refreshChangesHistory()}
+              onStartNewProposal={resetChangesFlow}
+              onUndo={(executionId) => void undoGovernedChange(executionId)}
+              recoveryBusy={recoveryBusy}
+              recoveryReturnFocusTarget={recoveryReturnFocusTarget}
+              recoveryReview={recoveryReview}
+              state={changesState}
+            />
+          )}
+          proposalAttention={changesState.kind === "review" || recoveryReview !== null}
+          source={gitReviewSource}
+        />
+      ) : contextDrawer === "context" ? (
+        <SessionContextPanel
+          createdAt={sessionContext.createdAt}
+          inputTokens={sessionContext.inputTokens}
+          localReviewBudget={65_536}
+          messages={sessionContext.messages}
+          model={sessionContextModelId}
+          provider={modelProviderLabel}
+          sessionTitle={selectedSession.title}
         />
       ) : contextDrawer === "skills" ? (
         <div className="method-library-panel">
-          <BmadHelpCard
-            developmentOnly={modelAuthStatus?.developmentOnly ?? false}
-            onApprove={approveBmadContext}
-            onCancel={cancelBmadContext}
-            onSend={sendBmadRequest}
-            state={bmadHelpState}
-          />
           {capabilityRun === null ? null : (
             <BmadCapabilityPanel
               capabilityId={capabilityRun.capabilityId}
@@ -2020,7 +2767,7 @@ export function App({
               onApprove={(manifestHash) => void approveCapabilityRun(manifestHash)}
               onCancel={(manifestHash, decisionId) =>
                 void cancelCapabilityRun(manifestHash, decisionId)}
-              onClose={() => setCapabilityRun(null)}
+              onClose={() => capabilitySessions.setActiveCapabilityRun(null)}
               onPrepare={(contextPaths) => void prepareCapabilityRun(contextPaths)}
               onReviewChangeSet={() =>
                 void proposeCapabilityChangeSet(capabilityRun.capabilityId)}
@@ -2029,7 +2776,14 @@ export function App({
               phase={capabilityRun.phase}
             />
           )}
+          <BmadWorkflowPanel
+            error={workflowState.error}
+            loading={workflowState.loading}
+            onRefresh={() => void refreshWorkflowState()}
+            state={workflowState.state}
+          />
           <BmadLibraryPanel
+            onRunBuilderCapability={openCapabilityRun}
             onRunCapability={openCapabilityRun}
             onReload={() => {
               if (methodLibraryClient) {
@@ -2077,7 +2831,7 @@ export function App({
       workspaceError={workspaceActionError}
       workspaces={hostWorkspaces}
     />
-  ) : appModal === "settings" || appModal === "account" ? (
+  ) : appModal === "settings" ? (
     <SettingsDialog
       about={aboutProjection}
       aboutStatus={aboutStatus}
@@ -2087,6 +2841,10 @@ export function App({
       key={`${appModal}:${utilitySettingsPage}`}
       modelAccessDetail={modelAccess.detail}
       modelAccessLabel={modelAccess.label}
+      modelAuthStatus={modelAuthStatus}
+      modelSelection={modelSelection}
+      modelSelectionBusy={modelSelectionBusy}
+      modelSelectionNotice={modelSelectionNotice}
       offboardingManifest={offboardingManifest}
       offboardingNotice={offboardingNotice}
       offboardingStatus={offboardingStatus}
@@ -2094,6 +2852,9 @@ export function App({
       onDensityChange={changeDensity}
       onEraseOffboarding={(confirm) => void eraseOffboardingData(confirm)}
       onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
+      onModelConnect={connectModelProvider}
+      onModelDisconnect={disconnectModelProvider}
+      onModelSelectionChange={changeModelSelection}
       onOpenSkillsAndAgents={openMethodLibrary}
       onThemeChange={changeTheme}
       preferencesNotice={preferencesNotice}
@@ -2114,7 +2875,7 @@ export function App({
   ) : undefined;
 
   const paletteActions: readonly PaletteAction[] = [
-    { id: "new-task", label: "New task", hint: "chat", run: startNewSession },
+    { id: "new-task", label: "New task", hint: "chat", run: () => { startNewSession(); } },
     {
       id: "current-task",
       label: `Go to task: ${selectedSession.title}`,
@@ -2135,7 +2896,7 @@ export function App({
     },
     {
       id: "drawer-changes",
-      label: "Show proposed changes",
+      label: "Show review",
       hint: "drawer",
       run: () => openContextDrawer("changes"),
     },
@@ -2157,17 +2918,11 @@ export function App({
       hint: "app",
       run: () => openUtilityPanel("settings"),
     },
-    {
-      id: "account",
-      label: "Open account",
-      hint: "app",
-      run: () => openUtilityPanel("account"),
-    },
   ];
 
   return (
     <div
-      className="app-shell"
+      className="app-shell app-shell--forge-v2"
       onKeyDown={(event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
           event.preventDefault();
@@ -2187,10 +2942,11 @@ export function App({
           setPrimaryRoute({ kind: "home" });
         }}
         onMenu={() => setPaletteOpen(true)}
-        onNewTask={startNewSession}
-        onOpenAccount={() => openUtilityPanel("account")}
+        onNewTask={() => { startNewSession(); }}
         onOpenSettings={() => openUtilityPanel("settings")}
-        taskTitle={selectedSession.title}
+        activeTaskId={selectedSessionId}
+        onSelectTask={selectSession}
+        taskTabs={openTaskTabs}
       />
       <div className="workbench workbench--task-shell">
         <AppShellLayout
@@ -2199,25 +2955,42 @@ export function App({
             <HomeView
               activeWorkspaceId={activeWorkspaceId}
               canOpenFolder={canSelectWorkspace}
-              composerDisabled={hostRuntime.kind !== "ready" || !activeWorkspace || methodRequestInFlight}
-              hasWorkspace={activeWorkspace !== null}
+              composerDisabled={
+                !localTaskDraftingAvailable
+                || !activeWorkspace
+                || methodRequestInFlight
+              }
               onActivateWorkspace={activateWorkspace}
               workspaces={hostWorkspaces}
               onOpenWorkspace={() => void selectWorkspace()}
               onOpenWorkspaceManager={openWorkspaceManager}
+              onNewTask={() => { startNewSession(); }}
+              onSelectTask={selectSession}
               onSubmitIntent={(intent) => {
-                startNewSession();
-                void reviewBmadRequest(intent);
+                const startedId = startNewSession(intent, !methodRequestAvailable);
+                if (startedId !== null) {
+                  if (methodRequestAvailable) {
+                    // The Home composer opens an ordinary conversation, like
+                    // any other chat app. BMAD joins it only if asked for.
+                    void sendChatMessage(intent, startedId).catch(() => undefined);
+                  }
+                }
               }}
-              statusHint="Nothing is sent until you approve the exact context."
+              recentTasks={sessions}
+              statusHint={methodRequestAvailable
+                ? "Ready to send through the selected model."
+                : "Start locally, then connect OpenAI in Settings before sending."}
               workspaceStatusLabel={workspaceDescription}
             />
           ) : activeWorkspace ? (
             <TaskWorkspace
-              canAttachFiles={workspaceSource !== null}
+              canAttachFiles={canBrowseFiles || canBrowseFolder}
               contextPreview={contextPreview}
+              contextSelectionMode={contextSelectionMode}
+              contextSuggestionBusy={contextSuggestionBusy}
               hostStatusLabel={hostStatusLabel}
-              interactionDisabled={!methodRequestAvailable}
+              initialDraft={taskDrafts.get(selectedSession.id) ?? ""}
+              interactionDisabled={!localTaskDraftingAvailable}
               isBrowserDemo={hostRuntime.kind === "browser_demo"}
               isNewSession={isNewSession}
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
@@ -2227,22 +3000,42 @@ export function App({
               methodLibraryAvailable={methodLibraryAvailable}
               modelAccessDetail={modelAccess.detail}
               modelAccessLabel={modelAccess.label}
-              onAttachFiles={() => {
-                openContextDrawer("files");
-              }}
-              onBrowseFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
+              onAttachFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
+              onAttachFolder={canBrowseFolder ? browseAndAttachFolder : undefined}
+              onClearContext={clearContext}
               attachNotice={attachNotice}
               agentLibrary={bmadLibraryState}
               onOpenChanges={() => {
                 openContextDrawer("changes");
               }}
+              onOpenContext={() => {
+                openContextDrawer("context");
+              }}
               onOpenMethodLibrary={openMethodLibrary}
+              onOpenProviders={() => openUtilityPanel("settings", "agent-model")}
               onOpenWorkspaceManager={openWorkspaceManager}
               workspaceStatusLabel={workspaceDescription}
               onOpenRunDetails={() => {
                 openContextDrawer("activity");
               }}
-              onReviewRequest={reviewBmadRequest}
+              onDraftChange={(draft) => {
+                setTaskDrafts((current) => {
+                  const next = new Map(current);
+                  if (draft) {
+                    next.set(selectedSession.id, draft);
+                  } else {
+                    next.delete(selectedSession.id);
+                  }
+                  return next;
+                });
+              }}
+              onSuggestContext={suggestContext}
+              onSendRequest={sendChatMessage}
+              chatLane={chatLane}
+              onAskMethodGuidance={sendBmadMessage}
+              onSelectAgent={(agentCode) => {
+                chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
+              }}
               sessionTitle={selectedSession.title}
               workspaceName={workspaceName}
             />

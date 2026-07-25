@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 11;
+pub(crate) const LATEST_STORE_VERSION: u32 = 12;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -108,6 +108,30 @@ const V11_TABLES: [&str; 20] = [
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
     "bmad_method_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+const V12_TABLES: [&str; 22] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
     "effect_journals",
     "evidence_events",
     "execution_checkpoints",
@@ -571,6 +595,38 @@ const V10_TO_V11_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 11;
  COMMIT;";
 
+/// Durable chat transcripts. Chat is the app's default lane, so a conversation
+/// must survive a restart like any other local state. Messages are stored as
+/// encrypted payloads through the same CAS the other reviewed records use, so
+/// a transcript is protected at rest exactly like a capability result.
+const V11_TO_V12_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE chat_sessions (
+   session_id TEXT PRIMARY KEY,
+   workspace_id TEXT NOT NULL,
+   agent_code TEXT,
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   updated_at_ms INTEGER NOT NULL
+     CHECK(updated_at_ms >= 0 AND updated_at_ms <= 9007199254740991)
+ ) STRICT;
+ CREATE INDEX chat_sessions_by_workspace
+   ON chat_sessions(workspace_id, updated_at_ms, session_id);
+ CREATE TABLE chat_messages (
+   session_id TEXT NOT NULL REFERENCES chat_sessions(session_id),
+   ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+   role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
+   content_hash TEXT NOT NULL,
+   payload_kind TEXT NOT NULL CHECK(payload_kind = 'chat_message'),
+   schema_version TEXT NOT NULL CHECK(schema_version = 'sapphirus.chat-message.v1'),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   PRIMARY KEY(session_id, ordinal),
+   FOREIGN KEY(content_hash, payload_kind, schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ PRAGMA user_version = 12;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -619,8 +675,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V10_TO_V11_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            11 => {
                 require_store_tables(connection, &V11_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V11_TO_V12_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V12_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

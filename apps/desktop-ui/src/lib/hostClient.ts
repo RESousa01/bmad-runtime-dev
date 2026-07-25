@@ -32,9 +32,16 @@ export type {
   ChangesReviewProjection,
   ChangesUndoConflictProjection,
   ChangesUndoUnavailableProjection,
+  ArchitectureProgressProjection,
+  BmadWorkflowStateProjection,
+  BmadWorkflowStepProjection,
+  ChatHistoryProjection,
+  ChatMessage,
+  ChatTurnProjection,
   CapabilityApprovedProjection,
   CapabilityCancelledProjection,
   CapabilityCompletedProjection,
+  CapabilityDocumentArtifact,
   CapabilityReviewProjection,
   CapabilityRunLatestProjection,
   CommandEnvelope,
@@ -43,6 +50,11 @@ export type {
   DensityPreference,
   OffboardingErasedProjection,
   PreferencesProjection,
+  GitComparison,
+  GitFileComparisonProjection,
+  GitFileState,
+  GitStatusEntryProjection,
+  GitStatusProjection,
   RetentionCategory,
   RetentionManifestProjection,
   ThemePreference,
@@ -71,8 +83,15 @@ export type {
 } from "./hostClient/contracts";
 export { parseBootstrapReply } from "./hostClient/workspaceProtocol";
 export { buildWorkspaceSelectionEnvelope } from "./hostClient/commandEnvelopes";
+export { latestResultForRun } from "./hostClient/capabilityProtocol";
 export { DesktopHostClient } from "./hostClient/client";
 export type { DesktopHostClientOptions } from "./hostClient/client";
+export type {
+  ModelAuthStatusProjection,
+  ModelProviderConnection,
+  ModelProviderId,
+  ModelSelection,
+} from "./bmadModelProjection";
 export {
   getDefaultHostRuntime,
   getSafeHostMessage,

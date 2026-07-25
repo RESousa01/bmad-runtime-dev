@@ -156,10 +156,12 @@ pub enum BmadCandidateChange {
     Replace {
         path: RelativeWorkspacePath,
         content: String,
+        #[serde(rename = "preimageSha256")]
         preimage_sha256: Sha256Digest,
     },
     Delete {
         path: RelativeWorkspacePath,
+        #[serde(rename = "preimageSha256")]
         preimage_sha256: Sha256Digest,
     },
 }

@@ -100,14 +100,6 @@ pub struct BuilderAuthoringAction {
 
 impl BuilderAuthoringAction {
     #[must_use]
-    pub const fn agent_create_rebuild() -> Self {
-        Self {
-            builder_kind: BuilderKind::Agent,
-            action: BuilderActionName::CreateRebuild,
-        }
-    }
-
-    #[must_use]
     pub const fn workflow_build() -> Self {
         Self {
             builder_kind: BuilderKind::Workflow,

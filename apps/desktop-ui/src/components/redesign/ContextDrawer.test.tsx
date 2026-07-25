@@ -10,7 +10,8 @@ import {
 
 const drawerTitles = {
   files: "Files",
-  changes: "Changes",
+  changes: "Review",
+  context: "Context",
   activity: "Activity",
   skills: "Skills and agents",
 } satisfies Record<ContextDrawerKind, string>;
@@ -47,11 +48,11 @@ describe("ContextDrawer", () => {
     const user = userEvent.setup();
     render(<ContextDrawer kind="changes" onClose={onClose} />);
 
-    const drawer = screen.getByRole("complementary", { name: "Changes" });
+    const drawer = screen.getByRole("complementary", { name: "Review" });
     const buttons = within(drawer).getAllByRole("button");
     expect(buttons).toHaveLength(1);
 
-    await user.click(within(drawer).getByRole("button", { name: "Close Changes" }));
+    await user.click(within(drawer).getByRole("button", { name: "Close Review" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -65,7 +66,7 @@ describe("ContextDrawer", () => {
     const tabs = screen.getByRole("navigation", { name: "Panel views" });
     expect(
       within(tabs).getAllByRole("button").map((button) => button.textContent),
-    ).toEqual(["Files", "Changes", "Activity", "Skills"]);
+    ).toEqual(["Files", "Review", "Context", "Activity", "Skills"]);
     expect(
       within(tabs).getByRole("button", { name: "Files" }).getAttribute("aria-current"),
     ).toBe("page");
@@ -93,19 +94,18 @@ describe("ContextDrawer", () => {
     expect(screen.queryByRole("complementary")).toBeNull();
   });
 
-  it("does not recreate Inspector tabs or a fifth context destination", () => {
-    render(<ContextDrawer kind="skills" onClose={vi.fn()} />);
+  it("uses the OpenCode window treatment for the v2 surface", () => {
+    render(
+      <ContextDrawer
+        kind="context"
+        onClose={vi.fn()}
+        onSelectTab={vi.fn()}
+      />,
+    );
 
-    const drawer = screen.getByRole("complementary", { name: "Skills and agents" });
-    expect(within(drawer).queryByRole("tablist")).toBeNull();
-    expect(within(drawer).queryByRole("tab")).toBeNull();
-    expect(
-      within(drawer).getAllByRole("heading").map((heading) => heading.textContent),
-    ).toEqual(["Skills and agents"]);
-
-    for (const legacyLabel of ["Inspector", "Context", "Logs", "Evidence", "Method"]) {
-      expect(within(drawer).queryByText(legacyLabel)).toBeNull();
-    }
+    const drawer = screen.getByRole("complementary", { name: "Context" });
+    expect(drawer.getAttribute("data-window-system")).toBe("opencode");
+    expect(within(drawer).getByRole("navigation", { name: "Panel views" })).toBeTruthy();
   });
 
   it("has no opening side effect", () => {

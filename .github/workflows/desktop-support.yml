@@ -6,6 +6,19 @@ on:
       - 'services/desktop-support-api/**'
       - 'services/desktop-support-api.Tests/**'
       - 'infra/desktop-support/**'
+      - 'infra/local/**'
+      - '.dockerignore'
+      - '.node-version'
+      - 'apps/desktop-ui/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+      - 'tools/forge-local.test.mjs'
+      - 'tools/support-cloud-contracts.test.mjs'
+      - 'tools/check-workflows.test.mjs'
+      - 'tools/support-smoke/**'
+      - 'package.json'
       - '.github/workflows/desktop-support.yml'
   push:
     branches: [main]
@@ -13,6 +26,19 @@ on:
       - 'services/desktop-support-api/**'
       - 'services/desktop-support-api.Tests/**'
       - 'infra/desktop-support/**'
+      - 'infra/local/**'
+      - '.dockerignore'
+      - '.node-version'
+      - 'apps/desktop-ui/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+      - 'tools/forge-local.test.mjs'
+      - 'tools/support-cloud-contracts.test.mjs'
+      - 'tools/check-workflows.test.mjs'
+      - 'tools/support-smoke/**'
+      - 'package.json'
       - '.github/workflows/desktop-support.yml'
   workflow_dispatch:
     inputs:
@@ -65,7 +91,121 @@ jobs:
             echo '::error::Base-image digests must be reviewed and pinned.'
             exit 1
           fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Validate local and workflow contracts
+        run: node --test tools/forge-local.test.mjs tools/support-cloud-contracts.test.mjs tools/check-workflows.test.mjs
       - run: docker build --file services/desktop-support-api/Dockerfile --tag desktop-support-api:ci services/desktop-support-api
+      - name: Migration command fails closed before server startup
+        run: |
+          set +e
+          timeout 15s docker run --rm --network none \
+            --env ASPNETCORE_ENVIRONMENT=Development \
+            --env Sapphirus__Authority=https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0 \
+            --env Sapphirus__Audience=api://22222222-2222-2222-2222-222222222222 \
+            --env Sapphirus__ApprovedDesktopClientId=33333333-3333-3333-3333-333333333333 \
+            desktop-support-api:ci migrate-sql
+          migration_exit=$?
+          set -e
+          if [ "$migration_exit" -ne 1 ]; then
+            echo "::error::Migration command exit was $migration_exit, expected fail-closed exit 1."
+            exit 1
+          fi
+
+          set +e
+          timeout 15s docker run --rm --network none \
+            --env ASPNETCORE_ENVIRONMENT=Production \
+            --env Sapphirus__Authority=https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0 \
+            --env Sapphirus__Audience=api://22222222-2222-2222-2222-222222222222 \
+            --env Sapphirus__ApprovedDesktopClientId=33333333-3333-3333-3333-333333333333 \
+            --env Sapphirus__Region=westeurope \
+            --env Sapphirus__ManagedIdentityClientId=44444444-4444-4444-4444-444444444444 \
+            --env Sapphirus__SqlMigrationIdentityClientId=44444444-4444-4444-4444-444444444444 \
+            --env Sapphirus__AppConfigurationEndpoint=https://forge-contract.azconfig.io/ \
+            --env Sapphirus__KeyVaultUri=https://forge-contract.vault.azure.net/ \
+            --env Sapphirus__ReceiptSigningKeyName=forge-contract-signing \
+            --env Sapphirus__SqlServer=forge-contract.database.windows.net \
+            --env Sapphirus__SqlDatabase=forge_contract \
+            --env Sapphirus__ModelEndpoint=https://forge-contract.openai.azure.com/ \
+            --env Sapphirus__ModelDeployment=forge-contract-model \
+            --env Sapphirus__ProviderProfileHash=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --env Sapphirus__ModelProfileHash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+            --env Sapphirus__ModelCapabilityHash=sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc \
+            --env Sapphirus__DeploymentHash=sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd \
+            desktop-support-api:ci migrate-sql
+          production_identity_exit=$?
+          set -e
+          if [ "$production_identity_exit" -ne 1 ]; then
+            echo "::error::Production identity guard exit was $production_identity_exit, expected 1."
+            exit 1
+          fi
+      - run: docker build --file infra/local/frontend.Dockerfile --tag forge-frontend:ci .
+      - name: Smoke exact support/frontend images and Production boot contract
+        run: |
+          set -euo pipefail
+          support_compose_file=infra/desktop-support/local/docker-compose.yml
+          support_project=desktop-support-ci
+          frontend_compose_file=infra/local/compose.yaml
+          frontend_project=forge-frontend-ci
+          export DESKTOP_SUPPORT_IMAGE=desktop-support-api:ci
+          export FORGE_FRONTEND_IMAGE=forge-frontend:ci
+          export FORGE_FRONTEND_PORT=1420
+          export FORGE_SUPPORT_PORT=18080
+
+          cleanup() {
+            set +e
+            docker compose -p "$frontend_project" -f "$frontend_compose_file" \
+              down --volumes --remove-orphans
+            docker compose -p "$support_project" -f "$support_compose_file" \
+              --profile production-configuration-contract \
+              down --volumes --remove-orphans
+          }
+          trap cleanup EXIT
+
+          support_expected_image="$(docker image inspect desktop-support-api:ci --format '{{.Id}}')"
+          frontend_expected_image="$(docker image inspect forge-frontend:ci --format '{{.Id}}')"
+          assert_exact_image() {
+            expected_image="$1"
+            container_id="$2"
+            service_name="$3"
+            actual_image="$(docker inspect "$container_id" --format '{{.Image}}')"
+            if [ "$actual_image" != "$expected_image" ]; then
+              echo "::error::Service $service_name did not run the exact image built by this job."
+              exit 1
+            fi
+          }
+
+          docker compose -p "$frontend_project" -f "$frontend_compose_file" up --detach --no-build --wait frontend
+          frontend_container_id="$(docker compose -p "$frontend_project" -f "$frontend_compose_file" ps -q frontend)"
+          assert_exact_image "$frontend_expected_image" "$frontend_container_id" frontend
+          frontend_health="$(docker inspect "$frontend_container_id" --format '{{.State.Health.Status}}')"
+          if [ "$frontend_health" != "healthy" ]; then
+            echo "::error::Frontend health was $frontend_health."
+            exit 1
+          fi
+          frontend_http_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' http://127.0.0.1:1420/)"
+          if [ "$frontend_http_status" != "200" ]; then
+            echo "::error::Frontend HTTP status was $frontend_http_status, expected 200."
+            exit 1
+          fi
+
+          docker compose -p "$support_project" -f "$support_compose_file" up \
+            --detach --no-build --wait desktop-support-api
+          support_container_id="$(docker compose -p "$support_project" -f "$support_compose_file" ps -q desktop-support-api)"
+          assert_exact_image "$support_expected_image" "$support_container_id" desktop-support-api
+          pwsh -NoProfile -File tools/support-smoke/local-smoke.ps1 \
+            -SupportOrigin http://127.0.0.1:18080
+
+          docker compose -p "$support_project" -f "$support_compose_file" \
+            --profile production-configuration-contract up \
+            --detach --no-build --wait production-configuration-contract
+          production_container_id="$(docker compose -p "$support_project" -f "$support_compose_file" --profile production-configuration-contract ps -q production-configuration-contract)"
+          assert_exact_image "$support_expected_image" "$production_container_id" production-configuration-contract
+          docker compose -p "$support_project" -f "$support_compose_file" \
+            exec -T production-configuration-contract \
+            wget -q -O - http://127.0.0.1:8080/healthz/live |
+            grep --quiet '"status":"healthy"'
       - uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: desktop-support-api:ci

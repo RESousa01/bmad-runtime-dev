@@ -1,5 +1,6 @@
 import { Button } from "@sapphirus/ui";
 import { useId } from "react";
+import { capabilityFidelity } from "../lib/bmadFidelity";
 import type {
   BmadAvailability,
   BmadHelpActionProjection,
@@ -16,9 +17,9 @@ export interface BmadPersonaPerspectiveView {
 }
 
 export interface BmadLibraryPanelProps {
+  readonly onRunBuilderCapability?: (capabilityId: string, label: string) => void;
   readonly onRunCapability?: (
-    agentCode: string,
-    menuCode: string,
+    capabilityId: string,
     label: string,
   ) => void;
   readonly state: BmadLibraryUiState;
@@ -26,6 +27,18 @@ export interface BmadLibraryPanelProps {
   readonly personaPerspectives?: ReadonlyMap<string, BmadPersonaPerspectiveView>;
   readonly onViewPersona?: (agentCode: string) => void;
 }
+
+const builderOperations = {
+  agent: [
+    ["builder:agent.analyze", "Analyze agent"],
+    ["builder:agent.create_rebuild", "Create or rebuild agent"],
+    ["builder:agent.edit", "Edit agent"],
+  ],
+  workflow: [
+    ["builder:workflow.analyze", "Analyze workflow"],
+    ["builder:workflow.build_edit", "Build or edit workflow"],
+  ],
+} as const;
 
 function availabilityLabel(availability: BmadAvailability): string {
   switch (availability) {
@@ -61,6 +74,24 @@ function AvailabilityChip({ availability }: { readonly availability: BmadAvailab
   return (
     <span className="bmad-availability" data-availability={availability}>
       {availabilityLabel(availability)}
+    </span>
+  );
+}
+
+/**
+ * Honest fidelity marker so a runnable Method capability is never presented as
+ * the full upstream workflow. Every runnable capability runs as a single
+ * reviewed one-shot request; this badge and its note say so.
+ */
+function FidelityBadge({ capabilityId }: { readonly capabilityId: string }) {
+  const fidelity = capabilityFidelity(capabilityId);
+  return (
+    <span
+      className="bmad-fidelity"
+      data-fidelity={fidelity.level}
+      title={fidelity.note}
+    >
+      {fidelity.label}
     </span>
   );
 }
@@ -135,9 +166,51 @@ function MethodAgentRow({
   readonly perspective?: BmadPersonaPerspectiveView | undefined;
   readonly onViewPersona?: ((agentCode: string) => void) | undefined;
   readonly onRunCapability?:
-    | ((agentCode: string, menuCode: string, label: string) => void)
+    | ((capabilityId: string, label: string) => void)
     | undefined;
 }) {
+  const runnableMenus = agent.menus.filter(
+    (menu) => menu.availability === "available" && menu.capabilityId !== null,
+  );
+  const sourceOnlyMenus = agent.menus.filter(
+    (menu) => menu.availability !== "available" || menu.capabilityId === null,
+  );
+  const renderMenus = (menus: typeof agent.menus) => (
+    <ul aria-label={`${agent.name} menu`} className="bmad-agent-menu">
+      {menus.map((menu) => (
+        <li key={`${agent.moduleCode}\u0000${agent.agentCode}\u0000${menu.code}`}>
+          <div>
+            <strong>{menu.code}</strong>
+            <span>
+              {menu.targetKind === "prompt_reference"
+                ? "Source-only prompt"
+                : `Skill target · ${menu.displayLabel}`}
+            </span>
+          </div>
+          <p>{menu.description}</p>
+          <AvailabilityChip availability={menu.availability} />
+          {menu.availability === "available" && menu.capabilityId !== null ? (
+            <FidelityBadge capabilityId={menu.capabilityId} />
+          ) : null}
+          {menu.availabilityReason === null ? null : <p>{menu.availabilityReason}</p>}
+          {onRunCapability === undefined
+            || menu.availability !== "available"
+            || menu.capabilityId === null ? null : (
+            <button
+              type="button"
+              onClick={() => {
+                if (menu.capabilityId !== null) {
+                  onRunCapability(menu.capabilityId, menu.displayLabel);
+                }
+              }}
+            >
+              Start reviewed run
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
   return (
     <li aria-label={`${agent.name}, ${agent.title}`} className="bmad-agent-row">
       <div className="bmad-library-row__heading">
@@ -169,36 +242,16 @@ function MethodAgentRow({
         </section>
       )}
       <Blockers codes={agent.blockerCodes} />
-      {agent.menus.length > 0 ? (
-        <ul aria-label={`${agent.name} menu`} className="bmad-agent-menu">
-          {agent.menus.map((menu) => (
-            <li key={`${agent.moduleCode}\u0000${agent.agentCode}\u0000${menu.code}`}>
-              <div>
-                <strong>{menu.code}</strong>
-                <span>
-                  {menu.targetKind === "prompt_reference"
-                    ? "Source prompt reference — unavailable"
-                    : `Skill target · ${menu.displayLabel}`}
-                </span>
-              </div>
-              <p>{menu.description}</p>
-              <AvailabilityChip availability={menu.availability} />
-              {menu.availabilityReason === null ? null : <p>{menu.availabilityReason}</p>}
-              {onRunCapability === undefined ? null : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onRunCapability(agent.agentCode, menu.code, menu.displayLabel);
-                  }}
-                >
-                  Start reviewed run
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+      {runnableMenus.length > 0 ? renderMenus(runnableMenus) : null}
+      {sourceOnlyMenus.length > 0 ? (
+        <details className="bmad-source-actions">
+          <summary>{sourceOnlyMenus.length} source-only {sourceOnlyMenus.length === 1 ? "action" : "actions"}</summary>
+          {renderMenus(sourceOnlyMenus)}
+        </details>
+      ) : runnableMenus.length === 0 ? (
+        <p>No reviewed actions.</p>
       ) : (
-        <p>No descriptive menu rows.</p>
+        null
       )}
     </li>
   );
@@ -275,12 +328,16 @@ function ReadyLibrary({
   personaPerspectives,
   onViewPersona,
   onRunCapability,
+  onRunBuilderCapability,
 }: {
   readonly projection: BmadLibraryProjection;
   readonly personaPerspectives?: ReadonlyMap<string, BmadPersonaPerspectiveView> | undefined;
   readonly onViewPersona?: ((agentCode: string) => void) | undefined;
   readonly onRunCapability?:
-    | ((agentCode: string, menuCode: string, label: string) => void)
+    | ((capabilityId: string, label: string) => void)
+    | undefined;
+  readonly onRunBuilderCapability?:
+    | ((capabilityId: string, label: string) => void)
     | undefined;
 }) {
   const skillsHeadingId = useId();
@@ -294,36 +351,8 @@ function ReadyLibrary({
         {projection.source.packageName} {projection.source.packageVersion} · Read only
       </p>
 
-      <section aria-labelledby={skillsHeadingId} className="bmad-library-section">
-        <h3 id={skillsHeadingId}>Installed skills</h3>
-        {projection.installedSkills.length > 0 ? (
-          <ul>
-            {projection.installedSkills.map((skill) => (
-              <InstalledSkillRow
-                key={`${skill.moduleCode}\u0000${skill.skillName}`}
-                skill={skill}
-              />
-            ))}
-          </ul>
-        ) : <p>No installed skills available.</p>}
-      </section>
-
-      <section aria-labelledby={actionsHeadingId} className="bmad-library-section">
-        <h3 id={actionsHeadingId}>Available actions</h3>
-        {projection.helpActions.length > 0 ? (
-          <ul>
-            {projection.helpActions.map((helpAction) => (
-              <HelpActionRow
-                helpAction={helpAction}
-                key={`${helpAction.moduleCode}\u0000${helpAction.skillName}\u0000${helpAction.action ?? ""}`}
-              />
-            ))}
-          </ul>
-        ) : <p>No available actions.</p>}
-      </section>
-
       <section aria-labelledby={agentsHeadingId} className="bmad-library-section">
-        <h3 id={agentsHeadingId}>Agents</h3>
+        <h3 id={agentsHeadingId}>Reviewed agents</h3>
         {projection.methodAgents.length > 0 ? (
           <ul>
             {projection.methodAgents.map((agent) => (
@@ -350,7 +379,7 @@ function ReadyLibrary({
               >
                 <div className="bmad-library-row__heading">
                   <strong>{builder.displayName}</strong>
-                  <span className="bmad-availability" data-availability="inactive">Inactive</span>
+                  <span className="bmad-availability" data-availability="inactive">Inactive output</span>
                 </div>
                 <p>
                   {builder.packageName} {builder.packageVersion} ·{" "}
@@ -361,21 +390,70 @@ function ReadyLibrary({
                   · <code>{builder.descriptorDigest}</code>
                 </p>
                 <p className="bmad-library-row__note">
-                  Activation requires a local decision and is not yet available.
+                  Builder results remain inert drafts. They cannot install, register, or execute.
                 </p>
+                {onRunBuilderCapability === undefined ? null : (
+                  <div className="bmad-builder-actions">
+                    {builderOperations[builder.packageKind].map(([capabilityId, label]) => (
+                      <Button
+                        key={capabilityId}
+                        onPress={() => onRunBuilderCapability(capabilityId, label)}
+                        size="small"
+                        variant="secondary"
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      <InternalIdentifiers projection={projection} />
+      <details className="bmad-source-details">
+        <summary>
+          Source catalog details
+          <span>{projection.installedSkills.length + projection.helpActions.length} entries</span>
+        </summary>
+        <section aria-labelledby={skillsHeadingId} className="bmad-library-section">
+          <h3 id={skillsHeadingId}>Installed skills</h3>
+          {projection.installedSkills.length > 0 ? (
+            <ul>
+              {projection.installedSkills.map((skill) => (
+                <InstalledSkillRow
+                  key={`${skill.moduleCode}\u0000${skill.skillName}`}
+                  skill={skill}
+                />
+              ))}
+            </ul>
+          ) : <p>No installed skills available.</p>}
+        </section>
+
+        <section aria-labelledby={actionsHeadingId} className="bmad-library-section">
+          <h3 id={actionsHeadingId}>Source actions</h3>
+          {projection.helpActions.length > 0 ? (
+            <ul>
+              {projection.helpActions.map((helpAction) => (
+                <HelpActionRow
+                  helpAction={helpAction}
+                  key={`${helpAction.moduleCode}\u0000${helpAction.skillName}\u0000${helpAction.action ?? ""}`}
+                />
+              ))}
+            </ul>
+          ) : <p>No source actions recorded.</p>}
+        </section>
+
+        <InternalIdentifiers projection={projection} />
+      </details>
     </>
   );
 }
 
 export function BmadLibraryPanel({
   onReload,
+  onRunBuilderCapability,
   onRunCapability,
   onViewPersona,
   personaPerspectives,
@@ -408,6 +486,7 @@ export function BmadLibraryPanel({
     case "ready":
       body = (
         <ReadyLibrary
+          onRunBuilderCapability={onRunBuilderCapability}
           onRunCapability={onRunCapability}
           onViewPersona={onViewPersona}
           personaPerspectives={personaPerspectives}
@@ -423,7 +502,7 @@ export function BmadLibraryPanel({
       aria-labelledby={headingId}
       className="bmad-library-panel"
     >
-      <h2 id={headingId}>BMAD library</h2>
+      <h2 id={headingId}>Skills &amp; agents</h2>
       {body}
     </section>
   );

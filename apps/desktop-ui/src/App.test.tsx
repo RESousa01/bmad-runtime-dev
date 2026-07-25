@@ -33,6 +33,13 @@ function successfulReply(requestId: string, data: unknown, sequence = 18) {
   };
 }
 
+function dispatchedCommandNames(invoke: ReturnType<typeof vi.fn<TauriInvoke>>): string[] {
+  return invoke.mock.calls.flatMap(([command, args]) => {
+    if (command !== "host_dispatch") return [];
+    return [(JSON.parse(String(args?.body)) as { command: string }).command];
+  });
+}
+
 const recoveryBootstrap: BootstrapReply = {
   schemaVersion: "desktop-bootstrap.v1",
   rendererSessionId: "renderer_01K0Q6H3",
@@ -165,6 +172,8 @@ async function reviewedRecoveryRuntime(options: {
   manualReasonCode?: "checkpoint_incomplete_or_inconsistent";
   now?: () => number;
   onDecisionStarted?: () => void;
+  onReboundProjectionPoll?: (afterSequence: number) => void;
+  projectionGapGate?: Promise<void>;
 } = {}): Promise<{
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
@@ -191,8 +200,58 @@ async function reviewedRecoveryRuntime(options: {
   let request = 0;
   let sequence = 18;
   let recoveryCompleted = false;
+  let bootstrapCount = 0;
+  let projectionGapDelivered = false;
   const invoke = vi.fn<TauriInvoke>(async (command, args) => {
-    if (command === "host_bootstrap") return bootstrap;
+    if (command === "host_bootstrap") {
+      bootstrapCount += 1;
+      return bootstrapCount > 1
+        ? {
+            ...bootstrap,
+            rendererSessionId: "renderer_01K0Q6H3_rebound",
+            projectionSequence: sequence,
+          }
+        : bootstrap;
+    }
+    if (command === "host_projection_snapshot" && options.projectionGapGate) {
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: bootstrap.rendererSessionId,
+        status: "snapshot",
+        snapshot: {
+          sequence,
+          generatedAt: 1_800_000_000_000,
+          bootMode: "ready",
+          workspaceCount: bootstrap.workspaces.length,
+          activeSessionId: null,
+        },
+      };
+    }
+    if (command === "host_projection_events" && options.projectionGapGate) {
+      const requestBody = JSON.parse(String(args?.body)) as { afterSequence: number };
+      if (!projectionGapDelivered) {
+        await options.projectionGapGate;
+        projectionGapDelivered = true;
+        return {
+          schemaVersion: "desktop-projection-reply.v1",
+          rendererSessionId: bootstrap.rendererSessionId,
+          status: "error",
+          error: {
+            code: "conflict",
+            safeMessage: "The projection cursor expired; request a fresh snapshot.",
+            retryable: false,
+            correlationId: null,
+          },
+        };
+      }
+      options.onReboundProjectionPoll?.(requestBody.afterSequence);
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: "renderer_01K0Q6H3_rebound",
+        status: "events",
+        events: [],
+      };
+    }
     const envelope = JSON.parse(String(args?.body)) as {
       command: string;
       payload: Record<string, unknown>;
@@ -355,12 +414,16 @@ async function bmadLibraryRuntime({
   dropBmadAfterRebind = false,
   emitInvalidation = false,
   expireFirstSession = false,
+  expireProjectionCursor = false,
   holdOldProjection = false,
+  projectionSnapshotBootMode = "ready",
 }: {
   dropBmadAfterRebind?: boolean;
   emitInvalidation?: boolean;
   expireFirstSession?: boolean;
+  expireProjectionCursor?: boolean;
   holdOldProjection?: boolean;
+  projectionSnapshotBootMode?: "ready" | "read_only_recovery";
 } = {}): Promise<{
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
@@ -386,27 +449,65 @@ async function bmadLibraryRuntime({
   const reboundBootstrap: BootstrapReply = {
     ...bootstrap,
     rendererSessionId: "renderer_01K0Q6H3_rebound",
+    projectionSequence: expireProjectionCursor ? 20 : bootstrap.projectionSequence,
     supportedCommands: dropBmadAfterRebind
       ? bootstrap.supportedCommands.filter((command) => command !== "bmad.library.snapshot")
       : bootstrap.supportedCommands,
+    workspaces: expireProjectionCursor
+      ? bootstrap.workspaces.map((workspace) => ({
+          ...workspace,
+          displayName: "reconciled-workspace",
+        }))
+      : bootstrap.workspaces,
   };
   let request = 0;
   let bootstrapCount = 0;
   let libraryAttemptCount = 0;
   let librarySnapshotCount = 0;
+  let projectionConflictDelivered = false;
   let invalidationDelivered = false;
   let invalidationReleased = false;
   let releaseHeldProjection: () => void = () => undefined;
   const invoke = vi.fn<TauriInvoke>(async (command, args) => {
     if (command === "host_bootstrap") {
       bootstrapCount += 1;
-      return expireFirstSession && bootstrapCount > 1 ? reboundBootstrap : bootstrap;
+      return (expireFirstSession || expireProjectionCursor) && bootstrapCount > 1
+        ? reboundBootstrap
+        : bootstrap;
+    }
+    if (command === "host_projection_snapshot") {
+      return {
+        schemaVersion: "desktop-projection-reply.v1",
+        rendererSessionId: bootstrap.rendererSessionId,
+        status: "snapshot",
+        snapshot: {
+          sequence: 20,
+          generatedAt: 1_725_000_000_020,
+          bootMode: projectionSnapshotBootMode,
+          workspaceCount: bootstrap.workspaces.length,
+          activeSessionId: null,
+        },
+      };
     }
     if (command === "host_projection_events") {
       if (holdOldProjection && bootstrapCount === 1) {
         await new Promise<void>((resolve) => {
           releaseHeldProjection = resolve;
         });
+      }
+      if (expireProjectionCursor && !projectionConflictDelivered) {
+        projectionConflictDelivered = true;
+        return {
+          schemaVersion: "desktop-projection-reply.v1",
+          rendererSessionId: bootstrap.rendererSessionId,
+          status: "error",
+          error: {
+            code: "conflict",
+            safeMessage: "The projection cursor expired; request a fresh snapshot.",
+            retryable: false,
+            correlationId: null,
+          },
+        };
       }
       const shouldInvalidate = emitInvalidation
         && invalidationReleased
@@ -415,7 +516,7 @@ async function bmadLibraryRuntime({
       invalidationDelivered ||= shouldInvalidate;
       return {
         schemaVersion: "desktop-projection-reply.v1",
-        rendererSessionId: expireFirstSession && bootstrapCount > 1
+        rendererSessionId: (expireFirstSession || expireProjectionCursor) && bootstrapCount > 1
           ? reboundBootstrap.rendererSessionId
           : bootstrap.rendererSessionId,
         status: "events",
@@ -433,6 +534,17 @@ async function bmadLibraryRuntime({
       command: string;
       requestId: string;
     };
+    if (envelope.command === "workspace.list") {
+      return successfulReply(envelope.requestId, {
+        kind: "workspace_list",
+        value: expireProjectionCursor
+          ? bootstrap.workspaces.map((workspace) => ({
+              ...workspace,
+              displayName: "reconciled-workspace",
+            }))
+          : bootstrap.workspaces,
+      }, expireProjectionCursor ? 20 : 18);
+    }
     if (envelope.command !== "bmad.library.snapshot") {
       throw new Error(`Unexpected command ${envelope.command}`);
     }
@@ -504,6 +616,7 @@ async function bmadLibraryRuntime({
             description: "Create architecture",
             targetKind: "skill_target",
             displayLabel: "Architecture",
+            capabilityId: null,
             availability: "capability_disabled",
             availabilityReason: "bmad_capability_disabled",
           }],
@@ -511,7 +624,7 @@ async function bmadLibraryRuntime({
         builderPackages: [],
         nextCursor: null,
       },
-    }, refreshed ? 19 : 18);
+    }, expireProjectionCursor ? (refreshed ? 21 : 20) : refreshed ? 19 : 18);
   });
   const client = new DesktopHostClient({
     invoke,
@@ -577,6 +690,7 @@ async function bmadHelpRuntime({
   latestRuns = {},
   modelStatus = "development_ready",
   workspaces = recoveryBootstrap.workspaces,
+  runnableCapability = false,
 }: {
   createOutcome?: "success" | "failure" | "recovery" | "renderer_expired";
   createRun?: BmadHelpRunCreatedProjection;
@@ -585,6 +699,7 @@ async function bmadHelpRuntime({
   latestRuns?: Readonly<Record<string, BmadHelpLatestFixture>>;
   modelStatus?: "development_ready" | "unavailable";
   workspaces?: BootstrapReply["workspaces"];
+  runnableCapability?: boolean;
 } = {}): Promise<{
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
@@ -608,6 +723,9 @@ async function bmadHelpRuntime({
       "model.auth.status",
       "model.auth.sign_in",
       "model.auth.sign_out",
+      "model.selection.set",
+      "chat.send",
+      "chat.history",
       "bmad.help.prepare",
       "bmad.help.approve",
       "bmad.help.cancel",
@@ -615,6 +733,8 @@ async function bmadHelpRuntime({
       "bmad.help.latest",
       "run.create",
       "context.preview",
+      "workspace.pick_files",
+      "workspace.pick_folder",
     ],
     workspaces,
   };
@@ -633,6 +753,13 @@ async function bmadHelpRuntime({
   const heldLatest = new Promise<void>((resolve) => { resolveLatest = resolve; });
   const createdRuns = new Map<string, BmadHelpRunCreatedProjection>();
   const createdIntents = new Map<string, string>();
+  let currentModelStatus = modelStatus;
+  let currentModelMode = modelStatus === "development_ready"
+    ? "deterministic_development"
+    : "offline";
+  let currentProviderId = modelStatus === "development_ready" ? "forge-local" : "openai";
+  let currentModelId = modelStatus === "development_ready" ? "bmad-help-fixture-v1" : "gpt-5-mini";
+  let currentAuthEpoch = 5;
   const invoke = vi.fn<TauriInvoke>(async (command, args) => {
     if (command === "host_bootstrap") {
       return bootstrap;
@@ -648,9 +775,19 @@ async function bmadHelpRuntime({
     const envelope = JSON.parse(String(args?.body)) as {
       command: string;
       payload: {
+        apiKey?: string;
         currentIntent?: string;
+        decisionId?: string;
+        manifestHash?: string;
+        modelId?: string;
+        providerId?: string;
+        contextPaths?: string[];
+        relativePaths?: string[];
         workspaceGrantEpoch?: number;
         workspaceId?: string;
+        agentCode?: string | null;
+        text?: string;
+        clientSessionRef?: string;
       };
       requestId: string;
     };
@@ -658,16 +795,64 @@ async function bmadHelpRuntime({
       return bmadReply(envelope.requestId, {
         kind: "model_auth_status",
         value: {
-          status: modelStatus,
-          mode: modelStatus === "development_ready" ? "deterministic_development" : "offline",
-          authEpoch: 5,
-          developmentOnly: modelStatus === "development_ready",
-          destinationLabel: "Deterministic local model",
-          signInAvailable: false,
+          status: currentModelStatus,
+          mode: currentModelMode,
+          authEpoch: currentAuthEpoch,
+          developmentOnly: currentModelStatus === "development_ready",
+          destinationLabel: currentModelStatus === "development_ready"
+            ? currentModelMode === "direct_provider_development"
+              ? `OpenAI · ${currentModelId}`
+              : "Deterministic local model"
+            : `OpenAI · ${currentModelId}`,
+          providerId: currentProviderId,
+          modelId: currentModelId,
+          signInAvailable: currentModelMode !== "deterministic_development",
+          signOutAvailable: currentModelMode === "direct_provider_development",
+        },
+      });
+    }
+
+    if (envelope.command === "model.auth.sign_in") {
+      currentModelStatus = "development_ready";
+      currentModelMode = "direct_provider_development";
+      currentProviderId = envelope.payload.providerId ?? "openai";
+      currentModelId = envelope.payload.modelId ?? "gpt-5-mini";
+      currentAuthEpoch += 1;
+      return bmadReply(envelope.requestId, {
+        kind: "model_auth_status",
+        value: {
+          status: currentModelStatus,
+          mode: currentModelMode,
+          authEpoch: currentAuthEpoch,
+          developmentOnly: true,
+          destinationLabel: `OpenAI · ${currentModelId}`,
+          providerId: currentProviderId,
+          modelId: currentModelId,
+          signInAvailable: true,
           signOutAvailable: true,
         },
-  });
-}
+      });
+    }
+
+    if (envelope.command === "model.auth.sign_out") {
+      currentModelStatus = "unavailable";
+      currentModelMode = "offline";
+      currentAuthEpoch += 1;
+      return bmadReply(envelope.requestId, {
+        kind: "model_auth_status",
+        value: {
+          status: currentModelStatus,
+          mode: currentModelMode,
+          authEpoch: currentAuthEpoch,
+          developmentOnly: false,
+          destinationLabel: `OpenAI · ${currentModelId}`,
+          providerId: currentProviderId,
+          modelId: currentModelId,
+          signInAvailable: true,
+          signOutAvailable: false,
+        },
+      });
+    }
 
     if (envelope.command === "bmad.help.latest") {
       const workspaceId = envelope.payload.workspaceId!;
@@ -683,6 +868,58 @@ async function bmadHelpRuntime({
           ? { kind: "no_bmad_help_run" }
           : { kind: "bmad_help_run_created", value: retained },
       );
+    }
+    if (envelope.command === "chat.history") {
+      return bmadReply(envelope.requestId, {
+        kind: "chat_history",
+        value: {
+          sessionId: "chat_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          agentCode: null,
+          messages: [],
+        },
+      });
+    }
+    if (envelope.command === "chat.send") {
+      resolveCreateStarted();
+      if (holdCreate) {
+        await heldCreate;
+      }
+      if (createOutcome !== "success") {
+        return {
+          schemaVersion: "desktop-dispatch-reply.v1",
+          requestId: envelope.requestId,
+          sequence: 19,
+          status: "error",
+          error: {
+            code: createOutcome === "recovery"
+              ? "integrity_failure"
+              : createOutcome === "renderer_expired"
+                ? "renderer_session_expired"
+                : "temporarily_unavailable",
+            safeMessage: createOutcome === "recovery"
+              ? "Workspace authority needs recovery."
+              : createOutcome === "renderer_expired"
+                ? "The renderer session expired."
+                : "The message could not be sent. Nothing was changed.",
+            retryable: createOutcome === "failure" || createOutcome === "renderer_expired",
+            correlationId: envelope.requestId,
+          },
+        };
+      }
+      const sentAt = 1_725_000_000_000;
+      return bmadReply(envelope.requestId, {
+        kind: "chat_turn",
+        value: {
+          sessionId: "chat_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          agentCode: envelope.payload.agentCode ?? null,
+          userMessage: { role: "user", text: envelope.payload.text ?? "", createdAt: sentAt },
+          assistantMessage: {
+            role: "assistant",
+            text: "Deterministic local reply.",
+            createdAt: sentAt + 1,
+          },
+        },
+      });
     }
     if (envelope.command === "run.create") {
       resolveCreateStarted();
@@ -734,6 +971,16 @@ async function bmadHelpRuntime({
         ?? bmadHelpRun(workspaceId, "BMad Help", "01K0Q6H4");
       const currentIntent = createdIntents.get(workspaceId) ?? "Choose the next safe Method step.";
       const outboundByteCount = new TextEncoder().encode(currentIntent).byteLength;
+      const contextItems = (envelope.payload.contextPaths ?? []).map((relativePath) => ({
+        relativeLabel: relativePath,
+        semanticRole: "workspace_context",
+        language: "text",
+        outboundByteCount: 28,
+        tokenEstimate: 7,
+        classification: "confidential",
+        redactions: [],
+        outboundContent: "authenticated source content",
+      }));
       return bmadReply(envelope.requestId, {
         kind: "bmad_help_review",
         value: {
@@ -741,7 +988,9 @@ async function bmadHelpRuntime({
           workspaceGrantEpoch: envelope.payload.workspaceGrantEpoch ?? 1,
           runId: run.runId,
           sessionId: run.sessionId,
-          destinationLabel: "Deterministic local model",
+          destinationLabel: currentModelMode === "direct_provider_development"
+            ? `OpenAI · ${currentModelId}`
+            : "Deterministic local model",
           developmentOnly: true,
           consentDisclosure: "Send the exact reviewed context once for this Help request.",
           manifestHash: digestA,
@@ -758,12 +1007,117 @@ async function bmadHelpRuntime({
             classification: "internal",
             redactions: [],
             outboundContent: currentIntent,
-          }],
+          }, ...contextItems],
           exclusions: [],
           secretFindings: [],
-          totalOutboundBytes: outboundByteCount,
-          totalTokenEstimate: Math.max(1, Math.ceil(outboundByteCount / 4)),
+          totalOutboundBytes: outboundByteCount + (contextItems.length * 28),
+          totalTokenEstimate:
+            Math.max(1, Math.ceil(outboundByteCount / 4)) + (contextItems.length * 7),
           redactionLimitation: "Redaction reduces risk but cannot prove every secret was detected.",
+        },
+      });
+    }
+    if (envelope.command === "workspace.pick_files") {
+      return bmadReply(envelope.requestId, {
+        kind: "picked_files",
+        value: {
+          workspaceId: envelope.payload.workspaceId,
+          relativePaths: ["src/context.ts"],
+          selectedCount: 1,
+          rejectedOutsideRoot: 0,
+          rejectedUnreadable: 0,
+          truncated: false,
+        },
+      });
+    }
+    if (envelope.command === "workspace.pick_folder") {
+      return bmadReply(envelope.requestId, {
+        kind: "picked_files",
+        value: {
+          workspaceId: envelope.payload.workspaceId,
+          relativePaths: ["src/folder/a.ts"],
+          selectedCount: 1,
+          rejectedOutsideRoot: 0,
+          rejectedUnreadable: 0,
+          truncated: false,
+        },
+      });
+    }
+    if (envelope.command === "context.preview") {
+      const relativePaths = envelope.payload.relativePaths ?? [];
+      return bmadReply(envelope.requestId, {
+        kind: "context_preview",
+        value: {
+          workspaceId: envelope.payload.workspaceId,
+          manifestHash: digestA,
+          items: relativePaths.map((relativePath, index) => ({
+            relativePath,
+            startLine: 1,
+            endLine: 1,
+            reason: "Selected for this task",
+            contentHash: `sha256:${String(index + 1).padStart(64, "0")}`,
+            classification: "source",
+            redactions: [],
+            byteCount: 28,
+            estimatedTokens: 7,
+            content: "authenticated source content",
+          })),
+          totalBytes: relativePaths.length * 28,
+          estimatedTokens: relativePaths.length * 7,
+          modelTarget: null,
+        },
+      });
+    }
+    if (envelope.command === "bmad.help.approve") {
+      return bmadReply(envelope.requestId, {
+        kind: "bmad_help_approved",
+        value: {
+          manifestHash: envelope.payload.manifestHash ?? digestA,
+          decisionId: "decision_01K0Q6H3",
+          expiresAt: Date.now() + 30_000,
+          sendEligible: true,
+        },
+      });
+    }
+    if (envelope.command === "bmad.help.submit") {
+      const workspaceId = envelope.payload.workspaceId!;
+      const run = createdRuns.get(workspaceId)
+        ?? createRun
+        ?? bmadHelpRun(workspaceId, "BMad Help", "01K0Q6H4");
+      const completedAt = Date.now();
+      return bmadReply(envelope.requestId, {
+        kind: "bmad_help_run_completed",
+        value: {
+          schemaVersion: "bmad-help-completed.v1",
+          runKind: "bmad_help",
+          lifecycle: "completed",
+          workspaceId,
+          runId: run.runId,
+          sessionId: run.sessionId,
+          runnable: false,
+          completionClaimed: true,
+          recommendation: {
+            recommendationKind: "recommended_capability",
+            displayName: "Create Architecture",
+            moduleCode: "bmm",
+            skillName: "bmad-architecture",
+            action: "create",
+            evidenceClass: "user_asserted",
+            guidanceRequired: true,
+            rationaleSummary: "The reviewed intent asks for architecture guidance.",
+            createdAt: completedAt,
+          },
+          receipt: {
+            schemaVersion: "bmad-model-receipt-summary.v1",
+            receiptId: "receipt_01K0Q6H3",
+            status: "succeeded",
+            retentionMode: "transient_no_store",
+            region: "localdev",
+            inputBytes: 512,
+            outputBytes: 256,
+            startedAt: completedAt - 100,
+            completedAt,
+          },
         },
       });
     }
@@ -780,7 +1134,28 @@ async function bmadHelpRuntime({
           },
           installedSkills: [],
           helpActions: [],
-          methodAgents: [],
+          methodAgents: runnableCapability
+            ? [{
+              moduleCode: "bmm",
+              agentCode: "bmad-agent-analyst",
+              name: "Mary",
+              title: "Business Analyst",
+              icon: "A",
+              team: "software-development",
+              description: "Drafts a bounded product brief.",
+              availability: "available",
+              blockerCodes: [],
+              menus: [{
+                code: "CB",
+                description: "Create a product brief",
+                targetKind: "skill_target",
+                displayLabel: "Product Brief",
+                capabilityId: "bmm:bmad-product-brief",
+                availability: "available",
+                availabilityReason: null,
+              }],
+            }]
+            : [],
           builderPackages: [],
           nextCursor: null,
         },
@@ -810,12 +1185,344 @@ async function readyMethodGuidanceComposer(): Promise<HTMLTextAreaElement> {
   return composer;
 }
 
-async function enterFirstTask(): Promise<void> {
-  const openTask = await screen.findByRole("button", { name: "New task" });
-  fireEvent.click(openTask);
+/// Drives the *explicit* BMAD Help action. Sending an ordinary message no
+/// longer invokes the advisor: chat is the composer's default lane, and asking
+/// "what should I do next?" is a deliberate choice from the agent menu.
+async function askBmadHelp(
+  user: ReturnType<typeof userEvent.setup>,
+  intent: string,
+): Promise<void> {
+  const composer = await readyMethodGuidanceComposer();
+  await user.type(composer, intent);
+  await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
+  const menu = screen.getByRole("region", { name: "Agent and model" });
+  await user.click(
+    within(menu).getByRole("button", { name: /BMAD Help — what should I do next\?/u }),
+  );
 }
 
-describe("Sapphirus desktop workbench", () => {
+async function enterFirstTask(): Promise<void> {
+  // Await before choosing a target: an async hostRuntimeLoader must settle
+  // before startNewSession() can bind a workspace, otherwise the click is a
+  // no-op and Home stays mounted. Home offers "New task" both in the title
+  // strip and in its Recent tasks header, so prefer the latter when present.
+  const openTasks = await screen.findAllByRole("button", { name: "New task" });
+  const recentTasks = screen
+    .queryByRole("heading", { name: "Recent tasks" })
+    ?.closest("section");
+  const target = recentTasks
+    ? within(recentTasks).getByRole("button", { name: "New task" })
+    : openTasks[0];
+  if (target) fireEvent.click(target);
+}
+
+function openWorkspaceFiles(): void {
+  fireEvent.click(screen.getByRole("button", { name: "Open app menu" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show workspace files" }));
+}
+
+describe("Forge desktop workbench", () => {
+  it("creates a real task from the v2 New task action even before model access is ready", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ modelStatus: "unavailable" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    const recentTasks = screen.getByRole("heading", { name: "Recent tasks" }).closest("section");
+    expect(recentTasks).not.toBeNull();
+    await user.click(within(recentTasks!).getByRole("button", { name: "New task" }));
+
+    expect(screen.getByRole("heading", { name: "New task" })).toBeTruthy();
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Send task" })).toHaveProperty("disabled", true);
+    expect(dispatchedCommandNames(invoke)).not.toContain("run.create");
+  });
+
+  it("starts a titled task from the home composer and allows a fresh task after completion", async () => {
+    const { runtime, createStarted } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    const intent = screen.getByLabelText<HTMLInputElement>("Describe your intent");
+    await waitFor(() => expect(intent).toHaveProperty("disabled", false));
+    await user.type(intent, "Plan the local prototype");
+    await user.click(screen.getByRole("button", { name: "Start task" }));
+    await createStarted;
+
+    expect((await screen.findAllByText("Plan the local prototype")).length).toBeGreaterThan(0);
+    // The composer opens a conversation, not a BMAD advisory run.
+    await screen.findByText("Deterministic local reply.");
+    await user.click(screen.getByRole("button", { name: "New task" }));
+    expect(screen.getByRole("heading", { name: "New task" })).toBeTruthy();
+  });
+
+  it("keeps task creation available while model connection is still required", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ modelStatus: "unavailable" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    const intent = screen.getByLabelText<HTMLInputElement>("Describe your intent");
+    expect(intent).toHaveProperty("disabled", false);
+    await user.type(intent, "Draft a task before connecting OpenAI");
+    await user.click(screen.getByRole("button", { name: "Start task" }));
+    expect(screen.getByRole("heading", { name: "Draft a task before connecting OpenAI" })).toBeTruthy();
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty(
+      "value",
+      "Draft a task before connecting OpenAI",
+    );
+    expect(screen.getAllByText(/Connect OpenAI in Settings to send prompts/u).length).toBeGreaterThan(0);
+    expect(dispatchedCommandNames(invoke)).not.toContain("run.create");
+  });
+
+  it("starts a local draft task from the browser preview", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByText("Sample data · Read only");
+    const intent = screen.getByLabelText<HTMLInputElement>("Describe your intent");
+    expect(intent).toHaveProperty("disabled", false);
+
+    await user.type(intent, "Inspect browser task creation");
+    await user.click(screen.getByRole("button", { name: "Start task" }));
+
+    expect(screen.getByRole("heading", { name: "Inspect browser task creation" })).toBeTruthy();
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty(
+      "value",
+      "Inspect browser task creation",
+    );
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Send task" })).toHaveProperty("disabled", true);
+  });
+
+  it("connects OpenAI from Settings and sends a prompt without extra review steps", async () => {
+    const { runtime, invoke, createStarted } = await bmadHelpRuntime({
+      modelStatus: "unavailable",
+    });
+    const runtimeCredential = ["sk", "test", "runtime", "only"].join("-");
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Providers" }));
+    await user.type(
+      screen.getByLabelText("OpenAI API key"),
+      runtimeCredential,
+    );
+    await user.click(screen.getByRole("button", { name: "Connect OpenAI" }));
+    await screen.findByRole("button", { name: "Disconnect OpenAI" });
+    expect(document.body.textContent).not.toContain(runtimeCredential);
+    await user.click(screen.getByRole("button", { name: "Close settings" }));
+
+    const intent = screen.getByLabelText<HTMLInputElement>("Describe your intent");
+    await user.type(intent, "Review the local BMAD prototype");
+    await user.click(screen.getByRole("button", { name: "Start task" }));
+    await createStarted;
+
+    // Sending is one ordinary chat turn: no advisory run, no second review.
+    expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    expect(await screen.findByRole("heading", { name: "Skills & agents" })).toBeTruthy();
+    expect(await screen.findByText("No agents available.")).toBeTruthy();
+    expect(dispatchedCommandNames(invoke)).toContain("bmad.library.snapshot");
+    expect(screen.queryByRole("heading", { name: "Request receipt" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Suggested next step" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Review request context" })).toBeNull();
+    expect(dispatchedCommandNames(invoke)).toContain("model.auth.sign_in");
+    expect(dispatchedCommandNames(invoke)).toContain("chat.send");
+    // BMAD is not invoked by an ordinary message.
+    expect(dispatchedCommandNames(invoke)).not.toContain("run.create");
+    expect(dispatchedCommandNames(invoke)).not.toContain("bmad.help.submit");
+    expect(screen.queryByText("Authority profile")).toBeNull();
+  });
+
+  it("treats an ordinary message as chat and keeps BMAD entirely optional", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+
+    await user.type(await readyMethodGuidanceComposer(), "What does this workspace do?");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    // The question and its answer render as an ordinary conversation.
+    expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+
+    // No BMAD concept was invoked to hold a conversation.
+    const commands = dispatchedCommandNames(invoke);
+    expect(commands).toContain("chat.send");
+    expect(commands).not.toContain("run.create");
+    expect(commands).not.toContain("bmad.help.prepare");
+    expect(commands).not.toContain("bmad.capability.prepare");
+
+    // The send carried no agent: plain chat is the default, not an opt-out.
+    const sent = invoke.mock.calls.find(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "chat.send");
+    const payload = (JSON.parse(String(sent![1]?.body)) as {
+      payload: { agentCode: string | null; text: string };
+    }).payload;
+    expect(payload.agentCode).toBeNull();
+    expect(payload.text).toBe("What does this workspace do?");
+  });
+
+  it("keeps plain chat reachable in one click so BMAD never becomes mandatory", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+    await readyMethodGuidanceComposer();
+
+    await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
+    const menu = screen.getByRole("region", { name: "Agent and model" });
+    await user.click(within(menu).getByRole("button", { name: /No agent — plain chat/u }));
+
+    await user.type(await readyMethodGuidanceComposer(), "Draft the boundaries");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
+
+    const sent = invoke.mock.calls.find(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "chat.send");
+    expect((JSON.parse(String(sent![1]?.body)) as {
+      payload: { agentCode: string | null };
+    }).payload.agentCode).toBeNull();
+  });
+
+  it("keeps a capability run scoped to the task it was started on", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ runnableCapability: true });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    await enterFirstTask();
+
+    // Start a reviewed capability run on the first task.
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(await screen.findByRole("button", { name: "Start reviewed run" }));
+    expect(
+      await screen.findByRole("dialog", { name: /Product Brief capability run/ }),
+    ).toBeTruthy();
+
+    // A brand-new task must not inherit the first task's run.
+    await user.click(screen.getByRole("button", { name: "New task" }));
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    expect(await screen.findByRole("heading", { name: "Skills & agents" })).toBeTruthy();
+    expect(
+      screen.queryByRole("dialog", { name: /Product Brief capability run/ }),
+    ).toBeNull();
+
+    // Returning to the first task restores its run. Tabs render as
+    // [initial home, first task, second task]; index 1 is the task the run
+    // was started on (all tabs share the default "New task" label).
+    const firstTaskTab = screen.getAllByRole("tab", { name: "New task" })[1]!;
+    await user.click(firstTaskTab);
+    if (screen.queryByRole("heading", { name: "Skills & agents" }) === null) {
+      await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    }
+    expect(
+      await screen.findByRole("dialog", { name: /Product Brief capability run/ }),
+    ).toBeTruthy();
+  });
+
+  it("sends explicitly attached local context without a second review step", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    await enterFirstTask();
+    await readyMethodGuidanceComposer();
+
+    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
+    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("context.preview");
+    });
+    expect(await screen.findByText("src/context.ts")).toBeTruthy();
+
+    await askBmadHelp(user, "Explain the selected module");
+
+    expect(await screen.findByText(/Create Architecture:/)).toBeTruthy();
+    expect(screen.queryByRole("heading", {
+      name: "Send attached context?",
+    })).toBeNull();
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("bmad.help.submit");
+    });
+    const prepareCall = invoke.mock.calls.find(([command, args]) =>
+      command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.prepare"
+    );
+    expect(JSON.parse(String(prepareCall?.[1]?.body))).toMatchObject({
+      payload: { contextPaths: ["src/context.ts"] },
+    });
+  });
+
+  it("opens a separate task tab from the title-bar plus action", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(screen.getAllByRole("tab", { name: "New task" })).toHaveLength(1);
+    await user.click(
+      within(screen.getByRole("banner", { name: "Forge application" }))
+        .getByRole("button", { name: "New task" }),
+    );
+
+    const tabs = screen.getAllByRole("tab", { name: "New task" });
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0]?.getAttribute("aria-selected")).toBe("false");
+    expect(tabs[1]?.getAttribute("aria-selected")).toBe("true");
+  });
+
   it("drops a stale Explorer page when the workspace source changes", async () => {
     let resolveStalePage!: (value: Awaited<ReturnType<ReadonlyWorkspaceSource["listEntries"]>>) => void;
     const stalePage = new Promise<Awaited<ReturnType<ReadonlyWorkspaceSource["listEntries"]>>>(
@@ -891,25 +1598,27 @@ describe("Sapphirus desktop workbench", () => {
 
     await screen.findAllByText("Browser preview");
 
-    expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
-    expect(screen.getByRole("banner", { name: "Sapphirus application" })).toBeTruthy();
+    expect(screen.getByRole("banner", { name: "Forge application" })).toBeTruthy();
+    expect(screen.getByRole("banner", { name: "Forge application" })).toBeTruthy();
     expect(screen.getByRole("main")).toBeTruthy();
-    expect(screen.queryByRole("complementary", { name: /Files|Changes|Run details|Skills and agents/ })).toBeNull();
+    expect(screen.queryByRole("complementary", { name: /Files|Review|Run details|Skills and agents/ })).toBeNull();
     expect(screen.getByRole("button", { name: "New task" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "New task" })).toBeTruthy();
     expect(screen.queryByText("Add a safe workspace scan")).toBeNull();
     expect(screen.queryByText("Refactor config loader")).toBeNull();
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(screen.queryByRole("button", { name: "Review changes" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Changes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Review" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run details" })).toBeTruthy();
     // Governed edits stay fail-closed without a real reviewed proposal.
-    await user.click(screen.getByRole("button", { name: "Changes" }));
-    expect(screen.getByRole("heading", { name: "Changes" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    expect(screen.getByRole("heading", { name: "Review" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Working tree" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Apply changes" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Revise" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Discard" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     expect(screen.getByText("No proposed changes")).toBeTruthy();
     expect(screen.getAllByText("Browser preview").length).toBeGreaterThan(0);
     expect(
@@ -920,7 +1629,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(screen.queryByText(/^Command$/i)).toBeNull();
     expect(screen.queryByText(/Approve & apply locally/i)).toBeNull();
     expect(screen.queryByText(/^Execute$/i)).toBeNull();
-    expect(screen.queryByText(/^Auto$/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Auto$/i })).toBeNull();
     expect(screen.queryByText(/^Connected$/i)).toBeNull();
     expect(document.body.textContent).not.toMatch(/[A-Z]:\\/);
   });
@@ -972,11 +1681,13 @@ describe("Sapphirus desktop workbench", () => {
       await screen.findAllByText("Browser preview");
       expect(document.querySelector(".task-shell-layout__sidebar")).toBeNull();
 
-      const filesTrigger = screen.getByRole("button", { name: "Attach files" });
-      await user.click(filesTrigger);
+      openWorkspaceFiles();
       const filesDrawer = screen.getByRole("dialog", { name: "Files" });
       expect(filesDrawer.getAttribute("aria-modal")).toBe("true");
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close Files" }));
+      // The focus trap takes the drawer's first focusable node, which is the
+      // leading panel-view tab; the close control remains reachable from there.
+      expect(filesDrawer.contains(document.activeElement)).toBe(true);
+      expect(screen.getByRole("button", { name: "Close Files" })).toBeTruthy();
       expect(screen.getByRole("main", { hidden: true }).closest(".task-shell-layout__main")?.hasAttribute("inert"))
         .toBe(true);
       await user.keyboard("{Escape}");
@@ -1007,7 +1718,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(document.activeElement).toBe(settingsTrigger);
   });
 
-  it("keeps the agent selector self-contained without a settings shortcut", async () => {
+  it("keeps the compact agent selector focused on Agent and Model", async () => {
     const user = userEvent.setup();
     render(<App />);
     await enterFirstTask();
@@ -1016,9 +1727,10 @@ describe("Sapphirus desktop workbench", () => {
     const agentTrigger = screen.getByRole("button", { name: "Agent and model settings" });
     await user.click(agentTrigger);
     const agentRegion = screen.getByRole("region", { name: "Agent and model" });
-    expect(within(agentRegion).getByText("BMAD Help")).toBeTruthy();
-    expect(within(agentRegion).getByText("Review before send")).toBeTruthy();
-    expect(within(agentRegion).queryByRole("button", { name: "Open settings" })).toBeNull();
+    expect(within(agentRegion).getByText("No agent — plain chat")).toBeTruthy();
+    expect(within(agentRegion).getByText("No model access")).toBeTruthy();
+    expect(within(agentRegion).queryByText("Review before send")).toBeNull();
+    expect(within(agentRegion).queryByText("Loading installed agents…")).toBeNull();
 
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("region", { name: "Agent and model" })).toBeNull();
@@ -1031,7 +1743,7 @@ describe("Sapphirus desktop workbench", () => {
     await enterFirstTask();
     await screen.findAllByText("Browser preview");
 
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     expect(await screen.findByRole("heading", { name: "bmad-runtime-dev" })).toBeTruthy();
     expect(screen.getByText("Browser demo data")).toBeTruthy();
     expect(screen.getByText(/No folder, host grant, or local file has been read/i)).toBeTruthy();
@@ -1046,9 +1758,9 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Review context" }));
 
     expect(screen.queryByRole("heading", { name: "Files" })).toBeNull();
-    expect(screen.getByText("Local context preview")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();
     expect(screen.getByText("README.md")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/[A-Z]:\\/);
   });
 
@@ -1058,11 +1770,12 @@ describe("Sapphirus desktop workbench", () => {
     await enterFirstTask();
     await screen.findByText("Browser preview");
 
-    const attachFiles = screen.getByRole("button", { name: "Attach files" });
-    await user.click(attachFiles);
+    const reviewTrigger = screen.getByRole("button", { name: "Review" });
+    await user.click(reviewTrigger);
+    await user.click(screen.getByRole("button", { name: "Files" }));
     await user.click(screen.getByRole("button", { name: "Close Files" }));
 
-    await waitFor(() => expect(document.activeElement).toBe(attachFiles));
+    await waitFor(() => expect(document.activeElement).toBe(reviewTrigger));
   });
 
   it("renders read surfaces and local context preview only from validated host projections", async () => {
@@ -1076,7 +1789,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.click(await screen.findByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     expect(await screen.findByText("Validated local projection")).toBeTruthy();
     expect(screen.queryByText(/Browser demo data/i)).toBeNull();
     await user.click(await screen.findByRole("button", { name: /README\.md/i }));
@@ -1088,7 +1801,7 @@ describe("Sapphirus desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Review context" }));
 
     expect(screen.queryByRole("heading", { name: "Files" })).toBeNull();
-    expect(screen.getByText("Local context preview")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();
     expect(screen.getByText("README.md")).toBeTruthy();
     const dispatchedCommands = invoke.mock.calls
       .filter(([command]) => command === "host_dispatch")
@@ -1322,24 +2035,258 @@ describe("Sapphirus desktop workbench", () => {
     expect((screen.getByRole("button", { name: "Choose local workspace" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("resynchronizes an expired projection cursor from an authoritative snapshot", async () => {
+    const readyBootstrap: BootstrapReply = {
+      ...recoveryBootstrap,
+      bootMode: "ready",
+      projectionSequence: 18,
+    };
+    const reboundBootstrap: BootstrapReply = {
+      ...readyBootstrap,
+      rendererSessionId: "renderer_01K0Q9N4_rebound",
+      projectionSequence: 24,
+    };
+    const eventCursors: number[] = [];
+    let bootstrapCount = 0;
+    let projectionAttempt = 0;
+    const invoke = vi.fn<TauriInvoke>(async (command, args) => {
+      if (command === "host_bootstrap") {
+        bootstrapCount += 1;
+        return bootstrapCount > 1 ? reboundBootstrap : readyBootstrap;
+      }
+      if (command === "host_projection_events") {
+        const request = JSON.parse(String(args?.body)) as { afterSequence: number };
+        eventCursors.push(request.afterSequence);
+        projectionAttempt += 1;
+        if (projectionAttempt === 1) {
+          return {
+            schemaVersion: "desktop-projection-reply.v1",
+            rendererSessionId: readyBootstrap.rendererSessionId,
+            status: "error",
+            error: {
+              code: "conflict",
+              safeMessage: "The projection cursor expired; request a fresh snapshot.",
+              retryable: false,
+              correlationId: null,
+            },
+          };
+        }
+        return {
+          schemaVersion: "desktop-projection-reply.v1",
+          rendererSessionId: bootstrapCount > 1
+            ? reboundBootstrap.rendererSessionId
+            : readyBootstrap.rendererSessionId,
+          status: "events",
+          events: [],
+        };
+      }
+      if (command === "host_projection_snapshot") {
+        return {
+          schemaVersion: "desktop-projection-reply.v1",
+          rendererSessionId: readyBootstrap.rendererSessionId,
+          status: "snapshot",
+          snapshot: {
+            sequence: 24,
+            generatedAt: 1_725_000_000_024,
+            bootMode: "ready",
+            workspaceCount: readyBootstrap.workspaces.length,
+            activeSessionId: null,
+          },
+        };
+      }
+      if (command === "host_dispatch") {
+        const envelope = JSON.parse(String(args?.body)) as {
+          command: string;
+          requestId: string;
+        };
+        if (envelope.command === "workspace.list") {
+          return successfulReply(envelope.requestId, {
+            kind: "workspace_list",
+            value: readyBootstrap.workspaces,
+          }, 24);
+        }
+      }
+      throw new Error(`Unexpected command ${command}`);
+    });
+    const client = new DesktopHostClient({ invoke });
+    await client.bootstrap();
+    const runtime: HostRuntime = { kind: "ready", client, bootstrap: readyBootstrap };
+
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_projection_snapshot"))
+        .toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap"))
+        .toHaveLength(2);
+    });
+    await waitFor(() => expect(eventCursors).toContain(24));
+    expect(screen.queryByText("Host unavailable")).toBeNull();
+  });
+
+  it("reconciles workspace and requested Method projections after cursor expiry", async () => {
+    const { runtime, invoke } = await bmadLibraryRuntime({
+      expireProjectionCursor: true,
+    });
+
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_projection_snapshot"))
+        .toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap"))
+        .toHaveLength(2);
+    });
+    expect(dispatchedCommandNames(invoke).filter((command) => command === "workspace.list"))
+      .toHaveLength(0);
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke).filter((command) => command === "bmad.library.snapshot"))
+        .toHaveLength(2);
+    });
+    await enterFirstTask();
+    expect((await screen.findAllByText("reconciled-workspace")).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Host unavailable")).toBeNull();
+  });
+
+  it("enters read-only recovery without rebinding when the gap snapshot requires it", async () => {
+    const { runtime, invoke } = await bmadLibraryRuntime({
+      expireProjectionCursor: true,
+      projectionSnapshotBootMode: "read_only_recovery",
+    });
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+    await enterFirstTask();
+
+    expect(await screen.findByRole("status")).toHaveProperty(
+      "textContent",
+      expect.stringContaining("Read-only recovery"),
+    );
+    expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap"))
+      .toHaveLength(1);
+    expect(screen.queryByText("Host unavailable")).toBeNull();
+  });
+
+  it("resets governed-change projections before polling resumes after cursor expiry", async () => {
+    let releaseProjectionGap!: () => void;
+    const projectionGapGate = new Promise<void>((resolve) => {
+      releaseProjectionGap = resolve;
+    });
+    let reboundPollCursor: number | null = null;
+    let recoveryVisibleAtReboundPoll: boolean | null = null;
+    const { runtime, invoke } = await reviewedRecoveryRuntime({
+      projectionGapGate,
+      onReboundProjectionPoll: (afterSequence) => {
+        reboundPollCursor = afterSequence;
+        recoveryVisibleAtReboundPoll = screen.queryByRole("heading", {
+          name: "Review checkpoint recovery",
+        }) !== null;
+      },
+    });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={5}
+      />,
+    );
+    await enterFirstTask();
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
+    await user.click(screen.getByRole("button", { name: "Refresh history" }));
+    await user.click(await screen.findByRole("button", { name: "Review recovery" }));
+    expect(await screen.findByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeTruthy();
+
+    await act(async () => {
+      releaseProjectionGap();
+      await projectionGapGate;
+    });
+
+    await waitFor(() => expect(reboundPollCursor).not.toBeNull());
+    expect(recoveryVisibleAtReboundPoll).toBe(false);
+    expect(screen.queryByRole("heading", {
+      name: "Review checkpoint recovery",
+    })).toBeNull();
+    expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap"))
+      .toHaveLength(2);
+    expect(screen.queryByText("Host unavailable")).toBeNull();
+  });
+
   it("opens each task-scoped context surface through its canonical drawer trigger", async () => {
     const user = userEvent.setup();
     render(<App />);
     await enterFirstTask();
 
     await screen.findAllByText("Browser preview");
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     expect(screen.getByRole("heading", { name: "Files" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Close Files" }));
 
-    await user.click(screen.getByRole("button", { name: "Changes" }));
-    expect(screen.getByRole("heading", { name: "Changes" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    expect(screen.getByRole("heading", { name: "Review" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     expect(screen.getByText("No proposed changes")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+    await user.click(screen.getByRole("button", { name: "Close Review" }));
 
     await user.click(screen.getByRole("button", { name: "Run details" }));
     expect(screen.getByRole("heading", { name: "Activity" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
+  });
+
+  it("labels local context estimates without inventing provider cost", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await enterFirstTask();
+    await screen.findAllByText("Browser preview");
+
+    await user.click(screen.getByRole("button", { name: "Open context details" }));
+
+    expect(screen.getByText("Local Review Budget")).toBeTruthy();
+    expect(screen.getByText("Input Estimate")).toBeTruthy();
+    expect(screen.queryByText("Context Limit")).toBeNull();
+    expect(screen.getByText("Model").parentElement?.textContent)
+      .toBe("Modelforge-bmad-preview");
+    expect(screen.getByText("Total Cost").parentElement?.textContent).toBe("Total Cost—");
+    expect(screen.queryByText("$0.00")).toBeNull();
+  });
+
+  it("shows the actual host model ID in session context", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    await enterFirstTask();
+    await user.click(screen.getByRole("button", { name: "Open context details" }));
+
+    expect(screen.getByText("Model").parentElement?.textContent)
+      .toBe("Modelbmad-help-fixture-v1");
+    expect(screen.queryByText("Deterministic local model")).toBeNull();
   });
 
   it("owns one shared recovery review across Changes and Activity and refreshes after cancel", async () => {
@@ -1349,7 +2296,8 @@ describe("Sapphirus desktop workbench", () => {
     await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
 
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
     const changesTrigger = await screen.findByRole("button", { name: "Review recovery" });
     await user.click(changesTrigger);
@@ -1361,7 +2309,7 @@ describe("Sapphirus desktop workbench", () => {
     })).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(changesTrigger));
 
-    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+    await user.click(screen.getByRole("button", { name: "Close Review" }));
     await user.click(screen.getByRole("button", { name: "Run details" }));
     const activityTrigger = await screen.findByRole("button", { name: "Review recovery" });
     await user.click(activityTrigger);
@@ -1412,7 +2360,8 @@ describe("Sapphirus desktop workbench", () => {
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
     await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
     await user.click(await screen.findByRole("button", { name: "Review recovery" }));
     expect(await screen.findByRole("heading", { name: "Review checkpoint recovery" })).toBeTruthy();
@@ -1444,7 +2393,8 @@ describe("Sapphirus desktop workbench", () => {
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
     await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
     await user.click(await screen.findByRole("button", { name: "Review recovery" }));
     await user.click(await screen.findByRole("button", { name: "Restore checkpoint" }));
@@ -1486,7 +2436,8 @@ describe("Sapphirus desktop workbench", () => {
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
     await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
     await user.click(await screen.findByRole("button", { name: "Review recovery" }));
     await user.click(await screen.findByRole("button", { name: "Restore checkpoint" }));
@@ -1501,7 +2452,7 @@ describe("Sapphirus desktop workbench", () => {
     await waitFor(() => expect(changesRefresh.disabled).toBe(true));
     fireEvent.click(changesRefresh);
 
-    await user.click(screen.getByRole("button", { name: "Close Changes" }));
+    await user.click(screen.getByRole("button", { name: "Close Review" }));
     await user.click(screen.getByRole("button", { name: "Run details" }));
     const activityRefresh = screen.getByRole<HTMLButtonElement>("button", {
       name: "Refresh activity",
@@ -1533,7 +2484,8 @@ describe("Sapphirus desktop workbench", () => {
     render(<App hostRuntimeLoader={async () => runtime} projectionPollIntervalMs={60_000} />);
     await enterFirstTask();
     await screen.findAllByText("opaque-workspace-name");
-    await user.click(screen.getByRole("button", { name: "Changes" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Agent proposals" }));
     await user.click(screen.getByRole("button", { name: "Refresh history" }));
     await user.click(await screen.findByRole("button", { name: "Review recovery" }));
     expect(await screen.findByText(
@@ -1564,10 +2516,8 @@ describe("Sapphirus desktop workbench", () => {
     });
     await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
 
-    expect(await screen.findByText("Restored Method guidance")).toBeTruthy();
-    expect(screen.getByText("Created")).toBeTruthy();
-    expect(screen.getByText("Unbound")).toBeTruthy();
-    expect(screen.getByText("No model request")).toBeTruthy();
+    expect(screen.getByText("Created · Unbound")).toBeTruthy();
+    expect(screen.queryByText("Restored Method guidance")).toBeNull();
     const latestCall = invoke.mock.calls.find(([command, args]) => command === "host_dispatch"
       && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.help.latest")!;
     expect(JSON.parse(String(latestCall[1]?.body))).toMatchObject({
@@ -1603,7 +2553,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     expect(composer).toHaveProperty("disabled", true);
     expect(
-      screen.getByRole("button", { name: "Review request" }),
+      screen.getByRole("button", { name: "Send message" }),
     ).toHaveProperty("disabled", true);
 
     releaseLatest();
@@ -1644,16 +2594,15 @@ describe("Sapphirus desktop workbench", () => {
     expect(composer).toHaveProperty("disabled", false);
     expect(screen.queryByText(/^Created$/)).toBeNull();
 
-    await user.type(composer, "Create a newly retained Method session");
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "Create a newly retained Method session");
 
-    expect(await screen.findByText("Created · Unbound")).toBeTruthy();
+    expect(await screen.findByText(/Create Architecture:/)).toBeTruthy();
     expect(invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
       && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create"))
       .toHaveLength(1);
   });
 
-  it("keeps the composer closed and creates no Help run when model access is unavailable", async () => {
+  it("keeps offline drafting open but creates no Help run when model access is unavailable", async () => {
     const { runtime, invoke } = await bmadHelpRuntime({ modelStatus: "unavailable" });
     const user = userEvent.setup();
     render(
@@ -1670,9 +2619,15 @@ describe("Sapphirus desktop workbench", () => {
         .map(([, args]) => (JSON.parse(String(args?.body)) as { command: string }).command);
       expect(commands).toContain("model.auth.status");
     });
-    expect(screen.getByRole("textbox")).toHaveProperty("disabled", true);
+    expect(screen.getByRole("textbox")).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Send task" })).toHaveProperty("disabled", true);
     await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
-    expect(await within(screen.getByRole("region", { name: "Agent and model" })).findByText("Model access unavailable")).toBeTruthy();
+    const modelPanel = screen.getByRole("region", { name: "Agent and model" });
+    expect(await within(modelPanel).findByText("Connect a provider")).toBeTruthy();
+    await user.click(within(modelPanel).getByRole("button", { name: "Open model settings" }));
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Providers" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close settings" }));
     fireEvent.submit(screen.getByRole("form", { name: "Task composer" }));
 
     const commands = invoke.mock.calls
@@ -1682,7 +2637,7 @@ describe("Sapphirus desktop workbench", () => {
     expect(commands).not.toContain("bmad.help.prepare");
   });
 
-  it("creates one truthful unbound Help run from the exact submitted intent", async () => {
+  it("sends one Help message from the exact submitted intent", async () => {
     const workspace = recoveryBootstrap.workspaces[0]!;
     const created = bmadHelpRun(workspace.workspaceId, "Source-grounded Help", "01K0Q6H4");
     const { runtime, invoke } = await bmadHelpRuntime({ createRun: created });
@@ -1695,14 +2650,9 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    const composer = await readyMethodGuidanceComposer();
-    await user.type(composer, "  Choose the next safe architecture step.  ");
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "  Choose the next safe architecture step.  ");
 
-    expect(await screen.findByText("Source-grounded Help")).toBeTruthy();
-    expect(screen.getAllByText("Created").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Unbound").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("No model request").length).toBeGreaterThan(0);
+    expect(await screen.findByText(/Create Architecture:/)).toBeTruthy();
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(screen.queryByText("Ready for review")).toBeNull();
     const createCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -1721,7 +2671,7 @@ describe("Sapphirus desktop workbench", () => {
     });
   });
 
-  it("suppresses duplicate Help creation while the first native request is pending", async () => {
+  it("suppresses a duplicate chat send while the first request is pending", async () => {
     const { runtime, invoke, createStarted, releaseCreate } = await bmadHelpRuntime({
       holdCreate: true,
     });
@@ -1738,19 +2688,21 @@ describe("Sapphirus desktop workbench", () => {
       await readyMethodGuidanceComposer(),
       "Recommend one safe Method step",
     );
-    const submit = screen.getByRole("button", { name: "Review request" });
+    const submit = screen.getByRole("button", { name: "Send message" });
     fireEvent.click(submit);
     fireEvent.click(submit);
     await createStarted;
 
-    const createCalls = () => invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
-      && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
-    expect(createCalls()).toHaveLength(1);
+    // A double-click must not send the same message twice: the host's strict
+    // user->assistant alternation would reject the second and lose it.
+    const sendCalls = () => invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+      && (JSON.parse(String(args?.body)) as { command: string }).command === "chat.send");
+    expect(sendCalls()).toHaveLength(1);
     expect(submit).toHaveProperty("disabled", true);
 
     releaseCreate();
-    expect(await screen.findByText("Created · Unbound")).toBeTruthy();
-    expect(createCalls()).toHaveLength(1);
+    expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
+    expect(sendCalls()).toHaveLength(1);
   });
 
   it("never claims creation when the native Help command fails", async () => {
@@ -1764,11 +2716,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.type(
-      await readyMethodGuidanceComposer(),
-      "Recommend a safe next step",
-    );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "Recommend a safe next step");
     await waitFor(() => {
       const createCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
         && (JSON.parse(String(args?.body)) as { command: string }).command === "run.create");
@@ -1806,11 +2754,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.type(
-      await readyMethodGuidanceComposer(),
-      "Recommend a safe next step",
-    );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "Recommend a safe next step");
     expect((await screen.findAllByRole("alert"))[0]).toHaveProperty(
       "textContent",
       expect.stringContaining("The renderer session expired. BMAD Help was not created."),
@@ -1840,11 +2784,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.type(
-      await readyMethodGuidanceComposer(),
-      "Recommend a safe next step",
-    );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "Recommend a safe next step");
     await oldHost.createStarted;
 
     view.rerender(
@@ -1886,11 +2826,7 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.type(
-      await readyMethodGuidanceComposer(),
-      "Recommend a safe next step",
-    );
-    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await askBmadHelp(user, "Recommend a safe next step");
 
     expect((await screen.findAllByText("Read-only recovery")).length).toBeGreaterThan(0);
     expect(
@@ -1939,14 +2875,35 @@ describe("Sapphirus desktop workbench", () => {
     }));
     await user.click(screen.getByRole("button", { name: "Close workspaces" }));
     await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
-    expect(await screen.findByText("Current secondary guidance")).toBeTruthy();
+    expect(screen.getByText("Created · Unbound")).toBeTruthy();
 
     await act(async () => {
       releaseLatest();
       await Promise.resolve();
     });
-    expect(screen.getByText("Current secondary guidance")).toBeTruthy();
+    expect(screen.getByText("Created · Unbound")).toBeTruthy();
     expect(screen.queryByText("Stale primary guidance")).toBeNull();
+  });
+
+  it("preloads the native Method library for the composer agent control", async () => {
+    const { runtime, invoke } = await bmadLibraryRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+
+    await waitFor(() => {
+      const snapshotCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "bmad.library.snapshot");
+      expect(snapshotCalls).toHaveLength(1);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Agent and model settings" }));
+    expect(screen.queryByText("Loading installed agents…")).toBeNull();
   });
 
   it("loads the native Method library once from the Agent workbench", async () => {
@@ -1963,13 +2920,13 @@ describe("Sapphirus desktop workbench", () => {
     const trigger = await screen.findByRole("button", { name: "Skills and agents" });
     await user.click(trigger);
     expect(await screen.findByRole("heading", { name: "Skills and agents" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Reviewed agents" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Installed skills" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Available actions" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Agents" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Source actions" })).toBeTruthy();
     expect(screen.getByText("Create Architecture")).toBeTruthy();
     expect(screen.getByText("Winston")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Suggested next step" })).toBeTruthy();
-    expect(screen.getByText(/No active governed session/i)).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Suggested next step" })).toBeNull();
+    expect(screen.queryByText(/No active governed session/i)).toBeNull();
 
     const bmadCalls = invoke.mock.calls.filter(([command, args]) => {
       if (command !== "host_dispatch") return false;
@@ -1994,7 +2951,7 @@ describe("Sapphirus desktop workbench", () => {
     await enterFirstTask();
     await screen.findAllByText("Browser preview");
     expect(screen.queryByRole("button", { name: "Skills and agents" })).toBeNull();
-    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", true);
+    expect(screen.getByLabelText("Describe a task")).toHaveProperty("disabled", false);
     browser.unmount();
 
     const runtime = await recoveryRuntime();
@@ -2057,12 +3014,10 @@ describe("Sapphirus desktop workbench", () => {
     );
     await enterFirstTask();
 
-    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     await waitFor(() => {
       expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap")).toHaveLength(2);
-      expect(screen.queryByRole("heading", { name: "Skills and agents" })).toBeNull();
     });
-    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
 
     const snapshotCalls = invoke.mock.calls.filter(([command, args]) => command === "host_dispatch"
@@ -2094,7 +3049,7 @@ describe("Sapphirus desktop workbench", () => {
     });
     expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
     expect(screen.queryByText("Read-only recovery")).toBeNull();
-    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
   });
 
   it("ignores a stale projection poll that completes after renderer rebind", async () => {
@@ -2114,12 +3069,10 @@ describe("Sapphirus desktop workbench", () => {
     await waitFor(() => {
       expect(invoke.mock.calls.some(([command]) => command === "host_projection_events")).toBe(true);
     });
-    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     await waitFor(() => {
       expect(invoke.mock.calls.filter(([command]) => command === "host_bootstrap")).toHaveLength(2);
-      expect(screen.queryByRole("heading", { name: "Skills and agents" })).toBeNull();
     });
-    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(await screen.findByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByText("Create Architecture")).toBeTruthy();
 
     await act(async () => {
@@ -2150,11 +3103,10 @@ describe("Sapphirus desktop workbench", () => {
   });
 
   it("has no automated accessibility violations in the populated Files drawer", async () => {
-    const user = userEvent.setup();
     const { container } = render(<App />);
     await enterFirstTask();
     await screen.findAllByText("Browser preview");
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     await screen.findByRole("button", { name: /README\.md/i });
     const results = await axe.run(container, {
       rules: {

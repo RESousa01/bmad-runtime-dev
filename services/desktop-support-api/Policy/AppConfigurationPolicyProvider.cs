@@ -150,7 +150,8 @@ public sealed class AppConfigurationPolicyProvider(
         }
 
         string[] allowedRegions = SplitList(fields["allowedRegions"]);
-        string[] approvedDeployments = SplitList(fields["approvedModelDeployments"]);
+        string[] approvedDeployments = SplitModelDeploymentList(
+            fields["approvedModelDeployments"]);
         if (!ContractIds.Is(fields["policyId"], "policy")
             || !long.TryParse(fields["policyVersion"], out long policyVersion)
             || policyVersion < 1
@@ -163,7 +164,6 @@ public sealed class AppConfigurationPolicyProvider(
             || maximumContextItems is < 1 or > PolicyMaximumContextItems
             || allowedRegions.Length == 0
             || allowedRegions.Any(static region => region.Length is < 1 or > 64)
-            || approvedDeployments.Length == 0
             || approvedDeployments.Any(static deployment =>
                 deployment.Length is < 1 or > 128)
             || fields["retentionMode"] != "transient_no_store")
@@ -186,4 +186,9 @@ public sealed class AppConfigurationPolicyProvider(
 
     private static string[] SplitList(string value) =>
         value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string[] SplitModelDeploymentList(string value) =>
+        value.Length == 0
+            ? []
+            : value.Split(',', StringSplitOptions.TrimEntries);
 }

@@ -36,6 +36,14 @@ test("reviewed catalog and update blocking remain executable guard invariants", 
   assert.match(guard, /recovery_required[\s\S]*restoring[\s\S]*manual_review[\s\S]*update/u);
 });
 
+test("the renderer boundary scan includes the active Forge source", async () => {
+  const guard = await source("tools", "check-boundaries.mjs");
+  assert.match(
+    guard,
+    /rendererRoots[\s\S]*join\(root, "apps", "desktop-ui", "src"\)/u,
+  );
+});
+
 const immutableActionReference = /^[^@\s]+@[0-9a-f]{40}$/u;
 
 test("the immutable-reference pattern rejects every mutable action form", () => {

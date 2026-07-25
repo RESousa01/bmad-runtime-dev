@@ -39,6 +39,8 @@ export const desktopHostCommands = [
   "workspace.revoke",
   "workspace.list_entries",
   "workspace.read_text",
+  "workspace.git_status",
+  "workspace.git_diff",
   "workspace.search",
   "bmad.scan",
   "bmad.library.snapshot",
@@ -46,6 +48,10 @@ export const desktopHostCommands = [
   bmadModelCommands.authStatus,
   bmadModelCommands.authSignIn,
   bmadModelCommands.authSignOut,
+  bmadModelCommands.setSelection,
+  "chat.send",
+  "chat.history",
+  "bmad.workflow.state",
   bmadModelCommands.prepare,
   bmadModelCommands.approve,
   bmadModelCommands.cancel,
@@ -72,6 +78,7 @@ export const desktopHostCommands = [
   "app.offboarding.inspect",
   "app.offboarding.erase",
   "workspace.pick_files",
+  "workspace.pick_folder",
 ] as const;
 
 export type DesktopHostCommand = (typeof desktopHostCommands)[number];
@@ -102,11 +109,86 @@ export interface AboutProjection {
   updateInstallAvailable: boolean;
 }
 
+/// One transcript message. Chat is the app's default lane; BMAD is an
+/// optional overlay on it, so nothing here references a BMAD concept.
+export interface ChatMessage {
+  role: "user" | "assistant";
+  text: string;
+  createdAt: number;
+}
+
+/// One completed exchange.
+export interface ChatTurnProjection {
+  sessionId: string;
+  /// The BMAD agent whose sealed persona is bound to this conversation, or
+  /// `null` for an ordinary assistant conversation.
+  agentCode: string | null;
+  userMessage: ChatMessage;
+  assistantMessage: ChatMessage;
+}
+
+export interface ChatHistoryProjection {
+  sessionId: string;
+  agentCode: string | null;
+  messages: ChatMessage[];
+}
+
+/// One step of the sealed BMAD method graph, with the state the host computed
+/// for this workspace. Computed from config plus governed reads — no model
+/// call is involved, so nothing here is a guess.
+export interface BmadWorkflowStepProjection {
+  key: string;
+  displayName: string;
+  menuCode: string;
+  phaseCode: string;
+  required: boolean;
+  completed: boolean;
+  available: boolean;
+  /// The artifact that evidenced completion; `null` exactly when incomplete.
+  evidencePath: string | null;
+}
+
+export interface BmadWorkflowStateProjection {
+  schemaVersion: "sapphirus.bmad-workflow-state.v1";
+  /// Whether a `_bmad` install was found at all.
+  methodInstalled: boolean;
+  phaseCode: string;
+  phaseTitle: string;
+  steps: BmadWorkflowStepProjection[];
+  nextRequired: string | null;
+  /// Config variables a step needs but the resolved config does not define.
+  unresolvedLocations: string[];
+}
+
+/// One bounded document artifact as the host serializes it. Used for the
+/// distilled architecture spine, which arrives inline rather than as a stored
+/// run result.
+export interface CapabilityDocumentArtifact {
+  title: string;
+  sections: readonly { readonly heading: string; readonly body: string }[];
+  openQuestions: readonly string[];
+  mermaidText: string | null;
+}
+
+/// Progression state for the one capability the host runs as an ordered
+/// state machine. Absent on every other capability, which answers one
+/// reviewed request and terminates.
+export interface ArchitectureProgressProjection {
+  stepCode: string;
+  stepTitle: string;
+  stepNumber: number;
+  stepCount: number;
+  finalized: boolean;
+  /// Present exactly when `finalized` is true.
+  spine: CapabilityDocumentArtifact | null;
+}
+
 export interface CapabilityReviewProjection {
   capabilityId: string;
   runId: string;
   manifestHash: string;
   expiresAt: number;
+  architecture: ArchitectureProgressProjection | null;
 }
 
 export interface CapabilityApprovedProjection {
@@ -126,6 +208,7 @@ export interface CapabilityCompletedProjection {
   capabilityId: string;
   runId: string;
   resultKind: string;
+  architecture: ArchitectureProgressProjection | null;
 }
 
 export interface CapabilityRunLatestProjection {
@@ -319,6 +402,44 @@ export interface WorkspaceTextProjection {
   byteCount: number;
   truncated: boolean;
 }
+
+export type GitFileState =
+  | "modified"
+  | "added"
+  | "deleted"
+  | "untracked"
+  | "renamed";
+
+export type GitComparison =
+  | "head_to_worktree"
+  | "head_to_index"
+  | "index_to_worktree";
+
+export interface GitStatusEntryProjection {
+  relativePath: string;
+  indexState: GitFileState | null;
+  worktreeState: GitFileState | null;
+}
+
+export interface GitStatusProjection {
+  branch: string | null;
+  entries: GitStatusEntryProjection[];
+  truncated: boolean;
+}
+
+export interface GitFileComparisonProjection {
+  relativePath: string;
+  comparison: GitComparison;
+  beforeContent: string | null;
+  afterContent: string | null;
+  truncated: boolean;
+}
+
+export const gitReviewLimits = {
+  statusEntries: 500,
+  diffBytesPerSide: 64 * 1024,
+  branchCharacters: 512,
+} as const;
 
 export interface WorkspaceSearchMatch {
   relativePath: string;
@@ -559,6 +680,8 @@ export type RendererDispatchCommand =
   | "workspace.revoke"
   | "workspace.list_entries"
   | "workspace.read_text"
+  | "workspace.git_status"
+  | "workspace.git_diff"
   | "workspace.search"
   | "bmad.scan"
   | "bmad.library.snapshot"
@@ -566,6 +689,10 @@ export type RendererDispatchCommand =
   | "model.auth.status"
   | "model.auth.sign_in"
   | "model.auth.sign_out"
+  | "model.selection.set"
+  | "chat.send"
+  | "chat.history"
+  | "bmad.workflow.state"
   | "bmad.help.prepare"
   | "bmad.help.approve"
   | "bmad.help.cancel"
@@ -591,7 +718,8 @@ export type RendererDispatchCommand =
   | "app.about"
   | "app.offboarding.inspect"
   | "app.offboarding.erase"
-  | "workspace.pick_files";
+  | "workspace.pick_files"
+  | "workspace.pick_folder";
 
 export interface CommandEnvelope<
   TCommand extends RendererDispatchCommand,

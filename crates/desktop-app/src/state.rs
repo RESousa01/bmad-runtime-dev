@@ -9,7 +9,8 @@ use base64::Engine as _;
 use desktop_ipc::{deserialize_strict, AdmissionPolicy, RequestGate};
 use desktop_runtime::{
     sha256_bytes, ContractId, DesktopLocalIdentity, LocalError, LocalErrorCode, MethodSession,
-    ProjectionEvent, ProjectionEventKind, ProjectionSnapshot, UnixMillis,
+    ModelProviderCredential, ModelProviderId, ProjectionEvent, ProjectionEventKind,
+    ProjectionSnapshot, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -106,10 +107,32 @@ pub(crate) struct HostState {
     pending_recoveries: Mutex<crate::recovery::PendingRecoveries>,
     sequence: AtomicU64,
     model_auth_epoch: AtomicU64,
+    model_selection: RwLock<ModelSelectionState>,
     events: Mutex<VecDeque<ProjectionEvent>>,
     pub(crate) bmad_model: Mutex<BmadHelpCoordinator>,
     pub(crate) bmad_capabilities:
         Mutex<crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator>,
+    /// The ordered architecture progression that rides the generic capability
+    /// lane. Locked *after* `bmad_capabilities` is released, never across it.
+    pub(crate) bmad_architecture: Mutex<crate::bmad_architecture::BmadArchitectureCoordinator>,
+    /// The ordinary chat lane. Independent of every BMAD coordinator: a
+    /// conversation needs no BMAD concept, and holds no other lock.
+    pub(crate) chat: Mutex<crate::chat::ChatCoordinator>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ModelSelectionState {
+    pub provider_id: ModelProviderId,
+    pub model_id: String,
+}
+
+impl Default for ModelSelectionState {
+    fn default() -> Self {
+        Self {
+            provider_id: ModelProviderId::OpenAi,
+            model_id: crate::bmad_model::config::DEFAULT_OPENAI_MODEL.to_owned(),
+        }
+    }
 }
 
 /// Proof that the local authority remained in Ready mode while a D1 operation
@@ -198,6 +221,23 @@ impl HostState {
             return Ok(Self::recovery(installation_id, Some(store)));
         };
 
+        let model_selection = ModelSelectionState::default();
+        #[cfg(feature = "deterministic-help")]
+        let bmad_model = BmadHelpCoordinator::new();
+        #[cfg(not(feature = "deterministic-help"))]
+        let bmad_model = {
+            let mut coordinator = BmadHelpCoordinator::new();
+            let composition = crate::bmad_model::config::frontend_model_composition(
+                model_selection.provider_id,
+                &model_selection.model_id,
+            )
+            .map_err(|_| recovery_error())?;
+            coordinator
+                .configure_frontend_selection(composition, now())
+                .map_err(|_| recovery_error())?;
+            coordinator
+        };
+
         Ok(Self {
             workspace,
             gate: RequestGate::new(AdmissionPolicy::default()),
@@ -213,11 +253,16 @@ impl HostState {
             pending_recoveries: Mutex::new(crate::recovery::PendingRecoveries::default()),
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
+            model_selection: RwLock::new(model_selection),
             events: Mutex::new(VecDeque::new()),
-            bmad_model: Mutex::new(BmadHelpCoordinator::new()),
+            bmad_model: Mutex::new(bmad_model),
             bmad_capabilities: Mutex::new(
                 crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator::new(),
             ),
+            bmad_architecture: Mutex::new(
+                crate::bmad_architecture::BmadArchitectureCoordinator::new(),
+            ),
+            chat: Mutex::new(crate::chat::ChatCoordinator::new()),
         })
     }
 
@@ -240,11 +285,16 @@ impl HostState {
             pending_recoveries: Mutex::new(crate::recovery::PendingRecoveries::default()),
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
+            model_selection: RwLock::new(ModelSelectionState::default()),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
             bmad_capabilities: Mutex::new(
                 crate::bmad_model::capability_coordinator::BmadCapabilityCoordinator::new(),
             ),
+            bmad_architecture: Mutex::new(
+                crate::bmad_architecture::BmadArchitectureCoordinator::new(),
+            ),
+            chat: Mutex::new(crate::chat::ChatCoordinator::new()),
         }
     }
 
@@ -258,6 +308,157 @@ impl HostState {
         self.model_auth_epoch.load(Ordering::SeqCst)
     }
 
+    #[must_use]
+    pub(crate) fn model_selection(&self) -> ModelSelectionState {
+        self.model_selection.read().clone()
+    }
+
+    pub(crate) fn model_configuration(
+        &self,
+    ) -> Result<crate::bmad_model::config::HelpModelConfiguration, LocalError> {
+        self.bmad_model
+            .lock()
+            .model_configuration()
+            .map_err(|_| recovery_error())
+    }
+
+    #[cfg(feature = "direct-model-providers")]
+    #[must_use]
+    pub(crate) fn direct_provider_config(&self) -> Option<desktop_cloud::DirectProviderConfig> {
+        self.bmad_model.lock().direct_provider_config()
+    }
+
+    pub(crate) fn set_model_selection(
+        &self,
+        provider_id: ModelProviderId,
+        model_id: String,
+        changed_at: UnixMillis,
+    ) -> Result<u64, LocalError> {
+        #[cfg(feature = "direct-model-providers")]
+        let connected = self.bmad_model.lock().direct_provider_config();
+        #[cfg(feature = "direct-model-providers")]
+        let composition = if let Some(config) = connected.filter(|config| {
+            matches!(
+                (provider_id, config.kind()),
+                (
+                    ModelProviderId::OpenAi,
+                    desktop_cloud::DirectProviderKind::OpenAi
+                ) | (
+                    ModelProviderId::Azure,
+                    desktop_cloud::DirectProviderKind::AzureOpenAi
+                )
+            )
+        }) {
+            config
+                .with_model(&model_id)
+                .map_err(|_| invalid_model_selection())
+                .and_then(|config| {
+                    crate::bmad_model::config::direct_frontend_model_composition(config)
+                        .map_err(|_| invalid_model_selection())
+                })?
+        } else {
+            crate::bmad_model::config::frontend_model_composition(provider_id, &model_id)
+                .map_err(|_| invalid_model_selection())?
+        };
+        #[cfg(not(feature = "direct-model-providers"))]
+        let composition =
+            crate::bmad_model::config::frontend_model_composition(provider_id, &model_id)
+                .map_err(|_| invalid_model_selection())?;
+        let mut bmad_model = self.bmad_model.lock();
+        bmad_model
+            .configure_frontend_selection(composition, changed_at)
+            .map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::TemporarilyUnavailable,
+                    "The selected model provider could not be initialized.",
+                    true,
+                )
+            })?;
+        self.bmad_capabilities.lock().invalidate();
+        self.bmad_architecture.lock().invalidate();
+        self.chat.lock().invalidate();
+        *self.model_selection.write() = ModelSelectionState {
+            provider_id,
+            model_id,
+        };
+        self.advance_model_auth_epoch()
+    }
+
+    pub(crate) fn sign_in_model(
+        &self,
+        provider_id: ModelProviderId,
+        model_id: String,
+        credential: &ModelProviderCredential,
+        endpoint: Option<&str>,
+        region: Option<&str>,
+        changed_at: UnixMillis,
+    ) -> Result<u64, LocalError> {
+        #[cfg(feature = "direct-model-providers")]
+        let composition = crate::bmad_model::config::frontend_model_composition_with_credential(
+            provider_id,
+            &model_id,
+            credential.expose().to_owned(),
+            endpoint,
+            region,
+        )
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::InvalidRequest,
+                "The provider connection details are invalid.",
+                true,
+            )
+        })?;
+        #[cfg(not(feature = "direct-model-providers"))]
+        {
+            let _ = (
+                provider_id,
+                model_id,
+                credential,
+                endpoint,
+                region,
+                changed_at,
+            );
+            return Err(LocalError::new(
+                LocalErrorCode::FeatureDisabled,
+                "Direct model connections are not enabled in this build.",
+                false,
+            ));
+        }
+
+        #[cfg(feature = "direct-model-providers")]
+        {
+            self.bmad_model
+                .lock()
+                .configure_frontend_selection(composition, changed_at)
+                .map_err(|_| {
+                    LocalError::new(
+                        LocalErrorCode::TemporarilyUnavailable,
+                        "The provider connection could not be initialized.",
+                        true,
+                    )
+                })?;
+            self.bmad_capabilities.lock().invalidate();
+            self.bmad_architecture.lock().invalidate();
+            self.chat.lock().invalidate();
+            *self.model_selection.write() = ModelSelectionState {
+                provider_id,
+                model_id,
+            };
+            self.advance_model_auth_epoch()
+        }
+    }
+
+    fn advance_model_auth_epoch(&self) -> Result<u64, LocalError> {
+        let current = self.model_auth_epoch.load(Ordering::SeqCst);
+        if current >= MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH {
+            return Err(recovery_error());
+        }
+        let next = current.checked_add(1).ok_or_else(recovery_error)?;
+        self.model_auth_epoch.store(next, Ordering::SeqCst);
+        self.workspace.advance_all_context_read_epochs();
+        Ok(next)
+    }
+
     /// Invalidates every pending Help decision and advances the model identity
     /// epoch without contacting an identity broker.
     ///
@@ -265,19 +466,22 @@ impl HostState {
     ///
     /// Returns recovery-required if the bounded epoch is exhausted.
     pub fn sign_out_model(&self) -> Result<u64, LocalError> {
-        let mut bmad_model = self.bmad_model.lock();
-        bmad_model.invalidate(now());
+        let selection = self.model_selection();
+        let composition = crate::bmad_model::config::offline_frontend_model_composition(
+            selection.provider_id,
+            &selection.model_id,
+        )
+        .map_err(|_| recovery_error())?;
+        self.bmad_model
+            .lock()
+            .configure_frontend_selection(composition, now())
+            .map_err(|_| recovery_error())?;
         self.bmad_capabilities.lock().invalidate();
-        let current = self.model_auth_epoch.load(Ordering::SeqCst);
-        if current >= MAX_RENDERER_SAFE_MODEL_AUTH_EPOCH {
-            return Err(recovery_error());
-        }
-        let next = current.checked_add(1).ok_or_else(recovery_error)?;
-        self.model_auth_epoch.store(next, Ordering::SeqCst);
+        self.bmad_architecture.lock().invalidate();
+        self.chat.lock().invalidate();
         // ADR-0002: sign-out withdraws D2 context-read authority everywhere
         // without touching D3 proposals or local work.
-        self.workspace.advance_all_context_read_epochs();
-        Ok(next)
+        self.advance_model_auth_epoch()
     }
 
     /// Executes the ADR-0004 offboarding erase: signs out model authority
@@ -475,6 +679,8 @@ impl HostState {
         let mut bmad_model = self.bmad_model.lock();
         bmad_model.invalidate(now());
         self.bmad_capabilities.lock().invalidate();
+        self.bmad_architecture.lock().invalidate();
+        self.chat.lock().invalidate();
         self.invalidate_pending_recoveries();
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {
@@ -702,6 +908,14 @@ impl HostState {
     }
 }
 
+fn invalid_model_selection() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::InvalidRequest,
+        "Choose a valid model identifier and verify the native provider configuration.",
+        true,
+    )
+}
+
 fn load_workspace_catalog(store: &LocalStore) -> Option<(WorkspaceBroker, CatalogState)> {
     let Ok(aggregate) = store.load_aggregate("workspace_catalog", "local") else {
         return None;
@@ -919,6 +1133,42 @@ mod tests {
         assert_eq!(state.model_auth_epoch(), 2);
         assert_eq!(state.sign_out_model().map_err(map_local_error)?, 3);
         assert_eq!(state.model_auth_epoch(), 3);
+        Ok(())
+    }
+
+    #[cfg(feature = "direct-model-providers")]
+    #[test]
+    fn runtime_provider_connection_is_ready_until_sign_out_wipes_the_transport(
+    ) -> Result<(), String> {
+        let state = ready_state()?;
+        let credential: ModelProviderCredential =
+            serde_json::from_value(serde_json::json!(
+                ["sk", "test", "runtime", "only"].join("-")
+            ))
+            .map_err(|error| error.to_string())?;
+
+        state
+            .sign_in_model(
+                ModelProviderId::OpenAi,
+                "gpt-5-mini".to_owned(),
+                &credential,
+                None,
+                None,
+                UnixMillis(1_000),
+            )
+            .map_err(map_local_error)?;
+        assert!(state.direct_provider_config().is_some());
+        assert_eq!(
+            state.model_configuration().map_err(map_local_error)?.mode,
+            crate::bmad_model::config::HelpModelMode::DirectProviderDevelopment
+        );
+
+        state.sign_out_model().map_err(map_local_error)?;
+        assert!(state.direct_provider_config().is_none());
+        assert_eq!(
+            state.model_configuration().map_err(map_local_error)?.mode,
+            crate::bmad_model::config::HelpModelMode::Offline
+        );
         Ok(())
     }
 

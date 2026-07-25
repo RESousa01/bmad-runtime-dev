@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadCatalog, BmadCatalogAvailability,
@@ -179,8 +179,18 @@ pub struct BmadAgentMenuProjection {
     pub description: String,
     pub target_kind: BmadAgentMenuTargetProjection,
     pub display_label: String,
+    pub capability_id: Option<String>,
     pub availability: BmadProjectionAvailability,
     pub availability_reason: Option<BmadProjectionBlockerCode>,
+}
+
+/// One product-owned binding from an exact reviewed Method menu path to the
+/// generic capability identity that implements it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct BmadRuntimeMenuCapabilityBinding<'a> {
+    pub agent_code: &'a str,
+    pub menu_code: &'a str,
+    pub capability_id: &'a str,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -289,6 +299,39 @@ pub fn project_bmad_library_with_activations(
     activations: &[(&str, &str)],
     builder_packages: Vec<BmadBuilderPackageProjection>,
 ) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
+    project_bmad_library_with_runtime_menu_bindings(
+        package,
+        catalog,
+        roster,
+        scope,
+        cursor,
+        activations,
+        &[],
+        builder_packages,
+    )
+}
+
+/// Produces the Method-library projection with exact product-owned skill and
+/// reviewed runtime menu-capability overlays. A product-owned exact
+/// `(agent, menu, capability)` binding can project either sealed source target
+/// kind as an available skill target without mutating the sealed roster.
+///
+/// # Errors
+///
+/// Returns [`BmadProjectionError::Unavailable`] for duplicate, unknown, or
+/// malformed runtime menu-capability bindings in addition to the ordinary
+/// projection failures.
+#[allow(clippy::too_many_arguments)]
+pub fn project_bmad_library_with_runtime_menu_bindings(
+    package: &BmadLoadedPackage,
+    catalog: &BmadCatalog,
+    roster: &BmadAgentRoster,
+    scope: BmadLibraryProjectionScope,
+    cursor: Option<&str>,
+    activations: &[(&str, &str)],
+    runtime_menu_bindings: &[BmadRuntimeMenuCapabilityBinding<'_>],
+    builder_packages: Vec<BmadBuilderPackageProjection>,
+) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
     if cursor.is_some() {
         return Err(BmadProjectionError::Gap);
     }
@@ -308,6 +351,7 @@ pub fn project_bmad_library_with_activations(
         return Err(BmadProjectionError::Unavailable);
     }
     let activated = validated_activations(catalog, activations)?;
+    let runtime_menu_bindings = validated_runtime_menu_bindings(roster, runtime_menu_bindings)?;
     let projection = BmadLibrarySnapshotProjection {
         schema_version: "bmad-library-snapshot.v2".to_owned(),
         scope,
@@ -340,7 +384,7 @@ pub fn project_bmad_library_with_activations(
         method_agents: roster
             .agents
             .iter()
-            .map(project_agent)
+            .map(|agent| project_agent(agent, &runtime_menu_bindings))
             .collect::<Result<_, _>>()?,
         builder_packages,
         next_cursor: None,
@@ -353,6 +397,57 @@ pub fn project_bmad_library_with_activations(
         return Err(BmadProjectionError::Unavailable);
     }
     Ok(projection)
+}
+
+fn validated_runtime_menu_bindings<'a>(
+    roster: &BmadAgentRoster,
+    bindings: &[BmadRuntimeMenuCapabilityBinding<'a>],
+) -> Result<BTreeMap<(&'a str, &'a str), &'a str>, BmadProjectionError> {
+    let mut validated = BTreeMap::new();
+    for binding in bindings {
+        let Some(menu) = roster
+            .agents
+            .iter()
+            .find(|agent| agent.agent_code == binding.agent_code)
+            .and_then(|agent| {
+                agent
+                    .menus
+                    .iter()
+                    .find(|menu| menu.code == binding.menu_code)
+            })
+        else {
+            return Err(BmadProjectionError::Unavailable);
+        };
+        let Some((capability_module, capability_name)) = binding.capability_id.split_once(':')
+        else {
+            return Err(BmadProjectionError::Unavailable);
+        };
+        if capability_name.contains(':')
+            || bounded_identifier(capability_module).is_err()
+            || bounded_identifier(capability_name).is_err()
+        {
+            return Err(BmadProjectionError::Unavailable);
+        }
+        if let (Some(target_module), Some(target_skill)) = (
+            menu.target_module_code.as_deref(),
+            menu.target_skill_name.as_deref(),
+        ) {
+            let expected_capability = format!("{target_module}:{target_skill}");
+            if binding.capability_id != expected_capability {
+                return Err(BmadProjectionError::Unavailable);
+            }
+        }
+        if validated
+            .insert(
+                (binding.agent_code, binding.menu_code),
+                binding.capability_id,
+            )
+            .is_some()
+        {
+            return Err(BmadProjectionError::Unavailable);
+        }
+    }
+    Ok(validated)
 }
 
 fn validated_activations<'a>(
@@ -449,33 +544,44 @@ const fn activated_availability(
     }
 }
 
-fn project_agent(agent: &BmadAgentRecord) -> Result<BmadAgentProjection, BmadProjectionError> {
+fn project_agent(
+    agent: &BmadAgentRecord,
+    runtime_menu_bindings: &BTreeMap<(&str, &str), &str>,
+) -> Result<BmadAgentProjection, BmadProjectionError> {
     if agent.menus.len() > MAX_MENUS_PER_AGENT {
         return Err(BmadProjectionError::Unavailable);
     }
+    let menu_availability = agent
+        .menus
+        .iter()
+        .map(|menu| {
+            let activated = runtime_menu_bindings
+                .contains_key(&(agent.agent_code.as_str(), menu.code.as_str()));
+            (runtime_menu_availability(menu, activated), activated)
+        })
+        .collect::<Vec<_>>();
     let menus = agent
         .menus
         .iter()
-        .map(project_agent_menu)
+        .zip(menu_availability.iter().copied())
+        .map(|(menu, (availability, activated))| {
+            project_agent_menu(
+                menu,
+                availability,
+                activated,
+                runtime_menu_bindings
+                    .get(&(agent.agent_code.as_str(), menu.code.as_str()))
+                    .copied(),
+            )
+        })
         .collect::<Result<Vec<_>, _>>()?;
-    let blockers = agent
-        .menus
+    let blockers = menu_availability
         .iter()
-        .filter_map(|menu| blocker_code(menu.availability))
+        .filter_map(|(availability, _)| blocker_code(*availability))
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let availability = if agent.available {
-        BmadProjectionAvailability::Available
-    } else if agent
-        .menus
-        .iter()
-        .any(|menu| menu.availability == BmadCatalogAvailability::CapabilityDisabled)
-    {
-        BmadProjectionAvailability::CapabilityDisabled
-    } else {
-        BmadProjectionAvailability::DependencyUnavailable
-    };
+    let availability = project_agent_availability(&menu_availability);
     Ok(BmadAgentProjection {
         module_code: bounded_identifier(&agent.module_code)?,
         agent_code: bounded_identifier(&agent.agent_code)?,
@@ -490,19 +596,61 @@ fn project_agent(agent: &BmadAgentRecord) -> Result<BmadAgentProjection, BmadPro
     })
 }
 
+fn runtime_menu_availability(
+    menu: &BmadAgentMenuRecord,
+    activated: bool,
+) -> BmadCatalogAvailability {
+    if activated {
+        BmadCatalogAvailability::Available
+    } else {
+        menu.availability
+    }
+}
+
+fn project_agent_availability(
+    menu_availability: &[(BmadCatalogAvailability, bool)],
+) -> BmadProjectionAvailability {
+    for candidate in [
+        BmadCatalogAvailability::Available,
+        BmadCatalogAvailability::CapabilityDisabled,
+        BmadCatalogAvailability::DependencyUnavailable,
+        BmadCatalogAvailability::NetworkUnavailable,
+        BmadCatalogAvailability::OrphanSkill,
+        BmadCatalogAvailability::SourcePromptUnavailable,
+    ] {
+        if menu_availability
+            .iter()
+            .any(|(availability, _)| *availability == candidate)
+        {
+            return project_availability(candidate);
+        }
+    }
+    BmadProjectionAvailability::DependencyUnavailable
+}
+
 fn project_agent_menu(
     menu: &BmadAgentMenuRecord,
+    availability: BmadCatalogAvailability,
+    activated: bool,
+    capability_id: Option<&str>,
 ) -> Result<BmadAgentMenuProjection, BmadProjectionError> {
     Ok(BmadAgentMenuProjection {
         code: bounded_identifier(&menu.code)?,
         description: bounded_text(&menu.description, MAX_DESCRIPTION_BYTES)?,
-        target_kind: match menu.target_kind {
-            BmadMenuTargetKind::SkillTarget => BmadAgentMenuTargetProjection::SkillTarget,
-            BmadMenuTargetKind::PromptReference => BmadAgentMenuTargetProjection::PromptReference,
+        target_kind: if activated {
+            BmadAgentMenuTargetProjection::SkillTarget
+        } else {
+            match menu.target_kind {
+                BmadMenuTargetKind::SkillTarget => BmadAgentMenuTargetProjection::SkillTarget,
+                BmadMenuTargetKind::PromptReference => {
+                    BmadAgentMenuTargetProjection::PromptReference
+                }
+            }
         },
         display_label: bounded_text(&menu.display_label, MAX_IDENTIFIER_BYTES)?,
-        availability: project_availability(menu.availability),
-        availability_reason: blocker_code(menu.availability),
+        capability_id: capability_id.map(str::to_owned),
+        availability: project_availability(availability),
+        availability_reason: blocker_code(availability),
     })
 }
 

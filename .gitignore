@@ -9,6 +9,8 @@ coverage/
 storybook-static/
 playwright-report/
 test-results/
+.playwright-cli/
+output/
 target/
 *.pdb
 *.ilk
@@ -34,3 +36,5 @@ tests/conformance/dotnet/obj/
 
 # Local Claude Code harness state
 .claude/
+# Pinned upstream source checkout used by the Forge renderer migration.
+/library/opencode/

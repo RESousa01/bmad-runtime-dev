@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-#[cfg(feature = "deterministic-help")]
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
 use desktop_cloud::verify_dispatched_model_response;
 use desktop_cloud::{AuthorizedModelRequest, CloudError, ModelReceiptStatus};
 use desktop_egress::{
@@ -26,18 +26,27 @@ use desktop_workspace::WorkspaceScopeAuthorityGuard;
 use serde::Serialize;
 
 use super::bridge::{bridge_method_context_decision, BmadHelpDecisionBridgeExpectation};
-use super::config::{current_help_model_configuration, HelpModelMode};
+use super::config::{
+    current_help_model_configuration, FrontendModelComposition, HelpModelConfiguration,
+    HelpModelMode,
+};
 use super::context::{
     derive_deterministic_policy, derived_contract_id, prepare_help_context, HelpContextInput,
+    WorkspaceHelpContextItem,
 };
 use super::transport::BmadHelpTransport;
 #[cfg(feature = "deterministic-help")]
 use super::transport::DeterministicHelpTransport;
-#[cfg(not(feature = "deterministic-help"))]
+#[cfg(feature = "direct-model-providers")]
+use super::transport::DirectModelTransport;
+#[cfg(any(
+    feature = "direct-model-providers",
+    not(feature = "deterministic-help")
+))]
 use super::transport::OfflineHelpTransport;
 use super::verification::BmadHelpProposalValidator;
-#[cfg(feature = "deterministic-help")]
-use super::verification::{deterministic_receipt_verifier, DeterministicReceiptVerifier};
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+use super::verification::{development_receipt_verifier, DevelopmentReceiptVerifier};
 use crate::bmad_foundation::BmadLoadedFoundation;
 use crate::state::{HostState, ReadyWorkspaceCommitGuard, RendererSessionGuard};
 
@@ -49,6 +58,7 @@ pub(crate) struct PrepareBmadHelpReviewInput<'a> {
     pub workspace_id: ContractId,
     pub workspace_grant_epoch: u64,
     pub created_at: UnixMillis,
+    pub workspace_context: Vec<WorkspaceHelpContextItem>,
 }
 
 pub(crate) struct ApproveBmadHelpReviewInput<'a> {
@@ -251,8 +261,28 @@ pub(crate) struct BmadHelpCoordinator {
     ledger: MemoryDecisionLedger,
     active: Option<ActiveBmadHelp>,
     transport: Box<dyn BmadHelpTransport>,
+    configuration_override: Option<HelpModelConfiguration>,
+    #[cfg(feature = "direct-model-providers")]
+    direct_provider_config: Option<desktop_cloud::DirectProviderConfig>,
+    #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+    receipt_verifier: Option<DevelopmentReceiptVerifier>,
+}
+
+#[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+fn development_transport() -> (
+    Box<dyn BmadHelpTransport>,
+    Option<DevelopmentReceiptVerifier>,
+) {
     #[cfg(feature = "deterministic-help")]
-    receipt_verifier: Option<DeterministicReceiptVerifier>,
+    {
+        (
+            Box::new(DeterministicHelpTransport),
+            development_receipt_verifier("deterministic-fake-no-trust").ok(),
+        )
+    }
+
+    #[cfg(not(feature = "deterministic-help"))]
+    (Box::new(OfflineHelpTransport), None)
 }
 
 impl fmt::Debug for BmadHelpCoordinator {
@@ -262,6 +292,20 @@ impl fmt::Debug for BmadHelpCoordinator {
             .field("ledger", &"<redacted>")
             .field("active", &self.active)
             .field("transport", &"<redacted>")
+            .field(
+                "configuration_override",
+                &self.configuration_override.is_some(),
+            )
+            .field("direct_provider_config", &{
+                #[cfg(feature = "direct-model-providers")]
+                {
+                    self.direct_provider_config.is_some()
+                }
+                #[cfg(not(feature = "direct-model-providers"))]
+                {
+                    false
+                }
+            })
             .field("receipt_verifier", &"<redacted>")
             .finish()
     }
@@ -270,16 +314,19 @@ impl fmt::Debug for BmadHelpCoordinator {
 impl BmadHelpCoordinator {
     #[must_use]
     pub fn new() -> Self {
-        #[cfg(feature = "deterministic-help")]
-        let transport: Box<dyn BmadHelpTransport> = Box::new(DeterministicHelpTransport);
-        #[cfg(not(feature = "deterministic-help"))]
+        #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+        let (transport, receipt_verifier) = development_transport();
+        #[cfg(not(any(feature = "deterministic-help", feature = "direct-model-providers")))]
         let transport: Box<dyn BmadHelpTransport> = Box::new(OfflineHelpTransport);
         Self {
             ledger: MemoryDecisionLedger::default(),
             active: None,
             transport,
-            #[cfg(feature = "deterministic-help")]
-            receipt_verifier: deterministic_receipt_verifier().ok(),
+            configuration_override: None,
+            #[cfg(feature = "direct-model-providers")]
+            direct_provider_config: None,
+            #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+            receipt_verifier,
         }
     }
 
@@ -289,8 +336,11 @@ impl BmadHelpCoordinator {
             ledger: MemoryDecisionLedger::default(),
             active: None,
             transport,
-            #[cfg(feature = "deterministic-help")]
-            receipt_verifier: deterministic_receipt_verifier().ok(),
+            configuration_override: None,
+            #[cfg(feature = "direct-model-providers")]
+            direct_provider_config: None,
+            #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
+            receipt_verifier: development_receipt_verifier("deterministic-fake-no-trust").ok(),
         }
     }
 
@@ -302,6 +352,46 @@ impl BmadHelpCoordinator {
             });
         }
         self.active = None;
+    }
+
+    pub(crate) fn configure_frontend_selection(
+        &mut self,
+        composition: FrontendModelComposition,
+        changed_at: UnixMillis,
+    ) -> Result<(), CloudError> {
+        self.invalidate(changed_at);
+        #[cfg(feature = "direct-model-providers")]
+        {
+            if let Some(config) = composition.direct_provider.as_ref() {
+                self.transport = Box::new(DirectModelTransport::new(config.clone())?);
+                self.receipt_verifier =
+                    development_receipt_verifier(desktop_cloud::DIRECT_PROVIDER_DEVELOPMENT_PROOF)
+                        .ok();
+            } else {
+                self.transport = Box::new(OfflineHelpTransport);
+                self.receipt_verifier = None;
+            }
+            self.direct_provider_config = composition.direct_provider;
+        }
+        #[cfg(not(feature = "direct-model-providers"))]
+        {
+            self.transport = Box::new(OfflineHelpTransport);
+        }
+        self.configuration_override = Some(composition.configuration);
+        Ok(())
+    }
+
+    #[cfg(feature = "direct-model-providers")]
+    pub(crate) fn direct_provider_config(&self) -> Option<desktop_cloud::DirectProviderConfig> {
+        self.direct_provider_config.clone()
+    }
+
+    pub(crate) fn model_configuration(
+        &self,
+    ) -> Result<HelpModelConfiguration, desktop_runtime::BmadKernelError> {
+        self.configuration_override
+            .clone()
+            .map_or_else(current_help_model_configuration, Ok)
     }
 
     #[must_use]
@@ -771,14 +861,14 @@ impl BmadHelpCoordinator {
                 .draft
                 .canonical_output_schema_hash,
         );
-        #[cfg(feature = "deterministic-help")]
+        #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
         let verified = match self.receipt_verifier.as_ref() {
             Some(verifier) => {
                 verify_dispatched_model_response(dispatched, raw_output, &validator, verifier)
             }
             None => Err(CloudError::ReceiptInvalid),
         };
-        #[cfg(not(feature = "deterministic-help"))]
+        #[cfg(not(any(feature = "deterministic-help", feature = "direct-model-providers")))]
         let verified: Result<desktop_cloud::VerifiedModelOutput, CloudError> = {
             drop((dispatched, raw_output, validator));
             Err(CloudError::Offline)
@@ -966,8 +1056,9 @@ impl BmadHelpCoordinator {
             return Err(BmadHelpCoordinatorError::Conflict);
         }
 
-        let configuration =
-            current_help_model_configuration().map_err(|_| BmadHelpCoordinatorError::Integrity)?;
+        let configuration = self
+            .model_configuration()
+            .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
         if configuration.mode == HelpModelMode::Offline {
             return Err(BmadHelpCoordinatorError::SupportPlaneOffline);
         }
@@ -1012,6 +1103,7 @@ impl BmadHelpCoordinator {
             project_ref: creation.scope.project_id.clone(),
             run_ref: creation.run_id.clone(),
             created_at: input.created_at,
+            workspace_context: &input.workspace_context,
         })
         .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
         let consent_disclosure_hash = canonical_hash(
@@ -1021,7 +1113,7 @@ impl BmadHelpCoordinator {
                 schema_version: "sapphirus.bmad-help-consent-disclosure.v1",
                 disclosure: CONSENT_DISCLOSURE,
                 manifest_hash: manifest.manifest_hash,
-                destination_label: configuration.destination_label,
+                destination_label: &configuration.destination_label,
             },
         )
         .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
@@ -1074,7 +1166,7 @@ impl BmadHelpCoordinator {
             manifest,
             invocation_binding,
             deterministic_fixture: policy.deterministic_fixture,
-            destination_label: configuration.destination_label.to_owned(),
+            destination_label: configuration.destination_label.clone(),
             consent_disclosure_hash,
         };
         let projection = review_projection(&prepared);

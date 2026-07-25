@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 FROM mcr.microsoft.com/dotnet/sdk:10.0.302-alpine3.23@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS build
 WORKDIR /src
-COPY Sapphirus.DesktopSupportApi.csproj ./
+COPY Sapphirus.DesktopSupportApi.csproj packages.lock.json ./
 RUN dotnet restore --locked-mode
 COPY . ./
 RUN dotnet publish --no-restore --configuration Release --output /out \

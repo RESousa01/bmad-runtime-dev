@@ -1,28 +1,35 @@
 import { Button } from "@sapphirus/ui";
 import {
-  Bot,
   Check,
   ChevronRight,
   Download,
   FolderKanban,
   Info,
+  KeyRound,
   LockKeyhole,
   Monitor,
   Moon,
   Palette,
+  PlugZap,
   SlidersHorizontal,
   Sparkles,
   Sun,
   Trash2,
+  Unplug,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type {
   AboutProjection,
   DensityPreference,
+  ModelAuthStatusProjection,
+  ModelProviderConnection,
+  ModelProviderId,
+  ModelSelection,
   RetentionManifestProjection,
   ThemePreference,
 } from "../../lib/hostClient";
+import { ProviderIcon } from "./ProviderIcon";
 
 export type SettingsSection =
   | "general"
@@ -78,6 +85,10 @@ export interface SettingsDialogProps {
   initialSection?: SettingsSection;
   modelAccessDetail: string;
   modelAccessLabel: string;
+  modelAuthStatus: ModelAuthStatusProjection | null;
+  modelSelection: ModelSelection;
+  modelSelectionBusy: boolean;
+  modelSelectionNotice: string | null;
   onClose: () => void;
   onDensityChange: (density: DensityPreference) => void;
   offboardingManifest: RetentionManifestProjection | null;
@@ -85,6 +96,9 @@ export interface SettingsDialogProps {
   offboardingStatus: OffboardingStatus;
   onEraseOffboarding: (confirm: string) => void;
   onManageWorkspaces: () => void;
+  onModelConnect: (connection: ModelProviderConnection) => Promise<void>;
+  onModelDisconnect: () => Promise<void>;
+  onModelSelectionChange: (selection: ModelSelection) => Promise<void>;
   onOpenSkillsAndAgents: () => void;
   onThemeChange: (theme: ThemePreference) => void;
   preferencesNotice: string | null;
@@ -104,7 +118,7 @@ const sections: Array<{
 }> = [
   { id: "general", label: "General", icon: SlidersHorizontal },
   { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "agent-model", label: "Agent & model", icon: Bot },
+  { id: "agent-model", label: "Providers", icon: PlugZap },
   { id: "workspaces", label: "Workspaces", icon: FolderKanban },
   { id: "skills-agents", label: "Skills & agents", icon: Sparkles },
   { id: "updates", label: "Updates", icon: Download },
@@ -150,9 +164,16 @@ export function SettingsDialog({
   initialSection = "general",
   modelAccessDetail,
   modelAccessLabel,
+  modelAuthStatus,
+  modelSelection,
+  modelSelectionBusy,
+  modelSelectionNotice,
   onClose,
   onDensityChange,
   onManageWorkspaces,
+  onModelConnect,
+  onModelDisconnect,
+  onModelSelectionChange,
   onOpenSkillsAndAgents,
   onThemeChange,
   preferencesNotice,
@@ -167,13 +188,34 @@ export function SettingsDialog({
   const panelRef = useRef<HTMLElement>(null);
   const [section, setSection] = useState<SettingsSection>(initialSection);
   const [eraseConfirmation, setEraseConfirmation] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<ModelProviderId>(
+    modelSelection.providerId,
+  );
+  const [modelDraft, setModelDraft] = useState(modelSelection.modelId);
+  const [apiKeyDraft, setApiKeyDraft] = useState("");
+  const [providerFormNotice, setProviderFormNotice] = useState<string | null>(null);
+  const [azureEndpointDraft, setAzureEndpointDraft] = useState("");
+  const [azureRegionDraft, setAzureRegionDraft] = useState("");
   const eraseArmed = eraseConfirmation === OFFBOARDING_ERASE_CONFIRMATION;
+  const modelIsValid = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u.test(modelDraft);
+  const azureEndpointIsValid = selectedProvider !== "azure"
+    || /^https:\/\/[A-Za-z0-9.-]+(?:\/openai\/v1\/?)?$/u.test(azureEndpointDraft);
+  const selectedProviderName = selectedProvider === "azure" ? "Azure OpenAI" : "OpenAI";
+  const selectedProviderConnected = modelAuthStatus?.status === "development_ready"
+    && modelAuthStatus.mode === "direct_provider_development"
+    && modelAuthStatus.providerId === selectedProvider;
+  const canConnect = modelAuthStatus?.signInAvailable === true;
 
   useEffect(() => {
     panelRef.current
       ?.querySelector<HTMLElement>("button:not([disabled])")
       ?.focus();
   }, []);
+
+  useEffect(() => {
+    setSelectedProvider(modelSelection.providerId);
+    setModelDraft(modelSelection.modelId);
+  }, [modelSelection.modelId, modelSelection.providerId]);
 
   return (
     <section
@@ -208,7 +250,7 @@ export function SettingsDialog({
             <section aria-labelledby="settings-general-title">
               <header className="settings-pane__header">
                 <h3 id="settings-general-title">General</h3>
-                <p>Desktop runtime, account, and local data behavior.</p>
+                <p>Desktop runtime and local data behavior.</p>
               </header>
               <div className="settings-list">
                 <Row
@@ -218,23 +260,23 @@ export function SettingsDialog({
                 />
                 <div className="settings-row">
                   <span>
-                    <strong>Account</strong>
-                    <small>Organization sign-in is not configured for this build.</small>
+                    <strong>Prototype mode</strong>
+                    <small>No account or organization sign-in is required.</small>
                   </span>
-                  <em>Local device</em>
+                  <em>Local only</em>
                 </div>
                 <Row
-                  detail="Exact context must be reviewed and approved first."
-                  label="Request policy"
-                  value="Review before send"
+                  detail="Only explicitly added files are sent."
+                  label="Attached files"
+                  value="Explicit only"
                 />
                 <div className="settings-row settings-row--stacked">
                   <span>
                     <strong>Local data</strong>
                     <small>
-                      Files stay on this device unless you explicitly send approved
-                      context. Governed changes and rollback availability are
-                      verified by the desktop host.
+                      Files stay on this device unless you explicitly add them
+                      to a message. Governed changes and rollback availability
+                      are verified by the desktop host.
                     </small>
                   </span>
                   <LockKeyhole aria-hidden="true" size={18} />
@@ -299,27 +341,212 @@ export function SettingsDialog({
           ) : section === "agent-model" ? (
             <section aria-labelledby="settings-agent-title">
               <header className="settings-pane__header">
-                <h3 id="settings-agent-title">Agent &amp; model</h3>
-                <p>Model access status and the request safety policy.</p>
+                <h3 id="settings-agent-title">Providers</h3>
+                <p>Model connections owned by the Forge desktop host.</p>
               </header>
-              <div className="settings-list">
-                <Row detail={modelAccessDetail} label="Model access" value={modelAccessLabel} />
-                <Row
-                  detail="Skill-guided request flow"
-                  label="Agent capability"
-                  value={agentStatusLabel}
-                />
-                <Row
-                  detail="Approval is explicit and single-use. Nothing is sent without it."
-                  label="Request policy"
-                  value="Review before send"
-                />
-                <Row
-                  detail="Interactive sign-in becomes available with organization identity."
-                  label="Sign-in"
-                  value="Not configured"
-                />
+              <div className="provider-summary">
+                <span>
+                  <small>Current model</small>
+                  <strong>{modelAccessLabel}</strong>
+                  <em>{modelAccessDetail}</em>
+                </span>
               </div>
+              <div aria-label="Model providers" className="provider-list">
+                {([
+                  {
+                    id: "openai" as const,
+                    name: "OpenAI",
+                    setup: "Connect an API key for this Forge session.",
+                  },
+                  {
+                    id: "azure" as const,
+                    name: "Azure OpenAI",
+                    setup: "Connect an Azure endpoint and API key for this session.",
+                  },
+                ]).map((provider) => {
+                  const connected = modelAuthStatus?.status === "development_ready"
+                    && modelAuthStatus.mode === "direct_provider_development"
+                    && modelAuthStatus.providerId === provider.id;
+                  return (
+                    <label
+                      className="provider-row provider-row--selectable"
+                      data-selected={selectedProvider === provider.id || undefined}
+                      key={provider.id}
+                    >
+                      <input
+                        aria-label={provider.name}
+                        checked={selectedProvider === provider.id}
+                        name="model-provider"
+                        onChange={() => setSelectedProvider(provider.id)}
+                        type="radio"
+                        value={provider.id}
+                      />
+                      <ProviderIcon className="provider-row__icon" provider={provider.id} />
+                      <span className="provider-row__copy">
+                        <strong>{provider.name}</strong>
+                        <small>{connected ? "Connected for this app session" : provider.setup}</small>
+                      </span>
+                      <span className="provider-row__status">
+                        <em data-connected={connected || undefined}>
+                          {connected ? "Connected" : "Needs key"}
+                        </em>
+                        {connected && modelAuthStatus.modelId ? (
+                          <code>{modelAuthStatus.modelId}</code>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <div className="provider-model-field">
+                <label htmlFor="forge-model-id">Model or deployment</label>
+                <div>
+                  <input
+                    aria-label="Model or deployment"
+                    autoComplete="off"
+                    id="forge-model-id"
+                    onChange={(event) => setModelDraft(event.currentTarget.value)}
+                    placeholder={selectedProvider === "azure" ? "Azure deployment name" : "OpenAI model ID"}
+                    spellCheck={false}
+                    value={modelDraft}
+                  />
+                  <Button
+                    isDisabled={!modelIsValid || modelSelectionBusy}
+                    onPress={() => void onModelSelectionChange({
+                      providerId: selectedProvider,
+                      modelId: modelDraft,
+                    })}
+                    size="small"
+                    variant="primary"
+                  >
+                    {modelSelectionBusy ? "Applying…" : "Use model"}
+                  </Button>
+                </div>
+                <small>
+                  {modelSelectionNotice
+                    ?? "Provider and model are selected here. API credentials are not persisted in frontend settings."}
+                </small>
+              </div>
+              <div className="provider-connection">
+                {selectedProviderConnected ? (
+                  <div className="provider-connection__connected">
+                    <span>
+                      <Check aria-hidden="true" size={16} />
+                      <strong>{selectedProviderName} connected</strong>
+                      <small>The API key is held only in native memory until Forge exits.</small>
+                    </span>
+                    <Button
+                      aria-label={`Disconnect ${selectedProviderName}`}
+                      isDisabled={modelSelectionBusy || !modelAuthStatus?.signOutAvailable}
+                      onPress={() => void onModelDisconnect()}
+                      size="small"
+                      variant="secondary"
+                    >
+                      <Unplug aria-hidden="true" size={14} /> Disconnect
+                    </Button>
+                  </div>
+                ) : (
+                  <form
+                    aria-label={`Connect ${selectedProviderName}`}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const form = event.currentTarget;
+                      const credential = String(new FormData(form).get("apiKey") ?? "");
+                      const keyIsValid = credential.length >= 8
+                        && credential.length <= 4_096
+                        && !/[\s\u0000-\u001f\u007f]/u.test(credential);
+                      if (!keyIsValid) {
+                        setProviderFormNotice("Enter a valid API key.");
+                        return;
+                      }
+                      if (!canConnect || !modelIsValid || !azureEndpointIsValid) {
+                        return;
+                      }
+                      setProviderFormNotice(null);
+                      const connection: ModelProviderConnection = {
+                        providerId: selectedProvider,
+                        modelId: modelDraft,
+                        apiKey: credential,
+                        endpoint: selectedProvider === "azure" ? azureEndpointDraft : null,
+                        region: selectedProvider === "azure"
+                          ? azureRegionDraft.trim() || null
+                          : null,
+                      };
+                      void onModelConnect(connection).finally(() => {
+                        setApiKeyDraft("");
+                        form.reset();
+                      });
+                    }}
+                  >
+                    <label htmlFor="forge-provider-api-key">
+                      {selectedProviderName} API key
+                    </label>
+                    <div className="provider-connection__secret">
+                      <KeyRound aria-hidden="true" size={15} />
+                      <input
+                        aria-label={`${selectedProviderName} API key`}
+                        autoComplete="new-password"
+                        id="forge-provider-api-key"
+                        name="apiKey"
+                        onChange={(event) => {
+                          setApiKeyDraft(event.currentTarget.value);
+                          setProviderFormNotice(null);
+                        }}
+                        placeholder="Paste API key"
+                        spellCheck={false}
+                        type="password"
+                        value={apiKeyDraft}
+                      />
+                    </div>
+                    {selectedProvider === "azure" ? (
+                      <div className="provider-connection__azure">
+                        <label htmlFor="forge-azure-endpoint">Azure endpoint</label>
+                        <input
+                          aria-label="Azure OpenAI endpoint"
+                          id="forge-azure-endpoint"
+                          onChange={(event) => setAzureEndpointDraft(event.currentTarget.value)}
+                          placeholder="https://resource.openai.azure.com"
+                          spellCheck={false}
+                          value={azureEndpointDraft}
+                        />
+                        <label htmlFor="forge-azure-region">Region (optional)</label>
+                        <input
+                          aria-label="Azure OpenAI region"
+                          id="forge-azure-region"
+                          onChange={(event) => setAzureRegionDraft(event.currentTarget.value)}
+                          placeholder="westeurope"
+                          spellCheck={false}
+                          value={azureRegionDraft}
+                        />
+                      </div>
+                    ) : null}
+                    <Button
+                      aria-label={`Connect ${selectedProviderName}`}
+                      isDisabled={
+                        !canConnect
+                        || !modelIsValid
+                        || !azureEndpointIsValid
+                        || modelSelectionBusy
+                      }
+                      size="small"
+                      type="submit"
+                      variant="primary"
+                    >
+                      <PlugZap aria-hidden="true" size={14} /> Connect
+                    </Button>
+                    <small>
+                      {providerFormNotice
+                        ?? (canConnect
+                        ? "Sent once to the Rust host, kept in memory, never saved to Forge settings."
+                        : "Provider connection requires the native Forge desktop host.")}
+                    </small>
+                  </form>
+                )}
+              </div>
+              <p className="provider-footnote">
+                Provider credentials stay in native memory for this app session and are cleared
+                when Forge exits. Agent capability: {agentStatusLabel}.
+              </p>
             </section>
           ) : section === "workspaces" ? (
             <section aria-labelledby="settings-workspace-title">
@@ -336,9 +563,9 @@ export function SettingsDialog({
                 <LockKeyhole aria-hidden="true" size={18} />
               </div>
               <p className="settings-pane__copy">
-                Files stay local unless you review, approve, and explicitly send
-                exact context. Changes require governed review; rollback
-                availability is verified by the desktop host.
+                Files stay local unless you add them to a message and confirm
+                sending. Changes use the Review tab; rollback availability is
+                verified by the desktop host.
               </p>
               <Button
                 className="settings-pane__action"
@@ -353,7 +580,7 @@ export function SettingsDialog({
               <header className="settings-pane__header">
                 <h3 id="settings-skills-title">Skills &amp; agents</h3>
                 <p>
-                  BMAD provides the skill and agent foundation; Sapphirus governs
+                  BMAD provides the skill and agent foundation; Forge governs
                   access and execution.
                 </p>
               </header>
@@ -370,9 +597,9 @@ export function SettingsDialog({
                 />
                 {about ? (
                   <Row
-                    detail="Installed Builder packages awaiting a local activation decision."
+                    detail="Installed Builder packages create inert drafts through reviewed runs."
                     label="Builder packages"
-                    value={`${about.inactiveBuilderPackageCount} inactive`}
+                    value={`${about.inactiveBuilderPackageCount} installed`}
                   />
                 ) : null}
               </div>
@@ -390,7 +617,7 @@ export function SettingsDialog({
             <section aria-labelledby="settings-updates-title">
               <header className="settings-pane__header">
                 <h3 id="settings-updates-title">Updates</h3>
-                <p>Updates are distributed and verified by your organization.</p>
+                <p>Signed release updates are separate from local prototype testing.</p>
               </header>
               <div className="settings-list">
                 <Row
@@ -408,11 +635,6 @@ export function SettingsDialog({
                         ? "Configured"
                         : "Not configured"
                   }
-                />
-                <Row
-                  detail="In-app installation stays off until organization signing exists."
-                  label="In-app install"
-                  value="Unavailable"
                 />
               </div>
             </section>
@@ -505,11 +727,11 @@ export function SettingsDialog({
               </header>
               {aboutStatus === "ready" && about !== null ? (
                 <div className="settings-list">
-                  <Row detail="Sapphirus desktop host." label="Version" value={about.appVersion} />
+                  <Row detail="Forge desktop host." label="Version" value={about.appVersion} />
                   <div className="settings-row settings-row--stacked">
                     <span>
                       <strong>Installation id</strong>
-                      <small>Identifies this install to your organization; shares no file content.</small>
+                      <small>Identifies this local installation for support; shares no file content.</small>
                     </span>
                     <code className="settings-install-id">{about.installationId}</code>
                   </div>

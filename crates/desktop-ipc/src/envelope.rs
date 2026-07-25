@@ -1,6 +1,6 @@
 use desktop_runtime::{
-    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, CommandReceipt, ContractId,
-    LocalCommand, LocalError, ProjectionEvent, ProposedFileChange, RecoveryApprovalChoice,
+    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, ContractId, GitComparison,
+    LocalCommand, ModelProviderId, ProposedFileChange, RecoveryApprovalChoice,
     RelativeWorkspacePath, Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -175,6 +175,8 @@ fn is_known_command(command: &str) -> bool {
             | "workspace.revoke"
             | "workspace.list_entries"
             | "workspace.read_text"
+            | "workspace.git_status"
+            | "workspace.git_diff"
             | "workspace.search"
             | "bmad.scan"
             | "bmad.library.snapshot"
@@ -182,6 +184,10 @@ fn is_known_command(command: &str) -> bool {
             | "model.auth.status"
             | "model.auth.sign_in"
             | "model.auth.sign_out"
+            | "model.selection.set"
+            | "chat.send"
+            | "chat.history"
+            | "bmad.workflow.state"
             | "bmad.help.prepare"
             | "bmad.help.approve"
             | "bmad.help.cancel"
@@ -208,22 +214,8 @@ fn is_known_command(command: &str) -> bool {
             | "app.offboarding.inspect"
             | "app.offboarding.erase"
             | "workspace.pick_files"
+            | "workspace.pick_folder"
     )
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "status", rename_all = "snake_case")]
-pub enum IpcReply {
-    Ok { receipt: CommandReceipt },
-    Error { error: LocalError },
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ProjectionEventEnvelope {
-    pub schema_version: String,
-    pub renderer_session_id: ContractId,
-    pub event: ProjectionEvent,
 }
 
 #[derive(Deserialize)]
@@ -245,6 +237,24 @@ struct PreferencesPayload {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ModelSelectionPayload {
+    provider_id: ModelProviderId,
+    model_id: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ModelAuthSignInPayload {
+    provider_id: ModelProviderId,
+    model_id: String,
+    #[serde(rename = "apiKey")]
+    credential: desktop_runtime::ModelProviderCredential,
+    endpoint: Option<String>,
+    region: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ListEntriesPayload {
     workspace_id: ContractId,
     cursor: Option<String>,
@@ -257,6 +267,14 @@ struct ReadTextPayload {
     workspace_id: ContractId,
     relative_path: RelativeWorkspacePath,
     max_bytes: u32,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct GitDiffPayload {
+    workspace_id: ContractId,
+    relative_path: RelativeWorkspacePath,
+    comparison: GitComparison,
 }
 
 #[derive(Deserialize)]
@@ -342,6 +360,7 @@ struct LatestBmadHelpRunPayload {
 struct BmadHelpWorkspacePayload {
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
+    context_paths: Vec<RelativeWorkspacePath>,
 }
 
 #[derive(Deserialize)]
@@ -418,6 +437,13 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
         }
         "workspace.list_entries" => parse_list_entries(payload),
         "workspace.read_text" => parse_read_text(payload),
+        "workspace.git_status" => {
+            let input: WorkspaceIdPayload = parse_payload(payload)?;
+            Ok(LocalCommand::ReadGitStatus {
+                workspace_id: input.workspace_id,
+            })
+        }
+        "workspace.git_diff" => parse_git_diff(payload),
         "workspace.search" => parse_search(payload),
         "bmad.scan" => {
             let input: WorkspaceIdPayload = parse_payload(payload)?;
@@ -437,12 +463,48 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
             Ok(LocalCommand::ModelAuthStatus)
         }
         "model.auth.sign_in" => {
-            parse_empty(payload)?;
-            Ok(LocalCommand::ModelAuthSignIn)
+            let input: ModelAuthSignInPayload = parse_payload(payload)?;
+            if !valid_model_identifier(&input.model_id)
+                || !input.credential.is_valid()
+                || !valid_provider_connection_metadata(
+                    input.provider_id,
+                    input.endpoint.as_deref(),
+                    input.region.as_deref(),
+                )
+            {
+                return Err(IpcValidationError::InvalidPayload);
+            }
+            Ok(LocalCommand::ModelAuthSignIn {
+                provider_id: input.provider_id,
+                model_id: input.model_id,
+                credential: input.credential,
+                endpoint: input.endpoint,
+                region: input.region,
+            })
         }
         "model.auth.sign_out" => {
             parse_empty(payload)?;
             Ok(LocalCommand::ModelAuthSignOut)
+        }
+        "model.selection.set" => {
+            let input: ModelSelectionPayload = parse_payload(payload)?;
+            if !valid_model_identifier(&input.model_id) {
+                return Err(IpcValidationError::InvalidPayload);
+            }
+            Ok(LocalCommand::SetModelSelection {
+                provider_id: input.provider_id,
+                model_id: input.model_id,
+            })
+        }
+        "chat.send" => parse_chat_send(payload),
+        "chat.history" => parse_chat_history(payload),
+        "bmad.workflow.state" => {
+            let input: WorkspaceEpochPayload = parse_payload(payload)?;
+            validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+            Ok(LocalCommand::BmadWorkflowState {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
         }
         "bmad.help.prepare" => parse_bmad_help_prepare(payload),
         "bmad.help.approve" => parse_bmad_help_approve(payload),
@@ -504,10 +566,35 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 choice: input.choice,
             })
         }
-        "app.preferences.get" | "app.preferences.set" | "app.about" | "workspace.pick_files" => {
-            parse_app_command(command, payload)
-        }
+        "app.preferences.get"
+        | "app.preferences.set"
+        | "app.about"
+        | "workspace.pick_files"
+        | "workspace.pick_folder" => parse_app_command(command, payload),
         _ => parse_later_phase_command(command, payload),
+    }
+}
+
+fn valid_provider_connection_metadata(
+    provider_id: ModelProviderId,
+    endpoint: Option<&str>,
+    region: Option<&str>,
+) -> bool {
+    match provider_id {
+        ModelProviderId::OpenAi => endpoint.is_none() && region.is_none(),
+        ModelProviderId::Azure => {
+            endpoint.is_some_and(|value| {
+                value.len() <= 512
+                    && !value.chars().any(char::is_control)
+                    && value.starts_with("https://")
+            }) && region.is_none_or(|value| {
+                !value.is_empty()
+                    && value.len() <= 64
+                    && value.chars().all(|character| {
+                        character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.')
+                    })
+            })
+        }
     }
 }
 
@@ -531,6 +618,12 @@ fn parse_app_command(command: &str, payload: Value) -> Result<LocalCommand, IpcV
         "workspace.pick_files" => {
             let input: WorkspaceIdPayload = parse_payload(payload)?;
             Ok(LocalCommand::PickWorkspaceFiles {
+                workspace_id: input.workspace_id,
+            })
+        }
+        "workspace.pick_folder" => {
+            let input: WorkspaceIdPayload = parse_payload(payload)?;
+            Ok(LocalCommand::PickWorkspaceFolder {
                 workspace_id: input.workspace_id,
             })
         }
@@ -588,9 +681,13 @@ fn parse_bmad_help_latest(payload: Value) -> Result<LocalCommand, IpcValidationE
 fn parse_bmad_help_prepare(payload: Value) -> Result<LocalCommand, IpcValidationError> {
     let input: BmadHelpWorkspacePayload = parse_payload(payload)?;
     validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    if input.context_paths.len() > MAX_CONTEXT_PATHS {
+        return Err(IpcValidationError::InvalidPayload);
+    }
     Ok(LocalCommand::PrepareBmadHelpReview {
         workspace_id: input.workspace_id,
         workspace_grant_epoch: input.workspace_grant_epoch,
+        context_paths: input.context_paths,
     })
 }
 
@@ -633,6 +730,14 @@ fn validate_workspace_grant_epoch(epoch: u64) -> Result<(), IpcValidationError> 
     Ok(())
 }
 
+fn valid_model_identifier(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= 128
+        && value.chars().all(|character| {
+            character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.' | ':' | '/')
+        })
+}
+
 fn parse_bmad_run_create(payload: Value) -> Result<LocalCommand, IpcValidationError> {
     let input: CreateBmadRunPayload = parse_payload(payload)?;
     validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
@@ -667,6 +772,92 @@ struct BmadCapabilityWorkspacePayload {
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
     capability_id: String,
+}
+
+/// The renderer's own opaque task reference. The host derives the durable
+/// conversation identity from it; it is never used as an identity itself.
+const MAX_CLIENT_SESSION_REF: usize = 128;
+const MAX_CHAT_MESSAGE_BYTES: usize = 32_768;
+const MAX_AGENT_CODE: usize = 64;
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ChatSendPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    client_session_ref: String,
+    agent_code: Option<String>,
+    text: String,
+    context_paths: Vec<RelativeWorkspacePath>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ChatHistoryPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    client_session_ref: String,
+}
+
+fn validate_client_session_ref(value: &str) -> Result<(), IpcValidationError> {
+    if value.is_empty()
+        || value.len() > MAX_CLIENT_SESSION_REF
+        || !value
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(())
+}
+
+/// Only the six sealed Method agent codes may bind a persona. Anything else —
+/// including a crafted path or a Builder identifier — fails closed here.
+fn validate_agent_code(value: &str) -> Result<(), IpcValidationError> {
+    if value.is_empty()
+        || value.len() > MAX_AGENT_CODE
+        || !value
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        || !value.starts_with("bmad-agent-")
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(())
+}
+
+fn parse_chat_send(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ChatSendPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_client_session_ref(&input.client_session_ref)?;
+    if let Some(agent_code) = input.agent_code.as_deref() {
+        validate_agent_code(agent_code)?;
+    }
+    if input.text.trim().is_empty()
+        || input.text.len() > MAX_CHAT_MESSAGE_BYTES
+        || input.context_paths.len() > MAX_CAPABILITY_CONTEXT_PATHS
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::SendChatMessage {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        client_session_ref: input.client_session_ref,
+        agent_code: input.agent_code,
+        text: input.text,
+        context_paths: input.context_paths,
+    })
+}
+
+fn parse_chat_history(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: ChatHistoryPayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_client_session_ref(&input.client_session_ref)?;
+    Ok(LocalCommand::ChatHistory {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        client_session_ref: input.client_session_ref,
+    })
 }
 
 #[derive(Deserialize)]
@@ -865,6 +1056,15 @@ fn parse_read_text(payload: Value) -> Result<LocalCommand, IpcValidationError> {
     })
 }
 
+fn parse_git_diff(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: GitDiffPayload = parse_payload(payload)?;
+    Ok(LocalCommand::ReadGitDiff {
+        workspace_id: input.workspace_id,
+        relative_path: input.relative_path,
+        comparison: input.comparison,
+    })
+}
+
 fn parse_search(payload: Value) -> Result<LocalCommand, IpcValidationError> {
     let input: SearchPayload = parse_payload(payload)?;
     if input.query.trim().is_empty()
@@ -1012,7 +1212,8 @@ fn validate_structure(
 #[cfg(test)]
 mod tests {
     use desktop_runtime::{
-        sha256_bytes, ContractId, LocalCommand, RecoveryApprovalChoice, UnixMillis,
+        sha256_bytes, ContractId, GitComparison, LocalCommand, ModelProviderId,
+        RecoveryApprovalChoice, UnixMillis,
     };
 
     use super::{CommandEnvelopeValidator, IpcValidationContext, IpcValidationError};
@@ -1049,6 +1250,105 @@ mod tests {
         }"#;
         let envelope = CommandEnvelopeValidator::parse(json, &context()?)?;
         assert_eq!(envelope.command.name(), "workspace.read_text");
+        Ok(())
+    }
+
+    #[test]
+    fn parses_only_closed_git_review_payloads() -> Result<(), Box<dyn std::error::Error>> {
+        let mut review_context = context()?;
+        review_context.allowed_commands.extend([
+            "workspace.git_status".to_owned(),
+            "workspace.git_diff".to_owned(),
+        ]);
+        let status = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_git_status",
+          "command":"workspace.git_status",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"workspaceId":"workspace_1"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(status, &review_context)?.command(),
+            LocalCommand::ReadGitStatus { .. }
+        ));
+
+        let diff = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_git_diff",
+          "command":"workspace.git_diff",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"workspaceId":"workspace_1","relativePath":"src/App.tsx","comparison":"index_to_worktree"}
+        }"#;
+        let parsed = CommandEnvelopeValidator::parse(diff, &review_context)?;
+        assert!(matches!(
+            parsed.command(),
+            LocalCommand::ReadGitDiff {
+                comparison: GitComparison::IndexToWorktree,
+                ..
+            }
+        ));
+
+        for payload in [
+            r#"{"workspaceId":"workspace_1","relativePath":"../secret","comparison":"head_to_worktree"}"#,
+            r#"{"workspaceId":"workspace_1","relativePath":"src/App.tsx","comparison":"working_to_head"}"#,
+            r#"{"workspaceId":"workspace_1","relativePath":"src/App.tsx","comparison":"head_to_worktree","shell":"git diff"}"#,
+        ] {
+            let body = format!(
+                r#"{{"schemaVersion":"desktop-ipc-command.v1","requestId":"req_git_bad","command":"workspace.git_diff","windowLabel":"main","rendererSessionId":"rs_test","installationId":"install_test","issuedAt":10000,"payload":{payload}}}"#
+            );
+            assert!(matches!(
+                CommandEnvelopeValidator::parse(body.as_bytes(), &review_context).err(),
+                Some(IpcValidationError::InvalidPayload)
+            ));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn model_selection_is_renderer_owned_closed_and_bounded(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut model_context = context()?;
+        model_context
+            .allowed_commands
+            .push("model.selection.set".to_owned());
+        let selected = br#"{
+          "schemaVersion":"desktop-ipc-command.v1",
+          "requestId":"req_model_select",
+          "command":"model.selection.set",
+          "windowLabel":"main",
+          "rendererSessionId":"rs_test",
+          "installationId":"install_test",
+          "issuedAt":10000,
+          "payload":{"providerId":"azure","modelId":"forge-gpt-5"}
+        }"#;
+        assert!(matches!(
+            CommandEnvelopeValidator::parse(selected, &model_context)?.command(),
+            LocalCommand::SetModelSelection {
+                provider_id: ModelProviderId::Azure,
+                model_id,
+            } if model_id == "forge-gpt-5"
+        ));
+
+        for payload in [
+            r#"{"providerId":"anthropic","modelId":"model"}"#,
+            r#"{"providerId":"openai","modelId":""}"#,
+            r#"{"providerId":"openai","modelId":"gpt 5"}"#,
+            r#"{"providerId":"openai","modelId":"gpt-5","apiKey":null}"#,
+        ] {
+            let body = format!(
+                r#"{{"schemaVersion":"desktop-ipc-command.v1","requestId":"req_model_bad","command":"model.selection.set","windowLabel":"main","rendererSessionId":"rs_test","installationId":"install_test","issuedAt":10000,"payload":{payload}}}"#
+            );
+            assert!(matches!(
+                CommandEnvelopeValidator::parse(body.as_bytes(), &model_context).err(),
+                Some(IpcValidationError::InvalidPayload)
+            ));
+        }
         Ok(())
     }
 

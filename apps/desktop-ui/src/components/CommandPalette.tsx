@@ -50,12 +50,12 @@ export function CommandPalette({ actions, onClose, open }: CommandPaletteProps) 
 
   return (
     <div
-      aria-hidden="true"
       className="command-palette__backdrop"
       onClick={onClose}
     >
       <div
         aria-label="Command palette"
+        aria-modal="true"
         className="command-palette"
         onClick={(event) => {
           event.stopPropagation();
@@ -97,6 +97,7 @@ export function CommandPalette({ actions, onClose, open }: CommandPaletteProps) 
             visible.map((action, index) => (
               <li key={action.id}>
                 <button
+                  aria-label={action.label}
                   className={`command-palette__action${index === clamped ? " command-palette__action--selected" : ""}`}
                   onClick={() => {
                     runAction(action);

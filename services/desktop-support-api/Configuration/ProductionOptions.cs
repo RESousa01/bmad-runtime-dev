@@ -5,6 +5,7 @@ namespace Sapphirus.DesktopSupportApi.Configuration;
 public sealed partial class ProductionOptions
 {
     public Guid ManagedIdentityClientId { get; init; }
+    public Guid SqlMigrationIdentityClientId { get; init; }
     public string AppConfigurationEndpoint { get; init; } = "";
     public string KeyVaultUri { get; init; } = "";
     public string ReceiptSigningKeyName { get; init; } = "";
@@ -57,6 +58,16 @@ public sealed partial class ProductionOptions
         ValidatedAppConfigurationEndpoint = appConfigurationEndpoint;
         ValidatedKeyVaultUri = keyVaultUri;
         ValidatedModelEndpoint = modelEndpoint;
+    }
+
+    internal void ValidateSqlMigrationIdentity()
+    {
+        if (SqlMigrationIdentityClientId == Guid.Empty
+            || SqlMigrationIdentityClientId == ManagedIdentityClientId)
+        {
+            throw new InvalidOperationException(
+                "SQL migration requires a distinct, non-empty migration managed identity client ID.");
+        }
     }
 
     private static bool TryValidateEndpoint(

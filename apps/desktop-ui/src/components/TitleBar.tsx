@@ -1,29 +1,44 @@
 import { Button } from "@sapphirus/ui";
-import { CircleUserRound, LayoutGrid, Maximize2, Menu, Minus, Plus, Settings, SquarePen, X } from "lucide-react";
+import { CircleUserRound, Maximize2, Minus, X } from "lucide-react";
 import { useState } from "react";
+import { brandIdentity } from "../lib/brand";
 import { performWindowAction } from "../lib/windowActions";
-import { BrandMark } from "./BrandMark";
+import { OpenCodeIcon } from "./OpenCodeIcon";
+
+export interface TitleBarTaskTab {
+  readonly id: string;
+  readonly title: string;
+}
 
 export interface TitleBarProps {
+  activeTaskId?: string | undefined;
   isInert?: boolean;
   onMenu?: (() => void) | undefined;
   onHome?: (() => void) | undefined;
   onNewTask?: (() => void) | undefined;
   onOpenAccount?: (() => void) | undefined;
   onOpenSettings?: (() => void) | undefined;
+  onSelectTask?: ((id: string) => void) | undefined;
   taskTitle?: string | undefined;
+  taskTabs?: readonly TitleBarTaskTab[] | undefined;
 }
 
 export function TitleBar({
+  activeTaskId,
   isInert = false,
   onMenu,
   onHome,
   onNewTask,
   onOpenAccount,
   onOpenSettings,
+  onSelectTask,
   taskTitle,
+  taskTabs,
 }: TitleBarProps) {
   const [windowActionError, setWindowActionError] = useState("");
+  const visibleTaskTabs = taskTabs
+    ?? (taskTitle === undefined ? [] : [{ id: "current-task", title: taskTitle }]);
+  const selectedTaskId = activeTaskId ?? visibleTaskTabs[0]?.id;
 
   function invokeWindowAction(action: Parameters<typeof performWindowAction>[0]) {
     setWindowActionError("");
@@ -34,15 +49,11 @@ export function TitleBar({
 
   return (
     <header
-      aria-label="Sapphirus application"
-      className="title-bar"
+      aria-label={`${brandIdentity.displayName} application`}
+      className="title-bar title-bar--opencode-v2"
       data-tauri-drag-region
       inert={isInert}
     >
-      <div className="brand-lockup title-bar__brand" data-tauri-drag-region>
-        <BrandMark size={23} />
-        <span>Sapphirus</span>
-      </div>
       <div className="title-strip" data-tauri-drag-region>
         {onMenu === undefined ? null : (
           <Button
@@ -52,7 +63,7 @@ export function TitleBar({
             size="icon"
             variant="quiet"
           >
-            <Menu aria-hidden="true" size={15} strokeWidth={1.7} />
+            <OpenCodeIcon name="menu" />
           </Button>
         )}
         {onHome === undefined ? null : (
@@ -63,14 +74,31 @@ export function TitleBar({
             size="icon"
             variant="quiet"
           >
-            <LayoutGrid aria-hidden="true" size={15} strokeWidth={1.7} />
+            <OpenCodeIcon name="grid-plus" />
           </Button>
         )}
-        {taskTitle === undefined ? null : (
-          <span className="title-strip__tab">
-            <SquarePen aria-hidden="true" size={13} strokeWidth={1.7} />
-            <span>{taskTitle}</span>
-          </span>
+        {visibleTaskTabs.length === 0 ? null : (
+          <div aria-label="Open tasks" className="title-strip__tabs" role="tablist">
+            {visibleTaskTabs.map((task) => {
+              const active = task.id === selectedTaskId;
+              return (
+                <button
+                  aria-selected={active}
+                  className="title-strip__tab"
+                  data-active={active || undefined}
+                  key={task.id}
+                  onClick={() => onSelectTask?.(task.id)}
+                  role="tab"
+                  tabIndex={active ? 0 : -1}
+                  title={task.title}
+                  type="button"
+                >
+                  <OpenCodeIcon name="edit" size={14} />
+                  <span>{task.title}</span>
+                </button>
+              );
+            })}
+          </div>
         )}
         {onNewTask === undefined ? null : (
           <Button
@@ -80,7 +108,7 @@ export function TitleBar({
             size="icon"
             variant="quiet"
           >
-            <Plus aria-hidden="true" size={15} strokeWidth={1.7} />
+            <OpenCodeIcon name="plus" />
           </Button>
         )}
       </div>
@@ -93,7 +121,7 @@ export function TitleBar({
             size="icon"
             variant="quiet"
           >
-            <Settings aria-hidden="true" size={15} strokeWidth={1.7} />
+            <OpenCodeIcon name="settings-gear" />
           </Button>
         )}
         {onOpenAccount === undefined ? null : (

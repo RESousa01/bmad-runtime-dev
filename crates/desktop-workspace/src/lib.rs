@@ -1,9 +1,14 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 mod bmad_snapshot;
+mod git;
 mod governed_io;
 
 pub use bmad_snapshot::{read_bmad_source_snapshot, BmadSnapshotError};
+pub use git::{
+    GitComparison, GitFileComparison, GitFileState, GitStatusEntry, GitStatusSummary,
+    MAX_GIT_DIFF_BYTES, MAX_GIT_STATUS_ENTRIES,
+};
 pub use governed_io::{GovernedRecoveryTransaction, PreimageObservation, MAX_GOVERNED_FILE_BYTES};
 
 use ignore::WalkBuilder;
@@ -226,6 +231,10 @@ pub enum WorkspaceError {
     PathBlocked,
     #[error("the file is not supported as bounded UTF-8 text")]
     UnsupportedText,
+    #[error("the workspace root is not a git repository")]
+    NotGitRepository,
+    #[error("the git repository could not be read")]
+    GitUnavailable,
     #[error("the requested operation exceeded its configured limit")]
     LimitExceeded,
     #[error("governed edits are not enabled for this workspace grant")]
@@ -630,6 +639,106 @@ impl WorkspaceBroker {
         })
     }
 
+    /// Expands one host-picked directory into a bounded, sorted set of
+    /// workspace-relative UTF-8 text files.
+    ///
+    /// The selected directory must remain inside the current grant. Sensitive,
+    /// ignored, binary, oversized, linked, and reparse-point content is skipped.
+    /// No absolute path leaves this broker.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the workspace grant is unavailable or changes
+    /// during the bounded walk.
+    pub fn resolve_picked_folder(
+        &self,
+        workspace_id: &str,
+        candidate: &Path,
+        limit: usize,
+    ) -> Result<PickedFiles, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, workspace_id)?;
+        revalidate_root(&grant)?;
+        let root = grant.root.clone();
+        let selected = match resolve_picked_directory(&root, candidate) {
+            Ok(selected) => selected,
+            Err(
+                WorkspaceError::OutsideWorkspace
+                | WorkspaceError::PathBlocked
+                | WorkspaceError::InvalidRelativePath
+                | WorkspaceError::UnsupportedText,
+            ) => {
+                return Ok(PickedFiles {
+                    relative_paths: Vec::new(),
+                    rejected_outside_root: 1,
+                    rejected_unreadable: 0,
+                    truncated: false,
+                });
+            }
+            Err(_) => {
+                return Ok(PickedFiles {
+                    relative_paths: Vec::new(),
+                    rejected_outside_root: 0,
+                    rejected_unreadable: 1,
+                    truncated: false,
+                });
+            }
+        };
+
+        let mut relative_paths = BTreeSet::new();
+        let mut rejected_unreadable = 0_u64;
+        let mut truncated = false;
+        let mut walk_budget = WalkBudget::default();
+        let walker = WalkBuilder::new(&selected)
+            .hidden(false)
+            .follow_links(false)
+            .git_ignore(true)
+            .git_global(false)
+            .git_exclude(true)
+            .build();
+        for entry in walker {
+            self.ensure_grant_current(&authority, &grant)?;
+            if walk_budget.visit().is_err() {
+                truncated = true;
+                break;
+            }
+            let Ok(entry) = entry else {
+                rejected_unreadable = rejected_unreadable.saturating_add(1);
+                continue;
+            };
+            if !entry
+                .file_type()
+                .is_some_and(|file_type| file_type.is_file())
+            {
+                continue;
+            }
+            match resolve_picked_file(&root, entry.path()) {
+                Ok(relative) => {
+                    relative_paths.insert(relative);
+                }
+                Err(
+                    WorkspaceError::OutsideWorkspace
+                    | WorkspaceError::PathBlocked
+                    | WorkspaceError::InvalidRelativePath
+                    | WorkspaceError::UnsupportedText,
+                ) => {}
+                Err(_) => {
+                    rejected_unreadable = rejected_unreadable.saturating_add(1);
+                }
+            }
+        }
+        self.ensure_grant_current(&authority, &grant)?;
+
+        let bounded_limit = limit.max(1);
+        truncated |= relative_paths.len() > bounded_limit;
+        Ok(PickedFiles {
+            relative_paths: relative_paths.into_iter().take(bounded_limit).collect(),
+            rejected_outside_root: 0,
+            rejected_unreadable,
+            truncated,
+        })
+    }
+
     /// Reads a bounded UTF-8 preview from a policy-approved workspace file.
     ///
     /// # Errors
@@ -686,6 +795,45 @@ impl WorkspaceBroker {
             byte_count: metadata.len(),
             truncated,
         })
+    }
+
+    /// Returns a bounded, renderer-safe Git status for an active workspace.
+    /// The selected root never leaves this broker and no Git mutation is
+    /// available through this API.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the grant is unavailable, the workspace identity
+    /// changed, or the selected root is not a readable Git repository.
+    pub fn git_status(&self, workspace_id: &str) -> Result<GitStatusSummary, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, workspace_id)?;
+        revalidate_root(&grant)?;
+        let status = git::read_git_status(&grant.root).map_err(map_git_read_error)?;
+        self.ensure_grant_current(&authority, &grant)?;
+        Ok(status)
+    }
+
+    /// Returns bounded text snapshots for one Review comparison while holding
+    /// the workspace revocation barrier for the complete read.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when authority, repository state, path containment, or
+    /// bounded content validation fails.
+    pub fn git_diff(
+        &self,
+        workspace_id: &str,
+        relative_path: &str,
+        comparison: GitComparison,
+    ) -> Result<GitFileComparison, WorkspaceError> {
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, workspace_id)?;
+        revalidate_root(&grant)?;
+        let diff = git::read_git_diff(&grant.root, relative_path, comparison)
+            .map_err(map_git_read_error)?;
+        self.ensure_grant_current(&authority, &grant)?;
+        Ok(diff)
     }
 
     /// Searches bounded, policy-approved UTF-8 workspace content.
@@ -957,6 +1105,14 @@ impl WorkspaceBroker {
     }
 }
 
+fn map_git_read_error(error: git::GitReadError) -> WorkspaceError {
+    match error {
+        git::GitReadError::NotARepository => WorkspaceError::NotGitRepository,
+        git::GitReadError::Unreadable => WorkspaceError::GitUnavailable,
+        git::GitReadError::PathUnavailable => WorkspaceError::InvalidRelativePath,
+    }
+}
+
 fn validate_root(selected_root: &Path) -> Result<PathBuf, WorkspaceError> {
     if !selected_root.is_absolute() || has_unsupported_prefix(selected_root) {
         return Err(WorkspaceError::UnsupportedRoot);
@@ -1101,7 +1257,36 @@ fn resolve_picked_file(root: &Path, candidate: &Path) -> Result<String, Workspac
     if is_sensitive_relative_path(&relative) {
         return Err(WorkspaceError::PathBlocked);
     }
+    let bytes = read_bounded_file(&canonical, DEFAULT_MAX_TEXT_BYTES)?
+        .ok_or(WorkspaceError::UnsupportedText)?;
+    if bytes.contains(&0) || std::str::from_utf8(&bytes).is_err() {
+        return Err(WorkspaceError::UnsupportedText);
+    }
     Ok(relative)
+}
+
+fn resolve_picked_directory(root: &Path, candidate: &Path) -> Result<PathBuf, WorkspaceError> {
+    if !candidate.is_absolute() {
+        return Err(WorkspaceError::InvalidRelativePath);
+    }
+    let canonical = fs::canonicalize(candidate)?;
+    let metadata = fs::symlink_metadata(&canonical)?;
+    if !metadata.is_dir()
+        || metadata.file_type().is_symlink()
+        || is_reparse_point(&metadata)
+        || is_cloud_placeholder(&metadata)
+    {
+        return Err(WorkspaceError::PathBlocked);
+    }
+    ensure_descendant(root, &canonical)?;
+    reject_reparse_components(root, &canonical)?;
+    if canonical != root {
+        let relative = to_relative_wire_path(root, &canonical)?;
+        if is_sensitive_relative_path(&relative) {
+            return Err(WorkspaceError::PathBlocked);
+        }
+    }
+    Ok(canonical)
 }
 
 fn ensure_descendant(root: &Path, candidate: &Path) -> Result<(), WorkspaceError> {
@@ -1877,6 +2062,73 @@ mod tests {
         assert_eq!(picked.relative_paths, vec!["a.txt", "b.txt"]);
         assert!(picked.truncated);
         assert_eq!(picked.rejected_outside_root, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_picked_folder_returns_bounded_text_files_only(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        fs::create_dir_all(root.path().join("src").join("nested"))?;
+        fs::write(
+            root.path().join("src").join("b.ts"),
+            b"export const b = 2;\n",
+        )?;
+        fs::write(
+            root.path().join("src").join("nested").join("a.ts"),
+            b"export const a = 1;\n",
+        )?;
+        fs::write(root.path().join("src").join("image.bin"), [0, 1, 2, 3])?;
+        fs::write(root.path().join("src").join(".env"), b"placeholder\n")?;
+
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+        let picked = broker.resolve_picked_folder(
+            &projection.workspace_id,
+            &root.path().join("src"),
+            100,
+        )?;
+
+        assert_eq!(picked.relative_paths, vec!["src/b.ts", "src/nested/a.ts"]);
+        assert_eq!(picked.rejected_outside_root, 0);
+        assert_eq!(picked.rejected_unreadable, 0);
+        assert!(!picked.truncated);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_picked_folder_reports_limit_without_leaking_absolute_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        fs::create_dir(root.path().join("src"))?;
+        for name in ["c.ts", "a.ts", "b.ts"] {
+            fs::write(root.path().join("src").join(name), b"export {};\n")?;
+        }
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked =
+            broker.resolve_picked_folder(&projection.workspace_id, &root.path().join("src"), 2)?;
+
+        assert_eq!(picked.relative_paths, vec!["src/a.ts", "src/b.ts"]);
+        assert!(picked.truncated);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_picked_folder_rejects_a_directory_outside_the_grant(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        fs::write(outside.path().join("outside.ts"), b"export {};\n")?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_folder(&projection.workspace_id, outside.path(), 100)?;
+
+        assert!(picked.relative_paths.is_empty());
+        assert_eq!(picked.rejected_outside_root, 1);
+        assert_eq!(picked.rejected_unreadable, 0);
         Ok(())
     }
 

@@ -553,3 +553,242 @@ fn invalidation_withdraws_the_active_flow() {
         Some(CapabilityTerminalReason::Invalidated)
     );
 }
+
+fn submit_input(lifecycle: &Lifecycle, submitted_at: UnixMillis) -> SubmitCapabilityRunInput {
+    SubmitCapabilityRunInput {
+        workspace_id: id("workspace_01J00000000000000000000000"),
+        workspace_grant_epoch: 1,
+        workspace_context_read_epoch: 1,
+        capability_id: lifecycle.capability.clone(),
+        manifest_hash: lifecycle.manifest_hash,
+        decision_id: lifecycle.decision_id.clone().expect("decision"),
+        submitted_at,
+    }
+}
+
+#[test]
+fn split_dispatch_records_the_result_and_conflicts_while_in_flight(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-product-brief",
+        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        "07",
+    );
+    approve(&mut lifecycle);
+
+    let dispatch = lifecycle
+        .coordinator
+        .begin_dispatch(&submit_input(&lifecycle, UnixMillis(30_000)))
+        .expect("dispatch begun");
+
+    // The run is parked in `Dispatching`; the coordinator is single-active, so a
+    // fresh prepare must fail closed while the round trip runs unlocked.
+    assert_eq!(
+        lifecycle
+            .coordinator
+            .prepare(prepare_input(
+                &lifecycle.capability,
+                BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+                "08",
+                UnixMillis(10_000),
+            ))
+            .unwrap_err(),
+        BmadCapabilityCoordinatorError::Conflict
+    );
+
+    // The caller runs the transport with the coordinator lock released.
+    let (_dispatched, raw_output) = FixtureTransport
+        .send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )
+        .expect("transport output");
+
+    let completed = lifecycle
+        .coordinator
+        .finalize_dispatch(
+            dispatch.dispatch_id,
+            &raw_output,
+            &CannedVerifier {
+                output: document_output(),
+                expected_capability: "bmm:bmad-product-brief",
+            },
+            &store,
+        )
+        .expect("completed run");
+    assert_eq!(completed.result_kind, "document_artifact");
+    let record = store
+        .bmad_capability_run(&lifecycle.run_id)?
+        .expect("durable run");
+    assert_eq!(record.result_kind.as_deref(), Some("document_artifact"));
+    Ok(())
+}
+
+#[test]
+fn invalidate_during_dispatch_drops_the_result() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-product-brief",
+        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        "09",
+    );
+    approve(&mut lifecycle);
+
+    let dispatch = lifecycle
+        .coordinator
+        .begin_dispatch(&submit_input(&lifecycle, UnixMillis(30_000)))
+        .expect("dispatch begun");
+
+    // Sign-out / workspace revocation lands while the model round trip runs. This
+    // is only possible because the coordinator mutex is released during dispatch.
+    lifecycle.coordinator.invalidate();
+
+    let (_dispatched, raw_output) = FixtureTransport
+        .send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )
+        .expect("transport output");
+
+    assert_eq!(
+        lifecycle
+            .coordinator
+            .finalize_dispatch(
+                dispatch.dispatch_id,
+                &raw_output,
+                &CannedVerifier {
+                    output: document_output(),
+                    expected_capability: "bmm:bmad-product-brief",
+                },
+                &store,
+            )
+            .unwrap_err(),
+        BmadCapabilityCoordinatorError::Unauthorized
+    );
+    // The unauthorized result was never recorded.
+    assert!(store.bmad_capability_run(&lifecycle.run_id)?.is_none());
+    assert_eq!(
+        lifecycle.coordinator.terminal_reason_for_test(),
+        Some(CapabilityTerminalReason::Invalidated)
+    );
+    Ok(())
+}
+
+#[test]
+fn a_superseded_dispatch_cannot_finalize_or_abort_a_newer_run(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-product-brief",
+        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        "0a",
+    );
+    approve(&mut lifecycle);
+
+    // First dispatch begins; its transport is conceptually still in flight.
+    let stale = lifecycle
+        .coordinator
+        .begin_dispatch(&submit_input(&lifecycle, UnixMillis(30_000)))
+        .expect("first dispatch begun");
+    let stale_id = stale.dispatch_id;
+
+    // Sign-out invalidates it, then a whole new run is prepared, approved, and
+    // dispatched before the first dispatch's caller returns — only reachable
+    // because the coordinator mutex is released during dispatch.
+    lifecycle.coordinator.invalidate();
+    let review = lifecycle
+        .coordinator
+        .prepare(prepare_input(
+            &lifecycle.capability,
+            BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+            "0b",
+            UnixMillis(40_000),
+        ))
+        .expect("second review");
+    let second_run_id = review.run_id.clone();
+    let approved = lifecycle
+        .coordinator
+        .approve(&ApproveCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: lifecycle.capability.clone(),
+            manifest_hash: review.manifest_hash,
+            approved_at: UnixMillis(45_000),
+        })
+        .expect("second approved");
+    let second = lifecycle
+        .coordinator
+        .begin_dispatch(&SubmitCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: lifecycle.capability.clone(),
+            manifest_hash: review.manifest_hash,
+            decision_id: approved.decision_id.clone(),
+            submitted_at: UnixMillis(50_000),
+        })
+        .expect("second dispatch begun");
+    assert_ne!(stale_id, second.dispatch_id);
+
+    // The first (stale) dispatch's transport returns now. Its finalize must be
+    // dropped as a conflict and must NOT touch the second dispatch.
+    let (_stale_dispatched, stale_output) = FixtureTransport
+        .send(
+            stale.authorized_request,
+            &stale.deterministic_fixture,
+            stale.submitted_at,
+        )
+        .expect("stale transport output");
+    assert_eq!(
+        lifecycle
+            .coordinator
+            .finalize_dispatch(
+                stale_id,
+                &stale_output,
+                &CannedVerifier {
+                    output: document_output(),
+                    expected_capability: "bmm:bmad-product-brief",
+                },
+                &store,
+            )
+            .unwrap_err(),
+        BmadCapabilityCoordinatorError::Conflict
+    );
+    // A stale abort is also a no-op on the newer dispatch.
+    lifecycle
+        .coordinator
+        .abort_dispatch(stale_id, CapabilityTerminalReason::ConsentConsumed);
+
+    // The second dispatch is still live and finalizes into its own run.
+    let (_second_dispatched, second_output) = FixtureTransport
+        .send(
+            second.authorized_request,
+            &second.deterministic_fixture,
+            second.submitted_at,
+        )
+        .expect("second transport output");
+    let completed = lifecycle
+        .coordinator
+        .finalize_dispatch(
+            second.dispatch_id,
+            &second_output,
+            &CannedVerifier {
+                output: document_output(),
+                expected_capability: "bmm:bmad-product-brief",
+            },
+            &store,
+        )
+        .expect("second completed run");
+    assert_eq!(completed.run_id, second_run_id);
+    // The stale (first) run was never recorded; the second one was.
+    assert!(store.bmad_capability_run(&lifecycle.run_id)?.is_none());
+    assert!(store.bmad_capability_run(&second_run_id)?.is_some());
+    Ok(())
+}

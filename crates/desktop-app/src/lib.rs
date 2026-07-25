@@ -1,19 +1,14 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
-#[allow(
-    dead_code,
-    reason = "the Checkpoint 3 bridge is consumed by the Checkpoint 5 coordinator"
-)]
+mod bmad_architecture;
 mod bmad_capability_host;
 pub mod bmad_foundation;
 mod bmad_governed_proposal;
 mod bmad_model;
+mod bmad_workflow;
+mod chat;
 mod commands;
 mod edits;
-#[allow(
-    dead_code,
-    reason = "the Task 3 recovery host composition is consumed by the Task 4 command boundary"
-)]
 mod recovery;
 mod state;
 mod update;
@@ -23,7 +18,7 @@ use tauri::Manager as _;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-#[error("Sapphirus desktop startup failed")]
+#[error("Forge desktop startup failed")]
 pub struct StartupError;
 
 /// Starts the native desktop host and its single local renderer window.
@@ -74,7 +69,7 @@ pub fn run() -> Result<(), StartupError> {
                 "main",
                 tauri::WebviewUrl::App("index.html".into()),
             )
-            .title("Sapphirus")
+            .title("Forge")
             .inner_size(1440.0, 900.0)
             .min_inner_size(1100.0, 700.0)
             .center()

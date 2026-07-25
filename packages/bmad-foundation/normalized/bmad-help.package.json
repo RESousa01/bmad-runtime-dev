@@ -21,7 +21,7 @@
         "versionRange": ">=20.12.0"
       }
     ],
-    "provenanceStatus": "blocked_provenance"
+    "provenanceStatus": "reviewed_snapshot_only"
   },
   "distributionProfile": "sapphirus_package",
   "installProfile": "SapphirusManagedV1",
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:9aa75b367e516a883a073f525da73e9b66524dfbdd1302eadb9c0d9c31d7558d"
+  "descriptorHash": "sha256:33ff0824ed608a34f119fd4b91a6bc547ba770efc25b5bc41c2a11df0f143e35"
 }

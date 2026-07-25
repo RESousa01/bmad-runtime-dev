@@ -4,6 +4,7 @@ export const bmadModelCommands = {
   authStatus: "model.auth.status",
   authSignIn: "model.auth.sign_in",
   authSignOut: "model.auth.sign_out",
+  setSelection: "model.selection.set",
   prepare: "bmad.help.prepare",
   approve: "bmad.help.approve",
   cancel: "bmad.help.cancel",
@@ -13,14 +14,32 @@ export const bmadModelCommands = {
 
 export type BmadModelCommand = (typeof bmadModelCommands)[keyof typeof bmadModelCommands];
 
+export type ModelProviderId = "openai" | "azure";
+
+export interface ModelSelection {
+  readonly providerId: ModelProviderId;
+  readonly modelId: string;
+}
+
+export interface ModelProviderConnection extends ModelSelection {
+  readonly apiKey: string;
+  readonly endpoint: string | null;
+  readonly region: string | null;
+}
+
 export interface ModelAuthStatusProjection {
   readonly status: "unavailable" | "development_ready";
-  readonly mode: "offline" | "deterministic_development";
+  readonly mode:
+    | "offline"
+    | "deterministic_development"
+    | "direct_provider_development";
   readonly authEpoch: number;
   readonly developmentOnly: boolean;
   readonly destinationLabel: string;
-  readonly signInAvailable: false;
-  readonly signOutAvailable: true;
+  readonly providerId: string;
+  readonly modelId: string;
+  readonly signInAvailable: boolean;
+  readonly signOutAvailable: boolean;
 }
 
 export interface BmadHelpReviewRedactionProjection {

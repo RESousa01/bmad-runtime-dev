@@ -42,7 +42,11 @@ public sealed class PolicySigningTests
     [InlineData("over_limit_items", Prefix + "maximumContextItems", "4096")]
     [InlineData("empty_regions", Prefix + "allowedRegions", "")]
     [InlineData("bad_retention", Prefix + "retentionMode", "persistent")]
-    [InlineData("no_deployments", Prefix + "approvedModelDeployments", "")]
+    [InlineData("whitespace_deployment", Prefix + "approvedModelDeployments", " ")]
+    [InlineData(
+        "empty_deployment_entry",
+        Prefix + "approvedModelDeployments",
+        "desktop-planner,,secondary")]
     public void Invalid_snapshots_are_rejected(string label, string key, string value)
     {
         Dictionary<string, string> settings = ValidSettings();
@@ -52,6 +56,35 @@ public sealed class PolicySigningTests
             () => AppConfigurationPolicyProvider.Validate(settings, Now));
         Assert.NotNull(label);
         Assert.NotNull(rejection.Message);
+    }
+
+    [Fact]
+    public async Task An_empty_model_allowlist_is_a_valid_signed_policy_kill_switch()
+    {
+        using EcdsaHashSigner signer = new(ActiveKeyId);
+        AzureSignedPolicyService service = CreateService(
+            signer,
+            out MutableSettingsSource source);
+        source.Settings[Prefix + "approvedModelDeployments"] = "";
+
+        PolicySnapshot snapshot = AppConfigurationPolicyProvider.Validate(
+            source.Settings,
+            Now);
+        SignedDesktopPolicy policy = await service.CurrentPolicyAsync(Ct);
+
+        Assert.Empty(snapshot.ApprovedModelDeployments);
+        Assert.Equal(snapshot.PolicyId, policy.PolicyId);
+        Assert.NotEmpty(policy.Signature);
+    }
+
+    [Fact]
+    public void Oversized_model_deployment_entries_are_rejected()
+    {
+        Dictionary<string, string> settings = ValidSettings();
+        settings[Prefix + "approvedModelDeployments"] = new string('a', 129);
+
+        Assert.Throws<InvalidOperationException>(
+            () => AppConfigurationPolicyProvider.Validate(settings, Now));
     }
 
     [Fact]

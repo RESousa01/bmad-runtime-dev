@@ -5,12 +5,40 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Sapphirus.DesktopSupportApi;
 using Sapphirus.DesktopSupportApi.Configuration;
+using Sapphirus.DesktopSupportApi.Sql;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-SupportPlaneOptions options = builder.Configuration
-    .GetSection(SupportPlaneOptions.SectionName)
-    .Get<SupportPlaneOptions>() ?? new SupportPlaneOptions();
-options.Validate(builder.Environment);
+SqlMigrationCommandSelection command = SqlMigrationCommand.Select(args);
+if (command == SqlMigrationCommandSelection.Invalid)
+{
+    Console.Error.WriteLine(
+        $"Invalid migration command. Use exactly '{SqlMigrationCommand.Name}'.");
+    return SqlMigrationCommand.InvalidArgumentsExitCode;
+}
+
+string[] hostArguments =
+    command == SqlMigrationCommandSelection.WebServer ? args : [];
+WebApplicationBuilder builder = WebApplication.CreateBuilder(hostArguments);
+
+if (command == SqlMigrationCommandSelection.MigrateSql)
+{
+    return await SqlMigrationCommand.ExecuteAsync(
+        builder.Environment,
+        async cancellationToken =>
+        {
+            SupportPlaneOptions migrationSupport =
+                GetValidatedSupportPlaneOptions(builder);
+            ProductionOptions production =
+                builder.GetValidatedProductionOptions(migrationSupport);
+            SqlConnectionFactory connectionFactory =
+                SqlConnectionFactory.ForMigration(production);
+            await new SqlMigrationRunner(connectionFactory)
+                .ApplyAsync(cancellationToken);
+        },
+        Console.Error,
+        CancellationToken.None);
+}
+
+SupportPlaneOptions options = GetValidatedSupportPlaneOptions(builder);
 
 builder.Services.Configure<JsonOptions>(json =>
 {
@@ -353,6 +381,17 @@ app.MapHealthChecks("/healthz/ready", new Microsoft.AspNetCore.Diagnostics.Healt
     ResponseWriter = Sapphirus.DesktopSupportApi.Health.AzureDependencyHealthChecks.WriteSafeResponseAsync,
 });
 
-app.Run();
+await app.RunAsync();
+return 0;
+
+static SupportPlaneOptions GetValidatedSupportPlaneOptions(
+    WebApplicationBuilder builder)
+{
+    SupportPlaneOptions options = builder.Configuration
+        .GetSection(SupportPlaneOptions.SectionName)
+        .Get<SupportPlaneOptions>() ?? new SupportPlaneOptions();
+    options.Validate(builder.Environment);
+    return options;
+}
 
 public partial class Program;

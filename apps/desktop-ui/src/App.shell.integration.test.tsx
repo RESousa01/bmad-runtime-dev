@@ -17,11 +17,34 @@ function contextualSurface(name: string): HTMLElement | null {
 }
 
 async function enterFirstTask(): Promise<void> {
-  const openTask = await screen.findByRole("button", { name: "New task" });
-  fireEvent.click(openTask);
+  // Home offers "New task" in both the title strip and the Recent tasks
+  // header, so scope to the title strip to keep the query unambiguous.
+  const titlebar = await screen.findByRole("banner", { name: "Forge application" });
+  fireEvent.click(within(titlebar).getByRole("button", { name: "New task" }));
+}
+
+function openWorkspaceFiles(): void {
+  fireEvent.click(screen.getByRole("button", { name: "Open app menu" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show workspace files" }));
 }
 
 describe("App task-shell integration", () => {
+  it("renders the Forge entry as an OpenCode-grounded shell", async () => {
+    render(<App />);
+
+    const shell = document.querySelector(".app-shell--forge-v2");
+    expect(shell).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Projects" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Recent tasks" })).toBeTruthy();
+    expect(screen.getByRole("form", { name: "Start a task" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "What do you want to build?" })).toBeNull();
+    expect(screen.queryByText("Explore Forge safely")).toBeNull();
+
+    const titlebar = screen.getByRole("banner", { name: "Forge application" });
+    expect(titlebar.querySelector('[data-forge-icon="grid-plus"]')).toBeTruthy();
+    expect(within(titlebar).queryByText("Forge")).toBeNull();
+  });
+
   it("keeps one Task route while Files is a contextual drawer and Settings is a modal", async () => {
     const { runtime } = await createReadyShellRuntime([primaryShellWorkspace]);
     const user = userEvent.setup();
@@ -37,14 +60,14 @@ describe("App task-shell integration", () => {
     const task = screen.getByRole("main");
     expect(within(task).getByRole("heading", { name: "New task" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "New task" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Attach files" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Changes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Review" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run details" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Skills and agents" })).toBeTruthy();
     expect(screen.queryByRole("complementary", { name: "Inspector" })).toBeNull();
     expect(screen.queryByText(/^Inspector$/)).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     expect(contextualSurface("Files")).toBeTruthy();
     expect(screen.getByRole("main")).toBe(task);
     expect(within(task).getByRole("heading", { name: "New task" })).toBeTruthy();
@@ -70,11 +93,14 @@ describe("App task-shell integration", () => {
 
     await user.click(openWorkspaceActions[0]!);
     await waitFor(() => {
-      expect(dispatchedCommands(invoke)).toEqual(["workspace.select_folder"]);
+      expect(dispatchedCommands(invoke)).toEqual([
+        "bmad.library.snapshot",
+        "workspace.select_folder",
+      ]);
     });
   });
 
-  it("does not dispatch domain commands for transient Run details, Settings, or Account UI", async () => {
+  it("does not add domain commands for transient Run details or Settings UI", async () => {
     const { runtime, invoke } = await createReadyShellRuntime([primaryShellWorkspace]);
     const user = userEvent.setup();
     render(
@@ -86,7 +112,7 @@ describe("App task-shell integration", () => {
     await enterFirstTask();
 
     await screen.findAllByText("Local host ready");
-    expect(dispatchedCommands(invoke)).toEqual([]);
+    expect(dispatchedCommands(invoke)).toEqual(["bmad.library.snapshot"]);
 
     await user.click(screen.getByRole("button", { name: "Run details" }));
     expect(contextualSurface("Activity")).toBeTruthy();
@@ -96,12 +122,7 @@ describe("App task-shell integration", () => {
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
-    await user.click(screen.getByRole("button", { name: "Account" }));
-    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
-    expect(screen.getByText("Organization sign-in is not configured for this build.")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Close settings" }));
-
-    expect(dispatchedCommands(invoke)).toEqual([]);
+    expect(dispatchedCommands(invoke)).toEqual(["bmad.library.snapshot"]);
   });
 
   it("closes stale contextual UI when the task or workspace changes", async () => {
@@ -124,7 +145,7 @@ describe("App task-shell integration", () => {
     await user.click(screen.getByRole("button", { name: "New task" }));
     expect(contextualSurface("Activity")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Attach files" }));
+    openWorkspaceFiles();
     expect(contextualSurface("Files")).toBeTruthy();
     await user.click(screen.getByRole("button", {
       name: "Manage workspace primary-workspace",
@@ -139,7 +160,7 @@ describe("App task-shell integration", () => {
     expect(contextualSurface("Files")).toBeNull();
   });
 
-  it("keeps named Settings and Account reachable from the title strip in narrow mode", async () => {
+  it("keeps Settings reachable and omits account UI in the local prototype", async () => {
     const originalMatchMedia = window.matchMedia;
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -162,8 +183,7 @@ describe("App task-shell integration", () => {
       expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
       await user.click(screen.getByRole("button", { name: "Close settings" }));
 
-      await user.click(screen.getByRole("button", { name: "Account" }));
-      expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Account" })).toBeNull();
     } finally {
       view.unmount();
       Object.defineProperty(window, "matchMedia", {

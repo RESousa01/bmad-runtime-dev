@@ -101,6 +101,11 @@ const expectedPackageIntegrities = Object.freeze({
     "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
 });
 const expectedRustArguments = Object.freeze(["typify", "{input}", "--output", "{output}"]);
+// Reviewed supply-chain checkpoint. These digests are duplicated in
+// tools/contract-codegen/tool-lock.json on purpose: both must be edited
+// together, so a lock file cannot be re-blessed by touching data alone.
+// Current values reviewed in docs/reviews/supply-chain-review-2026-07-25.md
+// (forge-v2 cutover: +78 gitoxide crates, 0 removed, 0 new npm packages).
 const expectedBootstrapLocks = Object.freeze({
   pnpm: {
     file: "pnpm-lock.yaml",
@@ -109,7 +114,7 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "49ad67660adbbebcf3653ada3a472cadaed3c777bdeefe89a637f5f43b0f5c85",
+    sha256: "5e1d1eac5e22e101626abbf038fae78e38e0acf32375ecf53e96fd53b9f5aa9b",
     status: "reviewed",
   },
   dotnetTools: {

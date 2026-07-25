@@ -61,9 +61,10 @@ scan; never copy a digest from a forum, blog, or another repository.
   pinned at exactly `0.19.4`. Failure policy: Critical/High advisories,
   banned licenses, unapproved git sources, and prohibited duplicate
   cryptographic/runtime packages fail the run.
-- The Windows-native replica stays gated on
-  `SAPPHIRUS_NATIVE_LANE_ENABLED` until the organization runner lane is
-  approved.
+- The Windows-native replica runs unless the organization sets
+  `SAPPHIRUS_NATIVE_LANE_FROZEN` to `true`. The signed-release lane is
+  separately opt-in, requiring both `SAPPHIRUS_NATIVE_LANE_ENABLED` and
+  `SAPPHIRUS_SIGNING_LANE_ENABLED`.
 
 `pnpm audit --prod` is intentionally **not** enabled: it transmits the
 dependency graph to the configured registry. It may be added only after the

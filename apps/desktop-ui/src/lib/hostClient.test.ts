@@ -70,6 +70,7 @@ const helpBootstrap: BootstrapReply = {
     "model.auth.status",
     "model.auth.sign_in",
     "model.auth.sign_out",
+    "model.selection.set",
     "bmad.help.prepare",
     "bmad.help.approve",
     "bmad.help.cancel",
@@ -90,6 +91,8 @@ const modelAuthStatus: ModelAuthStatusProjection = {
   authEpoch: 5,
   developmentOnly: true,
   destinationLabel: "Deterministic local model",
+  providerId: "forge-local",
+  modelId: "bmad-help-fixture-v1",
   signInAvailable: false,
   signOutAvailable: true,
 };
@@ -143,6 +146,7 @@ const bmadLibrarySnapshot: BmadLibrarySnapshot = {
       description: "Create architecture",
       targetKind: "skill_target",
       displayLabel: "Architecture",
+      capabilityId: null,
       availability: "capability_disabled",
       availabilityReason: "bmad_capability_disabled",
     }],
@@ -359,6 +363,17 @@ describe("DesktopHostClient", () => {
           kind: "model_auth_status",
           value: { ...modelAuthStatus, authEpoch: modelAuthStatus.authEpoch + 1 },
         },
+        "model.selection.set": {
+          kind: "model_auth_status",
+          value: {
+            ...modelAuthStatus,
+            authEpoch: modelAuthStatus.authEpoch + 2,
+            mode: "direct_provider_development",
+            destinationLabel: "Azure OpenAI · forge-gpt-5",
+            providerId: "azure",
+            modelId: "forge-gpt-5",
+          },
+        },
         "bmad.help.prepare": { kind: "bmad_help_review", value: bmadHelpReview },
         "bmad.help.approve": { kind: "bmad_help_approved", value: bmadHelpApproval },
         "bmad.help.cancel": { kind: "bmad_help_cancelled", value: bmadHelpCancelled },
@@ -373,15 +388,30 @@ describe("DesktopHostClient", () => {
       now: () => 1_725_000_000_000,
       requestId: () => `request_model_${request += 1}`,
     });
+    const runtimeCredential = ["sk", "test", "runtime", "only"].join("-");
     await client.bootstrap();
 
     await expect(client.modelAuthStatus()).resolves.toEqual(modelAuthStatus);
-    await expect(client.modelAuthSignIn()).resolves.toEqual(modelAuthStatus);
+    await expect(client.modelAuthSignIn({
+      providerId: "openai",
+      modelId: "gpt-5-mini",
+      apiKey: runtimeCredential,
+      endpoint: null,
+      region: null,
+    })).resolves.toEqual(modelAuthStatus);
     await expect(client.modelAuthSignOut()).resolves.toEqual({
       ...modelAuthStatus,
       authEpoch: modelAuthStatus.authEpoch + 1,
     });
-    await expect(client.prepareBmadHelp(bmadHelpRun.workspaceId, 3)).resolves.toEqual(bmadHelpReview);
+    await expect(client.setModelSelection("azure", "forge-gpt-5")).resolves.toMatchObject({
+      providerId: "azure",
+      modelId: "forge-gpt-5",
+    });
+    await expect(client.prepareBmadHelp(
+      bmadHelpRun.workspaceId,
+      3,
+      ["src/context.ts"],
+    )).resolves.toEqual(bmadHelpReview);
     await expect(client.approveBmadHelp(bmadHelpRun.workspaceId, 3, digestA)).resolves
       .toEqual(bmadHelpApproval);
     await expect(client.cancelBmadHelp(
@@ -408,6 +438,7 @@ describe("DesktopHostClient", () => {
       "model.auth.status",
       "model.auth.sign_in",
       "model.auth.sign_out",
+      "model.selection.set",
       "bmad.help.prepare",
       "bmad.help.approve",
       "bmad.help.cancel",
@@ -416,9 +447,20 @@ describe("DesktopHostClient", () => {
     ]);
     expect(envelopes.map(({ payload }) => payload)).toEqual([
       {},
+      {
+        providerId: "openai",
+        modelId: "gpt-5-mini",
+        apiKey: runtimeCredential,
+        endpoint: null,
+        region: null,
+      },
       {},
-      {},
-      { workspaceId: bmadHelpRun.workspaceId, workspaceGrantEpoch: 3 },
+      { providerId: "azure", modelId: "forge-gpt-5" },
+      {
+        workspaceId: bmadHelpRun.workspaceId,
+        workspaceGrantEpoch: 3,
+        contextPaths: ["src/context.ts"],
+      },
       { workspaceId: bmadHelpRun.workspaceId, workspaceGrantEpoch: 3, manifestHash: digestA },
       {
         workspaceId: bmadHelpRun.workspaceId,

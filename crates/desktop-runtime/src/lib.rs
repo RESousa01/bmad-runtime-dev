@@ -11,6 +11,7 @@
 //! before explicitly mapping an untrusted contract into these types.
 
 mod bmad;
+mod chat;
 mod command;
 mod domain;
 mod edits;
@@ -28,8 +29,10 @@ mod strict_json;
 pub mod generated_contracts;
 
 pub use bmad::{
-    validate_bmad_help_proposal_schema, BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster,
-    BmadAgentRosterBuilder, BmadAgentSource, BmadArtifactClassification, BmadArtifactEvidence,
+    parse_toml_subset, validate_bmad_help_proposal_schema, BmadAgentMenuRecord, BmadAgentRecord,
+    BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource, BmadArchitectureDecision,
+    BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
+    BmadArchitectureStepRecord, BmadArtifactClassification, BmadArtifactEvidence,
     BmadArtifactEvidenceKind, BmadArtifactReference, BmadBuilderDraftFile, BmadBuilderDraftKind,
     BmadCandidateChange, BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadCapabilityKey,
     BmadCapabilityOutput, BmadCapabilityRun, BmadCapabilityRunError, BmadCapabilityRunParams,
@@ -46,7 +49,8 @@ pub use bmad::{
     BmadMethodHelpRecommendation, BmadPackageLoader, BmadQualifiedHelpSource, BmadResolvedConfig,
     BmadReviewedPromptReference, BmadSealedHelpInvocation, BmadSourceEntry, BmadSourceKind,
     BmadSourceSnapshot, BmadTrustedHelpModelProfile, BmadTrustedHelpModelProfileData,
-    BmadUnavailableDependency, BmadUtcInstant, BmadVerifiedHelpProposal, BuilderActionName,
+    BmadUnavailableDependency, BmadUtcInstant, BmadVerifiedHelpProposal, BmadWorkflowGraph,
+    BmadWorkflowPhase, BmadWorkflowState, BmadWorkflowStep, BuilderActionName,
     BuilderAnalysisContextDecision, BuilderAnalysisDecisionConsumption,
     BuilderAnalysisDecisionInvalidation, BuilderAnalysisDecisionInvalidationReason,
     BuilderAnalysisKind, BuilderAnalysisModelBinding, BuilderAnalysisRun, BuilderAuthoringAction,
@@ -58,23 +62,28 @@ pub use bmad::{
     BuilderProposedFile, BuilderProposedFileSet, BuilderRendererProjection, BuilderServiceError,
     BuilderValidationProfile, CreateInertBmadHelpSession, CreateMethodSession,
     InertBmadHelpSession, InertBmadHelpSessionCoordinator, InertBmadHelpSessionError,
-    InertBmadHelpSessionPreparationError, MethodAdvanceDisposition, MethodAdvanceReceipt,
-    MethodAdvanceRequest, MethodAdvanceResult, MethodAgentBinding, MethodAgentBindingData,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
-    MethodCheckpoint, MethodContextDecision, MethodError, MethodErrorCode, MethodEvidenceClass,
-    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodModelBinding, MethodModelBindingData, MethodModelPort, MethodPersistenceEvent,
-    MethodRendererProjection, MethodResourcePolicy, MethodRuntimeRequirement, MethodServiceError,
-    MethodSession, MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState,
-    MethodStepTable, MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData,
-    BMAD_CAPABILITY_RUN_SCHEMA, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    InertBmadHelpSessionPreparationError, Memlog, MemlogEntry, MemlogEntryKind, MemlogError,
+    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest, MethodAdvanceResult,
+    MethodAgentBinding, MethodAgentBindingData, MethodArtifactExpectation,
+    MethodArtifactProvenance, MethodCanonicalAdvanceResultData, MethodCheckpoint,
+    MethodContextDecision, MethodError, MethodErrorCode, MethodEvidenceClass, MethodExactBinding,
+    MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding,
+    MethodModelBindingData, MethodPersistenceEvent, MethodRendererProjection, MethodResourcePolicy,
+    MethodRuntimeRequirement, MethodServiceError, MethodSession, MethodSessionRepository,
+    MethodSessionScope, MethodSessionService, MethodState, MethodStepTable,
+    MethodVerifiedAdvanceResult, MethodVerifiedResultBindingData, TomlSubsetError,
+    BMAD_ARCHITECTURE_SESSION_SCHEMA, BMAD_CAPABILITY_RUN_SCHEMA, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA, MEMLOG_FILE_NAME,
+};
+pub use chat::{
+    ChatError, ChatMessage, ChatRole, ChatSession, ChatTurn, CHAT_TURN_SCHEMA,
+    MAX_PROMPT_TRANSCRIPT_BYTES,
 };
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,
-    DensityPreference, LocalCommand, LocalRuntimeCommandBus, ProjectionCursor, ProjectionEvent,
-    ProjectionEventKind, ProjectionScope, ProjectionSnapshot, RecoveryApprovalChoice,
-    RendererProjection, ThemePreference,
+    DensityPreference, GitComparison, LocalCommand, ModelProviderCredential, ModelProviderId,
+    ProjectionEvent, ProjectionEventKind, ProjectionSnapshot, RecoveryApprovalChoice,
+    ThemePreference,
 };
 pub use domain::{
     ApprovalDecision, ApprovalDecisionDraft, ApprovalOutcome, ApprovedExecutionSpec,

@@ -3,6 +3,7 @@ import {
   COMMAND_SCHEMA,
   type CommandEnvelope,
   type DensityPreference,
+  type GitComparison,
   type HostBinding,
   type ProposedChange,
   type RecoveryApprovalChoice,
@@ -93,6 +94,97 @@ export function buildOffboardingEraseEnvelope(
     installationId: asContractId(binding.installationId),
     issuedAt: asUnsignedInteger(issuedAt),
     payload: { confirm },
+  };
+}
+
+export function buildWorkflowStateEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  input: { workspaceId: string; workspaceGrantEpoch: number },
+): CommandEnvelope<
+  "bmad.workflow.state",
+  { workspaceId: string; workspaceGrantEpoch: number }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "bmad.workflow.state",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(input.workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(input.workspaceGrantEpoch),
+    },
+  };
+}
+
+export function buildChatSendEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  input: {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    clientSessionRef: string;
+    agentCode: string | null;
+    text: string;
+    contextPaths: string[];
+  },
+): CommandEnvelope<
+  "chat.send",
+  {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    clientSessionRef: string;
+    agentCode: string | null;
+    text: string;
+    contextPaths: string[];
+  }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "chat.send",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(input.workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(input.workspaceGrantEpoch),
+      clientSessionRef: asContractId(input.clientSessionRef),
+      agentCode: input.agentCode,
+      text: input.text,
+      contextPaths: input.contextPaths,
+    },
+  };
+}
+
+export function buildChatHistoryEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  input: { workspaceId: string; workspaceGrantEpoch: number; clientSessionRef: string },
+): CommandEnvelope<
+  "chat.history",
+  { workspaceId: string; workspaceGrantEpoch: number; clientSessionRef: string }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "chat.history",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(input.workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(input.workspaceGrantEpoch),
+      clientSessionRef: asContractId(input.clientSessionRef),
+    },
   };
 }
 
@@ -261,6 +353,24 @@ export function buildWorkspaceFilePickEnvelope(
   };
 }
 
+export function buildWorkspaceFolderPickEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+): CommandEnvelope<"workspace.pick_folder", { workspaceId: string }> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "workspace.pick_folder",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: { workspaceId: asContractId(workspaceId) },
+  };
+}
+
 export function buildWorkspaceRevocationEnvelope(
   binding: HostBinding,
   requestId: string,
@@ -345,6 +455,7 @@ export function buildBmadModelEnvelope<
     | "model.auth.status"
     | "model.auth.sign_in"
     | "model.auth.sign_out"
+    | "model.selection.set"
     | "bmad.help.prepare"
     | "bmad.help.approve"
     | "bmad.help.cancel"
@@ -550,6 +661,7 @@ export function buildReadOnlyEnvelope<
     | "model.auth.status"
     | "model.auth.sign_in"
     | "model.auth.sign_out"
+    | "model.selection.set"
     | "bmad.help.prepare"
     | "bmad.help.approve"
     | "bmad.help.cancel"
@@ -573,15 +685,23 @@ export function buildReadOnlyEnvelope<
     ? { workspaceId: string; cursor: string | null; limit: number }
     : TCommand extends "workspace.read_text"
       ? { workspaceId: string; relativePath: string; maxBytes: number }
-      : TCommand extends "workspace.search"
-        ? { workspaceId: string; query: string; maxResults: number }
-        : TCommand extends "bmad.scan"
-          ? { workspaceId: string }
-          : TCommand extends "bmad.library.snapshot"
-            ? { scope: "installed_method"; cursor: string | null }
-            : TCommand extends "bmad.persona.view"
-              ? { agentCode: string }
-              : { workspaceId: string; relativePaths: string[] },
+      : TCommand extends "workspace.git_status"
+        ? { workspaceId: string }
+        : TCommand extends "workspace.git_diff"
+          ? {
+              workspaceId: string;
+              relativePath: string;
+              comparison: GitComparison;
+            }
+          : TCommand extends "workspace.search"
+            ? { workspaceId: string; query: string; maxResults: number }
+            : TCommand extends "bmad.scan"
+              ? { workspaceId: string }
+              : TCommand extends "bmad.library.snapshot"
+                ? { scope: "installed_method"; cursor: string | null }
+                : TCommand extends "bmad.persona.view"
+                  ? { agentCode: string }
+                  : { workspaceId: string; relativePaths: string[] },
 ): CommandEnvelope<TCommand, typeof payload> {
   return {
     schemaVersion: COMMAND_SCHEMA,

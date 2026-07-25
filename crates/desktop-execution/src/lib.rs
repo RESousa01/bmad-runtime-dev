@@ -20,7 +20,3 @@ pub use model::{
 pub use rollback::{
     plan_recovery, plan_rollback, restore_checkpoint, RollbackConflict, RollbackPlan,
 };
-
-/// Marker used by release inventory tests to assert the D3 engine has no
-/// command-execution feature compiled into its public API.
-pub const CHILD_PROCESS_EXECUTION_AVAILABLE: bool = false;

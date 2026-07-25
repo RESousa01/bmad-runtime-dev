@@ -27,6 +27,17 @@ Development-only proof material is structural test evidence and is not a product
 The development broker returns unsigned completion evidence to a separate receipt signer; production
 composition must preserve that separation when replacing both adapters.
 
+The same image exposes one non-server deployment command:
+`Sapphirus.DesktopSupportApi.dll migrate-sql` (or, through the image
+`ENTRYPOINT`, `<image> migrate-sql`). It is accepted only with
+`ASPNETCORE_ENVIRONMENT=Production`. The command validates the same Production
+configuration as the API, additionally requires
+`Sapphirus__SqlMigrationIdentityClientId` to be non-empty and different from
+the runtime `Sapphirus__ManagedIdentityClientId`, applies the embedded SQL
+migrations with that migration identity, and exits. It never builds or starts
+the web server, and every failure returns a nonzero exit code with no
+connection detail in the console error.
+
 For local restart/replay testing only, `Sapphirus__DevelopmentConsentStorePath` may name a fully
 qualified directory while the host runs in `Development`. The adapter atomically creates one marker
 per subject, registration, and consumption hash, stores only a subject hash plus bounded authority

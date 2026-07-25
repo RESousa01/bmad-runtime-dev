@@ -68,6 +68,7 @@ export interface BmadAgentMenuProjection {
   readonly description: string;
   readonly targetKind: BmadMenuTargetKind;
   readonly displayLabel: string;
+  readonly capabilityId: string | null;
   readonly availability: BmadAvailability;
   readonly availabilityReason: BmadBlockerCode | null;
 }

@@ -1,97 +1,56 @@
-/* Agent selector popover content. The trigger/popover frame reuses
-   .agent-control styles from task-surface.css. */
-
-.agent-selector__list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  list-style: none;
-  margin: 8px 0 0;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 0;
-  scrollbar-color: var(--color-border) transparent;
+.agent-selector {
+  overflow: hidden;
 }
 
-.agent-selector__option {
+.agent-selector__row {
   align-items: center;
-  border-radius: 8px;
-  display: flex;
-  gap: 9px;
-  padding: 7px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-text);
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  grid-template-columns: minmax(54px, auto) minmax(0, 1fr) 14px;
+  min-height: 34px;
+  padding: 0 9px;
+  text-align: left;
+  width: 100%;
 }
 
-.agent-selector__option[aria-current="true"] {
-  background: var(--color-surface-selected);
+.agent-selector__row:hover:not(:disabled) {
+  background: var(--color-surface-hover);
 }
 
-.agent-selector__option--disabled {
-  opacity: 0.62;
+.agent-selector__row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
-.agent-selector__icon {
-  flex: 0 0 auto;
-  font-size: 0.9rem;
-  width: 18px;
+.agent-selector__row:disabled {
+  cursor: default;
 }
 
-.agent-selector__option-main {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+.agent-selector__label {
+  color: var(--color-text);
+  font-size: 0.75rem;
 }
 
-.agent-selector__option-main strong {
-  font-size: 0.78rem;
-  font-weight: 570;
-}
-
-.agent-selector__option-main small {
+.agent-selector__value {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
-  line-height: 1.4;
-}
-
-.agent-selector__blocker {
-  color: var(--color-text-muted);
-  flex: 0 0 auto;
-  font-size: 0.64rem;
-  max-width: 40%;
-  text-align: right;
-}
-
-.agent-selector__note {
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  margin: 10px 2px 0;
-}
-
-.agent-selector__footer {
-  align-items: center;
-  border-top: 1px solid var(--color-border-subtle);
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-.agent-selector__model {
-  color: var(--color-text-soft);
   font-size: 0.72rem;
   min-width: 0;
   overflow: hidden;
+  padding-inline: 10px 6px;
+  text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.agent-selector__policy {
-  align-items: center;
+.agent-selector__row > svg {
   color: var(--color-text-muted);
-  display: inline-flex;
-  flex: 0 0 auto;
-  gap: 5px;
-  font-size: 0.68rem;
+}
+
+.agent-selector__row-spacer {
+  width: 14px;
 }

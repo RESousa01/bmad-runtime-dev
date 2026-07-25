@@ -124,6 +124,7 @@ const packageDistributionFiles = Object.freeze([
   "runtime",
   "runtime-manifest.json",
   "scripts",
+  "source",
   "tests",
   "README.md",
 ]);
@@ -654,6 +655,8 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
       "runtime-manifest.json",
       "scripts",
       "semantic-source-ledger.json",
+      // ADR-0008: adopted upstream bodies, shipped verbatim and manifest-pinned.
+      "source",
       "tests",
     ],
   );
@@ -662,7 +665,11 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
     await readdir(path.join(packageRoot, "normalized")),
     normalizedPaths.map((relativePath) => path.posix.basename(relativePath)),
   );
-  assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), ["verify.mjs"]);
+  assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), [
+    "intake.mjs",
+    "reseal.mjs",
+    "verify.mjs",
+  ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), ["foundation.test.mjs"]);
 });
 
@@ -698,9 +705,24 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
       assert.deepEqual(actual[key], value, `${id}.${key}`);
     }
     assert.equal(actual.gitIdentity, null, `${id} must not guess a Git identity`);
-    assert.equal(actual.promotionEligibility, "blocked_provenance");
+    // ADR-0008: adoption proceeds on a named human's attestation, and the
+    // reproducibility gap stays explicit and expiring rather than being
+    // absorbed into the claim.
+    assert.equal(actual.promotionEligibility, "owner_attested_release");
     assert.ok(Array.isArray(actual.missingImmutableIdentity));
     assert.ok(actual.missingImmutableIdentity.length > 0);
+    assert.equal(actual.exception.kind, "owner_attested_release");
+    for (const field of [
+      "grantedBy",
+      "grantedOn",
+      "decisionRecord",
+      "attestation",
+      "releaseIdentity",
+      "expiresOn",
+      "expiryCondition",
+    ]) {
+      assert.match(actual.exception[field], /\S/u, `${id}.exception.${field}`);
+    }
   }
 
   const members = new Map(
@@ -710,16 +732,51 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 114, "the reviewed source set must be exact and closed");
-  assert.deepEqual(
-    Object.fromEntries(
-      ledger.sourceMembers.map((member) => [
-        member.id,
-        member.treatments.map((item) => item.decision),
-      ]),
-    ),
-    expectedTreatmentDecisionSets,
+  assert.equal(members.size, 294, "the reviewed source set must be exact and closed");
+  // ADR-0008 intake may only *append* a treatment (adopt for shipped text,
+  // reject for executables). It must never rewrite a previously reviewed
+  // decision, so every originally reviewed member's decision set must survive
+  // intact as a subset of what the ledger carries now.
+  const decisionsById = new Map(
+    ledger.sourceMembers.map((member) => [
+      member.id,
+      member.treatments.map((item) => item.decision),
+    ]),
   );
+  for (const [id, reviewed] of Object.entries(expectedTreatmentDecisionSets)) {
+    const current = decisionsById.get(id);
+    assert.ok(current, `reviewed member ${id} disappeared from the ledger`);
+    for (const decision of reviewed) {
+      assert.ok(
+        current.includes(decision),
+        `intake dropped the reviewed '${decision}' treatment from ${id}`,
+      );
+    }
+  }
+  // Every member — reviewed or newly adopted — still carries at least one
+  // decision drawn from the closed treatment vocabulary.
+  for (const member of ledger.sourceMembers) {
+    assert.ok(member.treatments.length > 0, `${member.id} has no treatment`);
+    for (const treatment of member.treatments) {
+      assert.match(treatment.decision, /^(?:adopt|adapt|defer|reject)$/u);
+      assert.match(treatment.rationale, /\S/u);
+    }
+  }
+  // Adopted bodies are shipped and manifest-pinned; nothing else is.
+  const adoptedMembers = new Set(ledger.adoptedSources.map((entry) => entry.member));
+  for (const member of ledger.sourceMembers) {
+    const decisions = decisionsById.get(member.id) ?? [];
+    if (adoptedMembers.has(member.member)) {
+      assert.ok(decisions.includes("adopt"), `shipped ${member.member} is not marked adopt`);
+    }
+    if (/\.(?:py|js|mjs|cjs|sh|ps1|bat|cmd|html?)$/iu.test(member.member)) {
+      assert.ok(
+        !adoptedMembers.has(member.member),
+        `executable ${member.member} must never be shipped`,
+      );
+      assert.ok(decisions.includes("reject"), `executable ${member.member} is not rejected`);
+    }
+  }
   for (const [identity, expectedHash] of Object.entries(criticalMembers)) {
     const member = members.get(identity);
     assert.ok(member, `missing source member ${identity}`);
@@ -777,7 +834,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   ]);
   assert.equal(adoption.schemaVersion, "sapphirus.bmad.adoption-ledger/v1");
   assert.equal(adoption.operationalAuthority, "none");
-  assert.equal(adoption.promotionEligibility, "blocked_provenance");
+  assert.equal(adoption.promotionEligibility, "owner_attested_release");
   assert.equal(adoption.trademarkDecision.status, "product_naming_not_approved");
   assert.match(adoption.trademarkDecision.rationale, /\S/u);
 
@@ -1392,9 +1449,13 @@ test("capability closure ledger covers every roster menu path exactly once", asy
       "active",
       `${record.capabilityId} activation status`,
     );
+    // An active capability binds a sealed instruction: either a Sapphirus
+    // managed projection under `runtime/`, or an ADR-0008 upstream body
+    // adopted verbatim under `source/`. Nothing else may activate.
     assert.ok(
       record.managedProjection === null
-        || record.managedProjection.startsWith("runtime/"),
+        || record.managedProjection.startsWith("runtime/")
+        || record.managedProjection.startsWith("source/method/"),
       `${record.capabilityId} projection binding`,
     );
     if (record.activationStatus === "active") {
@@ -1403,10 +1464,21 @@ test("capability closure ledger covers every roster menu path exactly once", asy
     }
   }
 
+  // The denominator is the ADR-0005 menu capabilities, the ADR-0006 Builder
+  // operations, and the ADR-0008 core skills. Core skills have no agent menu
+  // path — upstream invokes them from inside other skills — so they are
+  // counted by their adopted-source binding instead.
   const menuCapabilityIds = new Set(expectedMenuPaths.map(([, , id]) => id));
+  const coreSkillRecords = records.filter((record) =>
+    record.managedProjection?.startsWith("source/method/6.10.0/src/core-skills/") === true);
+  for (const record of coreSkillRecords) {
+    assert.equal(record.agentCodes.length, 0, `${record.capabilityId} must have no menu path`);
+    assert.equal(record.sourceDecision, "verbatim_adoption_under_adr_0008");
+  }
+  assert.equal(coreSkillRecords.length, 9, "core skill denominator drift");
   assert.equal(
     records.length,
-    menuCapabilityIds.size + expectedBuilderOperations.length,
+    menuCapabilityIds.size + expectedBuilderOperations.length + coreSkillRecords.length,
     "denominator drift: unexpected extra or missing capability records",
   );
 });

@@ -420,6 +420,105 @@
       "activationStatus": "active",
       "managedProjection": "runtime/builder/2.1.0/workflow-build-edit.instructions.md",
       "outputSchema": "sapphirus.bmad-inactive-builder-draft.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-spec",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "governed_change_set",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-spec/SKILL.md",
+      "outputSchema": "sapphirus.bmad-governed-change-set.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-advanced-elicitation",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-advanced-elicitation/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-review-adversarial-general",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-adversarial-general/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-review-edge-case-hunter",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-review-verification-gap",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-verification-gap/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-editorial-review-prose",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-editorial-review-prose/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-editorial-review-structure",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-editorial-review-structure/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-shard-doc",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "governed_change_set",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-shard-doc/SKILL.md",
+      "outputSchema": "sapphirus.bmad-governed-change-set.v1"
+    },
+    {
+      "capabilityId": "bmm:bmad-index-docs",
+      "agentCodes": [],
+      "menuCodes": [],
+      "outputArchetype": "document_artifact",
+      "authorityClass": "model_with_reviewed_context",
+      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "activationStatus": "active",
+      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-index-docs/SKILL.md",
+      "outputSchema": "sapphirus.bmad-document-artifact.v1"
     }
   ]
 }

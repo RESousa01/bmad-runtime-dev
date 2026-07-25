@@ -1,8 +1,12 @@
 # ADR-0005: The full BMAD capability denominator
 
-- Status: accepted (2026-07-20)
-- Supersedes: only the executable-scope exclusions of ADR-0003. Every other
-  ADR-0003 rule — above all the no-source-body rule — remains in force.
+- Status: accepted (2026-07-20), **amended by
+  [ADR-0008](ADR-0008-verbatim-method-adoption.md) (2026-07-25)**
+- Supersedes: only the executable-scope exclusions of ADR-0003.
+- Amended by ADR-0008: the "no-source-body rule remains in force" claim below
+  no longer holds — 228 method bodies are now adopted verbatim. The
+  capability denominator this ADR fixed has also moved (26 → 38 records in
+  `capability-closure-ledger.json`) as the nine core skills gained bindings.
 
 ## Context
 

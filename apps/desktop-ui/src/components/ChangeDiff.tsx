@@ -5,6 +5,7 @@ export interface ChangeDiffProps {
   readonly relativePath: string;
   readonly beforeContent: string | null;
   readonly afterContent: string | null;
+  readonly showAllLines?: boolean | undefined;
 }
 
 export function diffCounts(
@@ -90,7 +91,109 @@ function DiffRow({ line }: { readonly line: DiffLine }) {
   );
 }
 
-export function ChangeDiff({ relativePath, beforeContent, afterContent }: ChangeDiffProps) {
+interface SplitCell {
+  readonly kind: "added" | "context" | "removed";
+  readonly line: number;
+  readonly text: string;
+}
+
+interface SplitRowValue {
+  readonly after: SplitCell | null;
+  readonly before: SplitCell | null;
+}
+
+function splitRows(lines: readonly DiffLine[]): SplitRowValue[] {
+  const rows: SplitRowValue[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index]!;
+    if (line.kind === "context") {
+      rows.push({
+        before: { kind: "context", line: line.beforeLine, text: line.text },
+        after: { kind: "context", line: line.afterLine, text: line.text },
+      });
+      index += 1;
+      continue;
+    }
+    const removed: Extract<DiffLine, { kind: "removed" }>[] = [];
+    const added: Extract<DiffLine, { kind: "added" }>[] = [];
+    while (index < lines.length && lines[index]!.kind !== "context") {
+      const changed = lines[index]!;
+      if (changed.kind === "removed") removed.push(changed);
+      if (changed.kind === "added") added.push(changed);
+      index += 1;
+    }
+    const changeRows = Math.max(removed.length, added.length);
+    for (let changeIndex = 0; changeIndex < changeRows; changeIndex += 1) {
+      const before = removed[changeIndex];
+      const after = added[changeIndex];
+      rows.push({
+        before: before
+          ? { kind: "removed", line: before.beforeLine, text: before.text }
+          : null,
+        after: after
+          ? { kind: "added", line: after.afterLine, text: after.text }
+          : null,
+      });
+    }
+  }
+  return rows;
+}
+
+function SplitDiffCell({ cell, side }: {
+  readonly cell: SplitCell | null;
+  readonly side: "after" | "before";
+}) {
+  const kind = cell?.kind ?? "empty";
+  const marker = cell?.kind === "added" ? "+" : cell?.kind === "removed" ? "−" : "";
+  return (
+    <div className={`split-diff__cell split-diff__cell--${kind} ${cell?.kind === "added" || cell?.kind === "removed" ? `diff-line--${cell.kind}` : ""}`} data-side={side}>
+      <span aria-hidden="true" className="split-diff__line-number">{cell?.line ?? ""}</span>
+      <span aria-hidden="true" className="split-diff__marker">{marker}</span>
+      <span className="split-diff__text">{cell ? (cell.text || " ") : " "}</span>
+    </div>
+  );
+}
+
+/** OpenCode-shaped side-by-side file review with aligned before/after lines. */
+export function SplitChangeDiff({ relativePath, beforeContent, afterContent, showAllLines = false }: ChangeDiffProps) {
+  const diff = useMemo(
+    () => computeLineDiff(beforeContent ?? "", afterContent ?? ""),
+    [beforeContent, afterContent],
+  );
+  const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
+
+  return (
+    <div aria-label={`Split changes to ${relativePath}`} className="split-diff" role="region">
+      {diff.segments.map((segment, segmentIndex) => {
+        if (segment.kind === "collapsed" && !showAllLines && !expanded.has(segmentIndex)) {
+          return (
+            <button
+              className="split-diff__collapsed"
+              key={`segment-${segmentIndex}`}
+              onClick={() => setExpanded((current) => new Set(current).add(segmentIndex))}
+              type="button"
+            >
+              {segment.lines.length} unchanged {segment.lines.length === 1 ? "line" : "lines"}
+            </button>
+          );
+        }
+        return (
+          <div className="split-diff__segment" key={`segment-${segmentIndex}`}>
+            {splitRows(segment.lines).map((row, rowIndex) => (
+              <div className="split-diff__row" key={`${segmentIndex}-${rowIndex}`}>
+                <SplitDiffCell cell={row.before} side="before" />
+                <SplitDiffCell cell={row.after} side="after" />
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ChangeDiff({ relativePath, beforeContent, afterContent, showAllLines = false }: ChangeDiffProps) {
   const diff = useMemo(
     () => computeLineDiff(beforeContent ?? "", afterContent ?? ""),
     [beforeContent, afterContent],
@@ -100,7 +203,7 @@ export function ChangeDiff({ relativePath, beforeContent, afterContent }: Change
   return (
     <div aria-label={`Changes to ${relativePath}`} className="diff-view" role="region">
       {diff.segments.map((segment, index) =>
-        segment.kind === "collapsed" && !expanded.has(index) ? (
+        segment.kind === "collapsed" && !showAllLines && !expanded.has(index) ? (
           <button
             className="diff-collapsed"
             key={`segment-${index}`}

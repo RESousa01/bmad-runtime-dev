@@ -36,6 +36,7 @@ const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_builder;
 mod bmad_capability;
 mod bmad_method;
+mod chat;
 mod execution;
 mod migrations;
 
@@ -45,6 +46,7 @@ pub use bmad_method::{
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
     MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
 };
+pub use chat::{StoredChatMessage, StoredChatSession};
 pub use execution::{
     EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,
     ExecutionResultAppend, ExecutionResultRow, EXECUTION_CHECKPOINT_KIND,
@@ -2268,7 +2270,9 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_capability_results;
+            "DROP TABLE chat_messages;
+             DROP TABLE chat_sessions;
+             DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
              DROP TABLE effect_journals;
@@ -2315,7 +2319,9 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_capability_results;
+            "DROP TABLE chat_messages;
+             DROP TABLE chat_sessions;
+             DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
              DROP TABLE effect_journals;
@@ -2415,7 +2421,9 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_capability_results;
+            "DROP TABLE chat_messages;
+             DROP TABLE chat_sessions;
+             DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
              DROP TABLE effect_journals;

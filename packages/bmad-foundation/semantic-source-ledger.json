@@ -18,8 +18,17 @@
       "archiveSha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
       "archiveEvidence": "reviewed_snapshot_only",
       "gitIdentity": null,
-      "exception": null,
-      "promotionEligibility": "blocked_provenance",
+      "exception": {
+        "kind": "owner_attested_release",
+        "grantedBy": "repository maintainer (RodrigoSousa0)",
+        "grantedOn": "2026-07-25",
+        "decisionRecord": "docs/adr/ADR-0008-verbatim-method-adoption.md",
+        "attestation": "The maintainer downloaded this archive directly from the official upstream GitHub repository.",
+        "releaseIdentity": "declared in the archive: package.json version and CHANGELOG release heading",
+        "expiresOn": "first public distribution (signed installer, published artifact, or pilot build)",
+        "expiryCondition": "Adopted bytes must be pinned to an immutably identified upstream release (tagged commit or signed release archive) before any public distribution."
+      },
+      "promotionEligibility": "owner_attested_release",
       "missingImmutableIdentity": [
         "upstream commit or tag",
         "release signature"
@@ -42,8 +51,17 @@
       "archiveSha256": "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
       "archiveEvidence": "reviewed_snapshot_only",
       "gitIdentity": null,
-      "exception": null,
-      "promotionEligibility": "blocked_provenance",
+      "exception": {
+        "kind": "owner_attested_release",
+        "grantedBy": "repository maintainer (RodrigoSousa0)",
+        "grantedOn": "2026-07-25",
+        "decisionRecord": "docs/adr/ADR-0008-verbatim-method-adoption.md",
+        "attestation": "The maintainer downloaded this archive directly from the official upstream GitHub repository.",
+        "releaseIdentity": "declared in the archive: package.json version and CHANGELOG release heading",
+        "expiresOn": "first public distribution (signed installer, published artifact, or pilot build)",
+        "expiryCondition": "Adopted bytes must be pinned to an immutably identified upstream release (tagged commit or signed release archive) before any public distribution."
+      },
+      "promotionEligibility": "owner_attested_release",
       "missingImmutableIdentity": [
         "upstream commit or tag",
         "release signature"
@@ -198,6 +216,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -230,6 +252,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -326,6 +352,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -358,6 +388,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -426,6 +460,10 @@
         {
           "decision": "reject",
           "rationale": "Execute no hook, file, prompt, or skill directive."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -438,6 +476,10 @@
         {
           "decision": "adapt",
           "rationale": "Translate architecture-create intent into the later capability-specific host state machine."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -474,6 +516,10 @@
         {
           "decision": "reject",
           "rationale": "Do not copy the source template bytes into runtime."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -490,6 +536,10 @@
         {
           "decision": "reject",
           "rationale": "Do not run source scripts or subagents."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -506,6 +556,10 @@
         {
           "decision": "reject",
           "rationale": "The desktop delivery has no headless mode: script invocation, web verification, subagent reviewer lenses, and artifact-path outputs are categorically excluded; the assumptions/open-questions discipline is already carried by the architecture projection."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -522,6 +576,10 @@
         {
           "decision": "reject",
           "rationale": "Never dispatch arbitrary forwarded text."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -534,6 +592,10 @@
         {
           "decision": "adapt",
           "rationale": "Retain only the four legacy fields through the typed resolver."
+        },
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
         }
       ]
     },
@@ -1154,6 +1216,2166 @@
         {
           "decision": "adapt",
           "rationale": "Replace activation, resolver, config, web retrieval, subprocess, and persistence machinery with a sealed host-bounded capability projection (rewritten semantics; no source body distribution)."
+        }
+      ]
+    },
+    {
+      "id": "method-068",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/checklist.md",
+      "sha256": "581b0b034c25de17ac3678db2dbafedaeb113de37ddf15a4df6584cf2324a7d7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-069",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/documentation-requirements.csv",
+      "sha256": "d1253b99e88250f2130516b56027ed706e643bfec3d99316727a4c6ec65c6c1d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-070",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/instructions.md",
+      "sha256": "9f4bc3a46559ffd44289b0d61a0f8f26f829783aa1c0e2a09dfa807fa93eb12f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-071",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/deep-dive-template.md",
+      "sha256": "6198aa731d87d6a318b5b8d180fc29b9aa53ff0966e02391c17333818e94ffe9",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-072",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/index-template.md",
+      "sha256": "42c8a14f53088e4fda82f26a3fe41dc8a89d4bcb7a9659dd696136378b64ee90",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-073",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/project-overview-template.md",
+      "sha256": "a7c7325b75a5a678dca391b9b69b1e3409cfbe6da95e70443ed3ace164e287b2",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-074",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/project-scan-report-schema.json",
+      "sha256": "8466965321f1db22f5013869636199f67e0113706283c285a7ffbbf5efeea321",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-075",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/source-tree-template.md",
+      "sha256": "109bc335ebb22f932b37c24cdc777a351264191825444a4d147c9b82a1e2ad7a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-076",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-instructions.md",
+      "sha256": "a79e24b93a25ab456062916a9dad7b6a16dc43ac0b4b555700d3c3751cff0d25",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-077",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-workflow.md",
+      "sha256": "a64d98dfa3b771df2853c4fa19a4e9c90d131e409e13b4c6f5e494d6ac715125",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-078",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-instructions.md",
+      "sha256": "2235945df2ae261265187447ce593238e132a026a9b88d3507a1f1d6808a0263",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-079",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-workflow.md",
+      "sha256": "3bff88a392c16602bd44730f32483505e73e65e46e82768809c13a0a5f55608b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-080",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/agents/artifact-analyzer.md",
+      "sha256": "7bdc44830f8d593346ec0ee15e36e1e431432fcc6c38b70bb861999315c9cfa4",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-081",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/agents/web-researcher.md",
+      "sha256": "6e9127bb9bd3e4b15c701e4ced9eef328769262cd34eadc221bebe954c1f3aef",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-082",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/assets/prfaq-template.md",
+      "sha256": "b27e6964f0437ab4e78c8c0ffbe5052c28e3b3ef2fc811726cbb394d5a5c7559",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-083",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/bmad-manifest.json",
+      "sha256": "7908cab6f0cd66f1f3427b4cc659975b4737bdc44f789b23c6a895fcd084c4bc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-084",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/customer-faq.md",
+      "sha256": "96f8565197649c58908a1d61b6cd805fd01f57da7945ba889c18d087ad597aeb",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-085",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/internal-faq.md",
+      "sha256": "26eb83f844cda1ed8efb50f4703d61713ada8a64bd27eb387f759f858b5748de",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-086",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/press-release.md",
+      "sha256": "c406adb0e2d2cc326cbc45d0174f89d014523448ad82bc272293999d22aec596",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-087",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/verdict.md",
+      "sha256": "1a1cbc34090114d3a2b928456edec1563b73d84fea66c58e98780bf680f172ec",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-088",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/assets/brief-template.md",
+      "sha256": "bb28edf75d023067551c8d417b19b8803324e7acfb2ad0c80f882e9134f4c1f1",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-089",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-01-init.md",
+      "sha256": "efee243f13ef54401ded88f501967b8bc767460cec5561b2107fc03fe7b7eab1",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-090",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-02-domain-analysis.md",
+      "sha256": "385a288d9bbb0adf050bcce4da4dad198a9151822f9766900404636f2b0c7f9d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-091",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-03-competitive-landscape.md",
+      "sha256": "f10aa088ba00c59491507f6519fb314139f8be6807958bb5fd1b66bff2267749",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-092",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-04-regulatory-focus.md",
+      "sha256": "d22035529efe91993e698b4ebf297bf2e7593eb41d185a661c357a8afc08977b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-093",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-05-technical-trends.md",
+      "sha256": "fd6c577010171679f630805eb76e09daf823c2b9770eb716986d01f351ce1fb4",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-094",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-06-research-synthesis.md",
+      "sha256": "805f2cb7005a4fb0c4da52ea38d45de863f3e840e0f2de1456c414831cdbdf59",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-095",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-096",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-097",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-01-init.md",
+      "sha256": "64d5501aea0c0005db23a0a4d9ee84cf4e9239f553c994ecc6b1356917967ccc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-098",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-02-customer-behavior.md",
+      "sha256": "bac4de244049f90d1f2eb95e2cc9389cc84966d9538077fef1ec9c35e4533849",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-099",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-03-customer-pain-points.md",
+      "sha256": "5b2418ccaaa89291c593efed0311b3895faad1e9181800d382da823a8eb1312a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-100",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-04-customer-decisions.md",
+      "sha256": "f0bc25f2179b7490e7a6704159a32fc9e83ab616022355ed53acfe8e2f7059d5",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-101",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-05-competitive-analysis.md",
+      "sha256": "17532051ad232cfc859f09ac3b44f9f4d542eb24cff8d07317126ccdff0d225a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-102",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-06-research-completion.md",
+      "sha256": "4f5d3158a8462656d6959d29544ed5c92cb925641e2205e47af05c124fcd7666",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-103",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-104",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-01-init.md",
+      "sha256": "c9a1627ecd26227e944375eb691e7ee6bc9f5db29a428a5d53e5d6aef8bb9697",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-105",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-02-technical-overview.md",
+      "sha256": "9c7582241038b16280cddce86f2943216541275daf0a935dcab78f362904b305",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-106",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-03-integration-patterns.md",
+      "sha256": "005d517a2f962e2172e26b23d10d5e6684c7736c0d3982e27b2e72d905814ad9",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-107",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-04-architectural-patterns.md",
+      "sha256": "4636f23e9c585a7a0c90437a660609d913f16362c3557fc2e71d408d6b9f46ce",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-108",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-05-implementation-research.md",
+      "sha256": "e2b8a2c79bcebadc85f3823145980fa47d7e7be8d1c112f686c6223c8c138608",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-109",
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-06-research-synthesis.md",
+      "sha256": "64d9303ef0c9ce839dc3b2d72e94e3e5b4673e82dc7fc9f1571bd0b03b3a43a7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-110",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-create-prd/SKILL.md",
+      "sha256": "143c5c2d85734021db343ff3dbf143e804eddbf9fb519fb824b70f1a9154767d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-111",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-create-prd/customize.toml",
+      "sha256": "0c990af4c0a755402abbef893850bd542744a8b6f36c0587c9f3fb6dab6bf5e7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-112",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-edit-prd/SKILL.md",
+      "sha256": "31ecfe3c16513d994e44e648a7f2d4f4a6ccf297ca6c1826aa68ef7b053e7ff2",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-113",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-edit-prd/customize.toml",
+      "sha256": "35cc2dfb3eda73a0ae4dc987cac58867b25c43ce5c5a1bf552e215826ede6c22",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-114",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/headless-schemas.md",
+      "sha256": "8d3621333a72400512bd62511bc4c73fc745711505e1f852c697ff8c5fa2de93",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-115",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-template.md",
+      "sha256": "41e77bd5c4ee81c3f383b55d6f515147afc9c4bd1a3317ddf55a9282deae495c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-116",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-validation-checklist.md",
+      "sha256": "41d9f09064772a92ec908d970618e47ba63dc86b5c5a1a21d5a2c676d3ba8e3f",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-117",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/validation-report-template.html",
+      "sha256": "a80becdd8205d2d7c18738855830b096172a496b96b5ca8a0820ec55c9bb8bf9",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-118",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/references/headless.md",
+      "sha256": "4dad58ebee63933a53179016513ff94d143ce9f68e226489d390e2c36bf1d848",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-119",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md",
+      "sha256": "71f28774e85c673a5c48af607af541e6a08e10076a2d46d0763885fafc74f201",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-120",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",
+      "sha256": "48fac7943e8584ccf7dd1bcdfdfd4513366a086a3a84965b6b302ccf6607c171",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-121",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-directions.md",
+      "sha256": "eab73b948da76a27abc908e1e7d6b124e8ff0362e6dd1990f7e60b9541cbcb98",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-122",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-editorial.md",
+      "sha256": "a659166845b1a4ed3f9aef942c5935537a97382b10303684fbb78ed86265870e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-123",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-mobile.md",
+      "sha256": "a93fb9f114f2e83af0c961c0d7909b3859fc80bcd713715517cd639a53a0372a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-124",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-shadcn.md",
+      "sha256": "25e0dfb2bb21483973a8f0a6ed650288b3dc2ae5ed02aa0f091bb9b6b0b39fc0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-125",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/excalidraw-wireframe.md",
+      "sha256": "660bbcdebff50cd044a3752eda43f3cb303aca4b0f521b55a270da93b89ddb18",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-126",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-mobile.md",
+      "sha256": "f8cd54c92193cd8c34a472df9c212ac7330976f6a115b729721dcb60034dc4f0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-127",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-shadcn.md",
+      "sha256": "d6ca16e87b768e8b41f352c02ee08af21d7cdac04ca21e6ae1556864b4d27590",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-128",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/headless-schemas.md",
+      "sha256": "e3a773dde85286f1a6f6dd8b26fc17e09ccea96f6257dfe7fb436353cd79242d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-129",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/key-screens.md",
+      "sha256": "ff1c5060673dd595edd61e76806bae876264ec6895c2eaadf8a6190785bf5f7b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-130",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/validation-report-template.html",
+      "sha256": "8656945636fabe96624f8ef8fce931b073b5aecbe42d490584c1d5c7f31e1353",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-131",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/creative-tools.md",
+      "sha256": "349b6b5e8353c2fa1efe7caa49cca50577900f55f32005ccd6f7b43e4daec558",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-132",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+      "sha256": "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-133",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/headless.md",
+      "sha256": "8da7e23d269b1644f45b5104a243a6a27fd8d075aebb95d9b7752f0d143f0f5d",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-134",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md",
+      "sha256": "336d5be5ca860dc6948606b68b5a14fed593d41508ad83e123879bd466c984db",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-135",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-validate-prd/SKILL.md",
+      "sha256": "931439b8c84bc454d0596a1ad35d6583c1926c941f2928c54b31aea702c24b53",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-136",
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-validate-prd/customize.toml",
+      "sha256": "bfb3c8af5b81b2cdb9bb84f844f1b0dafc40d8c283effa6ad48db966b9446cef",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-137",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+      "sha256": "e86bb9a62c5cca74ddc89c843386f2b992610fcc1792d40e03bc9cd445b77681",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-138",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-01-document-discovery.md",
+      "sha256": "c763b512d55906122433cb65c1bcd5b5b283e45eacdc07281c8ec7596b6b3980",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-139",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-02-prd-analysis.md",
+      "sha256": "38be2bf4b924c0b5b395b57d68f685d790ade7b1a6c10993d3c550675f87d954",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-140",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
+      "sha256": "7b187f03a47cba0325fcfd10240410db9c59d93768342fc2dd3de2a01ec23356",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-141",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-04-ux-alignment.md",
+      "sha256": "f71e5f0d77615e885ae40fdee6b04c1dd6e472c871f87b515fe869cb5f6966fb",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-142",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-05-epic-quality-review.md",
+      "sha256": "d8a84e57f4e3a321734b5b5d093458ceb1e338744f18954c5a204f5ce3576185",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-143",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-06-final-assessment.md",
+      "sha256": "1b9c8c2a21950f85e052e05309bfcb3bfe38157ba6fca402ccf37444e7f1cee3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-144",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/templates/readiness-report-template.md",
+      "sha256": "0da97ab1e38818e642f36dc0ef24d2dae69fc6e0be59924dc2dbf44329738ff6",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-145",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-01-validate-prerequisites.md",
+      "sha256": "7181608c1ee4e55c084c6627d68fc55a8a0b6917e489f8ac77531a0530428a30",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-146",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-02-design-epics.md",
+      "sha256": "7c66987808c1f84e853fe54b7aff26d209196d450b5644704110f124a15179bc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-147",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-03-create-stories.md",
+      "sha256": "c5b787a82e4e49ed9cd9c028321ee1689f32b8cd69d89eea609b37cd3d481afc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-148",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-04-final-validation.md",
+      "sha256": "6b83fcf177c24c6b43c2eb0df2efc1430cb0f357b3ab20ee8a5c5483c3fee079",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-149",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/templates/epics-template.md",
+      "sha256": "a804f740155156d89661fa04e7a4264a8f712c4dc227c44fd8ae804a9b0f6b72",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-150",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md",
+      "sha256": "f25e05d8c3923f331f96a73e6ba8bb8b055b5ca2aa548402a3b633141b8dea21",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-151",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/customize.toml",
+      "sha256": "00b6e893b93a1be7c04408f1824dad72c2c43ee02ba29210725e34394bf8225e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-152",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/project-context-template.md",
+      "sha256": "54e351394ceceb0ac4b5b8135bb6295cf2c37f739c7fd11bb895ca16d79824a5",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-153",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-01-discover.md",
+      "sha256": "8b2c8c7375f8a3c28411250675a28c0d0a9174e6c4e67b3d53619888439c4613",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-154",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-02-generate.md",
+      "sha256": "b1f063edae66a74026b67a79a245cec7ee85438bafcacfc70dcf6006b495e060",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-155",
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-03-complete.md",
+      "sha256": "e61463db76a8fa060411aa24127aee936d646b97564e9e2a883494ea50e68464",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-156",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/SKILL.md",
+      "sha256": "34613078dbea9c55e45df016399328d8360579fd381301a5de78bb52c3597591",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-157",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/customize.toml",
+      "sha256": "1a1e0c3a8914adda3cec925eed51287e067c7f84120de64a8df53348e7b77de5",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-158",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/generate-trail.md",
+      "sha256": "4a5936d86fbe5a85285b4535097b1e2edda8849da35586f4b588a982d7224459",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-159",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-01-orientation.md",
+      "sha256": "d9e3b949c36d49a025f3535773af2b51888fe4ce616b6d6d69683a122716b1d2",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-160",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-02-walkthrough.md",
+      "sha256": "66cf893f8f968ee81034e9ccd8c20415692c3a8c23a9a143c2245fe6c800acdc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-161",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-03-detail-pass.md",
+      "sha256": "d48163b9f305f15af57729a8443142e47beb6c3e977554afe12b39ee49cb9fc0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-162",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-04-testing.md",
+      "sha256": "28a56e868968ea2d18add0df8c4bccced0f94b698e218df3d45ddac072ce369c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-163",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-05-wrapup.md",
+      "sha256": "c2d4dbc17fed4f8ecbfcb09a2f9c77f0d4562bd27397270e2c27ba37cf4fe073",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-164",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-01-gather-context.md",
+      "sha256": "fd06fc9b5946a1cc1f5fa9cd21c33af5a65befd4cd2ce4abaf6a91d1b30ba701",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-165",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-02-review.md",
+      "sha256": "2d261827b78c673ace9b81919de1bea6bbf70b4c9b5d6dcbb6910b431c601501",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-166",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-03-triage.md",
+      "sha256": "46a9e661e8aed6a7347cd7bc0b3f7edd8e4bffcfc96b2e15895f7a8ce2517d70",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-167",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-04-present.md",
+      "sha256": "1bded625413479aae5bb2e46a36d4e4156c31dc19f97b98812ecb8734870687c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-168",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/checklist.md",
+      "sha256": "3e082b95def90ccb876e3101ce0bbaf797a0f03a9471e1347361897f27977327",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-169",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/checklist.md",
+      "sha256": "b94e28e774c3be0288f04ea163424bece4ddead5cd3f3680d1603ed07383323a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-170",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/discover-inputs.md",
+      "sha256": "dfedba6a8ea05c9a91c6d202c4b29ee3ea793d8ef77575034787ae0fef280507",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-171",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/template.md",
+      "sha256": "29ba697368d77e88e88d0e7ac78caf7a78785a7dcfc291082aa96a62948afb67",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-172",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/SKILL.md",
+      "sha256": "468d40aae3cf0bd606b986566a92b36706f45d5f8ce021328acba20d677195d0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-173",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/compile-epic-context.md",
+      "sha256": "fa300a04e9b1f494314ddde443678affb2ac1965e2ac07dc4d6bb64316998466",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-174",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/customize.toml",
+      "sha256": "238947560659b373d2e3b3d5a852e42f091534bff49acc9a06323bcd5d9b4253",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-175",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/spec-template.md",
+      "sha256": "58be8da102ff80007f7de27165d93d32e1d795f2ea91b7c903d6745d83f492f1",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-176",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-01-clarify-and-route.md",
+      "sha256": "d28892a47f7221c1b041d8fafebd39cd369d76978cb505d0dafe16074ff6cd62",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-177",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-02-plan.md",
+      "sha256": "c23fac6eb74de90b28ceb4f63bcd949b5b138323bf12956cb0491a4eb162bc5c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-178",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-03-implement.md",
+      "sha256": "da7212ad5f8edd96ef55b5c9df626e2ccdec05d3c7ab16c31c9c99f89ab7e641",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-179",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-04-review.md",
+      "sha256": "26b44c6798d264269992cc0a2150758c607ec9464d793a23e616d0fcf384a9c5",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-180",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/checklist.md",
+      "sha256": "630b68c6824a8785003a65553c1f335222b17be93b1bd80524c23b38bde1d8af",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-181",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/checklist.md",
+      "sha256": "b58f810aeb1040c2f6758c88aa133afce72f8cc178d3d97ff0fbaa3d943057dc",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-182",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/compile-epic-context.md",
+      "sha256": "5cfda02f252941e415b80c57b4528f46226b3cbf456ad45d78fcb5a7ef4816e2",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-183",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/render.py",
+      "sha256": "82e20aff63477b385f58b76e902d800586edb5778c46fb54fe5cb33917c90459",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-184",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/spec-template.md",
+      "sha256": "68d0e3b9acaa0c22ab3b0dd1dbce9d8ef9b4d16637ed5e6fbd5244528732943e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-185",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-01-clarify-and-route.md",
+      "sha256": "bf6e7552c83d453352e00f49e9427f95bb4c6d7ea43e34083697bb2a6405eece",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-186",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-02-plan.md",
+      "sha256": "0ccfcf9db56c266185c52e56460adbd7c713f33507675bdb5eb56eefc3310287",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-187",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-03-implement.md",
+      "sha256": "238c49279769cfe32d8ecf051d60d0b3817d2ee6a916b36ba3bde5511a063553",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-188",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-04-review.md",
+      "sha256": "940b5a691add9e6b81f6d01fc725bab7f2e579e5397ee6e94da42efdc9d8758e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-189",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-05-present.md",
+      "sha256": "adf8cc4c2f555d19bb49f8e89771d44755c0e850505746c69bae088be1f71b6c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-190",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-oneshot.md",
+      "sha256": "8a4c190870832a6f43f30886c2646b407f8007a21f2a7d367a2cefea25b57deb",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-191",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/sync-sprint-status.md",
+      "sha256": "92b3eced6146a640f0b5a1755959241387aa7d80284feba2306cb8986a6341e8",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-192",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/workflow.md",
+      "sha256": "4c7d0a0f7e2aa2277a3298ebc6803bf81186e0a2b9b3895e8451fb969e32dd18",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-193",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/checklist.md",
+      "sha256": "11b0b1ff20657b8e7d1f3377a88f102446112f617f5d0e91ab1595a977714a97",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-194",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/sprint-status-template.yaml",
+      "sha256": "317b65e5fc0844a96b99ea923a1672e8b1f354269a8fd305691be32976a86614",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-195",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-status/SKILL.md",
+      "sha256": "a0dcb85d89cbbc6f20651412cf07ccc97f72f605915f03ee70208cc91fb705e9",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-196",
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-status/customize.toml",
+      "sha256": "96261fd227befaa4685b0a5091d3e85299d4ae8e4404176b42f5ef2e2fb501bd",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-197",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-advanced-elicitation/SKILL.md",
+      "sha256": "705cc827cab892855d07dcc926f5c9f749c3abab33e915d6ac1574aec174896b",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-198",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-advanced-elicitation/methods.csv",
+      "sha256": "d110ff5f076fb9421552b83692fde2c2d367734049169c7a55f7267a3dc7ef89",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-199",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/analysis/catalog-analysis.md",
+      "sha256": "d4e742da964674549c7f0c64db82c4e1938f8521e5cf0034c103fd08022e515c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-200",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/analysis/method-matrix.csv",
+      "sha256": "e6755bc1ef2aa92328d4facb6b12975b3ffb320e0c215a5a078e951692b012a4",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-201",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/assets/brain-icons.json",
+      "sha256": "a101c56e89f1d0f9e4131dfdfc19e10c746e3a61c3f92537d04a6f4897b7d331",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-202",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/assets/brain-methods.csv",
+      "sha256": "150536f3f3d56e08262b27a2abd6b36f266538e2c929ef4aaf183491da33f0eb",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-203",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/assets/brain-selector.html",
+      "sha256": "798f27c743b853424aa00d4e41af5c3b515b7a329d6806b5d0a5ebe15e0fbf4e",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-204",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/converge.md",
+      "sha256": "1528c32ddc64f8061fec663306f7208d2fd4d4a90e660552b8138bda7e452dc0",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-205",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/finalize.md",
+      "sha256": "b6074e7fb4d86ffcf899abc50b9049b4a1f6fe550917f4be7a1c7a888477e07e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-206",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/headless.md",
+      "sha256": "b8ea5951199cff7e4813e06aef35683ca0658230fa015e358cacc466b1138a42",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-207",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/in-chat-techniques.md",
+      "sha256": "18239464e3e4f00ea9063d015d26d6b0a696b72e7e3c5be92352da6db9a3f244",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-208",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-autonomous.md",
+      "sha256": "79fba5391ef293cebdbbdc765c7edeb3ccf60c04317fef964a4ea64d6b13f260",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-209",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-facilitator.md",
+      "sha256": "1b908498d285d190859aed00c3ba5b399d7f6aa8e94d54e95456d15cd6fe6073",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-210",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-partner.md",
+      "sha256": "caa0ed378c116def4de382f4e5a95173c6ae6cc5464f1792e7d8196360f79c8a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-211",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/resume.md",
+      "sha256": "0f79535d72eefe6c55bd5ae47fe4753de8d27235cf129f10b2c596a124c26526",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-212",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/scripts/brain.py",
+      "sha256": "b84770d5d55fa17bd99a2ab9076130874dfb7f8cd9b4283cd6413df097bc72b6",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-213",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/scripts/tests/test_brain.py",
+      "sha256": "5f150395d5aa95526eb1ded5b7a8bd624a577dd25ff060ac082db3cbb5cc0f77",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-214",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-customize/SKILL.md",
+      "sha256": "6461073f9322f5f2ec64477d6ae5e79c601e36e3160e492fef4bc2d928d4a9a8",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-215",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-customize/scripts/list_customizable_skills.py",
+      "sha256": "8787f542930b927789e7fdf12bc5a67ff08e19865903a5ad05ff2cc8fc426b66",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-216",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-customize/scripts/tests/test_list_customizable_skills.py",
+      "sha256": "24c3d384b3b5d490b7335c17866bfe0425af253ce669c32382fa88feb705934d",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-217",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-editorial-review-prose/SKILL.md",
+      "sha256": "b3687fe80567378627bc2a0c5034ae8d65dfeedcf2b6c90da077f4feca462d0c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-218",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-editorial-review-structure/SKILL.md",
+      "sha256": "164444359d74f695a84faf7ea558d0eef39c75561e6b26669f97a165c6f75538",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-219",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/SKILL.md",
+      "sha256": "c62ac3a30a4c7a32e3ffd28881d0e9128fc22de1570884d6572c8bfbb7d7db0e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-220",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/customize.toml",
+      "sha256": "ef5fadd1df3550cae00b1b442606bf84d187bfd55397563f143e1057430df45c",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-221",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/scripts/resolve_personas.py",
+      "sha256": "3da694c23e5fb29fe25963e2ea0509e1dd6d8c9f70ac54b00d98044052fd1c6e",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-222",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/scripts/tests/test_resolve_personas.py",
+      "sha256": "1c4fa4b1d68bfbd10e4b38cad3c8286dad62345cebd08fe94a6862351b02855e",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-223",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-index-docs/SKILL.md",
+      "sha256": "a855d7060414e73ca4fe8e1a3e1cc4d0f2ce394846e52340bdf5a1317e0d234a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-224",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/SKILL.md",
+      "sha256": "783fef00cf5a889c80d7bb4ca78ca2a6e4c4390cde290d2e253855cf723cb10a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-225",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/customize.toml",
+      "sha256": "fee7fe153c853f949dca6ad20a7c78270fc91e3e88486aefbc9956cfb4c14a84",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-226",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/create-party.md",
+      "sha256": "2f810332c36c17d14eb55717aed48f3020acf0713bb9f932479be9fbc3856e9e",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-227",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-agent-team.md",
+      "sha256": "def759a17f4bb45463b68fb74c2b828b0a4241720b2b6cc1c9c611a1016ae9d7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-228",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-auto.md",
+      "sha256": "a37fd24f76dfcde385890d5c5947bb6f40ca44bea86c805d267b6ae3aab39f70",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-229",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-subagent.md",
+      "sha256": "86161b24a0b13b8f9cb9309042e4249d8caefff8cc33728b084cd2ec22f9d2e1",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-230",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/party-memory.md",
+      "sha256": "800b4b4b920bb881a7b32aaabca8559a98273799b2476d83a23e290e301fb315",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-231",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/scripts/resolve_party.py",
+      "sha256": "663a1ffa8406564c2a08f210f144b08d323596b105b755ae795ca725384e32ac",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-232",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/scripts/tests/test-resolve_party.py",
+      "sha256": "bb53fe03ec3013ed96c0fb399c1948f28bcf55cb2d7727fe0189343fcaa667d5",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-233",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-adversarial-general/SKILL.md",
+      "sha256": "3b70b004b662c3a094328a8666e0084a94cb6de2e2a7336f23d31c65bca084e7",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-234",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
+      "sha256": "03087a3f1e935f7a111bc2c8e1b44c2cf2cc05d9843e5af3c913a148c70d8c96",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-235",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
+      "sha256": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-236",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-verification-gap/SKILL.md",
+      "sha256": "c18391f0f736312175a9e528d33b23ea3acaf0bd3bb4c05a4966d934075b1b28",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-237",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-shard-doc/SKILL.md",
+      "sha256": "3a1538536514725fd4f31aded280ee56b9645fc61d114fd94aacb3ac52304e52",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-238",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/SKILL.md",
+      "sha256": "b77ca3e5674592957853ff01e226c490e504952fa938c4ac5d748f351f38eabf",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-239",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/headless-schemas.md",
+      "sha256": "83afb3614716db2347d83586a67b9c524492dd50db5282436ccb35c99fb5f08a",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-240",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/spec-template.md",
+      "sha256": "94ef029b842dfa7f296dab4ccf830f0b813af9995bf8bbdcdfc0783a60ee5ffe",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-241",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/stories-schema.md",
+      "sha256": "4f8137c00e2710288354a4466d1cfb90704f4b2a04bd3b63924218fd589cc6a9",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-242",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/customize.toml",
+      "sha256": "b0181ba5d4038feb779a7a082a265df753220f868b66b5adb0fb2ed18401c763",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-243",
+      "sourceId": "method",
+      "member": "src/scripts/memlog.py",
+      "sha256": "3b00f82ca33dc4227f715123b939514ee35c4f9c71150c894c3d8185df1b48df",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-244",
+      "sourceId": "method",
+      "member": "src/scripts/resolve_config.py",
+      "sha256": "f41149160898aea80a12861d149b10dc6b2d2b69d7d97eb65cad01f368adac03",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-245",
+      "sourceId": "method",
+      "member": "src/scripts/resolve_customization.py",
+      "sha256": "23fb9040b08c7eb975aeabc4245ef50e158516f5082eebc9ae41700641338498",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-246",
+      "sourceId": "method",
+      "member": "src/scripts/tests/test_memlog.py",
+      "sha256": "0eaf504681429d86a6c415d8f8165a107b019792113ed06a7751683eb22be550",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-247",
+      "sourceId": "method",
+      "member": "src/scripts/tests/test_resolve_customization.py",
+      "sha256": "3c93a68544b28e10c08fe4f8c24f296926e69bf142ace13d1c30867e3283c4cb",
+      "treatments": [
+        {
+          "decision": "reject",
+          "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
         }
       ]
     },
@@ -1949,13 +4171,13 @@
   "managedOutputs": [
     {
       "path": "NOTICE.md",
-      "byteLength": 904,
-      "sha256": "e5d7b1980f3ea91bad42f6ed9230f79dcb83e4b016261ad4933ba5e49bc73765"
+      "byteLength": 1954,
+      "sha256": "6dbe64aa8940643d62beb40911b7143dc9eaa3cdab4420bc72df20072a1697b5"
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 78045,
-      "sha256": "c0a97ffddb064e06bcfe11f8a72789ffb02dc06c0c1706cad100ee4d6dd1e72f"
+      "byteLength": 118432,
+      "sha256": "671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -2146,6 +4368,1604 @@
       "path": "runtime/method/6.10.0/write-document.instructions.md",
       "byteLength": 1128,
       "sha256": "f793679356a0c05b302dee6ed46eac3aeeafad78fd36ca8effcdb8dcbc63b8d0"
+    }
+  ],
+  "adoptedSources": [
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
+      "sha256": "fca38a404e79508ebc39235d0162bcb475b02407a913e3e5bd8c5526b2b261a6",
+      "byteLength": 4525
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-analyst/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-analyst/customize.toml",
+      "sha256": "7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+      "byteLength": 3357
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md",
+      "sha256": "7544242ff68d0ddfd466274f40ae9f3b0ea06ee5f5f938f68f953e19b3598cd7",
+      "byteLength": 4582
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/customize.toml",
+      "sha256": "bb828f2d26a136870099226f07c61297ce88ddd335823b7549592932bbe14a2e",
+      "byteLength": 3315
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/explain-concept.md",
+      "sha256": "6ea82dbe4e41d4bb8880cbaa62d936e40cef18f8c038be73ae6e09c462abafc9",
+      "byteLength": 687
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md",
+      "sha256": "1d83fcc5fa842bc31ecd9fd7e45fbf013fabcadf0022d3391fff5b53b48e4b5d",
+      "byteLength": 684
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/validate-doc.md",
+      "sha256": "3b8d25f60be191716266726393f2d44b77262301b785a801631083b610d6acc5",
+      "byteLength": 659
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md",
+      "sha256": "c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
+      "byteLength": 931
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/SKILL.md",
+      "sha256": "806d73f66a8f3f3e7b3cbd3b9a87ad4d8b9aabd3ff91f37c96edef36a17aa2b3",
+      "byteLength": 2671
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/checklist.md",
+      "sha256": "581b0b034c25de17ac3678db2dbafedaeb113de37ddf15a4df6584cf2324a7d7",
+      "byteLength": 10101
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/customize.toml",
+      "sha256": "3bbb5044fafdd865a5fe0863df116a479f30de7fb95c9cf4213f0b87ba1ba924",
+      "byteLength": 1596
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/documentation-requirements.csv",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/documentation-requirements.csv",
+      "sha256": "d1253b99e88250f2130516b56027ed706e643bfec3d99316727a4c6ec65c6c1d",
+      "byteLength": 8076
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/instructions.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/instructions.md",
+      "sha256": "9f4bc3a46559ffd44289b0d61a0f8f26f829783aa1c0e2a09dfa807fa93eb12f",
+      "byteLength": 5164
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/deep-dive-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/templates/deep-dive-template.md",
+      "sha256": "6198aa731d87d6a318b5b8d180fc29b9aa53ff0966e02391c17333818e94ffe9",
+      "byteLength": 5854
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/index-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/templates/index-template.md",
+      "sha256": "42c8a14f53088e4fda82f26a3fe41dc8a89d4bcb7a9659dd696136378b64ee90",
+      "byteLength": 4510
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/project-overview-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/templates/project-overview-template.md",
+      "sha256": "a7c7325b75a5a678dca391b9b69b1e3409cfbe6da95e70443ed3ace164e287b2",
+      "byteLength": 1951
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/project-scan-report-schema.json",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/templates/project-scan-report-schema.json",
+      "sha256": "8466965321f1db22f5013869636199f67e0113706283c285a7ffbbf5efeea321",
+      "byteLength": 4836
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/templates/source-tree-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/templates/source-tree-template.md",
+      "sha256": "109bc335ebb22f932b37c24cdc777a351264191825444a4d147c9b82a1e2ad7a",
+      "byteLength": 2160
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-instructions.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-instructions.md",
+      "sha256": "a79e24b93a25ab456062916a9dad7b6a16dc43ac0b4b555700d3c3751cff0d25",
+      "byteLength": 12143
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-workflow.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/workflows/deep-dive-workflow.md",
+      "sha256": "a64d98dfa3b771df2853c4fa19a4e9c90d131e409e13b4c6f5e494d6ac715125",
+      "byteLength": 979
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-instructions.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-instructions.md",
+      "sha256": "2235945df2ae261265187447ce593238e132a026a9b88d3507a1f1d6808a0263",
+      "byteLength": 43434
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-workflow.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-document-project/workflows/full-scan-workflow.md",
+      "sha256": "3bff88a392c16602bd44730f32483505e73e65e46e82768809c13a0a5f55608b",
+      "byteLength": 970
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+      "sha256": "353da1cc8837e880c7f41b636a1bd38086c56a91d59798b13f5d6168f0021de4",
+      "byteLength": 10802
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/agents/artifact-analyzer.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/agents/artifact-analyzer.md",
+      "sha256": "7bdc44830f8d593346ec0ee15e36e1e431432fcc6c38b70bb861999315c9cfa4",
+      "byteLength": 2646
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/agents/web-researcher.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/agents/web-researcher.md",
+      "sha256": "6e9127bb9bd3e4b15c701e4ced9eef328769262cd34eadc221bebe954c1f3aef",
+      "byteLength": 1756
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/assets/prfaq-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/assets/prfaq-template.md",
+      "sha256": "b27e6964f0437ab4e78c8c0ffbe5052c28e3b3ef2fc811726cbb394d5a5c7559",
+      "byteLength": 1434
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/bmad-manifest.json",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/bmad-manifest.json",
+      "sha256": "7908cab6f0cd66f1f3427b4cc659975b4737bdc44f789b23c6a895fcd084c4bc",
+      "byteLength": 469
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/customize.toml",
+      "sha256": "8994f925bab65bd310e5ab38781286b6137f3e0c9e89f3ab8a2f480eb05e0de5",
+      "byteLength": 1618
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/customer-faq.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/references/customer-faq.md",
+      "sha256": "96f8565197649c58908a1d61b6cd805fd01f57da7945ba889c18d087ad597aeb",
+      "byteLength": 3697
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/internal-faq.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/references/internal-faq.md",
+      "sha256": "26eb83f844cda1ed8efb50f4703d61713ada8a64bd27eb387f759f858b5748de",
+      "byteLength": 3928
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/press-release.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/references/press-release.md",
+      "sha256": "c406adb0e2d2cc326cbc45d0174f89d014523448ad82bc272293999d22aec596",
+      "byteLength": 4308
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-prfaq/references/verdict.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-prfaq/references/verdict.md",
+      "sha256": "1a1cbc34090114d3a2b928456edec1563b73d84fea66c58e98780bf680f172ec",
+      "byteLength": 4494
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
+      "sha256": "0d569d109cd61a8056374d1f3f3980188407983772544ab81f4ff6b18e798508",
+      "byteLength": 11632
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/assets/brief-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-product-brief/assets/brief-template.md",
+      "sha256": "bb28edf75d023067551c8d417b19b8803324e7acfb2ad0c80f882e9134f4c1f1",
+      "byteLength": 1606
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/bmad-product-brief/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/bmad-product-brief/customize.toml",
+      "sha256": "cdd7b417de5b280ab5bd3af65f69654b05980b5efb48077563827c16391f42d6",
+      "byteLength": 5242
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/SKILL.md",
+      "sha256": "2308f7e21f78d7f2ed43d560dbcdbfa2af236d6a81988495f28baf0e81a03206",
+      "byteLength": 4771
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/customize.toml",
+      "sha256": "462ef14dc1e1f6d145fdfe25e315168fd1fa278ea5f87fe0fa86689234daec2f",
+      "byteLength": 1667
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-01-init.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-01-init.md",
+      "sha256": "efee243f13ef54401ded88f501967b8bc767460cec5561b2107fc03fe7b7eab1",
+      "byteLength": 5394
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-02-domain-analysis.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-02-domain-analysis.md",
+      "sha256": "385a288d9bbb0adf050bcce4da4dad198a9151822f9766900404636f2b0c7f9d",
+      "byteLength": 8640
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-03-competitive-landscape.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-03-competitive-landscape.md",
+      "sha256": "f10aa088ba00c59491507f6519fb314139f8be6807958bb5fd1b66bff2267749",
+      "byteLength": 9525
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-04-regulatory-focus.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-04-regulatory-focus.md",
+      "sha256": "d22035529efe91993e698b4ebf297bf2e7593eb41d185a661c357a8afc08977b",
+      "byteLength": 6967
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-05-technical-trends.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-05-technical-trends.md",
+      "sha256": "fd6c577010171679f630805eb76e09daf823c2b9770eb716986d01f351ce1fb4",
+      "byteLength": 7506
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-06-research-synthesis.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/domain-steps/step-06-research-synthesis.md",
+      "sha256": "805f2cb7005a4fb0c4da52ea38d45de863f3e840e0f2de1456c414831cdbdf59",
+      "byteLength": 17221
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-domain-research/research.template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-domain-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "byteLength": 581
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/SKILL.md",
+      "sha256": "13f2c2148061dc6688c4c9d81b5e5b98fbfe4d7294eba0daa0cac5b17f7a0593",
+      "byteLength": 4711
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/customize.toml",
+      "sha256": "f47af9158893dd3f7ab81ac03cb07d8c76342eead61ec7c9a8a463066b7db9af",
+      "byteLength": 1668
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/research.template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "byteLength": 581
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-01-init.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-01-init.md",
+      "sha256": "64d5501aea0c0005db23a0a4d9ee84cf4e9239f553c994ecc6b1356917967ccc",
+      "byteLength": 6422
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-02-customer-behavior.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-02-customer-behavior.md",
+      "sha256": "bac4de244049f90d1f2eb95e2cc9389cc84966d9538077fef1ec9c35e4533849",
+      "byteLength": 9265
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-03-customer-pain-points.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-03-customer-pain-points.md",
+      "sha256": "5b2418ccaaa89291c593efed0311b3895faad1e9181800d382da823a8eb1312a",
+      "byteLength": 9581
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-04-customer-decisions.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-04-customer-decisions.md",
+      "sha256": "f0bc25f2179b7490e7a6704159a32fc9e83ab616022355ed53acfe8e2f7059d5",
+      "byteLength": 10020
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-05-competitive-analysis.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-05-competitive-analysis.md",
+      "sha256": "17532051ad232cfc859f09ac3b44f9f4d542eb24cff8d07317126ccdff0d225a",
+      "byteLength": 5756
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-06-research-completion.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-market-research/steps/step-06-research-completion.md",
+      "sha256": "4f5d3158a8462656d6959d29544ed5c92cb925641e2205e47af05c124fcd7666",
+      "byteLength": 19394
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/SKILL.md",
+      "sha256": "290c5aec88886a623f620e59e43090d11791b0fade357bae2b9de9ae510d3159",
+      "byteLength": 4839
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/customize.toml",
+      "sha256": "7f567fddb04674f817398addbc06e6d1620883d89dcc7ac643c5a56eef5ac337",
+      "byteLength": 1674
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/research.template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/research.template.md",
+      "sha256": "507bb6729476246b1ca2fca4693986d286a33af5529b6cd5cb1b0bb5ea9926ce",
+      "byteLength": 581
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-01-init.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-01-init.md",
+      "sha256": "c9a1627ecd26227e944375eb691e7ee6bc9f5db29a428a5d53e5d6aef8bb9697",
+      "byteLength": 5581
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-02-technical-overview.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-02-technical-overview.md",
+      "sha256": "9c7582241038b16280cddce86f2943216541275daf0a935dcab78f362904b305",
+      "byteLength": 9447
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-03-integration-patterns.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-03-integration-patterns.md",
+      "sha256": "005d517a2f962e2172e26b23d10d5e6684c7736c0d3982e27b2e72d905814ad9",
+      "byteLength": 9995
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-04-architectural-patterns.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-04-architectural-patterns.md",
+      "sha256": "4636f23e9c585a7a0c90437a660609d913f16362c3557fc2e71d408d6b9f46ce",
+      "byteLength": 7212
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-05-implementation-research.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-05-implementation-research.md",
+      "sha256": "e2b8a2c79bcebadc85f3823145980fa47d7e7be8d1c112f686c6223c8c138608",
+      "byteLength": 7774
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-06-research-synthesis.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/1-analysis/research/bmad-technical-research/technical-steps/step-06-research-synthesis.md",
+      "sha256": "64d9303ef0c9ce839dc3b2d72e94e3e5b4673e82dc7fc9f1571bd0b03b3a43a7",
+      "byteLength": 21304
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md",
+      "sha256": "e2ebea0bf6ee158fcb9e62731a185983f2ac59f664940f4f4320cf10e1bbdf92",
+      "byteLength": 4497
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-pm/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-agent-pm/customize.toml",
+      "sha256": "afc2250de25241ac3577c9827e1ee62d8c7a1913de8eb23aadfffb0aadbadc37",
+      "byteLength": 3040
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+      "sha256": "d780ae59b9fb7e3a94c5ffe4ec75f90942d4a9a3944af4b36c2d279fdd7801db",
+      "byteLength": 4518
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/customize.toml",
+      "sha256": "3df7da44945f9df34dbb3a64de086c756e6c298e73078e388e8f9a4f57cbf7ab",
+      "byteLength": 2536
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-create-prd/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-create-prd/SKILL.md",
+      "sha256": "143c5c2d85734021db343ff3dbf143e804eddbf9fb519fb824b70f1a9154767d",
+      "byteLength": 2877
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-create-prd/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-create-prd/customize.toml",
+      "sha256": "0c990af4c0a755402abbef893850bd542744a8b6f36c0587c9f3fb6dab6bf5e7",
+      "byteLength": 1616
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-edit-prd/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-edit-prd/SKILL.md",
+      "sha256": "31ecfe3c16513d994e44e648a7f2d4f4a6ccf297ca6c1826aa68ef7b053e7ff2",
+      "byteLength": 2912
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-edit-prd/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-edit-prd/customize.toml",
+      "sha256": "35cc2dfb3eda73a0ae4dc987cac58867b25c43ce5c5a1bf552e215826ede6c22",
+      "byteLength": 1701
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+      "sha256": "85f0a3ea5fee06fcaef5ff34d6b194b265fe0d31ffd7610a9c9a0134bf0b21ce",
+      "byteLength": 13728
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/headless-schemas.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/assets/headless-schemas.md",
+      "sha256": "8d3621333a72400512bd62511bc4c73fc745711505e1f852c697ff8c5fa2de93",
+      "byteLength": 2038
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-template.md",
+      "sha256": "41e77bd5c4ee81c3f383b55d6f515147afc9c4bd1a3317ddf55a9282deae495c",
+      "byteLength": 10034
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-validation-checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-validation-checklist.md",
+      "sha256": "41d9f09064772a92ec908d970618e47ba63dc86b5c5a1a21d5a2c676d3ba8e3f",
+      "byteLength": 7432
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/customize.toml",
+      "sha256": "5da1c87df2022c3e31f2c8e343dbead23356fbc5f5e9169eccd3102577ba295f",
+      "byteLength": 7922
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/references/headless.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/references/headless.md",
+      "sha256": "4dad58ebee63933a53179016513ff94d143ce9f68e226489d390e2c36bf1d848",
+      "byteLength": 3314
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md",
+      "sha256": "71f28774e85c673a5c48af607af541e6a08e10076a2d46d0763885fafc74f201",
+      "byteLength": 5503
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+      "sha256": "250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
+      "byteLength": 10700
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",
+      "sha256": "48fac7943e8584ccf7dd1bcdfdfd4513366a086a3a84965b6b302ccf6607c171",
+      "byteLength": 1022
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-directions.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-directions.md",
+      "sha256": "eab73b948da76a27abc908e1e7d6b124e8ff0362e6dd1990f7e60b9541cbcb98",
+      "byteLength": 1056
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-editorial.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-editorial.md",
+      "sha256": "a659166845b1a4ed3f9aef942c5935537a97382b10303684fbb78ed86265870e",
+      "byteLength": 7363
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-mobile.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-mobile.md",
+      "sha256": "a93fb9f114f2e83af0c961c0d7909b3859fc80bcd713715517cd639a53a0372a",
+      "byteLength": 4957
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-shadcn.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-shadcn.md",
+      "sha256": "25e0dfb2bb21483973a8f0a6ed650288b3dc2ae5ed02aa0f091bb9b6b0b39fc0",
+      "byteLength": 6376
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/excalidraw-wireframe.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/excalidraw-wireframe.md",
+      "sha256": "660bbcdebff50cd044a3752eda43f3cb303aca4b0f521b55a270da93b89ddb18",
+      "byteLength": 1901
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-mobile.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-mobile.md",
+      "sha256": "f8cd54c92193cd8c34a472df9c212ac7330976f6a115b729721dcb60034dc4f0",
+      "byteLength": 5123
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-shadcn.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-shadcn.md",
+      "sha256": "d6ca16e87b768e8b41f352c02ee08af21d7cdac04ca21e6ae1556864b4d27590",
+      "byteLength": 9279
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/headless-schemas.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/headless-schemas.md",
+      "sha256": "e3a773dde85286f1a6f6dd8b26fc17e09ccea96f6257dfe7fb436353cd79242d",
+      "byteLength": 2615
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/key-screens.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/assets/key-screens.md",
+      "sha256": "ff1c5060673dd595edd61e76806bae876264ec6895c2eaadf8a6190785bf5f7b",
+      "byteLength": 2186
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+      "sha256": "c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+      "byteLength": 4424
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/creative-tools.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/references/creative-tools.md",
+      "sha256": "349b6b5e8353c2fa1efe7caa49cca50577900f55f32005ccd6f7b43e4daec558",
+      "byteLength": 1825
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+      "sha256": "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
+      "byteLength": 3298
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/headless.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/references/headless.md",
+      "sha256": "8da7e23d269b1644f45b5104a243a6a27fd8d075aebb95d9b7752f0d143f0f5d",
+      "byteLength": 2310
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md",
+      "sha256": "336d5be5ca860dc6948606b68b5a14fed593d41508ad83e123879bd466c984db",
+      "byteLength": 6713
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-validate-prd/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-validate-prd/SKILL.md",
+      "sha256": "931439b8c84bc454d0596a1ad35d6583c1926c941f2928c54b31aea702c24b53",
+      "byteLength": 2925
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/2-plan-workflows/bmad-validate-prd/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-validate-prd/customize.toml",
+      "sha256": "bfb3c8af5b81b2cdb9bb84f844f1b0dafc40d8c283effa6ad48db966b9446cef",
+      "byteLength": 1731
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+      "sha256": "82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
+      "byteLength": 4499
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
+      "sha256": "d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
+      "byteLength": 2723
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+      "sha256": "a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "byteLength": 13888
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+      "sha256": "ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
+      "byteLength": 4357
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+      "sha256": "137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+      "byteLength": 6093
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+      "sha256": "4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
+      "byteLength": 2660
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+      "sha256": "d32e32a3c1d59b5612b947004f3f6fef1117a13ce9f1ffa428d616e0b5d4db69",
+      "byteLength": 3245
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+      "sha256": "a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+      "byteLength": 4890
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+      "sha256": "571d81087b7a6d914cf7c2f21aa26354eac385bb2f5cfeabc591892cbb98d036",
+      "byteLength": 1631
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-01-document-discovery.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-01-document-discovery.md",
+      "sha256": "c763b512d55906122433cb65c1bcd5b5b283e45eacdc07281c8ec7596b6b3980",
+      "byteLength": 4939
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-02-prd-analysis.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-02-prd-analysis.md",
+      "sha256": "38be2bf4b924c0b5b395b57d68f685d790ade7b1a6c10993d3c550675f87d954",
+      "byteLength": 4444
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
+      "sha256": "7b187f03a47cba0325fcfd10240410db9c59d93768342fc2dd3de2a01ec23356",
+      "byteLength": 4058
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-04-ux-alignment.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-04-ux-alignment.md",
+      "sha256": "f71e5f0d77615e885ae40fdee6b04c1dd6e472c871f87b515fe869cb5f6966fb",
+      "byteLength": 3306
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-05-epic-quality-review.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-05-epic-quality-review.md",
+      "sha256": "d8a84e57f4e3a321734b5b5d093458ceb1e338744f18954c5a204f5ce3576185",
+      "byteLength": 6716
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-06-final-assessment.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-06-final-assessment.md",
+      "sha256": "1b9c8c2a21950f85e052e05309bfcb3bfe38157ba6fca402ccf37444e7f1cee3",
+      "byteLength": 3552
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/templates/readiness-report-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/templates/readiness-report-template.md",
+      "sha256": "0da97ab1e38818e642f36dc0ef24d2dae69fc6e0be59924dc2dbf44329738ff6",
+      "byteLength": 95
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
+      "sha256": "4b1673582dc8e0957b559cece14f048c0c995874b79ad255f033b36b2b789eb0",
+      "byteLength": 3050
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
+      "sha256": "618be49b0286f18dfb4b6bac3d96bf1cf062994fa5278cd327be9898e651b43c",
+      "byteLength": 1671
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+      "sha256": "4ec9ec255c2c0e97ae912342ae1445318e672aa1c2a9e412806b7d7ef7d5a6a7",
+      "byteLength": 5087
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/customize.toml",
+      "sha256": "da9e43605bc6aec83173050b5d37ede6aebfa9a17c5959a5029681d73e744ba3",
+      "byteLength": 1665
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-01-validate-prerequisites.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-01-validate-prerequisites.md",
+      "sha256": "7181608c1ee4e55c084c6627d68fc55a8a0b6917e489f8ac77531a0530428a30",
+      "byteLength": 10960
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-02-design-epics.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-02-design-epics.md",
+      "sha256": "7c66987808c1f84e853fe54b7aff26d209196d450b5644704110f124a15179bc",
+      "byteLength": 8809
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-03-create-stories.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-03-create-stories.md",
+      "sha256": "c5b787a82e4e49ed9cd9c028321ee1689f32b8cd69d89eea609b37cd3d481afc",
+      "byteLength": 8351
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-04-final-validation.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/steps/step-04-final-validation.md",
+      "sha256": "6b83fcf177c24c6b43c2eb0df2efc1430cb0f357b3ab20ee8a5c5483c3fee079",
+      "byteLength": 5325
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/templates/epics-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/templates/epics-template.md",
+      "sha256": "a804f740155156d89661fa04e7a4264a8f712c4dc227c44fd8ae804a9b0f6b72",
+      "byteLength": 1105
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md",
+      "sha256": "f25e05d8c3923f331f96a73e6ba8bb8b055b5ca2aa548402a3b633141b8dea21",
+      "byteLength": 3839
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/customize.toml",
+      "sha256": "00b6e893b93a1be7c04408f1824dad72c2c43ee02ba29210725e34394bf8225e",
+      "byteLength": 1643
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/project-context-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/project-context-template.md",
+      "sha256": "54e351394ceceb0ac4b5b8135bb6295cf2c37f739c7fd11bb895ca16d79824a5",
+      "byteLength": 543
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-01-discover.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-01-discover.md",
+      "sha256": "8b2c8c7375f8a3c28411250675a28c0d0a9174e6c4e67b3d53619888439c4613",
+      "byteLength": 6016
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-02-generate.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-02-generate.md",
+      "sha256": "b1f063edae66a74026b67a79a245cec7ee85438bafcacfc70dcf6006b495e060",
+      "byteLength": 9135
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-03-complete.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/3-solutioning/bmad-generate-project-context/steps/step-03-complete.md",
+      "sha256": "e61463db76a8fa060411aa24127aee936d646b97564e9e2a883494ea50e68464",
+      "byteLength": 8370
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-agent-dev/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-agent-dev/SKILL.md",
+      "sha256": "54ab6d9d60d7ed7e84d6510cf325734b66feb1b419131436672559584b4bf508",
+      "byteLength": 4565
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-agent-dev/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-agent-dev/customize.toml",
+      "sha256": "01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+      "byteLength": 3341
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/SKILL.md",
+      "sha256": "34613078dbea9c55e45df016399328d8360579fd381301a5de78bb52c3597591",
+      "byteLength": 3161
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/customize.toml",
+      "sha256": "1a1e0c3a8914adda3cec925eed51287e067c7f84120de64a8df53348e7b77de5",
+      "byteLength": 1616
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/generate-trail.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/generate-trail.md",
+      "sha256": "4a5936d86fbe5a85285b4535097b1e2edda8849da35586f4b588a982d7224459",
+      "byteLength": 1992
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-01-orientation.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-01-orientation.md",
+      "sha256": "d9e3b949c36d49a025f3535773af2b51888fe4ce616b6d6d69683a122716b1d2",
+      "byteLength": 5004
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-02-walkthrough.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-02-walkthrough.md",
+      "sha256": "66cf893f8f968ee81034e9ccd8c20415692c3a8c23a9a143c2245fe6c800acdc",
+      "byteLength": 4172
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-03-detail-pass.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-03-detail-pass.md",
+      "sha256": "d48163b9f305f15af57729a8443142e47beb6c3e977554afe12b39ee49cb9fc0",
+      "byteLength": 4990
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-04-testing.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-04-testing.md",
+      "sha256": "28a56e868968ea2d18add0df8c4bccced0f94b698e218df3d45ddac072ce369c",
+      "byteLength": 2698
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-05-wrapup.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-checkpoint-preview/step-05-wrapup.md",
+      "sha256": "c2d4dbc17fed4f8ecbfcb09a2f9c77f0d4562bd27397270e2c27ba37cf4fe073",
+      "byteLength": 1525
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/SKILL.md",
+      "sha256": "c303ef6d8cc507ef268e95978052250289bd0c76941441a023baebfd807c1efd",
+      "byteLength": 4019
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/customize.toml",
+      "sha256": "0289d4e42524eafcd465d4adfc86fb5bcf28903e6b42d41bdafc5e31b163afa3",
+      "byteLength": 3363
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-01-gather-context.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/steps/step-01-gather-context.md",
+      "sha256": "fd06fc9b5946a1cc1f5fa9cd21c33af5a65befd4cd2ce4abaf6a91d1b30ba701",
+      "byteLength": 6480
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-02-review.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/steps/step-02-review.md",
+      "sha256": "2d261827b78c673ace9b81919de1bea6bbf70b4c9b5d6dcbb6910b431c601501",
+      "byteLength": 1944
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-03-triage.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/steps/step-03-triage.md",
+      "sha256": "46a9e661e8aed6a7347cd7bc0b3f7edd8e4bffcfc96b2e15895f7a8ce2517d70",
+      "byteLength": 3224
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-code-review/steps/step-04-present.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-code-review/steps/step-04-present.md",
+      "sha256": "1bded625413479aae5bb2e46a36d4e4156c31dc19f97b98812ecb8734870687c",
+      "byteLength": 6328
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
+      "sha256": "5064ef2e7aedfb094bef912d5e4d6680318a1904d9bcdc7875d3dc16bb253ea4",
+      "byteLength": 13551
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-correct-course/checklist.md",
+      "sha256": "3e082b95def90ccb876e3101ce0bbaf797a0f03a9471e1347361897f27977327",
+      "byteLength": 11634
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-correct-course/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-correct-course/customize.toml",
+      "sha256": "78095d25afb5b2d4844956f61e9ac640a62d0245174fab9406e9c289f33fd84b",
+      "byteLength": 1640
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
+      "sha256": "692ab872ebaa197931d849a8d01fa28e86a9b3ee2f4acf79318bb3797a91e9aa",
+      "byteLength": 23519
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-create-story/checklist.md",
+      "sha256": "b94e28e774c3be0288f04ea163424bece4ddead5cd3f3680d1603ed07383323a",
+      "byteLength": 14349
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-create-story/customize.toml",
+      "sha256": "1204f6de064436922f2813069778eb4eaa5f1f945aa8ea5a5ffb87897a2ba8fe",
+      "byteLength": 1643
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/discover-inputs.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-create-story/discover-inputs.md",
+      "sha256": "dfedba6a8ea05c9a91c6d202c4b29ee3ea793d8ef77575034787ae0fef280507",
+      "byteLength": 3911
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-create-story/template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-create-story/template.md",
+      "sha256": "29ba697368d77e88e88d0e7ac78caf7a78785a7dcfc291082aa96a62948afb67",
+      "byteLength": 948
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/SKILL.md",
+      "sha256": "468d40aae3cf0bd606b986566a92b36706f45d5f8ce021328acba20d677195d0",
+      "byteLength": 6858
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/compile-epic-context.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/compile-epic-context.md",
+      "sha256": "fa300a04e9b1f494314ddde443678affb2ac1965e2ac07dc4d6bb64316998466",
+      "byteLength": 2990
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/customize.toml",
+      "sha256": "238947560659b373d2e3b3d5a852e42f091534bff49acc9a06323bcd5d9b4253",
+      "byteLength": 3819
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/spec-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/spec-template.md",
+      "sha256": "58be8da102ff80007f7de27165d93d32e1d795f2ea91b7c903d6745d83f492f1",
+      "byteLength": 4063
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-01-clarify-and-route.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/step-01-clarify-and-route.md",
+      "sha256": "d28892a47f7221c1b041d8fafebd39cd369d76978cb505d0dafe16074ff6cd62",
+      "byteLength": 10321
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-02-plan.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/step-02-plan.md",
+      "sha256": "c23fac6eb74de90b28ceb4f63bcd949b5b138323bf12956cb0491a4eb162bc5c",
+      "byteLength": 2712
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-03-implement.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/step-03-implement.md",
+      "sha256": "da7212ad5f8edd96ef55b5c9df626e2ccdec05d3c7ab16c31c9c99f89ab7e641",
+      "byteLength": 3167
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-04-review.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-auto/step-04-review.md",
+      "sha256": "26b44c6798d264269992cc0a2150758c607ec9464d793a23e616d0fcf384a9c5",
+      "byteLength": 8458
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
+      "sha256": "f12801307b157f04d2bde7da104e1ebde3f2898bd3a60326da928d5b9fc793ac",
+      "byteLength": 26709
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-story/checklist.md",
+      "sha256": "630b68c6824a8785003a65553c1f335222b17be93b1bd80524c23b38bde1d8af",
+      "byteLength": 4389
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
+      "sha256": "592fa7948c4614609a59b152518f518d35e0178d6aa7c22e169d78157fd9f5aa",
+      "byteLength": 1613
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md",
+      "sha256": "9e78729569b2dc8e24e5f8eb016a851c4efd5c1920e2c91e0e3175fc6899d98d",
+      "byteLength": 5652
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/checklist.md",
+      "sha256": "b58f810aeb1040c2f6758c88aa133afce72f8cc178d3d97ff0fbaa3d943057dc",
+      "byteLength": 891
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/customize.toml",
+      "sha256": "04a99926b2d79318b927434c7344dc666f143026ed99c7fcc0d6e3d68263ae66",
+      "byteLength": 1639
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md",
+      "sha256": "b16f55bff0181e12edb1b5f0e2cec012507efe86c1013f926e50026a8df9e48f",
+      "byteLength": 671
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/compile-epic-context.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/compile-epic-context.md",
+      "sha256": "5cfda02f252941e415b80c57b4528f46226b3cbf456ad45d78fcb5a7ef4816e2",
+      "byteLength": 2922
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/customize.toml",
+      "sha256": "ae6e5249ef9ef97009a8e65e76a20677fc99a2a5e9f6b775794e0d4942ddb0f8",
+      "byteLength": 2325
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/spec-template.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/spec-template.md",
+      "sha256": "68d0e3b9acaa0c22ab3b0dd1dbce9d8ef9b4d16637ed5e6fbd5244528732943e",
+      "byteLength": 3481
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-01-clarify-and-route.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-01-clarify-and-route.md",
+      "sha256": "bf6e7552c83d453352e00f49e9427f95bb4c6d7ea43e34083697bb2a6405eece",
+      "byteLength": 9930
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-02-plan.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-02-plan.md",
+      "sha256": "0ccfcf9db56c266185c52e56460adbd7c713f33507675bdb5eb56eefc3310287",
+      "byteLength": 3240
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-03-implement.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-03-implement.md",
+      "sha256": "238c49279769cfe32d8ecf051d60d0b3817d2ee6a916b36ba3bde5511a063553",
+      "byteLength": 2544
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-04-review.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-04-review.md",
+      "sha256": "940b5a691add9e6b81f6d01fc725bab7f2e579e5397ee6e94da42efdc9d8758e",
+      "byteLength": 4575
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-05-present.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-05-present.md",
+      "sha256": "adf8cc4c2f555d19bb49f8e89771d44755c0e850505746c69bae088be1f71b6c",
+      "byteLength": 4275
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-oneshot.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/step-oneshot.md",
+      "sha256": "8a4c190870832a6f43f30886c2646b407f8007a21f2a7d367a2cefea25b57deb",
+      "byteLength": 4229
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/sync-sprint-status.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/sync-sprint-status.md",
+      "sha256": "92b3eced6146a640f0b5a1755959241387aa7d80284feba2306cb8986a6341e8",
+      "byteLength": 1397
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-quick-dev/workflow.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-quick-dev/workflow.md",
+      "sha256": "4c7d0a0f7e2aa2277a3298ebc6803bf81186e0a2b9b3895e8451fb969e32dd18",
+      "byteLength": 3847
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
+      "sha256": "af09b92e4928bbc9e01382497e733ecc9312bf8c1ad680e4f4cc0c4a0ea34253",
+      "byteLength": 65521
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-retrospective/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-retrospective/customize.toml",
+      "sha256": "4ad7e7e7154b480eac7592d0ecc18680b9567471812e9687550be10d547fa7ff",
+      "byteLength": 1659
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
+      "sha256": "aa828c5ceeb2aa875da324e358844700802c6ad8cb11a97cfb955f37209231de",
+      "byteLength": 11960
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/checklist.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-planning/checklist.md",
+      "sha256": "11b0b1ff20657b8e7d1f3377a88f102446112f617f5d0e91ab1595a977714a97",
+      "byteLength": 1383
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-planning/customize.toml",
+      "sha256": "f7bde2f792e8604f26122ee792c5493e270710296044b07680db7d90e886caf3",
+      "byteLength": 1606
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-planning/sprint-status-template.yaml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-planning/sprint-status-template.yaml",
+      "sha256": "317b65e5fc0844a96b99ea923a1672e8b1f354269a8fd305691be32976a86614",
+      "byteLength": 2266
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-status/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-status/SKILL.md",
+      "sha256": "a0dcb85d89cbbc6f20651412cf07ccc97f72f605915f03ee70208cc91fb705e9",
+      "byteLength": 12992
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/4-implementation/bmad-sprint-status/customize.toml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/4-implementation/bmad-sprint-status/customize.toml",
+      "sha256": "96261fd227befaa4685b0a5091d3e85299d4ae8e4404176b42f5ef2e2fb501bd",
+      "byteLength": 1609
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/module-help.csv",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/module-help.csv",
+      "sha256": "ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+      "byteLength": 6989
+    },
+    {
+      "sourceId": "method",
+      "member": "src/bmm-skills/module.yaml",
+      "packagePath": "source/method/6.10.0/src/bmm-skills/module.yaml",
+      "sha256": "5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+      "byteLength": 4485
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-advanced-elicitation/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-advanced-elicitation/SKILL.md",
+      "sha256": "705cc827cab892855d07dcc926f5c9f749c3abab33e915d6ac1574aec174896b",
+      "byteLength": 6352
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-advanced-elicitation/methods.csv",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-advanced-elicitation/methods.csv",
+      "sha256": "d110ff5f076fb9421552b83692fde2c2d367734049169c7a55f7267a3dc7ef89",
+      "byteLength": 14854
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/SKILL.md",
+      "sha256": "399ddc752fc786b501ba07fb4b4b038b3d2bb076d36496b6384ef85cf922dd59",
+      "byteLength": 9413
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/analysis/catalog-analysis.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/analysis/catalog-analysis.md",
+      "sha256": "d4e742da964674549c7f0c64db82c4e1938f8521e5cf0034c103fd08022e515c",
+      "byteLength": 23567
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/analysis/method-matrix.csv",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/analysis/method-matrix.csv",
+      "sha256": "e6755bc1ef2aa92328d4facb6b12975b3ffb320e0c215a5a078e951692b012a4",
+      "byteLength": 8722
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/assets/brain-icons.json",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/assets/brain-icons.json",
+      "sha256": "a101c56e89f1d0f9e4131dfdfc19e10c746e3a61c3f92537d04a6f4897b7d331",
+      "byteLength": 41231
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/assets/brain-methods.csv",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/assets/brain-methods.csv",
+      "sha256": "150536f3f3d56e08262b27a2abd6b36f266538e2c929ef4aaf183491da33f0eb",
+      "byteLength": 19410
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/customize.toml",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/customize.toml",
+      "sha256": "21fcbc60c78db99ca0424da192ba0942dce2189f350f77838e4d3ecd501edd1c",
+      "byteLength": 4313
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/converge.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/converge.md",
+      "sha256": "1528c32ddc64f8061fec663306f7208d2fd4d4a90e660552b8138bda7e452dc0",
+      "byteLength": 2961
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/finalize.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/finalize.md",
+      "sha256": "b6074e7fb4d86ffcf899abc50b9049b4a1f6fe550917f4be7a1c7a888477e07e",
+      "byteLength": 4898
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/headless.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/headless.md",
+      "sha256": "b8ea5951199cff7e4813e06aef35683ca0658230fa015e358cacc466b1138a42",
+      "byteLength": 4989
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/in-chat-techniques.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/in-chat-techniques.md",
+      "sha256": "18239464e3e4f00ea9063d015d26d6b0a696b72e7e3c5be92352da6db9a3f244",
+      "byteLength": 2200
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-autonomous.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/mode-autonomous.md",
+      "sha256": "79fba5391ef293cebdbbdc765c7edeb3ccf60c04317fef964a4ea64d6b13f260",
+      "byteLength": 1780
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-facilitator.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/mode-facilitator.md",
+      "sha256": "1b908498d285d190859aed00c3ba5b399d7f6aa8e94d54e95456d15cd6fe6073",
+      "byteLength": 970
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/mode-partner.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/mode-partner.md",
+      "sha256": "caa0ed378c116def4de382f4e5a95173c6ae6cc5464f1792e7d8196360f79c8a",
+      "byteLength": 1606
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-brainstorming/references/resume.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-brainstorming/references/resume.md",
+      "sha256": "0f79535d72eefe6c55bd5ae47fe4753de8d27235cf129f10b2c596a124c26526",
+      "byteLength": 737
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-customize/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-customize/SKILL.md",
+      "sha256": "6461073f9322f5f2ec64477d6ae5e79c601e36e3160e492fef4bc2d928d4a9a8",
+      "byteLength": 6703
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-editorial-review-prose/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-editorial-review-prose/SKILL.md",
+      "sha256": "b3687fe80567378627bc2a0c5034ae8d65dfeedcf2b6c90da077f4feca462d0c",
+      "byteLength": 5100
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-editorial-review-structure/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-editorial-review-structure/SKILL.md",
+      "sha256": "164444359d74f695a84faf7ea558d0eef39c75561e6b26669f97a165c6f75538",
+      "byteLength": 10818
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-forge-idea/SKILL.md",
+      "sha256": "c62ac3a30a4c7a32e3ffd28881d0e9128fc22de1570884d6572c8bfbb7d7db0e",
+      "byteLength": 10134
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-forge-idea/customize.toml",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-forge-idea/customize.toml",
+      "sha256": "ef5fadd1df3550cae00b1b442606bf84d187bfd55397563f143e1057430df45c",
+      "byteLength": 1760
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-help/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-help/SKILL.md",
+      "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+      "byteLength": 4617
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-index-docs/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-index-docs/SKILL.md",
+      "sha256": "a855d7060414e73ca4fe8e1a3e1cc4d0f2ce394846e52340bdf5a1317e0d234a",
+      "byteLength": 1641
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/SKILL.md",
+      "sha256": "783fef00cf5a889c80d7bb4ca78ca2a6e4c4390cde290d2e253855cf723cb10a",
+      "byteLength": 9385
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/customize.toml",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/customize.toml",
+      "sha256": "fee7fe153c853f949dca6ad20a7c78270fc91e3e88486aefbc9956cfb4c14a84",
+      "byteLength": 12380
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/create-party.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/references/create-party.md",
+      "sha256": "2f810332c36c17d14eb55717aed48f3020acf0713bb9f932479be9fbc3856e9e",
+      "byteLength": 9007
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-agent-team.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/references/mode-agent-team.md",
+      "sha256": "def759a17f4bb45463b68fb74c2b828b0a4241720b2b6cc1c9c611a1016ae9d7",
+      "byteLength": 2052
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-auto.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/references/mode-auto.md",
+      "sha256": "a37fd24f76dfcde385890d5c5947bb6f40ca44bea86c805d267b6ae3aab39f70",
+      "byteLength": 1095
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/mode-subagent.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/references/mode-subagent.md",
+      "sha256": "86161b24a0b13b8f9cb9309042e4249d8caefff8cc33728b084cd2ec22f9d2e1",
+      "byteLength": 4191
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-party-mode/references/party-memory.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-party-mode/references/party-memory.md",
+      "sha256": "800b4b4b920bb881a7b32aaabca8559a98273799b2476d83a23e290e301fb315",
+      "byteLength": 3903
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-adversarial-general/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-adversarial-general/SKILL.md",
+      "sha256": "3b70b004b662c3a094328a8666e0084a94cb6de2e2a7336f23d31c65bca084e7",
+      "byteLength": 1447
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
+      "sha256": "03087a3f1e935f7a111bc2c8e1b44c2cf2cc05d9843e5af3c913a148c70d8c96",
+      "byteLength": 4775
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
+      "sha256": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
+      "byteLength": 1009
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review-verification-gap/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-verification-gap/SKILL.md",
+      "sha256": "c18391f0f736312175a9e528d33b23ea3acaf0bd3bb4c05a4966d934075b1b28",
+      "byteLength": 8793
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-shard-doc/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-shard-doc/SKILL.md",
+      "sha256": "3a1538536514725fd4f31aded280ee56b9645fc61d114fd94aacb3ac52304e52",
+      "byteLength": 4142
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-spec/SKILL.md",
+      "sha256": "b77ca3e5674592957853ff01e226c490e504952fa938c4ac5d748f351f38eabf",
+      "byteLength": 17069
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/headless-schemas.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-spec/assets/headless-schemas.md",
+      "sha256": "83afb3614716db2347d83586a67b9c524492dd50db5282436ccb35c99fb5f08a",
+      "byteLength": 1187
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/spec-template.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-spec/assets/spec-template.md",
+      "sha256": "94ef029b842dfa7f296dab4ccf830f0b813af9995bf8bbdcdfc0783a60ee5ffe",
+      "byteLength": 2366
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/assets/stories-schema.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-spec/assets/stories-schema.md",
+      "sha256": "4f8137c00e2710288354a4466d1cfb90704f4b2a04bd3b63924218fd589cc6a9",
+      "byteLength": 3489
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-spec/customize.toml",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-spec/customize.toml",
+      "sha256": "b0181ba5d4038feb779a7a082a265df753220f868b66b5adb0fb2ed18401c763",
+      "byteLength": 2166
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/module-help.csv",
+      "packagePath": "source/method/6.10.0/src/core-skills/module-help.csv",
+      "sha256": "e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+      "byteLength": 2911
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/module.yaml",
+      "packagePath": "source/method/6.10.0/src/core-skills/module.yaml",
+      "sha256": "46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
+      "byteLength": 904
     }
   ]
 }

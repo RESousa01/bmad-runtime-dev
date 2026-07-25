@@ -150,17 +150,20 @@ function Assert-TemporaryOutputPath {
 }
 
 function Assert-CleanQualificationAccount {
-    $existingProcess = Get-Process -Name 'sapphirus' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($null -ne $existingProcess) {
-        throw 'A Sapphirus process is already running. Installer qualification requires an isolated account.'
+    $existingProcess = Get-Process -Name 'forge' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $legacyProcess = Get-Process -Name 'sapphirus' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -ne $existingProcess -or $null -ne $legacyProcess) {
+        throw 'A Forge or legacy desktop process is already running. Installer qualification requires an isolated account.'
     }
 
     foreach ($registryPath in @(
+        'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Forge',
+        'HKCU:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Forge',
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Sapphirus',
         'HKCU:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Sapphirus'
     )) {
         if (Test-Path -LiteralPath $registryPath) {
-            throw 'An existing Sapphirus uninstall registration was detected. Installer qualification requires an isolated account.'
+            throw 'An existing Forge or legacy uninstall registration was detected. Installer qualification requires an isolated account.'
         }
     }
 }
@@ -308,7 +311,7 @@ if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath)) {
         throw 'Prior and current installers use different publishers.'
     }
 }
-$installedExecutable = Join-Path $installDirectory 'sapphirus.exe'
+$installedExecutable = Join-Path $installDirectory 'forge.exe'
 $installedFoundation = Join-Path $installDirectory 'bmad-foundation'
 $uninstaller = Join-Path $installDirectory 'uninstall.exe'
 $launchedProcess = $null

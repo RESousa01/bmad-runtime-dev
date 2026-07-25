@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type {
   AboutProjection,
+  ModelAuthStatusProjection,
   RetentionManifestProjection,
 } from "../../lib/hostClient";
 import {
@@ -34,6 +35,18 @@ const retentionManifest: RetentionManifestProjection = {
   retainedBytes: 262_144,
 };
 
+const connectedModel: ModelAuthStatusProjection = {
+  status: "development_ready",
+  mode: "direct_provider_development",
+  authEpoch: 3,
+  developmentOnly: true,
+  destinationLabel: "OpenAI · gpt-5-mini",
+  providerId: "openai",
+  modelId: "gpt-5-mini",
+  signInAvailable: false,
+  signOutAvailable: true,
+};
+
 function createProps(
   overrides: Partial<SettingsDialogProps> = {},
 ): SettingsDialogProps {
@@ -44,6 +57,10 @@ function createProps(
     density: "comfortable",
     modelAccessDetail: "Deterministic development · review required",
     modelAccessLabel: "Development model",
+    modelAuthStatus: connectedModel,
+    modelSelection: { providerId: "openai", modelId: "gpt-5-mini" },
+    modelSelectionBusy: false,
+    modelSelectionNotice: null,
     offboardingManifest: retentionManifest,
     offboardingNotice: null,
     offboardingStatus: "ready",
@@ -51,6 +68,9 @@ function createProps(
     onDensityChange: vi.fn(),
     onEraseOffboarding: vi.fn(),
     onManageWorkspaces: vi.fn(),
+    onModelConnect: vi.fn(async () => undefined),
+    onModelDisconnect: vi.fn(async () => undefined),
+    onModelSelectionChange: vi.fn(async () => undefined),
     onOpenSkillsAndAgents: vi.fn(),
     onThemeChange: vi.fn(),
     preferencesNotice: null,
@@ -66,6 +86,14 @@ function createProps(
 }
 
 describe("SettingsDialog", () => {
+  it("describes attached files without a second review step", () => {
+    render(<SettingsDialog {...createProps()} />);
+
+    expect(screen.getByText("Only explicitly added files are sent.")).toBeTruthy();
+    expect(screen.queryByText("Confirm once")).toBeNull();
+    expect(screen.queryByText(/need one confirmation/i)).toBeNull();
+  });
+
   it("navigates all eight sections", async () => {
     const user = userEvent.setup();
     render(<SettingsDialog {...createProps()} />);
@@ -73,7 +101,7 @@ describe("SettingsDialog", () => {
     expect(screen.getByRole("heading", { name: "General" })).toBeTruthy();
     for (const [button, heading] of [
       ["Appearance", "Appearance"],
-      ["Agent & model", "Agent & model"],
+      ["Providers", "Providers"],
       ["Workspaces", "Workspaces"],
       ["Skills & agents", "Skills & agents"],
       ["Updates", "Updates"],
@@ -83,6 +111,108 @@ describe("SettingsDialog", () => {
       await user.click(screen.getByRole("button", { name: button }));
       expect(screen.getByRole("heading", { name: heading })).toBeTruthy();
     }
+  });
+
+  it("selects the provider and model in the frontend without exposing credentials", async () => {
+    const props = createProps({ initialSection: "agent-model" });
+    const user = userEvent.setup();
+    render(<SettingsDialog {...props} />);
+
+    expect(screen.getByText("OpenAI")).toBeTruthy();
+    expect(screen.getByText("Azure OpenAI")).toBeTruthy();
+    expect(screen.getByText("gpt-5-mini")).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "Azure OpenAI" }));
+    const model = screen.getByRole("textbox", { name: "Model or deployment" });
+    await user.clear(model);
+    await user.type(model, "forge-gpt-5");
+    await user.click(screen.getByRole("button", { name: "Use model" }));
+    expect(props.onModelSelectionChange).toHaveBeenCalledWith({
+      providerId: "azure",
+      modelId: "forge-gpt-5",
+    });
+    expect(document.body.textContent).not.toContain("sk-");
+  });
+
+  it("connects OpenAI from the provider screen and clears the secret field", async () => {
+    const props = createProps({
+      initialSection: "agent-model",
+      modelAuthStatus: {
+        ...connectedModel,
+        status: "unavailable",
+        mode: "offline",
+        developmentOnly: false,
+        destinationLabel: "OpenAI · gpt-5-mini",
+        signInAvailable: true,
+        signOutAvailable: false,
+      },
+    });
+    const user = userEvent.setup();
+    const runtimeCredential = ["sk", "test", "runtime", "only"].join("-");
+    render(<SettingsDialog {...props} />);
+
+    const keyInput = screen.getByLabelText<HTMLInputElement>("OpenAI API key");
+    expect(keyInput.type).toBe("password");
+    await user.type(keyInput, runtimeCredential);
+    await user.click(screen.getByRole("button", { name: "Connect OpenAI" }));
+
+    expect(props.onModelConnect).toHaveBeenCalledWith({
+      providerId: "openai",
+      modelId: "gpt-5-mini",
+      apiKey: runtimeCredential,
+      endpoint: null,
+      region: null,
+    });
+    expect(keyInput.value).toBe("");
+    expect(document.body.textContent).not.toContain(runtimeCredential);
+  });
+
+  it("accepts a WebView-autofilled API key even when no React input event fires", async () => {
+    const props = createProps({
+      initialSection: "agent-model",
+      modelAuthStatus: {
+        ...connectedModel,
+        status: "unavailable",
+        mode: "offline",
+        developmentOnly: false,
+        destinationLabel: "OpenAI · gpt-5-mini",
+        signInAvailable: true,
+        signOutAvailable: false,
+      },
+    });
+    const user = userEvent.setup();
+    const runtimeCredential = ["sk", "autofilled", "runtime", "only"].join("-");
+    render(<SettingsDialog {...props} />);
+
+    const keyInput = screen.getByLabelText<HTMLInputElement>("OpenAI API key");
+    const setNativeValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    expect(setNativeValue).toBeTypeOf("function");
+    setNativeValue?.call(keyInput, runtimeCredential);
+
+    const connect = screen.getByRole("button", { name: "Connect OpenAI" });
+    expect(connect).toHaveProperty("disabled", false);
+    await user.click(connect);
+
+    expect(props.onModelConnect).toHaveBeenCalledWith({
+      providerId: "openai",
+      modelId: "gpt-5-mini",
+      apiKey: runtimeCredential,
+      endpoint: null,
+      region: null,
+    });
+    expect(keyInput.value).toBe("");
+  });
+
+  it("disconnects the active provider without asking for its key again", async () => {
+    const props = createProps({ initialSection: "agent-model" });
+    const user = userEvent.setup();
+    render(<SettingsDialog {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Disconnect OpenAI" }));
+    expect(props.onModelDisconnect).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText("OpenAI API key")).toBeNull();
   });
 
   it("persists appearance changes through the provided callbacks", async () => {
@@ -114,6 +244,7 @@ describe("SettingsDialog", () => {
     render(<SettingsDialog {...createProps({ initialSection: "updates" })} />);
     expect(screen.getByText("Managed by your organization")).toBeTruthy();
     expect(screen.getByText("Not configured")).toBeTruthy();
+    expect(screen.queryByText("Unavailable")).toBeNull();
     expect(screen.queryByRole("button", { name: /install|check for update/i })).toBeNull();
   });
 

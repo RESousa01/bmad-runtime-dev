@@ -1,3 +1,4 @@
+pub mod architecture;
 mod binding;
 mod builder;
 mod builder_ports;
@@ -11,11 +12,18 @@ mod help_materialization;
 mod help_run;
 mod help_session;
 mod kernel_error;
+pub mod memlog;
 mod method;
 mod package;
 mod ports;
 mod service;
+pub mod toml_subset;
+pub mod workflow;
 
+pub use architecture::{
+    BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
+    BmadArchitectureStepRecord, BMAD_ARCHITECTURE_SESSION_SCHEMA,
+};
 pub use binding::{
     BmadCapabilityKey, MethodAgentBinding, MethodAgentBindingData, MethodArtifactExpectation,
     MethodContextDecision, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
@@ -77,6 +85,7 @@ pub use help_session::{
     InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
 };
 pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
+pub use memlog::{Memlog, MemlogEntry, MemlogEntryKind, MemlogError, MEMLOG_FILE_NAME};
 pub use method::{
     CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
     MethodAdvanceResult, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
@@ -88,5 +97,7 @@ pub use package::{
     BmadEntrypointKind, BmadLoadedPackage, BmadLoadedSkill, BmadLocationClass, BmadPackageLoader,
     BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
 };
-pub use ports::{MethodModelPort, MethodSessionRepository};
+pub use ports::MethodSessionRepository;
 pub use service::{MethodServiceError, MethodSessionService};
+pub use toml_subset::{parse_toml_subset, TomlSubsetError};
+pub use workflow::{BmadWorkflowGraph, BmadWorkflowPhase, BmadWorkflowState, BmadWorkflowStep};

@@ -305,6 +305,12 @@ export function WorkspaceExplorer({
       .then((projection) => {
         if (current) {
           setRootPage({ entries: projection.entries, nextCursor: projection.nextCursor });
+          if (source.provenance === "browser_demo") {
+            const firstFile = projection.entries.find((entry) => entry.kind === "text_file");
+            if (firstFile) {
+              void readFile(firstFile.relativePath);
+            }
+          }
         }
       })
       .catch((error: unknown) => {

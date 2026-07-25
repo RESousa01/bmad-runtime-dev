@@ -14,10 +14,8 @@ public static class ProductionComposition
         this WebApplicationBuilder builder,
         SupportPlaneOptions supportPlane)
     {
-        ProductionOptions production = builder.Configuration
-            .GetSection(SupportPlaneOptions.SectionName)
-            .Get<ProductionOptions>() ?? new ProductionOptions();
-        production.Validate(supportPlane);
+        ProductionOptions production =
+            builder.GetValidatedProductionOptions(supportPlane);
         builder.Services.AddProductionAzureClients(production);
         builder.Services.AddSingleton<IPolicySettingsSource>(provider =>
             new AppConfigurationPolicySettingsSource(
@@ -93,5 +91,16 @@ public static class ProductionComposition
                 .WithTracing(tracing => tracing.AddProcessor(
                     new Observability.PrivacyRedactionProcessor()));
         }
+    }
+
+    internal static ProductionOptions GetValidatedProductionOptions(
+        this WebApplicationBuilder builder,
+        SupportPlaneOptions supportPlane)
+    {
+        ProductionOptions production = builder.Configuration
+            .GetSection(SupportPlaneOptions.SectionName)
+            .Get<ProductionOptions>() ?? new ProductionOptions();
+        production.Validate(supportPlane);
+        return production;
     }
 }

@@ -1,12 +1,13 @@
 use desktop_egress::RetentionMode;
 use desktop_runtime::{
     canonical_hash, BmadKernelError, BmadKernelErrorCode, BmadTrustedHelpModelProfile,
-    BmadTrustedHelpModelProfileData, ContractId, Sha256Digest,
+    BmadTrustedHelpModelProfileData, ContractId, ModelProviderId, Sha256Digest,
 };
 use serde::Serialize;
 
 const OUTPUT_SCHEMA_ID: &str = "sapphirus.bmad-method-help-proposal.v1";
 const REGION: &str = "localdev";
+pub(crate) const DEFAULT_OPENAI_MODEL: &str = "gpt-5-mini";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum HelpModelMode {
@@ -15,19 +16,123 @@ pub(crate) enum HelpModelMode {
     DeterministicDevelopment,
     #[cfg(feature = "production-support")]
     ProductionSupport,
+    #[cfg(feature = "direct-model-providers")]
+    DirectProviderDevelopment,
 }
 
 #[derive(Clone)]
 pub(crate) struct HelpModelConfiguration {
     pub mode: HelpModelMode,
-    pub destination_label: &'static str,
-    pub region: &'static str,
+    pub destination_label: String,
+    pub region: String,
     pub retention_mode: RetentionMode,
     pub canonical_output_schema_id: ContractId,
     pub trusted_profile: BmadTrustedHelpModelProfile,
+    pub provider_id: String,
+    pub model_id: String,
     pub provider_profile_hash: Sha256Digest,
     pub deployment_hash: Sha256Digest,
     pub policy_hash: Sha256Digest,
+}
+
+pub(crate) struct FrontendModelComposition {
+    pub configuration: HelpModelConfiguration,
+    #[cfg(feature = "direct-model-providers")]
+    pub direct_provider: Option<desktop_cloud::DirectProviderConfig>,
+}
+
+/// Resolves the non-secret provider/model selected by the renderer against
+/// native-host credentials. Missing credentials produce an offline projection
+/// for that exact selection; they never cross IPC.
+pub(crate) fn frontend_model_composition(
+    provider_id: ModelProviderId,
+    model_id: &str,
+) -> Result<FrontendModelComposition, BmadKernelError> {
+    #[cfg(feature = "direct-model-providers")]
+    {
+        let kind = match provider_id {
+            ModelProviderId::OpenAi => desktop_cloud::DirectProviderKind::OpenAi,
+            ModelProviderId::Azure => desktop_cloud::DirectProviderKind::AzureOpenAi,
+        };
+        let direct_provider = desktop_cloud::DirectProviderConfig::from_selection(kind, model_id)
+            .map_err(|_| configuration_error())?;
+        direct_provider.map_or_else(
+            || offline_frontend_model_composition(provider_id, model_id),
+            direct_frontend_model_composition,
+        )
+    }
+    #[cfg(not(feature = "direct-model-providers"))]
+    {
+        offline_frontend_model_composition(provider_id, model_id)
+    }
+}
+
+pub(crate) fn offline_frontend_model_composition(
+    provider_id: ModelProviderId,
+    model_id: &str,
+) -> Result<FrontendModelComposition, BmadKernelError> {
+    let (provider, destination, region) = provider_metadata(provider_id, model_id);
+    Ok(FrontendModelComposition {
+        configuration: build_configuration(
+            HelpModelMode::Offline,
+            "offline",
+            &destination,
+            provider,
+            model_id,
+            model_id,
+            region,
+        )?,
+        #[cfg(feature = "direct-model-providers")]
+        direct_provider: None,
+    })
+}
+
+#[cfg(feature = "direct-model-providers")]
+pub(crate) fn frontend_model_composition_with_credential(
+    provider_id: ModelProviderId,
+    model_id: &str,
+    credential: String,
+    endpoint: Option<&str>,
+    region: Option<&str>,
+) -> Result<FrontendModelComposition, BmadKernelError> {
+    let kind = match provider_id {
+        ModelProviderId::OpenAi => desktop_cloud::DirectProviderKind::OpenAi,
+        ModelProviderId::Azure => desktop_cloud::DirectProviderKind::AzureOpenAi,
+    };
+    let direct_provider = desktop_cloud::DirectProviderConfig::from_runtime_credential(
+        kind, model_id, credential, endpoint, region,
+    )
+    .map_err(|_| configuration_error())?;
+    direct_frontend_model_composition(direct_provider)
+}
+
+#[cfg(feature = "direct-model-providers")]
+pub(crate) fn direct_frontend_model_composition(
+    direct_provider: desktop_cloud::DirectProviderConfig,
+) -> Result<FrontendModelComposition, BmadKernelError> {
+    let configuration = build_configuration(
+        HelpModelMode::DirectProviderDevelopment,
+        "direct_provider_development",
+        &direct_provider.destination_label(),
+        direct_provider.kind().id(),
+        direct_provider.model(),
+        direct_provider.model(),
+        direct_provider.region(),
+    )?;
+    Ok(FrontendModelComposition {
+        configuration,
+        direct_provider: Some(direct_provider),
+    })
+}
+
+fn provider_metadata(
+    provider_id: ModelProviderId,
+    model_id: &str,
+) -> (&'static str, String, &'static str) {
+    match provider_id {
+        ModelProviderId::OpenAi => ("openai", format!("OpenAI · {model_id}"), "global"),
+        ModelProviderId::Azure => ("azure", format!("Azure OpenAI · {model_id}"), "azure"),
+    }
 }
 
 #[derive(Serialize)]
@@ -85,7 +190,7 @@ pub(crate) fn current_help_model_configuration() -> Result<HelpModelConfiguratio
         return build_configuration(
             HelpModelMode::ProductionSupport,
             "production_support",
-            "Sapphirus support plane",
+            "Forge support plane",
             "azure-openai-fixed-profile",
             "desktop-planner",
             "desktop-planner",
@@ -118,11 +223,11 @@ pub(crate) fn current_help_model_configuration() -> Result<HelpModelConfiguratio
 fn build_configuration(
     mode: HelpModelMode,
     mode_name: &str,
-    destination_label: &'static str,
+    destination_label: &str,
     provider_id: &str,
     model_id: &str,
     deployment_id: &str,
-    region: &'static str,
+    region: &str,
 ) -> Result<HelpModelConfiguration, BmadKernelError> {
     let provider_profile_hash = named_hash(
         "bmad-help-provider-profile",
@@ -186,12 +291,14 @@ fn build_configuration(
 
     Ok(HelpModelConfiguration {
         mode,
-        destination_label,
-        region,
+        destination_label: destination_label.to_owned(),
+        region: region.to_owned(),
         retention_mode: RetentionMode::TransientNoStore,
         canonical_output_schema_id: ContractId::new(OUTPUT_SCHEMA_ID)
             .map_err(|_| configuration_error())?,
         trusted_profile,
+        provider_id: provider_id.to_owned(),
+        model_id: model_id.to_owned(),
         provider_profile_hash,
         deployment_hash,
         policy_hash,

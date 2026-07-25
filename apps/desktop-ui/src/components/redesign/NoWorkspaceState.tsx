@@ -1,5 +1,5 @@
 import { Button } from "@sapphirus/ui";
-import { FolderOpen, Play } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 
 export type NoWorkspaceMode =
   | "browser_demo"
@@ -12,7 +12,6 @@ export interface NoWorkspaceStateProps {
   copy?: string;
   mode: NoWorkspaceMode;
   onOpenWorkspace: () => void;
-  onTryDemo?: () => void;
 }
 
 const defaultCopy: Record<NoWorkspaceMode, string> = {
@@ -31,7 +30,6 @@ export function NoWorkspaceState({
   copy,
   mode,
   onOpenWorkspace,
-  onTryDemo,
 }: NoWorkspaceStateProps) {
   return (
     <section aria-label="No workspace open" className="no-workspace-state">
@@ -51,16 +49,6 @@ export function NoWorkspaceState({
           <FolderOpen aria-hidden="true" size={17} strokeWidth={1.8} />
           Open workspace
         </Button>
-        {mode === "browser_demo" && onTryDemo ? (
-          <Button
-            onPress={onTryDemo}
-            size="large"
-            variant="secondary"
-          >
-            <Play aria-hidden="true" size={16} strokeWidth={1.8} />
-            Try demo
-          </Button>
-        ) : null}
       </div>
     </section>
   );

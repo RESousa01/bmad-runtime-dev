@@ -1,8 +1,14 @@
 # ADR-0003: P5 breadth denominator and the Paige prompt-reference scope
 
-- Status: accepted (2026-07-20)
+- Status: accepted (2026-07-20), **superseded in part by
+  [ADR-0008](ADR-0008-verbatim-method-adoption.md) (2026-07-25)**
 - Decides: the P0 open decision "Paige source-prompt reference scope
   (promote or remove) — affects the P5 denominator".
+- Superseded by ADR-0008: decisions 1 and 3, and the no-source-body part of
+  decision 2. Source bodies **are** now adopted verbatim under
+  `packages/bmad-foundation/source/method/6.10.0/`, and
+  `promotionEligibility` moved from `blocked_provenance` to
+  `owner_attested_release`. The executable exclusion below still stands.
 
 ## Context
 

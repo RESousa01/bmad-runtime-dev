@@ -21,7 +21,7 @@ per provenance governance.
 |---|---|---|
 | Command palette (Ctrl+K) | `components/dialog-command-palette-v2.tsx`, `command-palette.ts` | Actions: new task, open workspace, drawer tabs, settings, per-agent capability launch. |
 | Keyboard shortcut map + tooltips | `command-tooltip-keybind.ts` | Central keybind registry; show binds in tooltips. |
-| Session tabs / multi-session | `session/session-sortable-tab-v2.tsx`, `pages/session-layout.ts` | Host has `run.create`; renderer keeps one implicit task today. |
+| Session tabs / multi-session | `context/tabs.tsx`, `context/prompt.tsx`, `pages/session/session-ownership.ts` | Forge now has visual task tabs and per-task drafts, but projections still send `sessionId: null`; BMAD, context, result, and edit state are not host-isolated or restart-durable per task. |
 | File tabs + viewer | `pages/session/file-tabs.tsx` | Workspace explorer exists; no persistent open-file tabs. |
 | Split diff style toggle | `review-tab.tsx` (`unified \| split`) | ChangeDiff currently unified-only. |
 | Theme picker | `ui/src/theme/themes/*.json` (30+ themes) | Sapphirus pins dark; `app.preferences.*` commands exist for persistence. |
