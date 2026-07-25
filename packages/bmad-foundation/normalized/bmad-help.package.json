@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:5e19f129bf2ffd0dd341f94b042eee1c8f340557b0bd805df15c002645bd161f",
+  "finalCompositeInventoryHash": "sha256:8398be957e5608e91e2480c56b6dea86ba74df1b9824134e9de4d26b16b1b10f",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -54,7 +54,7 @@
   ],
   "instructionProjections": [
     {
-      "projectionId": "projection_57B356FB427008F181C1A6027E8EFBF7D177D4B45DAD4D15612C84213999D6F0",
+      "projectionId": "projection_34CBAF9AD00241006E7474D3604A79AEFC2E20E11D14DCBC00E2965A0C5371CC",
       "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
@@ -111,7 +111,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/architecture-create.instructions.md",
-        "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
+        "contentHash": "sha256:34cbaf9ad00241006e7474d3604a79aefc2e20e11d14dcbc00e2965a0c5371cc",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -154,7 +154,7 @@
           "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
         }
       ],
-      "projectionHash": "sha256:c4a15122cc3dfc34e30a55f3762cb434275013bd27d88267f6f7f0d8eab1ce3a"
+      "projectionHash": "sha256:7cdaba6413c4d7d469c8c20eba41b2b97114481c2c7a1381ebfe2c384c098a63"
     },
     {
       "projectionId": "projection_6D3512C6F9014A2344418CE0B53B1C9ED8521E6BF8B337F2A802ADE6307146E4",
@@ -1336,8 +1336,8 @@
       "path": "runtime/method/6.10.0/architecture-create.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
-      "byteLength": 1011,
+      "contentHash": "sha256:34cbaf9ad00241006e7474d3604a79aefc2e20e11d14dcbc00e2965a0c5371cc",
+      "byteLength": 4809,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:33ff0824ed608a34f119fd4b91a6bc547ba770efc25b5bc41c2a11df0f143e35"
+  "descriptorHash": "sha256:1866d75b79e430cdef8815751c74b317cf733fb8942f2f5ad5663b61fd39117b"
 }

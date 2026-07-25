@@ -252,9 +252,11 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
         help.source_snapshot_hash(),
         digest("sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86")
     );
+    // Follows the managed instruction bytes: rewriting the architecture
+    // projection to carry the spine model changed the composite inventory.
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:5e19f129bf2ffd0dd341f94b042eee1c8f340557b0bd805df15c002645bd161f")
+        digest("sha256:8398be957e5608e91e2480c56b6dea86ba74df1b9824134e9de4d26b16b1b10f")
     );
 
     assert_eq!(help.module_code(), "core");

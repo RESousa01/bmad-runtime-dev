@@ -70,11 +70,19 @@ pub enum BmadArchitectureStep {
     Observability,
     Deployment,
     Verification,
+    /// What the spine deliberately does *not* decide.
+    ///
+    /// Upstream treats this as part of the spine proper — "`Deferred` naming
+    /// what it won't decide" — and it is the counterpart to the discriminator
+    /// test: a call that fails the test is named here rather than fixed. Without
+    /// it a progression can only record decisions, so everything deliberately
+    /// left open is indistinguishable from something forgotten.
+    Deferred,
 }
 
 impl BmadArchitectureStep {
     /// The closed, ordered progression. Index in this array is the step order.
-    pub const ORDERED: [Self; 8] = [
+    pub const ORDERED: [Self; 9] = [
         Self::SystemContext,
         Self::Components,
         Self::TrustBoundaries,
@@ -83,6 +91,7 @@ impl BmadArchitectureStep {
         Self::Observability,
         Self::Deployment,
         Self::Verification,
+        Self::Deferred,
     ];
 
     /// Stable wire code for this step.
@@ -97,6 +106,7 @@ impl BmadArchitectureStep {
             Self::Observability => "observability",
             Self::Deployment => "deployment",
             Self::Verification => "verification",
+            Self::Deferred => "deferred",
         }
     }
 
@@ -112,6 +122,7 @@ impl BmadArchitectureStep {
             Self::Observability => "Observability",
             Self::Deployment => "Deployment",
             Self::Verification => "Verification",
+            Self::Deferred => "Deferred",
         }
     }
 
@@ -148,6 +159,12 @@ impl BmadArchitectureStep {
             }
             Self::Verification => {
                 "Fix how each decision above is verified, and what evidence a reviewer needs."
+            }
+            Self::Deferred => {
+                "Name what this spine deliberately does not decide, and why each one is safe to \
+                 leave to the level below — a call that is obvious, or not a real trade-off, or \
+                 that two units one level down could not choose incompatibly. Keep this distinct \
+                 from an open question you still need answered."
             }
         }
     }
@@ -847,7 +864,13 @@ mod tests {
             assert!(!step.objective().is_empty());
         }
         assert_eq!(BmadArchitectureStep::from_code("finalize"), None);
-        assert_eq!(BmadArchitectureStep::count(), 8);
+        // `Deferred` closes the progression: upstream requires every spine to
+        // name what it will not decide, distinct from an open question.
+        assert_eq!(BmadArchitectureStep::count(), 9);
+        assert_eq!(
+            BmadArchitectureStep::ORDERED.last(),
+            Some(&BmadArchitectureStep::Deferred),
+        );
     }
 
     #[test]

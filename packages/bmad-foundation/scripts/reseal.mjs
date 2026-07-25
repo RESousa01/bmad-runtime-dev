@@ -96,7 +96,42 @@ async function resealManagedOutputs() {
 async function resealHelpDescriptor() {
   const path = "normalized/bmad-help.package.json";
   const descriptor = await readJson(path);
+  // The descriptor also carries a global inventory binding every managed
+  // projection by content hash, which `verify.mjs` checks against the real
+  // bytes. Refreshing only the projection envelopes left that inventory stale,
+  // so a reviewed edit to any instruction file still failed the gate.
+  for (const entry of descriptor.resourceInventory ?? []) {
+    if (entry.locationKind !== "managed_projection") continue;
+    const bytes = await readFile(join(packageRoot, entry.path));
+    entry.contentHash = `sha256:${sha256(bytes)}`;
+    entry.byteLength = bytes.byteLength;
+  }
+  // …and a composite hash over that same inventory, which is likewise derived
+  // from the real bytes rather than declared.
+  if (descriptor.finalCompositeInventoryHash !== undefined) {
+    const inventory = (descriptor.resourceInventory ?? [])
+      .filter(({ locationKind }) => locationKind === "managed_projection")
+      .map(({ path: resourcePath, contentHash, byteLength }) => ({
+        path: resourcePath,
+        locationKind: "managed_projection",
+        contentHash,
+        byteLength,
+      }));
+    descriptor.finalCompositeInventoryHash = canonicalValueHash(
+      "bmad-final-composite-inventory",
+      inventory,
+    );
+  }
   for (const projection of descriptor.instructionProjections ?? []) {
+    // The projection binds its managed instruction by content hash, and its
+    // identifier is derived from that same hash. Both follow the bytes.
+    const managed = projection.managedInstruction;
+    if (managed?.path !== undefined) {
+      const bytes = await readFile(join(packageRoot, managed.path));
+      const digest = sha256(bytes);
+      managed.contentHash = `sha256:${digest}`;
+      projection.projectionId = `projection_${digest.toUpperCase()}`;
+    }
     projection.projectionHash = canonicalDocumentHash(
       "bmad-instruction-projection",
       projection,

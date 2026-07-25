@@ -65,7 +65,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/architecture-create.instructions.md",
-      "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
+      "contentHash": "sha256:34cbaf9ad00241006e7474d3604a79aefc2e20e11d14dcbc00e2965a0c5371cc",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -108,7 +108,7 @@
         "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:c4a15122cc3dfc34e30a55f3762cb434275013bd27d88267f6f7f0d8eab1ce3a"
+    "projectionHash": "sha256:f9a321749e9958b4c88dffa161a8b6cc864aa515f60ec67c0a3953b7669818b8"
   },
-  "projectionEnvelopeHash": "sha256:02e1d64814dfe1d51e232ab9cd1330954bfbe411e7bfaa628d9f584a68b4a5cc"
+  "projectionEnvelopeHash": "sha256:5d0fb78e781ab4dbe90b7b3916277ef67034a5422e48179ac3d9151ec6f1468a"
 }

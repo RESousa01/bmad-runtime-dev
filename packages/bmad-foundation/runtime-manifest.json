@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:4c93f2cbc075a2891feeb16ed6655822d6ddd9e7c138abca69f1f125a0e17f95",
+  "semanticLedgerHash": "sha256:7f10eba2a8e97eb4fa98b9e1d2f6f904383076e2d989252aafdf87afda762750",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -41,7 +41,7 @@
     },
     {
       "path": "normalized/bmad-architecture.package.json",
-      "contentHash": "sha256:e30d1a8394d0ef222d6f704e1ee79dfc6c4726cecb864f8789db7076267dc6e7",
+      "contentHash": "sha256:3e91280ee9bc7fdfe3bc9a9067fefa207d4ea1260d805435f9fb7e72486d1881",
       "byteLength": 4713,
       "contentKind": "normalized_contract"
     },
@@ -113,7 +113,7 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:4e3fed9f5adb362f16e4389eccbdf6c58bc1f674cf788b90ceacdfa6fa3f6856",
+      "contentHash": "sha256:a5158b4b612b882ce8370a78f989f13c89168872385df3d21cf0038717971427",
       "byteLength": 84219,
       "contentKind": "normalized_contract"
     },
@@ -281,8 +281,8 @@
     },
     {
       "path": "runtime/method/6.10.0/architecture-create.instructions.md",
-      "contentHash": "sha256:57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0",
-      "byteLength": 1011,
+      "contentHash": "sha256:34cbaf9ad00241006e7474d3604a79aefc2e20e11d14dcbc00e2965a0c5371cc",
+      "byteLength": 4809,
       "contentKind": "managed_instruction"
     },
     {
@@ -455,7 +455,7 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:4c93f2cbc075a2891feeb16ed6655822d6ddd9e7c138abca69f1f125a0e17f95",
+      "contentHash": "sha256:7f10eba2a8e97eb4fa98b9e1d2f6f904383076e2d989252aafdf87afda762750",
       "byteLength": 237001,
       "contentKind": "provenance_ledger"
     },
@@ -1828,5 +1828,5 @@
       "contentKind": "adopted_source"
     }
   ],
-  "manifestHash": "sha256:4bdb7c8ad27f9da368b8304bc2128538005fe1d19fb53b7a20f418f7f74a33e8"
+  "manifestHash": "sha256:9f1db728b2afdb86464dd655405352daf0b2d7b96cee70791d9cdda946fa96c5"
 }

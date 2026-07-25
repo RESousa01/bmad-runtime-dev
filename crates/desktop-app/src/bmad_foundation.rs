@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:4c93f2cbc075a2891feeb16ed6655822d6ddd9e7c138abca69f1f125a0e17f95";
+    "sha256:7f10eba2a8e97eb4fa98b9e1d2f6f904383076e2d989252aafdf87afda762750";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:4bdb7c8ad27f9da368b8304bc2128538005fe1d19fb53b7a20f418f7f74a33e8";
+    "sha256:9f1db728b2afdb86464dd655405352daf0b2d7b96cee70791d9cdda946fa96c5";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";

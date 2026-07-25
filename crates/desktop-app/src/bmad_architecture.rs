@@ -635,7 +635,7 @@ mod tests {
             .step_context_candidates(step)
             .expect("first candidates");
         assert_eq!(first.len(), 2);
-        assert!(first[0].content.contains("Step 1 of 8 — System context"));
+        assert!(first[0].content.contains("Step 1 of 9 — System context"));
         assert!(first[0].content.contains("Answer only this step."));
         assert!(first[1].content.contains("No steps have been accepted yet"));
         assert!(first
@@ -657,7 +657,7 @@ mod tests {
             .step_context_candidates(next)
             .expect("second candidates");
 
-        assert!(second[0].content.contains("Step 2 of 8 — Components"));
+        assert!(second[0].content.contains("Step 2 of 9 — Components"));
         assert!(second[1].content.contains("AD-1 — System context"));
         assert!(second[1].content.contains("Do not renumber"));
     }

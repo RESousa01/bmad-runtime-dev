@@ -4226,8 +4226,8 @@
     },
     {
       "path": "runtime/method/6.10.0/architecture-create.instructions.md",
-      "byteLength": 1011,
-      "sha256": "57b356fb427008f181c1a6027e8efbf7d177d4b45dad4d15612c84213999d6f0"
+      "byteLength": 4809,
+      "sha256": "34cbaf9ad00241006e7474d3604a79aefc2e20e11d14dcbc00e2965a0c5371cc"
     },
     {
       "path": "runtime/method/6.10.0/bmad-help.instructions.md",

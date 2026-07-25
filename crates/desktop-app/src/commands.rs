@@ -3426,7 +3426,10 @@ planning_artifacts = \"{project-root}/docs/plan\"
         let progress = review.architecture.expect("stepwise progression");
         assert_eq!(progress.step_code, "system_context");
         assert_eq!(progress.step_number, 1);
-        assert_eq!(progress.step_count, 8);
+        // Nine, not eight: `Deferred` closes the progression. Upstream requires
+        // every spine to name what it will not decide, so a run that can only
+        // record decisions cannot produce a faithful spine.
+        assert_eq!(progress.step_count, 9);
         assert!(!progress.finalized);
         assert!(progress.spine.is_none());
     }
