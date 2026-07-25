@@ -64,11 +64,11 @@ pub use bmad::{
     project_bmad_library, project_bmad_library_with_activations,
     project_bmad_library_with_runtime_menu_bindings, project_bmad_persona_perspective,
     BmadAgentMenuProjection, BmadAgentMenuTargetProjection, BmadAgentProjection,
-    BmadBuilderPackageKind, BmadBuilderPackageProjection, BmadHelpActionProjection,
-    BmadInstalledSkillProjection, BmadLibrarySnapshotProjection, BmadLibrarySourceKind,
-    BmadLibrarySourceProjection, BmadPersonaPerspectiveProjection, BmadProjectionAvailability,
-    BmadProjectionBlockerCode, BmadProjectionError, BmadRuntimeMenuCapabilityBinding,
-    MAX_BMAD_LIBRARY_PROJECTION_BYTES,
+    BmadBuilderPackageKind, BmadBuilderPackageProjection, BmadCoreSkillProjection,
+    BmadHelpActionProjection, BmadInstalledSkillProjection, BmadLibrarySnapshotProjection,
+    BmadLibrarySourceKind, BmadLibrarySourceProjection, BmadPersonaPerspectiveProjection,
+    BmadProjectionAvailability, BmadProjectionBlockerCode, BmadProjectionError,
+    BmadRuntimeMenuCapabilityBinding, MAX_BMAD_LIBRARY_PROJECTION_BYTES,
 };
 pub use bmad_completion::{
     decode_retained_bmad_help_completion, project_completed_bmad_help_run,

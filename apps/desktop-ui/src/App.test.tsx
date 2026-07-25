@@ -622,6 +622,7 @@ async function bmadLibraryRuntime({
           }],
         }],
         builderPackages: [],
+        coreSkills: [],
         nextCursor: null,
       },
     }, expireProjectionCursor ? (refreshed ? 21 : 20) : refreshed ? 19 : 18);
@@ -1157,6 +1158,7 @@ async function bmadHelpRuntime({
             }]
             : [],
           builderPackages: [],
+          coreSkills: [],
           nextCursor: null,
         },
       });

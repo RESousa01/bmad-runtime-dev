@@ -140,6 +140,7 @@ describe("TaskWorkspace Method guidance", () => {
                 },
               ],
               builderPackages: [],
+              coreSkills: [],
               nextCursor: null,
             },
           },

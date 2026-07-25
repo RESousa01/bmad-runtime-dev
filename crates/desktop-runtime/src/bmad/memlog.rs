@@ -49,8 +49,16 @@ pub enum MemlogError {
 }
 
 /// What kind of thing an entry records. Upstream keeps this vocabulary open
-/// ("the host skill names the vocabulary; the script does not enforce one"),
-/// so this is the reviewed set Forge's own skills use, plus a free `Note`.
+/// ("the host skill supplies the vocabulary by how it calls `append` — the tool
+/// stays neutral"), so this is the reviewed set covering every `--type` the
+/// shipped skills actually use, plus a free `Note`.
+///
+/// `Change` and `Override` are what make the log an audit trail rather than a
+/// notebook: upstream describes the memlog as "the run's canonical memory and
+/// audit trail — every decision, change, and override … lands as one
+/// append-only line", and `bmad-product-brief`, `bmad-prd` and `bmad-ux` all
+/// append them. `Capability` is part of `bmad-spec`'s documented vocabulary,
+/// where each capability carries a stable `CAP-N`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MemlogEntryKind {
@@ -61,6 +69,9 @@ pub enum MemlogEntryKind {
     Direction,
     Assumption,
     Constraint,
+    Capability,
+    Change,
+    Override,
     Version,
     Gap,
     Technique,
@@ -79,6 +90,9 @@ impl MemlogEntryKind {
             Self::Direction => "direction",
             Self::Assumption => "assumption",
             Self::Constraint => "constraint",
+            Self::Capability => "capability",
+            Self::Change => "change",
+            Self::Override => "override",
             Self::Version => "version",
             Self::Gap => "gap",
             Self::Technique => "technique",
@@ -262,6 +276,56 @@ mod tests {
 
     use super::{Memlog, MemlogEntryKind, MemlogError};
     use crate::UnixMillis;
+
+    /// The vocabulary must cover every `--type` the shipped upstream skills
+    /// actually append. `change` and `override` are what make the log an audit
+    /// trail (`bmad-product-brief`, `bmad-prd`, `bmad-ux`), and `capability` is
+    /// part of `bmad-spec`'s documented set — all three were missing, so those
+    /// entries had nowhere faithful to land.
+    #[test]
+    fn the_kind_vocabulary_covers_every_upstream_type() {
+        let codes = [
+            MemlogEntryKind::Idea,
+            MemlogEntryKind::Insight,
+            MemlogEntryKind::Question,
+            MemlogEntryKind::Decision,
+            MemlogEntryKind::Direction,
+            MemlogEntryKind::Assumption,
+            MemlogEntryKind::Constraint,
+            MemlogEntryKind::Capability,
+            MemlogEntryKind::Change,
+            MemlogEntryKind::Override,
+            MemlogEntryKind::Version,
+            MemlogEntryKind::Gap,
+            MemlogEntryKind::Technique,
+            MemlogEntryKind::Event,
+        ]
+        .map(MemlogEntryKind::code);
+
+        // Observed in the sealed upstream sources under
+        // `source/method/6.10.0/src`, plus `bmad-spec`'s documented vocabulary.
+        for upstream in [
+            "event",
+            "idea",
+            "decision",
+            "insight",
+            "change",
+            "override",
+            "technique",
+            "capability",
+            "constraint",
+            "assumption",
+            "question",
+            "direction",
+        ] {
+            assert!(
+                codes.contains(&upstream),
+                "upstream appends `--type {upstream}` but the vocabulary has no kind for it",
+            );
+        }
+        // A plain note is the only kind that renders without a tag.
+        assert_eq!(MemlogEntryKind::Note.code(), "");
+    }
 
     #[test]
     fn the_log_is_append_only_and_chronological() {

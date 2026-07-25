@@ -14,6 +14,7 @@ import {
   type BmadAgentMenuProjection,
   type BmadAvailability,
   type BmadBlockerCode,
+  type BmadCoreSkillProjection,
   type BmadHelpActionProjection,
   type BmadHelpRecommendationProjection,
   type BmadHelpRunCreatedProjection,
@@ -843,6 +844,19 @@ function parseBmadBuilderPackage(value: unknown) {
   } as const;
 }
 
+/// One entry of upstream's Core module menu. These are ordinary runnable
+/// capabilities that belong to no agent, so they arrive outside `methodAgents`.
+function parseBmadCoreSkill(value: unknown): BmadCoreSkillProjection {
+  const skill = asRecord(value);
+  assertExactKeys(skill, ["capabilityId", "skill", "displayName", "menuCode"]);
+  return {
+    capabilityId: asCapabilityId(skill.capabilityId),
+    skill: asSingleLineText(skill.skill, 96),
+    displayName: asSingleLineText(skill.displayName, 96),
+    menuCode: asSingleLineText(skill.menuCode, 8),
+  };
+}
+
 export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
   const snapshot = asRecord(value);
   assertExactKeys(snapshot, [
@@ -853,6 +867,7 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     "helpActions",
     "methodAgents",
     "builderPackages",
+    "coreSkills",
     "nextCursor",
   ]);
   if (
@@ -865,7 +880,9 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     !Array.isArray(snapshot.methodAgents) ||
     snapshot.methodAgents.length > bmadProjectionLimits.methodAgents ||
     !Array.isArray(snapshot.builderPackages) ||
-    snapshot.builderPackages.length > 8
+    snapshot.builderPackages.length > 8 ||
+    !Array.isArray(snapshot.coreSkills) ||
+    snapshot.coreSkills.length > bmadProjectionLimits.helpActions
   ) {
     return fail();
   }
@@ -873,6 +890,11 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
   const helpActions = snapshot.helpActions.map(parseBmadHelpAction);
   const methodAgents = snapshot.methodAgents.map(parseBmadMethodAgent);
   const builderPackages = snapshot.builderPackages.map(parseBmadBuilderPackage);
+  const coreSkills = snapshot.coreSkills.map(parseBmadCoreSkill);
+  // Upstream menu codes are unique within a module, so the Core menu is keyed
+  // on its own — `SP` is `bmad-spec` here and `bmad-sprint-planning` in BMM.
+  assertUniqueIdentities(coreSkills.map(({ menuCode }) => menuCode));
+  assertUniqueIdentities(coreSkills.map(({ capabilityId }) => capabilityId));
   assertUniqueIdentities(
     builderPackages.map(({ packageKind, packageName }) => `${packageName}\u001f${packageKind}`),
   );
@@ -905,6 +927,7 @@ export function parseBmadLibrarySnapshot(value: unknown): BmadLibrarySnapshot {
     helpActions,
     methodAgents,
     builderPackages,
+    coreSkills,
     nextCursor: asBmadCursor(snapshot.nextCursor),
   };
   if (

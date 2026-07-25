@@ -120,6 +120,7 @@ export async function createReadyShellRuntime(
           helpActions: [],
           methodAgents: [],
           builderPackages: [],
+          coreSkills: [],
           nextCursor: null,
         },
       });

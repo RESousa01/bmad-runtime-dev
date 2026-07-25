@@ -428,6 +428,7 @@ fn runtime_menu_bindings_project_all_reviewed_method_menus_as_available_skill_ta
         &[("core", "bmad-help")],
         &REVIEWED_METHOD_MENU_BINDINGS,
         Vec::new(),
+        Vec::new(),
     )
     .expect("runtime capability overlay");
 
@@ -533,6 +534,7 @@ fn runtime_menu_bindings_reject_unknown_duplicate_and_mismatched_bindings() {
                 capability_id: "bmm:bmad-brainstorming",
             }],
             Vec::new(),
+            Vec::new(),
         )
         .expect_err("unknown runtime capability must fail closed"),
         BmadProjectionError::Unavailable
@@ -549,6 +551,7 @@ fn runtime_menu_bindings_reject_unknown_duplicate_and_mismatched_bindings() {
                 REVIEWED_METHOD_MENU_BINDINGS[0],
                 REVIEWED_METHOD_MENU_BINDINGS[0],
             ],
+            Vec::new(),
             Vec::new(),
         )
         .expect_err("duplicate runtime menu path must fail closed"),
@@ -568,6 +571,7 @@ fn runtime_menu_bindings_reject_unknown_duplicate_and_mismatched_bindings() {
             None,
             &[],
             &swapped_capabilities,
+            Vec::new(),
             Vec::new(),
         )
         .expect_err("known capability IDs bound to the wrong paths must fail closed"),

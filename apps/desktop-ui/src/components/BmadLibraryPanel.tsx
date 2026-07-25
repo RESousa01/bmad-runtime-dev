@@ -343,6 +343,7 @@ function ReadyLibrary({
   const skillsHeadingId = useId();
   const actionsHeadingId = useId();
   const agentsHeadingId = useId();
+  const coreSkillsHeadingId = useId();
   const builderHeadingId = useId();
 
   return (
@@ -367,6 +368,37 @@ function ReadyLibrary({
           </ul>
         ) : <p>No agents available.</p>}
       </section>
+
+      {projection.coreSkills.length > 0 ? (
+        <section aria-labelledby={coreSkillsHeadingId} className="bmad-library-section">
+          <h3 id={coreSkillsHeadingId}>Core skills</h3>
+          <p>
+            Adopted upstream skills that belong to the Core module rather than
+            to an agent. Upstream invokes several of them from inside other
+            skills; each also runs on its own.
+          </p>
+          <ul>
+            {projection.coreSkills.map((skill) => (
+              <li className="bmad-library-row" key={skill.capabilityId}>
+                <div>
+                  <strong>{skill.displayName}</strong>
+                  <span>Menu code {skill.menuCode}</span>
+                  <FidelityBadge capabilityId={skill.capabilityId} />
+                </div>
+                {onRunCapability ? (
+                  <Button
+                    onPress={() => onRunCapability(skill.capabilityId, skill.displayName)}
+                    size="small"
+                    variant="secondary"
+                  >
+                    Start reviewed run
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {projection.builderPackages.length > 0 ? (
         <section aria-labelledby={builderHeadingId} className="bmad-library-section">

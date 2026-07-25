@@ -25,6 +25,8 @@ const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 /// The adopted upstream method graph (ADR-0008).
 const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-help.csv";
+/// Upstream's Core module menu, sealed alongside the phased BMM catalog.
+const CORE_SKILL_CATALOG_PATH: &str = "source/method/6.10.0/src/core-skills/module-help.csv";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
 const METHOD_RUNTIME_PATHS: [&str; 31] = [
@@ -181,6 +183,7 @@ pub struct BmadLoadedFoundation {
     builder_packages: Vec<BmadBuilderPackageSummary>,
     personas: Vec<BmadSealedPersonaProjection>,
     workflow_graph: Option<desktop_runtime::BmadWorkflowGraph>,
+    core_skill_catalog: Option<desktop_runtime::BmadWorkflowGraph>,
 }
 
 /// One roster agent's sealed persona instruction, verified against its
@@ -314,6 +317,23 @@ impl BmadLoadedFoundation {
         self.workflow_graph.as_ref()
     }
 
+    /// Upstream's Core module menu.
+    ///
+    /// Core skills are not agent menu paths — upstream lists them in their own
+    /// `core-skills/module-help.csv` with their own menu codes (`SP`, `SD`,
+    /// `AR`, …). Forge seals that catalog but previously read only the
+    /// `bmm-skills` one, which is why nine adopted, runnable capabilities had
+    /// no menu identity to display.
+    ///
+    /// Kept separate from [`Self::workflow_graph`] rather than merged: menu
+    /// codes are unique per module, not globally (`SP` is `bmad-spec` in Core
+    /// and `bmad-sprint-planning` in the `BMad` Method module), and
+    /// `bmad-brainstorming` appears in both catalogs under different codes.
+    #[must_use]
+    pub fn core_skill_catalog(&self) -> Option<&desktop_runtime::BmadWorkflowGraph> {
+        self.core_skill_catalog.as_ref()
+    }
+
     /// The sealed persona projection for one roster agent code.
     #[must_use]
     pub fn persona_for(&self, agent_code: &str) -> Option<&BmadSealedPersonaProjection> {
@@ -445,6 +465,10 @@ pub fn load_bmad_foundation(
         .get(WORKFLOW_GRAPH_PATH)
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
         .and_then(|text| desktop_runtime::BmadWorkflowGraph::parse(text).ok());
+    let core_skill_catalog = resources
+        .get(CORE_SKILL_CATALOG_PATH)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .and_then(|text| desktop_runtime::BmadWorkflowGraph::parse(text).ok());
 
     Ok(BmadLoadedFoundation {
         method_package,
@@ -456,6 +480,7 @@ pub fn load_bmad_foundation(
         builder_packages,
         personas,
         workflow_graph,
+        core_skill_catalog,
     })
 }
 

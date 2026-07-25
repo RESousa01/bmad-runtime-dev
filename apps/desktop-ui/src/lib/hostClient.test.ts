@@ -161,6 +161,12 @@ const bmadLibrarySnapshot: BmadLibrarySnapshot = {
     descriptorDigest: "0a1b2c3d4e5f",
     blockerCodes: ["builder_engine_gated"],
   }],
+  coreSkills: [{
+    capabilityId: "bmm:bmad-spec",
+    skill: "bmad-spec",
+    displayName: "Spec",
+    menuCode: "SP",
+  }],
   nextCursor: null,
 };
 

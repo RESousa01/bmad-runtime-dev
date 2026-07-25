@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "../test/setup";
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -118,6 +119,7 @@ const baseProjection: BmadLibraryProjection = {
     },
   ],
   builderPackages: [],
+  coreSkills: [],
   nextCursor: null,
 };
 
@@ -395,5 +397,42 @@ describe("BmadLibraryPanel", () => {
       rules: { "color-contrast": { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe("BmadLibraryPanel core skills", () => {
+  /// Regression guard: the nine adopted core skills were runnable at the host
+  /// but had no agent menu path, so the agent-keyed panel never listed them and
+  /// no user could start one.
+  it("lists the Core module menu and starts a reviewed run", async () => {
+    const onRunCapability = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <BmadLibraryPanel
+        onRunCapability={onRunCapability}
+        state={{
+          kind: "ready",
+          projection: {
+            ...baseProjection,
+            coreSkills: [
+              {
+                capabilityId: "bmm:bmad-spec",
+                skill: "bmad-spec",
+                displayName: "Spec",
+                menuCode: "SP",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Core skills" })).toBeTruthy();
+    expect(screen.getByText("Spec")).toBeTruthy();
+    // Upstream's own menu identity, not one Forge invented.
+    expect(screen.getByText("Menu code SP")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Start reviewed run" }));
+    expect(onRunCapability).toHaveBeenCalledWith("bmm:bmad-spec", "Spec");
   });
 });

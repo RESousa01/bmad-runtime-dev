@@ -234,14 +234,19 @@ impl BmadWorkflowGraph {
             .map(|step| step.key.clone())
             .collect::<Vec<_>>();
 
-        // The current phase is the earliest one still holding an unmet gate.
+        // The current phase is the earliest ordered phase not yet satisfied.
+        //
+        // Gates alone are not enough to derive this. `1-analysis` carries no
+        // `required` row at all, so keying purely off unmet gates made Analysis
+        // unreachable as a reported phase for any project, ever — a brand-new
+        // empty workspace reported `Planning`. Upstream is explicit that "a
+        // phase with no required items is entirely optional — recommend it but
+        // be clear about what's actually required next", which means such a
+        // phase is *current* until the project engages with it or moves past
+        // it, not skipped outright.
         let phase = BmadWorkflowPhase::ORDERED
             .into_iter()
-            .find(|phase| {
-                self.steps
-                    .iter()
-                    .any(|step| step.phase == *phase && step.required && !done.contains(&step.key))
-            })
+            .find(|phase| !self.phase_is_satisfied(*phase, &done))
             .unwrap_or(BmadWorkflowPhase::Implementation);
 
         let next_required = self
@@ -271,6 +276,39 @@ impl BmadWorkflowGraph {
             available,
             outstanding_required,
         }
+    }
+
+    /// Whether a project has moved past `phase`.
+    ///
+    /// A phase holding `required` steps is satisfied only when every one of
+    /// them is complete. A wholly optional phase is satisfied once the project
+    /// has engaged with it — completed any of its steps — or has demonstrably
+    /// moved on by completing work in a later phase.
+    fn phase_is_satisfied(&self, phase: BmadWorkflowPhase, done: &BTreeSet<String>) -> bool {
+        let mut has_required = false;
+        let mut any_done_here = false;
+        for step in &self.steps {
+            if step.phase != phase {
+                continue;
+            }
+            if step.required {
+                has_required = true;
+                if !done.contains(&step.key) {
+                    return false;
+                }
+            }
+            if done.contains(&step.key) {
+                any_done_here = true;
+            }
+        }
+        if has_required {
+            return true;
+        }
+        any_done_here
+            || self
+                .steps
+                .iter()
+                .any(|step| step.phase > phase && done.contains(&step.key))
     }
 
     fn order_of(&self, key: &str) -> usize {
@@ -420,17 +458,39 @@ mod tests {
     }
 
     #[test]
-    fn an_empty_project_starts_at_planning_with_the_prd_gate() {
+    fn an_empty_project_starts_at_analysis_while_the_first_gate_is_the_prd() {
         let graph = graph();
         let state = graph.state(&BTreeSet::new());
 
-        // Analysis carries no required gate upstream, so the first gate is the PRD.
-        assert_eq!(state.phase, BmadWorkflowPhase::Planning);
+        // Analysis carries no `required` row upstream, but it is still where an
+        // untouched project stands. Reporting the earliest *gate's* phase here
+        // skipped Analysis entirely and claimed a brand-new workspace was
+        // already in Planning.
+        assert_eq!(state.phase, BmadWorkflowPhase::Analysis);
+        // The phase and the next gate are deliberately different facts: nothing
+        // in Analysis is required, so the first thing that gates progress is
+        // still the PRD.
         assert_eq!(state.next_required.as_deref(), Some("bmad-prd"));
         assert!(state.completed.is_empty());
         // Anytime and analysis steps have no predecessors, so they are offerable.
         assert!(state.available.contains(&"bmad-brainstorming".to_owned()));
         assert!(state.available.contains(&"bmad-quick-dev".to_owned()));
+    }
+
+    #[test]
+    fn an_optional_phase_is_satisfied_by_engaging_with_it_or_moving_past_it() {
+        let graph = graph();
+
+        // Engaging with Analysis moves the project on, even though nothing in
+        // Analysis is required.
+        let engaged = graph.state(&completed(&["bmad-product-brief"]));
+        assert_eq!(engaged.phase, BmadWorkflowPhase::Planning);
+
+        // Skipping Analysis entirely is legitimate: completing later work also
+        // satisfies a wholly optional phase rather than pinning the project to
+        // it forever.
+        let skipped = graph.state(&completed(&["bmad-prd"]));
+        assert_eq!(skipped.phase, BmadWorkflowPhase::Solutioning);
     }
 
     #[test]

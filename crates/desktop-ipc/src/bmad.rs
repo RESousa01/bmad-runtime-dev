@@ -218,7 +218,25 @@ pub struct BmadLibrarySnapshotProjection {
     pub help_actions: Vec<BmadHelpActionProjection>,
     pub method_agents: Vec<BmadAgentProjection>,
     pub builder_packages: Vec<BmadBuilderPackageProjection>,
+    /// Upstream's Core module menu: adopted skills that are runnable but
+    /// belong to no agent, so they never appear under `method_agents`.
+    pub core_skills: Vec<BmadCoreSkillProjection>,
     pub next_cursor: Option<String>,
+}
+
+/// One adopted Core-module skill, carrying the menu identity upstream gives
+/// it in `core-skills/module-help.csv`.
+///
+/// These are ordinary runnable capabilities — the same prepare/approve/submit
+/// lifecycle as any agent menu path. They are projected separately only
+/// because upstream scopes them to a module menu rather than an agent.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BmadCoreSkillProjection {
+    pub capability_id: String,
+    pub skill: String,
+    pub display_name: String,
+    pub menu_code: String,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
@@ -308,6 +326,7 @@ pub fn project_bmad_library_with_activations(
         activations,
         &[],
         builder_packages,
+        Vec::new(),
     )
 }
 
@@ -331,6 +350,7 @@ pub fn project_bmad_library_with_runtime_menu_bindings(
     activations: &[(&str, &str)],
     runtime_menu_bindings: &[BmadRuntimeMenuCapabilityBinding<'_>],
     builder_packages: Vec<BmadBuilderPackageProjection>,
+    core_skills: Vec<BmadCoreSkillProjection>,
 ) -> Result<BmadLibrarySnapshotProjection, BmadProjectionError> {
     if cursor.is_some() {
         return Err(BmadProjectionError::Gap);
@@ -387,6 +407,7 @@ pub fn project_bmad_library_with_runtime_menu_bindings(
             .map(|agent| project_agent(agent, &runtime_menu_bindings))
             .collect::<Result<_, _>>()?,
         builder_packages,
+        core_skills,
         next_cursor: None,
     };
     if serde_json::to_vec(&projection)

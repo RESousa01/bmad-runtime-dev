@@ -402,10 +402,24 @@ pub(crate) fn reviewed_method_menu_bindings(
     Ok(METHOD_MENU_CAPABILITY_TABLE.to_vec())
 }
 
-/// ADR-0008 core skills are reachable directly rather than through an agent
-/// menu: upstream invokes them from inside other skills, so they have no menu
-/// path of their own. Their enablement is therefore the adopted-source
-/// binding itself.
+/// The adopted Core-module capability ids, in table order.
+#[must_use]
+pub(crate) fn core_skill_capability_ids() -> Vec<&'static str> {
+    CAPABILITY_TABLE
+        .iter()
+        .filter(|binding| is_core_skill_binding(binding))
+        .map(|binding| binding.id)
+        .collect()
+}
+
+/// ADR-0008 core skills carry no *agent* menu path, so their enablement is the
+/// adopted-source binding itself rather than a roster menu entry.
+///
+/// They are not menu-less, though: upstream gives most of them a code in its
+/// own `core-skills/module-help.csv` (`SP`, `SD`, `AR`, `ECH`, `EP`, `ES`,
+/// `ID`). Only `bmad-advanced-elicitation` and `bmad-review-verification-gap`
+/// are genuinely invoked solely from inside other skills. That distinction is
+/// why the library projection carries a separate Core module menu.
 #[must_use]
 pub(crate) fn is_core_skill_binding(binding: &CapabilityBinding) -> bool {
     binding

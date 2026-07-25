@@ -99,6 +99,18 @@ export interface BmadBuilderPackageProjection {
   readonly blockerCodes: readonly ["builder_engine_gated"];
 }
 
+/// One entry of upstream's Core module menu.
+///
+/// Core skills are adopted verbatim and runnable, but upstream scopes them to
+/// a module menu rather than an agent — so they carry a menu code without an
+/// agent code and never appear under `methodAgents`.
+export interface BmadCoreSkillProjection {
+  readonly capabilityId: string;
+  readonly skill: string;
+  readonly displayName: string;
+  readonly menuCode: string;
+}
+
 export interface BmadLibraryProjection {
   readonly schemaVersion: "bmad-library-snapshot.v2";
   readonly scope: "installed_method";
@@ -107,6 +119,7 @@ export interface BmadLibraryProjection {
   readonly helpActions: readonly BmadHelpActionProjection[];
   readonly methodAgents: readonly BmadMethodAgentProjection[];
   readonly builderPackages: readonly BmadBuilderPackageProjection[];
+  readonly coreSkills: readonly BmadCoreSkillProjection[];
   readonly nextCursor: string | null;
 }
 

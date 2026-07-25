@@ -1135,6 +1135,36 @@ fn read_workspace_text(
         .map_err(|error| map_workspace_error(&error))
 }
 
+/// The adopted Core-module skills, joined to the menu identity upstream gives
+/// them in its own catalog.
+///
+/// These capabilities have always been runnable — `runtime_capability_enabled`
+/// admits them and the generic lifecycle covers them — but they carry no agent
+/// menu path, so nothing ever projected them and no user could reach them.
+fn core_skill_projections(
+    foundation: &BmadLoadedFoundation,
+) -> Vec<desktop_ipc::BmadCoreSkillProjection> {
+    let Some(catalog) = foundation.core_skill_catalog() else {
+        return Vec::new();
+    };
+    crate::bmad_capability_host::core_skill_capability_ids()
+        .into_iter()
+        .filter_map(|capability_id| {
+            // `bmm:bmad-spec` -> `bmad-spec`, the upstream catalog's skill key.
+            let skill = capability_id.split_once(':').map(|(_, tail)| tail)?;
+            let step = catalog.step(skill)?;
+            Some(desktop_ipc::BmadCoreSkillProjection {
+                capability_id: capability_id.to_owned(),
+                skill: step.skill.clone(),
+                display_name: step.display_name.clone(),
+                menu_code: step.menu_code.clone(),
+                // Upstream descriptions name artifacts (`SPEC.md`), and the
+                // library projection must stay free of anything path-shaped.
+            })
+        })
+        .collect()
+}
+
 fn bmad_library_snapshot(
     foundation: &BmadLoadedFoundation,
     scope: BmadLibraryProjectionScope,
@@ -1184,6 +1214,7 @@ fn bmad_library_snapshot(
         activations,
         &runtime_menu_bindings,
         builder_packages,
+        core_skill_projections(foundation),
     )
     .map(HostCommandData::BmadLibrarySnapshot)
     .map_err(map_bmad_projection_error)
@@ -4318,6 +4349,66 @@ planning_artifacts = \"{project-root}/docs/plan\"
         assert_method_menu_projection(projection);
         assert_builder_and_help_projection(projection);
         assert_no_bmad_authority_bytes(&data);
+    }
+
+    /// The nine adopted core skills were runnable but unreachable: they belong
+    /// to upstream's Core *module* menu, not to any agent, so the agent-keyed
+    /// projection never mentioned them. They now project with the menu identity
+    /// upstream assigns in `core-skills/module-help.csv`.
+    #[test]
+    fn host_projects_the_adopted_core_module_menu() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let data = bmad_library_snapshot(
+            &foundation,
+            BmadLibraryProjectionScope::InstalledMethod,
+            None,
+        )
+        .expect("library snapshot");
+        let projection = match &data {
+            HostCommandData::BmadLibrarySnapshot(projection) => Some(projection),
+            _ => None,
+        }
+        .expect("expected BMAD library projection");
+
+        // Every core skill Forge adopted is projected, with upstream's code.
+        for (capability_id, menu_code, display_name) in [
+            ("bmm:bmad-spec", "SP", "Spec"),
+            ("bmm:bmad-shard-doc", "SD", "Shard Document"),
+            ("bmm:bmad-index-docs", "ID", "Index Docs"),
+            (
+                "bmm:bmad-editorial-review-prose",
+                "EP",
+                "Editorial Review - Prose",
+            ),
+            (
+                "bmm:bmad-editorial-review-structure",
+                "ES",
+                "Editorial Review - Structure",
+            ),
+            (
+                "bmm:bmad-review-adversarial-general",
+                "AR",
+                "Adversarial Review",
+            ),
+            (
+                "bmm:bmad-review-edge-case-hunter",
+                "ECH",
+                "Edge Case Hunter Review",
+            ),
+        ] {
+            let entry = projection
+                .core_skills
+                .iter()
+                .find(|skill| skill.capability_id == capability_id)
+                .expect("every adopted core skill must be projected");
+            assert_eq!(entry.menu_code, menu_code, "{capability_id} menu code");
+            assert_eq!(entry.display_name, display_name, "{capability_id} name");
+        }
+
+        // `bmad-advanced-elicitation` and `bmad-review-verification-gap` are
+        // genuinely menu-less upstream — they are invoked from inside other
+        // skills — so they carry no Core menu entry and are not projected here.
+        assert_eq!(projection.core_skills.len(), 7);
     }
 
     #[test]
