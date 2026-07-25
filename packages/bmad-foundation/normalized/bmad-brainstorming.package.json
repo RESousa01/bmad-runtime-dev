@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/brainstorming.instructions.md",
-      "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
+      "contentHash": "sha256:b001d1063f0f7ed71a00106ed448ecd71ed1dbdb263e5d618a83e3bb72f29cee",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:dddf8ee8cf3916c245239f4304ad21f6ef3c296a172821336f266721ea1a7a69"
+    "projectionHash": "sha256:2cfb8400b1ffbd300cc32abce1061dfbeb4a8aff93586d8f657c26313c11dd41"
   },
-  "projectionEnvelopeHash": "sha256:3c22bac8929fd10e3eb5a7eb151c77abaea7453b407da45d8f2fa8660963c3ca"
+  "projectionEnvelopeHash": "sha256:d18da610c2ae0b707a96cf4a42af22ceb063d6f8de425135f309e8a40c4bdb90"
 }

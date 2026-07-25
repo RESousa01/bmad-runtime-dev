@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:7f10eba2a8e97eb4fa98b9e1d2f6f904383076e2d989252aafdf87afda762750",
+  "semanticLedgerHash": "sha256:a2d00893eb57098e3bf51b4724b3972da5917d1b54f166f7a809b9bc4d6672dc",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -47,7 +47,7 @@
     },
     {
       "path": "normalized/bmad-brainstorming.package.json",
-      "contentHash": "sha256:69e331c2d2427f0d04477cb4c042a076e46ef584749ebf2b0f210ae8d2ebdde9",
+      "contentHash": "sha256:cd1e898addcd1777b004992c661d84b1e3c8f2975072f84d4f11dc2a0cd9411a",
       "byteLength": 1955,
       "contentKind": "normalized_contract"
     },
@@ -59,7 +59,7 @@
     },
     {
       "path": "normalized/bmad-code-review.package.json",
-      "contentHash": "sha256:12aeaa6b991a492d27dd609aa2a6352192407dbc2dbfae2634a58afc0a0cbf07",
+      "contentHash": "sha256:88e0249f753c73b2b6515685014a41de4da487a5c38d9bf87a99c690337a63cd",
       "byteLength": 1979,
       "contentKind": "normalized_contract"
     },
@@ -83,7 +83,7 @@
     },
     {
       "path": "normalized/bmad-dev-story.package.json",
-      "contentHash": "sha256:50a7a5f2e67e59fb4491396aea0a95652ed27161ea778f9d939eee15c76b8128",
+      "contentHash": "sha256:f8e9f403725807cb8769dfc439cf23cd528a399aa65ffb3977f19f7f8375adda",
       "byteLength": 1971,
       "contentKind": "normalized_contract"
     },
@@ -113,8 +113,8 @@
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:a5158b4b612b882ce8370a78f989f13c89168872385df3d21cf0038717971427",
-      "byteLength": 84219,
+      "contentHash": "sha256:f2e099fcd7d8e6a8fa4b8c001627b443a21d0508ecffae519be189911c899499",
+      "byteLength": 84220,
       "contentKind": "normalized_contract"
     },
     {
@@ -161,13 +161,13 @@
     },
     {
       "path": "normalized/bmad-retrospective.package.json",
-      "contentHash": "sha256:61a2870d498e3ac67ceeafeebdfd197eac9cebf553280b7875273d9ebe69515d",
+      "contentHash": "sha256:32b6bf5ceea7c91af03ae456c692c0c00b4578bbccb438af0a22655d120c9c97",
       "byteLength": 1987,
       "contentKind": "normalized_contract"
     },
     {
       "path": "normalized/bmad-sprint-planning.package.json",
-      "contentHash": "sha256:c97c044f6ef3fc7cd3db7dfc6dc21282880de5f97ab8397acbbc5e587108ed03",
+      "contentHash": "sha256:e6b479acc59eddde74c6cab71195c67473fb8aee3aec244a67909e70b565522a",
       "byteLength": 1995,
       "contentKind": "normalized_contract"
     },
@@ -293,14 +293,14 @@
     },
     {
       "path": "runtime/method/6.10.0/brainstorming.instructions.md",
-      "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
-      "byteLength": 1231,
+      "contentHash": "sha256:b001d1063f0f7ed71a00106ed448ecd71ed1dbdb263e5d618a83e3bb72f29cee",
+      "byteLength": 3291,
       "contentKind": "managed_instruction"
     },
     {
       "path": "runtime/method/6.10.0/code-review.instructions.md",
-      "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
-      "byteLength": 1045,
+      "contentHash": "sha256:ee1ad6089707619362ef5f6b73c4a7c3116f2de3a381ef6a15cacfae1829c96a",
+      "byteLength": 4105,
       "contentKind": "managed_instruction"
     },
     {
@@ -329,8 +329,8 @@
     },
     {
       "path": "runtime/method/6.10.0/dev-story.instructions.md",
-      "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
-      "byteLength": 1191,
+      "contentHash": "sha256:4084dbda3b919635d560deb4e386a72254db257ca9a3cf8a07763362cd41fe3a",
+      "byteLength": 3073,
       "contentKind": "managed_instruction"
     },
     {
@@ -407,14 +407,14 @@
     },
     {
       "path": "runtime/method/6.10.0/retrospective.instructions.md",
-      "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
-      "byteLength": 1107,
+      "contentHash": "sha256:0c38f80466d60843ece1e39598abe69ba8bf5b02c424f75a5865422889083def",
+      "byteLength": 1757,
       "contentKind": "managed_instruction"
     },
     {
       "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
-      "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
-      "byteLength": 974,
+      "contentHash": "sha256:9525d61c8154b6a19ce3f10629ce6a9773555b380797b534515258cbfcadfd72",
+      "byteLength": 2393,
       "contentKind": "managed_instruction"
     },
     {
@@ -455,8 +455,8 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:7f10eba2a8e97eb4fa98b9e1d2f6f904383076e2d989252aafdf87afda762750",
-      "byteLength": 237001,
+      "contentHash": "sha256:a2d00893eb57098e3bf51b4724b3972da5917d1b54f166f7a809b9bc4d6672dc",
+      "byteLength": 237002,
       "contentKind": "provenance_ledger"
     },
     {
@@ -1828,5 +1828,5 @@
       "contentKind": "adopted_source"
     }
   ],
-  "manifestHash": "sha256:9f1db728b2afdb86464dd655405352daf0b2d7b96cee70791d9cdda946fa96c5"
+  "manifestHash": "sha256:abecaefe39ed555fd843b641e7efd7fa540a507e231e74a93fe5a89b26afb2fe"
 }

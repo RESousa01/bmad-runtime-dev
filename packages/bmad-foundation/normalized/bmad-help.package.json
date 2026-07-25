@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:8398be957e5608e91e2480c56b6dea86ba74df1b9824134e9de4d26b16b1b10f",
+  "finalCompositeInventoryHash": "sha256:6463aaade7d7274db3d2651fbba2af0b6de0e521681477675881572678b3635e",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -439,7 +439,7 @@
       "projectionHash": "sha256:d034ba6ead98bb572bf9fe71e48ead30d92239baa331c7221fb943d368118c3c"
     },
     {
-      "projectionId": "projection_07CF8FBBE88E81661FAD69985F9C69F32071F037081D65BEF7B2FF0EC129CE9F",
+      "projectionId": "projection_B001D1063F0F7ED71A00106ED448ECD71ED1DBDB263E5D618A83E3BB72F29CEE",
       "sourceIdentityHash": "sha256:e276233905d656a66bff9dc6ab1d978f48736b71c8628535a51be608ec438878",
       "sourceEntrypoint": {
         "path": "src/core-skills/bmad-brainstorming/SKILL.md",
@@ -461,7 +461,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/brainstorming.instructions.md",
-        "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
+        "contentHash": "sha256:b001d1063f0f7ed71a00106ed448ecd71ed1dbdb263e5d618a83e3bb72f29cee",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -474,7 +474,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:dddf8ee8cf3916c245239f4304ad21f6ef3c296a172821336f266721ea1a7a69"
+      "projectionHash": "sha256:6e45d104cfd814566716052aa89d13504c1788b958f3eea32b1090cedc0e1512"
     },
     {
       "projectionId": "projection_70FC5F6E6ABC469564D03EB9ACE223F212FECA587935FAF2FBE49B4BB3D535D7",
@@ -819,7 +819,7 @@
       "projectionHash": "sha256:611bc692f19b0bf4b04532602916a0a5c683480c958053c35f2f65e85ee9fca3"
     },
     {
-      "projectionId": "projection_5EAE6A04389B8717AA7523BF13FB881D00CF4B9DD5E6EB6337EEB0812DEC153E",
+      "projectionId": "projection_4084DBDA3B919635D560DEB4E386A72254DB257CA9A3CF8A07763362CD41FE3A",
       "sourceIdentityHash": "sha256:a2ace8f1d930f131adf40f74bde08325c13f47851b5bd4c12967c172833a2428",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md",
@@ -841,7 +841,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/dev-story.instructions.md",
-        "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
+        "contentHash": "sha256:4084dbda3b919635d560deb4e386a72254db257ca9a3cf8a07763362cd41fe3a",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -854,7 +854,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:31296071c02c20a731ffda329817709abbc3c2c6986534d6da26fa9d174bea00"
+      "projectionHash": "sha256:4b7b88e6240280b3ce98d818358e5fd6c03bc1fe84cb134375e12c0df6d4630c"
     },
     {
       "projectionId": "projection_2C309DCF47F3F1E7F010424E1F087449E33C0666A2C196C89A168DAF6B5C51A5",
@@ -933,7 +933,7 @@
       "projectionHash": "sha256:fbd257ef24de4b49dd3b27b910efba309ccdd3ace8816dd61b3e356893e2ffd3"
     },
     {
-      "projectionId": "projection_5C697871BAB894161EDB74B9D75C02F43F0998DD149A396CAF190A1D94759DB5",
+      "projectionId": "projection_EE1AD6089707619362EF5F6B73C4A7C3116F2DE3A381EF6A15CACFAE1829C96A",
       "sourceIdentityHash": "sha256:61a29be5c0b98006bd0f93ff9acd06a6916bccab593c18d85d2d35c0a28c6ad2",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-code-review/SKILL.md",
@@ -955,7 +955,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/code-review.instructions.md",
-        "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
+        "contentHash": "sha256:ee1ad6089707619362ef5f6b73c4a7c3116f2de3a381ef6a15cacfae1829c96a",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -968,10 +968,10 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:3f588d4c1a1210f3b7801e7e33310c17058bc10746a0554f456b03d8c4836ec8"
+      "projectionHash": "sha256:a30c1f8d1c5f833c12c9f2f0e22d6dc2d17c1bc3b82c1a5fef009c2ba2689c8b"
     },
     {
-      "projectionId": "projection_E0F23A005F0567595D807F231BB5E2964384DE261CF564F6FE7D7DC984A24452",
+      "projectionId": "projection_9525D61C8154B6A19CE3F10629CE6A9773555B380797B534515258CBFCADFD72",
       "sourceIdentityHash": "sha256:78bb50409002ec6950b33c392fa429b4be7b337360ffce3172ddd72ece821b49",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md",
@@ -993,7 +993,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
-        "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
+        "contentHash": "sha256:9525d61c8154b6a19ce3f10629ce6a9773555b380797b534515258cbfcadfd72",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -1006,7 +1006,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:a40efe2fd86be82d83c1d0890bfad987ded0370c7a762cdd7d011e80acc782f7"
+      "projectionHash": "sha256:2752ab6f5de9098a6e840756d9315f99e262864efdc001fcf850396a67c2e240"
     },
     {
       "projectionId": "projection_76922235FFED328F04221DE9C6CB6E2AD21641FF0BAEA39FB09304DC84B6EE7D",
@@ -1047,7 +1047,7 @@
       "projectionHash": "sha256:58f88e03a9128c4a5a6ca428efadeade8ef01db8c836162da3fd4f0c91f67ef1"
     },
     {
-      "projectionId": "projection_E36F8B850FB4C131845B44962B1FFF5D54AE5C7A801868D882FDF95B6D61B482",
+      "projectionId": "projection_0C38F80466D60843ECE1E39598ABE69BA8BF5B02C424F75A5865422889083DEF",
       "sourceIdentityHash": "sha256:ca1cb743352a9311c1304a0361a9810294117a2e2823bc671994ee5fffeeb0cd",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md",
@@ -1069,7 +1069,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/retrospective.instructions.md",
-        "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
+        "contentHash": "sha256:0c38f80466d60843ece1e39598abe69ba8bf5b02c424f75a5865422889083def",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -1082,7 +1082,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:ce7128883dc60e57365d61973ab0d82876a0bbc9721cbcb5278b882fde12e19e"
+      "projectionHash": "sha256:00a52e92ecf50336f67dc7684789e58ca70ec2fedc2bf7c5bb434f588c3a08ea"
     },
     {
       "projectionId": "projection_F0397CED48A617CF302F18407719950B106A27B86E15E51EC0F352F632186DEE",
@@ -1354,8 +1354,8 @@
       "path": "runtime/method/6.10.0/brainstorming.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:07cf8fbbe88e81661fad69985f9c69f32071f037081d65bef7b2ff0ec129ce9f",
-      "byteLength": 1231,
+      "contentHash": "sha256:b001d1063f0f7ed71a00106ed448ecd71ed1dbdb263e5d618a83e3bb72f29cee",
+      "byteLength": 3291,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1363,8 +1363,8 @@
       "path": "runtime/method/6.10.0/code-review.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:5c697871bab894161edb74b9d75c02f43f0998dd149a396caf190a1d94759db5",
-      "byteLength": 1045,
+      "contentHash": "sha256:ee1ad6089707619362ef5f6b73c4a7c3116f2de3a381ef6a15cacfae1829c96a",
+      "byteLength": 4105,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1408,8 +1408,8 @@
       "path": "runtime/method/6.10.0/dev-story.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:5eae6a04389b8717aa7523bf13fb881d00cf4b9dd5e6eb6337eeb0812dec153e",
-      "byteLength": 1191,
+      "contentHash": "sha256:4084dbda3b919635d560deb4e386a72254db257ca9a3cf8a07763362cd41fe3a",
+      "byteLength": 3073,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1525,8 +1525,8 @@
       "path": "runtime/method/6.10.0/retrospective.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:e36f8b850fb4c131845b44962b1fff5d54ae5c7a801868d882fdf95b6d61b482",
-      "byteLength": 1107,
+      "contentHash": "sha256:0c38f80466d60843ece1e39598abe69ba8bf5b02c424f75a5865422889083def",
+      "byteLength": 1757,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1534,8 +1534,8 @@
       "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:e0f23a005f0567595d807f231bb5e2964384de261cf564f6fe7d7dc984a24452",
-      "byteLength": 974,
+      "contentHash": "sha256:9525d61c8154b6a19ce3f10629ce6a9773555b380797b534515258cbfcadfd72",
+      "byteLength": 2393,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:1866d75b79e430cdef8815751c74b317cf733fb8942f2f5ad5663b61fd39117b"
+  "descriptorHash": "sha256:e554b8d6edf07ef6ff8405d2009a39f56eba87ccb2c4cd390b4a284ef8b152ef"
 }
