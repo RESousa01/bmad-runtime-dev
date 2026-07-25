@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/create-story.instructions.md",
-      "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+      "contentHash": "sha256:c604c6997f1abdee5627bdbdc75297d75e236d71b91ec9194927a8eaa21ad792",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:58f88e03a9128c4a5a6ca428efadeade8ef01db8c836162da3fd4f0c91f67ef1"
+    "projectionHash": "sha256:0845303655d29b2ffc95e47811a16714288540e7ab1e23d7402e67b5ae56e460"
   },
-  "projectionEnvelopeHash": "sha256:d6ad5f03a0d4b551e0f1613fc3434621321832ba51767728ca480ceb2f2901b9"
+  "projectionEnvelopeHash": "sha256:ca93bb1def5d0ebd7b6f6ecdd7ada1652851d3c2a39115dc1e1e413f4012678c"
 }

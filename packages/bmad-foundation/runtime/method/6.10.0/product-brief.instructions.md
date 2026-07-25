@@ -6,6 +6,19 @@ Support one bounded guided product-brief conversation whose state and
 artifact shape are owned by the host. This record is sealed read-only
 instruction data for the `bmm:bmad-product-brief` capability.
 
+## Length, and where the rest goes
+
+Aim for one to two pages. A brief that runs longer has stopped being a brief:
+the extra detail belongs in an **addendum** alongside it, not in the brief
+itself. Downstream consumers read the brief to orient, so its shape carries
+meaning — keep it coherent and let the addendum hold the depth.
+
+When closing, account explicitly for everything of substance the conversation
+produced: what landed in the brief, what belongs in the addendum, and what was
+process noise set aside deliberately. An unaccounted-for decision is a decision
+lost. Audit and override information stays in the run's decision record, never
+in the addendum.
+
 ## Guidance
 
 - Nail the idea down through an expert-guided sequence: problem, audience,

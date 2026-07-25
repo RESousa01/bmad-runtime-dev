@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:6463aaade7d7274db3d2651fbba2af0b6de0e521681477675881572678b3635e",
+  "finalCompositeInventoryHash": "sha256:d3b9346960423a0b3b75df7704ce1e895381302f1cfc1dd5ae16302250a3827d",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -591,7 +591,7 @@
       "projectionHash": "sha256:92db9d98401ef4f6f24f3044a8dd676ab883241ee806af99d61503e5f41e2efb"
     },
     {
-      "projectionId": "projection_B0F9D7BE576CFD38449F9B2E7D099A547AE88C8510AD81A03D49E190183920CB",
+      "projectionId": "projection_7C1761C22631B05BC373B6C6A657FDB0595D2C45B9CF5D490240ECFF834F7E9A",
       "sourceIdentityHash": "sha256:96dd5e2e0382a10cb6c623cdf46704633a8fd76071266ec5ce240bde7e38c226",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
@@ -613,7 +613,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/product-brief.instructions.md",
-        "contentHash": "sha256:b0f9d7be576cfd38449f9b2e7d099a547ae88c8510ad81a03d49e190183920cb",
+        "contentHash": "sha256:7c1761c22631b05bc373b6c6a657fdb0595d2c45b9cf5d490240ecff834f7e9a",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -626,7 +626,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:16064fc6793bdda40986a975b9c83ac2e796a4e9cf79a272b3c62b32c5fb7d03"
+      "projectionHash": "sha256:f1c081fc45c8d78ab8588430d1c936b9a583732d77801b8bff8d1644bdcbcfd7"
     },
     {
       "projectionId": "projection_4A2A1FE8CDB0FFA41157816FD3C3969477578AB2758D77780B100867E77A87DF",
@@ -781,7 +781,7 @@
       "projectionHash": "sha256:3c9e96521c56aa14a1880aa1535f76d4c4c19bfaef36938fa934c9cb60e29b5b"
     },
     {
-      "projectionId": "projection_9C53ED25C264B70B8A656EF7328762DB85DC88E75241BC2BBEB3EEDCF96F5F24",
+      "projectionId": "projection_D9C4FD881334BA139F8DBAA14BB45658BB422615BDDFE31A6E469E0008C70997",
       "sourceIdentityHash": "sha256:6a22f2e7368893e7a089ccdf8eff4c7c30840741377ab48756651a56d0c88cd5",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
@@ -803,7 +803,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/ux-design.instructions.md",
-        "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
+        "contentHash": "sha256:d9c4fd881334ba139f8dbaa14bb45658bb422615bddfe31a6e469e0008c70997",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -816,7 +816,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:611bc692f19b0bf4b04532602916a0a5c683480c958053c35f2f65e85ee9fca3"
+      "projectionHash": "sha256:d051310338a27da32a1868d6506e9ba2ee714f6969cfbd7e8e574c1cc9677e6b"
     },
     {
       "projectionId": "projection_4084DBDA3B919635D560DEB4E386A72254DB257CA9A3CF8A07763362CD41FE3A",
@@ -1009,7 +1009,7 @@
       "projectionHash": "sha256:2752ab6f5de9098a6e840756d9315f99e262864efdc001fcf850396a67c2e240"
     },
     {
-      "projectionId": "projection_76922235FFED328F04221DE9C6CB6E2AD21641FF0BAEA39FB09304DC84B6EE7D",
+      "projectionId": "projection_C604C6997F1ABDEE5627BDBDC75297D75E236D71B91EC9194927A8EAA21AD792",
       "sourceIdentityHash": "sha256:6420c2f159c5dcbc0af2e528f1123c3e7cf244732b8b2217546b1ebd40a27b10",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-create-story/SKILL.md",
@@ -1031,7 +1031,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/create-story.instructions.md",
-        "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
+        "contentHash": "sha256:c604c6997f1abdee5627bdbdc75297d75e236d71b91ec9194927a8eaa21ad792",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -1044,7 +1044,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:58f88e03a9128c4a5a6ca428efadeade8ef01db8c836162da3fd4f0c91f67ef1"
+      "projectionHash": "sha256:8eb88c54b9ff8bd74def13a7716c81f3771147380a5f4ff433eed1f616d86825"
     },
     {
       "projectionId": "projection_0C38F80466D60843ECE1E39598ABE69BA8BF5B02C424F75A5865422889083DEF",
@@ -1390,8 +1390,8 @@
       "path": "runtime/method/6.10.0/create-story.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:76922235ffed328f04221de9c6cb6e2ad21641ff0baea39fb09304dc84b6ee7d",
-      "byteLength": 1154,
+      "contentHash": "sha256:c604c6997f1abdee5627bdbdc75297d75e236d71b91ec9194927a8eaa21ad792",
+      "byteLength": 2795,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1498,8 +1498,8 @@
       "path": "runtime/method/6.10.0/product-brief.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:b0f9d7be576cfd38449f9b2e7d099a547ae88c8510ad81a03d49e190183920cb",
-      "byteLength": 1055,
+      "contentHash": "sha256:7c1761c22631b05bc373b6c6a657fdb0595d2c45b9cf5d490240ecff834f7e9a",
+      "byteLength": 1721,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1561,8 +1561,8 @@
       "path": "runtime/method/6.10.0/ux-design.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:9c53ed25c264b70b8a656ef7328762db85dc88e75241bc2bbeb3eedcf96f5f24",
-      "byteLength": 1054,
+      "contentHash": "sha256:d9c4fd881334ba139f8dbaa14bb45658bb422615bddfe31a6e469e0008c70997",
+      "byteLength": 1939,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:e554b8d6edf07ef6ff8405d2009a39f56eba87ccb2c4cd390b4a284ef8b152ef"
+  "descriptorHash": "sha256:acc0ace3f0bd89e7c4bd5896927a740b2de63c23d5bc1117e04c8f363caf6dd1"
 }

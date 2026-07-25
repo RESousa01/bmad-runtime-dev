@@ -256,7 +256,7 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     // projection to carry the spine model changed the composite inventory.
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:6463aaade7d7274db3d2651fbba2af0b6de0e521681477675881572678b3635e")
+        digest("sha256:d3b9346960423a0b3b75df7704ce1e895381302f1cfc1dd5ae16302250a3827d")
     );
 
     assert_eq!(help.module_code(), "core");

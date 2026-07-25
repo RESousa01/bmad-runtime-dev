@@ -1928,7 +1928,30 @@ export function App({
       );
       const dispatched = agent ? matchMenuIntent(intent, agent.menus) : null;
       if (dispatched?.menu.capabilityId != null) {
-        openCapabilityRun(dispatched.menu.capabilityId, dispatched.menu.displayLabel);
+        // Record the exchange before leaving. A dispatch is still a turn the
+        // user took: returning straight to the capability run cleared the
+        // composer and dropped the message, so the conversation lost the very
+        // sentence that caused the run to open.
+        const dispatchRouting = sessionId === undefined
+          ? chatSessions.captureRouting()
+          : chatSessions.routingFor(sessionId);
+        const dispatchedAt = Date.now();
+        const label = dispatched.menu.displayLabel;
+        chatSessions.applyToLane(dispatchRouting, (lane) => ({
+          ...lane,
+          messages: [
+            ...lane.messages,
+            { role: "user", text: intent, createdAt: dispatchedAt },
+            {
+              role: "assistant",
+              text: `Opening the reviewed run for “${label}”. Nothing has been sent yet — review the context and approve it to run.`,
+              createdAt: dispatchedAt,
+            },
+          ],
+          pending: null,
+          error: null,
+        }));
+        openCapabilityRun(dispatched.menu.capabilityId, label);
         return;
       }
     }
