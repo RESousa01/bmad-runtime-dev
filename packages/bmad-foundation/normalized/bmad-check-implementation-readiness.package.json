@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
-      "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+      "contentHash": "sha256:607d41aa394103cbf082f7bdf573ca8431d0ea4540f7b2acc3a96351c924809a",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:1d1de0292a0b35e1d1e58a4b7f91baa6a9c367c359d013e0fa7300d938ea33a4"
+    "projectionHash": "sha256:699c31938c3771c7841765234974252db2c8c7f81bf56a95cbeae52ebc451d63"
   },
-  "projectionEnvelopeHash": "sha256:611b9dbcee48f88a2c76dd98cc6421920f8bce55dffc0dcfc42c8b19b9b090dd"
+  "projectionEnvelopeHash": "sha256:7f37bc302d9244c8957256481c59b225322c0c1c947721d8bffab42a5a5c30d6"
 }

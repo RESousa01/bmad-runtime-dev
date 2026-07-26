@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/correct-course.instructions.md",
-      "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+      "contentHash": "sha256:45c4020d678af7a22ddd45e498d6088ad9a3304b1e0502a94598fa31516899da",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:3c9e96521c56aa14a1880aa1535f76d4c4c19bfaef36938fa934c9cb60e29b5b"
+    "projectionHash": "sha256:e53efea7f8dc349f6b0579105173c70f7a6b981b82be558d3cda5fad3037ad2d"
   },
-  "projectionEnvelopeHash": "sha256:80e4f917cc2e08511cc77fdf05cd21780520b1d1916b6a534a0173b0a0da73e9"
+  "projectionEnvelopeHash": "sha256:f12fa906cdc7f6046a28c8b654a290c49b5d873458704a891ed5f72e036555a8"
 }

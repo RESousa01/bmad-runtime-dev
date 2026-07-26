@@ -4246,8 +4246,8 @@
     },
     {
       "path": "runtime/method/6.10.0/correct-course.instructions.md",
-      "byteLength": 1060,
-      "sha256": "c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b"
+      "byteLength": 1665,
+      "sha256": "45c4020d678af7a22ddd45e498d6088ad9a3304b1e0502a94598fa31516899da"
     },
     {
       "path": "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
@@ -4286,8 +4286,8 @@
     },
     {
       "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
-      "byteLength": 1157,
-      "sha256": "ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853"
+      "byteLength": 1839,
+      "sha256": "607d41aa394103cbf082f7bdf573ca8431d0ea4540f7b2acc3a96351c924809a"
     },
     {
       "path": "runtime/method/6.10.0/market-research.instructions.md",
@@ -4311,8 +4311,8 @@
     },
     {
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
-      "byteLength": 1147,
-      "sha256": "4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df"
+      "byteLength": 2055,
+      "sha256": "59c843cbd1724500e0abb5ab8d1799fd22b1036ddd948b953c9a32589f8e4c84"
     },
     {
       "path": "runtime/method/6.10.0/product-brief.instructions.md",

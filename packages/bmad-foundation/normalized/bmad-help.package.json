@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:d3b9346960423a0b3b75df7704ce1e895381302f1cfc1dd5ae16302250a3827d",
+  "finalCompositeInventoryHash": "sha256:0893a734bb934bfb3be448cf4bee0109cce2eaf3e4317f913acb2cf2cf5007dd",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -629,7 +629,7 @@
       "projectionHash": "sha256:f1c081fc45c8d78ab8588430d1c936b9a583732d77801b8bff8d1644bdcbcfd7"
     },
     {
-      "projectionId": "projection_4A2A1FE8CDB0FFA41157816FD3C3969477578AB2758D77780B100867E77A87DF",
+      "projectionId": "projection_59C843CBD1724500E0ABB5AB8D1799FD22B1036DDD948B953C9A32589F8E4C84",
       "sourceIdentityHash": "sha256:5838745c0e812b0fc7dd04b1201711c22d8d9865b585414efe6b3c6d625cb35d",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
@@ -651,7 +651,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/prfaq.instructions.md",
-        "contentHash": "sha256:4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df",
+        "contentHash": "sha256:59c843cbd1724500e0abb5ab8d1799fd22b1036ddd948b953c9a32589f8e4c84",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -664,7 +664,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:d9d2960e17d5e82b48e8adc8667c177631f1e911ce1a1ca36626e8bedc57a66b"
+      "projectionHash": "sha256:f97078dbc41b1542ccc86f51d2bc94e67724d83c469908e730e4501300ae2d36"
     },
     {
       "projectionId": "projection_DDA703745ECD3F6EDE34D1990E1DF7E82C15AD3ED3A58062021337535713C05A",
@@ -705,7 +705,7 @@
       "projectionHash": "sha256:66f10e0a827fe639773fe17cf73679766750029e7dfad398d84c84304ed55bad"
     },
     {
-      "projectionId": "projection_FFC571E19318584DCCC80A09098914F46EE7F39234B8FE2058B1A31E3E87A853",
+      "projectionId": "projection_607D41AA394103CBF082F7BDF573CA8431D0EA4540F7B2ACC3A96351C924809A",
       "sourceIdentityHash": "sha256:65b3bbace8c4e66c9d542492daf55eb019ce9dd8b707aa9187810a61e121484b",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
@@ -727,7 +727,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
-        "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
+        "contentHash": "sha256:607d41aa394103cbf082f7bdf573ca8431d0ea4540f7b2acc3a96351c924809a",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -740,10 +740,10 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:1d1de0292a0b35e1d1e58a4b7f91baa6a9c367c359d013e0fa7300d938ea33a4"
+      "projectionHash": "sha256:c5c7cf1bbd7027a329c15c1ca2aa8cfd7c3a25ad5123da350f0ad17570d1c912"
     },
     {
-      "projectionId": "projection_C4221A7F5328DA875157114F687D38EB657780324FE92B33EF42A1EF9E3D908B",
+      "projectionId": "projection_45C4020D678AF7A22DDD45E498D6088AD9A3304B1E0502A94598FA31516899DA",
       "sourceIdentityHash": "sha256:ee44d407f2677b38bd87c2a9fa5e45395ded38b77c89943ae559024b9a217012",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md",
@@ -765,7 +765,7 @@
       "sourceSections": [],
       "managedInstruction": {
         "path": "runtime/method/6.10.0/correct-course.instructions.md",
-        "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
+        "contentHash": "sha256:45c4020d678af7a22ddd45e498d6088ad9a3304b1e0502a94598fa31516899da",
         "format": "SapphirusManagedV1"
       },
       "blockedToolIntents": [
@@ -778,7 +778,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:3c9e96521c56aa14a1880aa1535f76d4c4c19bfaef36938fa934c9cb60e29b5b"
+      "projectionHash": "sha256:617e6be690e741c80f996a61e1e1f6a31ff5c37d63b6789eb0549b61ca8a66bd"
     },
     {
       "projectionId": "projection_D9C4FD881334BA139F8DBAA14BB45658BB422615BDDFE31A6E469E0008C70997",
@@ -1372,8 +1372,8 @@
       "path": "runtime/method/6.10.0/correct-course.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:c4221a7f5328da875157114f687d38eb657780324fe92b33ef42a1ef9e3d908b",
-      "byteLength": 1060,
+      "contentHash": "sha256:45c4020d678af7a22ddd45e498d6088ad9a3304b1e0502a94598fa31516899da",
+      "byteLength": 1665,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1444,8 +1444,8 @@
       "path": "runtime/method/6.10.0/implementation-readiness.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:ffc571e19318584dccc80a09098914f46ee7f39234b8fe2058b1a31e3e87a853",
-      "byteLength": 1157,
+      "contentHash": "sha256:607d41aa394103cbf082f7bdf573ca8431d0ea4540f7b2acc3a96351c924809a",
+      "byteLength": 1839,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -1489,8 +1489,8 @@
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
-      "contentHash": "sha256:4a2a1fe8cdb0ffa41157816fd3c3969477578ab2758d77780b100867e77a87df",
-      "byteLength": 1147,
+      "contentHash": "sha256:59c843cbd1724500e0abb5ab8d1799fd22b1036ddd948b953c9a32589f8e4c84",
+      "byteLength": 2055,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:acc0ace3f0bd89e7c4bd5896927a740b2de63c23d5bc1117e04c8f363caf6dd1"
+  "descriptorHash": "sha256:eb7b00f5ff4489bd84dca793ccae90d3b9d3d035d2d0044b976e98c068dcb50b"
 }
