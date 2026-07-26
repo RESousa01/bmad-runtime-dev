@@ -25,7 +25,7 @@ pub use composition::DeterministicModelTransport;
 pub use composition::OfflineModelTransport;
 #[cfg(feature = "direct-provider")]
 pub use direct_provider::{
-    DirectProviderConfig, DirectProviderKind, DirectProviderTransport,
+    DirectProviderConfig, DirectProviderKind, DirectProviderTransport, ProviderAuth,
     DIRECT_PROVIDER_DEVELOPMENT_PROOF,
 };
 pub use entitlement::{EntitlementProofVerifier, EntitlementVerifier, VerifiedEntitlement};
