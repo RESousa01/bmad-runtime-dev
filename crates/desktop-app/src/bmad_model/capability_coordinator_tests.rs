@@ -24,8 +24,8 @@ use desktop_store::{KeyProtector, LocalStore, StoreError};
 use super::capability_coordinator::{
     capability_purpose, ApproveCapabilityRunInput, BmadCapabilityCoordinator,
     BmadCapabilityCoordinatorError, BmadCapabilityOutputVerifier, BmadCapabilityTransport,
-    CancelCapabilityRunInput, CapabilityTerminalReason, PrepareCapabilityRunInput,
-    SubmitCapabilityRunInput,
+    CancelCapabilityRunInput, CapabilityDispatchRequest, CapabilityTerminalReason,
+    PrepareCapabilityRunInput, SubmitCapabilityRunInput, MAX_TRACKED_CAPABILITY_WORKSPACES,
 };
 
 #[derive(Debug)]
@@ -74,6 +74,11 @@ impl BmadCapabilityOutputVerifier for CannedVerifier {
 
 fn id(value: &str) -> ContractId {
     ContractId::new(value).expect("contract id")
+}
+
+/// The workspace every single-workspace test in this file drives.
+fn workspace() -> ContractId {
+    id("workspace_01J00000000000000000000000")
 }
 
 fn digest(seed: u8) -> Sha256Digest {
@@ -194,6 +199,71 @@ fn prepare_input(
         manifest,
         invocation_binding: binding,
         deterministic_fixture: "{\"fixture\":\"capability\"}".to_owned(),
+    }
+}
+
+/// The same sealed prepare input, bound to a workspace of the test's choosing.
+///
+/// Nothing in the manifest or the invocation binding is workspace-derived —
+/// they carry tenant, project, and run refs — so re-pointing the workspace
+/// yields an input that is as legitimate as the original.
+fn prepare_input_in(
+    workspace_id: &ContractId,
+    capability: &BmadClosureCapabilityId,
+    output_schema_id: &str,
+    run_suffix: &str,
+    created_at: UnixMillis,
+) -> PrepareCapabilityRunInput {
+    let mut input = prepare_input(capability, output_schema_id, run_suffix, created_at);
+    input.workspace_id = workspace_id.clone();
+    input
+}
+
+/// Drives one workspace from `prepare` to a live `Dispatching` slot, so a test
+/// can hold several of them open at once.
+fn dispatch_in(
+    coordinator: &mut BmadCapabilityCoordinator,
+    workspace_id: &ContractId,
+    capability: &BmadClosureCapabilityId,
+    run_suffix: &str,
+) -> CapabilityDispatchRequest {
+    let review = coordinator
+        .prepare(prepare_input_in(
+            workspace_id,
+            capability,
+            BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+            run_suffix,
+            UnixMillis(10_000),
+        ))
+        .expect("review");
+    let approved = coordinator
+        .approve(&ApproveCapabilityRunInput {
+            workspace_id: workspace_id.clone(),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: capability.clone(),
+            manifest_hash: review.manifest_hash,
+            approved_at: UnixMillis(20_000),
+        })
+        .expect("approved decision");
+    coordinator
+        .begin_dispatch(&SubmitCapabilityRunInput {
+            run_scope: crate::bmad_memlog::RunScope::WholeDocument,
+            workspace_id: workspace_id.clone(),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: capability.clone(),
+            manifest_hash: review.manifest_hash,
+            decision_id: approved.decision_id,
+            submitted_at: UnixMillis(30_000),
+        })
+        .expect("dispatch begun")
+}
+
+fn brief_verifier() -> CannedVerifier {
+    CannedVerifier {
+        output: document_output(),
+        expected_capability: "bmm:bmad-product-brief",
     }
 }
 
@@ -437,7 +507,7 @@ fn an_output_of_the_wrong_archetype_terminates_the_flow() {
         BmadCapabilityCoordinatorError::ResultArchetypeMismatch
     );
     assert_eq!(
-        lifecycle.coordinator.terminal_reason_for_test(),
+        lifecycle.coordinator.terminal_reason_for_test(&workspace()),
         Some(CapabilityTerminalReason::OutputRejected)
     );
     // Nothing was persisted for the rejected run.
@@ -526,7 +596,7 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
         BmadCapabilityCoordinatorError::ConsentExpired
     );
     assert_eq!(
-        expired.coordinator.terminal_reason_for_test(),
+        expired.coordinator.terminal_reason_for_test(&workspace()),
         Some(CapabilityTerminalReason::ConsentExpired)
     );
 }
@@ -555,7 +625,7 @@ fn invalidation_withdraws_the_active_flow() {
         BmadCapabilityCoordinatorError::Unauthorized
     );
     assert_eq!(
-        lifecycle.coordinator.terminal_reason_for_test(),
+        lifecycle.coordinator.terminal_reason_for_test(&workspace()),
         Some(CapabilityTerminalReason::Invalidated)
     );
 }
@@ -590,8 +660,8 @@ fn split_dispatch_records_the_result_and_conflicts_while_in_flight(
         .begin_dispatch(&submit_input(&lifecycle, UnixMillis(30_000)))
         .expect("dispatch begun");
 
-    // The run is parked in `Dispatching`; the coordinator is single-active, so a
-    // fresh prepare must fail closed while the round trip runs unlocked.
+    // The run is parked in `Dispatching`; one workspace holds one slot, so a
+    // fresh prepare for it must fail closed while the round trip runs unlocked.
     assert_eq!(
         lifecycle
             .coordinator
@@ -617,6 +687,7 @@ fn split_dispatch_records_the_result_and_conflicts_while_in_flight(
     let completed = lifecycle
         .coordinator
         .finalize_dispatch(
+            &dispatch.workspace_id,
             dispatch.dispatch_id,
             &raw_output,
             &CannedVerifier {
@@ -666,6 +737,7 @@ fn invalidate_during_dispatch_drops_the_result() -> Result<(), Box<dyn std::erro
         lifecycle
             .coordinator
             .finalize_dispatch(
+                &dispatch.workspace_id,
                 dispatch.dispatch_id,
                 &raw_output,
                 &CannedVerifier {
@@ -680,7 +752,7 @@ fn invalidate_during_dispatch_drops_the_result() -> Result<(), Box<dyn std::erro
     // The unauthorized result was never recorded.
     assert!(store.bmad_capability_run(&lifecycle.run_id)?.is_none());
     assert_eq!(
-        lifecycle.coordinator.terminal_reason_for_test(),
+        lifecycle.coordinator.terminal_reason_for_test(&workspace()),
         Some(CapabilityTerminalReason::Invalidated)
     );
     Ok(())
@@ -758,21 +830,21 @@ fn a_superseded_dispatch_cannot_finalize_or_abort_a_newer_run(
         lifecycle
             .coordinator
             .finalize_dispatch(
+                &stale.workspace_id,
                 stale_id,
                 &stale_output,
-                &CannedVerifier {
-                    output: document_output(),
-                    expected_capability: "bmm:bmad-product-brief",
-                },
+                &brief_verifier(),
                 &store,
             )
             .unwrap_err(),
         BmadCapabilityCoordinatorError::Conflict
     );
     // A stale abort is also a no-op on the newer dispatch.
-    lifecycle
-        .coordinator
-        .abort_dispatch(stale_id, CapabilityTerminalReason::ConsentConsumed);
+    lifecycle.coordinator.abort_dispatch(
+        &stale.workspace_id,
+        stale_id,
+        CapabilityTerminalReason::ConsentConsumed,
+    );
 
     // The second dispatch is still live and finalizes into its own run.
     let (_second_dispatched, second_output) = FixtureTransport
@@ -785,12 +857,10 @@ fn a_superseded_dispatch_cannot_finalize_or_abort_a_newer_run(
     let completed = lifecycle
         .coordinator
         .finalize_dispatch(
+            &second.workspace_id,
             second.dispatch_id,
             &second_output,
-            &CannedVerifier {
-                output: document_output(),
-                expected_capability: "bmm:bmad-product-brief",
-            },
+            &brief_verifier(),
             &store,
         )
         .expect("second completed run");
@@ -842,6 +912,7 @@ fn a_completed_document_run_leaves_its_decisions_in_the_doc_workspace_log(
     lifecycle
         .coordinator
         .finalize_dispatch(
+            &dispatch.workspace_id,
             dispatch.dispatch_id,
             &raw_output,
             &CannedVerifier {
@@ -913,6 +984,7 @@ fn a_change_set_run_writes_no_memlog() -> Result<(), Box<dyn std::error::Error>>
     lifecycle
         .coordinator
         .finalize_dispatch(
+            &dispatch.workspace_id,
             dispatch.dispatch_id,
             &raw_output,
             &CannedVerifier {
@@ -985,6 +1057,7 @@ fn a_long_bodied_document_completes_and_still_logs() -> Result<(), Box<dyn std::
     let completed = lifecycle
         .coordinator
         .finalize_dispatch(
+            &dispatch.workspace_id,
             dispatch.dispatch_id,
             &raw_output,
             &CannedVerifier {
@@ -1007,4 +1080,223 @@ fn a_long_bodied_document_completes_and_still_logs() -> Result<(), Box<dyn std::
     assert!(decision.text.ends_with(" […]"));
     assert_eq!(decision.subject.as_deref(), Some("Problem"));
     Ok(())
+}
+
+/// The lane is per-workspace, not process-global: a capability run open in one
+/// workspace used to make every other workspace's run fail `Conflict` for the
+/// whole of its model round trip. Both halves are asserted here, because the
+/// second is the one that must *not* have changed.
+#[test]
+fn two_workspaces_run_at_once_while_one_workspace_still_refuses_a_second_run(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let capability = capability("bmm:bmad-product-brief");
+    let alpha = id("workspace_alpha");
+    let beta = id("workspace_beta");
+    let mut coordinator = BmadCapabilityCoordinator::new();
+
+    let alpha_dispatch = dispatch_in(&mut coordinator, &alpha, &capability, "21");
+    // The new property: `alpha` is parked in `Dispatching` with the coordinator
+    // lock released, and `beta` opens its own flow regardless.
+    let beta_dispatch = dispatch_in(&mut coordinator, &beta, &capability, "22");
+    assert_ne!(alpha_dispatch.dispatch_id, beta_dispatch.dispatch_id);
+
+    // The unchanged property: the *same* workspace still refuses a second
+    // concurrent run, in both directions.
+    for workspace_id in [&alpha, &beta] {
+        assert_eq!(
+            coordinator
+                .prepare(prepare_input_in(
+                    workspace_id,
+                    &capability,
+                    BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+                    "23",
+                    UnixMillis(10_000),
+                ))
+                .unwrap_err(),
+            BmadCapabilityCoordinatorError::Conflict,
+            "a workspace must still refuse a second concurrent run"
+        );
+    }
+
+    // Both finish, each into its own durable run.
+    let mut run_ids = Vec::new();
+    for dispatch in [alpha_dispatch, beta_dispatch] {
+        let (_dispatched, raw_output) = FixtureTransport.send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )?;
+        let completed = coordinator
+            .finalize_dispatch(
+                &dispatch.workspace_id,
+                dispatch.dispatch_id,
+                &raw_output,
+                &brief_verifier(),
+                &store,
+            )
+            .expect("each workspace completes its own run");
+        assert_eq!(completed.result_kind, "document_artifact");
+        assert!(store.bmad_capability_run(&completed.run_id)?.is_some());
+        run_ids.push(completed.run_id);
+    }
+    assert_ne!(run_ids.first(), run_ids.last());
+    Ok(())
+}
+
+/// A dispatch id is minted from one counter across all workspaces, so it is
+/// unique — but it is not a key. Quoting it against a workspace that does not
+/// hold it must never reach into the run that does.
+#[test]
+fn a_dispatch_can_only_finalize_or_abort_its_own_workspace(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let capability = capability("bmm:bmad-product-brief");
+    let alpha = id("workspace_alpha");
+    let beta = id("workspace_beta");
+    let mut coordinator = BmadCapabilityCoordinator::new();
+    let alpha_dispatch = dispatch_in(&mut coordinator, &alpha, &capability, "24");
+    let beta_dispatch = dispatch_in(&mut coordinator, &beta, &capability, "25");
+
+    let (_dispatched, alpha_output) = FixtureTransport.send(
+        alpha_dispatch.authorized_request,
+        &alpha_dispatch.deterministic_fixture,
+        alpha_dispatch.submitted_at,
+    )?;
+
+    // Alpha's dispatch id quoted against beta is a conflict, not a licence to
+    // finish beta's run with alpha's output.
+    assert_eq!(
+        coordinator
+            .finalize_dispatch(
+                &beta,
+                alpha_dispatch.dispatch_id,
+                &alpha_output,
+                &brief_verifier(),
+                &store,
+            )
+            .unwrap_err(),
+        BmadCapabilityCoordinatorError::Conflict
+    );
+    // Nor may it terminate it.
+    coordinator.abort_dispatch(
+        &beta,
+        alpha_dispatch.dispatch_id,
+        CapabilityTerminalReason::ConsentConsumed,
+    );
+    assert_eq!(coordinator.terminal_reason_for_test(&beta), None);
+
+    // Beta's own run is untouched and still completes...
+    let (_dispatched, beta_output) = FixtureTransport.send(
+        beta_dispatch.authorized_request,
+        &beta_dispatch.deterministic_fixture,
+        beta_dispatch.submitted_at,
+    )?;
+    coordinator
+        .finalize_dispatch(
+            &beta,
+            beta_dispatch.dispatch_id,
+            &beta_output,
+            &brief_verifier(),
+            &store,
+        )
+        .expect("beta completes its own run");
+    // ...and so does alpha's, which the refused call left in flight.
+    coordinator
+        .finalize_dispatch(
+            &alpha,
+            alpha_dispatch.dispatch_id,
+            &alpha_output,
+            &brief_verifier(),
+            &store,
+        )
+        .expect("alpha's run survived the cross-workspace attempt");
+    Ok(())
+}
+
+/// Sign-out and workspace revocation are process-wide, so making the lane
+/// per-workspace must not have made `invalidate` per-workspace with it.
+#[test]
+fn invalidation_withdraws_every_workspace_not_just_one() {
+    let capability = capability("bmm:bmad-product-brief");
+    let alpha = id("workspace_alpha");
+    let beta = id("workspace_beta");
+    let mut coordinator = BmadCapabilityCoordinator::new();
+    let _alpha = dispatch_in(&mut coordinator, &alpha, &capability, "26");
+    let _beta = dispatch_in(&mut coordinator, &beta, &capability, "27");
+
+    coordinator.invalidate();
+
+    assert_eq!(
+        coordinator.terminal_reason_for_test(&alpha),
+        Some(CapabilityTerminalReason::Invalidated)
+    );
+    assert_eq!(
+        coordinator.terminal_reason_for_test(&beta),
+        Some(CapabilityTerminalReason::Invalidated)
+    );
+}
+
+/// The slot map is keyed by workspace, so it must not grow with every workspace
+/// ever opened. It is bounded by refusing newcomers, never by displacing a run
+/// that is still live.
+#[test]
+fn the_slot_map_is_bounded_without_ever_evicting_a_live_run() {
+    let capability = capability("bmm:bmad-product-brief");
+    let mut coordinator = BmadCapabilityCoordinator::new();
+    let filled: Vec<ContractId> = (0..MAX_TRACKED_CAPABILITY_WORKSPACES)
+        .map(|index| id(&format!("workspace_capacity_{index:02}")))
+        .collect();
+    for workspace_id in &filled {
+        coordinator
+            .prepare(prepare_input_in(
+                workspace_id,
+                &capability,
+                BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+                "28",
+                UnixMillis(10_000),
+            ))
+            .expect("a workspace within the bound gets a slot");
+    }
+
+    let overflow = id("workspace_capacity_overflow");
+    let overflow_input = || {
+        prepare_input_in(
+            &overflow,
+            &capability,
+            BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+            "29",
+            UnixMillis(10_000),
+        )
+    };
+    assert_eq!(
+        coordinator.prepare(overflow_input()).unwrap_err(),
+        BmadCapabilityCoordinatorError::Conflict,
+        "a full map must refuse a newcomer rather than displace a live review"
+    );
+    // Every live slot is still exactly where it was: each one still refuses a
+    // second run of its own, which it could not do if it had been evicted.
+    for workspace_id in &filled {
+        assert_eq!(
+            coordinator
+                .prepare(prepare_input_in(
+                    workspace_id,
+                    &capability,
+                    BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+                    "2a",
+                    UnixMillis(10_000),
+                ))
+                .unwrap_err(),
+            BmadCapabilityCoordinatorError::Conflict
+        );
+    }
+
+    // Once those runs end, their slots are inert explanation rather than live
+    // state, and the newcomer reclaims the room.
+    coordinator.invalidate();
+    coordinator
+        .prepare(overflow_input())
+        .expect("inert slots are reclaimable");
 }

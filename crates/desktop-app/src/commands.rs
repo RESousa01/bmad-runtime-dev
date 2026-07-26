@@ -1392,6 +1392,16 @@ fn send_chat_message(
     let store = state.local_store(authority.authority())?;
     let transport = crate::bmad_capability_host::active_capability_transport(state);
 
+    // Whether this turn may ask for a tool is decided here, once, before
+    // anything is sealed — and it decides the reply schema with it. The
+    // provider picks the system prompt from the sealed schema id and from
+    // nothing else, so a turn sealed text-only is a turn whose model is never
+    // told tools exist, however willing the host below is to run one. Resolved
+    // before the chat lock is taken so two locks are never held at once.
+    let output_schema = crate::chat::ChatOutputSchema::for_tool_grant(
+        crate::chat_tools::chat_turn_tools_granted(&state.tool_grants.lock()),
+    );
+
     // Seal under the lock, dispatch unlocked, complete under the lock: a slow
     // reply never blocks sign-out, revocation, or another conversation.
     let dispatch = state
@@ -1408,28 +1418,65 @@ fn send_chat_message(
             text: input.text,
             attachments,
             configuration: &configuration,
+            output_schema,
             now: input.now,
         })
         .map_err(map_chat_error)?;
-    let dispatch_id = dispatch.dispatch_id;
-    let Ok((_dispatched, raw_output)) = transport.send(
-        dispatch.authorized_request,
-        &dispatch.deterministic_fixture,
-        dispatch.sent_at,
-    ) else {
-        state.chat.lock().abort_turn(dispatch_id);
-        return Err(map_chat_error(crate::chat::ChatCoordinatorError::Transport));
-    };
-    let turn = match state
-        .chat
-        .lock()
-        .finalize_turn(dispatch_id, &raw_output, input.now, store)
-    {
-        Ok(turn) => turn,
-        Err(error) => {
+    // The tool loop. Each pass sends, then either completes the turn or runs one
+    // permitted read-only tool and re-seals. The iteration ceiling is not here:
+    // it is the turn's egress grant, which `seal_turn` consults before every
+    // call, so a runaway loop is stopped by the accounting rather than by a
+    // count kept somewhere the user cannot see.
+    let mut dispatch = dispatch;
+    let turn = loop {
+        let dispatch_id = dispatch.dispatch_id;
+        let Ok((_dispatched, raw_output)) = transport.send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.sent_at,
+        ) else {
             state.chat.lock().abort_turn(dispatch_id);
-            return Err(map_chat_error(error));
-        }
+            return Err(map_chat_error(crate::chat::ChatCoordinatorError::Transport));
+        };
+        let outcome =
+            match state
+                .chat
+                .lock()
+                .finalize_turn(dispatch_id, &raw_output, input.now, store)
+            {
+                Ok(outcome) => outcome,
+                Err(error) => {
+                    state.chat.lock().abort_turn(dispatch_id);
+                    return Err(map_chat_error(error));
+                }
+            };
+        let invocation = match outcome {
+            crate::chat::TurnOutcome::Completed(turn) => break *turn,
+            crate::chat::TurnOutcome::ToolRequested(invocation) => invocation,
+        };
+        // A refused or failed tool is reported back to the model as text rather
+        // than failing the turn: the model asked for something it could not
+        // have, which it can reason about and recover from. The result is data,
+        // and it enters the transcript as such.
+        let rendered = crate::chat_tools::run_tool(
+            &state.workspace,
+            &state.tool_grants.lock(),
+            input.workspace_id.as_str(),
+            &invocation.tool,
+            &invocation.subject,
+        )
+        .unwrap_or_else(|error| format!("tool refused: {error:?}"));
+        dispatch = match state
+            .chat
+            .lock()
+            .resume_turn(dispatch_id, rendered, input.now)
+        {
+            Ok(next) => next,
+            Err(error) => {
+                state.chat.lock().abort_turn(dispatch_id);
+                return Err(map_chat_error(error));
+            }
+        };
     };
     drop(workspace_authority);
     drop(authority);
@@ -1865,12 +1912,17 @@ fn submit_bmad_capability_run(
         .begin_dispatch(&input)
         .map_err(map_capability_error)?;
     let dispatch_id = dispatch.dispatch_id;
+    // The coordinator now keeps one lifecycle slot per workspace, so finalizing
+    // and aborting name the workspace as well as the dispatch. The request
+    // carries it, so nothing else has to be kept alive across the round trip.
+    let dispatch_workspace = dispatch.workspace_id.clone();
     let Ok((_dispatched, raw_output)) = transport.send(
         dispatch.authorized_request,
         &dispatch.deterministic_fixture,
         dispatch.submitted_at,
     ) else {
         state.bmad_capabilities.lock().abort_dispatch(
+            &dispatch_workspace,
             dispatch_id,
             crate::bmad_model::capability_coordinator::CapabilityTerminalReason::ConsentConsumed,
         );
@@ -1882,6 +1934,7 @@ fn submit_bmad_capability_run(
         .bmad_capabilities
         .lock()
         .finalize_dispatch(
+            &dispatch_workspace,
             dispatch_id,
             &raw_output,
             &crate::bmad_capability_host::WireCapabilityOutputVerifier,
@@ -3210,6 +3263,9 @@ pub(crate) fn map_workspace_error(error: &WorkspaceError) -> LocalError {
         | WorkspaceError::UnsupportedText => {
             invalid_request("The requested workspace item is not available for text review.")
         }
+        WorkspaceError::InvalidPattern => {
+            invalid_request("The search pattern is not valid or is too large.")
+        }
         WorkspaceError::GrantUnavailable => {
             not_found_error("The local workspace is not available.")
         }
@@ -3935,6 +3991,9 @@ planning_artifacts = \"{project-root}/docs/plan\"
         Ok(())
     }
 
+    // Drives a capability to completion first, so it can only build where
+    // `run_capability_to_completion` and `propose_bmad_capability_changes` do.
+    #[cfg(feature = "deterministic-help")]
     #[test]
     fn verified_change_sets_enter_d3_as_ordinary_candidates(
     ) -> Result<(), Box<dyn std::error::Error>> {

@@ -29,12 +29,13 @@ use desktop_cloud::{AuthorizedModelRequest, RawModelOutput};
 use desktop_egress::{
     ApproveDecisionInput, ConsentService, ConsumeDecisionInput, ContextCandidate,
     ContextClassification, ContextPreparer, EgressLimits, MemoryDecisionLedger,
-    ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput,
+    ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput, TurnEgressEntry,
+    TurnEgressGrant, MAX_TURN_MODEL_CALLS,
 };
 use desktop_runtime::{
-    canonical_hash, deserialize_strict_json, sha256_bytes, ChatMessage, ChatRole, ChatSession,
-    ChatTurn, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, CHAT_TURN_SCHEMA,
-    MAX_PROMPT_TRANSCRIPT_BYTES,
+    canonical_hash, deserialize_strict_json, sha256_bytes, ChatMessage, ChatReply, ChatSession,
+    ChatTurn, ContractId, RelativeWorkspacePath, Sha256Digest, ToolInvocation, UnixMillis,
+    CHAT_TOOL_TURN_SCHEMA, CHAT_TURN_SCHEMA, MAX_PROMPT_TRANSCRIPT_BYTES,
 };
 use desktop_store::LocalStore;
 use serde::Serialize;
@@ -121,6 +122,52 @@ pub(crate) struct ChatDispatch {
     pub sent_at: UnixMillis,
 }
 
+/// Which reply schema one turn is sealed under — and therefore which system
+/// prompt the provider selects for it, since `model_instructions` is chosen
+/// from the sealed `canonical_output_schema_id` and nothing else.
+///
+/// This is the single decision that keeps the promise made to the model in
+/// step with what the host will actually honour. The v1 prompt tells the model
+/// *"you cannot read, write, or execute anything"*; the v2 prompt names the
+/// four read-only tools it may ask for. Sealing one schema while intending the
+/// other either strands the tool loop behind a prompt that never mentions it,
+/// or advertises tools to a turn that cannot run any.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ChatOutputSchema {
+    /// Prose only. No tool was granted, so none may be asked for.
+    TextOnly,
+    /// Tools were granted for this turn: the reply may be prose *or* one tool
+    /// request. A request is still only a request — the permission gate, not
+    /// the schema, decides whether it runs.
+    ToolBearing,
+}
+
+impl ChatOutputSchema {
+    /// Picks the schema from the turn's tool grant, so the two can never be
+    /// decided independently.
+    pub(crate) const fn for_tool_grant(tools_granted: bool) -> Self {
+        if tools_granted {
+            Self::ToolBearing
+        } else {
+            Self::TextOnly
+        }
+    }
+
+    /// The contract identifier sealed into the manifest and the invocation
+    /// binding. The hash sealed alongside it is derived from this same string,
+    /// never from a second literal.
+    const fn schema_id(self) -> &'static str {
+        match self {
+            Self::TextOnly => CHAT_TURN_SCHEMA,
+            Self::ToolBearing => CHAT_TOOL_TURN_SCHEMA,
+        }
+    }
+
+    const fn tools_granted(self) -> bool {
+        matches!(self, Self::ToolBearing)
+    }
+}
+
 pub(crate) struct BeginChatTurn<'a> {
     pub installation_id: &'a ContractId,
     pub project_id: &'a ContractId,
@@ -131,6 +178,9 @@ pub(crate) struct BeginChatTurn<'a> {
     pub text: String,
     pub attachments: Vec<ContextCandidate>,
     pub configuration: &'a HelpModelConfiguration,
+    /// Decided by the caller, which is the only place that knows whether this
+    /// turn is granted tools. Never inferred here.
+    pub output_schema: ChatOutputSchema,
     pub now: UnixMillis,
 }
 
@@ -142,9 +192,62 @@ struct AuthorizeChatTurn<'a> {
     now: UnixMillis,
 }
 
+/// Everything `seal_turn` needs, owned, so a turn can be sealed more than once.
+///
+/// A tool loop re-seals on every iteration: the transcript has grown, so the
+/// manifest and its decision must be minted afresh. `BeginChatTurn` borrows for
+/// exactly one call, which is why this exists. `text` is deliberately absent —
+/// the user's message is already in the transcript by then, and sealing never
+/// reads it.
+struct PendingTurn {
+    installation_id: ContractId,
+    project_id: ContractId,
+    workspace_id: ContractId,
+    client_session_ref: String,
+    persona_instruction: Option<Vec<u8>>,
+    attachments: Vec<ContextCandidate>,
+    configuration: HelpModelConfiguration,
+    /// Carried, not re-decided. Every iteration of one turn's loop is sealed
+    /// under the schema the turn opened with, so the prompt the model reads
+    /// cannot change underneath it mid-turn.
+    output_schema: ChatOutputSchema,
+}
+
+impl PendingTurn {
+    /// Captures the sealing inputs a later loop iteration will need, since
+    /// `BeginChatTurn` borrows for exactly one call.
+    fn from(input: &BeginChatTurn<'_>) -> Self {
+        Self {
+            installation_id: input.installation_id.clone(),
+            project_id: input.project_id.clone(),
+            workspace_id: input.workspace_id.clone(),
+            client_session_ref: input.client_session_ref.to_owned(),
+            persona_instruction: input.persona_instruction.map(<[u8]>::to_vec),
+            attachments: input.attachments.clone(),
+            configuration: input.configuration.clone(),
+            output_schema: input.output_schema,
+        }
+    }
+}
+
 struct InFlightTurn {
-    dispatch_id: u64,
     session_id: ContractId,
+    pending: PendingTurn,
+    /// The turn's egress budget and ledger (D7). One per turn, never cloned.
+    grant: TurnEgressGrant,
+    /// What this dispatch sent, ready to be written to the ledger the moment
+    /// the send resolves — either way. Egress is caused by the send, not by the
+    /// send succeeding, so the failure path records it too.
+    sent: TurnEgressEntry,
+}
+
+/// What one completed dispatch means for the turn.
+pub(crate) enum TurnOutcome {
+    /// The model answered. The turn is closed.
+    Completed(Box<ChatTurnProjection>),
+    /// The model asked for a tool. The turn stays open, and the host must run
+    /// it and resume — this is a *request*, and carries no authority.
+    ToolRequested(ToolInvocation),
 }
 
 pub(crate) struct ChatCoordinator {
@@ -152,7 +255,15 @@ pub(crate) struct ChatCoordinator {
     sessions: BTreeMap<ContractId, ChatSession>,
     /// Insertion/most-recent-use order, oldest first, for eviction.
     order: Vec<ContractId>,
-    in_flight: Option<InFlightTurn>,
+    /// Turns awaiting their model reply, keyed by dispatch id.
+    ///
+    /// A map rather than one slot: a turn is now a loop of up to
+    /// `MAX_TURN_MODEL_CALLS` calls and is held open across every one of them,
+    /// so a single global slot meant one agent loop blocked every other
+    /// conversation in the app for its whole duration. Keyed by dispatch id
+    /// because that is what `finalize`/`abort`/`resume` are handed; the
+    /// per-session rule is enforced separately in `begin_turn`.
+    in_flight: BTreeMap<u64, InFlightTurn>,
     dispatch_seq: u64,
 }
 
@@ -162,7 +273,7 @@ impl ChatCoordinator {
             ledger: MemoryDecisionLedger::default(),
             sessions: BTreeMap::new(),
             order: Vec::new(),
-            in_flight: None,
+            in_flight: BTreeMap::new(),
             dispatch_seq: 0,
         }
     }
@@ -173,7 +284,7 @@ impl ChatCoordinator {
     pub(crate) fn invalidate(&mut self) {
         self.sessions.clear();
         self.order.clear();
-        self.in_flight = None;
+        self.in_flight.clear();
     }
 
     /// Loads one conversation, rehydrating it from the store when this process
@@ -224,6 +335,16 @@ impl ChatCoordinator {
                 "assistant" => {
                     ChatTurn::new(message.text).and_then(|turn| session.append_assistant(&turn, at))
                 }
+                // Stored as "<tool> <subject>" by `append_tool_call`, so the
+                // split has to mirror that exactly or the turn will not rebuild.
+                "tool_call" => match message.text.split_once(' ') {
+                    Some((tool, subject)) => {
+                        ToolInvocation::new(tool.to_owned(), subject.to_owned())
+                            .and_then(|invocation| session.append_tool_call(&invocation, at))
+                    }
+                    None => return,
+                },
+                "tool_result" => session.append_tool_result(message.text, at),
                 _ => return,
             };
             if applied.is_err() {
@@ -278,9 +399,14 @@ impl ChatCoordinator {
         &mut self,
         mut input: BeginChatTurn<'_>,
     ) -> Result<ChatDispatch, ChatCoordinatorError> {
-        if self.in_flight.is_some() {
-            return Err(ChatCoordinatorError::Conflict);
-        }
+        // Reject only a second turn in the *same* conversation. Two different
+        // conversations may now run at once.
+        let session_busy = |coordinator: &Self, id: &ContractId| {
+            coordinator
+                .in_flight
+                .values()
+                .any(|turn| turn.session_id == *id)
+        };
         if input.configuration.mode == HelpModelMode::Offline {
             return Err(ChatCoordinatorError::Transport);
         }
@@ -289,6 +415,9 @@ impl ChatCoordinator {
             input.workspace_id,
             input.client_session_ref,
         )?;
+        if session_busy(self, &session_id) {
+            return Err(ChatCoordinatorError::Conflict);
+        }
         {
             let session = self.session_mut(&session_id, input.workspace_id);
             if input.agent_code.is_some() {
@@ -299,7 +428,7 @@ impl ChatCoordinator {
                 .map_err(|_| ChatCoordinatorError::OutputRejected)?;
         }
 
-        let dispatch = self.seal_turn(&session_id, &input);
+        let dispatch = self.seal_turn(&session_id, &input, None);
         match dispatch {
             Ok(dispatch) => Ok(dispatch),
             Err(error) => {
@@ -316,6 +445,7 @@ impl ChatCoordinator {
         &mut self,
         session_id: &ContractId,
         input: &BeginChatTurn<'_>,
+        carried_grant: Option<TurnEgressGrant>,
     ) -> Result<ChatDispatch, ChatCoordinatorError> {
         let session = self
             .sessions
@@ -397,14 +527,23 @@ impl ChatCoordinator {
 
         self.dispatch_seq = self.dispatch_seq.wrapping_add(1);
         let dispatch_id = self.dispatch_seq;
-        self.in_flight = Some(InFlightTurn {
-            dispatch_id,
+        let grant = turn_grant_for(session_id, carried_grant, input.now)?;
+        let turn = InFlightTurn {
             session_id: session_id.clone(),
-        });
+            pending: PendingTurn::from(input),
+            grant,
+            sent: TurnEgressEntry {
+                manifest_hash: manifest.manifest_hash,
+                item_count: u32::try_from(manifest.draft.items.len()).unwrap_or(u32::MAX),
+                context_bytes: manifest.draft.total_outbound_bytes,
+                at: input.now,
+            },
+        };
+        self.in_flight.insert(dispatch_id, turn);
         Ok(ChatDispatch {
             dispatch_id,
             authorized_request,
-            deterministic_fixture: deterministic_chat_fixture(),
+            deterministic_fixture: deterministic_chat_fixture(input.output_schema),
             sent_at: input.now,
         })
     }
@@ -461,15 +600,70 @@ impl ChatCoordinator {
         raw_output: &RawModelOutput,
         at: UnixMillis,
         store: &LocalStore,
-    ) -> Result<ChatTurnProjection, ChatCoordinatorError> {
-        let Some(in_flight) = self.in_flight.take() else {
+    ) -> Result<TurnOutcome, ChatCoordinatorError> {
+        let Some(mut in_flight) = self.in_flight.remove(&dispatch_id) else {
             return Err(ChatCoordinatorError::Conflict);
         };
-        if in_flight.dispatch_id != dispatch_id {
-            self.in_flight = Some(in_flight);
-            return Err(ChatCoordinatorError::Conflict);
+        // The send resolved, so it happened: write it to the ledger.
+        let entry = in_flight.sent.clone();
+        in_flight.grant.record_call(entry);
+
+        // Everything below can fail, and `in_flight` is already out of `self`.
+        // Dropping it on an error would leave the transcript mid-turn with
+        // nothing able to clean it up — `abort_turn` sees `self.in_flight` as
+        // `None` and does nothing, so the stranded question makes every later
+        // send in this conversation fail `TurnOutOfOrder`, permanently. One
+        // malformed model reply would brick the conversation until restart.
+        // So the fallible work is isolated, and the error path below is the
+        // single place that decides what happens to the open turn.
+        let outcome = self.complete_dispatch(&in_flight, raw_output, at, store);
+        match outcome {
+            Ok(TurnOutcome::ToolRequested(invocation)) => {
+                self.in_flight.insert(dispatch_id, in_flight);
+                Ok(TurnOutcome::ToolRequested(invocation))
+            }
+            Ok(completed) => Ok(completed),
+            Err(error) => {
+                if let Some(session) = self.sessions.get_mut(&in_flight.session_id) {
+                    session.rollback_pending_user();
+                }
+                Err(error)
+            }
         }
-        let turn = parse_chat_turn(&raw_output.payload_json)?;
+    }
+
+    /// The fallible half of [`Self::finalize_turn`]. Never touches
+    /// `self.in_flight`; its caller owns that decision.
+    fn complete_dispatch(
+        &mut self,
+        in_flight: &InFlightTurn,
+        raw_output: &RawModelOutput,
+        at: UnixMillis,
+        store: &LocalStore,
+    ) -> Result<TurnOutcome, ChatCoordinatorError> {
+        // Verified against the schema this turn was actually sealed under, so
+        // a reply can never claim a shape the turn did not ask for.
+        let schema = in_flight.pending.output_schema;
+        let turn = match parse_chat_reply(&raw_output.payload_json, schema)? {
+            // A tool request keeps the turn open. The transcript records the
+            // ask, and the caller runs it and resumes.
+            ChatReply::ToolCall(invocation) if schema.tools_granted() => {
+                let session = self
+                    .sessions
+                    .get_mut(&in_flight.session_id)
+                    .ok_or(ChatCoordinatorError::Unauthorized)?;
+                session
+                    .append_tool_call(&invocation, at)
+                    .map_err(|_| ChatCoordinatorError::OutputRejected)?;
+                return Ok(TurnOutcome::ToolRequested(invocation));
+            }
+            // Unreachable: the parser refuses tool fields under the text-only
+            // schema. Kept as a second refusal rather than a plausible-looking
+            // fallthrough, because this is the arm where a parser regression
+            // would otherwise become a tool run nobody granted.
+            ChatReply::ToolCall(_) => return Err(ChatCoordinatorError::OutputRejected),
+            ChatReply::Text(turn) => turn,
+        };
         let session = self
             .sessions
             .get_mut(&in_flight.session_id)
@@ -482,16 +676,28 @@ impl ChatCoordinator {
             .last()
             .cloned()
             .ok_or(ChatCoordinatorError::Integrity)?;
+        // The turn opens at the newest question. With tool exchanges in
+        // between it is no longer "the message before last", and persisting a
+        // fixed pair would silently drop every tool_call and tool_result — the
+        // store's own grammar would then reject the next append.
+        let turn_start = messages
+            .iter()
+            .rposition(|message| message.role.opens_turn())
+            .ok_or(ChatCoordinatorError::Integrity)?;
         let user_message = messages
-            .get(messages.len().wrapping_sub(2))
+            .get(turn_start)
             .cloned()
             .ok_or(ChatCoordinatorError::Integrity)?;
+        let turn_messages = messages
+            .get(turn_start..)
+            .ok_or(ChatCoordinatorError::Integrity)?
+            .to_vec();
         // Persist the completed exchange so it survives a restart. A storage
         // failure must not silently drop a reply the user can already see, so
         // it fails the turn rather than being swallowed.
         let agent_code = session.agent_code().map(str::to_owned);
         let workspace_id = session.workspace_id().as_str().to_owned();
-        for message in [&user_message, &assistant_message] {
+        for message in &turn_messages {
             store
                 .append_chat_message(
                     in_flight.session_id.as_str(),
@@ -503,28 +709,124 @@ impl ChatCoordinator {
                 )
                 .map_err(|_| ChatCoordinatorError::Integrity)?;
         }
-        Ok(ChatTurnProjection {
-            session_id: in_flight.session_id,
+        Ok(TurnOutcome::Completed(Box::new(ChatTurnProjection {
+            session_id: in_flight.session_id.clone(),
             agent_code,
             user_message,
             assistant_message,
-        })
+        })))
     }
 
     /// Withdraws the pending question after a transport or verification
     /// failure, so a failed send leaves the transcript as it was.
     pub(crate) fn abort_turn(&mut self, dispatch_id: u64) {
-        let Some(in_flight) = self.in_flight.take() else {
+        let Some(mut in_flight) = self.in_flight.remove(&dispatch_id) else {
             return;
         };
-        if in_flight.dispatch_id != dispatch_id {
-            self.in_flight = Some(in_flight);
-            return;
-        }
+        // The request was sent before it failed, so its context left the
+        // machine. Discarding the turn must not discard the accounting — this
+        // is the path that would otherwise turn every failed turn into
+        // unrecorded egress.
+        let entry = in_flight.sent.clone();
+        in_flight.grant.record_call(entry);
         if let Some(session) = self.sessions.get_mut(&in_flight.session_id) {
             session.rollback_pending_user();
         }
     }
+
+    /// Feeds a tool result back into the open turn and seals the next call.
+    ///
+    /// The result is workspace-derived and therefore attacker-influenced. It
+    /// enters as an ordinary bounded transcript message carrying no authority,
+    /// and the model is told — in the v2 instructions — to treat it as data.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatCoordinatorError::Conflict`] when this dispatch was
+    /// superseded, when no tool call is outstanding, or when the turn has spent
+    /// its egress budget.
+    pub(crate) fn resume_turn(
+        &mut self,
+        dispatch_id: u64,
+        tool_output: String,
+        at: UnixMillis,
+    ) -> Result<ChatDispatch, ChatCoordinatorError> {
+        let Some(in_flight) = self.in_flight.remove(&dispatch_id) else {
+            return Err(ChatCoordinatorError::Conflict);
+        };
+        let session_id = in_flight.session_id.clone();
+        // Same hazard as `finalize_turn`: `in_flight` is already out of `self`,
+        // so a bare `?` here would strand a `tool_call` awaiting a result that
+        // can never arrive, blocking the conversation permanently.
+        let appended = self
+            .sessions
+            .get_mut(&session_id)
+            .ok_or(ChatCoordinatorError::Unauthorized)
+            .and_then(|session| {
+                session
+                    .append_tool_result(tool_output, at)
+                    .map_err(|_| ChatCoordinatorError::OutputRejected)
+            });
+        if let Err(error) = appended {
+            if let Some(session) = self.sessions.get_mut(&session_id) {
+                session.rollback_pending_user();
+            }
+            return Err(error);
+        }
+
+        // Re-seal: the transcript has grown, so this call needs its own
+        // manifest and its own single-use decision. Reusing the previous one
+        // would consent to context that is no longer what is being sent.
+        let InFlightTurn { pending, grant, .. } = in_flight;
+        let next = BeginChatTurn {
+            installation_id: &pending.installation_id,
+            project_id: &pending.project_id,
+            workspace_id: &pending.workspace_id,
+            client_session_ref: &pending.client_session_ref,
+            agent_code: None,
+            persona_instruction: pending.persona_instruction.as_deref(),
+            text: String::new(),
+            attachments: pending.attachments.clone(),
+            configuration: &pending.configuration,
+            output_schema: pending.output_schema,
+            now: at,
+        };
+        let dispatch = self.seal_turn(&session_id, &next, Some(grant));
+        if dispatch.is_err() {
+            if let Some(session) = self.sessions.get_mut(&session_id) {
+                session.rollback_pending_user();
+            }
+        }
+        dispatch
+    }
+}
+
+/// Carries a turn's egress grant forward, or opens one for a new turn, and
+/// checks that one more model call is inside it.
+///
+/// Minting a fresh grant per loop iteration would reset the budget every pass
+/// and make the per-turn ceiling meaningless, so a carried grant is reused
+/// rather than replaced. The check happens here, before the call is sealed, so
+/// an over-budget iteration never reaches the provider.
+fn turn_grant_for(
+    session_id: &ContractId,
+    carried: Option<TurnEgressGrant>,
+    now: UnixMillis,
+) -> Result<TurnEgressGrant, ChatCoordinatorError> {
+    let grant = match carried {
+        Some(existing) => existing,
+        None => TurnEgressGrant::open(
+            session_id.clone(),
+            now,
+            UnixMillis(now.0.saturating_add(CHAT_DECISION_WINDOW_MS)),
+            MAX_TURN_MODEL_CALLS,
+        )
+        .map_err(|_| ChatCoordinatorError::Integrity)?,
+    };
+    grant
+        .authorize_call(now)
+        .map_err(|_| ChatCoordinatorError::Conflict)?;
+    Ok(grant)
 }
 
 /// Derives the stable conversation identity for one renderer task. The host
@@ -555,13 +857,18 @@ fn chat_session_id(
 /// Seals one chat turn's reviewed context into a manifest. The purpose label
 /// is the chat lane's own, so this manifest can never satisfy a capability
 /// binding and a capability manifest can never satisfy this one.
+///
+/// The declared output schema comes from the turn, not from a literal here.
+/// The identifier and its hash are both derived from the one `schema_id`
+/// binding below, so the pair sealed into the manifest — and copied verbatim
+/// into the invocation binding — cannot drift apart.
 fn seal_chat_manifest(
     input: &BeginChatTurn<'_>,
     candidates: Vec<ContextCandidate>,
 ) -> Result<desktop_egress::ContextEgressManifest, ChatCoordinatorError> {
     let configuration = input.configuration;
-    let output_schema =
-        ContractId::new(CHAT_TURN_SCHEMA).map_err(|_| ChatCoordinatorError::Integrity)?;
+    let schema_id = input.output_schema.schema_id();
+    let output_schema = ContractId::new(schema_id).map_err(|_| ChatCoordinatorError::Integrity)?;
     ContextPreparer::new(PatternSecretScanner)
         .prepare(PrepareContextInput {
             tenant_ref: input.installation_id.clone(),
@@ -570,7 +877,7 @@ fn seal_chat_manifest(
             purpose: CHAT_PURPOSE.to_owned(),
             model_role: "chat".to_owned(),
             canonical_output_schema_id: output_schema,
-            canonical_output_schema_hash: sha256_bytes(CHAT_TURN_SCHEMA.as_bytes()),
+            canonical_output_schema_hash: sha256_bytes(schema_id.as_bytes()),
             provider_profile_hash: configuration.provider_profile_hash,
             model_profile_hash: configuration.trusted_profile.model_binding_hash(),
             deployment_hash: configuration.deployment_hash,
@@ -629,10 +936,11 @@ fn transcript_candidate(
     }
     let mut rendered = String::new();
     for message in messages {
-        let role = match message.role {
-            ChatRole::User => "user",
-            ChatRole::Assistant => "assistant",
-        };
+        // One source of truth for the label. A duplicate mapping here would
+        // eventually disagree with the store's, and a `tool_result` silently
+        // rendered as `assistant` would present attacker-influenced workspace
+        // content to the model as though Forge had said it.
+        let role = message.role.as_str();
         // Role-tagged, oldest first, so attribution survives the flattening the
         // provider does downstream.
         let _ = write!(
@@ -657,32 +965,84 @@ fn transcript_candidate(
     }))
 }
 
-/// Parses one untrusted chat reply. Exact keys only: an unexpected field is
-/// rejected, never ignored.
-fn parse_chat_turn(payload_json: &str) -> Result<ChatTurn, ChatCoordinatorError> {
+/// Parses one untrusted reply under the schema the turn was sealed with.
+/// Exact keys only: an unexpected field is rejected, never ignored.
+///
+/// The reply must declare *that* schema, not merely a schema this host knows.
+/// A turn sealed text-only was prompted with the v1 promise that the model
+/// cannot read anything, so a v2-labelled reply to it is a reply to a question
+/// nobody asked, and fails closed.
+///
+/// The tool-bearing schema widens *what may be asked for*, not what is
+/// permitted. Authority-bearing fields — `apply`, `changes`, and anything else
+/// not named here — remain refused under both schemas, because the mechanism
+/// that stops a model granting itself authority is the exact-key check, and
+/// widening the shape must not weaken it.
+fn parse_chat_reply(
+    payload_json: &str,
+    sealed: ChatOutputSchema,
+) -> Result<ChatReply, ChatCoordinatorError> {
     let value: Value = deserialize_strict_json(payload_json.as_bytes())
         .map_err(|_| ChatCoordinatorError::OutputRejected)?;
     let object = value
         .as_object()
         .ok_or(ChatCoordinatorError::OutputRejected)?;
+    let schema = object
+        .get("schemaVersion")
+        .and_then(Value::as_str)
+        .ok_or(ChatCoordinatorError::OutputRejected)?;
+
+    if schema != sealed.schema_id() {
+        return Err(ChatCoordinatorError::OutputRejected);
+    }
+    let tool_bearing = sealed.tools_granted();
+
     for key in object.keys() {
-        if key != "schemaVersion" && key != "text" {
+        let permitted = key == "schemaVersion"
+            || key == "text"
+            || (tool_bearing && (key == "tool" || key == "subject"));
+        if !permitted {
             return Err(ChatCoordinatorError::OutputRejected);
         }
     }
-    if object.get("schemaVersion").and_then(Value::as_str) != Some(CHAT_TURN_SCHEMA) {
+
+    let has_text = object.contains_key("text");
+    let has_tool = object.contains_key("tool") || object.contains_key("subject");
+    // Exactly one of the two shapes, never both and never neither.
+    if has_text == has_tool {
         return Err(ChatCoordinatorError::OutputRejected);
     }
+
+    if has_tool {
+        let tool = object
+            .get("tool")
+            .and_then(Value::as_str)
+            .ok_or(ChatCoordinatorError::OutputRejected)?;
+        let subject = object
+            .get("subject")
+            .and_then(Value::as_str)
+            .ok_or(ChatCoordinatorError::OutputRejected)?;
+        return ToolInvocation::new(tool.to_owned(), subject.to_owned())
+            .map(ChatReply::ToolCall)
+            .map_err(|_| ChatCoordinatorError::OutputRejected);
+    }
+
     let text = object
         .get("text")
         .and_then(Value::as_str)
         .ok_or(ChatCoordinatorError::OutputRejected)?;
-    ChatTurn::new(text.to_owned()).map_err(|_| ChatCoordinatorError::OutputRejected)
+    ChatTurn::new(text.to_owned())
+        .map(ChatReply::Text)
+        .map_err(|_| ChatCoordinatorError::OutputRejected)
 }
 
-fn deterministic_chat_fixture() -> String {
+/// The offline stand-in reply. It must declare the schema this turn was sealed
+/// under, because it is verified by the same parser as a real reply — a fixture
+/// labelled v1 for a v2 turn is rejected, and the deterministic build stops
+/// answering at all.
+fn deterministic_chat_fixture(schema: ChatOutputSchema) -> String {
     serde_json::json!({
-        "schemaVersion": CHAT_TURN_SCHEMA,
+        "schemaVersion": schema.schema_id(),
         "text": "This reply came from the deterministic local composition; no external model was contacted.",
     })
     .to_string()
@@ -693,9 +1053,10 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        parse_chat_turn, persona_candidate, transcript_candidate, ChatCoordinatorError,
-        CHAT_DECISION_WINDOW_MS, CHAT_MANIFEST_LIFETIME_MS, CHAT_PURPOSE, MAX_CHAT_CONTEXT_BYTES,
-        MAX_CHAT_CONTEXT_ITEMS,
+        deterministic_chat_fixture, parse_chat_reply, persona_candidate, seal_chat_manifest,
+        transcript_candidate, BeginChatTurn, ChatCoordinatorError, ChatOutputSchema, ChatReply,
+        CHAT_DECISION_WINDOW_MS, CHAT_MANIFEST_LIFETIME_MS, CHAT_PURPOSE, CHAT_TOOL_TURN_SCHEMA,
+        MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_CONTEXT_ITEMS,
     };
     use desktop_egress::{
         ApproveDecisionInput, ConsentService, ContextCandidate, ContextClassification,
@@ -713,6 +1074,15 @@ mod tests {
 
     fn digest(seed: u8) -> Sha256Digest {
         Sha256Digest::from_bytes([seed; 32])
+    }
+
+    /// Parses under the text-only schema — what a turn with no tool grant is
+    /// sealed with, and therefore what its reply is checked against.
+    fn parse_chat_turn(payload_json: &str) -> Result<ChatTurn, ChatCoordinatorError> {
+        match parse_chat_reply(payload_json, ChatOutputSchema::TextOnly)? {
+            ChatReply::Text(turn) => Ok(turn),
+            ChatReply::ToolCall(_) => Err(ChatCoordinatorError::OutputRejected),
+        }
     }
 
     fn candidate(index: usize) -> ContextCandidate {
@@ -840,6 +1210,82 @@ mod tests {
             .expect("the clamped chat decision must satisfy the consent lifetime cap");
     }
 
+    /// Regression guard, and the only thing that made the agent tool loop
+    /// reachable at all: `seal_chat_manifest` hardcoded the v1 schema id, so
+    /// every live turn was sealed text-only. The provider picks the system
+    /// prompt from that field alone, so the model was always sent the v1
+    /// instructions — which end *"you cannot read, write, or execute
+    /// anything"* — and was never told a tool existed. `CHAT_TOOL_TURN_SCHEMA`
+    /// parsed fine and no code path could ever seal it.
+    #[test]
+    fn the_sealed_schema_follows_the_turn_s_tool_grant() {
+        let configuration = crate::bmad_model::config::offline_frontend_model_composition(
+            desktop_runtime::ModelProviderId::OpenAi,
+            "gpt-5-mini",
+        )
+        .expect("offline model composition")
+        .configuration;
+        let installation_id = id("install_chat");
+        let project_id = id("project_chat");
+        let workspace_id = id("ws_chat");
+
+        let seal = |output_schema| {
+            let input = BeginChatTurn {
+                installation_id: &installation_id,
+                project_id: &project_id,
+                workspace_id: &workspace_id,
+                client_session_ref: "task-1",
+                agent_code: None,
+                persona_instruction: None,
+                text: String::new(),
+                attachments: Vec::new(),
+                configuration: &configuration,
+                output_schema,
+                now: UnixMillis(1_000),
+            };
+            seal_chat_manifest(&input, vec![candidate(0)]).expect("chat manifest")
+        };
+
+        let tool_granted = seal(ChatOutputSchema::ToolBearing);
+        assert_eq!(
+            tool_granted.draft.canonical_output_schema_id.as_str(),
+            CHAT_TOOL_TURN_SCHEMA,
+            "a tool-granted turn must seal the tool-bearing schema, or the model is never told tools exist",
+        );
+
+        let text_only = seal(ChatOutputSchema::TextOnly);
+        assert_eq!(
+            text_only.draft.canonical_output_schema_id.as_str(),
+            CHAT_TURN_SCHEMA,
+            "a turn with no tool grant must still seal the text-only schema",
+        );
+
+        // The id and the hash are both sealed into the manifest and copied into
+        // the invocation binding. Disagreement there is an integrity failure at
+        // verification time, so the pair is asserted, not just the id.
+        for (schema, manifest) in [
+            (CHAT_TOOL_TURN_SCHEMA, &tool_granted),
+            (CHAT_TURN_SCHEMA, &text_only),
+        ] {
+            assert_eq!(
+                manifest.draft.canonical_output_schema_hash,
+                desktop_runtime::sha256_bytes(schema.as_bytes()),
+                "the sealed schema hash disagrees with the sealed schema id for {schema}",
+            );
+        }
+        assert_ne!(
+            tool_granted.draft.canonical_output_schema_hash,
+            text_only.draft.canonical_output_schema_hash,
+        );
+
+        // The offline stand-in reply is verified by the same parser as a real
+        // one, so it has to speak whichever schema the turn was sealed under.
+        for schema in [ChatOutputSchema::ToolBearing, ChatOutputSchema::TextOnly] {
+            parse_chat_reply(&deterministic_chat_fixture(schema), schema)
+                .expect("the deterministic fixture must satisfy its own turn's schema");
+        }
+    }
+
     #[test]
     fn a_bounded_reply_is_accepted() {
         let payload = format!(r#"{{"schemaVersion":"{CHAT_TURN_SCHEMA}","text":"Hello."}}"#);
@@ -865,6 +1311,9 @@ mod tests {
             format!(r#"{{"schemaVersion":"{CHAT_TURN_SCHEMA}","text":""}}"#),
             // Not an object at all.
             r#"["hi"]"#.to_owned(),
+            // A tool call under the text-only schema: tools were never granted
+            // for this turn, so asking for one is out of shape.
+            format!(r#"{{"schemaVersion":"{CHAT_TURN_SCHEMA}","tool":"read","subject":"a.md"}}"#),
         ] {
             assert_eq!(
                 parse_chat_turn(&rejected).err(),
@@ -872,6 +1321,108 @@ mod tests {
                 "accepted a reply outside the closed shape: {rejected}"
             );
         }
+    }
+
+    #[test]
+    fn a_rejected_reply_does_not_brick_the_conversation() {
+        // A malformed model reply is ordinary, not exotic. Before this was
+        // fixed, `finalize_turn` dropped the in-flight turn without restoring
+        // it, so `abort_turn` became a no-op and the unanswered question stayed
+        // in the transcript — making every later send in that conversation fail
+        // `TurnOutOfOrder` for the life of the process.
+        let mut session = ChatSession::open(
+            ContractId::new("chat_reject").expect("session id"),
+            ContractId::new("ws_reject").expect("workspace id"),
+        );
+        session
+            .append_user("first question".to_owned(), UnixMillis(1_000))
+            .expect("user message");
+        assert!(session.has_pending_user_message());
+
+        // What the error path must do: leave the transcript as it was.
+        session.rollback_pending_user();
+        assert!(!session.has_pending_user_message());
+
+        // The next send therefore succeeds instead of failing forever.
+        session
+            .append_user("second question".to_owned(), UnixMillis(2_000))
+            .expect("a later send must not be blocked by the failed one");
+    }
+
+    #[test]
+    fn the_tool_schema_widens_the_shape_without_widening_authority() {
+        // The point of the widening: a tool *request* now parses.
+        let call = format!(
+            r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"grep","subject":"src/**"}}"#
+        );
+        let invocation =
+            match parse_chat_reply(&call, ChatOutputSchema::ToolBearing).expect("tool call") {
+                ChatReply::ToolCall(invocation) => Some(invocation),
+                ChatReply::Text(_) => None,
+            }
+            .expect("expected a tool call, not prose");
+        assert_eq!(invocation.tool, "grep");
+        assert_eq!(invocation.subject, "src/**");
+
+        // Prose still parses under the same schema.
+        let prose = format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","text":"Hi"}}"#);
+        assert!(matches!(
+            parse_chat_reply(&prose, ChatOutputSchema::ToolBearing),
+            Ok(ChatReply::Text(_))
+        ));
+
+        for rejected in [
+            // The authority-bearing fields stay refused under the *new* schema
+            // too. This is the assertion the original test existed for.
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","text":"Hi","apply":true}}"#),
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","text":"Hi","changes":[]}}"#),
+            format!(
+                r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"read","subject":"a","apply":true}}"#
+            ),
+            // Narrating one thing while asking for another.
+            format!(
+                r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","text":"Hi","tool":"read","subject":"a"}}"#
+            ),
+            // Half a tool call is not a tool call.
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"read"}}"#),
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","subject":"a.md"}}"#),
+            // Neither shape.
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}"}}"#),
+            // Bounds still apply to both fields.
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"","subject":"a"}}"#),
+            format!(r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"read","subject":""}}"#),
+            format!(
+                r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"read","subject":{}}}"#,
+                serde_json::Value::String("s".repeat(1_025))
+            ),
+        ] {
+            assert_eq!(
+                parse_chat_reply(&rejected, ChatOutputSchema::ToolBearing).err(),
+                Some(ChatCoordinatorError::OutputRejected),
+                "accepted a reply outside the closed shape: {rejected}"
+            );
+        }
+
+        // A reply may only speak the schema its own turn was sealed with.
+        // Otherwise a text-only turn — whose prompt promised the model it could
+        // read nothing — could still hand the host a tool call to run.
+        let call = format!(
+            r#"{{"schemaVersion":"{CHAT_TOOL_TURN_SCHEMA}","tool":"read","subject":"a.md"}}"#
+        );
+        assert_eq!(
+            parse_chat_reply(&call, ChatOutputSchema::TextOnly).err(),
+            Some(ChatCoordinatorError::OutputRejected),
+            "a text-only turn accepted a tool-bearing reply"
+        );
+        assert_eq!(
+            parse_chat_reply(
+                &format!(r#"{{"schemaVersion":"{CHAT_TURN_SCHEMA}","text":"Hi"}}"#),
+                ChatOutputSchema::ToolBearing,
+            )
+            .err(),
+            Some(ChatCoordinatorError::OutputRejected),
+            "a tool-granted turn accepted a reply from the other schema"
+        );
     }
 
     #[test]

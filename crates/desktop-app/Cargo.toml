@@ -26,6 +26,7 @@ desktop-execution = { path = "../desktop-execution" }
 desktop-ipc = { path = "../desktop-ipc" }
 desktop-runtime = { path = "../desktop-runtime" }
 desktop-store = { path = "../desktop-store" }
+desktop-tools = { path = "../desktop-tools" }
 desktop-update = { path = "../desktop-update" }
 desktop-workspace = { path = "../desktop-workspace" }
 parking_lot.workspace = true

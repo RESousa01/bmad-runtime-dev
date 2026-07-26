@@ -8,6 +8,8 @@
 //! never be replayed against capability B, and a result whose archetype
 //! differs from the run's declared output schema terminates the flow.
 
+use std::collections::BTreeMap;
+
 use desktop_cloud::{AuthorizedModelRequest, CloudError, DispatchedModelRequest, RawModelOutput};
 use desktop_egress::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
@@ -25,6 +27,18 @@ use super::context::derived_contract_id;
 
 /// Maximum decision validity after approval, mirroring the Help lifecycle.
 const DECISION_WINDOW_MS: u64 = 5 * 60 * 1_000;
+
+/// How many workspaces may hold a capability slot at once.
+///
+/// Slots are keyed by workspace and a workspace whose caller never finalises
+/// its run keeps its slot for the life of the process, so without a ceiling the
+/// map would grow with every workspace ever opened. Live slots are never
+/// evicted — that would admit a second concurrent run where the lifecycle
+/// refuses one — so at capacity the only reclaimable slots are the inert
+/// `Terminal` ones, and a workspace with no slot is refused outright when even
+/// those are gone. Far above any plausible number of workspaces a person has
+/// open at once.
+pub(crate) const MAX_TRACKED_CAPABILITY_WORKSPACES: usize = 32;
 
 /// Transport seam shared by deterministic, offline, and (later) production
 /// capability dispatch. Mirrors the Help transport so Task 9 can supply the
@@ -188,6 +202,11 @@ struct DispatchingCapabilityRun {
 /// [`Self::dispatch_id`] so the coordinator can reject a superseded dispatch.
 pub(crate) struct CapabilityDispatchRequest {
     pub dispatch_id: u64,
+    /// The workspace whose slot this dispatch occupies. Carried here so the
+    /// caller needs nothing but this request to name the run it is finalizing:
+    /// `finalize_dispatch` and `abort_dispatch` are the only lifecycle entry
+    /// points not already handed a workspace by their input.
+    pub workspace_id: ContractId,
     pub authorized_request: AuthorizedModelRequest,
     pub deterministic_fixture: String,
     pub submitted_at: UnixMillis,
@@ -291,9 +310,25 @@ struct CapabilityInvocationIdentity<'a> {
 
 pub(crate) struct BmadCapabilityCoordinator {
     ledger: MemoryDecisionLedger,
-    active: Option<ActiveCapabilityRun>,
+    /// The governed lifecycle slot of every workspace that has one.
+    ///
+    /// A map rather than one process-global slot: the lifecycle is bound to a
+    /// workspace at every stage — `prepare`, `approve`, `cancel`, and
+    /// `begin_dispatch` are each handed the workspace they act on, and each
+    /// already re-checks that binding — so a single slot meant one workspace's
+    /// review blocked a capability run in every other. The workspace is the
+    /// only identity present at every entry point (`run_id` exists only at
+    /// `prepare`, `dispatch_id` only from `begin_dispatch` onward), which is
+    /// why it is the key.
+    ///
+    /// Per-workspace exclusivity is unchanged and now structural: one key, one
+    /// slot, so a second concurrent run in the *same* workspace still fails
+    /// closed exactly as it did.
+    active: BTreeMap<ContractId, ActiveCapabilityRun>,
     /// Monotonic id stamped on each dispatch so a stale finalize/abort cannot
-    /// act on a dispatch that replaced it while the lock was released.
+    /// act on a dispatch that replaced it while the lock was released. Minted
+    /// from one counter across all workspaces, so an id is never ambiguous
+    /// between them.
     dispatch_seq: u64,
 }
 
@@ -301,27 +336,59 @@ impl BmadCapabilityCoordinator {
     pub(crate) fn new() -> Self {
         Self {
             ledger: MemoryDecisionLedger::default(),
-            active: None,
+            active: BTreeMap::new(),
             dispatch_seq: 0,
         }
     }
 
-    /// Withdraws any in-flight capability review, for sign-out and
+    /// Withdraws every in-flight capability review, for sign-out and
     /// workspace-revocation paths (ADR-0002).
+    ///
+    /// Sign-out and revocation are process-wide, so this stays process-wide:
+    /// each workspace's slot becomes `Terminal(Invalidated)` exactly as the one
+    /// global slot did, and a workspace holding no slot still gains none.
     pub(crate) fn invalidate(&mut self) {
-        if self.active.is_some() {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::Invalidated,
-            ));
+        for slot in self.active.values_mut() {
+            *slot = ActiveCapabilityRun::Terminal(CapabilityTerminalReason::Invalidated);
         }
     }
 
     #[cfg(test)]
-    pub(crate) fn terminal_reason_for_test(&self) -> Option<CapabilityTerminalReason> {
-        match self.active.as_ref() {
+    pub(crate) fn terminal_reason_for_test(
+        &self,
+        workspace_id: &ContractId,
+    ) -> Option<CapabilityTerminalReason> {
+        match self.active.get(workspace_id) {
             Some(ActiveCapabilityRun::Terminal(reason)) => Some(*reason),
             _ => None,
         }
+    }
+
+    /// Makes room for `workspace_id` to hold a slot, keeping the map bounded.
+    ///
+    /// A workspace that already holds one needs no room. Otherwise, at
+    /// capacity, the inert `Terminal` slots are dropped: they hold no decision
+    /// and no in-flight dispatch, and exist only to tell their own workspace
+    /// why its last flow ended. Losing that explanation downgrades a later
+    /// `approve`/`cancel`/`submit` on *that* workspace from its specific
+    /// terminal error to `Unauthorized` — still refused, never admitted. Live
+    /// slots are never touched, because evicting one would let a second
+    /// concurrent run start where the lifecycle refuses one today.
+    fn reserve_slot(
+        &mut self,
+        workspace_id: &ContractId,
+    ) -> Result<(), BmadCapabilityCoordinatorError> {
+        if self.active.contains_key(workspace_id)
+            || self.active.len() < MAX_TRACKED_CAPABILITY_WORKSPACES
+        {
+            return Ok(());
+        }
+        self.active
+            .retain(|_, slot| !matches!(slot, ActiveCapabilityRun::Terminal(_)));
+        if self.active.len() >= MAX_TRACKED_CAPABILITY_WORKSPACES {
+            return Err(BmadCapabilityCoordinatorError::Conflict);
+        }
+        Ok(())
     }
 
     fn validate_workspace_binding(
@@ -347,8 +414,12 @@ impl BmadCapabilityCoordinator {
         &mut self,
         input: PrepareCapabilityRunInput,
     ) -> Result<CapabilityReviewProjection, BmadCapabilityCoordinatorError> {
+        // Only this workspace's own slot can conflict; a run in another
+        // workspace is none of this one's business. A `Terminal` slot is
+        // overwritten here exactly as before, which is what lets a workspace
+        // start a fresh flow after a cancelled, expired, or invalidated one.
         if matches!(
-            self.active,
+            self.active.get(&input.workspace_id),
             Some(
                 ActiveCapabilityRun::ReviewRequired(_)
                     | ActiveCapabilityRun::Approved(_)
@@ -357,6 +428,7 @@ impl BmadCapabilityCoordinator {
         ) {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         }
+        self.reserve_slot(&input.workspace_id)?;
         let expected_purpose = capability_purpose(&input.capability_id);
         if input.manifest.draft.purpose != expected_purpose
             || input.invocation_binding.draft.purpose != expected_purpose
@@ -381,20 +453,23 @@ impl BmadCapabilityCoordinator {
             manifest_hash: input.manifest.manifest_hash,
             expires_at: input.manifest.draft.expires_at,
         };
-        self.active = Some(ActiveCapabilityRun::ReviewRequired(Box::new(
-            PreparedCapabilityRun {
-                capability_id: input.capability_id,
-                workspace_id: input.workspace_id,
-                workspace_grant_epoch: input.workspace_grant_epoch,
-                workspace_context_read_epoch: input.workspace_context_read_epoch,
-                run_id: input.run_id,
-                instruction_hash: input.instruction_hash,
-                output_schema_id: input.output_schema_id,
-                manifest: input.manifest,
-                invocation_binding: input.invocation_binding,
-                deterministic_fixture: input.deterministic_fixture,
-            },
-        )));
+        let workspace_id = input.workspace_id.clone();
+        let prepared = PreparedCapabilityRun {
+            capability_id: input.capability_id,
+            workspace_id: input.workspace_id,
+            workspace_grant_epoch: input.workspace_grant_epoch,
+            workspace_context_read_epoch: input.workspace_context_read_epoch,
+            run_id: input.run_id,
+            instruction_hash: input.instruction_hash,
+            output_schema_id: input.output_schema_id,
+            manifest: input.manifest,
+            invocation_binding: input.invocation_binding,
+            deterministic_fixture: input.deterministic_fixture,
+        };
+        self.active.insert(
+            workspace_id,
+            ActiveCapabilityRun::ReviewRequired(Box::new(prepared)),
+        );
         Ok(projection)
     }
 
@@ -404,7 +479,11 @@ impl BmadCapabilityCoordinator {
         &mut self,
         input: &ApproveCapabilityRunInput,
     ) -> Result<CapabilityApprovedProjection, BmadCapabilityCoordinatorError> {
-        let prepared = match self.active.as_ref() {
+        // Naming a workspace other than the one holding the review now finds no
+        // slot at all, which is the same `Unauthorized` that
+        // `validate_workspace_binding` returned for it before this lane became
+        // per-workspace. The epoch halves of that check still run below.
+        let prepared = match self.active.get(&input.workspace_id) {
             Some(ActiveCapabilityRun::ReviewRequired(prepared)) => prepared,
             Some(ActiveCapabilityRun::Approved(_) | ActiveCapabilityRun::Dispatching(_)) => {
                 return Err(BmadCapabilityCoordinatorError::Conflict);
@@ -431,9 +510,10 @@ impl BmadCapabilityCoordinator {
         if input.approved_at < prepared.manifest.draft.created_at
             || input.approved_at >= prepared.manifest.draft.expires_at
         {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::ConsentExpired,
-            ));
+            self.active.insert(
+                input.workspace_id.clone(),
+                ActiveCapabilityRun::Terminal(CapabilityTerminalReason::ConsentExpired),
+            );
             return Err(BmadCapabilityCoordinatorError::ConsentExpired);
         }
         let expires_at = UnixMillis(
@@ -460,7 +540,12 @@ impl BmadCapabilityCoordinator {
         .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
         let decision_id = derived_contract_id("decision", decision_digest)
             .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
-        let Some(ActiveCapabilityRun::ReviewRequired(prepared)) = self.active.take() else {
+        // The slot leaves the map here, so every exit below must put something
+        // back: the review on failure, the approval on success. Dropping it
+        // would strand the workspace with a silently vanished review.
+        let Some(ActiveCapabilityRun::ReviewRequired(prepared)) =
+            self.active.remove(&input.workspace_id)
+        else {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         };
         let decision = match ConsentService::new(&self.ledger).approve(ApproveDecisionInput {
@@ -472,7 +557,10 @@ impl BmadCapabilityCoordinator {
         }) {
             Ok(decision) => decision,
             Err(error) => {
-                self.active = Some(ActiveCapabilityRun::ReviewRequired(prepared));
+                self.active.insert(
+                    input.workspace_id.clone(),
+                    ActiveCapabilityRun::ReviewRequired(prepared),
+                );
                 return Err(map_egress_error(error));
             }
         };
@@ -482,13 +570,14 @@ impl BmadCapabilityCoordinator {
             decision_id,
             expires_at,
         };
-        self.active = Some(ActiveCapabilityRun::Approved(Box::new(
-            ApprovedCapabilityRun {
+        self.active.insert(
+            input.workspace_id.clone(),
+            ActiveCapabilityRun::Approved(Box::new(ApprovedCapabilityRun {
                 prepared: *prepared,
                 decision,
                 issued_at: input.approved_at,
-            },
-        )));
+            })),
+        );
         Ok(projection)
     }
 
@@ -497,7 +586,7 @@ impl BmadCapabilityCoordinator {
         &mut self,
         input: &CancelCapabilityRunInput,
     ) -> Result<(), BmadCapabilityCoordinatorError> {
-        let approved = match self.active.as_ref() {
+        let approved = match self.active.get(&input.workspace_id) {
             Some(ActiveCapabilityRun::Approved(approved)) => approved,
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
@@ -526,16 +615,18 @@ impl BmadCapabilityCoordinator {
         {
             return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);
         }
-        let Some(ActiveCapabilityRun::Approved(approved)) = self.active.take() else {
+        let Some(ActiveCapabilityRun::Approved(approved)) = self.active.remove(&input.workspace_id)
+        else {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         };
         let _ = ConsentService::new(&self.ledger).cancel(CancelDecisionInput {
             decision: &approved.decision,
             cancelled_at: input.cancelled_at,
         });
-        self.active = Some(ActiveCapabilityRun::Terminal(
-            CapabilityTerminalReason::Cancelled,
-        ));
+        self.active.insert(
+            input.workspace_id.clone(),
+            ActiveCapabilityRun::Terminal(CapabilityTerminalReason::Cancelled),
+        );
         Ok(())
     }
 
@@ -550,7 +641,8 @@ impl BmadCapabilityCoordinator {
         input: &SubmitCapabilityRunInput,
     ) -> Result<CapabilityDispatchRequest, BmadCapabilityCoordinatorError> {
         self.validate_approved_binding(input)?;
-        let Some(ActiveCapabilityRun::Approved(approved)) = self.active.take() else {
+        let Some(ActiveCapabilityRun::Approved(approved)) = self.active.remove(&input.workspace_id)
+        else {
             return Err(BmadCapabilityCoordinatorError::Conflict);
         };
         if input.submitted_at < approved.issued_at
@@ -560,12 +652,20 @@ impl BmadCapabilityCoordinator {
                 decision: &approved.decision,
                 cancelled_at: input.submitted_at,
             });
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::ConsentExpired,
-            ));
+            self.active.insert(
+                input.workspace_id.clone(),
+                ActiveCapabilityRun::Terminal(CapabilityTerminalReason::ConsentExpired),
+            );
             return Err(BmadCapabilityCoordinatorError::ConsentExpired);
         }
 
+        // The slot is out of the map from here. Each exit below decides what
+        // refills it: `Terminal(ConsentConsumed)` once the decision has been
+        // spent, `Dispatching` on success. The two `Integrity` exits deliberately
+        // leave the workspace with *no* slot — the decision was not consumed on
+        // that path, so the workspace is simply free to prepare a fresh run,
+        // which is what it did when this lane held one global slot. Empty is
+        // recoverable; the state to avoid is a slot nothing can clear.
         let invocation_digest = canonical_hash(
             "bmad-capability-invocation-id",
             1,
@@ -588,9 +688,10 @@ impl BmadCapabilityCoordinator {
         }) {
             Ok(consumption) => consumption,
             Err(error) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(
-                    CapabilityTerminalReason::ConsentConsumed,
-                ));
+                self.active.insert(
+                    input.workspace_id.clone(),
+                    ActiveCapabilityRun::Terminal(CapabilityTerminalReason::ConsentConsumed),
+                );
                 return Err(map_egress_error(error));
             }
         };
@@ -600,9 +701,10 @@ impl BmadCapabilityCoordinator {
             &approved.prepared.invocation_binding,
             consumption,
         ) else {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::ConsentConsumed,
-            ));
+            self.active.insert(
+                input.workspace_id.clone(),
+                ActiveCapabilityRun::Terminal(CapabilityTerminalReason::ConsentConsumed),
+            );
             return Err(BmadCapabilityCoordinatorError::Integrity);
         };
 
@@ -612,12 +714,14 @@ impl BmadCapabilityCoordinator {
         let ApprovedCapabilityRun { prepared, .. } = approved;
         let dispatch = CapabilityDispatchRequest {
             dispatch_id,
+            workspace_id: prepared.workspace_id.clone(),
             authorized_request,
             deterministic_fixture: prepared.deterministic_fixture,
             submitted_at: input.submitted_at,
         };
-        self.active = Some(ActiveCapabilityRun::Dispatching(Box::new(
-            DispatchingCapabilityRun {
+        self.active.insert(
+            input.workspace_id.clone(),
+            ActiveCapabilityRun::Dispatching(Box::new(DispatchingCapabilityRun {
                 dispatch_id,
                 capability_id: prepared.capability_id,
                 run_id: prepared.run_id,
@@ -628,54 +732,68 @@ impl BmadCapabilityCoordinator {
                 consent_evidence_id,
                 submitted_at: input.submitted_at,
                 run_scope: input.run_scope,
-            },
-        )));
+            })),
+        );
         Ok(dispatch)
     }
 
     /// Finalizes an in-flight dispatch **under the coordinator lock**: verifies
     /// the raw output, records the run and its result in one durable step, and
-    /// clears the active slot. If the run left `Dispatching` while the round
-    /// trip ran — e.g. a concurrent `invalidate` from sign-out or workspace
-    /// revocation — the result is dropped and the terminal reason preserved.
+    /// clears that workspace's slot. If the run left `Dispatching` while the
+    /// round trip ran — e.g. a concurrent `invalidate` from sign-out or
+    /// workspace revocation — the result is dropped and the terminal reason
+    /// preserved. Only the named workspace's slot is ever read or written, so a
+    /// dispatch can neither observe nor disturb a run in another workspace.
     pub(crate) fn finalize_dispatch(
         &mut self,
+        workspace_id: &ContractId,
         dispatch_id: u64,
         raw_output: &RawModelOutput,
         verifier: &dyn BmadCapabilityOutputVerifier,
         store: &LocalStore,
     ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
-        let dispatching = match self.active.take() {
+        // Inspected before it is taken, so a stale or superseded finalize
+        // leaves the slot exactly as it found it and the map is only disturbed
+        // once this call has committed to finishing the run it names.
+        match self.active.get(workspace_id) {
             Some(ActiveCapabilityRun::Dispatching(dispatching))
-                if dispatching.dispatch_id == dispatch_id =>
-            {
-                dispatching
-            }
-            Some(ActiveCapabilityRun::Dispatching(dispatching)) => {
-                // A newer dispatch replaced this one while its transport was in
-                // flight; leave it in place and drop this stale result.
-                self.active = Some(ActiveCapabilityRun::Dispatching(dispatching));
-                return Err(BmadCapabilityCoordinatorError::Conflict);
-            }
+                if dispatching.dispatch_id == dispatch_id => {}
             Some(ActiveCapabilityRun::Terminal(reason)) => {
-                self.active = Some(ActiveCapabilityRun::Terminal(reason));
-                return Err(terminal_error(reason));
+                return Err(terminal_error(*reason));
             }
-            other => {
-                self.active = other;
+            // A newer dispatch replaced this one while its transport was in
+            // flight, or the slot is no longer dispatching at all; leave what is
+            // there in place and drop this stale result.
+            Some(
+                ActiveCapabilityRun::Dispatching(_)
+                | ActiveCapabilityRun::ReviewRequired(_)
+                | ActiveCapabilityRun::Approved(_),
+            )
+            | None => {
                 return Err(BmadCapabilityCoordinatorError::Conflict);
             }
+        }
+        // From here the slot is out of the map. A rejected output refills it
+        // with its terminal reason; the durable-write failures below
+        // deliberately leave it empty, exactly as the single global slot was
+        // left empty by the same failures, which frees the workspace to prepare
+        // another run rather than wedging it.
+        let Some(ActiveCapabilityRun::Dispatching(dispatching)) = self.active.remove(workspace_id)
+        else {
+            return Err(BmadCapabilityCoordinatorError::Conflict);
         };
         let Ok(output) = verifier.verify(&dispatching.capability_id, raw_output) else {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::OutputRejected,
-            ));
+            self.active.insert(
+                workspace_id.clone(),
+                ActiveCapabilityRun::Terminal(CapabilityTerminalReason::OutputRejected),
+            );
             return Err(BmadCapabilityCoordinatorError::OutputRejected);
         };
         if output.schema_id() != dispatching.output_schema_id {
-            self.active = Some(ActiveCapabilityRun::Terminal(
-                CapabilityTerminalReason::OutputRejected,
-            ));
+            self.active.insert(
+                workspace_id.clone(),
+                ActiveCapabilityRun::Terminal(CapabilityTerminalReason::OutputRejected),
+            );
             return Err(BmadCapabilityCoordinatorError::ResultArchetypeMismatch);
         }
 
@@ -712,25 +830,31 @@ impl BmadCapabilityCoordinator {
             );
         }
 
-        let projection = CapabilityCompletedProjection {
+        // The slot was already taken above; a completed run leaves none behind.
+        Ok(CapabilityCompletedProjection {
             capability_id: dispatching.capability_id.as_str().to_owned(),
             run_id: dispatching.run_id,
             result_kind: result_kind.to_owned(),
-        };
-        self.active = None;
-        Ok(projection)
+        })
     }
 
     /// Marks *this* in-flight dispatch terminal after a transport failure at the
     /// caller. A no-op if the run already left `Dispatching` or was superseded by
-    /// a newer dispatch (e.g. it was invalidated then replaced concurrently).
-    pub(crate) fn abort_dispatch(&mut self, dispatch_id: u64, reason: CapabilityTerminalReason) {
+    /// a newer dispatch (e.g. it was invalidated then replaced concurrently), and
+    /// a no-op on every workspace but the one named.
+    pub(crate) fn abort_dispatch(
+        &mut self,
+        workspace_id: &ContractId,
+        dispatch_id: u64,
+        reason: CapabilityTerminalReason,
+    ) {
         if matches!(
-            &self.active,
+            self.active.get(workspace_id),
             Some(ActiveCapabilityRun::Dispatching(dispatching))
                 if dispatching.dispatch_id == dispatch_id
         ) {
-            self.active = Some(ActiveCapabilityRun::Terminal(reason));
+            self.active
+                .insert(workspace_id.clone(), ActiveCapabilityRun::Terminal(reason));
         }
     }
 
@@ -749,15 +873,20 @@ impl BmadCapabilityCoordinator {
     ) -> Result<CapabilityCompletedProjection, BmadCapabilityCoordinatorError> {
         let dispatch = self.begin_dispatch(input)?;
         let dispatch_id = dispatch.dispatch_id;
+        let workspace_id = dispatch.workspace_id.clone();
         let Ok((_dispatched, raw_output)) = transport.send(
             dispatch.authorized_request,
             &dispatch.deterministic_fixture,
             dispatch.submitted_at,
         ) else {
-            self.abort_dispatch(dispatch_id, CapabilityTerminalReason::ConsentConsumed);
+            self.abort_dispatch(
+                &workspace_id,
+                dispatch_id,
+                CapabilityTerminalReason::ConsentConsumed,
+            );
             return Err(BmadCapabilityCoordinatorError::Transport);
         };
-        self.finalize_dispatch(dispatch_id, &raw_output, verifier, store)
+        self.finalize_dispatch(&workspace_id, dispatch_id, &raw_output, verifier, store)
     }
 }
 
@@ -766,7 +895,7 @@ impl BmadCapabilityCoordinator {
         &self,
         input: &SubmitCapabilityRunInput,
     ) -> Result<(), BmadCapabilityCoordinatorError> {
-        let approved = match self.active.as_ref() {
+        let approved = match self.active.get(&input.workspace_id) {
             Some(ActiveCapabilityRun::Approved(approved)) => approved,
             Some(ActiveCapabilityRun::ReviewRequired(_)) => {
                 return Err(BmadCapabilityCoordinatorError::ConsentBindingMismatch);

@@ -94,6 +94,10 @@ struct ReplyCache {
 
 pub(crate) struct HostState {
     pub workspace: WorkspaceBroker,
+    /// Session-scoped "allow always" answers for agent tools (ADR-0009).
+    /// Cleared on sign-out and workspace revocation, so authority never
+    /// outlives the context it was granted in.
+    pub(crate) tool_grants: Mutex<desktop_tools::GrantedRules>,
     pub gate: RequestGate,
     workspace_commits: Mutex<()>,
     store: Option<LocalStore>,
@@ -240,6 +244,7 @@ impl HostState {
 
         Ok(Self {
             workspace,
+            tool_grants: Mutex::new(desktop_tools::GrantedRules::new()),
             gate: RequestGate::new(AdmissionPolicy::default()),
             workspace_commits: Mutex::new(()),
             store: Some(store),
@@ -269,6 +274,7 @@ impl HostState {
     fn recovery(installation_id: ContractId, store: Option<LocalStore>) -> Self {
         Self {
             workspace: WorkspaceBroker::new(),
+            tool_grants: Mutex::new(desktop_tools::GrantedRules::new()),
             gate: RequestGate::new(AdmissionPolicy::default()),
             workspace_commits: Mutex::new(()),
             store,

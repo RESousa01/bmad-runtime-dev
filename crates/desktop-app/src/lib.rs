@@ -8,6 +8,7 @@ mod bmad_memlog;
 mod bmad_model;
 mod bmad_workflow;
 mod chat;
+mod chat_tools;
 mod commands;
 mod edits;
 mod recovery;

@@ -43,7 +43,8 @@
       "../../packages/bmad-foundation/normalized": "bmad-foundation/normalized",
       "../../packages/bmad-foundation/runtime": "bmad-foundation/runtime",
       "../../packages/bmad-foundation/runtime-manifest.json": "bmad-foundation/runtime-manifest.json",
-      "../../packages/bmad-foundation/semantic-source-ledger.json": "bmad-foundation/semantic-source-ledger.json"
+      "../../packages/bmad-foundation/semantic-source-ledger.json": "bmad-foundation/semantic-source-ledger.json",
+      "../../packages/bmad-foundation/source": "bmad-foundation/source"
     },
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
