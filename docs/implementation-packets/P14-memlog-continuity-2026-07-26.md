@@ -191,3 +191,39 @@ length is pinned in five places across two crates by design.
 - `app.offboarding.inspect` counts memlog entries.
 - Full gate suite green, including the retention guard and a full-context seal
   test for the raised capability ceiling.
+
+## Outcome — implemented 2026-07-26
+
+All four phases landed. Full gate green: 693 Rust tests, 426 renderer tests,
+116 foundation tests, `cargo clippy -D warnings` and `cargo fmt --check` clean,
+boundaries and secret scan clean.
+
+| Phase | What landed |
+|---|---|
+| 0 | Dispatch routes on the sealed `entrypointKind`; `is_architecture_capability` deleted (it had no production caller left). |
+| 1 | Store v13: `bmad_memlog_entries`, append-only (no update, no delete), sequence allocated inside an `IMMEDIATE` transaction; retention disclosure raised to 21 categories. |
+| 2 | `finalize_dispatch` projects a completed `document_artifact` into `event` / `decision` / `question` / `change` / `override` entries. |
+| 3 | `prepare` injects the rendered log as one reviewed candidate; capability ceiling 104 → 105 with a full-load seal test. |
+| 4 | `prd`, `product-brief` and `ux-design` state the continuity contract; foundation resealed. |
+
+### Two claims above that the implementation does **not** support
+
+**"The architecture progression survives a process restart"** is only half
+delivered, and the packet contradicts itself on it — *Out of scope* already
+excludes resume-by-reload. What landed: each step's decisions are now persisted
+and re-injected as context after a restart. What did not: the progression
+*cursor*. `select_step` opens a fresh session whenever `active` is `None`, so a
+restart still restarts at step one. Resuming would mean reconstructing the
+cursor from the log, which is the excluded work.
+
+**`change` vs `override`** are separated structurally, not by intent. A
+reviewed document diff carries no explicit overrule signal, so a revised
+heading is a `change` and a withdrawn one an `override`. Neither infers that
+the author meant to overrule anything — do not read the log as if it did.
+
+### Known overlap
+
+For the stepwise capability the persisted log overlaps its in-session decision
+log; the persisted one is the superset. Both are injected and both are counted
+by the ceiling. Collapsing them is a change to the architecture lane that this
+packet deliberately did not make.

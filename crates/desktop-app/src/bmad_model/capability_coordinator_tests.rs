@@ -792,3 +792,129 @@ fn a_superseded_dispatch_cannot_finalize_or_abort_a_newer_run(
     assert!(store.bmad_capability_run(&second_run_id)?.is_some());
     Ok(())
 }
+
+/// The point of P14: a completed `document_artifact` leaves its decisions in
+/// the doc workspace's log, so a *later* run against the same folder starts
+/// from them instead of from nothing.
+///
+/// This is continuity across runs. Within a single run the log is still a
+/// projection of the finished artifact rather than the source it was distilled
+/// from, which is not what upstream does.
+#[test]
+fn a_completed_document_run_leaves_its_decisions_in_the_doc_workspace_log(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-product-brief",
+        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        "14",
+    );
+    approve(&mut lifecycle);
+    let dispatch = lifecycle
+        .coordinator
+        .begin_dispatch(&SubmitCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: lifecycle.capability.clone(),
+            manifest_hash: lifecycle.manifest_hash,
+            decision_id: lifecycle.decision_id.clone().expect("decision"),
+            submitted_at: UnixMillis(30_000),
+        })
+        .expect("dispatch");
+    let (_dispatched, raw_output) = FixtureTransport
+        .send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )
+        .expect("transport output");
+    lifecycle
+        .coordinator
+        .finalize_dispatch(
+            dispatch.dispatch_id,
+            &raw_output,
+            &CannedVerifier {
+                output: document_output(),
+                expected_capability: "bmm:bmad-product-brief",
+            },
+            &store,
+        )
+        .expect("completed run");
+
+    let entries =
+        store.memlog_entries("workspace_01J00000000000000000000000", "docs/product-brief")?;
+    let rendered: Vec<(&str, &str)> = entries
+        .iter()
+        .map(|entry| (entry.kind.as_str(), entry.text.as_str()))
+        .collect();
+    assert_eq!(
+        rendered,
+        vec![
+            ("event", "bmm:bmad-product-brief create: Product brief"),
+            ("decision", "Problem: A bounded problem statement."),
+        ]
+    );
+    // The log survives the process: a fresh handle on the same file sees it,
+    // which is what makes the next run's context possible at all.
+    drop(store);
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    assert_eq!(
+        reopened
+            .memlog_entries("workspace_01J00000000000000000000000", "docs/product-brief")?
+            .len(),
+        2
+    );
+    Ok(())
+}
+
+/// A governed change set is not a document, so it leaves no log — continuity
+/// is scoped to the artifacts that actually accumulate across runs.
+#[test]
+fn a_change_set_run_writes_no_memlog() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-code-review",
+        BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+        "15",
+    );
+    approve(&mut lifecycle);
+    let dispatch = lifecycle
+        .coordinator
+        .begin_dispatch(&SubmitCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: lifecycle.capability.clone(),
+            manifest_hash: lifecycle.manifest_hash,
+            decision_id: lifecycle.decision_id.clone().expect("decision"),
+            submitted_at: UnixMillis(30_000),
+        })
+        .expect("dispatch");
+    let (_dispatched, raw_output) = FixtureTransport
+        .send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )
+        .expect("transport output");
+    lifecycle
+        .coordinator
+        .finalize_dispatch(
+            dispatch.dispatch_id,
+            &raw_output,
+            &CannedVerifier {
+                output: change_output(),
+                expected_capability: "bmm:bmad-code-review",
+            },
+            &store,
+        )
+        .expect("completed run");
+
+    assert!(store
+        .memlog_entries("workspace_01J00000000000000000000000", "docs/code-review")?
+        .is_empty());
+    Ok(())
+}

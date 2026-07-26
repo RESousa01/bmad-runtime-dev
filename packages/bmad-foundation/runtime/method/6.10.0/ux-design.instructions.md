@@ -45,3 +45,18 @@ content by reference; do not duplicate it here.
 The output is one inert UX-specification document artifact. It does not
 produce binding visual assets, modify a workspace, or claim user testing
 occurred.
+
+## Continuity across runs
+
+When this run completes, the host appends its decisions, its open
+questions, and any heading it revised or withdrew to the append-only
+memory log for `docs/ux`. A later run against that folder is given the log
+as reviewed context, so a revision to either spine starts from what
+earlier runs decided rather than from the finished specification alone —
+which is how a token or behaviour decision keeps its reason.
+
+Two limits are worth stating. The log is written once, at the end of a
+run, rather than as each decision lands — so within a single run it
+records what the specification concluded. And nothing in it is ever edited
+or removed; a superseded decision is answered by a later entry, never by
+rewriting the earlier one.

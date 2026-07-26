@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 12;
+pub(crate) const LATEST_STORE_VERSION: u32 = 13;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -126,6 +126,31 @@ pub(crate) const V12_TABLES: [&str; 22] = [
     "bmad_capability_results",
     "bmad_capability_runs",
     "bmad_help_run_creations",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+pub(crate) const V13_TABLES: [&str; 23] = [
+    "aggregates",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
     "bmad_method_artifacts",
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
@@ -627,6 +652,41 @@ const V11_TO_V12_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 12;
  COMMIT;";
 
+/// The method's working memory (P14).
+///
+/// Upstream's memlog is "the dense, chronological record of everything that
+/// mattered in a piece of work … It persists ACROSS sessions, so a fresh
+/// session can load it and continue", and downstream artifacts are *derived*
+/// from it. Two properties drive this shape:
+///
+/// * **Append-only.** Upstream has "no edit or delete subcommand by design;
+///   history is never rewritten." There is no update or delete API over this
+///   table, and `sequence` is allocated inside the appending transaction.
+/// * **Scoped to a doc workspace, not a run.** Upstream binds a memlog to a run
+///   folder that several runs append to over time, which is where the
+///   continuity comes from.
+///
+/// Entry text is short prose the model already produced under review, so it is
+/// stored inline rather than through the CAS: unlike a chat message or a
+/// capability result there is no separate payload to authenticate.
+const V12_TO_V13_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_memlog_entries (
+   entry_id TEXT PRIMARY KEY,
+   workspace_id TEXT NOT NULL,
+   doc_workspace TEXT NOT NULL,
+   sequence INTEGER NOT NULL CHECK(sequence >= 0),
+   kind TEXT NOT NULL,
+   author TEXT,
+   text TEXT NOT NULL CHECK(length(text) > 0),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   UNIQUE(workspace_id, doc_workspace, sequence)
+ ) STRICT;
+ CREATE INDEX bmad_memlog_entries_by_doc_workspace
+   ON bmad_memlog_entries(workspace_id, doc_workspace, sequence);
+ PRAGMA user_version = 13;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -680,8 +740,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V11_TO_V12_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            12 => {
                 require_store_tables(connection, &V12_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V12_TO_V13_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V13_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

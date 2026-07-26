@@ -33,12 +33,38 @@ use serde::Serialize;
 use crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError;
 use crate::bmad_model::context::derived_contract_id;
 
-/// The one reviewed capability that runs as an ordered progression.
+/// The one reviewed capability that runs as an ordered progression. Name it
+/// only where the architecture run folder or its spine is specifically what is
+/// meant; for "does this capability run stepwise at all", ask the sealed
+/// foundation via [`is_stepwise_capability`] instead. Production dispatch reads
+/// the sealed `entrypointKind`, so this literal now only names the fixture
+/// capability the tests exercise.
+#[cfg(test)]
 pub(crate) const ARCHITECTURE_CAPABILITY_ID: &str = "bmm:bmad-architecture";
 
+/// Whether the sealed foundation records this capability as running stepwise.
+///
+/// The foundation already carries `entrypointKind` per installed skill, and
+/// `step_jit` is exactly the upstream marker for a skill the host drives one
+/// step at a time. Routing on that record rather than on a hard-coded
+/// capability id keeps the decision where the reviewed data lives — and means
+/// a second stepwise capability needs no new branch here.
+///
+/// Today only `bmm:bmad-architecture` carries it, so this is behaviour-neutral.
 #[must_use]
-pub(crate) fn is_architecture_capability(capability_id: &str) -> bool {
-    capability_id == ARCHITECTURE_CAPABILITY_ID
+pub(crate) fn is_stepwise_capability(
+    foundation: &crate::bmad_foundation::BmadLoadedFoundation,
+    capability_id: &str,
+) -> bool {
+    // Capability ids are `<product namespace>:<upstream skill name>`; the
+    // catalog is keyed by the skill name.
+    let Some((_, skill_name)) = capability_id.split_once(':') else {
+        return false;
+    };
+    foundation.catalog().installed_skills.iter().any(|skill| {
+        skill.skill_name == skill_name
+            && skill.entrypoint_kind == desktop_runtime::BmadEntrypointKind::StepJit
+    })
 }
 
 /// What the renderer is told about the progression. Present only on the
@@ -415,9 +441,7 @@ fn render_decision_log(session: &BmadArchitectureSession) -> String {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{
-        is_architecture_capability, BmadArchitectureCoordinator, ARCHITECTURE_CAPABILITY_ID,
-    };
+    use super::{is_stepwise_capability, BmadArchitectureCoordinator, ARCHITECTURE_CAPABILITY_ID};
     use crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError;
     use desktop_runtime::{
         BmadArchitectureStep, BmadDocumentArtifact, BmadDocumentSection, ContractId, UnixMillis,
@@ -441,15 +465,35 @@ mod tests {
         .expect("artifact")
     }
 
+    /// Stepwise dispatch reads the sealed `entrypointKind`, not a hard-coded
+    /// id. The foundation is the authority on which capabilities run one step
+    /// at a time, so a second stepwise capability needs no new branch — and a
+    /// capability the foundation does *not* mark `step_jit` can never reach the
+    /// progression coordinator.
     #[test]
-    fn only_the_architecture_capability_is_stepwise() {
-        assert!(is_architecture_capability(ARCHITECTURE_CAPABILITY_ID));
+    fn stepwise_dispatch_follows_the_sealed_entrypoint_kind() {
+        let foundation = crate::bmad_foundation::load_bmad_foundation(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation"),
+        )
+        .expect("sealed foundation");
+
+        assert!(is_stepwise_capability(
+            &foundation,
+            ARCHITECTURE_CAPABILITY_ID
+        ));
         for other in [
             "bmm:bmad-product-brief",
+            "bmm:bmad-prd",
             "bmm:bmad-dev-story",
+            "bmm:bmad-spec",
             "builder:agent.edit",
+            "bmm:not-a-real-skill",
+            "malformed-without-a-namespace",
         ] {
-            assert!(!is_architecture_capability(other));
+            assert!(
+                !is_stepwise_capability(&foundation, other),
+                "{other} is not sealed as step_jit and must not run stepwise",
+            );
         }
     }
 

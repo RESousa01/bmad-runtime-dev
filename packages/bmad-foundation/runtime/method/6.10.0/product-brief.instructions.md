@@ -37,3 +37,19 @@ in the addendum.
 The output is one inert product-brief document artifact with sections,
 evidence references, and open questions. It does not create a PRD, start
 another capability, or modify a workspace.
+
+## Continuity across runs
+
+When this run completes, the host appends its decisions, its open
+questions, and any heading it revised or withdrew to the append-only
+memory log for `docs/product-brief`. A later run against that folder is
+given the log as reviewed context, so a revision starts from what earlier
+runs decided rather than from the finished brief alone. This is where the
+closing account of what landed, what moved to the addendum, and what was
+set aside actually survives.
+
+Two limits are worth stating. The log is written once, at the end of a
+run, rather than as each decision lands — so within a single run it
+records what the brief concluded. And nothing in it is ever edited or
+removed; a superseded decision is answered by a later entry, never by
+rewriting the earlier one.

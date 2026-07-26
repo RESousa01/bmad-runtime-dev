@@ -4,6 +4,7 @@ mod bmad_architecture;
 mod bmad_capability_host;
 pub mod bmad_foundation;
 mod bmad_governed_proposal;
+mod bmad_memlog;
 mod bmad_model;
 mod bmad_workflow;
 mod chat;

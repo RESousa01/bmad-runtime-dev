@@ -4306,8 +4306,8 @@
     },
     {
       "path": "runtime/method/6.10.0/prd.instructions.md",
-      "byteLength": 1510,
-      "sha256": "6637cb307ed27fbf9bd87795a9f140e97135307d211988fd14d4c40788069b68"
+      "byteLength": 2214,
+      "sha256": "194d7cae6c66c7b98aa95d97b09c20b8b3d68b7621896bd683bb4f3131a83edc"
     },
     {
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
@@ -4316,8 +4316,8 @@
     },
     {
       "path": "runtime/method/6.10.0/product-brief.instructions.md",
-      "byteLength": 1721,
-      "sha256": "7c1761c22631b05bc373b6c6a657fdb0595d2c45b9cf5d490240ecff834f7e9a"
+      "byteLength": 2515,
+      "sha256": "67816a36fc4be1070c4618642fa0eef9ea96a44698047b78a768c29e06833b1f"
     },
     {
       "path": "runtime/method/6.10.0/qa-tests.instructions.md",
@@ -4351,8 +4351,8 @@
     },
     {
       "path": "runtime/method/6.10.0/ux-design.instructions.md",
-      "byteLength": 1939,
-      "sha256": "d9c4fd881334ba139f8dbaa14bb45658bb422615bddfe31a6e469e0008c70997"
+      "byteLength": 2698,
+      "sha256": "09b90d7e89446be08823f45b072ef4bcaa8dfe9ab13228ee883d7d8ea78d160c"
     },
     {
       "path": "runtime/method/6.10.0/ux-designer-persona.instructions.md",

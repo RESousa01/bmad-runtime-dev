@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 20] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 21] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -42,6 +42,7 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 20] = [
     ),
     ("capability_runs", "bmad_capability_runs"),
     ("capability_results", "bmad_capability_results"),
+    ("memlog_entries", "bmad_memlog_entries"),
     ("builder_drafts", "bmad_builder_drafts"),
     ("builder_draft_revisions", "bmad_builder_revisions"),
     ("builder_analyses", "bmad_builder_analyses"),
@@ -73,6 +74,7 @@ mod bmad_capability;
 mod bmad_method;
 mod chat;
 mod execution;
+mod memlog;
 mod migrations;
 
 pub use bmad_capability::BmadCapabilityRunRecord;
@@ -88,6 +90,7 @@ pub use execution::{
     EXECUTION_CHECKPOINT_SCHEMA, MAX_EXECUTION_CHECKPOINT_BYTES, MAX_EXECUTION_JOURNAL_BYTES,
     MAX_EXECUTION_RESULT_BYTES,
 };
+pub use memlog::{MemlogAppend, StoredMemlogEntry};
 
 #[cfg(test)]
 use migrations::LATEST_STORE_VERSION;
@@ -1881,7 +1884,7 @@ mod tests {
             .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(disclosed.len(), RETENTION_CATEGORIES.len());
 
-        for table in crate::migrations::V12_TABLES {
+        for table in crate::migrations::V13_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }
@@ -2335,6 +2338,7 @@ mod tests {
         store.connection.lock().execute_batch(
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
+             DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
@@ -2384,6 +2388,7 @@ mod tests {
         store.connection.lock().execute_batch(
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
+             DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
@@ -2486,6 +2491,7 @@ mod tests {
         store.connection.lock().execute_batch(
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
+             DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;

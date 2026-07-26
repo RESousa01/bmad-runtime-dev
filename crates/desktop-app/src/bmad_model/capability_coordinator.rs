@@ -219,6 +219,42 @@ const fn terminal_error(reason: CapabilityTerminalReason) -> BmadCapabilityCoord
     }
 }
 
+/// Appends the completed artifact's entries to its doc workspace's log, so the
+/// *next* run against the same folder starts from what this one decided.
+///
+/// A capability whose id yields no doc workspace simply keeps no log: the
+/// artifact and its run record are already durable, and continuity is an
+/// addition to them, never a precondition.
+fn append_completion_memlog(
+    store: &LocalStore,
+    capability_id: &str,
+    workspace_id: &str,
+    artifact: &desktop_runtime::BmadDocumentArtifact,
+    now: UnixMillis,
+) -> Result<(), BmadCapabilityCoordinatorError> {
+    let Some(doc_workspace) = crate::bmad_memlog::doc_workspace_for(capability_id) else {
+        return Ok(());
+    };
+    let prior = store
+        .memlog_entries(workspace_id, &doc_workspace)
+        .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+    for entry in crate::bmad_memlog::completion_entries(capability_id, artifact, &prior) {
+        let entry_id = format!("memlog_{}", ulid::Ulid::new());
+        store
+            .append_memlog_entry(desktop_store::MemlogAppend {
+                entry_id: &entry_id,
+                workspace_id,
+                doc_workspace: &doc_workspace,
+                kind: entry.kind.code(),
+                author: None,
+                text: &entry.text,
+                recorded_at_ms: now.0,
+            })
+            .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+    }
+    Ok(())
+}
+
 #[derive(Serialize)]
 struct CapabilityDecisionIdentity<'a> {
     schema_version: &'static str,
@@ -649,6 +685,15 @@ impl BmadCapabilityCoordinator {
         store
             .record_bmad_capability_result(&run.run_id, &output)
             .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+        if let BmadCapabilityOutput::DocumentArtifact(artifact) = &output {
+            append_completion_memlog(
+                store,
+                dispatching.capability_id.as_str(),
+                run.workspace_id.as_str(),
+                artifact,
+                dispatching.submitted_at,
+            )?;
+        }
 
         let projection = CapabilityCompletedProjection {
             capability_id: dispatching.capability_id.as_str().to_owned(),

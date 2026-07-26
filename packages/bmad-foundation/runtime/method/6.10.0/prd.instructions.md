@@ -28,6 +28,21 @@ instruction data for the `bmm:bmad-prd` capability.
 ## Output boundary
 
 The output is one inert PRD document artifact (or validation report for
-the validate intent). It does not bind run folders, write memory logs,
-run scripts, or modify a workspace; decision history lives in the
-artifact's own decision log section.
+the validate intent). It does not run scripts, start another capability,
+or modify a workspace.
+
+## Continuity across runs
+
+When this run completes, the host appends its decisions, its open
+questions, and any heading it revised or withdrew to the append-only
+memory log for `docs/prd`. A later run against that folder is given the
+log as reviewed context, so an update is derived from what earlier runs
+decided rather than from the finished document alone. Read it as the
+record of how the PRD got here, and say so plainly when this run
+contradicts something in it.
+
+Two limits are worth stating. The log is written once, at the end of a
+run, rather than as each decision lands — so within a single run it
+records what the artifact concluded. And nothing in it is ever edited or
+removed; a superseded decision is answered by a later entry, never by
+rewriting the earlier one.

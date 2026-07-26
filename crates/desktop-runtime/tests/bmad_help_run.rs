@@ -252,11 +252,12 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
         help.source_snapshot_hash(),
         digest("sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86")
     );
-    // Follows the managed instruction bytes: rewriting the architecture
-    // projection to carry the spine model changed the composite inventory.
+    // Follows the managed instruction bytes: the prd, product-brief and ux
+    // projections now state the memlog continuity contract (P14) instead of
+    // disclaiming it, which changed the composite inventory.
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:0893a734bb934bfb3be448cf4bee0109cce2eaf3e4317f913acb2cf2cf5007dd")
+        digest("sha256:b01bd81cf65b9fc3b5fea331a40341aa45cfe819427579dedf491bc548a32cce")
     );
 
     assert_eq!(help.module_code(), "core");

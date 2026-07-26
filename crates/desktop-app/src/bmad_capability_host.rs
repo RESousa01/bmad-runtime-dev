@@ -992,10 +992,11 @@ const CAPABILITY_MANIFEST_LIFETIME_MS: u64 = 10 * 60 * 1_000;
 /// * up to `MAX_CAPABILITY_CONTEXT_PATHS` (100) user attachments,
 /// * 1 sealed instruction candidate,
 /// * 2 architecture progression candidates (selected step + decision log),
-/// * 1 adopted-instruction boundary preamble for core-skill capabilities.
+/// * 1 adopted-instruction boundary preamble for core-skill capabilities,
+/// * 1 doc-workspace memory log, when the folder already has one.
 ///
 /// Must stay at or under `desktop-egress`'s `HARD_MAX_CONTEXT_ITEMS` (128).
-const MAX_CAPABILITY_CONTEXT_ITEMS: u32 = 104;
+const MAX_CAPABILITY_CONTEXT_ITEMS: u32 = 105;
 const MAX_CAPABILITY_CONTEXT_BYTES: u64 = 256 * 1024;
 
 /// Assembles the sealed manifest, invocation binding, and coordinator
@@ -1234,6 +1235,31 @@ pub(crate) fn context_candidate(
     })
 }
 
+/// The doc workspace's accumulated memory log, so a run that follows an
+/// earlier one against the same folder starts from what that one decided.
+///
+/// It enters as an ordinary reviewed candidate — covered by the manifest hash
+/// and shown in the consent surface — because it carries the user's own prior
+/// content and must never be sent unseen.
+pub(crate) fn memlog_candidate(
+    doc_workspace: &str,
+    content: String,
+) -> Result<ContextCandidate, BmadCapabilityCoordinatorError> {
+    Ok(ContextCandidate {
+        client_item_id: ContractId::new("capctx_memlog")
+            .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?,
+        relative_label: RelativeWorkspacePath::new(format!(
+            "{doc_workspace}/{}",
+            desktop_runtime::MEMLOG_FILE_NAME
+        ))
+        .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?,
+        semantic_role: "capability_memlog".to_owned(),
+        language: Some("markdown".to_owned()),
+        classification: ContextClassification::Internal,
+        content,
+    })
+}
+
 pub(crate) fn sealed_instruction_candidate(
     instruction_bytes: &[u8],
 ) -> Result<ContextCandidate, BmadCapabilityCoordinatorError> {
@@ -1259,22 +1285,119 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        capability_binding, parse_capability_result, reviewed_method_menu_bindings,
-        sealed_instruction_candidate, validate_method_menu_capability_bindings,
-        WireCapabilityOutputVerifier, METHOD_MENU_CAPABILITY_TABLE,
+        capability_binding, context_candidate, memlog_candidate, parse_capability_result,
+        reviewed_method_menu_bindings, sealed_instruction_candidate,
+        validate_method_menu_capability_bindings, WireCapabilityOutputVerifier,
+        CAPABILITY_MANIFEST_LIFETIME_MS, MAX_CAPABILITY_CONTEXT_BYTES,
+        MAX_CAPABILITY_CONTEXT_ITEMS, METHOD_MENU_CAPABILITY_TABLE,
     };
     use crate::bmad_foundation::load_bmad_foundation;
     use crate::bmad_model::capability_coordinator::BmadCapabilityOutputVerifier;
     use desktop_cloud::{ModelAccessReceipt, ModelReceiptStatus, RawModelOutput};
-    use desktop_egress::RetentionMode;
+    use desktop_egress::{
+        ContextCandidate, ContextPreparer, EgressLimits, PatternSecretScanner, PrepareContextInput,
+        RetentionMode,
+    };
     use desktop_ipc::BmadProjectionError;
     use desktop_runtime::{
-        sha256_bytes, BmadClosureCapabilityId, ContractId, UnixMillis,
-        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        sha256_bytes, BmadClosureCapabilityId, ContractId, RelativeWorkspacePath, Sha256Digest,
+        UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
     };
 
     fn foundation_path() -> std::path::PathBuf {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation")
+    }
+
+    fn id(value: &str) -> ContractId {
+        ContractId::new(value).expect("contract id")
+    }
+
+    fn digest(seed: u8) -> Sha256Digest {
+        Sha256Digest::from_bytes([seed; 32])
+    }
+
+    /// Seals with exactly the limits and lifetime `assemble_capability_prepare`
+    /// uses, so the egress hard caps are exercised rather than restated.
+    fn seal_with_capability_limits(
+        candidates: Vec<ContextCandidate>,
+    ) -> Result<desktop_egress::ContextEgressManifest, desktop_egress::EgressError> {
+        let now = UnixMillis(1_000);
+        ContextPreparer::new(PatternSecretScanner).prepare(PrepareContextInput {
+            tenant_ref: id("install_capability"),
+            project_ref: id("project_capability"),
+            run_ref: id("ws_capability"),
+            purpose: "bmad_capability".to_owned(),
+            model_role: "capability".to_owned(),
+            canonical_output_schema_id: id(BMAD_DOCUMENT_ARTIFACT_SCHEMA),
+            canonical_output_schema_hash: digest(1),
+            provider_profile_hash: digest(2),
+            model_profile_hash: digest(3),
+            deployment_hash: digest(4),
+            policy_hash: digest(5),
+            region: "local".to_owned(),
+            retention_mode: RetentionMode::TransientNoStore,
+            created_at: now,
+            expires_at: UnixMillis(now.0 + CAPABILITY_MANIFEST_LIFETIME_MS),
+            limits: EgressLimits {
+                maximum_context_items: MAX_CAPABILITY_CONTEXT_ITEMS,
+                maximum_context_bytes: MAX_CAPABILITY_CONTEXT_BYTES,
+                maximum_token_estimate: MAX_CAPABILITY_CONTEXT_BYTES,
+            },
+            candidates,
+            exclusions: Vec::new(),
+        })
+    }
+
+    /// The heaviest load the host can actually assemble must seal. The declared
+    /// ceiling is only honest if every item it counts fits at once — the chat
+    /// lane shipped a ceiling above the egress hard cap and was inert for it.
+    #[test]
+    fn a_full_capability_context_load_seals_with_the_memlog() {
+        let mut candidates = vec![
+            sealed_instruction_candidate(b"Follow the sealed BMAD method.")
+                .expect("sealed instruction"),
+            memlog_candidate(
+                "docs/prd",
+                "# Memory log\n\n- (decision) Goals: ship\n".to_owned(),
+            )
+            .expect("memlog candidate"),
+        ];
+        // The two architecture progression candidates and the adopted-instruction
+        // preamble never coincide with a memlog on the same run today, but the
+        // ceiling has to cover the sum regardless of which host injects what.
+        for index in 0..3 {
+            candidates.push(
+                context_candidate(
+                    RelativeWorkspacePath::new(format!("review/injected-{index}.md"))
+                        .expect("path"),
+                    format!("// injected {index}\n"),
+                    900 + index,
+                )
+                .expect("injected candidate"),
+            );
+        }
+        for index in 0..100 {
+            candidates.push(
+                context_candidate(
+                    RelativeWorkspacePath::new(format!("src/file-{index}.rs")).expect("path"),
+                    format!("// line {index}\n"),
+                    index,
+                )
+                .expect("attachment candidate"),
+            );
+        }
+        assert_eq!(candidates.len(), MAX_CAPABILITY_CONTEXT_ITEMS as usize);
+        seal_with_capability_limits(candidates).expect("a full capability context load must seal");
+    }
+
+    /// The ceiling counts 100 attachments plus five host-injected items; if the
+    /// arithmetic in its doc comment drifts, the load above stops covering it.
+    #[test]
+    fn the_capability_ceiling_accounts_for_every_injected_item() {
+        const { assert!(MAX_CAPABILITY_CONTEXT_ITEMS == 100 + 5) }
+        // `desktop-egress`'s HARD_MAX_CONTEXT_ITEMS. Exceeding it means every
+        // capability run fails to seal, which is how the chat lane went inert.
+        const { assert!(MAX_CAPABILITY_CONTEXT_ITEMS <= 128) }
     }
 
     fn raw_capability_output(payload_json: &str) -> RawModelOutput {

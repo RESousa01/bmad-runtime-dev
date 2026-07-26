@@ -503,6 +503,7 @@ fn execute_command(
             decision_id,
         } => submit_bmad_capability_run(
             state,
+            foundation,
             workspace_id,
             workspace_grant_epoch,
             &capability_id,
@@ -523,6 +524,7 @@ fn execute_command(
             capability_id,
         } => propose_bmad_capability_changes(
             state,
+            foundation,
             request_id,
             accepted_at,
             workspace_id,
@@ -1507,6 +1509,130 @@ fn reviewed_context_candidates(
     Ok(candidates)
 }
 
+/// The doc workspace's accumulated memory log, as at most one reviewed context
+/// candidate.
+///
+/// Empty for a capability with no doc workspace and for a folder whose log is
+/// still empty, so a first run against a folder is unchanged by P14.
+///
+/// For the stepwise capability this overlaps its in-session decision log: the
+/// persisted log is the superset, covering earlier progressions the in-memory
+/// session no longer holds, while the decision log covers only the current one.
+/// Both are kept because they answer different questions, and the item ceiling
+/// counts both. Note that this restores earlier *decisions* to context, not the
+/// progression cursor — after a restart the progression still opens at step one
+/// (resume-by-reload is out of scope for P14).
+fn memlog_context_candidate(
+    state: &HostState,
+    authority: &ReadyAuthorityGuard<'_>,
+    workspace_id: &ContractId,
+    capability_id: &str,
+) -> Result<Option<desktop_egress::ContextCandidate>, LocalError> {
+    let Some(doc_workspace) = crate::bmad_memlog::doc_workspace_for(capability_id) else {
+        return Ok(None);
+    };
+    let entries = state
+        .local_store(authority)?
+        .memlog_entries(workspace_id.as_str(), &doc_workspace)
+        .map_err(|_| recovery_error())?;
+    if entries.is_empty() {
+        return Ok(None);
+    }
+    crate::bmad_capability_host::memlog_candidate(
+        &doc_workspace,
+        crate::bmad_memlog::render_for_context(&doc_workspace, &entries),
+    )
+    .map(Some)
+    .map_err(map_capability_error)
+}
+
+struct CapabilityContextInput<'a> {
+    state: &'a HostState,
+    foundation: &'a BmadLoadedFoundation,
+    authority: &'a ReadyAuthorityGuard<'a>,
+    workspace_id: &'a ContractId,
+    capability_id: &'a str,
+    binding: &'static crate::bmad_capability_host::CapabilityBinding,
+    context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+    created_at: UnixMillis,
+}
+
+/// The assembled context, plus the step the stepwise capability selected — the
+/// caller reports that step's progress back to the renderer.
+struct CapabilityContext {
+    candidates: Vec<desktop_egress::ContextCandidate>,
+    architecture_step: Option<desktop_runtime::BmadArchitectureStep>,
+}
+
+/// Assembles every reviewed context candidate for one capability run, in the
+/// order the consent surface shows them: host-injected items first, then the
+/// user's own attachments.
+///
+/// Each item here is counted by `MAX_CAPABILITY_CONTEXT_ITEMS`; adding one
+/// without raising that ceiling is what makes a whole lane fail to seal.
+fn capability_context_candidates(
+    input: CapabilityContextInput<'_>,
+) -> Result<CapabilityContext, LocalError> {
+    let CapabilityContextInput {
+        state,
+        foundation,
+        authority,
+        workspace_id,
+        capability_id,
+        binding,
+        context_paths,
+        created_at,
+    } = input;
+    // The stepwise capability places the host-selected step and the accepted
+    // decision log in the reviewed context, so the step the user consents to
+    // sending is covered by the manifest hash like any other context item.
+    let architecture_step =
+        if crate::bmad_architecture::is_stepwise_capability(foundation, capability_id) {
+            Some(
+                state
+                    .bmad_architecture
+                    .lock()
+                    .select_step(workspace_id, created_at)
+                    .map_err(map_capability_error)?,
+            )
+        } else {
+            None
+        };
+    let mut candidates = match architecture_step {
+        Some(step) => state
+            .bmad_architecture
+            .lock()
+            .step_context_candidates(step)
+            .map_err(map_capability_error)?,
+        None => Vec::new(),
+    };
+    // What earlier runs against this doc workspace decided.
+    candidates.extend(memlog_context_candidate(
+        state,
+        authority,
+        workspace_id,
+        capability_id,
+    )?);
+    // A verbatim upstream body is always read under the host's boundary
+    // statement, so its tool directives cannot be taken at face value.
+    if crate::bmad_capability_host::is_core_skill_binding(binding) {
+        candidates.insert(
+            0,
+            crate::bmad_capability_host::adopted_instruction_preamble()
+                .map_err(map_capability_error)?,
+        );
+    }
+    candidates.extend(reviewed_context_candidates(
+        state,
+        workspace_id,
+        context_paths,
+    )?);
+    Ok(CapabilityContext {
+        candidates,
+        architecture_step,
+    })
+}
+
 #[expect(
     clippy::too_many_arguments,
     reason = "the dispatch surface passes each validated envelope field explicitly"
@@ -1555,42 +1681,19 @@ fn prepare_bmad_capability_run(
             )
         })?;
 
-    // The stepwise capability places the host-selected step and the accepted
-    // decision log in the reviewed context, so the step the user consents to
-    // sending is covered by the manifest hash like any other context item.
-    let architecture_step = if crate::bmad_architecture::is_architecture_capability(capability_id) {
-        Some(
-            state
-                .bmad_architecture
-                .lock()
-                .select_step(&workspace_id, created_at)
-                .map_err(map_capability_error)?,
-        )
-    } else {
-        None
-    };
-    let mut candidates = match architecture_step {
-        Some(step) => state
-            .bmad_architecture
-            .lock()
-            .step_context_candidates(step)
-            .map_err(map_capability_error)?,
-        None => Vec::new(),
-    };
-    // A verbatim upstream body is always read under the host's boundary
-    // statement, so its tool directives cannot be taken at face value.
-    if crate::bmad_capability_host::is_core_skill_binding(binding) {
-        candidates.insert(
-            0,
-            crate::bmad_capability_host::adopted_instruction_preamble()
-                .map_err(map_capability_error)?,
-        );
-    }
-    candidates.extend(reviewed_context_candidates(
+    let CapabilityContext {
+        candidates,
+        architecture_step,
+    } = capability_context_candidates(CapabilityContextInput {
         state,
-        &workspace_id,
+        foundation,
+        authority: authority.authority(),
+        workspace_id: &workspace_id,
+        capability_id,
+        binding,
         context_paths,
-    )?);
+        created_at,
+    })?;
 
     let project_id = ContractId::new(workspace.project_id.clone()).map_err(|_| {
         LocalError::new(
@@ -1709,8 +1812,13 @@ fn cancel_bmad_capability_run(
     ))
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the dispatch surface passes each validated envelope field explicitly"
+)]
 fn submit_bmad_capability_run(
     state: &HostState,
+    foundation: &BmadLoadedFoundation,
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
     capability_id: &str,
@@ -1728,7 +1836,7 @@ fn submit_bmad_capability_run(
     // Retained only for the stepwise capability, whose progression is keyed by
     // workspace; every other capability consumes the identity outright.
     let architecture_workspace =
-        crate::bmad_architecture::is_architecture_capability(capability_id)
+        crate::bmad_architecture::is_stepwise_capability(foundation, capability_id)
             .then(|| workspace_id.clone());
     let input = crate::bmad_capability_host::submit_input(
         capability_id,
@@ -1867,6 +1975,7 @@ fn advance_architecture_progression(
 /// renderer-originated edit.
 fn propose_bmad_capability_changes(
     state: &HostState,
+    foundation: &BmadLoadedFoundation,
     request_id: &ContractId,
     accepted_at: UnixMillis,
     workspace_id: ContractId,
@@ -1877,7 +1986,7 @@ fn propose_bmad_capability_changes(
     // and the append-only memlog it came from — rather than a change set,
     // because that is what a real architecture run leaves behind. It still
     // enters the same D3 review as any other proposed edit.
-    if crate::bmad_architecture::is_architecture_capability(capability_id) {
+    if crate::bmad_architecture::is_stepwise_capability(foundation, capability_id) {
         let files = {
             let authority = state.ready_workspace_commit()?;
             let workspace_authority = state
@@ -3271,6 +3380,7 @@ mod tests {
 
         let completed = submit_bmad_capability_run(
             &state,
+            &foundation,
             workspace_contract.clone(),
             1,
             capability,
@@ -3288,6 +3398,7 @@ mod tests {
         // The consumed decision cannot be replayed.
         assert!(submit_bmad_capability_run(
             &state,
+            &foundation,
             workspace_contract.clone(),
             1,
             capability,
@@ -3545,6 +3656,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
             };
             let completed = submit_bmad_capability_run(
                 &state,
+                &foundation,
                 workspace_contract.clone(),
                 1,
                 binding.id,
@@ -3627,6 +3739,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
             };
             let completed = submit_bmad_capability_run(
                 &state,
+                &foundation,
                 workspace_contract.clone(),
                 1,
                 capability,
@@ -3726,7 +3839,60 @@ planning_artifacts = \"{project-root}/docs/plan\"
         );
     }
 
+    /// Drives one capability through the whole reviewed D2 lifecycle —
+    /// prepare, approve, submit — leaving its verified result stored.
     #[cfg(feature = "deterministic-help")]
+    fn run_capability_to_completion(
+        state: &HostState,
+        foundation: &crate::bmad_foundation::BmadLoadedFoundation,
+        workspace_contract: &ContractId,
+        capability: &str,
+        context_paths: Vec<desktop_runtime::RelativeWorkspacePath>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let review = prepare_bmad_capability_run(
+            state,
+            foundation,
+            &renderer,
+            workspace_contract.clone(),
+            1,
+            capability,
+            context_paths,
+            UnixMillis(10_000),
+        )
+        .expect("prepared review");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected a review projection".into());
+        };
+        let approved = approve_bmad_capability_run(
+            state,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            UnixMillis(20_000),
+        )
+        .expect("approved review");
+        let HostCommandData::CapabilityApproved(approved) = approved else {
+            return Err("expected an approval projection".into());
+        };
+        submit_bmad_capability_run(
+            state,
+            foundation,
+            workspace_contract.clone(),
+            1,
+            capability,
+            review.manifest_hash,
+            approved.decision_id,
+            UnixMillis(30_000),
+        )
+        .expect("completed run");
+        Ok(())
+    }
+
     #[test]
     fn verified_change_sets_enter_d3_as_ordinary_candidates(
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -3739,48 +3905,14 @@ planning_artifacts = \"{project-root}/docs/plan\"
             b"# Story
 ",
         )?;
-        state.bind_renderer("main").expect("renderer binding");
-        let renderer = state
-            .renderer_session_authority("main")
-            .expect("renderer authority");
         let (workspace_contract, capability) = (id(&workspace_id), "bmm:bmad-dev-story");
-
-        let review = prepare_bmad_capability_run(
+        run_capability_to_completion(
             &state,
             &foundation,
-            &renderer,
-            workspace_contract.clone(),
-            1,
+            &workspace_contract,
             capability,
             vec![RelativeWorkspacePath::new("story.md")?],
-            UnixMillis(10_000),
-        )
-        .expect("prepared review");
-        let HostCommandData::CapabilityReview(review) = review else {
-            return Err("expected a review projection".into());
-        };
-        let approved = approve_bmad_capability_run(
-            &state,
-            workspace_contract.clone(),
-            1,
-            capability,
-            review.manifest_hash,
-            UnixMillis(20_000),
-        )
-        .expect("approved review");
-        let HostCommandData::CapabilityApproved(approved) = approved else {
-            return Err("expected an approval projection".into());
-        };
-        submit_bmad_capability_run(
-            &state,
-            workspace_contract.clone(),
-            1,
-            capability,
-            review.manifest_hash,
-            approved.decision_id,
-            UnixMillis(30_000),
-        )
-        .expect("completed run");
+        )?;
 
         // Governed edits must be explicitly enabled, like any D3 flow.
         crate::edits::execute_changes_command(
@@ -3804,6 +3936,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
         // ADR-0007: the stored change set becomes an ordinary D3 proposal.
         let proposal = propose_bmad_capability_changes(
             &state,
+            &foundation,
             &id("request_01J00000000000000000000011"),
             UnixMillis(40_000),
             workspace_contract.clone(),
@@ -3829,6 +3962,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
         )?;
         let stale_proposal = propose_bmad_capability_changes(
             &state,
+            &foundation,
             &id("request_01J00000000000000000000012"),
             UnixMillis(41_000),
             workspace_contract,
@@ -3981,6 +4115,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
         .expect("cancelled review");
         assert!(submit_bmad_capability_run(
             &state,
+            &foundation,
             workspace_contract.clone(),
             1,
             capability,
