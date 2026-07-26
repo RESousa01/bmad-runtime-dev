@@ -10,7 +10,7 @@
 //! workspace sees what the first decided — but the within-run ordering is not
 //! upstream's and this is not parity.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use desktop_runtime::{BmadDocumentArtifact, Memlog, MemlogEntryKind, UnixMillis};
 use desktop_store::{StoredMemlogEntry, MAX_MEMLOG_ENTRY_BYTES};
@@ -44,11 +44,21 @@ pub(crate) struct ProjectedEntry {
 /// whole of what the run decided.
 const TRUNCATION_MARKER: &str = " […]";
 
-/// Bounds one projected line to what the store accepts, cutting on a character
-/// boundary so a multibyte scalar is never sliced in half.
+/// Reduces one projected line to a single dense line within the store's
+/// per-entry bound.
+///
+/// Whitespace is collapsed *before* bounding, for two reasons. `Memlog::render`
+/// collapses it anyway, so storing it uncollapsed would mean the stored text and
+/// the rendered text are not the same string — and the change/override matching
+/// compares stored text. And bounding first could otherwise cut inside a
+/// whitespace run and leave a trailing space before the marker.
+///
+/// The cut lands on a character boundary; a byte-sliced multibyte scalar is not
+/// text.
 fn bounded(text: &str) -> String {
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
     if text.len() <= MAX_MEMLOG_ENTRY_BYTES {
-        return text.to_owned();
+        return text;
     }
     let mut cut = MAX_MEMLOG_ENTRY_BYTES - TRUNCATION_MARKER.len();
     while cut > 0 && !text.is_char_boundary(cut) {
@@ -66,7 +76,6 @@ fn bounded(text: &str) -> String {
 /// And upstream keeps entries to "one line each, the gist", so collapsing the
 /// prose is the faithful shape rather than a workaround.
 fn condense(subject: &str, body: &str) -> String {
-    let body = body.split_whitespace().collect::<Vec<_>>().join(" ");
     bounded(&format!("{subject}: {body}"))
 }
 
@@ -95,6 +104,39 @@ fn live_decisions(prior: &[StoredMemlogEntry]) -> BTreeMap<String, String> {
     live
 }
 
+/// Whether a run's artifact is the doc workspace's whole current state, or one
+/// contribution to it.
+///
+/// This is the difference between a PRD run — which produces the entire PRD, so
+/// a heading it no longer carries really was dropped — and one architecture
+/// step, which produces only that step's part of a spine the other steps are
+/// still building. Reading a step as if it superseded the document withdraws
+/// every decision the previous step made.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum RunScope {
+    /// The artifact supersedes what the doc workspace held.
+    WholeDocument,
+    /// The artifact adds to it; absent headings mean "not this run's subject",
+    /// never "withdrawn".
+    Contribution,
+}
+
+impl RunScope {
+    /// Reads the scope off the sealed foundation, so the answer comes from the
+    /// same record dispatch already routes on rather than a second list that
+    /// could disagree with it.
+    pub(crate) fn for_capability(
+        foundation: &crate::bmad_foundation::BmadLoadedFoundation,
+        capability_id: &str,
+    ) -> Self {
+        if crate::bmad_architecture::is_stepwise_capability(foundation, capability_id) {
+            Self::Contribution
+        } else {
+            Self::WholeDocument
+        }
+    }
+}
+
 /// Projects a completed artifact into the entries to append.
 ///
 /// `prior` is the doc workspace's existing log, which decides both the intent
@@ -108,14 +150,15 @@ fn live_decisions(prior: &[StoredMemlogEntry]) -> BTreeMap<String, String> {
 ///
 /// **On `change` vs `override`:** a reviewed document diff carries no explicit
 /// overrule signal, so these record what structurally happened rather than what
-/// the author intended — a heading whose text was revised is a `change`, a
-/// heading the run stopped carrying is an `override`, because the earlier
-/// decision no longer stands. Neither infers that anyone meant to overrule
-/// anything.
+/// the author intended — a heading whose text was revised is a `change`, and a
+/// heading a [`RunScope::WholeDocument`] run stopped carrying is an `override`,
+/// because the earlier decision no longer stands. Neither infers that anyone
+/// meant to overrule anything.
 pub(crate) fn completion_entries(
     capability_id: &str,
     artifact: &BmadDocumentArtifact,
     prior: &[StoredMemlogEntry],
+    scope: RunScope,
 ) -> Vec<ProjectedEntry> {
     let live = live_decisions(prior);
     let intent = if prior.is_empty() { "create" } else { "update" };
@@ -148,29 +191,42 @@ pub(crate) fn completion_entries(
         });
     }
 
-    for subject in live.keys() {
-        let still_carried = artifact
-            .sections
-            .iter()
-            .any(|section| section.heading == *subject);
-        if !still_carried {
-            entries.push(ProjectedEntry {
-                kind: MemlogEntryKind::Override,
-                subject: Some(subject.clone()),
-                text: bounded(&format!(
-                    "{subject} no longer carried by {}",
-                    artifact.title
-                )),
-            });
+    if scope == RunScope::WholeDocument {
+        for subject in live.keys() {
+            let still_carried = artifact
+                .sections
+                .iter()
+                .any(|section| section.heading == *subject);
+            if !still_carried {
+                entries.push(ProjectedEntry {
+                    kind: MemlogEntryKind::Override,
+                    subject: Some(subject.clone()),
+                    text: bounded(&format!(
+                        "{subject} no longer carried by {}",
+                        artifact.title
+                    )),
+                });
+            }
         }
     }
 
+    // A question already standing in the log is not asked again. Re-recording
+    // it verbatim every run adds nothing to a chronology and would grow one
+    // unresolved question into an unbounded tail of identical entries.
+    let asked: BTreeSet<&str> = prior
+        .iter()
+        .filter(|entry| entry.kind == MemlogEntryKind::Question)
+        .map(|entry| entry.text.as_str())
+        .collect();
     for question in &artifact.open_questions {
-        entries.push(ProjectedEntry {
-            kind: MemlogEntryKind::Question,
-            subject: None,
-            text: bounded(question),
-        });
+        let text = bounded(question);
+        if !asked.contains(text.as_str()) {
+            entries.push(ProjectedEntry {
+                kind: MemlogEntryKind::Question,
+                subject: None,
+                text,
+            });
+        }
     }
     entries
 }
@@ -236,7 +292,9 @@ fn render_exactly(doc_workspace: &str, entries: &[StoredMemlogEntry]) -> String 
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{completion_entries, doc_workspace_for, render_for_context, RENDERED_LOG_LIMIT};
+    use super::{
+        completion_entries, doc_workspace_for, render_for_context, RunScope, RENDERED_LOG_LIMIT,
+    };
     use desktop_runtime::{BmadDocumentArtifact, BmadDocumentSection, MemlogEntryKind};
     use desktop_store::{StoredMemlogEntry, MAX_MEMLOG_ENTRY_BYTES};
 
@@ -280,7 +338,7 @@ mod tests {
     /// Replays one artifact's projection into the shape the store would hold,
     /// so a multi-run sequence can be exercised without a database.
     fn append_to(prior: &mut Vec<StoredMemlogEntry>, artifact: &BmadDocumentArtifact) {
-        for entry in completion_entries("bmm:bmad-prd", artifact, prior) {
+        for entry in completion_entries("bmm:bmad-prd", artifact, prior, RunScope::WholeDocument) {
             let sequence = prior.len() as u64;
             prior.push(StoredMemlogEntry {
                 sequence,
@@ -323,6 +381,7 @@ mod tests {
                 &["Which PSP?"],
             ),
             &[],
+            RunScope::WholeDocument,
         );
         let kinds: Vec<MemlogEntryKind> = entries.iter().map(|entry| entry.kind).collect();
         assert_eq!(
@@ -374,6 +433,7 @@ mod tests {
                 &[],
             ),
             &prior,
+            RunScope::WholeDocument,
         );
         let rendered: Vec<(MemlogEntryKind, &str)> = entries
             .iter()
@@ -420,6 +480,7 @@ mod tests {
                 &[],
             ),
             &log,
+            RunScope::WholeDocument,
         );
         let moved: Vec<(MemlogEntryKind, &str)> = entries
             .iter()
@@ -455,6 +516,7 @@ mod tests {
             "bmm:bmad-prd",
             &artifact("Payments PRD", &[("Goals", "Ship checkout")], &[]),
             &prior,
+            RunScope::WholeDocument,
         );
         let overrides: Vec<&str> = entries
             .iter()
@@ -506,6 +568,7 @@ mod tests {
             "bmm:bmad-prd",
             &artifact("PRD", &[("Goals", &body)], &[]),
             &[],
+            RunScope::WholeDocument,
         );
         for entry in &entries {
             assert!(
@@ -529,6 +592,7 @@ mod tests {
             "bmm:bmad-prd",
             &artifact("PRD", &[("Goals", &body)], &[]),
             &[],
+            RunScope::WholeDocument,
         );
         let decision = entries
             .iter()
@@ -592,5 +656,196 @@ mod tests {
             render_for_context("docs/prd", &[]),
             "---\ndoc_workspace: docs/prd\n---\n"
         );
+    }
+
+    /// Regression: every run re-appended the artifact's open questions
+    /// verbatim, so one unresolved question grew a tail of identical entries
+    /// once per run — the same unbounded-duplication defect overrides had.
+    #[test]
+    fn an_open_question_is_recorded_once_not_on_every_run() {
+        let mut log = Vec::new();
+        let same = artifact("PRD", &[("Goals", "Ship")], &["Which PSP?", "Which bank?"]);
+        for _ in 0..4 {
+            append_to(&mut log, &same);
+        }
+        let questions = log
+            .iter()
+            .filter(|entry| entry.kind == MemlogEntryKind::Question)
+            .count();
+        assert_eq!(questions, 2, "four identical runs must not ask twice");
+        // A genuinely new question still lands.
+        append_to(
+            &mut log,
+            &artifact(
+                "PRD",
+                &[("Goals", "Ship")],
+                &["Which PSP?", "Which currency?"],
+            ),
+        );
+        let asked: Vec<&str> = log
+            .iter()
+            .filter(|entry| entry.kind == MemlogEntryKind::Question)
+            .map(|entry| entry.text.as_str())
+            .collect();
+        assert_eq!(asked, vec!["Which PSP?", "Which bank?", "Which currency?"]);
+    }
+
+    /// Regression, and the worst of the P14 defects: a stepwise run answers one
+    /// step, so its artifact carries only that step's headings. Treating it as
+    /// the doc workspace's whole state made every step withdraw the previous
+    /// step's decisions — by the ninth step the log claimed nearly every
+    /// architecture decision no longer stood, and that log is what the next run
+    /// reads as context.
+    #[test]
+    fn a_contributing_run_never_withdraws_an_earlier_run_s_decisions() {
+        let steps = [
+            artifact(
+                "Spine",
+                &[("Altitude", "System"), ("Boundaries", "Two")],
+                &[],
+            ),
+            artifact(
+                "Spine",
+                &[("Data model", "Rows"), ("Storage", "SQLite")],
+                &[],
+            ),
+            artifact("Spine", &[("Transport", "IPC")], &[]),
+        ];
+        let mut log: Vec<StoredMemlogEntry> = Vec::new();
+        for step in &steps {
+            for entry in
+                completion_entries("bmm:bmad-architecture", step, &log, RunScope::Contribution)
+            {
+                let sequence = log.len() as u64;
+                log.push(StoredMemlogEntry {
+                    sequence,
+                    kind: entry.kind,
+                    author: None,
+                    subject: entry.subject,
+                    text: entry.text,
+                    recorded_at_ms: 1_700_000_000_000,
+                });
+            }
+        }
+        assert!(
+            !log.iter()
+                .any(|entry| entry.kind == MemlogEntryKind::Override),
+            "a step contributes to the spine; it never withdraws another step",
+        );
+        // Every step's decisions are still standing at the end.
+        let decisions: Vec<&str> = log
+            .iter()
+            .filter(|entry| entry.kind == MemlogEntryKind::Decision)
+            .filter_map(|entry| entry.subject.as_deref())
+            .collect();
+        assert_eq!(
+            decisions,
+            vec![
+                "Altitude",
+                "Boundaries",
+                "Data model",
+                "Storage",
+                "Transport"
+            ]
+        );
+
+        // A whole-document run over the same log *does* withdraw, because there
+        // the absent headings really were dropped.
+        let withdrawing = completion_entries(
+            "bmm:bmad-architecture",
+            &artifact("Spine", &[("Transport", "IPC")], &[]),
+            &log,
+            RunScope::WholeDocument,
+        );
+        assert_eq!(
+            withdrawing
+                .iter()
+                .filter(|entry| entry.kind == MemlogEntryKind::Override)
+                .count(),
+            4
+        );
+    }
+
+    /// The scope must come from the sealed foundation, not a hand-kept list.
+    /// Getting it backwards is silent: the log simply fills with withdrawals
+    /// that never happened, or stops recording ones that did.
+    #[test]
+    fn the_run_scope_follows_the_sealed_entrypoint_kind() {
+        let foundation = crate::bmad_foundation::load_bmad_foundation(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/bmad-foundation"),
+        )
+        .expect("sealed foundation");
+
+        assert_eq!(
+            RunScope::for_capability(&foundation, "bmm:bmad-architecture"),
+            RunScope::Contribution,
+            "a step_jit capability answers one step, so it contributes",
+        );
+        for whole in [
+            "bmm:bmad-prd",
+            "bmm:bmad-product-brief",
+            "bmm:bmad-ux",
+            "bmm:bmad-dev-story",
+            "bmm:not-a-real-skill",
+        ] {
+            assert_eq!(
+                RunScope::for_capability(&foundation, whole),
+                RunScope::WholeDocument,
+                "{whole} produces the whole document",
+            );
+        }
+    }
+
+    /// A stored entry must be the same string `Memlog::render` emits, because
+    /// change/override matching compares stored text and rendering collapses
+    /// whitespace. A multi-line section body is entirely ordinary.
+    #[test]
+    fn projected_text_is_stored_exactly_as_it_renders() {
+        let entries = completion_entries(
+            "bmm:bmad-prd",
+            &artifact(
+                "PRD",
+                &[(
+                    "Goals",
+                    "Ship checkout.
+
+Then  invoicing.",
+                )],
+                &["Which
+PSP?"],
+            ),
+            &[],
+            RunScope::WholeDocument,
+        );
+        let decision = entries
+            .iter()
+            .find(|entry| entry.kind == MemlogEntryKind::Decision)
+            .expect("decision");
+        assert_eq!(decision.text, "Goals: Ship checkout. Then invoicing.");
+
+        let stored: Vec<StoredMemlogEntry> = entries
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| StoredMemlogEntry {
+                sequence: index as u64,
+                kind: entry.kind,
+                author: None,
+                subject: entry.subject.clone(),
+                text: entry.text.clone(),
+                recorded_at_ms: 1_700_000_000_000,
+            })
+            .collect();
+        let rendered = render_for_context("docs/prd", &stored);
+        for entry in &stored {
+            assert!(
+                rendered.contains(&format!(
+                    "{}
+",
+                    entry.text
+                )),
+                "stored text `{}` is not what renders",
+                entry.text,
+            );
+        }
     }
 }

@@ -223,6 +223,23 @@ introduced by the first pass and all now fixed with regression tests.
 | 4 | **Context rendering was a second copy of the formatting rules**, free to drift from the `.memlog.md` a run proposes. The packet asked for the existing `Memlog` type and the first pass did not use it. | Rendering goes through `Memlog::render`. That needed `MemlogEntryKind::from_code`, and needed the store to enforce `Memlog`'s monotonic-clock rule so a stored log always rebuilds. |
 | 5 | **v13 was edited in place** to add `subject`, which would leave any store that had already run v13 disagreeing with its own version number. | v13 is treated as immutable; `subject` arrives in a separate **v13 → v14**, with a test that upgrades a real v13 store and keeps its rows. |
 
+## Second audit — same day
+
+A second pass over the fixed code, driven by throwaway probes that printed what
+several successive runs actually record. Four more defects, all now fixed with
+regression tests.
+
+| # | Defect | Fix |
+|---|---|---|
+| 6 | **Every architecture step withdrew the previous step's decisions.** A stepwise run answers *one step*, so its artifact carries only that step's headings — but the projection read every run as the doc workspace's whole state. Step 2 emitted an `override` for each of step 1's headings, step 3 for step 2's. By the ninth step the log claimed nearly every architecture decision no longer stood, and that log is exactly what the next run is given as context. Actively misleading, and worse than having no log. | A `RunScope` read off the sealed `entrypointKind`: a `WholeDocument` run can withdraw, a `Contribution` never does. One function decides it, tested against the sealed foundation so the mapping cannot silently invert. |
+| 7 | **Open questions were re-appended verbatim every run.** Four identical runs recorded the same two questions eight times — the same unbounded-tail defect as #3, missed because only decisions were deduplicated. | A question already standing in the log is not asked again. |
+| 8 | **The memlog candidate was labelled as a workspace path** (`docs/prd/.memlog.md`) while every other host-injected candidate is labelled under `review/bmad-capability/`. It is not a file — it comes from the store — and for architecture that exact path is *also* a file the run proposes to write, holding a different document. One name, two meanings, and a provenance the item does not have. | Labelled `review/bmad-capability/memory-log.md`, with the doc workspace in the rendered frontmatter where it is a fact rather than an implied source. A test now pins the convention for all host-injected candidates. |
+| 9 | **Stored text was not the string that renders.** `Memlog::render` collapses whitespace; the store kept whatever it was given. Since change/override matching compares stored text, the two representations were free to disagree. | Whitespace is collapsed before bounding, so a stored entry is exactly what renders. |
+
+Defect 6 is the one worth remembering: every earlier check passed because each
+was written against the same wrong assumption — that a run supersedes the
+document. Printing three successive runs' output was what exposed it.
+
 ### The three limits, restated after the audit
 
 **Architecture progression across a restart.** Unchanged, and now stated

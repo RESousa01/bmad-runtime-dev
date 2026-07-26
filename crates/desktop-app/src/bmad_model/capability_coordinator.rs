@@ -108,6 +108,12 @@ pub(crate) struct SubmitCapabilityRunInput {
     pub manifest_hash: Sha256Digest,
     pub decision_id: ContractId,
     pub submitted_at: UnixMillis,
+    /// Whether this run's artifact is the doc workspace's whole state or one
+    /// contribution to it, read from the sealed `entrypointKind` by the caller.
+    ///
+    /// Descriptive only: it shapes what is recorded in the memory log and takes
+    /// no part in consent, identity, or any canonical hash.
+    pub run_scope: crate::bmad_memlog::RunScope,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -173,6 +179,7 @@ struct DispatchingCapabilityRun {
     output_schema_id: String,
     consent_evidence_id: ContractId,
     submitted_at: UnixMillis,
+    run_scope: crate::bmad_memlog::RunScope,
 }
 
 /// Everything the caller needs to run one transport round trip *without*
@@ -234,6 +241,7 @@ fn append_completion_memlog(
     workspace_id: &str,
     artifact: &desktop_runtime::BmadDocumentArtifact,
     now: UnixMillis,
+    scope: crate::bmad_memlog::RunScope,
 ) {
     let Some(doc_workspace) = crate::bmad_memlog::doc_workspace_for(capability_id) else {
         return;
@@ -241,7 +249,7 @@ fn append_completion_memlog(
     let Ok(prior) = store.memlog_entries(workspace_id, &doc_workspace) else {
         return;
     };
-    for entry in crate::bmad_memlog::completion_entries(capability_id, artifact, &prior) {
+    for entry in crate::bmad_memlog::completion_entries(capability_id, artifact, &prior, scope) {
         let entry_id = format!("memlog_{}", ulid::Ulid::new());
         let outcome = store.append_memlog_entry(desktop_store::MemlogAppend {
             entry_id: &entry_id,
@@ -619,6 +627,7 @@ impl BmadCapabilityCoordinator {
                 output_schema_id: prepared.output_schema_id,
                 consent_evidence_id,
                 submitted_at: input.submitted_at,
+                run_scope: input.run_scope,
             },
         )));
         Ok(dispatch)
@@ -699,6 +708,7 @@ impl BmadCapabilityCoordinator {
                 run.workspace_id.as_str(),
                 artifact,
                 dispatching.submitted_at,
+                dispatching.run_scope,
             );
         }
 

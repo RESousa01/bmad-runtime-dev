@@ -272,6 +272,7 @@ fn the_same_lifecycle_drives_two_capabilities_to_their_archetypes(
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    run_scope: crate::bmad_memlog::RunScope::WholeDocument,
                     workspace_id: id("workspace_01J00000000000000000000000"),
                     workspace_grant_epoch: 1,
                     workspace_context_read_epoch: 1,
@@ -381,6 +382,7 @@ fn decisions_bind_to_one_capability_and_manifest() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    run_scope: crate::bmad_memlog::RunScope::WholeDocument,
                     workspace_id: id("workspace_01J00000000000000000000000"),
                     workspace_grant_epoch: 1,
                     workspace_context_read_epoch: 1,
@@ -414,6 +416,7 @@ fn an_output_of_the_wrong_archetype_terminates_the_flow() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    run_scope: crate::bmad_memlog::RunScope::WholeDocument,
                     workspace_id: id("workspace_01J00000000000000000000000"),
                     workspace_grant_epoch: 1,
                     workspace_context_read_epoch: 1,
@@ -470,6 +473,7 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    run_scope: crate::bmad_memlog::RunScope::WholeDocument,
                     workspace_id: id("workspace_01J00000000000000000000000"),
                     workspace_grant_epoch: 1,
                     workspace_context_read_epoch: 1,
@@ -501,6 +505,7 @@ fn cancelled_and_expired_decisions_never_reach_the_transport() {
             .coordinator
             .submit(
                 &SubmitCapabilityRunInput {
+                    run_scope: crate::bmad_memlog::RunScope::WholeDocument,
                     workspace_id: id("workspace_01J00000000000000000000000"),
                     workspace_grant_epoch: 1,
                     workspace_context_read_epoch: 1,
@@ -556,6 +561,7 @@ fn invalidation_withdraws_the_active_flow() {
 
 fn submit_input(lifecycle: &Lifecycle, submitted_at: UnixMillis) -> SubmitCapabilityRunInput {
     SubmitCapabilityRunInput {
+        run_scope: crate::bmad_memlog::RunScope::WholeDocument,
         workspace_id: id("workspace_01J00000000000000000000000"),
         workspace_grant_epoch: 1,
         workspace_context_read_epoch: 1,
@@ -726,6 +732,7 @@ fn a_superseded_dispatch_cannot_finalize_or_abort_a_newer_run(
     let second = lifecycle
         .coordinator
         .begin_dispatch(&SubmitCapabilityRunInput {
+            run_scope: crate::bmad_memlog::RunScope::WholeDocument,
             workspace_id: id("workspace_01J00000000000000000000000"),
             workspace_grant_epoch: 1,
             workspace_context_read_epoch: 1,
@@ -814,6 +821,7 @@ fn a_completed_document_run_leaves_its_decisions_in_the_doc_workspace_log(
     let dispatch = lifecycle
         .coordinator
         .begin_dispatch(&SubmitCapabilityRunInput {
+            run_scope: crate::bmad_memlog::RunScope::WholeDocument,
             workspace_id: id("workspace_01J00000000000000000000000"),
             workspace_grant_epoch: 1,
             workspace_context_read_epoch: 1,
@@ -884,6 +892,7 @@ fn a_change_set_run_writes_no_memlog() -> Result<(), Box<dyn std::error::Error>>
     let dispatch = lifecycle
         .coordinator
         .begin_dispatch(&SubmitCapabilityRunInput {
+            run_scope: crate::bmad_memlog::RunScope::WholeDocument,
             workspace_id: id("workspace_01J00000000000000000000000"),
             workspace_grant_epoch: 1,
             workspace_context_read_epoch: 1,
@@ -939,6 +948,7 @@ fn a_long_bodied_document_completes_and_still_logs() -> Result<(), Box<dyn std::
     let dispatch = lifecycle
         .coordinator
         .begin_dispatch(&SubmitCapabilityRunInput {
+            run_scope: crate::bmad_memlog::RunScope::WholeDocument,
             workspace_id: id("workspace_01J00000000000000000000000"),
             workspace_grant_epoch: 1,
             workspace_context_read_epoch: 1,

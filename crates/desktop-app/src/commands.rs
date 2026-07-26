@@ -1538,10 +1538,10 @@ fn memlog_context_candidate(
     if entries.is_empty() {
         return Ok(None);
     }
-    crate::bmad_capability_host::memlog_candidate(
+    crate::bmad_capability_host::memlog_candidate(crate::bmad_memlog::render_for_context(
         &doc_workspace,
-        crate::bmad_memlog::render_for_context(&doc_workspace, &entries),
-    )
+        &entries,
+    ))
     .map(Some)
     .map_err(map_capability_error)
 }
@@ -1833,11 +1833,14 @@ fn submit_bmad_capability_run(
         .map_err(|error| map_workspace_error(&error))?;
     let store = state.local_store(authority.authority())?;
     let workspace = workspace_authority.projection();
+    let stepwise = crate::bmad_architecture::is_stepwise_capability(foundation, capability_id);
     // Retained only for the stepwise capability, whose progression is keyed by
     // workspace; every other capability consumes the identity outright.
-    let architecture_workspace =
-        crate::bmad_architecture::is_stepwise_capability(foundation, capability_id)
-            .then(|| workspace_id.clone());
+    let architecture_workspace = stepwise.then(|| workspace_id.clone());
+    // A stepwise run answers one step, so its artifact is a contribution to the
+    // doc workspace rather than its whole state. Reading it as the whole would
+    // record every previous step's decisions as withdrawn.
+    let run_scope = crate::bmad_memlog::RunScope::for_capability(foundation, capability_id);
     let input = crate::bmad_capability_host::submit_input(
         capability_id,
         crate::bmad_capability_host::WorkspaceBindingInput {
@@ -1848,6 +1851,7 @@ fn submit_bmad_capability_run(
         manifest_hash,
         decision_id,
         submitted_at,
+        run_scope,
     )
     .map_err(map_capability_error)?;
     let transport = crate::bmad_capability_host::active_capability_transport(state);

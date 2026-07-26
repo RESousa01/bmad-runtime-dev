@@ -1205,6 +1205,7 @@ pub(crate) fn submit_input(
     manifest_hash: Sha256Digest,
     decision_id: ContractId,
     submitted_at: UnixMillis,
+    run_scope: crate::bmad_memlog::RunScope,
 ) -> Result<SubmitCapabilityRunInput, BmadCapabilityCoordinatorError> {
     Ok(SubmitCapabilityRunInput {
         capability_id: BmadClosureCapabilityId::new(capability_id)
@@ -1212,6 +1213,7 @@ pub(crate) fn submit_input(
         workspace_id: workspace.id,
         workspace_grant_epoch: workspace.grant_epoch,
         workspace_context_read_epoch: workspace.context_read_epoch,
+        run_scope,
         manifest_hash,
         decision_id,
         submitted_at,
@@ -1249,18 +1251,22 @@ pub(crate) fn context_candidate(
 /// approves content they did not select and cannot enumerate here. Itemising
 /// the review is the fix, and it is a change to the consent surface rather than
 /// to this function.
+///
+/// The label sits under `review/bmad-capability/` with every other host-injected
+/// candidate rather than reading as a workspace path. It is not a file: it comes
+/// from the store, and for the stepwise capability a *different* document is
+/// separately proposed at `docs/architecture/.memlog.md`. One name denoting two
+/// documents would misstate where this content came from. Which doc workspace
+/// it belongs to is in the rendered frontmatter, where it is a fact rather than
+/// an implied provenance.
 pub(crate) fn memlog_candidate(
-    doc_workspace: &str,
     content: String,
 ) -> Result<ContextCandidate, BmadCapabilityCoordinatorError> {
     Ok(ContextCandidate {
         client_item_id: ContractId::new("capctx_memlog")
             .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?,
-        relative_label: RelativeWorkspacePath::new(format!(
-            "{doc_workspace}/{}",
-            desktop_runtime::MEMLOG_FILE_NAME
-        ))
-        .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?,
+        relative_label: RelativeWorkspacePath::new("review/bmad-capability/memory-log.md")
+            .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?,
         semantic_role: "capability_memlog".to_owned(),
         language: Some("markdown".to_owned()),
         classification: ContextClassification::Internal,
@@ -1365,8 +1371,7 @@ mod tests {
             sealed_instruction_candidate(b"Follow the sealed BMAD method.")
                 .expect("sealed instruction"),
             memlog_candidate(
-                "docs/prd",
-                "# Memory log\n\n- (decision) Goals: ship\n".to_owned(),
+                "---\ndoc_workspace: docs/prd\n---\n\n- (decision) Goals: ship\n".to_owned(),
             )
             .expect("memlog candidate"),
         ];
@@ -1396,6 +1401,39 @@ mod tests {
         }
         assert_eq!(candidates.len(), MAX_CAPABILITY_CONTEXT_ITEMS as usize);
         seal_with_capability_limits(candidates).expect("a full capability context load must seal");
+    }
+
+    /// Host-injected candidates are labelled under `review/`, never as a
+    /// workspace path: the model is told where content came from, and a label
+    /// that reads like a file would claim a provenance the item does not have.
+    /// The memlog is the one most at risk of it — the stepwise capability also
+    /// *proposes* a file at `docs/architecture/.memlog.md` holding a different
+    /// document, so a workspace-shaped label would give one name two meanings.
+    #[test]
+    fn host_injected_candidates_are_not_labelled_as_workspace_files() {
+        let injected = [
+            sealed_instruction_candidate(b"Sealed.").expect("sealed instruction"),
+            memlog_candidate(
+                "---
+doc_workspace: docs/prd
+---
+"
+                .to_owned(),
+            )
+            .expect("memlog"),
+            super::adopted_instruction_preamble().expect("preamble"),
+        ];
+        for candidate in injected {
+            let label = candidate.relative_label.as_str();
+            assert!(
+                label.starts_with("review/"),
+                "{label} must be labelled as host-injected review content",
+            );
+            assert!(
+                !label.ends_with(desktop_runtime::MEMLOG_FILE_NAME),
+                "{label} collides with the run file the architecture lane proposes",
+            );
+        }
     }
 
     /// The ceiling counts 100 attachments plus five host-injected items; if the
