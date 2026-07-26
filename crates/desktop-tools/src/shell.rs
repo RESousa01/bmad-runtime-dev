@@ -8,14 +8,16 @@
 //!   taken from the model;
 //! * a wall-clock timeout kills the child rather than waiting on it;
 //! * captured output is capped, and truncation is reported rather than hidden;
-//! * the command is passed as one string to the platform shell, so what the
+//! * the command is a single line passed to the platform shell, so what the
 //!   user approved in the prompt is exactly what is spawned.
 //!
 //! What this deliberately does *not* do is sandbox. A command runs with the
 //! user's own privileges, which is what makes it useful and is why the consent
-//! prompt shows the literal command line.
+//! prompt shows the literal command line. It also means an approved command can
+//! read files the workspace broker would refuse, and can write without the
+//! governed-IO checkpoint — which is why [`crate::permission`] treats a session
+//! grant over a command prefix as the dangerous primitive it is.
 
-use std::io::Read as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -23,7 +25,7 @@ use std::time::{Duration, Instant};
 use serde::Serialize;
 
 /// Wall-clock ceiling for one command.
-pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
+pub const DEFAULT_TIMEOUT: Duration = Duration::from_mins(2);
 /// Captured bytes per stream. A command that prints more is truncated, and the
 /// result says so — a silent cut would let a model draw a conclusion from an
 /// output it never fully saw.
@@ -31,7 +33,7 @@ pub const MAX_CAPTURED_BYTES: usize = 64 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ShellError {
-    #[error("the command is empty or not valid text")]
+    #[error("the command is empty, spans more than one line, or is not valid text")]
     InvalidCommand,
     #[error("the working directory is outside the granted workspace")]
     DirectoryEscape,
@@ -93,27 +95,56 @@ fn resolve_dir(root: &Path, relative: Option<&str>) -> Result<PathBuf, ShellErro
     Ok(resolved)
 }
 
-/// Reads at most `MAX_CAPTURED_BYTES`, reporting whether more was available.
+/// Reads a stream to EOF, keeping at most `MAX_CAPTURED_BYTES`.
+///
+/// It keeps reading past the cap and discards the excess rather than closing
+/// the pipe. Dropping the reader early hands the child a broken pipe, so a
+/// command that merely printed a lot — a passing test suite, say — would come
+/// back looking as though it had failed. The exit code has to keep meaning
+/// what it says.
 fn read_capped(mut stream: impl std::io::Read) -> (String, bool) {
-    let mut buffer = Vec::new();
-    // One byte past the cap, so "exactly at the cap" is not misreported as
-    // truncated.
-    let mut limited = (&mut stream).take(MAX_CAPTURED_BYTES as u64 + 1);
-    let _ = limited.read_to_end(&mut buffer);
-    let truncated = buffer.len() > MAX_CAPTURED_BYTES;
-    buffer.truncate(MAX_CAPTURED_BYTES);
-    (String::from_utf8_lossy(&buffer).into_owned(), truncated)
+    let mut kept: Vec<u8> = Vec::new();
+    let mut chunk = [0_u8; 8192];
+    let mut truncated = false;
+    loop {
+        match stream.read(&mut chunk) {
+            Ok(0) | Err(_) => break,
+            Ok(read) => {
+                let remaining = MAX_CAPTURED_BYTES.saturating_sub(kept.len());
+                if remaining == 0 {
+                    truncated = true;
+                } else if read > remaining {
+                    kept.extend_from_slice(&chunk[..remaining]);
+                    truncated = true;
+                } else {
+                    kept.extend_from_slice(&chunk[..read]);
+                }
+            }
+        }
+    }
+    (String::from_utf8_lossy(&kept).into_owned(), truncated)
+}
+
+/// Whether a command carries a control character that would let one approved
+/// line become several commands.
+///
+/// A prompt renders one line; the platform shell will happily run everything a
+/// line break chains onto it.
+#[must_use]
+pub fn contains_control_characters(command: &str) -> bool {
+    command.chars().any(|c| c == '\n' || c == '\r' || c == '\0')
 }
 
 /// Runs one command to completion, or kills it at the timeout.
 ///
 /// # Errors
 ///
-/// Returns [`ShellError`] when the command is empty, the directory escapes the
-/// workspace, the child cannot be spawned, or the timeout elapses.
-pub fn run(request: ShellRequest<'_>) -> Result<ShellOutcome, ShellError> {
+/// Returns [`ShellError`] when the command is empty or multi-line, the
+/// directory escapes the workspace, the child cannot be spawned, or the timeout
+/// elapses.
+pub fn run(request: &ShellRequest<'_>) -> Result<ShellOutcome, ShellError> {
     let command = request.command.trim();
-    if command.is_empty() {
+    if command.is_empty() || contains_control_characters(command) {
         return Err(ShellError::InvalidCommand);
     }
     let directory = resolve_dir(request.workspace_root, request.relative_dir)?;
@@ -214,7 +245,7 @@ mod tests {
     #[test]
     fn a_command_runs_and_reports_its_output_and_code() {
         let directory = tempfile::tempdir().expect("temp dir");
-        let outcome = run(request("echo hello", directory.path())).expect("ran");
+        let outcome = run(&request("echo hello", directory.path())).expect("ran");
         assert_eq!(outcome.exit_code, Some(0));
         assert!(outcome.stdout.contains("hello"));
         assert!(!outcome.truncated);
@@ -224,7 +255,7 @@ mod tests {
     fn a_failing_command_reports_its_code_rather_than_erroring() {
         let directory = tempfile::tempdir().expect("temp dir");
         // A non-zero exit is information for the model, not a host failure.
-        let outcome = run(request("exit 3", directory.path())).expect("ran");
+        let outcome = run(&request("exit 3", directory.path())).expect("ran");
         assert_eq!(outcome.exit_code, Some(3));
     }
 
@@ -232,9 +263,29 @@ mod tests {
     fn an_empty_command_is_refused() {
         let directory = tempfile::tempdir().expect("temp dir");
         assert_eq!(
-            run(request("   ", directory.path())),
+            run(&request("   ", directory.path())),
             Err(ShellError::InvalidCommand)
         );
+    }
+
+    /// The prompt shows one line; the shell would run all of them. Approving
+    /// `echo hi` and getting a second command as well is exactly the
+    /// approval-laundering this module exists to prevent.
+    #[test]
+    fn a_multi_line_command_is_refused() {
+        let directory = tempfile::tempdir().expect("temp dir");
+        let smuggled = [
+            format!("echo hi{}echo surprise", '\n'),
+            format!("echo hi{}{}del important.txt", '\r', '\n'),
+            format!("echo hi{}echo surprise", '\0'),
+        ];
+        for command in smuggled {
+            assert_eq!(
+                run(&request(&command, directory.path())),
+                Err(ShellError::InvalidCommand),
+                "a command carrying a line break must never reach the shell",
+            );
+        }
     }
 
     /// The working directory is the one bound the user cannot get wrong by
@@ -243,12 +294,11 @@ mod tests {
     fn the_working_directory_cannot_escape_the_workspace() {
         let directory = tempfile::tempdir().expect("temp dir");
         for escape in ["..", "../..", "sub/../.."] {
-            let outcome = run(ShellRequest {
-                relative_dir: Some(escape),
-                ..request("echo x", directory.path())
-            });
             assert_eq!(
-                outcome,
+                run(&ShellRequest {
+                    relative_dir: Some(escape),
+                    ..request("echo x", directory.path())
+                }),
                 Err(ShellError::DirectoryEscape),
                 "{escape} must not resolve outside the workspace",
             );
@@ -258,7 +308,7 @@ mod tests {
         #[cfg(not(windows))]
         let absolute = "/etc";
         assert_eq!(
-            run(ShellRequest {
+            run(&ShellRequest {
                 relative_dir: Some(absolute),
                 ..request("echo x", directory.path())
             }),
@@ -270,7 +320,7 @@ mod tests {
     fn a_subdirectory_inside_the_workspace_is_allowed() {
         let directory = tempfile::tempdir().expect("temp dir");
         std::fs::create_dir(directory.path().join("sub")).expect("subdir");
-        let outcome = run(ShellRequest {
+        let outcome = run(&ShellRequest {
             relative_dir: Some("sub"),
             ..request("echo inside", directory.path())
         })
@@ -285,26 +335,37 @@ mod tests {
         let sleeper = "ping -n 30 127.0.0.1 > nul";
         #[cfg(not(windows))]
         let sleeper = "sleep 30";
-        let outcome = run(ShellRequest {
-            timeout: Duration::from_millis(300),
-            ..request(sleeper, directory.path())
-        });
-        assert_eq!(outcome, Err(ShellError::TimedOut));
+        assert_eq!(
+            run(&ShellRequest {
+                timeout: Duration::from_millis(300),
+                ..request(sleeper, directory.path())
+            }),
+            Err(ShellError::TimedOut)
+        );
     }
 
     /// Truncation must be visible: a model that reasons from a silently cut
     /// output is reasoning from something it never saw.
+    ///
+    /// The exit code must *also* survive. An earlier revision stopped reading
+    /// at the cap, which handed the child a broken pipe — so a command that
+    /// merely printed a lot came back looking as though it had failed.
     #[test]
-    fn oversized_output_is_capped_and_says_so() {
+    fn oversized_output_is_capped_without_corrupting_the_exit_code() {
         let directory = tempfile::tempdir().expect("temp dir");
-        let script = directory.path().join("noisy.txt");
-        std::fs::write(&script, "x".repeat(MAX_CAPTURED_BYTES * 2)).expect("write");
+        let noisy = directory.path().join("noisy.txt");
+        std::fs::write(&noisy, "x".repeat(MAX_CAPTURED_BYTES * 4)).expect("write");
         #[cfg(windows)]
         let command = "type noisy.txt";
         #[cfg(not(windows))]
         let command = "cat noisy.txt";
-        let outcome = run(request(command, directory.path())).expect("ran");
+        let outcome = run(&request(command, directory.path())).expect("ran");
         assert!(outcome.truncated, "the cap must be reported");
         assert!(outcome.stdout.len() <= MAX_CAPTURED_BYTES);
+        assert_eq!(
+            outcome.exit_code,
+            Some(0),
+            "a chatty command that succeeded must not look like a failure",
+        );
     }
 }

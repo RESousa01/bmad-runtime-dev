@@ -17,6 +17,10 @@ const requiredCrates = new Set([
   "desktop-app",
   "desktop-ipc",
   "desktop-runtime",
+  // Owns process execution and the permission gate (ADR-0009), so it must
+  // inherit the workspace lints that deny unwrap/expect/panic like every
+  // other crate. It shipped without them once; this is what catches that.
+  "desktop-tools",
   ...adapterCrates,
 ]);
 // The reviewed ready-command catalog: the D1 read-only set, the D2
