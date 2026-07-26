@@ -293,7 +293,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 15);
+    assert_eq!(reopened.schema_version()?, 16);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -416,7 +416,7 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 15);
+    assert_eq!(upgraded.schema_version()?, 16);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 

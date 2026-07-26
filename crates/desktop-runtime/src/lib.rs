@@ -77,8 +77,8 @@ pub use bmad::{
     BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA, MEMLOG_FILE_NAME,
 };
 pub use chat::{
-    ChatError, ChatMessage, ChatRole, ChatSession, ChatTurn, CHAT_TURN_SCHEMA,
-    MAX_PROMPT_TRANSCRIPT_BYTES,
+    ChatError, ChatMessage, ChatReply, ChatRole, ChatSession, ChatTurn, ToolInvocation,
+    CHAT_TOOL_TURN_SCHEMA, CHAT_TURN_SCHEMA, MAX_PROMPT_TRANSCRIPT_BYTES,
 };
 pub use command::{
     ApprovalChoice, BmadLibraryProjectionScope, BmadProjectionInvalidationScope, CommandReceipt,

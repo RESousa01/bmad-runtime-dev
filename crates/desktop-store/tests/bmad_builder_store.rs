@@ -471,7 +471,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 15);
+    assert_eq!(fresh.schema_version()?, 16);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -507,7 +507,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 15);
+        assert_eq!(reopened.schema_version()?, 16);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())

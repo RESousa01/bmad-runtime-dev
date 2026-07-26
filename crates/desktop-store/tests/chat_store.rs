@@ -76,6 +76,89 @@ fn a_transcript_that_breaks_alternation_is_refused() -> Result<(), Box<dyn std::
 }
 
 #[test]
+fn a_tool_using_turn_is_admitted_but_its_grammar_is_still_strict(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let opened = store(&directory)?;
+
+    // user -> (tool_call -> tool_result)* -> assistant
+    opened.append_chat_message("chat_t", "ws_1", None, "user", "what is in src?", 1_000)?;
+    opened.append_chat_message("chat_t", "ws_1", None, "tool_call", "glob src/**", 1_001)?;
+
+    // A second call before the first is answered would strand it.
+    assert!(opened
+        .append_chat_message("chat_t", "ws_1", None, "tool_call", "glob docs/**", 1_002)
+        .is_err());
+    // So would closing the turn with a call outstanding.
+    assert!(opened
+        .append_chat_message("chat_t", "ws_1", None, "assistant", "done", 1_002)
+        .is_err());
+    // And a question cannot interrupt one.
+    assert!(opened
+        .append_chat_message("chat_t", "ws_1", None, "user", "actually never mind", 1_002)
+        .is_err());
+
+    opened.append_chat_message("chat_t", "ws_1", None, "tool_result", "src/main.rs", 1_003)?;
+    // A result with nothing outstanding is unrequested and refused.
+    assert!(opened
+        .append_chat_message("chat_t", "ws_1", None, "tool_result", "src/other.rs", 1_004)
+        .is_err());
+
+    // Another exchange, then the turn closes.
+    opened.append_chat_message(
+        "chat_t",
+        "ws_1",
+        None,
+        "tool_call",
+        "read src/main.rs",
+        1_005,
+    )?;
+    opened.append_chat_message("chat_t", "ws_1", None, "tool_result", "fn main() {}", 1_006)?;
+    opened.append_chat_message("chat_t", "ws_1", None, "assistant", "It has a main.", 1_007)?;
+
+    let session = opened.chat_session("chat_t")?.expect("session");
+    let roles: Vec<&str> = session
+        .messages
+        .iter()
+        .map(|message| message.role.as_str())
+        .collect();
+    assert_eq!(
+        roles,
+        vec![
+            "user",
+            "tool_call",
+            "tool_result",
+            "tool_call",
+            "tool_result",
+            "assistant"
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn an_existing_transcript_survives_the_v16_rebuild() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    {
+        let opened = store(&directory)?;
+        opened.append_chat_message("chat_m", "ws_1", None, "user", "before", 1_000)?;
+        opened.append_chat_message("chat_m", "ws_1", None, "assistant", "after", 1_001)?;
+    }
+    // v16 rebuilds chat_messages to widen a CHECK constraint. Reopening walks
+    // the ladder, so this asserts the copy preserved order and content rather
+    // than quietly emptying the table.
+    let reopened = store(&directory)?;
+    let session = reopened.chat_session("chat_m")?.expect("session");
+    let seen: Vec<(&str, &str)> = session
+        .messages
+        .iter()
+        .map(|message| (message.role.as_str(), message.text.as_str()))
+        .collect();
+    assert_eq!(seen, vec![("user", "before"), ("assistant", "after")]);
+    Ok(())
+}
+
+#[test]
 fn one_workspace_cannot_write_into_another_conversation() -> Result<(), Box<dyn std::error::Error>>
 {
     let directory = tempfile::tempdir()?;

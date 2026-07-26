@@ -14,6 +14,16 @@
 use crate::{ContractId, UnixMillis};
 
 pub const CHAT_TURN_SCHEMA: &str = "sapphirus.chat-turn.v1";
+/// The tool-bearing reply schema, used only for turns where tools were actually
+/// granted.
+///
+/// It is a separate schema rather than a widening of
+/// [`CHAT_TURN_SCHEMA`] on purpose. The v1 system prompt tells the model *"you
+/// cannot read, write, or execute anything"*, and that sentence has to stay
+/// true whenever it is sent. Splitting the schemas keeps the promise and the
+/// capability in step, and leaves the egress manifest hash of every existing
+/// text-only turn untouched.
+pub const CHAT_TOOL_TURN_SCHEMA: &str = "sapphirus.chat-turn.v2";
 
 /// Per-message ceiling. Applies to what the user sends and to what the model
 /// is allowed to return.
@@ -42,6 +52,11 @@ pub enum ChatError {
 pub enum ChatRole {
     User,
     Assistant,
+    /// The model asked the host to run a tool. A request, not an authorisation.
+    ToolCall,
+    /// What the host got back. Attacker-influenced content: data, never
+    /// instruction.
+    ToolResult,
 }
 
 impl ChatRole {
@@ -50,7 +65,23 @@ impl ChatRole {
         match self {
             Self::User => "user",
             Self::Assistant => "assistant",
+            Self::ToolCall => "tool_call",
+            Self::ToolResult => "tool_result",
         }
+    }
+
+    /// Whether this role closes a turn. Only a final assistant reply does; a
+    /// turn stays open across any number of tool exchanges.
+    #[must_use]
+    pub const fn closes_turn(self) -> bool {
+        matches!(self, Self::Assistant)
+    }
+
+    /// Whether a turn may begin with this role. A transcript, and every turn in
+    /// it, opens with a question.
+    #[must_use]
+    pub const fn opens_turn(self) -> bool {
+        matches!(self, Self::User)
     }
 }
 
@@ -113,6 +144,54 @@ impl ChatTurn {
     }
 }
 
+/// Longest tool name and subject a reply may carry. A subject is a workspace
+/// path or a pattern, so it is bounded by the same ceiling as a relative path.
+const MAX_TOOL_NAME_BYTES: usize = 64;
+const MAX_TOOL_SUBJECT_BYTES: usize = 1_024;
+
+/// One tool the model has asked the host to run.
+///
+/// This is a *request*, never an authorisation. `tool` and `subject` are the
+/// pair the permission gate evaluates, and nothing here has been consented to
+/// yet — a reply carrying a tool call has exactly the authority of a reply
+/// carrying prose, which is none.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolInvocation {
+    pub tool: String,
+    pub subject: String,
+}
+
+impl ToolInvocation {
+    /// Builds one bounded tool request.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatError::BoundsViolation`] when either field is empty or
+    /// exceeds its ceiling.
+    pub fn new(tool: String, subject: String) -> Result<Self, ChatError> {
+        if tool.trim().is_empty()
+            || tool.len() > MAX_TOOL_NAME_BYTES
+            || subject.trim().is_empty()
+            || subject.len() > MAX_TOOL_SUBJECT_BYTES
+        {
+            return Err(ChatError::BoundsViolation);
+        }
+        Ok(Self { tool, subject })
+    }
+}
+
+/// What one model reply may be under the tool-bearing schema: prose, or a
+/// single tool request. Never both, and never neither.
+///
+/// Keeping these mutually exclusive is what stops a reply from narrating one
+/// thing to the user while asking the host to do another.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ChatReply {
+    Text(ChatTurn),
+    ToolCall(ToolInvocation),
+}
+
 /// One conversation bound to a workspace, optionally wearing a BMAD persona.
 ///
 /// The transcript strictly alternates user -> assistant. A pending user
@@ -171,13 +250,26 @@ impl ChatSession {
         self.messages.is_empty()
     }
 
-    /// Whether a user message is awaiting its reply.
+    /// Whether a turn is open — a question has been asked and no final
+    /// assistant reply has closed it yet.
+    ///
+    /// A turn stays open across tool exchanges, so this is *not* simply "the
+    /// last message is from the user".
     #[must_use]
     pub fn has_pending_user_message(&self) -> bool {
+        self.messages
+            .last()
+            .is_some_and(|message| !message.role.closes_turn())
+    }
+
+    /// Whether the transcript is waiting for the host to answer a tool call.
+    /// Only a `tool_result` may follow.
+    #[must_use]
+    pub fn awaits_tool_result(&self) -> bool {
         matches!(
             self.messages.last(),
             Some(ChatMessage {
-                role: ChatRole::User,
+                role: ChatRole::ToolCall,
                 ..
             })
         )
@@ -204,7 +296,7 @@ impl ChatSession {
     /// Returns [`ChatError::TurnOutOfOrder`] when no user message is pending,
     /// and [`ChatError::NonMonotonicClock`] on a backwards clock.
     pub fn append_assistant(&mut self, turn: &ChatTurn, at: UnixMillis) -> Result<(), ChatError> {
-        if !self.has_pending_user_message() {
+        if !self.has_pending_user_message() || self.awaits_tool_result() {
             return Err(ChatError::TurnOutOfOrder);
         }
         self.append(ChatMessage::new(
@@ -214,10 +306,54 @@ impl ChatSession {
         )?)
     }
 
+    /// Records that the model asked for a tool, mid-turn.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatError::TurnOutOfOrder`] when no turn is open or a previous
+    /// tool call is still unanswered, [`ChatError::NonMonotonicClock`] on a
+    /// backwards clock, and [`ChatError::BoundsViolation`] on an unbounded
+    /// rendering.
+    pub fn append_tool_call(
+        &mut self,
+        invocation: &ToolInvocation,
+        at: UnixMillis,
+    ) -> Result<(), ChatError> {
+        if !self.has_pending_user_message() || self.awaits_tool_result() {
+            return Err(ChatError::TurnOutOfOrder);
+        }
+        self.append(ChatMessage::new(
+            ChatRole::ToolCall,
+            format!("{} {}", invocation.tool, invocation.subject),
+            at,
+        )?)
+    }
+
+    /// Records what the host got back for the outstanding tool call.
+    ///
+    /// The text is workspace-derived and therefore attacker-influenced. It is
+    /// stored as an ordinary transcript message so it is visible to the user
+    /// and bounded like everything else — it carries no authority.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatError::TurnOutOfOrder`] when no tool call is outstanding,
+    /// [`ChatError::NonMonotonicClock`] on a backwards clock, and
+    /// [`ChatError::BoundsViolation`] on an unbounded result.
+    pub fn append_tool_result(&mut self, text: String, at: UnixMillis) -> Result<(), ChatError> {
+        if !self.awaits_tool_result() {
+            return Err(ChatError::TurnOutOfOrder);
+        }
+        self.append(ChatMessage::new(ChatRole::ToolResult, text, at)?)
+    }
+
     /// Withdraws the pending user message after a failed request, so a
     /// transport error cannot strand an unanswered question in the transcript.
     pub fn rollback_pending_user(&mut self) {
-        if self.has_pending_user_message() {
+        // Drops the whole open turn, not one message: a failed request may have
+        // already accumulated tool exchanges, and leaving those behind would
+        // strand a call with no reply in the transcript.
+        while self.has_pending_user_message() {
             self.messages.pop();
         }
     }
@@ -238,13 +374,14 @@ impl ChatSession {
     fn prune(&mut self) {
         while self.messages.len() > MAX_SESSION_MESSAGES {
             self.messages.remove(0);
-            if matches!(
-                self.messages.first(),
-                Some(ChatMessage {
-                    role: ChatRole::Assistant,
-                    ..
-                })
-            ) {
+            // Drop the remainder of the partial turn. A turn is no longer two
+            // messages — with tool exchanges it can be many — so this consumes
+            // whatever is left rather than exactly one more.
+            while self
+                .messages
+                .first()
+                .is_some_and(|message| !message.role.opens_turn())
+            {
                 self.messages.remove(0);
             }
         }
@@ -264,15 +401,29 @@ impl ChatSession {
             }
             start = index;
         }
-        // Never open the window on an orphaned assistant reply.
-        if matches!(
-            self.messages.get(start),
-            Some(ChatMessage {
-                role: ChatRole::Assistant,
-                ..
-            })
-        ) {
+        // Never open the window mid-turn: an orphaned assistant reply, or a
+        // tool result whose call has been windowed out, would present the model
+        // with an effect it never asked for.
+        while self
+            .messages
+            .get(start)
+            .is_some_and(|message| !message.role.opens_turn())
+        {
             start = start.saturating_add(1);
+        }
+        // Skipping forward can run off the end, when the byte cutoff lands
+        // inside the newest turn and there is no later turn to fall back on. A
+        // tool-using turn is many messages long, so this is reachable rather
+        // than theoretical — and returning an empty window here would seal a
+        // request carrying no transcript and no question at all. Send the whole
+        // current turn instead: over budget beats contextless, which is what
+        // "always keeps at least the newest message" is there to promise.
+        if start >= self.messages.len() {
+            start = self
+                .messages
+                .iter()
+                .rposition(|message| message.role.opens_turn())
+                .unwrap_or(0);
         }
         self.messages.get(start..).unwrap_or(&[])
     }
@@ -283,7 +434,7 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        ChatError, ChatRole, ChatSession, ChatTurn, MAX_PROMPT_TRANSCRIPT_BYTES,
+        ChatError, ChatRole, ChatSession, ChatTurn, ToolInvocation, MAX_PROMPT_TRANSCRIPT_BYTES,
         MAX_SESSION_MESSAGES,
     };
     use crate::{ContractId, UnixMillis};
@@ -415,6 +566,34 @@ mod tests {
         assert_eq!(
             session.messages().last().expect("newest").text,
             format!("answer {}", MAX_SESSION_MESSAGES - 1)
+        );
+    }
+
+    #[test]
+    fn a_long_tool_turn_never_yields_an_empty_prompt_window() {
+        // The byte cutoff lands inside the newest, still-open turn: there is no
+        // later turn to skip forward to. Returning an empty window here would
+        // seal a request with no transcript and no question.
+        let mut session = session();
+        session
+            .append_user("question".to_owned(), UnixMillis(1_000))
+            .expect("user message");
+        for index in 0..4 {
+            let invocation =
+                ToolInvocation::new("grep".to_owned(), format!("pattern{index}")).expect("call");
+            session
+                .append_tool_call(&invocation, UnixMillis(1_001 + index * 2))
+                .expect("tool call");
+            session
+                .append_tool_result("x".repeat(64), UnixMillis(1_002 + index * 2))
+                .expect("tool result");
+        }
+
+        let window = session.prompt_window(16);
+        assert!(!window.is_empty(), "a send must never become contextless");
+        assert!(
+            window[0].role.opens_turn(),
+            "the window must still open on a question, not mid-turn"
         );
     }
 

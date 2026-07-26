@@ -42,8 +42,14 @@ impl LocalStore {
     /// # Errors
     ///
     /// Returns [`StoreError::Inconsistent`] when the append would break the
-    /// strict `user -> assistant` alternation, when the role is unknown, or
-    /// when the session belongs to another workspace.
+    /// turn grammar, when the role is unknown, or when the session belongs to
+    /// another workspace.
+    ///
+    /// The grammar is `user -> (tool_call -> tool_result)* -> assistant`
+    /// (ADR-0009). It is still strict: a transcript opens with a question, a
+    /// `tool_call` is always answered by exactly one `tool_result`, and only an
+    /// `assistant` message closes the turn. What it no longer requires is that
+    /// the two roles simply alternate.
     pub fn append_chat_message(
         &self,
         session_id: &str,
@@ -53,7 +59,9 @@ impl LocalStore {
         text: &str,
         created_at_ms: u64,
     ) -> Result<(), StoreError> {
-        if !matches!(role, "user" | "assistant") || text.trim().is_empty() {
+        if !matches!(role, "user" | "assistant" | "tool_call" | "tool_result")
+            || text.trim().is_empty()
+        {
             return Err(StoreError::Inconsistent);
         }
         let payload = self.put_payload(
@@ -109,12 +117,16 @@ impl LocalStore {
                 0_i64
             }
             Some((ordinal, previous)) => {
-                let expected = if previous == "user" {
-                    "assistant"
-                } else {
-                    "user"
+                // The turn grammar as a transition table. A `tool_call` binds
+                // its `tool_result` immediately, so a call can never be left
+                // dangling and a result can never appear unrequested.
+                let permitted: &[&str] = match previous.as_str() {
+                    "user" | "tool_result" => &["assistant", "tool_call"],
+                    "tool_call" => &["tool_result"],
+                    "assistant" => &["user"],
+                    _ => return Err(StoreError::Inconsistent),
                 };
-                if role != expected {
+                if !permitted.contains(&role) {
                     return Err(StoreError::Inconsistent);
                 }
                 ordinal.checked_add(1).ok_or(StoreError::Inconsistent)?

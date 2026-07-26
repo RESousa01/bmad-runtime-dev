@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 15;
+pub(crate) const LATEST_STORE_VERSION: u32 = 16;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -195,6 +195,44 @@ pub(crate) const V15_TABLES: [&str; 25] = [
     "spec_consumptions",
     "store_meta",
 ];
+
+/// The table set is unchanged from v15 — v16 only widens a CHECK constraint.
+pub(crate) const V16_TABLES: [&str; 25] = V15_TABLES;
+
+/// Widens `chat_messages.role` to admit the two tool roles (ADR-0009).
+///
+/// A tool-using turn is `user -> (tool_call, tool_result)* -> assistant`, so the
+/// strict two-role alternation the v12 table encoded can no longer be expressed
+/// as a `CHECK`. `SQLite` cannot alter a `CHECK` constraint, so the table is
+/// rebuilt and copied.
+///
+/// The copy preserves `ordinal` rather than renumbering: ordinals are the
+/// transcript's order and are referenced by the primary key, so renumbering
+/// would silently reorder existing conversations. Ordering the insert by
+/// `(session_id, ordinal)` keeps the rebuild deterministic.
+const V15_TO_V16_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE chat_messages_v16 (
+   session_id TEXT NOT NULL REFERENCES chat_sessions(session_id),
+   ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+   role TEXT NOT NULL
+     CHECK(role IN ('user', 'assistant', 'tool_call', 'tool_result')),
+   content_hash TEXT NOT NULL,
+   payload_kind TEXT NOT NULL CHECK(payload_kind = 'chat_message'),
+   schema_version TEXT NOT NULL CHECK(schema_version = 'sapphirus.chat-message.v1'),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   PRIMARY KEY(session_id, ordinal),
+   FOREIGN KEY(content_hash, payload_kind, schema_version)
+     REFERENCES payloads(content_hash, kind, schema_version)
+ ) STRICT;
+ INSERT INTO chat_messages_v16
+   (session_id, ordinal, role, content_hash, payload_kind, schema_version, created_at_ms)
+ SELECT session_id, ordinal, role, content_hash, payload_kind, schema_version, created_at_ms
+   FROM chat_messages ORDER BY session_id, ordinal;
+ DROP TABLE chat_messages;
+ ALTER TABLE chat_messages_v16 RENAME TO chat_messages;
+ PRAGMA user_version = 16;
+ COMMIT;";
 
 const V4_BASE_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
  CREATE TABLE IF NOT EXISTS store_meta (
@@ -840,8 +878,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V14_TO_V15_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            15 => {
                 require_store_tables(connection, &V15_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V15_TO_V16_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V16_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }
