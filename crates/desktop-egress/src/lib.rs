@@ -9,6 +9,7 @@
 mod consent;
 mod manifest;
 mod preparation;
+mod turn_grant;
 
 pub use consent::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
@@ -24,3 +25,4 @@ pub use preparation::{
     ContextCandidate, ContextPreparer, PatternSecretScanner, PrepareContextInput,
     SecretScanFinding, SecretScanResult, SecretScanner,
 };
+pub use turn_grant::{CallRecord, TurnEgressEntry, TurnEgressGrant, MAX_TURN_MODEL_CALLS};

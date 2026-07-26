@@ -243,6 +243,12 @@ pub enum EgressError {
     DecisionCancelled,
     #[error("canonical hashing failed")]
     CanonicalHash,
+    #[error("the turn's egress grant has expired")]
+    TurnGrantExpired,
+    #[error("the turn has used every model call its grant allows")]
+    TurnGrantExhausted,
+    #[error("the turn's egress grant shape is invalid")]
+    InvalidTurnGrant,
 }
 
 impl ContextEgressManifestDraft {
