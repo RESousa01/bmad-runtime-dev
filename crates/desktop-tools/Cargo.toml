@@ -1,0 +1,16 @@
+[package]
+name = "desktop-tools"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+desktop-runtime = { path = "../desktop-runtime" }
+desktop-workspace = { path = "../desktop-workspace" }
+parking_lot.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

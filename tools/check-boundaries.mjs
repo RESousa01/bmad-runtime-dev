@@ -74,8 +74,17 @@ const reviewedReadyCommands = [
   ];
 const recoveryCommands = ["app.get_boot_state", "workspace.list"];
 const updateBlockingRecoveryStates = ["recovery_required", "restoring", "manual_review"];
+// The only files permitted to spawn a child process.
+//
+// ADR-0001 forbade this outright; ADR-0009 admits it so Forge can be a general
+// coding agent, but keeps it to one reviewed place rather than letting it
+// spread. `desktop-tools/src/shell.rs` is where the working-directory pin, the
+// timeout, and the output cap live, and it is reachable only behind the
+// permission gate in the same crate. A second spawn site elsewhere would be a
+// second set of bounds nobody reviewed.
 const boundedProcessAdapterPaths = new Set([
   "crates/desktop-cloud/src/windows_broker.rs",
+  "crates/desktop-tools/src/shell.rs",
 ]);
 const exactToolchain = Object.freeze({
   node: "24.18.0",

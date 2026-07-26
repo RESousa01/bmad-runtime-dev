@@ -7,6 +7,7 @@ members = [
   "crates/desktop-airlock",
   "crates/desktop-egress",
   "crates/desktop-execution",
+  "crates/desktop-tools",
   "crates/desktop-store",
   "crates/desktop-cloud",
   "crates/desktop-update",

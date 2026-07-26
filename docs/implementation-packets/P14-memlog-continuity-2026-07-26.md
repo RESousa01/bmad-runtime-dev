@@ -181,7 +181,9 @@ length is pinned in five places across two crates by design.
   larger conversation-state feature; this packet delivers continuity across
   runs, which is where upstream's value actually sits.
 - `uv run memlog.py`, run folders bound by config, and resume-by-reload: all
-  depend on execution authority ADR-0003 withholds.
+  depend on execution authority ADR-0001 withholds. (Earlier revisions of this
+  packet cited ADR-0003; that ADR governs the *promotion denominator* and the
+  exclusion of upstream executable files, not the host's execution authority.)
 
 ## Definition of done
 
@@ -260,7 +262,7 @@ accepts, so the stored boundary can never claim a step the session refused.
 
 This was previously excluded as "resume-by-reload". That exclusion was about
 `uv run memlog.py` — upstream re-reading a workspace file under execution
-authority ADR-0003 withholds. Rehydrating host state from Forge's own store is
+authority ADR-0001 withholds. Rehydrating host state from Forge's own store is
 not that, and needed no new authority.
 
 ### 2. `override` is now the author's statement, never the host's guess — **closed**

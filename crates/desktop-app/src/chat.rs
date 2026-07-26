@@ -23,6 +23,7 @@
 //! unlocked, and `finalize` or `abort` re-acquires it.
 
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 
 use desktop_cloud::{AuthorizedModelRequest, RawModelOutput};
 use desktop_egress::{
@@ -52,11 +53,17 @@ const CHAT_MANIFEST_LIFETIME_MS: u64 = 10 * 60 * 1_000;
 /// same way the capability lane does — a manifest may outlive the one approval
 /// minted from it, never the reverse.
 const CHAT_DECISION_WINDOW_MS: u64 = 5 * 60 * 1_000;
-/// Upper bound on sealed context items in one chat manifest: at most
-/// `MAX_CAPABILITY_CONTEXT_PATHS` (100) user attachments plus the single
-/// persona candidate. Must stay at or under `desktop-egress`'s
+/// Upper bound on sealed context items in one chat manifest: at most 100 user
+/// attachments, the single persona candidate, and the single transcript
+/// candidate. Must stay at or under `desktop-egress`'s
 /// `HARD_MAX_CONTEXT_ITEMS` (128), which rejects the manifest outright.
-const MAX_CHAT_CONTEXT_ITEMS: u32 = 101;
+///
+/// The transcript is deliberately **one** item however long the conversation
+/// is. An earlier revision emitted one item per message, bounded only by bytes
+/// while retention kept 200 messages — so a long conversation silently crossed
+/// the ceiling and every later send failed to seal, permanently, with no way
+/// back except starting over.
+const MAX_CHAT_CONTEXT_ITEMS: u32 = 102;
 const MAX_CHAT_CONTEXT_BYTES: u64 = 512 * 1024;
 /// The egress purpose label for the chat lane. Distinct from every capability
 /// purpose, so a chat manifest can never be replayed as a capability manifest.
@@ -318,7 +325,7 @@ impl ChatCoordinator {
         if let Some(persona) = input.persona_instruction {
             candidates.push(persona_candidate(persona)?);
         }
-        candidates.extend(transcript_candidates(
+        candidates.extend(transcript_candidate(
             session.prompt_window(MAX_PROMPT_TRANSCRIPT_BYTES),
         )?);
         candidates.extend(input.attachments.iter().cloned());
@@ -605,32 +612,49 @@ fn persona_candidate(instruction: &[u8]) -> Result<ContextCandidate, ChatCoordin
     })
 }
 
-fn transcript_candidates(
+/// The conversation so far, as exactly one reviewed context item.
+///
+/// One item rather than one per message, for two reasons. The manifest has a
+/// hard 128-item ceiling, and a per-message shape makes the item count grow
+/// with the conversation until sending fails outright. And a consent surface
+/// listing two hundred rows discloses less than one row saying what it is: the
+/// user is being asked about *the conversation*, which is one thing.
+///
+/// Returns `None` for an empty transcript so a first turn seals no empty item.
+fn transcript_candidate(
     messages: &[ChatMessage],
-) -> Result<Vec<ContextCandidate>, ChatCoordinatorError> {
-    messages
-        .iter()
-        .enumerate()
-        .map(|(index, message)| {
-            Ok(ContextCandidate {
-                client_item_id: ContractId::new(format!("chatctx_{index:04}"))
-                    .map_err(|_| ChatCoordinatorError::Integrity)?,
-                relative_label: RelativeWorkspacePath::new(format!(
-                    "review/chat/{index:04}-{}.md",
-                    message.role.as_str()
-                ))
-                .map_err(|_| ChatCoordinatorError::Integrity)?,
-                semantic_role: match message.role {
-                    ChatRole::User => "chat_user_message",
-                    ChatRole::Assistant => "chat_assistant_message",
-                }
-                .to_owned(),
-                language: Some("markdown".to_owned()),
-                classification: ContextClassification::Internal,
-                content: message.text.clone(),
-            })
-        })
-        .collect()
+) -> Result<Option<ContextCandidate>, ChatCoordinatorError> {
+    if messages.is_empty() {
+        return Ok(None);
+    }
+    let mut rendered = String::new();
+    for message in messages {
+        let role = match message.role {
+            ChatRole::User => "user",
+            ChatRole::Assistant => "assistant",
+        };
+        // Role-tagged, oldest first, so attribution survives the flattening the
+        // provider does downstream.
+        let _ = write!(
+            rendered,
+            "## {role}
+
+{}
+
+",
+            message.text
+        );
+    }
+    Ok(Some(ContextCandidate {
+        client_item_id: ContractId::new("chatctx_transcript")
+            .map_err(|_| ChatCoordinatorError::Integrity)?,
+        relative_label: RelativeWorkspacePath::new("review/chat/conversation.md")
+            .map_err(|_| ChatCoordinatorError::Integrity)?,
+        semantic_role: "chat_transcript".to_owned(),
+        language: Some("markdown".to_owned()),
+        classification: ContextClassification::Internal,
+        content: rendered,
+    }))
 }
 
 /// Parses one untrusted chat reply. Exact keys only: an unexpected field is
@@ -669,14 +693,16 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use super::{
-        parse_chat_turn, ChatCoordinatorError, CHAT_DECISION_WINDOW_MS, CHAT_MANIFEST_LIFETIME_MS,
-        CHAT_PURPOSE, MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_CONTEXT_ITEMS,
+        parse_chat_turn, persona_candidate, transcript_candidate, ChatCoordinatorError,
+        CHAT_DECISION_WINDOW_MS, CHAT_MANIFEST_LIFETIME_MS, CHAT_PURPOSE, MAX_CHAT_CONTEXT_BYTES,
+        MAX_CHAT_CONTEXT_ITEMS,
     };
     use desktop_egress::{
         ApproveDecisionInput, ConsentService, ContextCandidate, ContextClassification,
         ContextPreparer, EgressLimits, MemoryDecisionLedger, ModelInvocationBindingDraft,
         PatternSecretScanner, PrepareContextInput, RetentionMode,
     };
+    use desktop_runtime::{ChatSession, ChatTurn, MAX_PROMPT_TRANSCRIPT_BYTES};
     use desktop_runtime::{
         ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, CHAT_TURN_SCHEMA,
     };
@@ -856,5 +882,88 @@ mod tests {
         assert_eq!(CHAT_PURPOSE, "chat.turn");
         assert!(!CHAT_PURPOSE.starts_with("bmm."));
         assert!(!CHAT_PURPOSE.starts_with("builder."));
+    }
+
+    /// Regression: the ceiling was sized for "100 attachments plus the persona"
+    /// while the same function added *one item per transcript message*, bounded
+    /// only by bytes while retention kept 200 messages. A long conversation
+    /// therefore crossed the 128-item hard cap and every later send failed to
+    /// seal — permanently, with no recovery but starting a new conversation.
+    ///
+    /// This is the second time this lane shipped a ceiling its own inputs could
+    /// exceed, so the assertion is on the arithmetic, not on a sample.
+    #[test]
+    fn a_long_conversation_with_a_full_attachment_load_still_seals() {
+        let mut session = ChatSession::open(id("chatsess_01"), id("ws_chat"));
+        // Well past the 200-message retention ceiling, so the transcript is as
+        // long as this lane can ever make it.
+        for index in 0..130_u64 {
+            session
+                .append_user(format!("user turn {index}"), UnixMillis(2_000 + index * 10))
+                .expect("user");
+            let turn = ChatTurn::new(format!("assistant turn {index}")).expect("turn");
+            session
+                .append_assistant(&turn, UnixMillis(2_005 + index * 10))
+                .expect("assistant");
+        }
+        let transcript = transcript_candidate(session.prompt_window(MAX_PROMPT_TRANSCRIPT_BYTES))
+            .expect("transcript")
+            .expect("a non-empty conversation yields one item");
+
+        let mut candidates = vec![persona_candidate(b"Be an analyst.").expect("persona")];
+        candidates.push(transcript);
+        // The most attachments the IPC envelope admits.
+        for index in 0..100 {
+            candidates.push(candidate(index));
+        }
+        assert_eq!(
+            candidates.len(),
+            MAX_CHAT_CONTEXT_ITEMS as usize,
+            "persona + one transcript + 100 attachments is the declared ceiling",
+        );
+        seal_with_chat_limits(UnixMillis(1_000), candidates)
+            .expect("the heaviest load this lane can assemble must seal");
+    }
+
+    /// The transcript is one item however long it gets — that is the property
+    /// which keeps the item count independent of conversation length.
+    #[test]
+    fn the_transcript_is_always_one_item_and_keeps_attribution() {
+        let mut session = ChatSession::open(id("chatsess_02"), id("ws_chat"));
+        session
+            .append_user("first question".to_owned(), UnixMillis(2_000))
+            .expect("user");
+        let turn = ChatTurn::new("first answer".to_owned()).expect("turn");
+        session
+            .append_assistant(&turn, UnixMillis(2_100))
+            .expect("assistant");
+        session
+            .append_user("second question".to_owned(), UnixMillis(2_200))
+            .expect("user");
+
+        let candidate = transcript_candidate(session.prompt_window(MAX_PROMPT_TRANSCRIPT_BYTES))
+            .expect("transcript")
+            .expect("one item");
+        assert_eq!(candidate.semantic_role, "chat_transcript");
+        // Role attribution survives the flattening the provider does later.
+        assert!(candidate.content.contains(
+            "## user
+
+first question"
+        ));
+        assert!(candidate.content.contains(
+            "## assistant
+
+first answer"
+        ));
+        let user_turns = candidate.content.matches("## user").count();
+        assert_eq!(user_turns, 2);
+    }
+
+    /// A first turn has no history, and an empty item would be a sealed,
+    /// consented, meaningless byte range.
+    #[test]
+    fn an_empty_transcript_yields_no_item() {
+        assert!(transcript_candidate(&[]).expect("transcript").is_none());
     }
 }
