@@ -23,7 +23,7 @@ import {
   MAX_LANE_SESSIONS,
   useCapabilitySessions,
 } from "./state/taskSessions";
-import { useChatSessions } from "./state/chatSessions";
+import { appendDispatchExchange, useChatSessions } from "./state/chatSessions";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
   type OffboardingStatus,
@@ -1937,20 +1937,9 @@ export function App({
           : chatSessions.routingFor(sessionId);
         const dispatchedAt = Date.now();
         const label = dispatched.menu.displayLabel;
-        chatSessions.applyToLane(dispatchRouting, (lane) => ({
-          ...lane,
-          messages: [
-            ...lane.messages,
-            { role: "user", text: intent, createdAt: dispatchedAt },
-            {
-              role: "assistant",
-              text: `Opening the reviewed run for “${label}”. Nothing has been sent yet — review the context and approve it to run.`,
-              createdAt: dispatchedAt,
-            },
-          ],
-          pending: null,
-          error: null,
-        }));
+        chatSessions.applyToLane(dispatchRouting, (lane) =>
+          appendDispatchExchange(lane, intent, label, dispatchedAt),
+        );
         openCapabilityRun(dispatched.menu.capabilityId, label);
         return;
       }

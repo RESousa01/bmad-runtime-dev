@@ -52,13 +52,19 @@ pub enum BmadArchitectureError {
     NonMonotonicClock,
 }
 
-/// The ordered architecture dimensions named by the sealed guidance:
-/// "system context, components, trust boundaries, data, failure handling,
-/// observability, deployment, and verification".
+/// The ordered breadth this progression sweeps, closing with `Deferred`.
 ///
-/// The order is host-owned product data, not sealed BMAD source. It is fixed
-/// so that a decision identifier minted in one run means the same thing in
+/// Upstream prescribes no fixed step list — it requires that the spine sweep
+/// "the breadth the altitude owns", with every structural dimension decided,
+/// deferred, or recorded as an open question, and names the operational
+/// envelope as the one most often left silent. These steps are Forge's
+/// host-owned reading of that breadth, not sealed BMAD source; the order is
+/// fixed so a decision identifier minted in one run means the same thing in
 /// every other run.
+///
+/// Right-sizing still applies within a step: upstream wants "a few decisions
+/// for a small thing, comprehensive for a platform", so a step may legitimately
+/// resolve to a single decision or to a deferral.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BmadArchitectureStep {
@@ -215,6 +221,18 @@ pub struct BmadArchitectureStepRecord {
 #[serde(rename_all = "camelCase")]
 pub struct BmadArchitectureDecision {
     pub decision_id: String,
+    /// What the decision constrains.
+    ///
+    /// Upstream requires every `AD` to carry Binds, Prevents and Rule — that
+    /// triple is what makes a spine entry checkable by a later builder instead
+    /// of prose. The model writes them into the section body; the runtime
+    /// extracts them here so an entry that omits one is *visible* rather than
+    /// silently accepted as a decision.
+    pub binds: Option<String>,
+    /// The divergence the decision exists to stop.
+    pub prevents: Option<String>,
+    /// The call itself, stated so a builder can comply without the reasoning.
+    pub rule: Option<String>,
     pub step: BmadArchitectureStep,
     pub heading: String,
     pub body: String,
@@ -301,6 +319,22 @@ impl BmadArchitectureSession {
         &self.open_questions
     }
 
+    /// Decision identifiers whose entry is missing part of the `AD` triple.
+    ///
+    /// A spine entry without Binds, Prevents and Rule is prose, not a decision
+    /// a later builder can comply with. Reporting them lets the host say which
+    /// entries fall short rather than presenting the spine as complete.
+    #[must_use]
+    pub fn decisions_missing_structure(&self) -> Vec<String> {
+        self.decision_log()
+            .into_iter()
+            .filter(|decision| {
+                decision.binds.is_none() || decision.prevents.is_none() || decision.rule.is_none()
+            })
+            .map(|decision| decision.decision_id)
+            .collect()
+    }
+
     /// The decision log: one stable `AD-n` per accepted step section, in
     /// acceptance order.
     #[must_use]
@@ -311,6 +345,9 @@ impl BmadArchitectureSession {
                 let ordinal = decisions.len().saturating_add(1);
                 decisions.push(BmadArchitectureDecision {
                     decision_id: format!("AD-{ordinal}"),
+                    binds: Self::labelled_part(&section.body, "binds"),
+                    prevents: Self::labelled_part(&section.body, "prevents"),
+                    rule: Self::labelled_part(&section.body, "rule"),
                     step: record.step,
                     heading: section.heading.clone(),
                     body: section.body.clone(),
@@ -318,6 +355,41 @@ impl BmadArchitectureSession {
             }
         }
         decisions
+    }
+
+    /// Extracts one labelled part of an `AD` body.
+    ///
+    /// Tolerates the shapes a model actually writes — `Binds: x`, `**Binds:** x`,
+    /// `- **Binds** — x` — because the label carries the meaning, not the markup.
+    fn labelled_part(body: &str, label: &str) -> Option<String> {
+        for line in body.lines() {
+            let stripped = line
+                .trim()
+                .trim_start_matches(['-', '*', '+'])
+                .trim()
+                .trim_start_matches("**")
+                .trim_start();
+            let Some(rest) = stripped.get(..label.len()) else {
+                continue;
+            };
+            if !rest.eq_ignore_ascii_case(label) {
+                continue;
+            }
+            // Trim whitespace between each marker, so `Binds:`, `**Binds:**` and
+            // `- **Binds** — ` all reduce to the same value.
+            let value = stripped[label.len()..]
+                .trim_start()
+                .trim_start_matches("**")
+                .trim_start()
+                .trim_start_matches([':', '—', '-', '–'])
+                .trim_start()
+                .trim_start_matches("**")
+                .trim();
+            if !value.is_empty() {
+                return Some(value.to_owned());
+            }
+        }
+        None
     }
 
     /// Projects the progression as an upstream-shaped memlog.
@@ -690,6 +762,67 @@ mod tests {
             );
         }
         assert_eq!(session.accepted_step_count(), BmadArchitectureStep::count());
+    }
+
+    /// Upstream requires every `AD` to carry Binds, Prevents and Rule; without
+    /// them a spine entry is prose a later builder cannot comply with. The
+    /// runtime extracts the triple so a short entry is visible rather than
+    /// silently counted as a decision.
+    #[test]
+    fn decisions_expose_the_binds_prevents_rule_triple() {
+        let structured = BmadDocumentArtifact::new(
+            "Step: Components".to_owned(),
+            vec![BmadDocumentSection {
+                heading: "Module boundaries".to_owned(),
+                body: "- **Binds** — every crate depending on the kernel\n\
+                       Prevents: two modules choosing incompatible error shapes\n\
+                       **Rule:** errors cross a boundary as the shared enum only"
+                    .to_owned(),
+            }],
+            Vec::new(),
+            Vec::new(),
+            None,
+        )
+        .expect("structured artifact");
+
+        let mut session = session();
+        session
+            .accept_step(
+                BmadArchitectureStep::SystemContext,
+                artifact("System context"),
+                UnixMillis(2_000),
+            )
+            .expect("first step");
+        session
+            .accept_step(
+                BmadArchitectureStep::Components,
+                structured,
+                UnixMillis(2_001),
+            )
+            .expect("second step");
+
+        let log = session.decision_log();
+        let structured_decision = &log[1];
+        assert_eq!(
+            structured_decision.binds.as_deref(),
+            Some("every crate depending on the kernel"),
+        );
+        assert_eq!(
+            structured_decision.prevents.as_deref(),
+            Some("two modules choosing incompatible error shapes"),
+        );
+        assert_eq!(
+            structured_decision.rule.as_deref(),
+            Some("errors cross a boundary as the shared enum only"),
+        );
+
+        // The first step's body is prose, so it is reported as falling short
+        // rather than passing as a decision.
+        assert_eq!(log[0].binds, None);
+        assert_eq!(
+            session.decisions_missing_structure(),
+            vec!["AD-1".to_owned()],
+        );
     }
 
     #[test]

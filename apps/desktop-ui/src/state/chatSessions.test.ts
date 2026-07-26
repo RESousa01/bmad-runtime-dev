@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  appendDispatchExchange,
   bumpGeneration,
   emptyChatLane,
   emptyChatSessionStore,
@@ -60,5 +61,45 @@ describe("chat session store", () => {
 
     expect(store.lanes.size).toBeLessThanOrEqual(20);
     expect(laneForSession(store, "task-39").messages[0]?.text).toBe("m39");
+  });
+});
+
+describe("appendDispatchExchange", () => {
+  /// Regression guard: dispatching an agent menu item from the composer used to
+  /// return without touching the lane, so the composer cleared and the message
+  /// that opened the run vanished from the conversation.
+  it("records the user's turn and says nothing has been sent", () => {
+    const lane = appendDispatchExchange(
+      emptyChatLane,
+      "let's architect this",
+      "Architecture",
+      1_700,
+    );
+
+    expect(lane.messages).toHaveLength(2);
+    expect(lane.messages[0]).toEqual({
+      role: "user",
+      text: "let's architect this",
+      createdAt: 1_700,
+    });
+    expect(lane.messages[1]?.role).toBe("assistant");
+    expect(lane.messages[1]?.text).toContain("Architecture");
+    // The run is opened, not sent: the reply must not imply a model answered.
+    expect(lane.messages[1]?.text).toContain("Nothing has been sent yet");
+    expect(lane.pending).toBeNull();
+    expect(lane.error).toBeNull();
+  });
+
+  it("appends after existing messages rather than replacing the transcript", () => {
+    const seeded = {
+      ...emptyChatLane,
+      messages: [{ role: "user" as const, text: "hello", createdAt: 1 }],
+      error: "stale",
+    };
+    const lane = appendDispatchExchange(seeded, "run CA", "Architecture", 2_000);
+
+    expect(lane.messages).toHaveLength(3);
+    expect(lane.messages[0]?.text).toBe("hello");
+    expect(lane.error).toBeNull();
   });
 });

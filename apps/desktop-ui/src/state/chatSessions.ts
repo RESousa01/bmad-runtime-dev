@@ -43,6 +43,36 @@ export const emptyChatLane: ChatLaneState = {
   error: null,
 };
 
+/// Records the exchange when a message dispatches an agent menu item instead
+/// of sending a chat turn.
+///
+/// A dispatch is still a turn the user took. Routing straight to the capability
+/// run without this dropped the message: the composer cleared, a run opened
+/// elsewhere, and the conversation held no record of the sentence that caused
+/// it. The assistant line is deliberately explicit that nothing has been sent —
+/// opening a run is not a model request.
+export function appendDispatchExchange(
+  lane: ChatLaneState,
+  intent: string,
+  label: string,
+  at: number,
+): ChatLaneState {
+  return {
+    ...lane,
+    messages: [
+      ...lane.messages,
+      { role: "user", text: intent, createdAt: at },
+      {
+        role: "assistant",
+        text: `Opening the reviewed run for “${label}”. Nothing has been sent yet — review the context and approve it to run.`,
+        createdAt: at,
+      },
+    ],
+    pending: null,
+    error: null,
+  };
+}
+
 export interface ChatSessionStore {
   readonly lanes: ReadonlyMap<string, ChatLaneState>;
   readonly generations: ReadonlyMap<string, number>;
