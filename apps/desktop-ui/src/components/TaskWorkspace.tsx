@@ -1,13 +1,15 @@
 import { Button } from "@sapphirus/ui";
 import {
   ChevronDown,
+  FileCode,
   Send,
   ShieldAlert,
+  Terminal,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
-import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { ChatMessage, ContextPreviewProjection } from "../lib/hostClient";
 import type { ChatLaneState } from "../state/chatSessions";
 import { brandIdentity } from "../lib/brand";
 import { BrandMark } from "./BrandMark";
@@ -68,6 +70,89 @@ export interface TaskWorkspaceProps {
   workspaceStatusLabel?: string | undefined;
 }
 
+/// How much of a tool result the collapsed summary shows. A result can be 8
+/// KiB, so the transcript stays readable by keeping the body behind a
+/// disclosure rather than inlining it.
+const TOOL_RESULT_PREVIEW_CHARS = 96;
+
+function toolResultPreview(text: string): string {
+  const firstLine = (text.split("\n", 1)[0] ?? "").trim();
+  return firstLine.length > TOOL_RESULT_PREVIEW_CHARS
+    ? `${firstLine.slice(0, TOOL_RESULT_PREVIEW_CHARS)}…`
+    : firstLine;
+}
+
+function MessageTime({ at }: { readonly at: number }) {
+  return (
+    <time dateTime={new Date(at).toISOString()}>
+      {new Date(at).toLocaleTimeString()}
+    </time>
+  );
+}
+
+/// What the model *asked* the host to run.
+///
+/// This is a request, not a record of something done on the user's authority,
+/// so it is never styled as an assistant reply and never wears the brand mark.
+/// The label says who wanted it; the subject is shown verbatim as monospace
+/// data.
+function ToolCallMessage({
+  awaitingResult,
+  message,
+}: {
+  readonly awaitingResult: boolean;
+  readonly message: ChatMessage;
+}) {
+  return (
+    <article className="message message--tool message--tool-call">
+      <div className="message__avatar message__avatar--tool">
+        <Terminal size={15} />
+      </div>
+      <div>
+        <p className="message__label">
+          {awaitingResult
+            ? "Tool requested by the model · awaiting result"
+            : "Tool requested by the model"}
+        </p>
+        <p className="message__tool-subject">{message.text}</p>
+        <MessageTime at={message.createdAt} />
+      </div>
+    </article>
+  );
+}
+
+/// What the host got back for a tool call.
+///
+/// This is workspace-derived content: attacker-influenced by definition, and
+/// never Forge speaking. It is therefore collapsed by default, labelled with
+/// its provenance, and rendered as inert monospace data rather than prose — so
+/// a file that contains something shaped like an assistant reply cannot be
+/// mistaken for one.
+function ToolResultMessage({ message }: { readonly message: ChatMessage }) {
+  const preview = toolResultPreview(message.text);
+  return (
+    <article className="message message--tool message--tool-result">
+      <div className="message__avatar message__avatar--tool">
+        <FileCode size={15} />
+      </div>
+      <div>
+        <details className="tool-result">
+          <summary>
+            <span className="message__label">
+              Tool result · workspace content, not Forge
+            </span>
+            {preview.length > 0 ? (
+              <span className="tool-result__preview">{preview}</span>
+            ) : null}
+          </summary>
+          <pre className="tool-result__body">{message.text}</pre>
+        </details>
+        <MessageTime at={message.createdAt} />
+      </div>
+    </article>
+  );
+}
+
 /// The task's conversation. This is the app's ordinary surface: a plain
 /// exchange of messages that needs no BMAD concept to work.
 function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
@@ -76,28 +161,44 @@ function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
   }
   return (
     <section aria-label="Conversation" className="chat-transcript">
-      {lane.messages.map((message, index) => (
-        <article
-          className={message.role === "user" ? "message message--user" : "message message--agent"}
-          key={`${message.createdAt}-${index}`}
-        >
-          <div
-            className={
-              message.role === "user"
-                ? "message__avatar message__avatar--user"
-                : "message__avatar"
-            }
+      {lane.messages.map((message, index) => {
+        const key = `${message.createdAt}-${index}`;
+        // The two tool roles are deliberately not folded into the assistant
+        // branch. Falling through to `message--agent` would put the brand mark
+        // on a file's contents and present it as Forge's own words.
+        if (message.role === "tool_call") {
+          return (
+            <ToolCallMessage
+              awaitingResult={lane.messages[index + 1]?.role !== "tool_result"}
+              key={key}
+              message={message}
+            />
+          );
+        }
+        if (message.role === "tool_result") {
+          return <ToolResultMessage key={key} message={message} />;
+        }
+        return (
+          <article
+            className={message.role === "user" ? "message message--user" : "message message--agent"}
+            key={key}
           >
-            {message.role === "user" ? "You" : <BrandMark size={22} />}
-          </div>
-          <div>
-            <p>{message.text}</p>
-            <time dateTime={new Date(message.createdAt).toISOString()}>
-              {new Date(message.createdAt).toLocaleTimeString()}
-            </time>
-          </div>
-        </article>
-      ))}
+            <div
+              className={
+                message.role === "user"
+                  ? "message__avatar message__avatar--user"
+                  : "message__avatar"
+              }
+            >
+              {message.role === "user" ? "You" : <BrandMark size={22} />}
+            </div>
+            <div>
+              <p>{message.text}</p>
+              <MessageTime at={message.createdAt} />
+            </div>
+          </article>
+        );
+      })}
       {lane.pending !== null ? (
         <>
           <article className="message message--user">

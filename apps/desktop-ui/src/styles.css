@@ -3543,6 +3543,99 @@ code {
   padding: 9px 13px;
 }
 
+/* --- Tool exchanges ---------------------------------------------------- */
+/* A tool call is a request the model made; a tool result is workspace content.
+   Neither is Forge speaking, so neither may look like the assistant card
+   above: no raised surface, no shadow, no brand mark, and a squared avatar
+   rather than the round one the assistant wears. */
+.message--tool {
+  position: relative;
+}
+
+.message--tool > div:last-child {
+  border-left: 2px solid var(--color-border);
+  padding: 2px 0 2px 11px;
+}
+
+.message__avatar--tool {
+  background: var(--color-surface);
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}
+
+/* Keeps the turn reading as one thread across its tool exchanges. */
+.message--agent + .message--tool::before,
+.message--tool + .message--tool::before,
+.message--tool + .message--agent::before {
+  background: var(--color-border-subtle);
+  content: "";
+  height: 24px;
+  left: 15px;
+  position: absolute;
+  top: -24px;
+  width: 1px;
+}
+
+.message__tool-subject {
+  color: var(--color-text-soft);
+  font-family: var(--font-code);
+  font-size: 0.72rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+  /* The subject is a model-supplied path or pattern. Isolating it stops bidi
+     controls inside it from reordering the label beside it. */
+  unicode-bidi: isolate;
+}
+
+.tool-result > summary {
+  align-items: baseline;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.tool-result > summary .message__label {
+  margin-bottom: 0;
+}
+
+.tool-result > summary:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tool-result__preview {
+  color: var(--color-text-muted);
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Attacker-influenced text: isolate it so it cannot reorder the label. */
+  unicode-bidi: isolate;
+}
+
+/* The result body is data, never prose. Monospace and a hard height ceiling
+   keep an 8 KiB result from reading as, or crowding out, an assistant reply. */
+.tool-result__body {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--shell-radius-md);
+  color: var(--color-text-soft);
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  line-height: 1.55;
+  margin: 6px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  padding: 9px 11px;
+  unicode-bidi: isolate;
+  white-space: pre-wrap;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .message--agent > div:last-child {
     animation: bmad-rise 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;

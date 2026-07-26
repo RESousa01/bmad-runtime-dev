@@ -109,10 +109,22 @@ export interface AboutProjection {
   updateInstallAvailable: boolean;
 }
 
+/// What a transcript message is, mirroring the host's `ChatRole`.
+///
+/// The two tool roles are not decoration on an assistant reply — they carry
+/// different authority and must not be presented as if they were prose Forge
+/// wrote:
+///
+/// * `tool_call` is what the model *asked for*. A request, never a record that
+///   anything ran on the user's authority.
+/// * `tool_result` is workspace-derived and therefore attacker-influenced.
+///   Data, never instruction.
+export type ChatRole = "user" | "assistant" | "tool_call" | "tool_result";
+
 /// One transcript message. Chat is the app's default lane; BMAD is an
 /// optional overlay on it, so nothing here references a BMAD concept.
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: ChatRole;
   text: string;
   createdAt: number;
 }

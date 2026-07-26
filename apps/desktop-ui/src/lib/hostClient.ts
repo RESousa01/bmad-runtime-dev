@@ -37,6 +37,7 @@ export type {
   BmadWorkflowStepProjection,
   ChatHistoryProjection,
   ChatMessage,
+  ChatRole,
   ChatTurnProjection,
   CapabilityApprovedProjection,
   CapabilityCancelledProjection,

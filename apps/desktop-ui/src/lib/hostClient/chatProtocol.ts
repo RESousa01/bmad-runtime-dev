@@ -1,4 +1,9 @@
-import type { ChatHistoryProjection, ChatMessage, ChatTurnProjection } from "./contracts";
+import type {
+  ChatHistoryProjection,
+  ChatMessage,
+  ChatRole,
+  ChatTurnProjection,
+} from "./contracts";
 import {
   asBoundedString,
   asContractId,
@@ -18,10 +23,44 @@ const MAX_TRANSCRIPT_MESSAGES = 200;
 /// a Builder id, a path, a crafted string — is rejected rather than shown.
 const AGENT_CODE_PATTERN = /^bmad-agent-[a-z][a-z0-9-]{0,48}$/u;
 
-function asChatRole(value: unknown): "user" | "assistant" {
+/// Mirrors the host's `ChatRole` exactly. A role the host cannot emit is a
+/// payload the host did not produce, so it is rejected rather than coerced to
+/// something renderable — an unknown role must never fall through to the
+/// assistant styling.
+const CHAT_ROLES: ReadonlySet<string> = new Set<ChatRole>([
+  "user",
+  "assistant",
+  "tool_call",
+  "tool_result",
+]);
+
+function asChatRole(value: unknown): ChatRole {
   const role = asBoundedString(value, 16);
-  if (role !== "user" && role !== "assistant") return fail();
-  return role;
+  if (!CHAT_ROLES.has(role)) return fail();
+  return role as ChatRole;
+}
+
+/// Which roles may follow `previous`, mirroring `ChatSession`'s append rules.
+///
+/// A turn is `user -> (tool_call -> tool_result)* -> assistant`, so this is no
+/// longer simple alternation. Two invariants are load-bearing rather than
+/// cosmetic: only an assistant reply closes a turn, and a `tool_call` may be
+/// followed by nothing except its `tool_result`. Enforcing the second is what
+/// stops a crafted history from showing a call whose answer is really the next
+/// turn's content.
+function successorsOf(previous: ChatRole): ReadonlySet<ChatRole> {
+  switch (previous) {
+    // A closed turn can only be followed by the next question.
+    case "assistant":
+      return new Set<ChatRole>(["user"]);
+    // An outstanding call is answered before anything else may happen.
+    case "tool_call":
+      return new Set<ChatRole>(["tool_result"]);
+    // Mid-turn: the model either asks for another tool or answers.
+    case "user":
+    case "tool_result":
+      return new Set<ChatRole>(["assistant", "tool_call"]);
+  }
 }
 
 export function asAgentCode(value: unknown): string | null {
@@ -77,13 +116,24 @@ export function parseChatHistory(value: unknown): ChatHistoryProjection {
     return fail();
   }
   const messages = history.messages.map(asChatMessage);
-  // The transcript strictly alternates, starting with a question. A history
-  // that does not is a transcript the host could not have produced.
+  // Every turn opens with a question and runs `user -> (tool_call ->
+  // tool_result)* -> assistant`. A history that does not is a transcript the
+  // host could not have produced.
   for (const [index, message] of messages.entries()) {
-    const expected = index % 2 === 0 ? "user" : "assistant";
-    if (message.role !== expected) return fail();
-    if (index > 0 && message.createdAt < (messages[index - 1]?.createdAt ?? 0)) return fail();
+    const previous = messages[index - 1];
+    if (previous === undefined) {
+      // Only a question opens a transcript.
+      if (message.role !== "user") return fail();
+      continue;
+    }
+    if (!successorsOf(previous.role).has(message.role)) return fail();
+    if (message.createdAt < previous.createdAt) return fail();
   }
+  // A trailing `tool_call` is deliberately accepted. The host releases the
+  // session lock while the tool actually runs, so a history read that lands in
+  // that window legitimately ends on an unanswered call. Rejecting it would
+  // throw away the whole transcript over a normal mid-turn state; the
+  // transcript renders it as still awaiting its result instead.
   return {
     sessionId: asContractId(history.sessionId),
     agentCode: asAgentCode(history.agentCode),
