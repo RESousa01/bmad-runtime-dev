@@ -122,6 +122,12 @@ const packageFiles = Object.freeze([
   "scripts/verify.mjs",
   "semantic-source-ledger.json",
   "tests/foundation.test.mjs",
+  // Fidelity conformance over the vendored corpus. Added deliberately with
+  // ADR-0010: withdrawing the OpenCode sidecar means Forge re-derives discovery
+  // semantics itself, so the shape the native runtime is written against needs
+  // a regression net. `verify.mjs` checks the seal — that the bytes are the
+  // bytes; this checks the semantics those bytes have to keep.
+  "tests/method-fidelity.test.mjs",
 ].sort());
 const packageDirectories = Object.freeze([
   "licenses",

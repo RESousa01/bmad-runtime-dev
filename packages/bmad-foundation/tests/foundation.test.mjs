@@ -670,7 +670,13 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
     "reseal.mjs",
     "verify.mjs",
   ]);
-  assert.deepEqual(await readdir(path.join(packageRoot, "tests")), ["foundation.test.mjs"]);
+  assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
+    "foundation.test.mjs",
+    // Fidelity conformance over the vendored corpus (ADR-0010). Pinned here as
+    // well as in `verify.mjs` so adding a file to the sealed package stays a
+    // two-place, deliberate act rather than something a stray write can do.
+    "method-fidelity.test.mjs",
+  ]);
 });
 
 test("the runtime manifest binds every bundled byte and excludes development-only files", async () => {

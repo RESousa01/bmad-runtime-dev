@@ -1311,6 +1311,39 @@ if (config) {
   if (config.bundle?.windows?.nsis?.installMode !== "currentUser") {
     violations.push(`${relative(root, configPath)}: internal NSIS build is not current-user scoped`);
   }
+
+  // The sealed foundation is loaded in Tauri `setup`, and `read_manifest_resources`
+  // reads *every* entry the runtime manifest pins, erroring on a missing file —
+  // so a pinned entry the installer does not ship is a startup failure of the
+  // packaged app. No Rust test sees it: they all resolve the foundation from
+  // CARGO_MANIFEST_DIR, where the whole package is present. It shipped that way
+  // once, with 228 `source/` entries pinned by the manifest and bundled by
+  // nothing.
+  const runtimeManifest = await requiredJson(
+    join(root, "packages", "bmad-foundation", "runtime-manifest.json"),
+  );
+  if (runtimeManifest) {
+    // `load_bmad_foundation` reads from `<resource dir>/bmad-foundation`, so
+    // only destinations under that prefix are reachable at all.
+    const foundationPrefix = "bmad-foundation/";
+    const bundled = new Set(
+      Object.values(config.bundle?.resources ?? {})
+        .map(String)
+        .filter((destination) => destination.startsWith(foundationPrefix))
+        .map((destination) => destination.slice(foundationPrefix.length).split("/")[0])
+        .filter(Boolean),
+    );
+    const pinned = new Set(
+      (runtimeManifest.resources ?? []).map((resource) => String(resource.path).split("/")[0]),
+    );
+    for (const entry of [...pinned].sort()) {
+      if (!bundled.has(entry)) {
+        violations.push(
+          `${relative(root, configPath)}: runtime-manifest.json pins ${entry} but bundle.resources does not ship it`,
+        );
+      }
+    }
+  }
 }
 
 {
