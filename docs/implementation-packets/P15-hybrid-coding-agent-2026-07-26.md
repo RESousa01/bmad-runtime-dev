@@ -126,28 +126,66 @@ that authorized it* — `{candidate_hash, proposed_diff_hash, permission_tool,
 permission_subject, permission_rule_matched, permission_reply}`. Everything from
 `consume_spec_record` down is unchanged.
 
-**D6 — Forge ships its own copy of the Method, and its own installer.**
-Forge does not run upstream's installer against the user's workspace. It
-vendors the Method and materialises it itself.
+**D6 — Forge ships its own copy of the Method as app payload. There is exactly
+one installer, and it is the app's.**
+
+An earlier revision of this packet said "Forge's own installer", which was
+wrong on an important point. **The app has one installer — the NSIS per-user
+setup — and the Method ships inside it as payload.** There is no second
+installer, no separate BMAD setup step, and no "install BMAD into this project"
+action the user has to perform.
+
+Nor does the Method get written into the user's repository. OpenCode appends
+`$OPENCODE_CONFIG_DIR` to its config-directory list
+(`packages/opencode/src/config/paths.ts:23-41`, verified), and every config root
+is scanned for skills, commands, agents and custom tools. So Forge points that
+variable at an **app-local** root under its own install directory, lays the
+Method out there as `skills/<name>/SKILL.md` (the config-root pattern is
+`{skill,skills}/**/SKILL.md`, *not* the `.agents/skills` project pattern), and
+the sidecar discovers it in any workspace with nothing written to the user's
+project at all.
+
+That is better than the project-install route on four counts, and it is the
+route this packet takes:
+
+- one installer, satisfying the constraint by construction;
+- the Method is available in *every* workspace immediately, with no per-project
+  setup;
+- the user's repository stays clean — no `.agents/` or `.opencode/` directories
+  appearing in their diff;
+- the Method upgrades with the app, so there is no drift between the shipped
+  copy and an installed one, and no stale copy to detect or repair.
+
+Work products still go to the workspace — a PRD, a spine, a change set are the
+user's files and belong in their repo, through governed IO. It is only the
+*Method itself* that stays app-local.
 
 The corpus is already here and already sealed: 47 `SKILL.md` files across 228
 files under `packages/bmad-foundation/source/method/6.10.0/src/` — four BMM
 phase folders (`1-analysis`, `2-plan-workflows`, `3-solutioning`,
 `4-implementation`) plus 14 core skills — every one of them tracked in
 `runtime-manifest.json` and covered by the hash chain. The missing piece is
-only the installer.
+only the build-time layout step and the config-root wiring — a small amount of
+work, and none of it a second installer.
 
 Three tiers, with different rules:
 
-| Tier | What | Verified how |
+| Tier | Where | Verified how |
 |---|---|---|
-| **Shipped** | `packages/bmad-foundation/source/…` — Forge's own copy of the Method | Hash-chained, immutable at runtime |
-| **Installed** | what the installer writes into the workspace (`.agents/skills/`, `.opencode/commands/`) so the sidecar discovers it | Materialised *from* the shipped tier, so Forge can re-verify it against those hashes and report drift |
-| **Authored** | what the user or the Builder writes | Ordinary governed workspace content. Not hash-pinned — that is the point |
+| **Shipped** | `packages/bmad-foundation/source/…`, laid out at build time into the app-local config root and carried by the one installer | Hash-chained, immutable at runtime, re-verified at load |
+| **Authored — global** | the same app-local root, user area | Governed content. Not hash-pinned; survives app upgrade |
+| **Authored — project** | the workspace, discovered by OpenCode's own project walk-up | Governed workspace content, in the user's repo because it is theirs |
 
-The installed tier being derived from a sealed source is *stronger* than
-upstream's arrangement, not weaker: Forge can tell a user that their installed
-Method has been modified, and offer to restore or upgrade it. Upstream cannot.
+The shipped tier never leaves the app, so there is no installed copy to drift
+from it and nothing to detect or repair — the verification problem is removed
+rather than solved. What Forge still owes the user is the *inverse* check: the
+app-local root must be re-verified against the hash chain at load, so a
+tampered-with Method is refused rather than run.
+
+The authored tiers mirror upstream's own global-versus-project split, which is
+the behaviour a BMAD user already expects: an agent you want everywhere lives
+with the app; an agent that belongs to one codebase lives in that codebase and
+is committed with it.
 
 Adaptation is permitted and expected — layout, naming, and host-specific
 wiring — but **the Method itself does not change**: its phases, its skills,
@@ -344,26 +382,31 @@ evaluation, so log every evaluation and diff it against observed effects.
 
 ### Phase 4 — BMAD full fidelity — L
 
-- **Build Forge's own installer** (D6). It materialises the sealed corpus into
-  the workspace in the layout the sidecar discovers — skills to
-  `.agents/skills/<name>/SKILL.md` with their `assets/` and `references/`
-  intact, commands to `.opencode/commands/`. Preserve each skill's frontmatter
-  `name`, because that is the discovery key and duplicates resolve
-  nondeterministically upstream.
-- Install is a **governed write**: it goes through the D3 journal like any other
-  change set, so it is reviewable, undoable and crash-safe. Installing a method
-  into someone's repository is a workspace mutation and should look like one.
-- **Verify and repair.** Because the installed tier is derived from hashed
-  sources, Forge can compare an existing install against them and report
-  drift — modified, missing, or extra files — then offer restore or upgrade.
-  Build this with the installer, not after it; it is what makes shipping our
-  own copy better than shelling out to upstream's.
-- Re-installing must be idempotent, and must not clobber the **authored** tier.
+- **Lay the Method out at build time** (D6), into the app-local config root the
+  one installer carries. Skills go to `skills/<name>/SKILL.md` with their
+  `assets/` and `references/` intact — the config-root pattern is
+  `{skill,skills}/**/SKILL.md`, which is *not* the `.agents/skills` project
+  pattern, so getting this layout wrong means silent non-discovery.
+- Preserve each skill's frontmatter `name`: it is the discovery key, and
+  duplicates resolve nondeterministically because loading runs unbounded.
+- **No workspace write, and no runtime install step.** The Method is app
+  payload; there is nothing to install, so nothing to make idempotent and no
+  installed copy to drift.
+- **Verify the app-local root at load** against the hash chain, and refuse to
+  run a tampered Method rather than running it. This is the inverse of the
+  drift check the project-install route would have needed, and it is cheaper.
+- Point `$OPENCODE_CONFIG_DIR` at that root (Phase 2 already does this for the
+  shadow tools; the Method rides the same mechanism).
+- Route the **authored** tiers: global authoring writes to the app-local root,
+  project authoring to the workspace through governed IO. The Builder must be
+  able to target either, and must say which.
 
-*Verify:* install into a scratch repo, run a capability end to end, then modify
-an installed file and confirm verify reports the drift and repair restores it.
-The Builder authoring a new agent that subsequently loads is the acceptance
-test for the whole phase — it exercises all three tiers at once.
+*Verify:* open a workspace that has never seen Forge, and run a Method
+capability end to end with **nothing written to that repository** except the
+work product. Tamper with a file in the app-local root and confirm load refuses
+rather than runs. The Builder authoring a new agent — once globally, once into
+the project — that then loads is the acceptance test for the phase; it
+exercises all three tiers.
 - Supersede **ADR-0006** (Builder output is inert): the Builder must author
   real agents, workflows and skills into the workspace tier (D6).
 - Re-check ADR-0005 and ADR-0008 for clauses assuming a closed, pre-reviewed
@@ -480,9 +523,11 @@ Stop and reconsider rather than pushing through if any of these hold:
 - **BMAD fidelity requires forking OpenCode anyway.** The main reason to run it
   unmodified is that BMAD works on it as-is; if that stops being true, option D
   (own loop, reuse `@opencode-ai/llm`) becomes competitive again.
-- **The installed-tier verification cannot be made to work** — e.g. install is
-  inherently lossy against the sealed hashes. That removes the main advantage
-  of shipping our own copy over shelling out.
+- **A Method skill turns out to require project-local installation** to work at
+  all — for instance because a workflow resolves a path relative to the repo
+  rather than to the skill. That would reopen the project-install route and its
+  drift problem, and it should be discovered by running real capabilities in
+  Phase 4 rather than assumed away now.
 
 ## Risks
 
@@ -511,14 +556,16 @@ Stop and reconsider rather than pushing through if any of these hold:
 - Changing the Method itself. Layout, naming and host wiring may be adapted;
   the phases, skills, agents and workflows are upstream's, and divergence in
   them is a defect (D6).
-- Installing to platforms other than the one the sidecar reads. Upstream's
-  installer targets a dozen IDEs; Forge's needs exactly one layout.
+- A second installer, a BMAD setup step, or any per-project install action.
+  One installer, and the Method is payload inside it (D6).
+- Supporting the platform layouts upstream's installer targets. It emits for a
+  dozen IDEs; Forge needs exactly one layout, the config-root one.
 
 ## Definition of done
 
-- Forge's own installer materialises the Method into a workspace, and it is
-  discovered and runnable end to end, including the Builder authoring a new
-  agent that then
+- The Method ships inside the single app installer, is discovered from the
+  app-local config root in any workspace with no per-project setup, and is
+  runnable end to end — including the Builder authoring a new agent that then
   loads — with no Forge-specific projection involved.
 - Every effectful tool call is evaluated by Rust and, when unmatched, reaches a
   human before it runs.
