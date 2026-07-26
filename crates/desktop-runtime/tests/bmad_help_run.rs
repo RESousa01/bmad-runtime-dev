@@ -254,11 +254,11 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     );
     // Follows the managed instruction bytes: the prd, product-brief and ux
     // projections state the memlog continuity contract (P14) and ask the author
-    // to declare an overrule with a `Supersedes:` line, which the host reads
-    // rather than inferring intent from a diff.
+    // to record its own `decisionLog`, so the document is distilled from the log
+    // rather than the log reverse-engineered from the document.
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:6bebd2047f919d76f6b85d1ca6a9ecde5b17c599a2271bf6169d059390c315fb")
+        digest("sha256:24df29a5878300d9c50782dcb4cdc175ed9c00606dc7c367683ed3215349f791")
     );
 
     assert_eq!(help.module_code(), "core");

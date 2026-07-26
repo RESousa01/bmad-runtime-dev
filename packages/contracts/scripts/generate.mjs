@@ -667,6 +667,21 @@ const bmadDocumentResultFixture = {
     schemaVersion: "sapphirus.bmad-document-artifact.v1",
     title: "Product brief: example",
     sections: [{ heading: "Problem", body: "A bounded problem statement." }],
+    // The chronological record the document was distilled from, as the author
+    // wrote it. `override` appears here and nowhere else: an overrule is an
+    // intent, so it is stated rather than inferred from a diff.
+    decisionLog: [
+      {
+        kind: "event",
+        text: "bmm:bmad-product-brief create: Product brief: example",
+      },
+      {
+        kind: "decision",
+        subject: "Problem",
+        text: "Problem: A bounded problem statement.",
+      },
+      { kind: "question", text: "What is the launch market?" },
+    ],
     evidenceRefs: ["evidence_01ARZ3NDEKTSV4RRFFQ69G5FAV"],
     openQuestions: ["What is the launch market?"],
   },

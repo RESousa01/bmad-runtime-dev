@@ -579,6 +579,7 @@ fn parse_document_artifact(
             "schemaVersion",
             "title",
             "sections",
+            "decisionLog",
             "evidenceRefs",
             "openQuestions",
         ],
@@ -607,6 +608,36 @@ fn parse_document_artifact(
                     })
                 })
                 .collect::<Result<Vec<_>, BmadCapabilityCoordinatorError>>()?;
+            // The record the artifact was distilled from, as the author wrote
+            // it. Every field is untrusted input like any other: an unknown
+            // kind is rejected rather than coerced to a default.
+            let decision_log = artifact
+                .get("decisionLog")
+                .and_then(Value::as_array)
+                .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?
+                .iter()
+                .map(|entry| {
+                    let entry = entry
+                        .as_object()
+                        .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
+                    require_exact_keys(entry, &["kind", "text"], &["subject"])?;
+                    let kind = entry
+                        .get("kind")
+                        .and_then(Value::as_str)
+                        .and_then(desktop_runtime::MemlogEntryKind::from_code)
+                        .ok_or(BmadCapabilityCoordinatorError::OutputRejected)?;
+                    let subject = match entry.get("subject") {
+                        None | Some(Value::Null) => None,
+                        Some(Value::String(subject)) => Some(subject.clone()),
+                        Some(_) => return Err(BmadCapabilityCoordinatorError::OutputRejected),
+                    };
+                    Ok(desktop_runtime::BmadDocumentLogEntry {
+                        kind,
+                        subject,
+                        text: required_string(entry.get("text"))?,
+                    })
+                })
+                .collect::<Result<Vec<_>, BmadCapabilityCoordinatorError>>()?;
             let evidence_refs = optional_string_array(artifact.get("evidenceRefs"))?
                 .into_iter()
                 .map(|value| {
@@ -623,6 +654,7 @@ fn parse_document_artifact(
             BmadDocumentArtifact::new(
                 required_string(artifact.get("title"))?,
                 sections,
+                decision_log,
                 evidence_refs,
                 open_questions,
                 mermaid_text,
@@ -873,6 +905,11 @@ This draft cannot install, register, or execute.
                 "sections": [{
                     "heading": "Deterministic composition",
                     "body": "This artifact was produced locally by the deterministic composition; no external model was contacted.",
+                }],
+                "decisionLog": [{
+                    "kind": "decision",
+                    "subject": "Deterministic composition",
+                    "text": "Deterministic composition: produced locally, no external model contacted.",
                 }],
                 "evidenceRefs": [],
                 "openQuestions": [],
@@ -1487,11 +1524,11 @@ doc_workspace: docs/prd
         let cases = [
             (
                 "root",
-                r#"{"resultKind":"document_artifact","resultKind":"document_artifact","documentArtifact":{"schemaVersion":"sapphirus.bmad-document-artifact.v1","title":"Title","sections":[{"heading":"Summary","body":"Body"}],"evidenceRefs":[],"openQuestions":[]}}"#.to_owned(),
+                r#"{"resultKind":"document_artifact","resultKind":"document_artifact","documentArtifact":{"schemaVersion":"sapphirus.bmad-document-artifact.v1","title":"Title","sections":[{"heading":"Summary","body":"Body"}],"decisionLog":[],"evidenceRefs":[],"openQuestions":[]}}"#.to_owned(),
             ),
             (
                 "document section",
-                r#"{"resultKind":"document_artifact","documentArtifact":{"schemaVersion":"sapphirus.bmad-document-artifact.v1","title":"Title","sections":[{"heading":"Summary","body":"Body","body":"Body"}],"evidenceRefs":[],"openQuestions":[]}}"#.to_owned(),
+                r#"{"resultKind":"document_artifact","documentArtifact":{"schemaVersion":"sapphirus.bmad-document-artifact.v1","title":"Title","sections":[{"heading":"Summary","body":"Body","body":"Body"}],"decisionLog":[],"evidenceRefs":[],"openQuestions":[]}}"#.to_owned(),
             ),
             (
                 "Builder file",
@@ -1658,6 +1695,11 @@ doc_workspace: docs/prd
                     "heading": "Summary",
                     "body": "Reviewed content.",
                     "approved": true,
+                }],
+                "decisionLog": [{
+                    "kind": "decision",
+                    "subject": "Deterministic composition",
+                    "text": "Deterministic composition: produced locally, no external model contacted.",
                 }],
                 "evidenceRefs": [],
                 "openQuestions": [],

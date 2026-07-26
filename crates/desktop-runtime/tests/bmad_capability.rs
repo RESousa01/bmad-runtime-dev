@@ -24,6 +24,7 @@ fn document() -> BmadDocumentArtifact {
             heading: "Problem".to_owned(),
             body: "A bounded problem statement.".to_owned(),
         }],
+        Vec::new(),
         vec![id("evidence_01ARZ3NDEKTSV4RRFFQ69G5FAV")],
         vec!["Which launch market?".to_owned()],
         None,
@@ -110,8 +111,15 @@ fn a_result_cannot_substitute_another_archetype_or_repeat() {
 #[test]
 fn document_artifacts_enforce_reviewed_bounds() {
     assert_eq!(
-        BmadDocumentArtifact::new(String::new(), Vec::new(), Vec::new(), Vec::new(), None)
-            .unwrap_err(),
+        BmadDocumentArtifact::new(
+            String::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            None
+        )
+        .unwrap_err(),
         BmadCapabilityRunError::BoundsViolation
     );
     assert_eq!(
@@ -121,6 +129,7 @@ fn document_artifacts_enforce_reviewed_bounds() {
                 heading: "h".to_owned(),
                 body: "b".to_owned(),
             }],
+            Vec::new(),
             Vec::new(),
             Vec::new(),
             None,
@@ -135,6 +144,7 @@ fn document_artifacts_enforce_reviewed_bounds() {
                 heading: "h".to_owned(),
                 body: "b".repeat(32_769),
             }],
+            Vec::new(),
             Vec::new(),
             Vec::new(),
             None,

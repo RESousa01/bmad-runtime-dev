@@ -18,7 +18,7 @@
 
 use crate::{ContractId, UnixMillis};
 
-use super::capability::{BmadDocumentArtifact, BmadDocumentSection};
+use super::capability::{BmadDocumentArtifact, BmadDocumentLogEntry, BmadDocumentSection};
 use super::memlog::{Memlog, MemlogEntryKind, MemlogError};
 
 pub const BMAD_ARCHITECTURE_SESSION_SCHEMA: &str = "sapphirus.bmad-architecture-session.v1";
@@ -539,9 +539,25 @@ impl BmadArchitectureSession {
             .flat_map(|record| record.artifact.evidence_refs.iter().cloned())
             .collect::<Vec<_>>();
 
+        // The spine carries the log it was distilled from. For this capability
+        // that is not a projection of the finished document: every entry was
+        // recorded as its step landed, which is exactly upstream's ordering.
+        let decision_log = self
+            .to_memlog()
+            .map_err(|_| BmadArchitectureError::BoundsViolation)?
+            .entries()
+            .iter()
+            .map(|entry| BmadDocumentLogEntry {
+                kind: entry.kind,
+                subject: None,
+                text: entry.text.clone(),
+            })
+            .collect::<Vec<_>>();
+
         let spine = BmadDocumentArtifact::new(
             SPINE_TITLE.to_owned(),
             sections,
+            decision_log,
             evidence_refs,
             self.open_questions.clone(),
             mermaid_text,
@@ -607,6 +623,7 @@ mod tests {
                 heading: heading.to_owned(),
                 body: format!("Decided: {heading}."),
             }],
+            Vec::new(),
             Vec::new(),
             Vec::new(),
             None,
@@ -751,6 +768,7 @@ mod tests {
             }],
             Vec::new(),
             Vec::new(),
+            Vec::new(),
             None,
         )
         .expect("structured artifact");
@@ -824,6 +842,7 @@ mod tests {
                     body: "Decided.".to_owned(),
                 }],
                 Vec::new(),
+                Vec::new(),
                 questions,
                 None,
             )
@@ -881,6 +900,7 @@ mod tests {
                     body: "Body.".to_owned(),
                 })
                 .collect(),
+            Vec::new(),
             Vec::new(),
             Vec::new(),
             None,
@@ -991,6 +1011,7 @@ mod tests {
                     heading: step.title().to_owned(),
                     body: "Decided.".to_owned(),
                 }],
+                Vec::new(),
                 Vec::new(),
                 Vec::new(),
                 mermaid,

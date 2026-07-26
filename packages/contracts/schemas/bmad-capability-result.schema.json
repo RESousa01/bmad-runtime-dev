@@ -6,7 +6,10 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resultKind", "documentArtifact"],
+      "required": [
+        "resultKind",
+        "documentArtifact"
+      ],
       "properties": {
         "resultKind": {
           "const": "document_artifact"
@@ -19,7 +22,10 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resultKind", "governedChangeSet"],
+      "required": [
+        "resultKind",
+        "governedChangeSet"
+      ],
       "properties": {
         "resultKind": {
           "const": "governed_change_set"
@@ -32,7 +38,10 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resultKind", "inactiveBuilderDraft"],
+      "required": [
+        "resultKind",
+        "inactiveBuilderDraft"
+      ],
       "properties": {
         "resultKind": {
           "const": "inactive_builder_draft"
@@ -54,10 +63,54 @@
       "minLength": 1,
       "maxLength": 32768
     },
+    "BmadDocumentLogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "text"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "idea",
+            "insight",
+            "question",
+            "decision",
+            "direction",
+            "assumption",
+            "constraint",
+            "capability",
+            "change",
+            "override",
+            "version",
+            "gap",
+            "technique",
+            "event",
+            "note"
+          ]
+        },
+        "subject": {
+          "$ref": "#/$defs/BmadBoundedTitle"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      }
+    },
     "BmadDocumentArtifact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "title", "sections", "evidenceRefs", "openQuestions"],
+      "required": [
+        "schemaVersion",
+        "title",
+        "sections",
+        "evidenceRefs",
+        "openQuestions",
+        "decisionLog"
+      ],
       "properties": {
         "schemaVersion": {
           "const": "sapphirus.bmad-document-artifact.v1"
@@ -72,7 +125,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["heading", "body"],
+            "required": [
+              "heading",
+              "body"
+            ],
             "properties": {
               "heading": {
                 "$ref": "#/$defs/BmadBoundedTitle"
@@ -81,6 +137,13 @@
                 "$ref": "#/$defs/BmadBoundedProse"
               }
             }
+          }
+        },
+        "decisionLog": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/BmadDocumentLogEntry"
           }
         },
         "evidenceRefs": {
@@ -110,7 +173,11 @@
     "BmadGovernedChangeSet": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "summary", "changes"],
+      "required": [
+        "schemaVersion",
+        "summary",
+        "changes"
+      ],
       "properties": {
         "schemaVersion": {
           "const": "sapphirus.bmad-governed-change-set.v1"
@@ -135,7 +202,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["operation", "path", "content"],
+          "required": [
+            "operation",
+            "path",
+            "content"
+          ],
           "properties": {
             "operation": {
               "const": "create"
@@ -152,7 +223,12 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["operation", "path", "content", "preimageSha256"],
+          "required": [
+            "operation",
+            "path",
+            "content",
+            "preimageSha256"
+          ],
           "properties": {
             "operation": {
               "const": "replace"
@@ -172,7 +248,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["operation", "path", "preimageSha256"],
+          "required": [
+            "operation",
+            "path",
+            "preimageSha256"
+          ],
           "properties": {
             "operation": {
               "const": "delete"
@@ -190,13 +270,22 @@
     "BmadInactiveBuilderDraft": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "draftKind", "title", "revisionNote", "files"],
+      "required": [
+        "schemaVersion",
+        "draftKind",
+        "title",
+        "revisionNote",
+        "files"
+      ],
       "properties": {
         "schemaVersion": {
           "const": "sapphirus.bmad-inactive-builder-draft.v1"
         },
         "draftKind": {
-          "enum": ["agent", "workflow"]
+          "enum": [
+            "agent",
+            "workflow"
+          ]
         },
         "title": {
           "$ref": "#/$defs/BmadBoundedTitle"
@@ -213,7 +302,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["path", "content"],
+            "required": [
+              "path",
+              "content"
+            ],
             "properties": {
               "path": {
                 "$ref": "./common.schema.json#/$defs/RelativeWorkspacePath"

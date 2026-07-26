@@ -55,12 +55,15 @@ as reviewed context, so a revision to either spine starts from what
 earlier runs decided rather than from the finished specification alone —
 which is how a token or behaviour decision keeps its reason.
 
-When a section overrules a decision an earlier run made, say so inside that
-section with a `Supersedes:` line naming what it overrules. That line is the
-only thing that records an overrule: the host reads what changed in the
+Record what mattered as you decide it, in `decisionLog`, and let the document
+be the distillation of that record rather than the other way round. Give each
+entry the kind that fits — `decision`, `insight`, `assumption`, `constraint`,
+`question` — and name the section it concerns as its `subject` where it has one.
+
+`override` belongs there and nowhere else: use it when a decision overrules an
+earlier one, and say what it overrules. The host reads what changed in the
 document, but it never infers that anyone *meant* to overrule anything, so an
-undeclared reversal lands in the log as an ordinary revision and the reason is
-lost.
+undeclared reversal lands as an ordinary revision and the reason is lost.
 
 Two limits are worth stating. The log is written once, at the end of a
 run, rather than as each decision lands — so within a single run it

@@ -7,6 +7,7 @@
 //! approval claim, and a result whose archetype does not match the run's
 //! declared output schema is rejected before it is ever stored.
 
+use crate::bmad::memlog::MemlogEntryKind;
 use crate::{ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis};
 
 pub const BMAD_CAPABILITY_RUN_SCHEMA: &str = "sapphirus.bmad-capability-run.v1";
@@ -20,6 +21,9 @@ const SECTION_LIMIT: usize = 64;
 const EVIDENCE_LIMIT: usize = 64;
 const QUESTION_LIMIT: usize = 64;
 const QUESTION_LENGTH_LIMIT: usize = 1_024;
+/// Bounds on the carried memory log, matching the store's own entry ceiling.
+const LOG_ENTRY_LIMIT: usize = 128;
+const LOG_TEXT_LIMIT: usize = 4_096;
 const MERMAID_LIMIT: usize = 16_384;
 const SUMMARY_LIMIT: usize = 4_096;
 const CHANGE_LIMIT: usize = 128;
@@ -85,12 +89,31 @@ pub struct BmadDocumentSection {
     pub body: String,
 }
 
+/// One line of the run's own working memory, as the author recorded it.
+///
+/// Upstream's memlog is "the dense, chronological record of everything that
+/// mattered", and downstream artifacts are *derived* from it. Carrying it on the
+/// artifact is what makes that true here rather than aspirational: the host
+/// records what the author says it decided, in the order it decided, instead of
+/// reverse-engineering entries out of finished prose afterwards.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BmadDocumentLogEntry {
+    pub kind: MemlogEntryKind,
+    /// What the entry is about — a section heading, where it has one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+    pub text: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BmadDocumentArtifact {
     schema_version: &'static str,
     pub title: String,
     pub sections: Vec<BmadDocumentSection>,
+    /// The chronological record this artifact was distilled from.
+    pub decision_log: Vec<BmadDocumentLogEntry>,
     pub evidence_refs: Vec<ContractId>,
     pub open_questions: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,6 +130,7 @@ impl BmadDocumentArtifact {
     pub fn new(
         title: String,
         sections: Vec<BmadDocumentSection>,
+        decision_log: Vec<BmadDocumentLogEntry>,
         evidence_refs: Vec<ContractId>,
         open_questions: Vec<String>,
         mermaid_text: Option<String>,
@@ -120,6 +144,15 @@ impl BmadDocumentArtifact {
                     && !section.body.is_empty()
                     && section.body.len() <= PROSE_LIMIT
             });
+        let bounded_log = decision_log.len() <= LOG_ENTRY_LIMIT
+            && decision_log.iter().all(|entry| {
+                !entry.text.is_empty()
+                    && entry.text.len() <= LOG_TEXT_LIMIT
+                    && entry
+                        .subject
+                        .as_ref()
+                        .is_none_or(|subject| !subject.is_empty() && subject.len() <= TITLE_LIMIT)
+            });
         let bounded_questions = open_questions.len() <= QUESTION_LIMIT
             && open_questions
                 .iter()
@@ -129,6 +162,7 @@ impl BmadDocumentArtifact {
             .is_none_or(|text| !text.is_empty() && text.len() <= MERMAID_LIMIT);
         if !bounded_title
             || !bounded_sections
+            || !bounded_log
             || evidence_refs.len() > EVIDENCE_LIMIT
             || !bounded_questions
             || !bounded_mermaid
@@ -139,6 +173,7 @@ impl BmadDocumentArtifact {
             schema_version: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
             title,
             sections,
+            decision_log,
             evidence_refs,
             open_questions,
             mermaid_text,

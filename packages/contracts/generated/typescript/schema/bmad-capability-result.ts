@@ -45,6 +45,10 @@ export interface BmadDocumentArtifact {
     body: BmadBoundedProse;
   }[];
   /**
+   * @maxItems 128
+   */
+  decisionLog: BmadDocumentLogEntry[];
+  /**
    * @maxItems 64
    */
   evidenceRefs: string[];
@@ -53,6 +57,26 @@ export interface BmadDocumentArtifact {
    */
   openQuestions: string[];
   mermaidText?: string;
+}
+export interface BmadDocumentLogEntry {
+  kind:
+    | "idea"
+    | "insight"
+    | "question"
+    | "decision"
+    | "direction"
+    | "assumption"
+    | "constraint"
+    | "capability"
+    | "change"
+    | "override"
+    | "version"
+    | "gap"
+    | "technique"
+    | "event"
+    | "note";
+  subject?: BmadBoundedTitle;
+  text: string;
 }
 export interface BmadGovernedChangeSet {
   schemaVersion: "sapphirus.bmad-governed-change-set.v1";

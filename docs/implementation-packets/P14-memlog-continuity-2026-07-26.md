@@ -281,34 +281,46 @@ A declared overrule is recorded whatever the run's scope, since a later
 architecture step may legitimately overrule an earlier one; scope now governs
 only what the host *infers*.
 
-### 3. Within one run the log is still a projection — **blocked, not deferred**
+### 3. The artifact is now derived from the author's log — **closed**
 
-The fix is the same shape as #2 — the author reports the entries rather than the
-host reverse-engineering them from finished prose — but it needs the model's own
-ordered log to reach the host, and `BmadDocumentArtifact` is a closed object in
-the sealed wire contract with no field for it.
+`BmadDocumentArtifact` carries `decisionLog`: the author's own chronological
+record, in the order it recorded it, with the kinds only the author can know —
+an `insight`, an `assumption`, an `override`. The host records that instead of
+reverse-engineering entries out of finished prose. That is what makes "the
+artifact is derived from the log" true here rather than aspirational, and it
+subsumes finding 2: `override` now arrives in the log and nowhere else, so the
+`Supersedes:` prose channel added for #2 was removed as redundant.
 
-Adding one cannot be completed or verified here. `packages/contracts` regenerates
-Rust, TypeScript and .NET bindings from the schema with pinned generators, and
-the generator refuses to run without a repo-local prebuilt `cargo-typify.exe`:
+The host still fills gaps it can see — a section the log does not speak for, or
+a heading a whole-document run stopped carrying — so the document can never hold
+a decision its memory does not. Those are structural facts and are recorded as
+`change`, never as an overrule.
 
-```
-CONTRACT_GENERATOR_FALLBACK_FORBIDDEN: Missing repo-local
-target/contract-tools/bin/cargo-typify.exe
-```
+For the architecture spine this is exact rather than approximate: the spine
+carries the memlog it was distilled from, every entry recorded as its step
+landed, which is upstream's ordering.
 
-CI restores that binary as a reviewed artefact precisely because `cargo install`
-is not byte-reproducible across hosts. Editing the schema without it would leave
-the generated trees and `schema-lock.json` stale, fail `contracts.yml`, and give
-no way to verify otherwise — so it was not attempted.
+**I was wrong that this was blocked.** The contract generator does need a pinned
+`cargo-typify`, but the reviewed prebuilt is vendored in the repo at
+`tools/contract-codegen/vendor/` and provisioned by
+`node tools/contract-codegen/native-generator.mjs restore` — the same command CI
+runs. I had checked the destination path and `PATH` and concluded it was
+unavailable without looking for the provisioning step. With it restored, the
+schema change, regeneration across Rust/TypeScript/.NET, and
+`pnpm contracts:verify:cross-language` all completed here.
 
-What remains after that field exists is genuinely out of scope here: upstream
-appends *as each decision lands, during a conversation*, and Forge's capability
-lane is one reviewed exchange. Closing that needs multi-turn runs with per-exchange
-consent, which the packet excludes and which changes the consent model.
+**What genuinely remains, and it is smaller than before.** Upstream appends
+*during* the conversation, as each decision lands. Forge writes the run's entries
+at the end of one reviewed exchange. The order and content are now the author's;
+the writes are not interleaved with the reasoning, because a capability run is a
+single exchange. Closing that last gap needs multi-turn runs with per-exchange
+consent — a change to the consent model, not to this feature.
 
-**Recommended next step:** a separate packet adding `decisionLog` to
-`BmadDocumentArtifact`, run where the pinned contract generators are available.
+### Note: pre-existing `schema-lock.json` drift
+
+Regenerating surfaced that `schema-lock.json` had been stale since `828592ca`
+(its recorded `Cargo.lock` digest no longer matched), which would have failed
+`contracts.yml`. That predates this work; it is corrected by the regeneration.
 
 ### The three limits, as first reported
 

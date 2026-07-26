@@ -32,39 +32,46 @@ public readonly partial struct SapphirusContractsCatalog
     {
         public static partial class JsonSchema
         {
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyDecisionLogPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("decisionLog"u8, buffer, out written);
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyDecisionLogNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("decisionLog"u8, buffer, out written);
+
+            private const int RequiredOffsetForDecisionLog = 0;
+            private const uint RequiredBitForDecisionLog = 0b00000000000000000000000000000001;
+
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyEvidenceRefsPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("evidenceRefs"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyEvidenceRefsNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("evidenceRefs"u8, buffer, out written);
 
             private const int RequiredOffsetForEvidenceRefs = 0;
-            private const uint RequiredBitForEvidenceRefs = 0b00000000000000000000000000000001;
+            private const uint RequiredBitForEvidenceRefs = 0b00000000000000000000000000000010;
 
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyOpenQuestionsPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("openQuestions"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyOpenQuestionsNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("openQuestions"u8, buffer, out written);
 
             private const int RequiredOffsetForOpenQuestions = 0;
-            private const uint RequiredBitForOpenQuestions = 0b00000000000000000000000000000010;
+            private const uint RequiredBitForOpenQuestions = 0b00000000000000000000000000000100;
 
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySchemaVersionPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("schemaVersion"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySchemaVersionNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("schemaVersion"u8, buffer, out written);
 
             private const int RequiredOffsetForSchemaVersion = 0;
-            private const uint RequiredBitForSchemaVersion = 0b00000000000000000000000000000100;
+            private const uint RequiredBitForSchemaVersion = 0b00000000000000000000000000001000;
 
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySectionsPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("sections"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertySectionsNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("sections"u8, buffer, out written);
 
             private const int RequiredOffsetForSections = 0;
-            private const uint RequiredBitForSections = 0b00000000000000000000000000001000;
+            private const uint RequiredBitForSections = 0b00000000000000000000000000010000;
 
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyTitlePresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("title"u8, buffer, out written);
             private static readonly JsonSchemaMessageProvider<int> RequiredPropertyTitleNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("title"u8, buffer, out written);
 
             private const int RequiredOffsetForTitle = 0;
-            private const uint RequiredBitForTitle = 0b00000000000000000000000000010000;
+            private const uint RequiredBitForTitle = 0b00000000000000000000000000100000;
 
             private const uint RequiredBitMask0 =
-                RequiredBitForEvidenceRefs | RequiredBitForOpenQuestions | RequiredBitForSchemaVersion | RequiredBitForSections |
-                RequiredBitForTitle;
+                RequiredBitForDecisionLog | RequiredBitForEvidenceRefs | RequiredBitForOpenQuestions | RequiredBitForSchemaVersion |
+                RequiredBitForSections | RequiredBitForTitle;
+            private static readonly JsonSchemaPathProvider DecisionLogSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/decisionLog"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider EvidenceRefsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/evidenceRefs"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider MermaidTextSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/mermaidText"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider OpenQuestionsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/openQuestions"u8, buffer, out written);
@@ -72,10 +79,32 @@ public readonly partial struct SapphirusContractsCatalog
             private static readonly JsonSchemaPathProvider SectionsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/sections"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider TitleSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/title/$ref"u8, buffer, out written);
 
-            private static void MatchEvidenceRefs(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
+            private static void MatchDecisionLog(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext =
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.JsonSchema.PushChildContextUnescaped(
+                        parentDocument,
+                        parentDocumentIndex,
+                        ref context,
+                        JsonPropertyNames.DecisionLogUtf8,
+                        evaluationPath: DecisionLogSchemaEvaluationPath);
+
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext);
+                context.CommitChildContext(childContext.IsMatch, ref childContext);
+
+                if (!context.HasCollector && !context.IsMatch)
+                {
+                    return;
+                }
+
+                requiredBitBuffer[RequiredOffsetForDecisionLog] |= RequiredBitForDecisionLog;
+            }
+
+            private static void MatchEvidenceRefs(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
+            {
+                context.AddLocalEvaluatedProperty(propertyCount);
+                JsonSchemaContext childContext1 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -83,8 +112,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.EvidenceRefsUtf8,
                         evaluationPath: EvidenceRefsSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext);
-                context.CommitChildContext(childContext.IsMatch, ref childContext);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext1);
+                context.CommitChildContext(childContext1.IsMatch, ref childContext1);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -97,7 +126,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchMermaidText(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext1 =
+                JsonSchemaContext childContext2 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -105,14 +134,14 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.MermaidTextUtf8,
                         evaluationPath: MermaidTextSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext1);
-                context.CommitChildContext(childContext1.IsMatch, ref childContext1);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext2);
+                context.CommitChildContext(childContext2.IsMatch, ref childContext2);
             }
 
             private static void MatchOpenQuestions(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext2 =
+                JsonSchemaContext childContext3 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -120,8 +149,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.OpenQuestionsUtf8,
                         evaluationPath: OpenQuestionsSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext2);
-                context.CommitChildContext(childContext2.IsMatch, ref childContext2);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
+                context.CommitChildContext(childContext3.IsMatch, ref childContext3);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -134,7 +163,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchSchemaVersion(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext3 =
+                JsonSchemaContext childContext4 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SchemaVersionEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -142,8 +171,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.SchemaVersionUtf8,
                         evaluationPath: SchemaVersionSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
-                context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
+                context.CommitChildContext(childContext4.IsMatch, ref childContext4);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -156,7 +185,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchSections(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext4 =
+                JsonSchemaContext childContext5 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -164,8 +193,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.SectionsUtf8,
                         evaluationPath: SectionsSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
-                context.CommitChildContext(childContext4.IsMatch, ref childContext4);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
+                context.CommitChildContext(childContext5.IsMatch, ref childContext5);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -178,7 +207,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchTitle(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext5 =
+                JsonSchemaContext childContext6 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -186,8 +215,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.TitleUtf8,
                         evaluationPath: TitleSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
-                context.CommitChildContext(childContext5.IsMatch, ref childContext5);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
+                context.CommitChildContext(childContext6.IsMatch, ref childContext6);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -200,6 +229,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static PropertySchemaMatchers<Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1> MatchersBuilder()
             {
                 return new PropertySchemaMatchers<Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1>([
+                    (static () => JsonPropertyNames.DecisionLogUtf8, MatchDecisionLog),
                     (static () => JsonPropertyNames.EvidenceRefsUtf8, MatchEvidenceRefs),
                     (static () => JsonPropertyNames.MermaidTextUtf8, MatchMermaidText),
                     (static () => JsonPropertyNames.OpenQuestionsUtf8, MatchOpenQuestions),
@@ -314,11 +344,12 @@ public readonly partial struct SapphirusContractsCatalog
                     {
                         if (context.HasCollector)
                         {
-                            context.EvaluatedKeywordForProperty(true, 0, RequiredPropertyEvidenceRefsPresent, "evidenceRefs"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 1, RequiredPropertyOpenQuestionsPresent, "openQuestions"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 2, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertySectionsPresent, "sections"u8, "required"u8);
-                            context.EvaluatedKeywordForProperty(true, 4, RequiredPropertyTitlePresent, "title"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 0, RequiredPropertyDecisionLogPresent, "decisionLog"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 1, RequiredPropertyEvidenceRefsPresent, "evidenceRefs"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 2, RequiredPropertyOpenQuestionsPresent, "openQuestions"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 4, RequiredPropertySectionsPresent, "sections"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 5, RequiredPropertyTitlePresent, "title"u8, "required"u8);
                         }
                     }
                     else if (!context.HasCollector)
@@ -328,49 +359,58 @@ public readonly partial struct SapphirusContractsCatalog
                     }
                     else
                     {
-                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForEvidenceRefs] & RequiredBitForEvidenceRefs) == 0)
+                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForDecisionLog] & RequiredBitForDecisionLog) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 0, RequiredPropertyEvidenceRefsNotPresent, "evidenceRefs"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 0, RequiredPropertyDecisionLogNotPresent, "decisionLog"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 0, RequiredPropertyEvidenceRefsPresent, "evidenceRefs"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 0, RequiredPropertyDecisionLogPresent, "decisionLog"u8, "required"u8);
+                        }
+
+                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForEvidenceRefs] & RequiredBitForEvidenceRefs) == 0)
+                        {
+                            context.EvaluatedKeywordForProperty(false, 1, RequiredPropertyEvidenceRefsNotPresent, "evidenceRefs"u8, "required"u8);
+                        }
+                        else
+                        {
+                            context.EvaluatedKeywordForProperty(true, 1, RequiredPropertyEvidenceRefsPresent, "evidenceRefs"u8, "required"u8);
                         }
 
                         if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForOpenQuestions] & RequiredBitForOpenQuestions) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 1, RequiredPropertyOpenQuestionsNotPresent, "openQuestions"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 2, RequiredPropertyOpenQuestionsNotPresent, "openQuestions"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 1, RequiredPropertyOpenQuestionsPresent, "openQuestions"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 2, RequiredPropertyOpenQuestionsPresent, "openQuestions"u8, "required"u8);
                         }
 
                         if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForSchemaVersion] & RequiredBitForSchemaVersion) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 2, RequiredPropertySchemaVersionNotPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 3, RequiredPropertySchemaVersionNotPresent, "schemaVersion"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 2, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertySchemaVersionPresent, "schemaVersion"u8, "required"u8);
                         }
 
                         if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForSections] & RequiredBitForSections) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 3, RequiredPropertySectionsNotPresent, "sections"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 4, RequiredPropertySectionsNotPresent, "sections"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertySectionsPresent, "sections"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 4, RequiredPropertySectionsPresent, "sections"u8, "required"u8);
                         }
 
                         if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForTitle] & RequiredBitForTitle) == 0)
                         {
-                            context.EvaluatedKeywordForProperty(false, 4, RequiredPropertyTitleNotPresent, "title"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(false, 5, RequiredPropertyTitleNotPresent, "title"u8, "required"u8);
                         }
                         else
                         {
-                            context.EvaluatedKeywordForProperty(true, 4, RequiredPropertyTitlePresent, "title"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 5, RequiredPropertyTitlePresent, "title"u8, "required"u8);
                         }
                     }
                 }

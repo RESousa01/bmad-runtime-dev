@@ -4689,6 +4689,7 @@ impl<'de> ::serde::Deserialize<'de> for BmadCapabilityResultBmadCandidateChangeC
 #[doc = "{"]
 #[doc = "  \"type\": \"object\","]
 #[doc = "  \"required\": ["]
+#[doc = "    \"decisionLog\","]
 #[doc = "    \"evidenceRefs\","]
 #[doc = "    \"openQuestions\","]
 #[doc = "    \"schemaVersion\","]
@@ -4696,6 +4697,13 @@ impl<'de> ::serde::Deserialize<'de> for BmadCapabilityResultBmadCandidateChangeC
 #[doc = "    \"title\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
+#[doc = "    \"decisionLog\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCapabilityResultBmadDocumentLogEntry\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 128"]
+#[doc = "    },"]
 #[doc = "    \"evidenceRefs\": {"]
 #[doc = "      \"type\": \"array\","]
 #[doc = "      \"items\": {"]
@@ -4753,6 +4761,8 @@ impl<'de> ::serde::Deserialize<'de> for BmadCapabilityResultBmadCandidateChangeC
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct BmadCapabilityResultBmadDocumentArtifact {
+    #[serde(rename = "decisionLog")]
+    pub decision_log: ::std::vec::Vec<BmadCapabilityResultBmadDocumentLogEntry>,
     #[serde(rename = "evidenceRefs")]
     pub evidence_refs: Vec<CommonContractId>,
     #[serde(
@@ -4961,6 +4971,279 @@ pub struct BmadCapabilityResultBmadDocumentArtifactSectionsItem {
 impl BmadCapabilityResultBmadDocumentArtifactSectionsItem {
     pub fn builder() -> builder::BmadCapabilityResultBmadDocumentArtifactSectionsItem {
         Default::default()
+    }
+}
+#[doc = "`BmadCapabilityResultBmadDocumentLogEntry`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"kind\","]
+#[doc = "    \"text\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"idea\","]
+#[doc = "        \"insight\","]
+#[doc = "        \"question\","]
+#[doc = "        \"decision\","]
+#[doc = "        \"direction\","]
+#[doc = "        \"assumption\","]
+#[doc = "        \"constraint\","]
+#[doc = "        \"capability\","]
+#[doc = "        \"change\","]
+#[doc = "        \"override\","]
+#[doc = "        \"version\","]
+#[doc = "        \"gap\","]
+#[doc = "        \"technique\","]
+#[doc = "        \"event\","]
+#[doc = "        \"note\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"subject\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCapabilityResultBmadBoundedTitle\""]
+#[doc = "    },"]
+#[doc = "    \"text\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4096,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCapabilityResultBmadDocumentLogEntry {
+    pub kind: BmadCapabilityResultBmadDocumentLogEntryKind,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub subject: ::std::option::Option<BmadCapabilityResultBmadBoundedTitle>,
+    pub text: BmadCapabilityResultBmadDocumentLogEntryText,
+}
+impl BmadCapabilityResultBmadDocumentLogEntry {
+    pub fn builder() -> builder::BmadCapabilityResultBmadDocumentLogEntry {
+        Default::default()
+    }
+}
+#[doc = "`BmadCapabilityResultBmadDocumentLogEntryKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"idea\","]
+#[doc = "    \"insight\","]
+#[doc = "    \"question\","]
+#[doc = "    \"decision\","]
+#[doc = "    \"direction\","]
+#[doc = "    \"assumption\","]
+#[doc = "    \"constraint\","]
+#[doc = "    \"capability\","]
+#[doc = "    \"change\","]
+#[doc = "    \"override\","]
+#[doc = "    \"version\","]
+#[doc = "    \"gap\","]
+#[doc = "    \"technique\","]
+#[doc = "    \"event\","]
+#[doc = "    \"note\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCapabilityResultBmadDocumentLogEntryKind {
+    #[serde(rename = "idea")]
+    Idea,
+    #[serde(rename = "insight")]
+    Insight,
+    #[serde(rename = "question")]
+    Question,
+    #[serde(rename = "decision")]
+    Decision,
+    #[serde(rename = "direction")]
+    Direction,
+    #[serde(rename = "assumption")]
+    Assumption,
+    #[serde(rename = "constraint")]
+    Constraint,
+    #[serde(rename = "capability")]
+    Capability,
+    #[serde(rename = "change")]
+    Change,
+    #[serde(rename = "override")]
+    Override,
+    #[serde(rename = "version")]
+    Version,
+    #[serde(rename = "gap")]
+    Gap,
+    #[serde(rename = "technique")]
+    Technique,
+    #[serde(rename = "event")]
+    Event,
+    #[serde(rename = "note")]
+    Note,
+}
+impl ::std::fmt::Display for BmadCapabilityResultBmadDocumentLogEntryKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Idea => f.write_str("idea"),
+            Self::Insight => f.write_str("insight"),
+            Self::Question => f.write_str("question"),
+            Self::Decision => f.write_str("decision"),
+            Self::Direction => f.write_str("direction"),
+            Self::Assumption => f.write_str("assumption"),
+            Self::Constraint => f.write_str("constraint"),
+            Self::Capability => f.write_str("capability"),
+            Self::Change => f.write_str("change"),
+            Self::Override => f.write_str("override"),
+            Self::Version => f.write_str("version"),
+            Self::Gap => f.write_str("gap"),
+            Self::Technique => f.write_str("technique"),
+            Self::Event => f.write_str("event"),
+            Self::Note => f.write_str("note"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCapabilityResultBmadDocumentLogEntryKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "idea" => Ok(Self::Idea),
+            "insight" => Ok(Self::Insight),
+            "question" => Ok(Self::Question),
+            "decision" => Ok(Self::Decision),
+            "direction" => Ok(Self::Direction),
+            "assumption" => Ok(Self::Assumption),
+            "constraint" => Ok(Self::Constraint),
+            "capability" => Ok(Self::Capability),
+            "change" => Ok(Self::Change),
+            "override" => Ok(Self::Override),
+            "version" => Ok(Self::Version),
+            "gap" => Ok(Self::Gap),
+            "technique" => Ok(Self::Technique),
+            "event" => Ok(Self::Event),
+            "note" => Ok(Self::Note),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCapabilityResultBmadDocumentLogEntryKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadCapabilityResultBmadDocumentLogEntryKind
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadCapabilityResultBmadDocumentLogEntryKind
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCapabilityResultBmadDocumentLogEntryText`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4096,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCapabilityResultBmadDocumentLogEntryText(::std::string::String);
+impl ::std::ops::Deref for BmadCapabilityResultBmadDocumentLogEntryText {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCapabilityResultBmadDocumentLogEntryText> for ::std::string::String {
+    fn from(value: BmadCapabilityResultBmadDocumentLogEntryText) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCapabilityResultBmadDocumentLogEntryText {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCapabilityResultBmadDocumentLogEntryText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadCapabilityResultBmadDocumentLogEntryText
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadCapabilityResultBmadDocumentLogEntryText
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCapabilityResultBmadDocumentLogEntryText {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`BmadCapabilityResultBmadGovernedChangeSet`"]
@@ -43361,6 +43644,10 @@ pub mod builder {
     }
     #[derive(Clone, Debug)]
     pub struct BmadCapabilityResultBmadDocumentArtifact {
+        decision_log: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCapabilityResultBmadDocumentLogEntry>,
+            ::std::string::String,
+        >,
         evidence_refs: ::std::result::Result<Vec<super::CommonContractId>, ::std::string::String>,
         mermaid_text: ::std::result::Result<
             ::std::option::Option<super::BmadCapabilityResultBmadDocumentArtifactMermaidText>,
@@ -43383,6 +43670,7 @@ pub mod builder {
     impl ::std::default::Default for BmadCapabilityResultBmadDocumentArtifact {
         fn default() -> Self {
             Self {
+                decision_log: Err("no value supplied for decision_log".to_string()),
                 evidence_refs: Err("no value supplied for evidence_refs".to_string()),
                 mermaid_text: Ok(Default::default()),
                 open_questions: Err("no value supplied for open_questions".to_string()),
@@ -43393,6 +43681,18 @@ pub mod builder {
         }
     }
     impl BmadCapabilityResultBmadDocumentArtifact {
+        pub fn decision_log<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::BmadCapabilityResultBmadDocumentLogEntry>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.decision_log = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for decision_log: {e}"));
+            self
+        }
         pub fn evidence_refs<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<Vec<super::CommonContractId>>,
@@ -43468,6 +43768,7 @@ pub mod builder {
             value: BmadCapabilityResultBmadDocumentArtifact,
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
+                decision_log: value.decision_log?,
                 evidence_refs: value.evidence_refs?,
                 mermaid_text: value.mermaid_text?,
                 open_questions: value.open_questions?,
@@ -43482,6 +43783,7 @@ pub mod builder {
     {
         fn from(value: super::BmadCapabilityResultBmadDocumentArtifact) -> Self {
             Self {
+                decision_log: Ok(value.decision_log),
                 evidence_refs: Ok(value.evidence_refs),
                 mermaid_text: Ok(value.mermaid_text),
                 open_questions: Ok(value.open_questions),
@@ -43552,6 +43854,89 @@ pub mod builder {
             Self {
                 body: Ok(value.body),
                 heading: Ok(value.heading),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCapabilityResultBmadDocumentLogEntry {
+        kind: ::std::result::Result<
+            super::BmadCapabilityResultBmadDocumentLogEntryKind,
+            ::std::string::String,
+        >,
+        subject: ::std::result::Result<
+            ::std::option::Option<super::BmadCapabilityResultBmadBoundedTitle>,
+            ::std::string::String,
+        >,
+        text: ::std::result::Result<
+            super::BmadCapabilityResultBmadDocumentLogEntryText,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadCapabilityResultBmadDocumentLogEntry {
+        fn default() -> Self {
+            Self {
+                kind: Err("no value supplied for kind".to_string()),
+                subject: Ok(Default::default()),
+                text: Err("no value supplied for text".to_string()),
+            }
+        }
+    }
+    impl BmadCapabilityResultBmadDocumentLogEntry {
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCapabilityResultBmadDocumentLogEntryKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn subject<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadCapabilityResultBmadBoundedTitle>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.subject = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for subject: {e}"));
+            self
+        }
+        pub fn text<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCapabilityResultBmadDocumentLogEntryText>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCapabilityResultBmadDocumentLogEntry>
+        for super::BmadCapabilityResultBmadDocumentLogEntry
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCapabilityResultBmadDocumentLogEntry,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                kind: value.kind?,
+                subject: value.subject?,
+                text: value.text?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCapabilityResultBmadDocumentLogEntry>
+        for BmadCapabilityResultBmadDocumentLogEntry
+    {
+        fn from(value: super::BmadCapabilityResultBmadDocumentLogEntry) -> Self {
+            Self {
+                kind: Ok(value.kind),
+                subject: Ok(value.subject),
+                text: Ok(value.text),
             }
         }
     }

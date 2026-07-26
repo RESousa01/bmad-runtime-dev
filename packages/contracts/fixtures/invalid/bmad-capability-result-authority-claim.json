@@ -9,6 +9,21 @@
         "body": "A bounded problem statement."
       }
     ],
+    "decisionLog": [
+      {
+        "kind": "event",
+        "text": "bmm:bmad-product-brief create: Product brief: example"
+      },
+      {
+        "kind": "decision",
+        "subject": "Problem",
+        "text": "Problem: A bounded problem statement."
+      },
+      {
+        "kind": "question",
+        "text": "What is the launch market?"
+      }
+    ],
     "evidenceRefs": [
       "evidence_01ARZ3NDEKTSV4RRFFQ69G5FAV"
     ],

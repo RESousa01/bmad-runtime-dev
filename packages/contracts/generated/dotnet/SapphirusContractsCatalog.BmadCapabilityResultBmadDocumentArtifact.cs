@@ -60,6 +60,27 @@ public readonly partial struct SapphirusContractsCatalog
         public static BmadCapabilityResultBmadDocumentArtifact DefaultInstance { get; }
 
         /// <summary>
+        /// Gets the <c>decisionLog</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray DecisionLog
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DecisionLogUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>evidenceRefs</c> property.
         /// </summary>
         /// <remarks>
@@ -614,6 +635,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static class JsonPropertyNames
         {
             /// <summary>
+            /// Gets the JSON property name for <see cref="DecisionLog"/>.
+            /// </summary>
+            public const string DecisionLog = "decisionLog";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="EvidenceRefs"/>.
             /// </summary>
             public const string EvidenceRefs = "evidenceRefs";
@@ -642,6 +668,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="Title"/>.
             /// </summary>
             public const string Title = "title";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="DecisionLog"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> DecisionLogUtf8 => "decisionLog"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="EvidenceRefs"/>.
@@ -680,6 +711,11 @@ public readonly partial struct SapphirusContractsCatalog
         private static class JsonPropertyNamesEscaped
         {
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="DecisionLog"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> DecisionLog => "decisionLog"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="EvidenceRefs"/>.
             /// </summary>
             public static ReadOnlySpan<byte> EvidenceRefs => "evidenceRefs"u8;
@@ -716,6 +752,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         private static class JsonPropertyNamesPrebaked
         {
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="DecisionLog"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> DecisionLog => [0xD5, 0x00, 0x00, 0x00, 0x22, 0x64, 0x65, 0x63, 0x69, 0x73, 0x69, 0x6F, 0x6E, 0x4C, 0x6F, 0x67, 0x22];
+
             /// <summary>
             /// Gets the pre-baked property name blob for <see cref="EvidenceRefs"/>.
             /// </summary>

@@ -3856,6 +3856,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
             }],
             Vec::new(),
             Vec::new(),
+            Vec::new(),
             None,
         )
         .expect("artifact");

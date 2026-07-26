@@ -167,6 +167,27 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the <c>decisionLog</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Mutable DecisionLog
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DecisionLogUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the <c>evidenceRefs</c> property.
             /// </summary>
             /// <remarks>
@@ -314,6 +335,71 @@ public readonly partial struct SapphirusContractsCatalog
                 where T : struct, IJsonElement
             {
                 return JsonElementHelpers.DeepEquals(this, other);
+            }
+
+            /// <summary>
+            /// Set the <c>decisionLog</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetDecisionLog(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("decisionLog");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DecisionLogUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DecisionLog, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>decisionLog</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetDecisionLog<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("decisionLog");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.DecisionLogUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DecisionLog, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
             }
 
             /// <summary>
@@ -772,11 +858,12 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Kind _kind;
             private readonly JsonElement _jsonElement;
             private readonly Builder.Build? _objectBuilder;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source _createArg1;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source _createArg2;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source _createArg3;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source _createArg4;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source _createArg6;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -791,13 +878,14 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg5)
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg6)
             {
                 _createArg1 = arg1;
                 _createArg2 = arg2;
                 _createArg3 = arg3;
                 _createArg4 = arg4;
                 _createArg5 = arg5;
+                _createArg6 = arg6;
                 _kind = Kind.Create;
             }
 
@@ -818,7 +906,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -843,7 +931,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -868,7 +956,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -893,7 +981,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -918,7 +1006,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -946,11 +1034,12 @@ public readonly partial struct SapphirusContractsCatalog
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> _createArg1;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> _createArg2;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> _createArg3;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source _createArg4;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source _createArg6;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -963,7 +1052,7 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg5)
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg6)
             {
                 _context = context;
                 _createArg1 = arg1;
@@ -971,6 +1060,7 @@ public readonly partial struct SapphirusContractsCatalog
                 _createArg3 = arg3;
                 _createArg4 = arg4;
                 _createArg5 = arg5;
+                _createArg6 = arg6;
                 _kind = Kind.Create;
             }
 
@@ -989,7 +1079,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1014,7 +1104,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1039,7 +1129,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1064,7 +1154,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1089,7 +1179,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -1123,12 +1213,14 @@ public readonly partial struct SapphirusContractsCatalog
             /// </summary>
             internal static void Create(
                 ref ComplexValueBuilder builder,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source decisionLog,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
             {
+                decisionLog.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DecisionLog, ref builder);
                 evidenceRefs.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceRefs, ref builder);
                 openQuestions.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.OpenQuestions, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SchemaVersionEntity.ConstInstance);
@@ -1141,13 +1233,14 @@ public readonly partial struct SapphirusContractsCatalog
             /// Creates an instance of a <see cref="BmadCapabilityResultBmadDocumentArtifact"/>.
             /// </summary>
             public void Create(
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source decisionLog,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
             {
-                Create(ref _builder, evidenceRefs, openQuestions, sections, title, mermaidText);
+                Create(ref _builder, decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
             }
 
             /// <summary>
@@ -1156,6 +1249,7 @@ public readonly partial struct SapphirusContractsCatalog
             internal static void Create<TContext>(
                 in TContext context,
                 ref ComplexValueBuilder builder,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> decisionLog,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections,
@@ -1165,6 +1259,7 @@ public readonly partial struct SapphirusContractsCatalog
             where TContext : allows ref struct
             #endif
             {
+                decisionLog.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.DecisionLog, ref builder);
                 evidenceRefs.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceRefs, ref builder);
                 openQuestions.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.OpenQuestions, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SchemaVersionEntity.ConstInstance);
@@ -1178,6 +1273,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// </summary>
             public void Create<TContext>(
                 in TContext context,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> decisionLog,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections,
@@ -1187,7 +1283,7 @@ public readonly partial struct SapphirusContractsCatalog
             where TContext : allows ref struct
             #endif
             {
-                Create(context, ref _builder, evidenceRefs, openQuestions, sections, title, mermaidText);
+                Create(context, ref _builder, decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
             }
 
             internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -1221,11 +1317,12 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg3">The value of the property.</param>
             /// <param name="arg4">The value of the property.</param>
             /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg5, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg6, ref ComplexValueBuilder o)
             {
                 o.StartObject();
-                Create(ref o, arg1, arg2, arg3, arg4, arg5);
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6);
                 o.EndObject();
             }
 
@@ -1239,14 +1336,15 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg3">The value of the property.</param>
             /// <param name="arg4">The value of the property.</param>
             /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg5, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source arg6, ref ComplexValueBuilder o)
 #if NET9_0_OR_GREATER
                 where TContext : allows ref struct
 #endif
             {
                 o.StartObject();
-                Create(context, ref o, arg1, arg2, arg3, arg4, arg5);
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6);
                 o.EndObject();
             }
         }
@@ -1283,15 +1381,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// <summary>
         /// Build an instance of the value directly from its property values.
         /// </summary>
+        /// <param name="decisionLog">The value of the <c>"decisionLog"</c> property.</param>
         /// <param name="evidenceRefs">The value of the <c>"evidenceRefs"</c> property.</param>
         /// <param name="openQuestions">The value of the <c>"openQuestions"</c> property.</param>
         /// <param name="sections">The value of the <c>"sections"</c> property.</param>
         /// <param name="title">The value of the <c>"title"</c> property.</param>
         /// <param name="mermaidText">The value of the <c>"mermaidText"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source decisionLog, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
         {
-            return new Source(evidenceRefs, openQuestions, sections, title, mermaidText);
+            return new Source(decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
         }
 
         /// <summary>
@@ -1299,18 +1398,19 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
         /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="decisionLog">The value of the <c>"decisionLog"</c> property.</param>
         /// <param name="evidenceRefs">The value of the <c>"evidenceRefs"</c> property.</param>
         /// <param name="openQuestions">The value of the <c>"openQuestions"</c> property.</param>
         /// <param name="sections">The value of the <c>"sections"</c> property.</param>
         /// <param name="title">The value of the <c>"title"</c> property.</param>
         /// <param name="mermaidText">The value of the <c>"mermaidText"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> decisionLog, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
         {
-            return new Source<TContext>(context, evidenceRefs, openQuestions, sections, title, mermaidText);
+            return new Source<TContext>(context, decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
         }
 
         /// <summary>
@@ -1383,6 +1483,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// Creates and initializes a mutable document from the given property values.
         /// </summary>
         /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="decisionLog">The value of the property.</param>
         /// <param name="evidenceRefs">The value of the property.</param>
         /// <param name="openQuestions">The value of the property.</param>
         /// <param name="sections">The value of the property.</param>
@@ -1390,13 +1491,13 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mermaidText">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source decisionLog, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
         {
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(evidenceRefs, openQuestions, sections, title, mermaidText);
+            ovb.Create(decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1409,6 +1510,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
         /// <param name="workspace">The JSON workspace.</param>
         /// <param name="context">The value of the property.</param>
+        /// <param name="decisionLog">The value of the property.</param>
         /// <param name="evidenceRefs">The value of the property.</param>
         /// <param name="openQuestions">The value of the property.</param>
         /// <param name="sections">The value of the property.</param>
@@ -1416,7 +1518,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mermaidText">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> decisionLog, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1425,7 +1527,7 @@ public readonly partial struct SapphirusContractsCatalog
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(context, evidenceRefs, openQuestions, sections, title, mermaidText);
+            ovb.Create(context, decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1526,6 +1628,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <summary>
         /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
         /// </summary>
+        /// <param name="decisionLog">The value of the property.</param>
         /// <param name="evidenceRefs">The value of the property.</param>
         /// <param name="openQuestions">The value of the property.</param>
         /// <param name="sections">The value of the property.</param>
@@ -1533,7 +1636,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mermaidText">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadCapabilityResultBmadDocumentArtifact> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadCapabilityResultBmadDocumentArtifact> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source decisionLog, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
         {
             ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
             try
@@ -1541,7 +1644,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(evidenceRefs, openQuestions, sections, title, mermaidText);
+                ovb.Create(decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1558,6 +1661,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// </summary>
         /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
         /// <param name="context">The value of the property.</param>
+        /// <param name="decisionLog">The value of the property.</param>
         /// <param name="evidenceRefs">The value of the property.</param>
         /// <param name="openQuestions">The value of the property.</param>
         /// <param name="sections">The value of the property.</param>
@@ -1565,7 +1669,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mermaidText">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadCapabilityResultBmadDocumentArtifact> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadCapabilityResultBmadDocumentArtifact> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.DecisionLogArray.Source<TContext> decisionLog, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.EvidenceRefsArray.Source<TContext> evidenceRefs, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.OpenQuestionsArray.Source<TContext> openQuestions, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.SectionsArray.Source<TContext> sections, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadBoundedTitle.Source title, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResultBmadDocumentArtifact.MermaidTextEntity.Source mermaidText = default, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1576,7 +1680,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(context, evidenceRefs, openQuestions, sections, title, mermaidText);
+                ovb.Create(context, decisionLog, evidenceRefs, openQuestions, sections, title, mermaidText);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

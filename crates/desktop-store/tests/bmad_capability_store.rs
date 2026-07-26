@@ -53,6 +53,7 @@ fn document_output() -> BmadCapabilityOutput {
                 heading: "Problem".to_owned(),
                 body: "A bounded problem statement.".to_owned(),
             }],
+            Vec::new(),
             vec![id("evidence_01J00000000000000000000000")],
             vec!["Which launch market?".to_owned()],
             None,

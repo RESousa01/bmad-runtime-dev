@@ -46,9 +46,9 @@ pub use builder_ports::{BuilderAuthoringService, BuilderDraftRepository, Builder
 pub use capability::{
     BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCapabilityRun, BmadCapabilityRunError, BmadCapabilityRunParams, BmadClosureCapabilityId,
-    BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    BMAD_CAPABILITY_RUN_SCHEMA, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    BmadDocumentArtifact, BmadDocumentLogEntry, BmadDocumentSection, BmadGovernedChangeSet,
+    BmadInactiveBuilderDraft, BMAD_CAPABILITY_RUN_SCHEMA, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 pub use catalog::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,

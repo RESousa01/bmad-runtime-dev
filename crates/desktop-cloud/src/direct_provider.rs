@@ -461,7 +461,7 @@ fn model_instructions(schema_id: &str) -> &'static str {
     match schema_id {
         "sapphirus.bmad-method-help-proposal.v1" => HELP_MODEL_INSTRUCTIONS,
         "sapphirus.chat-turn.v1" => "You are a helpful assistant in a desktop workspace application. The reviewed context contains the conversation so far, oldest first, and may also contain an agent persona to adopt and workspace files the user attached. Answer the newest user message directly and conversationally. Return exactly one JSON object and no other text. The root object must contain exactly schemaVersion=sapphirus.chat-turn.v1 and text. text must be your complete reply as a single plain-text string; Markdown is allowed inside it. Never invent the contents of a file that was not supplied. You cannot read, write, or execute anything: if the user asks for an effect, say what you would do and let them run it.",
-        "sapphirus.bmad-document-artifact.v1" => "Use only the reviewed context. Return exactly one JSON object and no other text. The root object must contain exactly resultKind=document_artifact and documentArtifact. documentArtifact must contain exactly schemaVersion=sapphirus.bmad-document-artifact.v1, title, sections, evidenceRefs, and openQuestions, with optional mermaidText. sections must be a non-empty array of objects that each contain exactly heading and body. evidenceRefs and openQuestions must be arrays. Do not invent reference identifiers.",
+        "sapphirus.bmad-document-artifact.v1" => "Use only the reviewed context. Return exactly one JSON object and no other text. The root object must contain exactly resultKind=document_artifact and documentArtifact. documentArtifact must contain exactly schemaVersion=sapphirus.bmad-document-artifact.v1, title, sections, decisionLog, evidenceRefs, and openQuestions, with optional mermaidText. sections must be a non-empty array of objects that each contain exactly heading and body. decisionLog is the chronological record this document was distilled from: an array of objects that each contain exactly kind and text, with optional subject, where kind is one of idea, insight, question, decision, direction, assumption, constraint, capability, change, override, version, gap, technique, event, note, and subject names the section the entry is about. Record an override there, and only there, when a decision overrules an earlier one. evidenceRefs and openQuestions must be arrays. Do not invent reference identifiers.",
         "sapphirus.bmad-governed-change-set.v1" => "Use only the reviewed context. Return exactly one JSON object and no other text. The root object must contain exactly resultKind=governed_change_set and governedChangeSet. governedChangeSet must contain exactly schemaVersion=sapphirus.bmad-governed-change-set.v1, summary, and changes. changes must be a non-empty array. Every change must match exactly one closed variant: operation=create must contain exactly operation, path, and complete UTF-8 content; operation=replace must contain exactly operation, path, complete UTF-8 content, and preimageSha256; operation=delete must contain exactly operation, path, and preimageSha256. Every path must be workspace-relative. For replace and delete, preimageSha256 must copy the reviewedContentHash shown for the matching path in the reviewed context; never invent a hash. Never emit modify, shell commands, absolute paths, or extra keys.",
         "sapphirus.bmad-inactive-builder-draft.v1" => "Use only the reviewed context. Return exactly one JSON object and no other text. The root object must contain exactly resultKind=inactive_builder_draft and inactiveBuilderDraft. inactiveBuilderDraft must contain exactly schemaVersion=sapphirus.bmad-inactive-builder-draft.v1, draftKind, title, revisionNote, and files. draftKind must be agent or workflow. files must be a non-empty array of objects that each contain exactly path and content, and every path must be workspace-relative. This is inert authoring output: it cannot install, register, or execute anything.",
         _ => "",
@@ -759,6 +759,7 @@ mod tests {
             "sections",
             "heading",
             "body",
+            "decisionLog",
             "evidenceRefs",
             "openQuestions",
             "mermaidText",
@@ -771,7 +772,7 @@ mod tests {
         }
         assert_eq!(
             document.matches("contain exactly").count(),
-            3,
+            4,
             "document instructions must close the root, artifact, and section shapes"
         );
         for incompatible in ["artifactKind", "summary", "evidence", "sourceRefs"] {

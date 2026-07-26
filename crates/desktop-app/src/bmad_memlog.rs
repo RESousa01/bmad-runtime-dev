@@ -2,26 +2,28 @@
 //! `document_artifact` into memlog entries, and rendering the accumulated log
 //! back as context for the next run against the same doc workspace.
 //!
-//! **What this is not.** Upstream appends "as each lands", during the
-//! conversation, so its log is genuinely the source the artifact is distilled
-//! from. Forge writes at the end of a single reviewed exchange, so *within one
-//! run* the log is a projection of the artifact rather than its source. The
-//! continuity benefit is real across runs — the second run against a doc
-//! workspace sees what the first decided — but the within-run ordering is not
-//! upstream's and this is not parity.
+//! **Where the entries come from.** The artifact carries `decisionLog` — the
+//! author's own chronological record, in the order it recorded it, with the
+//! kinds only the author can know: an `insight`, an `assumption`, an
+//! `override`. The host records that, rather than reverse-engineering entries
+//! out of finished prose. That is what makes "the artifact is derived from the
+//! log" true here instead of aspirational.
 //!
-//! Closing that means the author reporting its own ordered entries instead of
-//! the host reverse-engineering them from finished prose, which needs a field
-//! `BmadDocumentArtifact` does not have — it is a closed object in the sealed
-//! wire contract. The one signal that could not wait, an overrule, arrives
-//! meanwhile through a `Supersedes:` line in the section body, read by the same
-//! extractor the architecture lane uses for `Binds`/`Prevents`/`Rule`.
+//! The host still adds what the author left unaccounted for — a section the log
+//! does not speak for, or a heading a whole-document run stopped carrying — so
+//! the document can never hold a decision its memory does not. Those are
+//! structural facts, and they are recorded as such.
+//!
+//! **What is still not upstream.** Upstream appends *during* the conversation,
+//! as each decision lands; Forge writes the run's entries at the end of one
+//! reviewed exchange. The order and the content are now the author's, but the
+//! writes are not interleaved with the reasoning, because a capability run is a
+//! single exchange. Closing that needs multi-turn runs with per-exchange
+//! consent, which is a change to the consent model rather than to this file.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use desktop_runtime::{
-    labelled_body_part, BmadDocumentArtifact, Memlog, MemlogEntryKind, UnixMillis,
-};
+use desktop_runtime::{BmadDocumentArtifact, Memlog, MemlogEntryKind, UnixMillis};
 use desktop_store::{StoredMemlogEntry, MAX_MEMLOG_ENTRY_BYTES};
 
 /// Where the log for a capability accumulates. Host-owned, exactly like
@@ -168,19 +170,15 @@ impl RunScope {
 /// **On `change` vs `override`:** the two kinds record different things and
 /// come from different places.
 ///
-/// `change` is a structural fact about the document — a heading whose text was
-/// revised, or one a [`RunScope::WholeDocument`] run stopped carrying. The host
-/// can see those in a diff and states them without claiming to know why.
+/// `override` arrives in the author's `decisionLog` and nowhere else. An
+/// overrule is an intent, and inferring intent from a diff is how a log ends up
+/// asserting things nobody decided. A run that overrules nothing records no
+/// overrides, and that is the correct outcome.
 ///
-/// `override` is *the author's own statement* that a section overrules an
-/// earlier decision, read from a `Supersedes:` line in the section body. The
-/// host never infers it: an overrule is an intent, and inferring intent from a
-/// diff is how the log ends up asserting things nobody decided. A run that
-/// overrules nothing records no overrides, and that is the correct outcome.
-///
-/// The body carries it because the reviewed wire contract is closed and has no
-/// field for it. That is the same route the architecture lane already uses for
-/// `Binds`, `Prevents` and `Rule`, through the same reader.
+/// `change` is a structural fact the host can see and the author did not
+/// mention — a heading whose text was revised, or one a
+/// [`RunScope::WholeDocument`] run stopped carrying. The host states those
+/// without claiming to know why.
 pub(crate) fn completion_entries(
     capability_id: &str,
     artifact: &BmadDocumentArtifact,
@@ -196,11 +194,34 @@ pub(crate) fn completion_entries(
         text: bounded(&format!("{capability_id} {intent}: {}", artifact.title)),
     }];
 
+    // The author's own record, in the order it recorded it. This is the whole
+    // of what a run decided, including the kinds only the author can know —
+    // an `insight`, an `assumption`, an `override`. The host does not second
+    // guess it and does not re-derive it from the finished prose.
+    for entry in &artifact.decision_log {
+        entries.push(ProjectedEntry {
+            kind: entry.kind,
+            subject: entry.subject.clone(),
+            text: bounded(&entry.text),
+        });
+    }
+
+    // Sections the author did not account for still have to reach the log, or
+    // the document would carry a decision its memory does not. A section the
+    // log already speaks for is left alone.
+    let spoken_for: BTreeSet<&str> = artifact
+        .decision_log
+        .iter()
+        .filter_map(|entry| entry.subject.as_deref())
+        .collect();
     for section in &artifact.sections {
+        if spoken_for.contains(section.heading.as_str()) {
+            continue;
+        }
         let text = condense(&section.heading, &section.body);
         match live.get(&section.heading) {
-            // Unchanged sections are not re-recorded; the log stays a record of
-            // what moved, not a copy of the document once per run.
+            // Unchanged and unremarked: the log stays a record of what moved,
+            // not a copy of the document once per run.
             Some(previous) if *previous == text => continue,
             // A revised heading is recorded as a change *before* its new
             // decision, so the log reads as "this moved, and here is where to".
@@ -216,16 +237,6 @@ pub(crate) fn completion_entries(
             subject: Some(section.heading.clone()),
             text,
         });
-        // The author's own overrule, if they declared one. Recorded after the
-        // decision that carries it, so the log reads as "here is the new call,
-        // and here is what it overrules".
-        if let Some(superseded) = labelled_body_part(&section.body, "supersedes") {
-            entries.push(ProjectedEntry {
-                kind: MemlogEntryKind::Override,
-                subject: Some(section.heading.clone()),
-                text: bounded(&format!("{}: supersedes {superseded}", section.heading)),
-            });
-        }
     }
 
     if scope == RunScope::WholeDocument {
@@ -353,10 +364,23 @@ mod tests {
                 })
                 .collect(),
             Vec::new(),
+            Vec::new(),
             questions.iter().map(|q| (*q).to_owned()).collect(),
             None,
         )
         .expect("artifact")
+    }
+
+    fn log_entry(
+        kind: MemlogEntryKind,
+        subject: Option<&str>,
+        text: &str,
+    ) -> desktop_runtime::BmadDocumentLogEntry {
+        desktop_runtime::BmadDocumentLogEntry {
+            kind,
+            subject: subject.map(str::to_owned),
+            text: text.to_owned(),
+        }
     }
 
     fn stored(
@@ -571,74 +595,109 @@ mod tests {
             .any(|entry| entry.kind == MemlogEntryKind::Override));
     }
 
-    /// P14 finding 2: an overrule is an intent, so it comes from the author.
-    /// The host reads a `Supersedes:` line out of the section body — the same
-    /// route the architecture lane already uses for `Binds`/`Prevents`/`Rule`,
-    /// because the reviewed wire contract is closed and has no field for it.
+    /// P14 findings 2 and 3: the entries are the author's own record, carried
+    /// on the artifact, not the host's reading of finished prose. That is what
+    /// makes "the artifact is derived from the log" true rather than
+    /// aspirational — and it is the only place an `override` can come from,
+    /// because an overrule is an intent and inferring intent from a diff makes
+    /// the log assert things nobody decided.
     #[test]
-    fn an_override_is_recorded_only_when_the_author_declares_one() {
-        let entries = completion_entries(
-            "bmm:bmad-prd",
-            &artifact(
-                "Payments PRD",
-                &[(
-                    "Scope",
-                    "EU and UK.
-- **Supersedes** — the EU-only scope agreed in the brief",
-                )],
-                &[],
-            ),
+    fn the_authors_own_log_is_what_is_recorded() {
+        let mut artifact = artifact(
+            "Payments PRD",
+            &[("Scope", "EU and UK."), ("Goals", "Ship checkout.")],
             &[],
-            RunScope::WholeDocument,
         );
-        let overrides: Vec<&str> = entries
+        artifact.decision_log = vec![
+            log_entry(
+                MemlogEntryKind::Insight,
+                None,
+                "the EU-only edge was cost, not law",
+            ),
+            log_entry(
+                MemlogEntryKind::Decision,
+                Some("Scope"),
+                "Scope: EU and UK.",
+            ),
+            log_entry(
+                MemlogEntryKind::Override,
+                Some("Scope"),
+                "Scope: overrules the EU-only scope agreed in the brief",
+            ),
+            log_entry(
+                MemlogEntryKind::Decision,
+                Some("Goals"),
+                "Goals: Ship checkout.",
+            ),
+        ];
+
+        let entries = completion_entries("bmm:bmad-prd", &artifact, &[], RunScope::WholeDocument);
+        let rendered: Vec<(MemlogEntryKind, &str)> = entries
             .iter()
-            .filter(|entry| entry.kind == MemlogEntryKind::Override)
-            .map(|entry| entry.text.as_str())
+            .map(|entry| (entry.kind, entry.text.as_str()))
             .collect();
         assert_eq!(
-            overrides,
-            vec!["Scope: supersedes the EU-only scope agreed in the brief"]
+            rendered,
+            vec![
+                (MemlogEntryKind::Event, "bmm:bmad-prd create: Payments PRD"),
+                (
+                    MemlogEntryKind::Insight,
+                    "the EU-only edge was cost, not law"
+                ),
+                (MemlogEntryKind::Decision, "Scope: EU and UK."),
+                (
+                    MemlogEntryKind::Override,
+                    "Scope: overrules the EU-only scope agreed in the brief"
+                ),
+                (MemlogEntryKind::Decision, "Goals: Ship checkout."),
+            ],
+            "the author's entries, in the author's order, with the author's kinds",
         );
+    }
 
-        // The same edit without the declaration records no overrule at all.
-        let silent = completion_entries(
+    /// The same document with nothing declared records no overrule at all —
+    /// the host does not supply one.
+    #[test]
+    fn nothing_is_overruled_unless_the_author_says_so() {
+        let entries = completion_entries(
             "bmm:bmad-prd",
             &artifact("Payments PRD", &[("Scope", "EU and UK.")], &[]),
             &[],
             RunScope::WholeDocument,
         );
-        assert!(!silent
+        assert!(!entries
             .iter()
             .any(|entry| entry.kind == MemlogEntryKind::Override));
     }
 
-    /// A declared overrule is recorded whatever the run's scope: a later
-    /// architecture step may legitimately overrule an earlier one, and saying so
-    /// is the author's call. Scope only governs what the host *infers*.
+    /// A section the author's log does not account for still reaches the log,
+    /// or the document would carry a decision its memory does not.
     #[test]
-    fn a_contributing_run_still_records_a_declared_override() {
-        let entries = completion_entries(
-            "bmm:bmad-architecture",
-            &artifact(
-                "Spine",
-                &[(
-                    "Storage",
-                    "Postgres.
-Supersedes: the SQLite call in step 2",
-                )],
-                &[],
-            ),
+    fn a_section_the_log_does_not_speak_for_is_still_recorded() {
+        let mut artifact = artifact(
+            "Payments PRD",
+            &[("Scope", "EU and UK."), ("Risks", "PSP outage.")],
             &[],
-            RunScope::Contribution,
         );
-        assert_eq!(
-            entries
-                .iter()
-                .filter(|entry| entry.kind == MemlogEntryKind::Override)
-                .count(),
-            1
-        );
+        artifact.decision_log = vec![log_entry(
+            MemlogEntryKind::Decision,
+            Some("Scope"),
+            "Scope: EU and UK.",
+        )];
+
+        let entries = completion_entries("bmm:bmad-prd", &artifact, &[], RunScope::WholeDocument);
+        let subjects: Vec<&str> = entries
+            .iter()
+            .filter(|entry| entry.kind == MemlogEntryKind::Decision)
+            .filter_map(|entry| entry.subject.as_deref())
+            .collect();
+        assert_eq!(subjects, vec!["Scope", "Risks"]);
+        // The host's own entry says only what it can see.
+        let risks = entries
+            .iter()
+            .find(|entry| entry.subject.as_deref() == Some("Risks"))
+            .expect("Risks entry");
+        assert_eq!(risks.text, "Risks: PSP outage.");
     }
 
     /// Regression: scanning prior decisions rather than replaying them
