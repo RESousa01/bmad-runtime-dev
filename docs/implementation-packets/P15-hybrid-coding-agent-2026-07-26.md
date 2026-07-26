@@ -1,0 +1,313 @@
+# Implementation packet: P15 — Forge as a hybrid coding agent
+
+## Authority and intent
+
+- Owning authority: repository maintainer (RodrigoSousa0).
+- Product intent: Forge becomes a general coding agent of OpenCode's class,
+  differentiated by the BMAD Method being its interface rather than by withheld
+  capability. The user must be able to run the BMAD Method — methodology,
+  skills, agents, workflows — **and the BMAD Builder** exactly as they work in
+  the upstream repository.
+- Governing decision: [ADR-0009](../adr/ADR-0009-forge-as-a-general-coding-agent.md).
+- Platform: Windows desktop only.
+- Status: **plan only.** Nothing here is implemented beyond the permission gate
+  and bounded shell runner already landed in `crates/desktop-tools`.
+
+## What the research settled
+
+Six parallel surveys of `library/opencode` (MIT, © 2025 opencode, local
+reference checkout at `v1.18.4`, HEAD `0a601cf`) and of this repository.
+
+**1. OpenCode is already a first-class BMAD target.** Upstream BMAD's installer
+defines platform `opencode`, installing skills to `.agents/skills` and commands
+to `.opencode/commands`
+(`bmad-runtime-lib/_source_review/BMAD-METHOD-main/BMAD-METHOD-main/tools/installer/ide/platform-codes.yaml:255-261`).
+OpenCode's v1 discovery reads both roots natively — `.claude` and `.agents`
+walked up from the working directory, plus `{skill,skills}/**/SKILL.md` under
+every config root (`packages/opencode/src/skill/index.ts:173-233`), and
+`{command,commands}/**/*.md` (`src/config/command.ts:15`). **Full BMAD fidelity
+is therefore a configuration problem, not a reimplementation problem** — but
+only on the v1 route surface; `packages/core` (the `/api/*` surface) has no
+`.agents` root at all.
+
+**2. Permission can be delegated outward today, with a shipped reference.**
+OpenCode's own ACP adapter subscribes to `permission.asked` on the event stream
+and answers over HTTP (`src/acp/permission.ts:37-97`,
+`POST /permission/:requestID/reply` at `src/server/.../groups/permission.ts:31-43`).
+Default action when no rule matches is `ask` (`src/permission/index.ts:28-38`).
+
+**3. Tool execution can be redirected without a fork.** Custom tools are scanned
+from `{tool,tools}/*.{js,ts}` in every config root
+(`src/tool/registry.ts:178-192`), appended after builtins (`:253`), and written
+into the model-facing map last-wins (`src/session/tools.ts:92-99`). A `read.js`
+in `$OPENCODE_CONFIG_DIR/tool/` replaces the builtin `read`.
+
+**4. There is no Rust anywhere in OpenCode**, and its desktop app is Electron.
+"Copy the source" is unavailable for the host. What *is* reusable: the model-facing
+tool description text, classification data, and — for the renderer — Solid
+components that port to React mechanically.
+
+**5. Node runs it.** `script/build-node.ts:15-29` targets Node; OpenCode's own
+Electron app imports that bundle and calls `Server.listen(...)`
+(`packages/desktop/src/main/sidecar.ts:57-65`). Forge already pins Node
+`24.18.0`, and `node:sqlite` needs ≥22.5. The `dist/node` ESM bundle is the
+supported route and avoids a ~100 MB `bun --compile` artifact.
+
+## The central problem, stated plainly
+
+**Tool shadowing is behavioural redirection, not enforcement.** Even with every
+builtin shadowed, the sidecar process retains direct IO:
+
+- `registry.named()` returns the *builtin* `read` and `task`
+  (`src/tool/registry.ts:337-340`), used at `src/session/prompt.ts:266` and
+  `:813` — and the attachment path calls it with `ask: () => Effect.void`
+  (`prompt.ts:825`), bypassing permission entirely.
+- `edit`/`write` are dropped in favour of `apply_patch` for `gpt-*` models
+  (`registry.ts:292-295`), so a shadowed `edit` silently disappears.
+- The `/file`, `/find`, `/pty`, snapshot, LSP, formatter and watcher routes
+  perform IO with no tool involved at all.
+
+So "the sidecar proposes, Rust authorizes" is achievable as **product behaviour
+and as an audit boundary**, but it is **not an in-process security property**.
+Anyone who states it as one is wrong.
+
+**And ADR-0009 dropped egress accounting without saying so.** Every model call
+today passes `ContextPreparer` + `PatternSecretScanner` + a sealed manifest +
+a single-use decision (`crates/desktop-app/src/chat.rs:412-448`). The moment
+`shell` exists, `curl`, `git push` and `npm publish` are egress paths with no
+manifest, no secret scan, no region binding and no receipt. ADR-0009 re-bought
+the *authorization* half of ADR-0001 and silently dropped the *accounting* half.
+
+## Design decisions
+
+**D1 — Run `opencode serve` as a sidecar (option A), not a fork.**
+It is the only option delivering full BMAD fidelity on day one with no
+compatibility risk. Options C and D must re-derive five discovery roots,
+walk-up semantics, skills-as-commands promotion and the `<skill_content>`
+contract; every drift is a silent BMAD workflow failure. A fork (option B) is
+the planned follow-on when the enforcement gaps are worth paying for — the DI
+graph supports it (`packages/core/src/effect/app-node-builder.ts:6-17`), and
+option A is a strict subset of that work.
+
+**D2 — Contain the sidecar with the OS, not with tool-map surgery.**
+Because D1's boundary is not an enforcement boundary, the sidecar runs under a
+Windows Job Object for process-tree lifetime, with a scrubbed environment and a
+pinned image path. State the containment claim precisely: *process-tree
+lifetime control*, never "sandbox". A restricted token or dedicated user is the
+follow-on if the trust claim needs to be stronger.
+
+**D3 — Transport is stdio with newline-delimited JSON.**
+An anonymous inherited pipe is the only option where "can another local process
+connect?" is answered by the kernel rather than by a DACL plus a PID check. It
+also gives free lifecycle coupling: the sidecar sees EOF the instant the host
+dies. Loopback TCP is rejected outright — Windows does not access-control
+loopback by user. Named pipes are the acceptable second choice and have
+precedent here (`crates/desktop-cloud/src/windows_broker.rs:102-132`).
+
+**D4 — Rust owns permission evaluation, unconditionally.**
+The sidecar may never supply a rule, a pattern, an action, a prior approval, or
+any prompt copy. `PermissionRequest.title` and `.detail` are tool-authored by
+construction (`crates/desktop-tools/src/permission.rs:145-154`); a
+sidecar-supplied justification string in a consent dialog is a social-engineering
+primitive. Every `permission.asked` from the sidecar is re-evaluated by
+`desktop_tools::permission::evaluate` and answered **`once`** — never `always`,
+because OpenCode caches an `always` in its own process
+(`src/permission/index.ts:145-151`) and Rust must stay authoritative.
+
+**D5 — Agent file writes go through the existing D3 stack, at a branched
+approval type.** Reuse everything below the approval seam without exception:
+dual compare-and-swap on content *and* file identity
+(`crates/desktop-workspace/src/governed_io.rs:837-840`), checkpoint-before-effect,
+the 12-state journal, rollback and crash recovery. Do **not** reuse
+`displayed_diff_hash` — it means "the exact bytes a human reviewed"
+(`crates/desktop-runtime/src/edits.rs:109-111`) and for an auto-approved agent
+write nothing was displayed. Add a sibling approval whose seal binds *the rule
+that authorized it* — `{candidate_hash, proposed_diff_hash, permission_tool,
+permission_subject, permission_rule_matched, permission_reply}`. Everything from
+`consume_spec_record` down is unchanged.
+
+**D6 — Two-tier BMAD content.** Shipped BMAD stays provenance-sealed and
+hash-chained; user- and Builder-authored BMAD lives in the workspace, read
+through governed IO like any other file, and is **not** hash-pinned. The seal
+must stop answering *"what can the model do?"* — that is now the permission rule
+set, evaluated per call — and keep answering *"what text did we send, and where
+did it come from?"*, which matters more once the agent can act.
+
+**D7 — Consent becomes turn-scoped, and the change is written down.**
+One reviewed manifest per model call cannot survive an agent loop, and the chat
+lane's justification for auto-approval — *"the reply can only be text"*
+(`chat.rs:415-418`) — is exactly what this pivot deletes. Approve once per user
+turn against a manifest describing a **budget and scope** (max model calls, max
+tool calls, max outbound bytes, workspace subtree), and show a running per-turn
+egress ledger. The alternative — unreviewed per-call manifests with the decision
+moved onto the tool prompt — is where the code drifts by default, and it is
+security theatre: the tool prompt shows a command line, not what context is
+about to be shipped.
+
+## Phases
+
+Each phase is independently landable and independently verifiable.
+
+### Phase 0 — Unblock concurrency (no sidecar, no tools)
+
+**Not a hard prerequisite — ship Phase 1 first if you want value sooner.** A
+single tool-using turn works without any of this, because the global
+`in_flight` gate (`chat.rs:281-283`) only rejects a *second* concurrent turn.
+What you get without Phase 0 is one agent turn at a time, occupying the whole
+app, inside a synchronous `host_dispatch` (`commands.rs:247`) that cannot be
+cancelled and blocks every other command for its duration. That is tolerable
+for a first internal build and intolerable for a shipped one.
+
+Sequence it before Phase 2: a sidecar plus per-run streaming makes the global
+slots and the whole-ledger mutex the binding constraint immediately.
+
+- `ChatCoordinator.in_flight` is one `Option` for the whole process
+  (`chat.rs:155`, conflict at `:281-283`); `BmadCapabilityCoordinator.active`
+  likewise (`capability_coordinator.rs:294`). Both become per-session maps.
+- `ContextDecisionEvidence` holds a `MutexGuard` over the entire consent ledger
+  for its lifetime (`crates/desktop-egress/src/consent.rs:253-257`). Rework or
+  every lane serialises on consent.
+- `host_dispatch` is synchronous and blocks on transport
+  (`commands.rs:1412-1416`). It must become async before anything can run
+  concurrently with it.
+- Raise `AdmissionPolicy` (120 req/60 s, `crates/desktop-ipc/src/gate.rs:24-27`)
+  and reconsider the 5-minute envelope age (`envelope.rs:23`) — a permission
+  prompt left on screen over lunch currently produces an invalid resume.
+
+*Verify:* two task tabs run turns simultaneously; neither returns `Conflict`.
+
+### Phase 1 — Host-side tools, no sidecar
+
+The smallest change delivering real user value, and it needs no new process.
+
+Wire the four already-`Allow` tools — `read`, `list`, `glob`, `grep` — through
+the **existing** `WorkspaceBroker` into the chat lane, host-driven loop, capped
+at N iterations. `glob` and a real `grep` must be built:
+`permission.rs:182-183` ships rules for tools that do not exist, and
+`WorkspaceBroker::search` (`lib.rs:853-933`) is substring-only, no regex, no
+path scoping.
+
+**Close the two permission holes first**, because the defaults are currently
+weaker than what already ships:
+- `grep`/`glob` are allow-by-default with **no** secret exclusion, while
+  `WorkspaceBroker` enforces `is_sensitive_relative_path` *structurally* on
+  `read_text` (`lib.rs:757`), `git_diff` (`:833`) and `search` (`:888`).
+  Backing them with the broker closes it nearly for free.
+- Requires a tool-result role in `ChatSession` (two roles today,
+  `crates/desktop-runtime/src/chat.rs:40-45`, strict alternation enforced at
+  `:193-209`) and a store migration.
+
+*Verify:* a chat turn reads its own context; `.env` still refuses structurally.
+
+### Phase 2 — The sidecar
+
+- Spawn under a Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`; requires
+  adding `Win32_System_JobObjects` to the `windows` crate features. Also fixes
+  a pre-existing leak: `child.kill()` in `shell.rs` does not kill a `cmd /C`
+  process tree.
+- stdio NDJSON, 64 KiB line cap, both streams drained concurrently, `hello`/
+  `ready` handshake carrying a protocol version and a 32-byte nonce passed in
+  the frame — **not** on the command line, which is world-readable via WMI.
+- Health: `ping`/`pong` with a deadline, because a wedged JS event loop keeps
+  the process alive but stops answering.
+- Restart with backoff and a circuit breaker. In-flight tool calls do **not**
+  survive a restart, and any permission decision for the dead sidecar is
+  discarded, never replayed.
+- Point `$OPENCODE_CONFIG_DIR` at a Forge-private root so Forge's shadow tools
+  and config participate in discovery without touching the user's `.opencode`.
+- **Set `directory` on every request** — query param or `x-opencode-directory`.
+  It defaults to the *server's* `process.cwd()`
+  (`middleware/workspace-routing.ts:87`), which for a spawned sidecar is wrong.
+  This is the single most likely "BMAD isn't showing up" bug.
+
+### Phase 3 — Tool delegation and the permission bridge
+
+- Shadow `read`, `write`, `edit`, `glob`, `grep`, `bash`, `apply_patch`,
+  `webfetch` as `.js` in `$OPENCODE_CONFIG_DIR/tool/`; each round-trips to Rust
+  over the D3 surface.
+- Bridge `permission.asked` → `desktop_tools::permission::evaluate` → the Forge
+  prompt → `POST /permission/:id/reply` with `once`.
+- Ship ripgrep rather than letting OpenCode fetch it from GitHub on first use
+  (`core/src/ripgrep/binary.ts:104-108`) — the `skill` tool needs it to
+  enumerate a skill's files, so BMAD skills fail without it.
+- Handle the documented leaks explicitly: `prompt.ts:813`/`:266` builtin `read`,
+  and the `gpt-*` `apply_patch` swap.
+
+### Phase 4 — BMAD full fidelity
+
+- Run the real upstream installer with target `opencode` against the workspace.
+- Supersede **ADR-0006** (Builder output is inert): the Builder must author
+  real agents, workflows and skills into the workspace tier (D6).
+- Re-check ADR-0005 and ADR-0008 for clauses assuming a closed, pre-reviewed
+  capability set.
+- Regenerate the sealed projections. Measured from
+  `packages/bmad-foundation/semantic-source-ledger.json` (294 source members):
+  243 carry an `adopt`, **96 carry an `adapt`**, 70 a `reject`, 16 a `defer`.
+  Of the 96, **45** have an adapt rationale naming a withheld authority —
+  counted by matching the rationale text against *subprocess, web retrieval,
+  web fetch, file write, file read, subagent, process, external handoff,
+  execution*. That keyword method is approximate and the exact figure will move
+  with the phrasing; re-derive it before using it as a target. ADR-0009 grants
+  four of the six withheld intents, so the success metric is
+  *adapt-for-withheld-authority count → 0*.
+- `ADOPTED_INSTRUCTION_BOUNDARY` (`bmad_capability_host.rs:470-482`) currently
+  tells the model it cannot run scripts or read files. It becomes false in Phase
+  1 and must be **generated per run from the granted tool set**.
+
+*Upgrade order, grounded in upstream definitions:* `code-review` first
+(read-only, and it forces the parallel-reviewer mechanism that PRD, brief and
+architecture all depend on), then `document-project` (produces
+`project-context.md`, load-bearing for brownfield), then `architecture`, then
+`dev-story`, with `prd`/`product-brief` on a parallel track.
+
+### Phase 5 — Renderer
+
+~500 lines of pure, already-tested logic port first with no framework risk:
+event coalescing, markdown streaming, error-text extraction, tool-arg display,
+part grouping. Then the permission dock (replacing the composer while up, never
+a modal — a modal hides the transcript the decision depends on and trains
+dismissal), tool cards, streaming turn, retry banner, cancel.
+
+Needs a host→renderer push channel: a `tauri::ipc::Channel<T>` per run. The
+projection lane cannot carry deltas — 1024 slots polled at 1.5 s, and a gap
+triggers a full re-bootstrap (`App.tsx:1668-1671`).
+
+## Risks
+
+| Risk | Handling |
+|---|---|
+| The sidecar performs IO regardless of shadowing | D2. State the claim as audit + UX, never enforcement, until option B lands |
+| Egress accounting silently dropped | D7. Turn-scoped budget manifests plus a visible per-turn ledger, written into the ADR |
+| Prompt injection reaching a tool call | Context items are joined into one blob with a forgeable delimiter (`direct_provider.rs:426-437`). Nonce-fence the delimiters; never put persona and workspace content in the same block |
+| `shell` bypasses the read denylist and the write journal | Real and unavoidable under ADR-0009. `type .env` is a `shell` subject, not a `read` subject. State it in the ADR rather than discovering it later |
+| Four disagreeing byte budgets (32 KiB msg / 64 KiB shell / 128 KiB transcript / 512 KiB manifest) | One owner, one constants module, host-side truncation with a marker the model can see |
+| NSIS does not replace the sidecar on upgrade (tauri#15134) | Host verifies the sidecar's expected hash at startup and refuses on mismatch |
+| Installer size (already ~211 MB with the offline WebView2 runtime) | Measure before planning. Prefer `dist/node` over `bun --compile` |
+| SBOM blindness — a downloaded runtime is in neither lockfile | Pin the runtime as a locked npm dependency so it lands in `pnpm-lock.yaml` |
+| `pnpm verify:source` does not run Rust tests | Local verify goes green while the Rust suite is broken. Use `verify:deferred-full` throughout |
+
+## Out of scope
+
+- Option B (fork and strip). Planned follow-on; option A is a strict subset.
+- Durable cross-restart permission grants — needs its own ADR (ADR-0009 §4).
+- Streaming *verified* output. Forge verifies a complete payload against a
+  closed schema before it is admitted; streaming means showing unverified bytes.
+  That is a governance decision, not a refactor.
+- Builder self-activation without a human step. An agent that authors *and*
+  activates its own instructions defeats the permission model's audience.
+- macOS/Linux. Windows only; note recovery mutation is already `#[cfg(windows)]`.
+
+## Definition of done
+
+- BMAD installed with target `opencode` into a workspace is discovered and
+  runnable end to end, including the Builder authoring a new agent that then
+  loads — with no Forge-specific projection involved.
+- Every effectful tool call is evaluated by Rust and, when unmatched, reaches a
+  human before it runs.
+- Agent file writes are checkpointed, journaled and undoable through the
+  existing D3 machinery.
+- A turn's egress is visible to the user as a running ledger.
+- The fidelity matrix's *"Faithful upstream execution: 0"* line moves — one
+  capability at a time, and only when that capability genuinely runs its
+  upstream loop.
+- Full gate green, including `verify:deferred-full`.
