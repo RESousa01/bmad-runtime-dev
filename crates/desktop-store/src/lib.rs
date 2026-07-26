@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 21] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 23] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -43,6 +43,11 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 21] = [
     ("capability_runs", "bmad_capability_runs"),
     ("capability_results", "bmad_capability_results"),
     ("memlog_entries", "bmad_memlog_entries"),
+    ("architecture_sessions", "bmad_architecture_sessions"),
+    (
+        "architecture_session_steps",
+        "bmad_architecture_session_steps",
+    ),
     ("builder_drafts", "bmad_builder_drafts"),
     ("builder_draft_revisions", "bmad_builder_revisions"),
     ("builder_analyses", "bmad_builder_analyses"),
@@ -69,6 +74,7 @@ const LOCAL_IDENTITY_STATE_SEALED: &str = "sealed";
 const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
 const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
+mod bmad_architecture;
 mod bmad_builder;
 mod bmad_capability;
 mod bmad_method;
@@ -77,6 +83,7 @@ mod execution;
 mod memlog;
 mod migrations;
 
+pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSession};
 pub use bmad_capability::BmadCapabilityRunRecord;
 pub use bmad_method::{
     BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
@@ -1887,7 +1894,7 @@ mod tests {
             .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(disclosed.len(), RETENTION_CATEGORIES.len());
 
-        for table in crate::migrations::V14_TABLES {
+        for table in crate::migrations::V15_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }
@@ -2342,6 +2349,8 @@ mod tests {
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
+             DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
@@ -2392,6 +2401,8 @@ mod tests {
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
+             DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;
@@ -2495,6 +2506,8 @@ mod tests {
             "DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
+             DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
              DROP TABLE execution_results;

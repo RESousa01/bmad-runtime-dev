@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 14;
+pub(crate) const LATEST_STORE_VERSION: u32 = 15;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -168,6 +168,33 @@ pub(crate) const V13_TABLES: [&str; 23] = [
 ];
 /// v14 adds a column to an existing table, so the table set is unchanged.
 pub(crate) const V14_TABLES: [&str; 23] = V13_TABLES;
+pub(crate) const V15_TABLES: [&str; 25] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
 
 const V4_BASE_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
  CREATE TABLE IF NOT EXISTS store_meta (
@@ -706,6 +733,45 @@ const V13_TO_V14_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 14;
  COMMIT;";
 
+/// The architecture progression's durable spine (P14 finding 1).
+///
+/// The progression lived only in `BmadArchitectureCoordinator.active`, so a
+/// restart lost which step a workspace had reached and reopened at step one —
+/// while upstream's whole claim for a memlog is that a fresh session can load it
+/// and continue.
+///
+/// Only the *boundary* is recorded here. Each accepted step's artifact is
+/// already durable as its own capability run, so a session is a session id, the
+/// workspace it reasoned about, and the ordered runs that answered its steps.
+/// Restoring re-reads those runs and re-parses them through the same strict
+/// constructors that accepted them, so a progression can never resume onto
+/// anything the store and the archetype parser have not both accepted.
+///
+/// `finalized` closes a session: a spine belongs to the workspace it was
+/// reasoned about and is never continued, so a finalized session is never
+/// resumed and the next run opens a fresh progression.
+const V14_TO_V15_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE bmad_architecture_sessions (
+   session_id TEXT PRIMARY KEY,
+   workspace_id TEXT NOT NULL,
+   opened_at_ms INTEGER NOT NULL
+     CHECK(opened_at_ms >= 0 AND opened_at_ms <= 9007199254740991),
+   finalized INTEGER NOT NULL CHECK(finalized IN (0, 1))
+ ) STRICT;
+ CREATE TABLE bmad_architecture_session_steps (
+   session_id TEXT NOT NULL REFERENCES bmad_architecture_sessions(session_id),
+   ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+   run_id TEXT NOT NULL REFERENCES bmad_capability_runs(run_id),
+   accepted_at_ms INTEGER NOT NULL
+     CHECK(accepted_at_ms >= 0 AND accepted_at_ms <= 9007199254740991),
+   PRIMARY KEY(session_id, ordinal),
+   UNIQUE(run_id)
+ ) STRICT;
+ CREATE INDEX bmad_architecture_sessions_by_workspace
+   ON bmad_architecture_sessions(workspace_id, finalized, opened_at_ms);
+ PRAGMA user_version = 15;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -769,8 +835,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V13_TO_V14_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            14 => {
                 require_store_tables(connection, &V14_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V14_TO_V15_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V15_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

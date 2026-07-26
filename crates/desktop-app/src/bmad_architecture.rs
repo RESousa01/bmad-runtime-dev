@@ -18,16 +18,23 @@
 //! 4. distills the spine locally once every step is answered — no model call,
 //!    no egress, no workspace effect.
 //!
-//! The session is in-memory, like the generic coordinator it rides on. Each
-//! completed step is durably stored as its own capability run, so the evidence
-//! survives a restart; an *in-progress* progression does not, and restarts at
-//! step one.
+//! The live session is in-memory, like the generic coordinator it rides on, but
+//! its *boundary* is durable: which session a workspace has open, and the
+//! ordered runs that answered its steps. A restart therefore resumes at the step
+//! it interrupted rather than reopening at step one — upstream's claim for a
+//! memlog is exactly that "a fresh session can load it and continue".
+//!
+//! Resuming re-reads each recorded step from its own capability run and
+//! re-parses it through the same strict constructor that accepted it, so a
+//! resumed progression stands on evidence the store still holds rather than on
+//! remembered state, and fails closed if any of it no longer verifies.
 
 use desktop_egress::{ContextCandidate, ContextClassification};
 use desktop_runtime::{
     canonical_hash, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadDocumentArtifact, ContractId, RelativeWorkspacePath, UnixMillis,
 };
+use desktop_store::LocalStore;
 use serde::Serialize;
 
 use crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError;
@@ -224,8 +231,14 @@ impl BmadArchitectureCoordinator {
     ///
     /// Returns [`BmadCapabilityCoordinatorError::Integrity`] when the session
     /// identity cannot be derived.
+    /// A restart clears `active`, so before opening a fresh progression the
+    /// host asks the store whether this workspace has one to continue. That is
+    /// the whole of upstream's claim for a memlog — "a fresh session can load
+    /// it and continue" — and without it a restart silently restarted the
+    /// architecture run at step one.
     pub(crate) fn select_step(
         &mut self,
+        store: &LocalStore,
         workspace_id: &ContractId,
         now: UnixMillis,
     ) -> Result<BmadArchitectureStep, BmadCapabilityCoordinatorError> {
@@ -233,7 +246,20 @@ impl BmadArchitectureCoordinator {
             session.workspace_id() == workspace_id && !session.is_finalized()
         });
         if !reusable {
-            self.active = Some(open_session(workspace_id, now)?);
+            let restored = restore_session(store, workspace_id)?;
+            self.active = Some(if let Some(restored) = restored {
+                restored
+            } else {
+                let opened = open_session(workspace_id, now)?;
+                store
+                    .open_architecture_session(
+                        opened.session_id().as_str(),
+                        workspace_id.as_str(),
+                        now.0,
+                    )
+                    .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+                opened
+            });
         }
         let session = self
             .active
@@ -242,6 +268,15 @@ impl BmadArchitectureCoordinator {
         session
             .current_step()
             .ok_or(BmadCapabilityCoordinatorError::Integrity)
+    }
+
+    /// The active session's durable identity, for recording an accepted step.
+    #[must_use]
+    pub(crate) fn active_session_id(&self, workspace_id: &ContractId) -> Option<ContractId> {
+        self.active
+            .as_ref()
+            .filter(|session| session.workspace_id() == workspace_id)
+            .map(|session| session.session_id().clone())
     }
 
     /// The step an already-prepared run answers, without opening or advancing
@@ -327,6 +362,62 @@ impl BmadArchitectureCoordinator {
             )?,
         ])
     }
+}
+
+/// Rebuilds a workspace's unfinalized progression from the store, or `None`
+/// when there is nothing to continue.
+///
+/// Each step is re-read from its own capability run and re-parsed through the
+/// same strict archetype constructor that accepted it, then replayed in order
+/// through `accept_step`. A resumed progression therefore stands on evidence
+/// the store still holds and the parser still accepts — never on remembered
+/// state — and any row the current build can no longer verify fails the resume
+/// rather than silently continuing from a partial spine.
+fn restore_session(
+    store: &LocalStore,
+    workspace_id: &ContractId,
+) -> Result<Option<BmadArchitectureSession>, BmadCapabilityCoordinatorError> {
+    let Some(resumable) = store
+        .resumable_architecture_session(workspace_id.as_str())
+        .map_err(|_| BmadCapabilityCoordinatorError::Store)?
+    else {
+        return Ok(None);
+    };
+    let session_id = ContractId::new(resumable.session_id)
+        .map_err(|_| BmadCapabilityCoordinatorError::Integrity)?;
+    let mut session = BmadArchitectureSession::open(
+        session_id,
+        workspace_id.clone(),
+        UnixMillis(resumable.opened_at_ms),
+    );
+    for record in resumable.steps {
+        let step = session
+            .current_step()
+            .ok_or(BmadCapabilityCoordinatorError::Integrity)?;
+        let run_id =
+            ContractId::new(record.run_id).map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+        let stored = store
+            .bmad_capability_run(&run_id)
+            .map_err(|_| BmadCapabilityCoordinatorError::Store)?
+            .and_then(|run| run.result_json)
+            .ok_or(BmadCapabilityCoordinatorError::Store)?;
+        let value: serde_json::Value = desktop_runtime::deserialize_strict_json(stored.as_bytes())
+            .map_err(|_| BmadCapabilityCoordinatorError::OutputRejected)?;
+        let desktop_runtime::BmadCapabilityOutput::DocumentArtifact(artifact) =
+            crate::bmad_capability_host::parse_capability_result(&value)?
+        else {
+            return Err(BmadCapabilityCoordinatorError::ResultArchetypeMismatch);
+        };
+        session
+            .accept_step(step, artifact, UnixMillis(record.accepted_at_ms))
+            .map_err(map_architecture_error)?;
+    }
+    // A complete-but-unfinalized session cannot be continued or finalized here:
+    // finalizing is the accepting run's job, and it records that durably.
+    if session.current_step().is_none() {
+        return Ok(None);
+    }
+    Ok(Some(session))
 }
 
 fn open_session(
@@ -446,6 +537,28 @@ mod tests {
     use desktop_runtime::{
         BmadArchitectureStep, BmadDocumentArtifact, BmadDocumentSection, ContractId, UnixMillis,
     };
+    use desktop_store::{KeyProtector, LocalStore, StoreError};
+
+    #[derive(Debug)]
+    struct TestProtector;
+
+    impl KeyProtector for TestProtector {
+        fn protect(&self, plaintext: &[u8]) -> Result<Vec<u8>, StoreError> {
+            Ok(plaintext.to_vec())
+        }
+
+        fn unprotect(&self, protected: &[u8]) -> Result<Vec<u8>, StoreError> {
+            Ok(protected.to_vec())
+        }
+    }
+
+    /// A store for tests that only need `select_step` to have somewhere to
+    /// record a session; nothing is resumed from it.
+    fn scratch_store() -> (tempfile::TempDir, LocalStore) {
+        let directory = tempfile::tempdir().expect("temp dir");
+        let store = LocalStore::open(directory.path(), &TestProtector).expect("store");
+        (directory, store)
+    }
 
     fn workspace(id: &str) -> ContractId {
         ContractId::new(id).expect("workspace id")
@@ -499,6 +612,7 @@ mod tests {
 
     #[test]
     fn the_progression_runs_to_a_distilled_spine() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let workspace = workspace("ws_arch");
         let mut last = None;
@@ -506,7 +620,7 @@ mod tests {
         for (offset, expected) in BmadArchitectureStep::ORDERED.into_iter().enumerate() {
             let at = UnixMillis(1_000 + u64::try_from(offset).unwrap_or(0));
             let step = coordinator
-                .select_step(&workspace, at)
+                .select_step(&store, &workspace, at)
                 .expect("host-selected step");
             assert_eq!(step, expected);
             last = Some(
@@ -525,10 +639,11 @@ mod tests {
 
     #[test]
     fn a_step_cannot_be_answered_out_of_order() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let workspace = workspace("ws_arch");
         coordinator
-            .select_step(&workspace, UnixMillis(1_000))
+            .select_step(&store, &workspace, UnixMillis(1_000))
             .expect("first step");
 
         assert_eq!(
@@ -546,11 +661,12 @@ mod tests {
 
     #[test]
     fn a_result_from_another_workspace_cannot_advance_the_progression() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let bound = workspace("ws_arch");
         let other = workspace("ws_other");
         let step = coordinator
-            .select_step(&bound, UnixMillis(1_000))
+            .select_step(&store, &bound, UnixMillis(1_000))
             .expect("first step");
 
         assert_eq!(
@@ -563,10 +679,11 @@ mod tests {
 
     #[test]
     fn switching_workspaces_starts_a_fresh_progression() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let first = workspace("ws_one");
         let step = coordinator
-            .select_step(&first, UnixMillis(1_000))
+            .select_step(&store, &first, UnixMillis(1_000))
             .expect("first step");
         coordinator
             .accept_step(&first, step, artifact("System context"), UnixMillis(1_000))
@@ -575,7 +692,7 @@ mod tests {
         let second = workspace("ws_two");
         assert_eq!(
             coordinator
-                .select_step(&second, UnixMillis(2_000))
+                .select_step(&store, &second, UnixMillis(2_000))
                 .expect("fresh progression"),
             BmadArchitectureStep::SystemContext
         );
@@ -583,10 +700,11 @@ mod tests {
 
     #[test]
     fn invalidation_ends_the_progression() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let workspace = workspace("ws_arch");
         let step = coordinator
-            .select_step(&workspace, UnixMillis(1_000))
+            .select_step(&store, &workspace, UnixMillis(1_000))
             .expect("first step");
         coordinator.invalidate();
 
@@ -605,11 +723,12 @@ mod tests {
 
     #[test]
     fn a_finalized_progression_renders_its_run_folder_for_d3() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let bound = workspace("ws_arch");
         for offset in 0..BmadArchitectureStep::count() {
             let at = UnixMillis(1_000 + u64::try_from(offset).unwrap_or(0));
-            let selected = coordinator.select_step(&bound, at).expect("step");
+            let selected = coordinator.select_step(&store, &bound, at).expect("step");
             coordinator
                 .accept_step(&bound, selected, artifact(selected.title()), at)
                 .expect("acceptance");
@@ -645,11 +764,12 @@ mod tests {
 
     #[test]
     fn an_unfinished_or_foreign_progression_has_no_run_folder() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let bound = workspace("ws_arch");
         let other = workspace("ws_other");
         let step = coordinator
-            .select_step(&bound, UnixMillis(1_000))
+            .select_step(&store, &bound, UnixMillis(1_000))
             .expect("first step");
         coordinator
             .accept_step(&bound, step, artifact("System context"), UnixMillis(1_000))
@@ -669,10 +789,11 @@ mod tests {
 
     #[test]
     fn the_selected_step_and_accepted_log_are_reviewed_context() {
+        let (_scratch, store) = scratch_store();
         let mut coordinator = BmadArchitectureCoordinator::new();
         let workspace = workspace("ws_arch");
         let step = coordinator
-            .select_step(&workspace, UnixMillis(1_000))
+            .select_step(&store, &workspace, UnixMillis(1_000))
             .expect("first step");
 
         let first = coordinator
@@ -695,7 +816,7 @@ mod tests {
             )
             .expect("acceptance");
         let next = coordinator
-            .select_step(&workspace, UnixMillis(1_001))
+            .select_step(&store, &workspace, UnixMillis(1_001))
             .expect("second step");
         let second = coordinator
             .step_context_candidates(next)
@@ -704,5 +825,201 @@ mod tests {
         assert!(second[0].content.contains("Step 2 of 9 — Components"));
         assert!(second[1].content.contains("AD-1 — System context"));
         assert!(second[1].content.contains("Do not renumber"));
+    }
+
+    /// P14 finding 1: the progression must survive a process restart.
+    ///
+    /// Upstream's whole claim for a memlog is that "a fresh session can load it
+    /// and continue". Before this, `select_step` opened a fresh session whenever
+    /// `active` was `None`, so a restart silently reopened at step one and
+    /// discarded every step the user had already reviewed and consented to.
+    #[test]
+    fn a_progression_resumes_at_the_step_a_restart_interrupted() {
+        let (_scratch, store) = scratch_store();
+        let workspace = workspace("ws_resume");
+
+        // Three steps accepted, each recorded exactly as the command handler
+        // records them: the run, then its result, then the session step.
+        let mut coordinator = BmadArchitectureCoordinator::new();
+        let mut accepted = Vec::new();
+        for index in 0..3 {
+            let step = coordinator
+                .select_step(&store, &workspace, UnixMillis(1_000))
+                .expect("step");
+            let session_id = coordinator
+                .active_session_id(&workspace)
+                .expect("active session");
+            let artifact = artifact(step.title());
+            let run_id = persist_step_run(&store, &workspace, index, &artifact);
+            coordinator
+                .accept_step(&workspace, step, artifact, UnixMillis(2_000 + index))
+                .expect("accepted");
+            store
+                .record_architecture_step(session_id.as_str(), run_id.as_str(), 2_000 + index)
+                .expect("recorded");
+            accepted.push(step);
+        }
+        let session_before = coordinator
+            .active_session_id(&workspace)
+            .expect("session id");
+
+        // The process restarts: every host coordinator starts empty.
+        let mut restarted = BmadArchitectureCoordinator::new();
+        let resumed = restarted
+            .select_step(&store, &workspace, UnixMillis(9_000))
+            .expect("resumed step");
+
+        assert_eq!(
+            resumed,
+            BmadArchitectureStep::ORDERED[3],
+            "the progression must continue at step four, not restart at step one",
+        );
+        assert_eq!(
+            restarted.active_session_id(&workspace).as_ref(),
+            Some(&session_before),
+            "resuming continues the same session rather than minting a new one",
+        );
+        // The decisions the earlier steps made are carried forward, which is
+        // what the next run reads as its reviewed context.
+        let candidates = restarted
+            .step_context_candidates(resumed)
+            .expect("candidates");
+        let log = &candidates[1].content;
+        for step in accepted {
+            assert!(
+                log.contains(step.title()),
+                "the resumed decision log must still carry {}",
+                step.title(),
+            );
+        }
+    }
+
+    /// A finalized progression is closed: its spine belongs to the workspace it
+    /// was reasoned about and is never continued into a later run.
+    #[test]
+    fn a_finalized_progression_is_never_resumed() {
+        let (_scratch, store) = scratch_store();
+        let workspace = workspace("ws_finalized");
+
+        let mut coordinator = BmadArchitectureCoordinator::new();
+        let mut session_id = None;
+        for index in 0..BmadArchitectureStep::count() {
+            let index = index as u64;
+            let step = coordinator
+                .select_step(&store, &workspace, UnixMillis(1_000))
+                .expect("step");
+            session_id = coordinator.active_session_id(&workspace);
+            let artifact = artifact(step.title());
+            let run_id = persist_step_run(&store, &workspace, index, &artifact);
+            let progress = coordinator
+                .accept_step(&workspace, step, artifact, UnixMillis(2_000 + index))
+                .expect("accepted");
+            let session = session_id.clone().expect("session id");
+            store
+                .record_architecture_step(session.as_str(), run_id.as_str(), 2_000 + index)
+                .expect("recorded");
+            if progress.finalized {
+                store
+                    .finalize_architecture_session(session.as_str())
+                    .expect("finalized");
+            }
+        }
+        assert!(session_id.is_some());
+
+        let mut restarted = BmadArchitectureCoordinator::new();
+        let step = restarted
+            .select_step(&store, &workspace, UnixMillis(9_000))
+            .expect("fresh step");
+        assert_eq!(
+            step,
+            BmadArchitectureStep::ORDERED[0],
+            "a finalized spine is not continued; the next run starts a new one",
+        );
+        assert_ne!(
+            restarted.active_session_id(&workspace),
+            session_id,
+            "a new progression gets its own session identity",
+        );
+    }
+
+    /// Resuming re-reads each step from its own capability run. A run whose
+    /// stored result the current build can no longer verify must fail the
+    /// resume rather than quietly continue from a partial spine.
+    #[test]
+    fn a_resume_fails_closed_when_a_recorded_step_cannot_be_re_verified() {
+        let (_scratch, store) = scratch_store();
+        let workspace = workspace("ws_tampered");
+
+        let mut coordinator = BmadArchitectureCoordinator::new();
+        let step = coordinator
+            .select_step(&store, &workspace, UnixMillis(1_000))
+            .expect("step");
+        let session_id = coordinator
+            .active_session_id(&workspace)
+            .expect("session id");
+        let artifact = artifact(step.title());
+        // A run row with no stored result: the step was recorded, but the
+        // evidence a resume must re-read is not there.
+        let run_id = open_step_run(&store, &workspace, 0);
+        coordinator
+            .accept_step(&workspace, step, artifact, UnixMillis(2_000))
+            .expect("accepted");
+        store
+            .record_architecture_step(session_id.as_str(), run_id.as_str(), 2_000)
+            .expect("recorded");
+
+        let mut restarted = BmadArchitectureCoordinator::new();
+        assert!(
+            restarted
+                .select_step(&store, &workspace, UnixMillis(9_000))
+                .is_err(),
+            "a step that cannot be re-verified must fail the resume",
+        );
+    }
+
+    /// Persists one accepted step the way the capability lane does: a run row
+    /// plus its verified result, which is what a resume re-reads.
+    fn persist_step_run(
+        store: &LocalStore,
+        workspace: &ContractId,
+        index: u64,
+        artifact: &BmadDocumentArtifact,
+    ) -> ContractId {
+        use desktop_runtime::BmadCapabilityOutput;
+        let run_id = open_step_run(store, workspace, index);
+        store
+            .record_bmad_capability_result(
+                &run_id,
+                &BmadCapabilityOutput::DocumentArtifact(artifact.clone()),
+            )
+            .expect("result");
+        run_id
+    }
+
+    /// The run row alone, without a result.
+    fn open_step_run(store: &LocalStore, workspace: &ContractId, index: u64) -> ContractId {
+        use desktop_runtime::{BmadCapabilityRun, BmadCapabilityRunParams};
+        let run_id =
+            ContractId::new(format!("caprun_01J0000000000000000000{index:04}")).expect("run id");
+        let run = BmadCapabilityRun::open(BmadCapabilityRunParams {
+            run_id: run_id.clone(),
+            capability_id: desktop_runtime::BmadClosureCapabilityId::new(
+                ARCHITECTURE_CAPABILITY_ID,
+            )
+            .expect("capability id"),
+            workspace_id: workspace.clone(),
+            instruction_hash: desktop_runtime::sha256_bytes(b"instruction"),
+            context_manifest_hash: desktop_runtime::sha256_bytes(b"manifest"),
+            output_schema_id: desktop_runtime::BMAD_DOCUMENT_ARTIFACT_SCHEMA.to_owned(),
+            // Single-use per run: each step consumed its own reviewed decision.
+            consent_evidence_id: ContractId::new(format!(
+                "decision_01J000000000000000000{index:05}"
+            ))
+            .expect("decision id"),
+            created_at: UnixMillis(2_000 + index),
+        })
+        .expect("run");
+        store.create_bmad_capability_run(&run).expect("created");
+        run_id
     }
 }

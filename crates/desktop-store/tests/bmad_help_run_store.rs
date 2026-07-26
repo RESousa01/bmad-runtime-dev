@@ -16,6 +16,8 @@ const RESTORE_RELEASED_V8_HELP_RUN_TABLE_SQL: &str = "
  DROP TABLE chat_messages;
  DROP TABLE chat_sessions;
  DROP TABLE bmad_memlog_entries;
+ DROP TABLE bmad_architecture_session_steps;
+ DROP TABLE bmad_architecture_sessions;
  DROP TABLE bmad_capability_results;
          DROP TABLE bmad_capability_runs;
          DROP TABLE execution_results;
@@ -876,7 +878,7 @@ fn released_v8_help_history_migrates_without_inventing_a_projection(
     restore_released_v8_help_run_table(&database_path)?;
 
     let migrated = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(migrated.schema_version()?, 14);
+    assert_eq!(migrated.schema_version()?, 15);
     migrated.verify_integrity()?;
     assert!(matches!(
         migrated.replay_bmad_help_run(&replay_request(&legacy)),
@@ -911,7 +913,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
-    assert_eq!(fresh.schema_version()?, 14);
+    assert_eq!(fresh.schema_version()?, 15);
     let expected = fresh.schema_catalog()?;
 
     let upgrade_directory = tempfile::tempdir()?;
@@ -923,6 +925,8 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
         "DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
          DROP TABLE bmad_memlog_entries;
+         DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_capability_results;
          DROP TABLE bmad_capability_runs;
          DROP TABLE execution_results;
@@ -933,7 +937,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     )?;
     drop(connection);
     let upgraded = LocalStore::open(upgrade_directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 14);
+    assert_eq!(upgraded.schema_version()?, 15);
     assert_eq!(upgraded.schema_catalog()?, expected);
 
     let interrupted_directory = tempfile::tempdir()?;
@@ -945,6 +949,8 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
         "DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
          DROP TABLE bmad_memlog_entries;
+         DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_capability_results;
          DROP TABLE bmad_capability_runs;
          DROP TABLE execution_results;
@@ -957,7 +963,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     )?;
     drop(connection);
     let resumed = LocalStore::open(interrupted_directory.path(), &TestProtector)?;
-    assert_eq!(resumed.schema_version()?, 14);
+    assert_eq!(resumed.schema_version()?, 15);
     assert_eq!(resumed.schema_catalog()?, expected);
     Ok(())
 }

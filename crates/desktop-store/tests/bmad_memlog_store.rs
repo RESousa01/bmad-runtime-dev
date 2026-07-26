@@ -251,7 +251,9 @@ fn a_v12_store_gains_the_memlog_table_on_open() -> Result<(), Box<dyn std::error
     // Rewind a fresh store to v12 by removing only what v13 introduced.
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE bmad_memlog_entries;
+        "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
+         DROP TABLE bmad_memlog_entries;
          PRAGMA user_version = 12;",
     )?;
     drop(connection);
@@ -276,7 +278,9 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
 
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE bmad_memlog_entries;
+        "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
+         DROP TABLE bmad_memlog_entries;
          PRAGMA user_version = 12;",
     )?;
     // A crash mid-migration: the batch opens its transaction and never
@@ -289,7 +293,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 14);
+    assert_eq!(reopened.schema_version()?, 15);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -309,7 +313,11 @@ fn a_half_applied_v13_schema_fails_closed() -> Result<(), Box<dyn std::error::Er
     // transactional migration cannot produce, so it means the file was edited
     // underneath us. Opening must refuse rather than migrate over it.
     let connection = rusqlite::Connection::open(&database_path)?;
-    connection.execute_batch("PRAGMA user_version = 12;")?;
+    connection.execute_batch(
+        "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
+         PRAGMA user_version = 12;",
+    )?;
     drop(connection);
 
     assert!(LocalStore::open(directory.path(), &TestProtector).is_err());
@@ -382,7 +390,9 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     // test turns on the column landing and not on incidental whitespace.
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE bmad_memlog_entries;
+        "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE bmad_architecture_sessions;
+         DROP TABLE bmad_memlog_entries;
          CREATE TABLE bmad_memlog_entries (
            entry_id TEXT PRIMARY KEY,
            workspace_id TEXT NOT NULL,
@@ -406,7 +416,7 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 14);
+    assert_eq!(upgraded.schema_version()?, 15);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 

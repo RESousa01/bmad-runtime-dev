@@ -1592,7 +1592,7 @@ fn capability_context_candidates(
                 state
                     .bmad_architecture
                     .lock()
-                    .select_step(workspace_id, created_at)
+                    .select_step(state.local_store(authority)?, workspace_id, created_at)
                     .map_err(map_capability_error)?,
             )
         } else {
@@ -1965,11 +1965,43 @@ fn advance_architecture_progression(
             false,
         ));
     };
-    state
-        .bmad_architecture
-        .lock()
+    let mut coordinator = state.bmad_architecture.lock();
+    let session_id = coordinator.active_session_id(workspace_id).ok_or_else(|| {
+        LocalError::new(
+            LocalErrorCode::Conflict,
+            "No architecture progression is active for this workspace.",
+            false,
+        )
+    })?;
+    let progress = coordinator
         .accept_step(workspace_id, step, artifact, submitted_at)
-        .map_err(map_capability_error)
+        .map_err(map_capability_error)?;
+    drop(coordinator);
+
+    // Record the acceptance durably *after* the in-memory progression took it,
+    // so the stored boundary can never claim a step the session refused. The
+    // reverse order would let a rejected step advance a resumed progression.
+    store
+        .record_architecture_step(session_id.as_str(), run_id.as_str(), submitted_at.0)
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The accepted architecture step could not be durably recorded.",
+                false,
+            )
+        })?;
+    if progress.finalized {
+        store
+            .finalize_architecture_session(session_id.as_str())
+            .map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::IntegrityFailure,
+                    "The finalized architecture progression could not be recorded.",
+                    false,
+                )
+            })?;
+    }
+    Ok(progress)
 }
 
 /// ADR-0007: converts the latest stored change-set result for one
@@ -3805,12 +3837,17 @@ planning_artifacts = \"{project-root}/docs/plan\"
     fn the_architecture_progression_refuses_a_replayed_step() {
         let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
         let workspace_contract = id(&workspace_id);
+        let authority = state.ready_workspace_commit().expect("ready authority");
         let first = {
+            let store = state
+                .local_store(authority.authority())
+                .expect("local store");
             let mut coordinator = state.bmad_architecture.lock();
             coordinator
-                .select_step(&workspace_contract, UnixMillis(10_000))
+                .select_step(store, &workspace_contract, UnixMillis(10_000))
                 .expect("first step")
         };
+        drop(authority);
         let artifact = desktop_runtime::BmadDocumentArtifact::new(
             "System context".to_owned(),
             vec![desktop_runtime::BmadDocumentSection {
