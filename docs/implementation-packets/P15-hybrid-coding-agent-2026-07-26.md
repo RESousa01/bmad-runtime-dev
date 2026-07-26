@@ -126,12 +126,48 @@ that authorized it* — `{candidate_hash, proposed_diff_hash, permission_tool,
 permission_subject, permission_rule_matched, permission_reply}`. Everything from
 `consume_spec_record` down is unchanged.
 
-**D6 — Two-tier BMAD content.** Shipped BMAD stays provenance-sealed and
-hash-chained; user- and Builder-authored BMAD lives in the workspace, read
-through governed IO like any other file, and is **not** hash-pinned. The seal
-must stop answering *"what can the model do?"* — that is now the permission rule
-set, evaluated per call — and keep answering *"what text did we send, and where
-did it come from?"*, which matters more once the agent can act.
+**D6 — Forge ships its own copy of the Method, and its own installer.**
+Forge does not run upstream's installer against the user's workspace. It
+vendors the Method and materialises it itself.
+
+The corpus is already here and already sealed: 47 `SKILL.md` files across 228
+files under `packages/bmad-foundation/source/method/6.10.0/src/` — four BMM
+phase folders (`1-analysis`, `2-plan-workflows`, `3-solutioning`,
+`4-implementation`) plus 14 core skills — every one of them tracked in
+`runtime-manifest.json` and covered by the hash chain. The missing piece is
+only the installer.
+
+Three tiers, with different rules:
+
+| Tier | What | Verified how |
+|---|---|---|
+| **Shipped** | `packages/bmad-foundation/source/…` — Forge's own copy of the Method | Hash-chained, immutable at runtime |
+| **Installed** | what the installer writes into the workspace (`.agents/skills/`, `.opencode/commands/`) so the sidecar discovers it | Materialised *from* the shipped tier, so Forge can re-verify it against those hashes and report drift |
+| **Authored** | what the user or the Builder writes | Ordinary governed workspace content. Not hash-pinned — that is the point |
+
+The installed tier being derived from a sealed source is *stronger* than
+upstream's arrangement, not weaker: Forge can tell a user that their installed
+Method has been modified, and offer to restore or upgrade it. Upstream cannot.
+
+Adaptation is permitted and expected — layout, naming, and host-specific
+wiring — but **the Method itself does not change**: its phases, its skills,
+its agents, its workflows, and the sequence they impose are upstream's.
+Divergence in the Method is a defect, not a feature.
+
+The seal must stop answering *"what can the model do?"* — that is now the
+permission rule set, evaluated per call — and keep answering *"what text did we
+ship, and where did it come from?"*, which matters more once the agent can act.
+
+**Licence and marks.** BMAD-METHOD is MIT (© BMad Code, LLC), which permits
+copying, modifying and redistributing with attribution, and upstream's own
+trademark notice explicitly permits forking and distributing your own version
+under a different name. Forge does exactly that: it is named Forge, uses BMAD
+marks descriptively only, and claims no endorsement — the carve-out already in
+`THIRD_PARTY_NOTICES.md` covers this and must stay accurate. Two obligations
+follow from shipping a *modified* copy: the notice must say adapted-from rather
+than implying it is upstream, and the outstanding caveat already recorded there
+— that adopted bytes must be pinned to an immutably identified upstream release
+before public distribution — has to be discharged, not carried forward.
 
 **D7 — Consent becomes turn-scoped, and the change is written down.**
 One reviewed manifest per model call cannot survive an agent loop, and the chat
@@ -235,7 +271,21 @@ weaker than what already ships:
 
 ### Phase 4 — BMAD full fidelity
 
-- Run the real upstream installer with target `opencode` against the workspace.
+- **Build Forge's own installer** (D6). It materialises the sealed corpus into
+  the workspace in the layout the sidecar discovers — skills to
+  `.agents/skills/<name>/SKILL.md` with their `assets/` and `references/`
+  intact, commands to `.opencode/commands/`. Preserve each skill's frontmatter
+  `name`, because that is the discovery key and duplicates resolve
+  nondeterministically upstream.
+- Install is a **governed write**: it goes through the D3 journal like any other
+  change set, so it is reviewable, undoable and crash-safe. Installing a method
+  into someone's repository is a workspace mutation and should look like one.
+- **Verify and repair.** Because the installed tier is derived from hashed
+  sources, Forge can compare an existing install against them and report
+  drift — modified, missing, or extra files — then offer restore or upgrade.
+  Build this with the installer, not after it; it is what makes shipping our
+  own copy better than shelling out to upstream's.
+- Re-installing must be idempotent, and must not clobber the **authored** tier.
 - Supersede **ADR-0006** (Builder output is inert): the Builder must author
   real agents, workflows and skills into the workspace tier (D6).
 - Re-check ADR-0005 and ADR-0008 for clauses assuming a closed, pre-reviewed
@@ -296,11 +346,17 @@ triggers a full re-bootstrap (`App.tsx:1668-1671`).
 - Builder self-activation without a human step. An agent that authors *and*
   activates its own instructions defeats the permission model's audience.
 - macOS/Linux. Windows only; note recovery mutation is already `#[cfg(windows)]`.
+- Changing the Method itself. Layout, naming and host wiring may be adapted;
+  the phases, skills, agents and workflows are upstream's, and divergence in
+  them is a defect (D6).
+- Installing to platforms other than the one the sidecar reads. Upstream's
+  installer targets a dozen IDEs; Forge's needs exactly one layout.
 
 ## Definition of done
 
-- BMAD installed with target `opencode` into a workspace is discovered and
-  runnable end to end, including the Builder authoring a new agent that then
+- Forge's own installer materialises the Method into a workspace, and it is
+  discovered and runnable end to end, including the Builder authoring a new
+  agent that then
   loads — with no Forge-specific projection involved.
 - Every effectful tool call is evaluated by Rust and, when unmatched, reaches a
   human before it runs.
