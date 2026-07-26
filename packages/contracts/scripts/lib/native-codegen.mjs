@@ -114,7 +114,11 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    sha256: "5e1d1eac5e22e101626abbf038fae78e38e0acf32375ecf53e96fd53b9f5aa9b",
+    // Re-reviewed 2026-07-26 for ADR-0009 Phase 1: the only change is two
+    // dependency edges, `globset` and `regex`, promoted from transitive (via
+    // `ignore`) to direct for `desktop-workspace`'s glob/grep tools. No package
+    // versions changed and no package was added to the tree.
+    sha256: "b94d06503d2aa8b05734a40929ba7b08d9d7d71b7d4432b93d35ad3fbb2244de",
     status: "reviewed",
   },
   dotnetTools: {

@@ -9,7 +9,9 @@ publish.workspace = true
 [dependencies]
 desktop-runtime = { path = "../desktop-runtime" }
 gix.workspace = true
+globset.workspace = true
 ignore.workspace = true
+regex.workspace = true
 parking_lot.workspace = true
 serde.workspace = true
 sha2.workspace = true

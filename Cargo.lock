@@ -931,6 +931,7 @@ dependencies = [
  "desktop-ipc",
  "desktop-runtime",
  "desktop-store",
+ "desktop-tools",
  "desktop-update",
  "desktop-workspace",
  "parking_lot",
@@ -1065,8 +1066,10 @@ version = "0.1.0"
 dependencies = [
  "desktop-runtime",
  "gix",
+ "globset",
  "ignore",
  "parking_lot",
+ "regex",
  "serde",
  "serde_json",
  "sha2",

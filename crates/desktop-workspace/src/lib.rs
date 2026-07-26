@@ -28,6 +28,12 @@ const DEFAULT_MAX_SCAN_BYTES: u64 = 4 * 1024 * 1024;
 const MAX_DIRECTORY_ENTRIES: usize = 10_000;
 const MAX_WALK_ENTRIES: usize = 10_000;
 const MAX_RELATIVE_PATH_BYTES: usize = 1_024;
+const MAX_PATTERN_BYTES: usize = 256;
+// A model-supplied pattern is untrusted input. `regex` already rules out
+// catastrophic backtracking by construction; these cap what a merely large
+// pattern can allocate while compiling.
+const MAX_REGEX_SIZE_BYTES: usize = 256 * 1024;
+const MAX_REGEX_DFA_BYTES: usize = 1024 * 1024;
 const MAX_SEGMENT_UTF16_UNITS: usize = 255;
 const CONFIG_CREDENTIAL_STORES: &[&str] = &[
     "1password",
@@ -172,6 +178,20 @@ pub struct SearchMatch {
     pub preview: String,
 }
 
+/// One `grep` call over workspace content.
+///
+/// `path_scope` narrows the walk to paths matching a glob; `None` searches the
+/// whole grant. It narrows only — a scope can never widen what the broker's
+/// structural policy already excludes.
+#[derive(Debug, Clone, Copy)]
+pub struct GrepRequest<'a> {
+    pub workspace_id: &'a str,
+    pub pattern: &'a str,
+    pub path_scope: Option<&'a str>,
+    pub case_sensitive: bool,
+    pub max_results: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct BmadScanProjection {
@@ -221,6 +241,8 @@ pub enum WorkspaceError {
     UnsupportedRoot,
     #[error("the requested relative path is invalid")]
     InvalidRelativePath,
+    #[error("the search pattern is not valid or exceeds its configured bound")]
+    InvalidPattern,
     #[error("the requested path is outside the selected workspace")]
     OutsideWorkspace,
     #[error("the workspace grant is not visible or has been revoked")]
@@ -868,15 +890,7 @@ impl WorkspaceBroker {
         let mut walk_budget = WalkBudget::default();
         let query_lower = query.to_lowercase();
 
-        let walker = WalkBuilder::new(&grant.root)
-            .hidden(false)
-            .follow_links(false)
-            .git_ignore(true)
-            .git_global(false)
-            .git_exclude(true)
-            .build();
-
-        for entry in walker {
+        for entry in bounded_walker(&grant.root) {
             self.ensure_grant_current(&authority, &grant)?;
             if matches.len() >= limit || inspected_bytes >= DEFAULT_MAX_SCAN_BYTES {
                 break;
@@ -884,28 +898,11 @@ impl WorkspaceBroker {
             walk_budget.visit()?;
             let entry = entry
                 .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
-            let path = entry.path();
-            if !entry
-                .file_type()
-                .is_some_and(|file_type| file_type.is_file())
-            {
+            let Some(vetted) = vet_walk_entry(&grant.root, &entry)? else {
                 continue;
-            }
-            let relative = to_relative_wire_path(&grant.root, path)?;
-            if is_sensitive_relative_path(&relative) {
-                continue;
-            }
-            let metadata = entry
-                .metadata()
-                .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
-            if metadata.len() > DEFAULT_MAX_TEXT_BYTES
-                || is_reparse_point(&metadata)
-                || is_cloud_placeholder(&metadata)
-                || has_unexpected_hardlinks(path, &metadata)
-            {
-                continue;
-            }
-            let Some(bytes) = read_bounded_file(path, DEFAULT_MAX_TEXT_BYTES)? else {
+            };
+            let relative = vetted.relative_path;
+            let Some(bytes) = read_bounded_file(entry.path(), DEFAULT_MAX_TEXT_BYTES)? else {
                 continue;
             };
             inspected_bytes = inspected_bytes.saturating_add(bytes.len() as u64);
@@ -919,6 +916,124 @@ impl WorkspaceBroker {
                 if line.to_lowercase().contains(&query_lower) {
                     matches.push(SearchMatch {
                         relative_path: relative.clone(),
+                        line: index.saturating_add(1),
+                        preview: truncate_chars(line.trim(), 240),
+                    });
+                    if matches.len() >= limit {
+                        break;
+                    }
+                }
+            }
+        }
+        self.ensure_grant_current(&authority, &grant)?;
+        Ok(matches)
+    }
+
+    /// Lists workspace files whose relative path matches a glob.
+    ///
+    /// The exclusion of sensitive paths is the broker's, not the caller's: a
+    /// pattern like `**/*.env` returns nothing rather than returning secrets,
+    /// because `is_sensitive_relative_path` is applied to every candidate after
+    /// the pattern matches. A permission rule that allows `glob` therefore
+    /// cannot be used to enumerate credentials.
+    ///
+    /// `*` does not cross a path separator; `**` does.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the pattern or workspace authority is invalid, the
+    /// root identity changes, the walk budget is exhausted, or I/O fails.
+    pub fn glob(
+        &self,
+        workspace_id: &str,
+        pattern: &str,
+        max_results: usize,
+    ) -> Result<Vec<String>, WorkspaceError> {
+        let selector = compile_glob(pattern)?;
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, workspace_id)?;
+        revalidate_root(&grant)?;
+        let limit = max_results.clamp(1, DEFAULT_MAX_RESULTS);
+        let mut walk_budget = WalkBudget::default();
+        let mut matches = Vec::new();
+
+        for entry in bounded_walker(&grant.root) {
+            self.ensure_grant_current(&authority, &grant)?;
+            if matches.len() >= limit {
+                break;
+            }
+            walk_budget.visit()?;
+            let entry = entry
+                .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+            let Some(vetted) = vet_walk_entry(&grant.root, &entry)? else {
+                continue;
+            };
+            if selector.is_match(vetted.relative_path.as_str()) {
+                matches.push(vetted.relative_path);
+            }
+        }
+        self.ensure_grant_current(&authority, &grant)?;
+        Ok(matches)
+    }
+
+    /// Searches workspace content by regular expression, optionally scoped to a
+    /// glob.
+    ///
+    /// Unlike [`Self::search`], which is a case-insensitive substring scan, this
+    /// compiles a real pattern. The engine is `regex`, chosen because it
+    /// guarantees linear-time matching — a model-supplied pattern cannot induce
+    /// catastrophic backtracking — and the compiled size is bounded on top of
+    /// that so a pathological pattern cannot exhaust memory either.
+    ///
+    /// Sensitive paths are excluded structurally, exactly as in [`Self::glob`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the pattern, scope or workspace authority is
+    /// invalid, the root identity changes, the walk budget is exhausted, or I/O
+    /// fails.
+    pub fn grep(&self, request: &GrepRequest<'_>) -> Result<Vec<SearchMatch>, WorkspaceError> {
+        let expression = compile_regex(request.pattern, request.case_sensitive)?;
+        let scope = request.path_scope.map(compile_glob).transpose()?;
+        let authority = self.revocation_barrier.read();
+        let grant = self.active_grant(&authority, request.workspace_id)?;
+        revalidate_root(&grant)?;
+        let limit = request.max_results.clamp(1, DEFAULT_MAX_RESULTS);
+        let mut inspected_bytes = 0_u64;
+        let mut walk_budget = WalkBudget::default();
+        let mut matches = Vec::new();
+
+        for entry in bounded_walker(&grant.root) {
+            self.ensure_grant_current(&authority, &grant)?;
+            if matches.len() >= limit || inspected_bytes >= DEFAULT_MAX_SCAN_BYTES {
+                break;
+            }
+            walk_budget.visit()?;
+            let entry = entry
+                .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+            let Some(vetted) = vet_walk_entry(&grant.root, &entry)? else {
+                continue;
+            };
+            if scope
+                .as_ref()
+                .is_some_and(|scope| !scope.is_match(vetted.relative_path.as_str()))
+            {
+                continue;
+            }
+            let Some(bytes) = read_bounded_file(entry.path(), DEFAULT_MAX_TEXT_BYTES)? else {
+                continue;
+            };
+            inspected_bytes = inspected_bytes.saturating_add(bytes.len() as u64);
+            if bytes.contains(&0) {
+                continue;
+            }
+            let Ok(text) = String::from_utf8(bytes) else {
+                continue;
+            };
+            for (index, line) in text.lines().enumerate() {
+                if expression.is_match(line) {
+                    matches.push(SearchMatch {
+                        relative_path: vetted.relative_path.clone(),
                         line: index.saturating_add(1),
                         preview: truncate_chars(line.trim(), 240),
                     });
@@ -1317,6 +1432,83 @@ fn reject_reparse_components(root: &Path, candidate: &Path) -> Result<(), Worksp
         }
     }
     Ok(())
+}
+
+/// A walk entry that passed structural vetting and may be shown to a caller.
+struct VettedEntry {
+    relative_path: String,
+}
+
+/// The one walker configuration every workspace scan uses: no symlink
+/// following, gitignore honoured, hidden files visible.
+fn bounded_walker(root: &Path) -> ignore::Walk {
+    WalkBuilder::new(root)
+        .hidden(false)
+        .follow_links(false)
+        .git_ignore(true)
+        .git_global(false)
+        .git_exclude(true)
+        .build()
+}
+
+/// Applies the structural policy shared by every content scan: files only,
+/// sensitive paths excluded, and no reparse point, cloud placeholder,
+/// unexpectedly hardlinked file or oversized file admitted.
+///
+/// Returning `Ok(None)` means "skip this entry", which is deliberately not an
+/// error: a workspace containing a secret is normal, and scanning it must not
+/// fail the whole call.
+fn vet_walk_entry(
+    root: &Path,
+    entry: &ignore::DirEntry,
+) -> Result<Option<VettedEntry>, WorkspaceError> {
+    if !entry
+        .file_type()
+        .is_some_and(|file_type| file_type.is_file())
+    {
+        return Ok(None);
+    }
+    let path = entry.path();
+    let relative = to_relative_wire_path(root, path)?;
+    if is_sensitive_relative_path(&relative) {
+        return Ok(None);
+    }
+    let metadata = entry
+        .metadata()
+        .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+    if metadata.len() > DEFAULT_MAX_TEXT_BYTES
+        || is_reparse_point(&metadata)
+        || is_cloud_placeholder(&metadata)
+        || has_unexpected_hardlinks(path, &metadata)
+    {
+        return Ok(None);
+    }
+    Ok(Some(VettedEntry {
+        relative_path: relative,
+    }))
+}
+
+fn compile_glob(pattern: &str) -> Result<globset::GlobMatcher, WorkspaceError> {
+    if pattern.trim().is_empty() || pattern.len() > MAX_PATTERN_BYTES {
+        return Err(WorkspaceError::InvalidPattern);
+    }
+    globset::GlobBuilder::new(pattern)
+        .literal_separator(true)
+        .build()
+        .map(|glob| glob.compile_matcher())
+        .map_err(|_| WorkspaceError::InvalidPattern)
+}
+
+fn compile_regex(pattern: &str, case_sensitive: bool) -> Result<regex::Regex, WorkspaceError> {
+    if pattern.trim().is_empty() || pattern.len() > MAX_PATTERN_BYTES {
+        return Err(WorkspaceError::InvalidPattern);
+    }
+    regex::RegexBuilder::new(pattern)
+        .case_insensitive(!case_sensitive)
+        .size_limit(MAX_REGEX_SIZE_BYTES)
+        .dfa_size_limit(MAX_REGEX_DFA_BYTES)
+        .build()
+        .map_err(|_| WorkspaceError::InvalidPattern)
 }
 
 fn to_relative_wire_path(root: &Path, path: &Path) -> Result<String, WorkspaceError> {
