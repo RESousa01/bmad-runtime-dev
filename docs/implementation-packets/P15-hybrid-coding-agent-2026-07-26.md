@@ -180,11 +180,75 @@ moved onto the tool prompt — is where the code drifts by default, and it is
 security theatre: the tool prompt shows a command line, not what context is
 about to be shipped.
 
+## The sidecar↔host contract
+
+This is the interface the whole architecture rests on, so it is specified here
+rather than discovered during Phase 3.
+
+Model it on `LocalCommand` (`crates/desktop-runtime/src/command.rs:116`): one
+closed tagged enum, `#[serde(deny_unknown_fields)]`, parsed with
+`deserialize_strict_json` so duplicate keys are rejected. **Nine operations.
+Nothing else.** Every new operation is a deliberate widening of what a
+compromised sidecar can reach.
+
+Request: `{callId, op, args}`. `callId` is sidecar-chosen and host-deduplicated,
+so a replayed frame cannot re-drive an effect.
+Response: `{callId, ok: true, data}` or `{callId, ok: false, error: {code, message}}`
+over a **closed** code set mapping onto existing errors —
+`permission_denied | outside_workspace | path_blocked | invalid_path |
+not_found | already_exists | stale_preimage | limit_exceeded |
+unsupported_text | grant_unavailable | edits_not_enabled | timed_out |
+spawn_failed | invalid_argument | unavailable`.
+
+A denial is a **normal response, not a transport error**: the model is told and
+may reason about it (ADR-0009 §3).
+
+| Op | Args | Permission `tool` | `subject` shown to the user |
+|---|---|---|---|
+| `fs.read` | `path`, `maxBytes?` | `read` | normalized relative path |
+| `fs.list` | `path`, `cursor?`, `limit?` | `list` | normalized directory path |
+| `fs.glob` | `pattern`, `limit?` | `glob` | the pattern |
+| `fs.grep` | `pattern`, `literal`, `pathGlob?`, `limit?` | `grep` | the pattern |
+| `fs.propose_edit` | `edits[{path, op, content?}]` | `write`/`edit`/`delete` | the path, one prompt each |
+| `shell.run` | `command`, `relativeDir?`, `timeoutMs?` | `shell` | **the literal command line** |
+| `git.status` | — | `git` | `status` |
+| `git.diff` | `path`, `comparison` | `git` | `diff <path>` |
+| `net.fetch` | `url` | `webfetch` | `scheme://host/path`, query stripped |
+
+**The `subject` discipline is easy to get wrong and security-relevant.** The
+host-normalized value must be the *same string* that (a) `glob_match` matches,
+(b) `PermissionRequest.subject` renders, and (c) `always_pattern` derives from.
+Matching a normalized path while displaying the sidecar's raw input is
+approval laundering.
+
+**Never accept from the sidecar**, because these are host authority facts:
+
+- absolute paths, drive prefixes, UNC, `\` separators, `..` — reuse
+  `normalize_relative_path` (`crates/desktop-workspace/src/lib.rs:1156-1166`)
+  rather than re-validating in TypeScript;
+- `workspaceId`, any epoch, `rootIdentityHash`, `workspaceTargetHash`;
+- the shell working-directory *root* — only `relativeDir`;
+- preimage or identity hashes as authority (ADR-0007 §3 already settles this:
+  a model-declared preimage is a staleness tripwire, never authority);
+- `displayedDiffHash`, `candidateHash`, `approvalId`, nonces, timestamps;
+- permission actions, rules, or any claim of prior approval;
+- **prompt copy.** `title` and `detail` are tool-authored by construction
+  (`crates/desktop-tools/src/permission.rs:145-154`). A sidecar-supplied
+  justification string in a consent dialog is a social-engineering primitive.
+
+Reuse the bounds that already exist rather than inventing a second set: 512 KiB
+read, 1000 results, 4 MiB scan budget, 1024-byte paths, 120 s shell timeout,
+64 KiB per stream, 1 MiB governed file, 20 files and 1 MiB per proposal. Add
+what does not exist: a frame cap before parse, a per-turn tool-call ceiling, and
+a per-turn cumulative-bytes ceiling.
+
 ## Phases
 
-Each phase is independently landable and independently verifiable.
+Each phase is independently landable and independently verifiable. Sizes are
+order-of-magnitude, for sequencing only: **S** ≈ days, **M** ≈ 1–2 weeks,
+**L** ≈ a month or more.
 
-### Phase 0 — Unblock concurrency (no sidecar, no tools)
+### Phase 0 — Unblock concurrency (no sidecar, no tools) — M
 
 **Not a hard prerequisite — ship Phase 1 first if you want value sooner.** A
 single tool-using turn works without any of this, because the global
@@ -212,7 +276,7 @@ slots and the whole-ledger mutex the binding constraint immediately.
 
 *Verify:* two task tabs run turns simultaneously; neither returns `Conflict`.
 
-### Phase 1 — Host-side tools, no sidecar
+### Phase 1 — Host-side tools, no sidecar — M
 
 The smallest change delivering real user value, and it needs no new process.
 
@@ -235,7 +299,7 @@ weaker than what already ships:
 
 *Verify:* a chat turn reads its own context; `.env` still refuses structurally.
 
-### Phase 2 — The sidecar
+### Phase 2 — The sidecar — M
 
 - Spawn under a Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`; requires
   adding `Win32_System_JobObjects` to the `windows` crate features. Also fixes
@@ -256,7 +320,11 @@ weaker than what already ships:
   (`middleware/workspace-routing.ts:87`), which for a spawned sidecar is wrong.
   This is the single most likely "BMAD isn't showing up" bug.
 
-### Phase 3 — Tool delegation and the permission bridge
+*Verify:* kill the host process and confirm the sidecar dies with it; wedge the
+sidecar's event loop and confirm the health check fails rather than hanging;
+restart it mid-run and confirm no permission decision is replayed.
+
+### Phase 3 — Tool delegation and the permission bridge — M
 
 - Shadow `read`, `write`, `edit`, `glob`, `grep`, `bash`, `apply_patch`,
   `webfetch` as `.js` in `$OPENCODE_CONFIG_DIR/tool/`; each round-trips to Rust
@@ -269,7 +337,12 @@ weaker than what already ships:
 - Handle the documented leaks explicitly: `prompt.ts:813`/`:266` builtin `read`,
   and the `gpt-*` `apply_patch` swap.
 
-### Phase 4 — BMAD full fidelity
+*Verify:* every effectful call reaches Rust — assert by denying everything and
+confirming the agent can do nothing at all. Then allow `read` only and confirm
+`write` still stops. A leak shows up as an effect with no corresponding host
+evaluation, so log every evaluation and diff it against observed effects.
+
+### Phase 4 — BMAD full fidelity — L
 
 - **Build Forge's own installer** (D6). It materialises the sealed corpus into
   the workspace in the layout the sidecar discovers — skills to
@@ -286,6 +359,11 @@ weaker than what already ships:
   Build this with the installer, not after it; it is what makes shipping our
   own copy better than shelling out to upstream's.
 - Re-installing must be idempotent, and must not clobber the **authored** tier.
+
+*Verify:* install into a scratch repo, run a capability end to end, then modify
+an installed file and confirm verify reports the drift and repair restores it.
+The Builder authoring a new agent that subsequently loads is the acceptance
+test for the whole phase — it exercises all three tiers at once.
 - Supersede **ADR-0006** (Builder output is inert): the Builder must author
   real agents, workflows and skills into the workspace tier (D6).
 - Re-check ADR-0005 and ADR-0008 for clauses assuming a closed, pre-reviewed
@@ -310,7 +388,7 @@ architecture all depend on), then `document-project` (produces
 `project-context.md`, load-bearing for brownfield), then `architecture`, then
 `dev-story`, with `prd`/`product-brief` on a parallel track.
 
-### Phase 5 — Renderer
+### Phase 5 — Renderer — L
 
 ~500 lines of pure, already-tested logic port first with no framework risk:
 event coalescing, markdown streaming, error-text extraction, tool-arg display,
@@ -321,6 +399,90 @@ dismissal), tool cards, streaming turn, retry banner, cancel.
 Needs a host→renderer push channel: a `tauri::ipc::Channel<T>` per run. The
 projection lane cannot carry deltas — 1024 slots polled at 1.5 s, and a gap
 triggers a full re-bootstrap (`App.tsx:1668-1671`).
+
+Deltas for one part must arrive in order; `part.delta` appends to what the
+renderer already holds, so a reorder silently corrupts text. If the channel
+cannot promise ordering, carry a per-part sequence and drop out-of-order frames.
+
+*Verify:* a turn streams token by token; Stop halts it mid-stream and the
+transcript keeps what arrived; a permission prompt blocks the composer and
+cannot be dismissed by Escape or click-away.
+
+## What breaks in the existing suite
+
+737 Rust tests pass today. This pivot invalidates some of them *by design*, and
+the dangerous case is a test whose intent is still valid even though its
+assertion is not.
+
+- **`chat.rs` `replies_outside_the_closed_shape_fail_closed`** rejects
+  `"apply": true` and `"changes": []` as smuggled authority-bearing fields. A
+  tool call **is** an authority-bearing field. This test does not get fixed; it
+  gets deleted. **Its intent must be re-expressed** — the model still must not
+  be able to smuggle authority through an unexpected key; what changes is that
+  some keys are now expected. Deleting it without a replacement silently drops
+  the property.
+- **`ChatSession` tests** assume two roles and strict alternation
+  (`crates/desktop-runtime/src/chat.rs:193-209`, whole-turn pruning at
+  `:238-251`). A tool-result role changes all of them.
+- **Store tests** persist `role` as `user`/`assistant` and bail on anything
+  else. New roles are a migration.
+- **Catalog tests** assert byte-identical command lists across three sites
+  (`commands.rs` `READY_COMMANDS`, `envelope.rs` `is_known_command`,
+  `contracts.ts` `desktopHostCommands`). Every new command touches all three.
+- **`desktop-cloud`** pins request/response shape; tool-calling changes it.
+- **Least affected:** `desktop-workspace`, `desktop-execution`,
+  `desktop-airlock` — which is the evidence that D5 (reuse the governed write
+  path) is the right call.
+
+**A gate trap worth knowing before it bites:** `pnpm verify:source` does **not**
+run `rust:test` or `rust:clippy` — only `verify:deferred-full` and the desktop
+CI workflow do. The default local verify will stay green while the Rust suite is
+broken. Use `verify:deferred-full` throughout this work.
+
+## Open decisions
+
+**O1 — Does the sidecar hold the provider credential?**
+Today the API key enters through one narrow IPC command, moves straight into
+zeroizing memory, and is never returned or serialized. If the sidecar runs the
+provider loop it must hold the key, and a compromised sidecar exfiltrates it —
+a genuine regression this split introduces.
+*Option A:* sidecar holds it. Streaming and provider breadth work naturally.
+*Option B:* the sidecar proposes model calls and the **host** performs them.
+Preserves the property, but reduces the sidecar to a state machine and gives
+back much of the reason for choosing it.
+Not decidable from the code; it is a product call about the threat model.
+**Decide before Phase 2**, because it determines the transport message schema.
+
+**O2 — What happens to the existing capability lane?**
+Once chat turns can call tools, the justification for a separate one-shot
+capability lane disappears — its own doc says the split exists because "a chat
+turn produces text and nothing else". Either the capability lane collapses into
+the chat lane as a governed session type, or the two are maintained in parallel
+indefinitely. The first is almost certainly right and is a large refactor;
+scoping it is Phase 4 work, but the decision shapes Phase 1.
+
+**O3 — Do we ever ship option B (fork and strip)?**
+Option A's boundary is not an enforcement boundary. If Forge's positioning
+depends on it being one, option B is not optional and should be scheduled, not
+left as "planned follow-on".
+
+## Abort criteria
+
+Stop and reconsider rather than pushing through if any of these hold:
+
+- **The sidecar cannot be contained well enough for the trust claim being made
+  in product copy.** Either weaken the copy or schedule option B. Do not ship a
+  claim the architecture does not support.
+- **Streaming plus cancellation costs more than Phase 0–3 combined.** That is
+  the signal that the seam is in the wrong place, and the fallback is the
+  provider-adapter seam — a stateless sidecar that receives a sealed request and
+  returns a sealed response, holding no conversation state and no tool loop.
+- **BMAD fidelity requires forking OpenCode anyway.** The main reason to run it
+  unmodified is that BMAD works on it as-is; if that stops being true, option D
+  (own loop, reuse `@opencode-ai/llm`) becomes competitive again.
+- **The installed-tier verification cannot be made to work** — e.g. install is
+  inherently lossy against the sealed hashes. That removes the main advantage
+  of shipping our own copy over shelling out.
 
 ## Risks
 
