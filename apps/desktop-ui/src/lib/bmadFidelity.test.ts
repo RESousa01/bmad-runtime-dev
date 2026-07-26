@@ -7,7 +7,10 @@ describe("capabilityFidelity", () => {
     const fidelity = capabilityFidelity("bmm:bmad-architecture");
     expect(fidelity.level).toBe("ordered_steps");
     expect(fidelity.label).toBe("Stepwise");
-    expect(fidelity.note).toContain("eight host-validated steps");
+    // The count must match `BmadArchitectureStep::ORDERED`, which gained a
+    // ninth step (`Deferred`). This assertion previously pinned "eight", so it
+    // held the badge's wrong number in place instead of catching the drift.
+    expect(fidelity.note).toContain("nine host-validated steps");
   });
 
   it("still refuses to claim upstream fidelity for the stepwise capability", () => {

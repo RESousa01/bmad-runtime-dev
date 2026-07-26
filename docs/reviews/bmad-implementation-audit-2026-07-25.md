@@ -120,19 +120,23 @@ These are honest limits, not oversights. Each is stated in the fidelity matrix
 and the P9 packet.
 
 1. **Fidelity is still not upstream fidelity — for any capability.** The
-   ordered lane is a real state machine, but it is eight reviewed one-shot
-   steps, not the upstream coaching dialogue with its memlog, reviewer-gate
-   subagents, and web verification. The matrix still reports **faithful
+   ordered lane is a real state machine, but it is nine reviewed one-shot
+   steps, not the upstream coaching dialogue with its reviewer-gate
+   subagents and web verification. (The memlog half of this gap closed in
+   P14, 2026-07-26; what remains is that entries are written at the end of an
+   exchange rather than interleaved with a conversation.) The matrix still reports **faithful
    upstream execution: 0**, and the UI says "Stepwise", never "faithful".
    Availability is not fidelity. Upgrading that claim would require tool
    intents (`web`, `subagent`, `file_write`, `process`) that ADR-0003 blocks by
    design — so this is a standing product boundary, not a backlog item.
-2. **The progression is in-memory.** It sits alongside the generic coordinator,
-   which the 2026-07-23 audit already flags as non-durable. Every completed
-   step is durably stored as its own capability run, so the *evidence* survives
-   a restart; an in-progress progression does not, and restarts at step one.
-   Making it durable is the same milestone as making the generic coordinator
-   durable.
+2. ~~**The progression is in-memory.**~~ **Closed (P14, 2026-07-26.)** The
+   live session is still in-memory, but its *boundary* is durable — which
+   session a workspace has open and the ordered runs that answered its steps —
+   so a restart resumes at the step it interrupted. Resuming re-reads each
+   recorded step from its own capability run and re-parses it through the same
+   strict constructor that accepted it, and fails closed if any of it no longer
+   verifies. The generic coordinator remains non-durable between prepare and
+   submit.
 3. **The Help catalog is still narrower than the enabled denominator** — two
    installed skills and two actions against 24 unique capabilities. The
    Architecture half of that conflict is resolved; the breadth half is

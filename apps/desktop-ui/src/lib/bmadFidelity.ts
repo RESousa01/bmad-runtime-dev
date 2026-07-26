@@ -9,7 +9,7 @@
 //
 // Classification is grounded, not asserted-faithful:
 //   - `ordered_steps`   — Architecture / CA, the one capability the host runs
-//                         as an ordered state machine: eight host-selected
+//                         as an ordered state machine: nine host-selected
 //                         steps with a stable decision log, distilled into one
 //                         spine. Still not the upstream coaching dialogue.
 //   - `inert_draft`     — Builder capabilities that produce an inert draft and
@@ -35,7 +35,7 @@ const GENERIC_ADAPTED_NOTE =
   "A single reviewed, one-shot model request — not the full upstream multi-step BMAD workflow.";
 
 const ARCHITECTURE_NOTE =
-  "Runs as eight host-validated steps with a stable decision log, distilled into one spine — still not the upstream coaching dialogue.";
+  "Runs as nine host-validated steps with a stable decision log, distilled into one spine — still not the upstream coaching dialogue.";
 
 /** Capabilities the audit calls out as materially divergent from upstream. */
 const NAMED_NOTES: Readonly<Record<string, string>> = {

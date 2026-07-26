@@ -47,7 +47,7 @@ matrix marks each capability's honest status; the UI shows the same label inline
 | `bmm:bmad-check-implementation-readiness` | IR | Adapted (one-shot) | One reviewed request. |
 | `bmm:bmad-correct-course` | CC | Adapted (one-shot) | One reviewed request. |
 | `bmm:bmad-ux` | CU | Adapted (one-shot) | One reviewed request. |
-| `bmm:bmad-architecture` | CA | **Stepwise (ordered)** | Eight host-selected steps (system context, components, trust boundaries, data, failure handling, observability, deployment, verification), stable `AD-n` decision log, locally distilled spine. Not the upstream coaching dialogue, memlog, or reviewer-gate subagents. |
+| `bmm:bmad-architecture` | CA | **Stepwise (ordered)** | Nine host-selected steps (system context, components, trust boundaries, data, failure handling, observability, deployment, verification, deferred), stable `AD-n` decision log, locally distilled spine. Not the upstream coaching dialogue, memlog, or reviewer-gate subagents. |
 | `bmm:bmad-dev-story` | DS | Adapted (one-shot) | Schema-first one-shot change proposal, **not** the upstream ordered dev-story workflow. |
 | `bmm:bmad-quick-dev` | QD | Adapted (one-shot) | Schema-first one-shot change proposal, **not** the upstream scripted quick-dev workflow. |
 | `bmm:bmad-qa-generate-e2e-tests` | QA | Adapted (one-shot) | One reviewed change-set request. |
@@ -69,13 +69,20 @@ draft only; none can install, register, or execute an agent or workflow.
 - Inert draft: **5** Builder capabilities.
 - Unavailable: **0**. Every reviewed menu path is now runnable.
 - **Faithful upstream execution: still 0.** The ordered lane is a real,
-  host-validated state machine, but it is eight reviewed one-shot steps — not the
-  upstream coaching dialogue with its memlog, reviewer-gate subagents, and web
+  host-validated state machine, but it is nine reviewed one-shot steps — not the
+  upstream coaching dialogue with its reviewer-gate subagents and web
   verification. Availability is not fidelity, and this matrix does not upgrade
   the claim.
+- The memlog is no longer part of that gap (P14, 2026-07-26). Document
+  capabilities carry the author's own `decisionLog`, the host appends it to an
+  append-only per-doc-workspace log, and a later run against the same folder is
+  given that log as reviewed context. What is still not upstream is *when* the
+  entries are written: at the end of one reviewed exchange rather than
+  interleaved with a conversation.
 - Durable multi-step lanes: the Method Help lifecycle (durable, a separate
-  mechanism) and the architecture progression (an in-memory session over durably
-  stored per-step evidence; an interrupted progression restarts at step one).
+  mechanism) and the architecture progression, whose boundary is durable — a
+  restart resumes at the step it interrupted rather than reopening at step one
+  (P14 finding 1).
 
 ## Help reconciliation
 
