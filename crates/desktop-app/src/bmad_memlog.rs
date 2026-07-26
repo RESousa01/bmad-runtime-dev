@@ -9,10 +9,19 @@
 //! continuity benefit is real across runs — the second run against a doc
 //! workspace sees what the first decided — but the within-run ordering is not
 //! upstream's and this is not parity.
+//!
+//! Closing that means the author reporting its own ordered entries instead of
+//! the host reverse-engineering them from finished prose, which needs a field
+//! `BmadDocumentArtifact` does not have — it is a closed object in the sealed
+//! wire contract. The one signal that could not wait, an overrule, arrives
+//! meanwhile through a `Supersedes:` line in the section body, read by the same
+//! extractor the architecture lane uses for `Binds`/`Prevents`/`Rule`.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use desktop_runtime::{BmadDocumentArtifact, Memlog, MemlogEntryKind, UnixMillis};
+use desktop_runtime::{
+    labelled_body_part, BmadDocumentArtifact, Memlog, MemlogEntryKind, UnixMillis,
+};
 use desktop_store::{StoredMemlogEntry, MAX_MEMLOG_ENTRY_BYTES};
 
 /// Where the log for a capability accumulates. Host-owned, exactly like
@@ -79,12 +88,20 @@ fn condense(subject: &str, body: &str) -> String {
     bounded(&format!("{subject}: {body}"))
 }
 
-/// The decisions a doc workspace currently stands behind, replayed from its
-/// log: a `decision` records or replaces one, an `override` withdraws it.
+/// The decisions a doc workspace currently stands behind, replayed in order
+/// from its log.
 ///
-/// Replaying rather than scanning is what stops an override from being emitted
-/// again on every later run — once a subject is withdrawn it is no longer live,
-/// so there is nothing left to withdraw.
+/// A `decision` records one. A `change` unsettles one — and because a *revision*
+/// always writes its change immediately before the decision that replaces it,
+/// while a *withdrawal* writes a change and nothing after, the same rule covers
+/// both: the subject is gone unless a later decision puts it back.
+///
+/// An `override` is the author naming what a section overrules; the section
+/// itself still stands, so it changes nothing here.
+///
+/// Replaying rather than scanning is what stops a withdrawal from being
+/// re-emitted on every later run — once a subject is no longer live, there is
+/// nothing left to withdraw.
 fn live_decisions(prior: &[StoredMemlogEntry]) -> BTreeMap<String, String> {
     let mut live: BTreeMap<String, String> = BTreeMap::new();
     for entry in prior {
@@ -95,7 +112,7 @@ fn live_decisions(prior: &[StoredMemlogEntry]) -> BTreeMap<String, String> {
             MemlogEntryKind::Decision => {
                 live.insert(subject.to_owned(), entry.text.clone());
             }
-            MemlogEntryKind::Override => {
+            MemlogEntryKind::Change => {
                 live.remove(subject);
             }
             _ => {}
@@ -148,12 +165,22 @@ impl RunScope {
 /// run distinguishes it from an update — so it is never claimed here rather
 /// than guessed at.
 ///
-/// **On `change` vs `override`:** a reviewed document diff carries no explicit
-/// overrule signal, so these record what structurally happened rather than what
-/// the author intended — a heading whose text was revised is a `change`, and a
-/// heading a [`RunScope::WholeDocument`] run stopped carrying is an `override`,
-/// because the earlier decision no longer stands. Neither infers that anyone
-/// meant to overrule anything.
+/// **On `change` vs `override`:** the two kinds record different things and
+/// come from different places.
+///
+/// `change` is a structural fact about the document — a heading whose text was
+/// revised, or one a [`RunScope::WholeDocument`] run stopped carrying. The host
+/// can see those in a diff and states them without claiming to know why.
+///
+/// `override` is *the author's own statement* that a section overrules an
+/// earlier decision, read from a `Supersedes:` line in the section body. The
+/// host never infers it: an overrule is an intent, and inferring intent from a
+/// diff is how the log ends up asserting things nobody decided. A run that
+/// overrules nothing records no overrides, and that is the correct outcome.
+///
+/// The body carries it because the reviewed wire contract is closed and has no
+/// field for it. That is the same route the architecture lane already uses for
+/// `Binds`, `Prevents` and `Rule`, through the same reader.
 pub(crate) fn completion_entries(
     capability_id: &str,
     artifact: &BmadDocumentArtifact,
@@ -189,6 +216,16 @@ pub(crate) fn completion_entries(
             subject: Some(section.heading.clone()),
             text,
         });
+        // The author's own overrule, if they declared one. Recorded after the
+        // decision that carries it, so the log reads as "here is the new call,
+        // and here is what it overrules".
+        if let Some(superseded) = labelled_body_part(&section.body, "supersedes") {
+            entries.push(ProjectedEntry {
+                kind: MemlogEntryKind::Override,
+                subject: Some(section.heading.clone()),
+                text: bounded(&format!("{}: supersedes {superseded}", section.heading)),
+            });
+        }
     }
 
     if scope == RunScope::WholeDocument {
@@ -198,8 +235,11 @@ pub(crate) fn completion_entries(
                 .iter()
                 .any(|section| section.heading == *subject);
             if !still_carried {
+                // A structural fact, not an overrule: the run stopped carrying
+                // this heading. Whether that *means* the decision was overruled
+                // is the author's to say, and they did not say it here.
                 entries.push(ProjectedEntry {
-                    kind: MemlogEntryKind::Override,
+                    kind: MemlogEntryKind::Change,
                     subject: Some(subject.clone()),
                     text: bounded(&format!(
                         "{subject} no longer carried by {}",
@@ -497,7 +537,7 @@ mod tests {
     }
 
     #[test]
-    fn a_withdrawn_heading_is_recorded_as_an_override() {
+    fn a_withdrawn_heading_is_recorded_as_a_structural_change() {
         let prior = vec![
             stored(
                 0,
@@ -518,12 +558,87 @@ mod tests {
             &prior,
             RunScope::WholeDocument,
         );
+        // Dropping a heading is a fact about the document. Whether it *means*
+        // the decision was overruled is the author's to say, and they did not.
+        let changes: Vec<&str> = entries
+            .iter()
+            .filter(|entry| entry.kind == MemlogEntryKind::Change)
+            .map(|entry| entry.text.as_str())
+            .collect();
+        assert_eq!(changes, vec!["Scope no longer carried by Payments PRD"]);
+        assert!(!entries
+            .iter()
+            .any(|entry| entry.kind == MemlogEntryKind::Override));
+    }
+
+    /// P14 finding 2: an overrule is an intent, so it comes from the author.
+    /// The host reads a `Supersedes:` line out of the section body — the same
+    /// route the architecture lane already uses for `Binds`/`Prevents`/`Rule`,
+    /// because the reviewed wire contract is closed and has no field for it.
+    #[test]
+    fn an_override_is_recorded_only_when_the_author_declares_one() {
+        let entries = completion_entries(
+            "bmm:bmad-prd",
+            &artifact(
+                "Payments PRD",
+                &[(
+                    "Scope",
+                    "EU and UK.
+- **Supersedes** — the EU-only scope agreed in the brief",
+                )],
+                &[],
+            ),
+            &[],
+            RunScope::WholeDocument,
+        );
         let overrides: Vec<&str> = entries
             .iter()
             .filter(|entry| entry.kind == MemlogEntryKind::Override)
             .map(|entry| entry.text.as_str())
             .collect();
-        assert_eq!(overrides, vec!["Scope no longer carried by Payments PRD"]);
+        assert_eq!(
+            overrides,
+            vec!["Scope: supersedes the EU-only scope agreed in the brief"]
+        );
+
+        // The same edit without the declaration records no overrule at all.
+        let silent = completion_entries(
+            "bmm:bmad-prd",
+            &artifact("Payments PRD", &[("Scope", "EU and UK.")], &[]),
+            &[],
+            RunScope::WholeDocument,
+        );
+        assert!(!silent
+            .iter()
+            .any(|entry| entry.kind == MemlogEntryKind::Override));
+    }
+
+    /// A declared overrule is recorded whatever the run's scope: a later
+    /// architecture step may legitimately overrule an earlier one, and saying so
+    /// is the author's call. Scope only governs what the host *infers*.
+    #[test]
+    fn a_contributing_run_still_records_a_declared_override() {
+        let entries = completion_entries(
+            "bmm:bmad-architecture",
+            &artifact(
+                "Spine",
+                &[(
+                    "Storage",
+                    "Postgres.
+Supersedes: the SQLite call in step 2",
+                )],
+                &[],
+            ),
+            &[],
+            RunScope::Contribution,
+        );
+        assert_eq!(
+            entries
+                .iter()
+                .filter(|entry| entry.kind == MemlogEntryKind::Override)
+                .count(),
+            1
+        );
     }
 
     /// Regression: scanning prior decisions rather than replaying them
@@ -536,22 +651,23 @@ mod tests {
         let trimmed = artifact("PRD", &[("Goals", "Ship")], &[]);
         append_to(&mut log, &full);
         append_to(&mut log, &trimmed);
-        assert_eq!(override_count(&log), 1);
+        assert_eq!(withdrawal_count(&log), 1);
 
         // Two further runs that still do not carry Scope add nothing about it.
         append_to(&mut log, &trimmed);
         append_to(&mut log, &trimmed);
-        assert_eq!(override_count(&log), 1);
+        assert_eq!(withdrawal_count(&log), 1);
 
-        // Re-adding it decides it afresh, and dropping it again overrides again.
+        // Re-adding it decides it afresh, and dropping it again records again.
         append_to(&mut log, &full);
         append_to(&mut log, &trimmed);
-        assert_eq!(override_count(&log), 2);
+        assert_eq!(withdrawal_count(&log), 2);
     }
 
-    fn override_count(log: &[StoredMemlogEntry]) -> usize {
+    fn withdrawal_count(log: &[StoredMemlogEntry]) -> usize {
         log.iter()
-            .filter(|entry| entry.kind == MemlogEntryKind::Override)
+            .filter(|entry| entry.kind == MemlogEntryKind::Change)
+            .filter(|entry| entry.text.contains("no longer carried"))
             .count()
     }
 
@@ -760,7 +876,7 @@ mod tests {
         assert_eq!(
             withdrawing
                 .iter()
-                .filter(|entry| entry.kind == MemlogEntryKind::Override)
+                .filter(|entry| entry.text.contains("no longer carried"))
                 .count(),
             4
         );

@@ -253,11 +253,12 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
         digest("sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86")
     );
     // Follows the managed instruction bytes: the prd, product-brief and ux
-    // projections now state the memlog continuity contract (P14) instead of
-    // disclaiming it, which changed the composite inventory.
+    // projections state the memlog continuity contract (P14) and ask the author
+    // to declare an overrule with a `Supersedes:` line, which the host reads
+    // rather than inferring intent from a diff.
     assert_eq!(
         help.final_inventory_hash(),
-        digest("sha256:b01bd81cf65b9fc3b5fea331a40341aa45cfe819427579dedf491bc548a32cce")
+        digest("sha256:6bebd2047f919d76f6b85d1ca6a9ecde5b17c599a2271bf6169d059390c315fb")
     );
 
     assert_eq!(help.module_code(), "core");

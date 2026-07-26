@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/prd.instructions.md",
-      "contentHash": "sha256:194d7cae6c66c7b98aa95d97b09c20b8b3d68b7621896bd683bb4f3131a83edc",
+      "contentHash": "sha256:e4e0544846f22e44689bba03696d91d95ff993bd5827aef62a8c0d1bc848e3c1",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:1ba4965d2218eeee444f6ae1b56baa498c71cc135c551e4093c60f8b0a7b8c21"
+    "projectionHash": "sha256:57ad562a72b086d17007fd19a0f9961aa46bea244b39a67ebb1ef04c23463c96"
   },
-  "projectionEnvelopeHash": "sha256:5693b2441e320263eaf79098fe1dc2d2c59662e7966252c89503f602030845e5"
+  "projectionEnvelopeHash": "sha256:87a787011414ca1e7d8e7f97165439ab38aa0880cf2c08db2439d532d1218239"
 }

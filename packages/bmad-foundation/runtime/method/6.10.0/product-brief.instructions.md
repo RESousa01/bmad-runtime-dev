@@ -48,6 +48,13 @@ runs decided rather than from the finished brief alone. This is where the
 closing account of what landed, what moved to the addendum, and what was
 set aside actually survives.
 
+When a section overrules a decision an earlier run made, say so inside that
+section with a `Supersedes:` line naming what it overrules. That line is the
+only thing that records an overrule: the host reads what changed in the
+document, but it never infers that anyone *meant* to overrule anything, so an
+undeclared reversal lands in the log as an ordinary revision and the reason is
+lost.
+
 Two limits are worth stating. The log is written once, at the end of a
 run, rather than as each decision lands — so within a single run it
 records what the brief concluded. And nothing in it is ever edited or

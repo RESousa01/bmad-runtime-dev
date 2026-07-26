@@ -85,7 +85,9 @@ pub use help_session::{
     InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
 };
 pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
-pub use memlog::{Memlog, MemlogEntry, MemlogEntryKind, MemlogError, MEMLOG_FILE_NAME};
+pub use memlog::{
+    labelled_body_part, Memlog, MemlogEntry, MemlogEntryKind, MemlogError, MEMLOG_FILE_NAME,
+};
 pub use method::{
     CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
     MethodAdvanceResult, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,

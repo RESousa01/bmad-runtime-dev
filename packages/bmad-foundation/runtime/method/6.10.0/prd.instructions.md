@@ -41,6 +41,13 @@ decided rather than from the finished document alone. Read it as the
 record of how the PRD got here, and say so plainly when this run
 contradicts something in it.
 
+When a section overrules a decision an earlier run made, say so inside that
+section with a `Supersedes:` line naming what it overrules. That line is the
+only thing that records an overrule: the host reads what changed in the
+document, but it never infers that anyone *meant* to overrule anything, so an
+undeclared reversal lands in the log as an ordinary revision and the reason is
+lost.
+
 Two limits are worth stating. The log is written once, at the end of a
 run, rather than as each decision lands — so within a single run it
 records what the artifact concluded. And nothing in it is ever edited or

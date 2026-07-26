@@ -358,38 +358,8 @@ impl BmadArchitectureSession {
     }
 
     /// Extracts one labelled part of an `AD` body.
-    ///
-    /// Tolerates the shapes a model actually writes — `Binds: x`, `**Binds:** x`,
-    /// `- **Binds** — x` — because the label carries the meaning, not the markup.
     fn labelled_part(body: &str, label: &str) -> Option<String> {
-        for line in body.lines() {
-            let stripped = line
-                .trim()
-                .trim_start_matches(['-', '*', '+'])
-                .trim()
-                .trim_start_matches("**")
-                .trim_start();
-            let Some(rest) = stripped.get(..label.len()) else {
-                continue;
-            };
-            if !rest.eq_ignore_ascii_case(label) {
-                continue;
-            }
-            // Trim whitespace between each marker, so `Binds:`, `**Binds:**` and
-            // `- **Binds** — ` all reduce to the same value.
-            let value = stripped[label.len()..]
-                .trim_start()
-                .trim_start_matches("**")
-                .trim_start()
-                .trim_start_matches([':', '—', '-', '–'])
-                .trim_start()
-                .trim_start_matches("**")
-                .trim();
-            if !value.is_empty() {
-                return Some(value.to_owned());
-            }
-        }
-        None
+        super::memlog::labelled_body_part(body, label)
     }
 
     /// Projects the progression as an upstream-shaped memlog.

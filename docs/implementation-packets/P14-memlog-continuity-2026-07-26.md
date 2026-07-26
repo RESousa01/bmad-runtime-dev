@@ -240,7 +240,77 @@ Defect 6 is the one worth remembering: every earlier check passed because each
 was written against the same wrong assumption — that a run supersedes the
 document. Printing three successive runs' output was what exposed it.
 
-### The three limits, restated after the audit
+## The three limits, closed — 2026-07-26
+
+Directed to fix the three limits rather than document them. Two are closed; the
+third is blocked by this environment, and the blocker is concrete.
+
+### 1. The architecture progression now survives a restart — **closed**
+
+Store v15 records the progression's *boundary*: which session a workspace has
+open, and the ordered runs that answered its steps. `select_step` asks the store
+before opening a fresh session, so a restart resumes at the step it interrupted.
+
+Resuming re-reads each recorded step from its own capability run and re-parses it
+through the same strict archetype constructor that accepted it, so a resumed
+progression stands on evidence the store still holds rather than on remembered
+state, and fails closed if any of it no longer verifies. A finalized session is
+never resumed. The durable record is written *after* the in-memory session
+accepts, so the stored boundary can never claim a step the session refused.
+
+This was previously excluded as "resume-by-reload". That exclusion was about
+`uv run memlog.py` — upstream re-reading a workspace file under execution
+authority ADR-0003 withholds. Rehydrating host state from Forge's own store is
+not that, and needed no new authority.
+
+### 2. `override` is now the author's statement, never the host's guess — **closed**
+
+The host no longer infers an overrule from a diff. It reads a `Supersedes:` line
+out of the section body — the same route, through the same reader, that the
+architecture lane already uses for `Binds`, `Prevents` and `Rule`. The projections
+instruct the model to write it.
+
+The two kinds now record genuinely different things:
+
+- `change` — a structural fact the host can see: a heading whose text was
+  revised, or one a `WholeDocument` run stopped carrying.
+- `override` — the author saying this section overrules an earlier decision.
+
+A run that overrules nothing records no overrides, which is the correct outcome.
+A declared overrule is recorded whatever the run's scope, since a later
+architecture step may legitimately overrule an earlier one; scope now governs
+only what the host *infers*.
+
+### 3. Within one run the log is still a projection — **blocked, not deferred**
+
+The fix is the same shape as #2 — the author reports the entries rather than the
+host reverse-engineering them from finished prose — but it needs the model's own
+ordered log to reach the host, and `BmadDocumentArtifact` is a closed object in
+the sealed wire contract with no field for it.
+
+Adding one cannot be completed or verified here. `packages/contracts` regenerates
+Rust, TypeScript and .NET bindings from the schema with pinned generators, and
+the generator refuses to run without a repo-local prebuilt `cargo-typify.exe`:
+
+```
+CONTRACT_GENERATOR_FALLBACK_FORBIDDEN: Missing repo-local
+target/contract-tools/bin/cargo-typify.exe
+```
+
+CI restores that binary as a reviewed artefact precisely because `cargo install`
+is not byte-reproducible across hosts. Editing the schema without it would leave
+the generated trees and `schema-lock.json` stale, fail `contracts.yml`, and give
+no way to verify otherwise — so it was not attempted.
+
+What remains after that field exists is genuinely out of scope here: upstream
+appends *as each decision lands, during a conversation*, and Forge's capability
+lane is one reviewed exchange. Closing that needs multi-turn runs with per-exchange
+consent, which the packet excludes and which changes the consent model.
+
+**Recommended next step:** a separate packet adding `decisionLog` to
+`BmadDocumentArtifact`, run where the pinned contract generators are available.
+
+### The three limits, as first reported
 
 **Architecture progression across a restart.** Unchanged, and now stated
 correctly in *Definition of done* above. Decisions survive and are re-injected;

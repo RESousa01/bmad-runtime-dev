@@ -299,6 +299,48 @@ fn collapse_whitespace(value: &str) -> String {
     value.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
+/// Reads one labelled field a model wrote inside prose.
+///
+/// Structured signals sometimes have nowhere else to travel: the reviewed wire
+/// contract is closed, so a field the schema does not carry has to arrive in a
+/// body the schema does. The architecture lane already reads `Binds`,
+/// `Prevents` and `Rule` this way, and the memlog reads `Supersedes` — the
+/// author's own statement that a section overrules an earlier decision.
+///
+/// Tolerates the shapes a model actually writes — `Binds: x`, `**Binds:** x`,
+/// `- **Binds** — x` — because the label carries the meaning, not the markup.
+#[must_use]
+pub fn labelled_body_part(body: &str, label: &str) -> Option<String> {
+    for line in body.lines() {
+        let stripped = line
+            .trim()
+            .trim_start_matches(['-', '*', '+'])
+            .trim()
+            .trim_start_matches("**")
+            .trim_start();
+        let Some(rest) = stripped.get(..label.len()) else {
+            continue;
+        };
+        if !rest.eq_ignore_ascii_case(label) {
+            continue;
+        }
+        // Trim whitespace between each marker, so `Binds:`, `**Binds:**` and
+        // `- **Binds** — ` all reduce to the same value.
+        let value = stripped[label.len()..]
+            .trim_start()
+            .trim_start_matches("**")
+            .trim_start()
+            .trim_start_matches([':', '—', '-', '–'])
+            .trim_start()
+            .trim_start_matches("**")
+            .trim();
+        if !value.is_empty() {
+            return Some(value.to_owned());
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]

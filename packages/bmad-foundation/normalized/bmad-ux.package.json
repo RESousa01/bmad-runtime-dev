@@ -30,7 +30,7 @@
     "sourceSections": [],
     "managedInstruction": {
       "path": "runtime/method/6.10.0/ux-design.instructions.md",
-      "contentHash": "sha256:09b90d7e89446be08823f45b072ef4bcaa8dfe9ab13228ee883d7d8ea78d160c",
+      "contentHash": "sha256:820303c79ae980cd971dd7b7f8423735d08f135a9a50624b0cdd119e81cbca45",
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
@@ -43,7 +43,7 @@
         "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
       }
     ],
-    "projectionHash": "sha256:fd939e0956aaf74ee3968c690dc38ca7222362da61714f31a8e86cc786bcdd35"
+    "projectionHash": "sha256:3cf1d601e0bcf4a9ee5d1ffea242520bdd5fc49c187faec76190f259a8dd67c7"
   },
-  "projectionEnvelopeHash": "sha256:cbf8af226502d3c7e9efabdff4895da3a16d9e950221911b507a14136554c365"
+  "projectionEnvelopeHash": "sha256:014c66f9e200749cfcb9735815458fb55fc0c314f4cdf7502365505f3933837e"
 }

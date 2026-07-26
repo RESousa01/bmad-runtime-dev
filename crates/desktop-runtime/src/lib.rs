@@ -29,9 +29,9 @@ mod strict_json;
 pub mod generated_contracts;
 
 pub use bmad::{
-    parse_toml_subset, validate_bmad_help_proposal_schema, BmadAgentMenuRecord, BmadAgentRecord,
-    BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource, BmadArchitectureDecision,
-    BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
+    labelled_body_part, parse_toml_subset, validate_bmad_help_proposal_schema, BmadAgentMenuRecord,
+    BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
+    BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BmadArtifactClassification, BmadArtifactEvidence,
     BmadArtifactEvidenceKind, BmadArtifactReference, BmadBuilderDraftFile, BmadBuilderDraftKind,
     BmadCandidateChange, BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadCapabilityKey,
