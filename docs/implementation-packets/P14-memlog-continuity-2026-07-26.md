@@ -187,7 +187,11 @@ length is pinned in five places across two crates by design.
 
 - A PRD run in a workspace that already has brief entries receives them as
   reviewed context, and its own decisions are appended.
-- The architecture progression survives a process restart.
+- ~~The architecture progression survives a process restart.~~ **Corrected
+  during implementation.** This contradicts *Out of scope*, which already
+  excludes resume-by-reload. The deliverable is the weaker, real one: a
+  progression's *decisions* survive a restart and are re-injected as context.
+  Restoring the step cursor needs durable progression state — see below.
 - `app.offboarding.inspect` counts memlog entries.
 - Full gate suite green, including the retention guard and a full-context seal
   test for the raised capability ceiling.
@@ -201,25 +205,67 @@ boundaries and secret scan clean.
 | Phase | What landed |
 |---|---|
 | 0 | Dispatch routes on the sealed `entrypointKind`; `is_architecture_capability` deleted (it had no production caller left). |
-| 1 | Store v13: `bmad_memlog_entries`, append-only (no update, no delete), sequence allocated inside an `IMMEDIATE` transaction; retention disclosure raised to 21 categories. |
+| 1 | Store v13 + v14: `bmad_memlog_entries`, append-only (no update, no delete), sequence allocated inside an `IMMEDIATE` transaction, monotonic within a doc workspace; retention disclosure raised to 21 categories. |
 | 2 | `finalize_dispatch` projects a completed `document_artifact` into `event` / `decision` / `question` / `change` / `override` entries. |
 | 3 | `prepare` injects the rendered log as one reviewed candidate; capability ceiling 104 → 105 with a full-load seal test. |
 | 4 | `prd`, `product-brief` and `ux-design` state the continuity contract; foundation resealed. |
 
-### Two claims above that the implementation does **not** support
+## Audit — 2026-07-26, after the first implementation
 
-**"The architecture progression survives a process restart"** is only half
-delivered, and the packet contradicts itself on it — *Out of scope* already
-excludes resume-by-reload. What landed: each step's decisions are now persisted
-and re-injected as context after a restart. What did not: the progression
-*cursor*. `select_step` opens a fresh session whenever `active` is `None`, so a
-restart still restarts at step one. Resuming would mean reconstructing the
-cursor from the log, which is the excluded work.
+Re-reading the implementation against this packet turned up five defects, all
+introduced by the first pass and all now fixed with regression tests.
 
-**`change` vs `override`** are separated structurally, not by intent. A
-reviewed document diff carries no explicit overrule signal, so a revised
-heading is a `change` and a withdrawn one an `override`. Neither infers that
-the author meant to overrule anything — do not read the log as if it did.
+| # | Defect | Fix |
+|---|---|---|
+| 1 | **A long section body failed the run.** A section body is bounded at 32 KiB and a memlog entry at 4 KiB. The projection passed the body through raw, the store rejected the append, and the error propagated out of `finalize_dispatch` — failing a run whose result was *already durably stored*. An ordinary long PRD section triggered it. | The projection condenses each section to one entry-sized line, which is also upstream's shape ("one line each, the gist"). Recording memory is now infallible: a full log, or a store fault, loses continuity for that run and nothing else. |
+| 2 | **Headings containing `": "` were mis-attributed.** `change`/`override` matching recovered the heading by splitting the rendered text on its first separator, so `Phase 1: Discovery` matched as `Phase 1`. | The store carries an explicit `subject` column; matching never re-parses text. |
+| 3 | **A withdrawal re-emitted its `override` on every later run**, growing an unbounded tail of identical entries from one dropped heading. | Prior entries are *replayed* into live decision state — a `decision` records, an `override` withdraws — so a withdrawn subject is no longer live and cannot be withdrawn twice. |
+| 4 | **Context rendering was a second copy of the formatting rules**, free to drift from the `.memlog.md` a run proposes. The packet asked for the existing `Memlog` type and the first pass did not use it. | Rendering goes through `Memlog::render`. That needed `MemlogEntryKind::from_code`, and needed the store to enforce `Memlog`'s monotonic-clock rule so a stored log always rebuilds. |
+| 5 | **v13 was edited in place** to add `subject`, which would leave any store that had already run v13 disagreeing with its own version number. | v13 is treated as immutable; `subject` arrives in a separate **v13 → v14**, with a test that upgrades a real v13 store and keeps its rows. |
+
+### The three limits, restated after the audit
+
+**Architecture progression across a restart.** Unchanged, and now stated
+correctly in *Definition of done* above. Decisions survive and are re-injected;
+the cursor is not restored. `BmadArchitectureSession::current_step` is
+`ORDERED.get(steps.len())`, so restoring it means rebuilding `steps` — and that
+needs a durable session boundary, because one workspace can hold several
+progressions over time and the accepted runs alone cannot say where the current
+one began. It is a genuine feature (durable progression state), not a wiring
+gap, and it carries a review question this packet should not answer quietly:
+resuming means acting on consent given in a previous session. Left for a
+follow-up packet.
+
+**`change` vs `override` record structure, not intent.** Still true, but no
+longer *unreliable*: defects 2 and 3 meant the distinction was also frequently
+wrong. It is now exact — a revised heading is a `change`, a heading the run
+stopped carrying is an `override`. What remains is only that a reviewed
+document diff carries no overrule signal, so neither kind claims anyone meant
+to overrule anything. That is a property of the input, not something more
+implementation could recover.
+
+**Within one run the log is a projection of the artifact.** Inherent: Forge
+writes once, at the end of a single reviewed exchange, where upstream appends
+as each decision lands. Closing it means making these capabilities multi-turn
+within a run, which *Out of scope* excludes. The continuity benefit is across
+runs and is real; this is not parity and is not described as such anywhere in
+the code or the sealed projections.
+
+**Intent is `create` or `update`, never `validate`.** The packet asked for all
+three. The host can tell a first run against a folder from a later one; nothing
+on a reviewed run distinguishes a validation pass from an update, so it is not
+claimed rather than guessed.
+
+### Consent is over the sealed manifest, not itemised
+
+`CapabilityReviewWire` discloses the manifest hash, not the list of context
+items. Every candidate has always worked this way, so the memlog is no worse
+than the rest — but it is the first candidate that is *host-injected from prior
+runs* rather than chosen by the user, so approving it means approving content
+the user did not select and cannot enumerate at the review. The memlog is
+secret-scanned like any other candidate and is bounded, so nothing unbounded or
+unscanned reaches egress; what is missing is disclosure. Itemising the review
+projection is a change to the consent surface and belongs in its own packet.
 
 ### Known overlap
 

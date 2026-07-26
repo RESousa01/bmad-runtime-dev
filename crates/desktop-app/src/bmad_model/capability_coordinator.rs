@@ -222,37 +222,44 @@ const fn terminal_error(reason: CapabilityTerminalReason) -> BmadCapabilityCoord
 /// Appends the completed artifact's entries to its doc workspace's log, so the
 /// *next* run against the same folder starts from what this one decided.
 ///
-/// A capability whose id yields no doc workspace simply keeps no log: the
-/// artifact and its run record are already durable, and continuity is an
-/// addition to them, never a precondition.
+/// Infallible by design. The run's result is already durably stored and about
+/// to be returned; nothing about recording memory afterwards may retroactively
+/// fail it. A capability with no doc workspace keeps no log, a full log stops
+/// growing, and a store fault loses continuity for this run only — in every
+/// case the completed run stands. Continuity is an addition to the durable
+/// result, never a precondition for it.
 fn append_completion_memlog(
     store: &LocalStore,
     capability_id: &str,
     workspace_id: &str,
     artifact: &desktop_runtime::BmadDocumentArtifact,
     now: UnixMillis,
-) -> Result<(), BmadCapabilityCoordinatorError> {
+) {
     let Some(doc_workspace) = crate::bmad_memlog::doc_workspace_for(capability_id) else {
-        return Ok(());
+        return;
     };
-    let prior = store
-        .memlog_entries(workspace_id, &doc_workspace)
-        .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+    let Ok(prior) = store.memlog_entries(workspace_id, &doc_workspace) else {
+        return;
+    };
     for entry in crate::bmad_memlog::completion_entries(capability_id, artifact, &prior) {
         let entry_id = format!("memlog_{}", ulid::Ulid::new());
-        store
-            .append_memlog_entry(desktop_store::MemlogAppend {
-                entry_id: &entry_id,
-                workspace_id,
-                doc_workspace: &doc_workspace,
-                kind: entry.kind.code(),
-                author: None,
-                text: &entry.text,
-                recorded_at_ms: now.0,
-            })
-            .map_err(|_| BmadCapabilityCoordinatorError::Store)?;
+        let outcome = store.append_memlog_entry(desktop_store::MemlogAppend {
+            entry_id: &entry_id,
+            workspace_id,
+            doc_workspace: &doc_workspace,
+            kind: entry.kind,
+            author: None,
+            subject: entry.subject.as_deref(),
+            text: &entry.text,
+            recorded_at_ms: now.0,
+        });
+        // A partial log is still a usable chronology; abandoning the rest of
+        // this run's entries is better than looping against a full or faulted
+        // table once per section.
+        if !matches!(outcome, Ok(desktop_store::MemlogAppendOutcome::Appended(_))) {
+            return;
+        }
     }
-    Ok(())
 }
 
 #[derive(Serialize)]
@@ -692,7 +699,7 @@ impl BmadCapabilityCoordinator {
                 run.workspace_id.as_str(),
                 artifact,
                 dispatching.submitted_at,
-            )?;
+            );
         }
 
         let projection = CapabilityCompletedProjection {

@@ -1238,9 +1238,17 @@ pub(crate) fn context_candidate(
 /// The doc workspace's accumulated memory log, so a run that follows an
 /// earlier one against the same folder starts from what that one decided.
 ///
-/// It enters as an ordinary reviewed candidate — covered by the manifest hash
-/// and shown in the consent surface — because it carries the user's own prior
-/// content and must never be sent unseen.
+/// It enters as an ordinary candidate: sealed into the manifest the user
+/// approves, secret-scanned by `PatternSecretScanner` like every other item,
+/// and counted by `MAX_CAPABILITY_CONTEXT_ITEMS`.
+///
+/// One asymmetry is worth naming. `CapabilityReviewWire` discloses the manifest
+/// *hash*, not a list of items, so consent is given over the sealed whole
+/// rather than item by item. For an attachment that is unremarkable — the user
+/// chose the file. This candidate is host-injected from prior runs, so the user
+/// approves content they did not select and cannot enumerate here. Itemising
+/// the review is the fix, and it is a change to the consent surface rather than
+/// to this function.
 pub(crate) fn memlog_candidate(
     doc_workspace: &str,
     content: String,

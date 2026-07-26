@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 13;
+pub(crate) const LATEST_STORE_VERSION: u32 = 14;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -166,6 +166,8 @@ pub(crate) const V13_TABLES: [&str; 23] = [
     "spec_consumptions",
     "store_meta",
 ];
+/// v14 adds a column to an existing table, so the table set is unchanged.
+pub(crate) const V14_TABLES: [&str; 23] = V13_TABLES;
 
 const V4_BASE_SCHEMA_SQL: &str = "BEGIN IMMEDIATE;
  CREATE TABLE IF NOT EXISTS store_meta (
@@ -687,6 +689,23 @@ const V12_TO_V13_SQL: &str = "BEGIN IMMEDIATE;
  PRAGMA user_version = 13;
  COMMIT;";
 
+/// Records *what an entry is about* — for a document capability, the section
+/// heading.
+///
+/// v13 shipped without it and recovered the subject by splitting the rendered
+/// text on its separator, which is ambiguous the moment a heading contains one
+/// (`Phase 1: Discovery`). A later run then attributed a change or an override
+/// to the wrong heading. Carrying the subject explicitly makes the match exact.
+///
+/// A separate version rather than an edit to `V12_TO_V13_SQL`: a migration that
+/// has been committed may already have run somewhere, and rewriting one in
+/// place leaves such a store permanently disagreeing with its own version
+/// number.
+const V13_TO_V14_SQL: &str = "BEGIN IMMEDIATE;
+ ALTER TABLE bmad_memlog_entries ADD COLUMN subject TEXT;
+ PRAGMA user_version = 14;
+ COMMIT;";
+
 pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
     loop {
         let version = schema_version(connection)?;
@@ -745,8 +764,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V12_TO_V13_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            13 => {
                 require_store_tables(connection, &V13_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V13_TO_V14_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V14_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

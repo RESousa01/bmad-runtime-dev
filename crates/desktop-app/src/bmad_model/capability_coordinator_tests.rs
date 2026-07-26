@@ -847,7 +847,7 @@ fn a_completed_document_run_leaves_its_decisions_in_the_doc_workspace_log(
         store.memlog_entries("workspace_01J00000000000000000000000", "docs/product-brief")?;
     let rendered: Vec<(&str, &str)> = entries
         .iter()
-        .map(|entry| (entry.kind.as_str(), entry.text.as_str()))
+        .map(|entry| (entry.kind.code(), entry.text.as_str()))
         .collect();
     assert_eq!(
         rendered,
@@ -916,5 +916,83 @@ fn a_change_set_run_writes_no_memlog() -> Result<(), Box<dyn std::error::Error>>
     assert!(store
         .memlog_entries("workspace_01J00000000000000000000000", "docs/code-review")?
         .is_empty());
+    Ok(())
+}
+
+/// Regression: a section body is bounded at 32 KiB while a memlog entry is
+/// bounded at 4 KiB, and the projection passed the body through raw. The store
+/// rejected the append and the error propagated, failing a run whose result was
+/// already durably recorded — the caller saw a failure for work that had in
+/// fact succeeded.
+///
+/// Recording memory is an addition to a completed run, never a precondition.
+#[test]
+fn a_long_bodied_document_completes_and_still_logs() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = prepared_lifecycle(
+        "bmm:bmad-product-brief",
+        BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        "16",
+    );
+    approve(&mut lifecycle);
+    let dispatch = lifecycle
+        .coordinator
+        .begin_dispatch(&SubmitCapabilityRunInput {
+            workspace_id: id("workspace_01J00000000000000000000000"),
+            workspace_grant_epoch: 1,
+            workspace_context_read_epoch: 1,
+            capability_id: lifecycle.capability.clone(),
+            manifest_hash: lifecycle.manifest_hash,
+            decision_id: lifecycle.decision_id.clone().expect("decision"),
+            submitted_at: UnixMillis(30_000),
+        })
+        .expect("dispatch");
+    let (_dispatched, raw_output) = FixtureTransport
+        .send(
+            dispatch.authorized_request,
+            &dispatch.deterministic_fixture,
+            dispatch.submitted_at,
+        )
+        .expect("transport output");
+
+    let long_body = "sentence ".repeat(3_000);
+    let output = BmadCapabilityOutput::DocumentArtifact(
+        BmadDocumentArtifact::new(
+            "Product brief".to_owned(),
+            vec![BmadDocumentSection {
+                heading: "Problem".to_owned(),
+                body: long_body,
+            }],
+            vec![],
+            vec![],
+            None,
+        )
+        .expect("document artifact"),
+    );
+    let completed = lifecycle
+        .coordinator
+        .finalize_dispatch(
+            dispatch.dispatch_id,
+            &raw_output,
+            &CannedVerifier {
+                output,
+                expected_capability: "bmm:bmad-product-brief",
+            },
+            &store,
+        )
+        .expect("a long-bodied document must still complete its run");
+    assert_eq!(completed.result_kind, "document_artifact");
+
+    // And the entry landed, condensed to one entry-sized line.
+    let entries =
+        store.memlog_entries("workspace_01J00000000000000000000000", "docs/product-brief")?;
+    let decision = entries
+        .iter()
+        .find(|entry| entry.kind == desktop_runtime::MemlogEntryKind::Decision)
+        .expect("decision entry");
+    assert!(decision.text.len() <= desktop_store::MAX_MEMLOG_ENTRY_BYTES);
+    assert!(decision.text.ends_with(" […]"));
+    assert_eq!(decision.subject.as_deref(), Some("Problem"));
     Ok(())
 }

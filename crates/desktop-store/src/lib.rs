@@ -90,7 +90,10 @@ pub use execution::{
     EXECUTION_CHECKPOINT_SCHEMA, MAX_EXECUTION_CHECKPOINT_BYTES, MAX_EXECUTION_JOURNAL_BYTES,
     MAX_EXECUTION_RESULT_BYTES,
 };
-pub use memlog::{MemlogAppend, StoredMemlogEntry};
+pub use memlog::{
+    MemlogAppend, MemlogAppendOutcome, StoredMemlogEntry, MAX_MEMLOG_ENTRIES_PER_DOC_WORKSPACE,
+    MAX_MEMLOG_ENTRY_BYTES, MAX_MEMLOG_SUBJECT_BYTES,
+};
 
 #[cfg(test)]
 use migrations::LATEST_STORE_VERSION;
@@ -1884,7 +1887,7 @@ mod tests {
             .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(disclosed.len(), RETENTION_CATEGORIES.len());
 
-        for table in crate::migrations::V13_TABLES {
+        for table in crate::migrations::V14_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }

@@ -80,6 +80,35 @@ pub enum MemlogEntryKind {
 }
 
 impl MemlogEntryKind {
+    /// Every kind, in vocabulary order. `code`/`from_code` round-trip across
+    /// this set, which is what lets a durably stored log be rebuilt into a
+    /// `Memlog` rather than re-rendered by a second, drifting copy of the
+    /// formatting rules.
+    pub const ALL: [Self; 15] = [
+        Self::Idea,
+        Self::Insight,
+        Self::Question,
+        Self::Decision,
+        Self::Direction,
+        Self::Assumption,
+        Self::Constraint,
+        Self::Capability,
+        Self::Change,
+        Self::Override,
+        Self::Version,
+        Self::Gap,
+        Self::Technique,
+        Self::Event,
+        Self::Note,
+    ];
+
+    /// The kind for a stored `code()`. `""` is [`Self::Note`], matching the
+    /// untagged line upstream renders.
+    #[must_use]
+    pub fn from_code(code: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|kind| kind.code() == code)
+    }
+
     #[must_use]
     pub const fn code(self) -> &'static str {
         match self {
@@ -282,25 +311,21 @@ mod tests {
     /// trail (`bmad-product-brief`, `bmad-prd`, `bmad-ux`), and `capability` is
     /// part of `bmad-spec`'s documented set — all three were missing, so those
     /// entries had nowhere faithful to land.
+    /// A kind that stores as a code it cannot be read back from would strand
+    /// every entry of that kind in the durable log.
+    #[test]
+    fn every_kind_round_trips_through_its_stored_code() {
+        for kind in MemlogEntryKind::ALL {
+            assert_eq!(MemlogEntryKind::from_code(kind.code()), Some(kind));
+        }
+        assert_eq!(MemlogEntryKind::from_code("not-a-kind"), None);
+        // The untagged line upstream renders is a note, not an unknown kind.
+        assert_eq!(MemlogEntryKind::from_code(""), Some(MemlogEntryKind::Note));
+    }
+
     #[test]
     fn the_kind_vocabulary_covers_every_upstream_type() {
-        let codes = [
-            MemlogEntryKind::Idea,
-            MemlogEntryKind::Insight,
-            MemlogEntryKind::Question,
-            MemlogEntryKind::Decision,
-            MemlogEntryKind::Direction,
-            MemlogEntryKind::Assumption,
-            MemlogEntryKind::Constraint,
-            MemlogEntryKind::Capability,
-            MemlogEntryKind::Change,
-            MemlogEntryKind::Override,
-            MemlogEntryKind::Version,
-            MemlogEntryKind::Gap,
-            MemlogEntryKind::Technique,
-            MemlogEntryKind::Event,
-        ]
-        .map(MemlogEntryKind::code);
+        let codes = MemlogEntryKind::ALL.map(MemlogEntryKind::code);
 
         // Observed in the sealed upstream sources under
         // `source/method/6.10.0/src`, plus `bmad-spec`'s documented vocabulary.
