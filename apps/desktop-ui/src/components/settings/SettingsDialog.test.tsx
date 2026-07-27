@@ -308,9 +308,15 @@ describe("SettingsDialog", () => {
   it("identifies which renderer build is running, not just the product version", () => {
     render(<SettingsDialog {...createProps({ initialSection: "about" })} />);
 
-    const build = screen.getByText("UI build").parentElement?.textContent ?? "";
-    expect(build).not.toBe("UI build");
-    // The whole point is that it differs from the version, which cannot.
+    // `.closest(".settings-row")`, not `.parentElement`. `Row` puts the label in
+    // a `<span>` and the value in a sibling `<em>`, so the label's parent never
+    // contains the value — the first version of this test asserted on the label
+    // and its detail text and was true no matter what the stamp held, including
+    // empty. It caught the row being deleted and nothing else.
+    const build = screen.getByText("UI build").closest(".settings-row")?.textContent ?? "";
+    // The stamp carries an ISO timestamp, which is the part that identifies the
+    // build. Asserting its shape is what makes an empty or broken value fail.
+    expect(build).toMatch(/\d{4}-\d{2}-\d{2}T/u);
     expect(build).not.toContain("0.1.0");
     // And it says so about the version, rather than implying otherwise.
     expect(

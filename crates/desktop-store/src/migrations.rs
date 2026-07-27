@@ -243,9 +243,13 @@ pub(crate) const V17_TABLES: [&str; 26] = [
 /// Deliberately carries no foreign key to `payloads`. Retention may drop the
 /// payload row later, and the fact that a record was found damaged outlives the
 /// record — a quarantine entry the store silently forgot would be worse than
-/// none, because the user would never learn what was lost.
+/// none, because there would be no way to learn what was lost.
 ///
-/// `reason` is a closed vocabulary because it is surfaced to the user: it says
+/// Nothing surfaces these rows yet: `quarantined_payloads()` has no caller
+/// outside this crate's tests. The ledger is durable and correct; reaching the
+/// user needs a host command and a projection field that do not exist.
+///
+/// `reason` is a closed vocabulary so that it *can* be surfaced safely: it says
 /// which failure mode was seen, never what the payload held.
 const V16_TO_V17_SQL: &str = "BEGIN IMMEDIATE;
  CREATE TABLE payload_quarantine (

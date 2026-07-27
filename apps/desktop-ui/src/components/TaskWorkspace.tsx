@@ -283,8 +283,17 @@ function ChatTranscript({
             {historyUnavailable
               // Naming what is missing matters more than the host's own wording
               // here: an empty transcript with a bare error reads as "nothing
-              // was ever said", which is the opposite of the truth.
-              ? `This task's earlier messages could not be loaded. They are still on this device. ${lane.error}`
+              // was ever said", which is not what happened.
+              //
+              // It used to add "They are still on this device." The renderer
+              // reaches this branch *because* the host refused to hand the
+              // transcript back, so it has no basis for that. The host errors
+              // that land here include a grant mismatch and an integrity
+              // failure raised when a durable transcript exists but cannot be
+              // rebuilt — the second is the opposite of what the sentence
+              // claimed. Say what is knowable: the read failed, so this may not
+              // be the whole conversation.
+              ? `Forge could not read this task's earlier messages, so this may not be the whole conversation. ${lane.error}`
               : lane.error}
           </p>
           {historyUnavailable && onRetryHistory ? (

@@ -736,8 +736,8 @@ describe("TaskWorkspace transcript delivery", () => {
     );
 
     const alert = screen.getByRole("alert");
-    expect(alert.textContent).toContain("earlier messages could not be loaded");
-    expect(alert.textContent).toContain("still on this device");
+    expect(alert.textContent).toContain("could not read this task's earlier messages");
+    expect(alert.textContent).toContain("may not be the whole conversation");
 
     await user.click(within(alert).getByRole("button", { name: "Retry loading messages" }));
     expect(onRetryHistory).toHaveBeenCalledTimes(1);

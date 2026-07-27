@@ -75,9 +75,16 @@ export interface ChatLaneState {
   /// Whether `error` is one that sending the same message again could clear.
   ///
   /// Comes from the host's `LocalError.retryable`, which is now derived per
-  /// provider-failure class rather than hard-coded `false`. Offering a retry on
-  /// a rejected key would be a loop that can never succeed, so the affordance
-  /// follows this rather than merely following `error !== null`.
+  /// provider-failure class rather than hard-coded `false`.
+  ///
+  /// **Recorded, not yet consumed.** Nothing reads this today: the only retry
+  /// control in the transcript is gated on `historyStatus === "unavailable"`,
+  /// which is the *history* retry, not a send retry. An earlier version of this
+  /// comment said the send affordance followed this field, which was not true of
+  /// any code. It is kept because the composer already restores the failed
+  /// draft, so a "send again" control has the text it needs and only wants this
+  /// flag to decide whether offering it is honest — a retry on a rejected key
+  /// would be a loop that cannot succeed.
   readonly retryable: boolean;
   readonly historyStatus: ChatHistoryStatus;
 }

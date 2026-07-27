@@ -298,6 +298,12 @@ fn preparation_passes_a_true_positive_corpus_and_keeps_every_secret_out() {
     // The other direction. Fixing false positives is only worth anything if
     // the real shapes still go. Each entry is a distinct detection path.
     let openai = concat!("sk-", "proj-abcdefghijklmnopqrstuvwxyz0123456789");
+    // An all-lowercase, hyphenless key. Proxies and gateways issue these, and
+    // this scanner reads whatever file the user attaches — not only keys for the
+    // one host `validate_base_url` allows this app to call. A gate that asked
+    // only for a digit or an uppercase letter let this leave the machine
+    // verbatim, with no finding on the consent surface.
+    let hand_chosen = concat!("sk-", "devteamsharedkey");
     let github = concat!("ghp_", "abcdefghijklmnopqrstuvwxyz0123456789");
     let assigned = "hunter2-correct-horse-battery";
     let escaped = PEM_BODY.replace('\n', "\\n");
@@ -306,6 +312,7 @@ fn preparation_passes_a_true_positive_corpus_and_keeps_every_secret_out() {
 {BEGIN_RSA}\n{PEM_BODY}\n\
 {{\"private_key\":\"{BEGIN_OPENSSH}\\n{escaped}\\n{END_OPENSSH}\"}}\n\
 export OPENAI_API_KEY={openai}\n\
+LITELLM_MASTER_KEY: {hand_chosen}\n\
 \"{github}\"\n\
 DB_PASSWORD={assigned}\n"
     );
@@ -314,7 +321,7 @@ DB_PASSWORD={assigned}\n"
         .expect("true positive manifest");
 
     let item = &manifest.draft.items[0];
-    for secret in [openai, github, assigned] {
+    for secret in [openai, hand_chosen, github, assigned] {
         assert!(
             !item.outbound_content.contains(secret),
             "secret survived: {secret}"

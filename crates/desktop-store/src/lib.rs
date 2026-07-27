@@ -1002,8 +1002,16 @@ impl LocalStore {
                 }
                 // Damage the store cannot repair and did not cause. Setting the
                 // row aside keeps the blast radius at the record: every later
-                // read of it still fails closed, and the user is told which
-                // records were lost instead of losing the product.
+                // read of it still fails closed, and the store opens instead of
+                // the whole product dropping into read-only recovery.
+                //
+                // NOT yet surfaced. `quarantined_payloads()` has no caller
+                // outside this crate's tests — no IPC command, no wire type, no
+                // renderer surface — so the user is not currently told which
+                // records were lost. Earlier wording here claimed they were,
+                // which is the "guard that reads like protection" shape this
+                // codebase keeps producing. Reaching the user needs a host
+                // command and a projection field.
                 Err(StoreError::Authentication) => {
                     quarantined.push((row.reference.clone(), QuarantineReason::Authentication));
                 }
@@ -2180,7 +2188,7 @@ mod tests {
         // Pinned to the *current* table set, not a frozen one: the list this
         // guards fell behind two migrations once already, and a guard that
         // checks a stale inventory cannot notice the next time.
-        for table in crate::migrations::V17_TABLES {
+        for table in crate::migrations::V18_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }

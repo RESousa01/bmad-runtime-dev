@@ -3859,8 +3859,8 @@ describe("Forge conversation restore", () => {
     const alert = await screen.findByRole("alert");
     // An empty transcript with no explanation reads as "you never said
     // anything here", which is the opposite of the truth.
-    expect(alert.textContent).toContain("earlier messages could not be loaded");
-    expect(alert.textContent).toContain("still on this device");
+    expect(alert.textContent).toContain("could not read this task's earlier messages");
+    expect(alert.textContent).toContain("may not be the whole conversation");
 
     await user.click(within(alert).getByRole("button", { name: "Retry loading messages" }));
 

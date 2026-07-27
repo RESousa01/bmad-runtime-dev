@@ -103,9 +103,23 @@ impl SecretScanner for PatternSecretScanner {
 /// Every marker [`PatternSecretScanner`] can write into outbound bytes.
 ///
 /// These are the only strings in a context item that exist because a secret was
-/// removed. Kept here, next to the code that emits them, so that a caller
-/// checking for them cannot drift when a new redaction kind is added;
-/// `redaction_markers_cover_every_kind_the_scanner_emits` fails if it does.
+/// removed. Kept next to the code that emits them so the two stay visible to
+/// each other.
+///
+/// **This is a second copy of the kind names**, and the covering test cannot
+/// detect the drift that matters. `redaction_markers_cover_every_kind_the_scanner_emits`
+/// scans a hand-written corpus and compares the markers that corpus *happened to
+/// produce* against this list. A new `record(&mut findings, "slack_token", …)`
+/// in `scan` that nobody adds a corpus entry for emits nothing during the test,
+/// so both directions are vacuously satisfied and the guard silently stops
+/// covering the new kind — meaning a model echoing a redacted view could write
+/// `[REDACTED:slack_token]` over a real token, which is exactly what
+/// `reintroduced_redaction_marker` exists to prevent.
+///
+/// Adding a redaction kind therefore means adding it here **and** adding a
+/// triggering entry to that corpus. The durable fix is to derive both from one
+/// list of kinds that `scan` itself iterates, which needs the four redactors to
+/// share a signature.
 pub const REDACTION_MARKERS: [&str; 4] = [
     "[REDACTED:private_key]",
     "[REDACTED:github_token]",
@@ -530,20 +544,30 @@ fn starts_at_token_boundary(value: &str, start: usize) -> bool {
 /// and raising a fabricated finding, which is the same cry-wolf cost that made
 /// the `risk-assessment` bug worth fixing.
 ///
-/// Issued tokens are random base62. Over a body of the minimum twelve bytes the
-/// chance of containing neither a digit nor an uppercase letter is `(26/62)^12`,
-/// about one in five million; over a real 40-byte key it is beyond negligible.
-/// Lowercase hyphenated English, by contrast, never has either.
 ///
-/// The obvious objection — that this misses a short hand-chosen key like
-/// `sk-mysecretkey` — does not apply to this product. `validate_base_url`
-/// (`desktop-cloud/src/direct_provider.rs:678`) pins the provider host to
-/// exactly `api.openai.com`, so a local proxy issuing its own keys is rejected
-/// at startup by design. Every `sk-` value that can reach here is issued by
-/// that host.
+/// The rule is deliberately narrow: **prose is lowercase words joined by
+/// hyphens.** `learn-classifier-pipeline` and `hynix-memory-modules` are that;
+/// an issued key never is.
+///
+/// An earlier version of this only asked whether the body held a digit or an
+/// uppercase letter, justified by `validate_base_url` pinning the provider host
+/// to `api.openai.com`. That argument was a category error and it opened a real
+/// leak. `validate_base_url` constrains *the host this app calls*. This scanner
+/// runs over *arbitrary workspace files the user attaches to a turn*, which can
+/// hold `sk-` secrets from anything — a `LiteLLM` or `vLLM` proxy master key, an
+/// `OpenRouter` key, a colleague's key pasted into a document. Under that gate
+/// `sk-devteamsharedkey` was all lowercase, so it left the machine verbatim with
+/// no finding on the consent surface. It had been redacted before.
+///
+/// Requiring a hyphen closes it: a hyphenless lowercase body is treated as a
+/// key again, which is the direction to be wrong in. `sk-proj-`-style keys carry
+/// digits and uppercase anyway and never reach the hyphen test.
 fn looks_randomly_generated(body: &str) -> bool {
-    body.bytes()
-        .any(|byte| byte.is_ascii_digit() || byte.is_ascii_uppercase())
+    let hyphenated_lowercase_words = body.contains('-')
+        && body
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte == b'-');
+    !hyphenated_lowercase_words
 }
 
 fn redact_prefixed_tokens(

@@ -196,6 +196,22 @@ impl ReadyWorkspaceCommitGuard<'_> {
 /// enough to read the bound identity, and each command that genuinely needs the
 /// pin re-takes it, checked against the identity the envelope was validated
 /// under (see `HostState::pin_renderer_session`).
+///
+/// **One command still breaks this rule**, and the rule is stated absolutely
+/// above only because that exception is meant to be closed, not tolerated:
+/// `bmad.help.submit` holds the pin across `dispatch.send()`, because
+/// `SubmitBmadHelpReviewInput` and `FinalizeBmadHelpDispatchInput` take a
+/// `&RendererSessionGuard`. A Help submit is therefore still able to park a
+/// renderer rebind, and every projection read behind it, for the length of one
+/// provider call. It is bounded to a single call rather than a sixteen-call
+/// turn, and it no longer runs on the UI thread, so the window keeps painting —
+/// but the underlying hazard is the same one this comment describes.
+///
+/// Note also that `a_blocked_dispatch_does_not_park_the_window_facing_commands`
+/// below models `host_dispatch`'s shape by hand rather than driving the real
+/// command, so it cannot fail on that path. Closing the exception means
+/// threading `ContractId` instead of the guard; `finalize_submit` only ever
+/// calls `.session_id()`.
 pub(crate) struct RendererSessionGuard<'a> {
     _sessions: RwLockReadGuard<'a, HashMap<String, ContractId>>,
     session_id: ContractId,

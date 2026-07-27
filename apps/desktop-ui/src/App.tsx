@@ -1337,6 +1337,18 @@ export function App({
       // lists conversations whose transcripts no longer exist anywhere.
       invalidateWorkspaceBoundUi();
       setTasks([]);
+      // The host's erase does three more things than the workspace-bound reset
+      // covers: it signs the model out, revokes *every* workspace grant, and
+      // enters recovery. Leaving the renderer's mirrors of those in place meant
+      // Home still listed the folders as granted, the title bar still named an
+      // active one, and Settings still reported a connected provider and model —
+      // all revoked seconds earlier. The workbench looked operational and every
+      // action failed. The earlier comment here claimed this was "the same set";
+      // it was not.
+      setHostWorkspaces([]);
+      setActiveWorkspaceId(null);
+      setModelAuthStatus(null);
+      setTaskDrafts(new Map());
       clearContext();
       setContextDrawer(null);
       // With no tasks left, Home is the empty state. Staying on a task route
@@ -2458,7 +2470,17 @@ export function App({
       "changes.recovery.decide",
     ] as const)
       .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
-  const changesHistoryAvailable = governedEditsCommandsAvailable && activeWorkspace !== null;
+  // Includes the grant level, because `refreshChangesHistory` returns early on
+  // `!editsEnabled` *before* it sets `loading`. Without it, a read-only
+  // workspace — which is what every workspace is until the user enables
+  // governed edits — reported the history as available, sat at `unread`
+  // forever, and told the user to press Refresh, which called a function that
+  // returned immediately. The old copy for this state ("Governed changes …
+  // will appear here after they happen") was true; a broken instruction is
+  // worse than the sentence it replaced.
+  const changesHistoryAvailable = governedEditsCommandsAvailable
+    && activeWorkspace !== null
+    && activeWorkspace.permissions === "governed_edits";
 
   // Read the execution history when Activity is opened.
   //
@@ -2687,11 +2709,17 @@ export function App({
         setChangesHistoryStatus("loaded");
       }
     } catch (error) {
-      setChangesHistoryStatus("unavailable");
+      // Inside the staleness guard, like every other write in this function.
+      // Outside it, a read for workspace A that rejects after the user has
+      // switched to B marks *B* unavailable — and because `handleChangesFailure`
+      // is guarded, `changesError` stays null, so B's Activity panel claims its
+      // history could not be read, gives no reason, and never re-reads, since
+      // the load-on-open effect only fires on `unread`.
       if (
         generation === changesGenerationRef.current
         && workspaceAuthorityKeyRef.current === authorityKey
       ) {
+        setChangesHistoryStatus("unavailable");
         handleChangesFailure(client, error, sequence);
       }
     } finally {
@@ -2840,6 +2868,11 @@ export function App({
       setActiveWorkspaceId(enabled.workspaceId);
       clearAllChangesFlows();
       setChangesHistory(null);
+      // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
+      // load-on-open effect never fires and Activity reports "No activity yet"
+      // immediately after a governed change is applied — the exact scenario the
+      // effect exists to fix.
+      setChangesHistoryStatus("unread");
     } catch (error) {
       if (generation === changesGenerationRef.current) {
         handleChangesFailure(client, error, sequence);
@@ -2903,6 +2936,11 @@ export function App({
           execution: decision.execution,
         });
         setChangesHistory(null);
+        // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
+        // load-on-open effect never fires and Activity reports "No activity yet"
+        // immediately after a governed change is applied — the exact scenario the
+        // effect exists to fix.
+        setChangesHistoryStatus("unread");
       } else if (decision.disposition === "discarded") {
         setChangesFlowForTask(originTask, { kind: "discarded" });
       } else {
@@ -2998,6 +3036,11 @@ export function App({
     if (workspaceId !== activeWorkspaceId) {
       resetAllChangesFlows();
       setChangesHistory(null);
+      // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
+      // load-on-open effect never fires and Activity reports "No activity yet"
+      // immediately after a governed change is applied — the exact scenario the
+      // effect exists to fix.
+      setChangesHistoryStatus("unread");
       clearAllCapabilityRuns();
     }
     setActiveWorkspaceId(workspaceId);
@@ -3256,7 +3299,17 @@ export function App({
     />
   ) : appModal === "delete-task" && pendingDeleteTask !== null ? (
     <DeleteTaskDialog
-      historyStatus={chatSessions.historyStatusFor(pendingDeleteTask.id)}
+      // Browser preview never dispatches the read — `chatHistoryClient`
+      // requires a ready host — so the lane sits at `unread` for the session and
+      // the dialog would say "Forge has not finished reading this task's
+      // messages". There is no host, nothing to read, and the count is provably
+      // right. `loaded` is the honest status for a surface with no store behind
+      // it, and it is the same reasoning `mayHaveDurableCopy` already applies.
+      historyStatus={
+        hostRuntime.kind === "browser_demo"
+          ? "loaded"
+          : chatSessions.historyStatusFor(pendingDeleteTask.id)
+      }
       // A browser preview has no host and no store, so nothing was ever
       // written. A task proven to hold no messages never reached `chat.send`,
       // so no durable row exists for it either. Anything else — including a
