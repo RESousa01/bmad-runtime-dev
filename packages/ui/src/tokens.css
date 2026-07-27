@@ -145,7 +145,7 @@
 .sapphirus-button {
   align-items: center;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   cursor: default;
   display: inline-flex;
   font-family: var(--font-ui);
@@ -248,7 +248,7 @@
 .sapphirus-checkbox__box {
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   display: inline-grid;
   flex: 0 0 auto;
   height: 16px;

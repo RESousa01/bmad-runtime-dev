@@ -70,7 +70,7 @@
 .composer__input-row > .sapphirus-button.sapphirus-button--quiet {
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   flex: 0 0 auto;
   min-height: 32px;
   min-width: max-content;
@@ -89,7 +89,7 @@
 .agent-control__trigger.sapphirus-button {
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   color: var(--color-text-soft);
   gap: 7px;
   max-width: 250px;
@@ -113,7 +113,7 @@
 .agent-control__popover {
   background: color-mix(in srgb, var(--color-surface-raised), var(--color-chrome) 20%);
   border: 1px solid var(--color-border);
-  border-radius: 11px;
+  border-radius: var(--radius-overlay);
   bottom: 42px;
   box-shadow: var(--shadow-popover);
   display: grid;
@@ -215,7 +215,7 @@
 .task-rename input {
   background: var(--color-surface-raised, var(--color-surface));
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   color: var(--color-text);
   flex: 1 1 220px;
   font: inherit;

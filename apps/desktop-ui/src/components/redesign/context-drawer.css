@@ -52,7 +52,7 @@
 .context-drawer__tab {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   cursor: default;
   font-family: var(--font-ui);

@@ -128,7 +128,7 @@
   flex: 0 0 24px;
   place-items: center;
   padding: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -175,12 +175,12 @@
   margin: 0 9px 7px;
   padding: 2px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 5px;
+  border-radius: var(--radius-control);
 }
 
 .git-review__comparison {
   min-height: 23px;
-  border-radius: 3px;
+  border-radius: var(--radius-row);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -200,7 +200,7 @@
   margin: 0 8px 8px;
   padding: 0 8px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   background: var(--color-surface);
 }
@@ -229,7 +229,7 @@
   height: 28px;
   place-items: center;
   padding: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -329,7 +329,7 @@
   justify-content: space-between;
   gap: 7px;
   padding: 0 5px 0 calc(27px + var(--tree-depth, 0) * 13px);
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   background: transparent;
   cursor: pointer;
   text-align: left;
@@ -405,7 +405,7 @@
   height: 28px;
   place-items: center;
   padding: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -421,7 +421,7 @@
 
 .git-review__segmented {
   padding: 2px;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--color-surface) 90%, var(--color-text) 10%);
 }
 

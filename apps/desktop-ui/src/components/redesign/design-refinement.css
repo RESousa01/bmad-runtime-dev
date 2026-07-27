@@ -124,7 +124,7 @@
 .task-workspace--opencode-v2 .composer {
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-radius: 11px;
+  border-radius: var(--radius-overlay);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.1);
   margin: 8px auto 10px;
   max-width: 760px;
@@ -157,7 +157,7 @@
 .task-workspace--opencode-v2 .composer__input-row .sapphirus-button--quiet {
   background: transparent;
   border-color: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   box-shadow: none;
   color: var(--color-text-muted);
   height: 28px;
@@ -210,7 +210,7 @@
   animation: none;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 11px;
+  border-radius: var(--radius-overlay);
   bottom: 34px;
   box-shadow: 0 16px 44px rgb(0 0 0 / 0.28);
   gap: 1px;
@@ -219,7 +219,7 @@
 }
 
 .task-workspace--opencode-v2 .composer__submit.sapphirus-button {
-  border-radius: 8px;
+  border-radius: var(--radius-overlay);
   box-shadow: none;
   height: 30px;
   min-height: 30px;

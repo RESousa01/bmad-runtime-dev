@@ -86,7 +86,7 @@
 }
 
 .app-shell--forge-v2 .sapphirus-button {
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   box-shadow: none;
   font-size: var(--text-ui);
   font-weight: 520;
@@ -138,7 +138,7 @@
 .app-shell--forge-v2 .title-strip__tab {
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   font-size: var(--text-ui);
   font-weight: 520;
@@ -217,7 +217,7 @@
 .app-shell--forge-v2 .home-view__composer {
   background: var(--color-surface-raised);
   border-color: var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-overlay);
   box-shadow: none;
   gap: 8px;
   padding: 12px;
@@ -284,7 +284,7 @@
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   color: var(--color-text-muted);
   display: flex;
   font: inherit;
@@ -457,7 +457,7 @@
 
 .app-shell--forge-v2 .task-header__actions .sapphirus-button {
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   gap: 6px;
   height: 30px;
@@ -538,7 +538,7 @@
 .app-shell--forge-v2 .empty-session__starters button {
   background: transparent;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   font-size: var(--text-ui);
   padding: 7px 9px;
@@ -568,7 +568,7 @@
   animation: none;
   background: var(--color-surface-raised);
   border-color: var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-overlay);
   box-shadow: none;
   margin: 8px auto 10px;
   max-width: min(760px, calc(100% - 40px));
@@ -596,7 +596,7 @@
 .app-shell--forge-v2 .agent-control__trigger.sapphirus-button {
   background: transparent;
   border-color: transparent;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   box-shadow: none;
 }
 
@@ -658,7 +658,7 @@
 .app-shell--forge-v2 .context-window__mode {
   background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   font-size: var(--text-meta);
   padding: 1px 5px;
 }
@@ -713,7 +713,7 @@
 .app-shell--forge-v2 .context-drawer__tab {
   align-items: center;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   display: inline-flex;
   font-size: var(--text-meta);
   gap: 6px;
@@ -746,7 +746,7 @@
 }
 
 .app-shell--forge-v2 .review-panel__tab {
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: var(--text-meta);
   min-height: 28px;
   padding: 0 10px;
@@ -774,7 +774,7 @@
 
 .app-shell--forge-v2 .git-review__comparisons {
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   flex: 0 0 auto;
   margin: 0 9px 8px;
   padding: 2px;
@@ -811,7 +811,7 @@
 }
 
 .app-shell--forge-v2 .git-review__file {
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   min-height: 30px;
   padding: 4px 6px;
 }
@@ -841,7 +841,7 @@
 
 .app-shell--forge-v2 .git-review__diff .diff-view {
   border-color: var(--color-border-subtle);
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   max-height: none;
 }
 
@@ -869,7 +869,7 @@
 .app-shell--forge-v2 .task-shell-layout__modal > .utility-panel,
 .app-shell--forge-v2 .task-shell-layout__modal > .workspace-panel {
   animation: none;
-  border-radius: 10px;
+  border-radius: var(--radius-overlay);
 }
 
 .app-shell--forge-v2 .task-shell-layout__modal > .workspace-panel--opencode-v2 {
@@ -880,7 +880,7 @@
   overflow: hidden;
   padding: 0;
   border-color: var(--color-border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-overlay);
   background: var(--color-surface);
   box-shadow: 0 18px 48px rgb(0 0 0 / 0.34);
 }
@@ -928,7 +928,7 @@
   min-height: 28px;
   margin-left: auto;
   padding: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
 }
 
 .app-shell--forge-v2 .workspace-panel--opencode-v2 .workspace-panel__body {
@@ -944,7 +944,7 @@
   margin: 0 10px 8px;
   padding: 7px 8px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   font-size: var(--text-meta);
   line-height: 1.35;
@@ -1009,7 +1009,7 @@
 .app-shell--forge-v2 .workspace-panel--opencode-v2 .workspace-panel__actions .sapphirus-button {
   min-height: 26px;
   padding: 0 7px;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: var(--text-meta);
 }
 
@@ -1036,7 +1036,7 @@
 
 .app-shell--forge-v2 .workspace-panel--opencode-v2 .workspace-panel__error {
   margin: 8px 10px 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: var(--text-meta);
 }
 
@@ -1055,7 +1055,7 @@
   width: auto;
   min-height: 28px;
   margin: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: var(--text-meta);
 }
 
@@ -1352,7 +1352,7 @@
   min-height: 24px;
   padding: 0 6px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   background: transparent;
   font-size: var(--text-meta);
 }
@@ -1413,7 +1413,7 @@
   min-height: 25px;
   padding: 0 4px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   background: transparent;
   box-shadow: none;
   font-family: var(--font-mono);
@@ -1522,7 +1522,7 @@
 
 .app-shell--forge-v2 .workspace-explorer--panel .context-selection-bar .sapphirus-button {
   min-height: 28px;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: var(--text-meta);
 }
 
@@ -1563,7 +1563,7 @@
 
 .app-shell--forge-v2 .title-strip__tab-close {
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--radius-row);
   color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
@@ -1603,7 +1603,7 @@
 .delete-task-dialog {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-overlay);
   display: grid;
   gap: 14px;
   max-width: 460px;

@@ -52,7 +52,7 @@
 
 .raw-message {
   border: 1px solid var(--color-border);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   overflow: hidden;
 }
 
