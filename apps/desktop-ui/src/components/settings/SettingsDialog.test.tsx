@@ -301,6 +301,23 @@ describe("SettingsDialog", () => {
     expect(screen.getByText("bmad-method 6.10.0")).toBeTruthy();
   });
 
+  /// `appVersion` is the crate version, so every build this repository has ever
+  /// produced answers "0.1.0". A tester reporting "it crashes on 0.1.0" names
+  /// nothing, and About is the one place that should be able to answer "which
+  /// build is this".
+  it("identifies which renderer build is running, not just the product version", () => {
+    render(<SettingsDialog {...createProps({ initialSection: "about" })} />);
+
+    const build = screen.getByText("UI build").parentElement?.textContent ?? "";
+    expect(build).not.toBe("UI build");
+    // The whole point is that it differs from the version, which cannot.
+    expect(build).not.toContain("0.1.0");
+    // And it says so about the version, rather than implying otherwise.
+    expect(
+      screen.getByText(/does not identify which build this is/u),
+    ).toBeTruthy();
+  });
+
   it("reports About as unavailable without host data", () => {
     render(
       <SettingsDialog

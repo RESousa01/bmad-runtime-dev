@@ -906,7 +906,26 @@ export function SettingsDialog({
               </header>
               {aboutStatus === "ready" && about !== null ? (
                 <div className="settings-list">
-                  <Row detail="Forge desktop host." label="Version" value={about.appVersion} />
+                  {/*
+                    `appVersion` is the crate version, so every build this
+                    repository has ever produced answers "0.1.0" — a tester
+                    reporting a fault on "0.1.0" identifies nothing. The detail
+                    now says so rather than implying the value is a build
+                    identity, and the row below carries one for the half of the
+                    app that can supply it. A commit-pinned *host* identity needs
+                    a field on the About projection, which `assertExactKeys`
+                    requires to land on both sides at once.
+                  */}
+                  <Row
+                    detail="Product version. It does not identify which build this is."
+                    label="Version"
+                    value={about.appVersion}
+                  />
+                  <Row
+                    detail="Identifies this renderer bundle for support."
+                    label="UI build"
+                    value={__FORGE_UI_BUILD__}
+                  />
                   <div className="settings-row settings-row--stacked">
                     <span>
                       <strong>Installation id</strong>
