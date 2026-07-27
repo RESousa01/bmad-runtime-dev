@@ -445,7 +445,13 @@ fn validate_response(response: &HttpResponse) -> Result<RawModelOutput, CloudErr
     serde_json::from_slice(&response.body).map_err(|_| CloudError::InvalidModelOutput)
 }
 
-fn is_json_content_type(value: &str) -> bool {
+/// The one media-type test in this crate.
+///
+/// The direct-provider path used to run its own `to_ascii_lowercase()` +
+/// `starts_with("application/json")`, which accepted `application/json-seq` and
+/// allocated a `String` per response. Two sites deciding the same question by
+/// different rules is the drift this consolidation removes.
+pub(crate) fn is_json_content_type(value: &str) -> bool {
     value
         .split_once(';')
         .map_or(value, |(media_type, _)| media_type)

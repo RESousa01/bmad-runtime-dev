@@ -20,6 +20,10 @@ use url::Url;
 use zeroize::Zeroizing;
 
 use crate::model::MAX_OUTPUT_BYTES;
+use crate::provider_failure::{
+    classify_transport_error, AcceptedResponseHead, ProviderFailure, ProviderFailureKind,
+    ProviderResponseHead, MAX_ERROR_BODY_BYTES, MAX_PROVIDER_RESPONSE_BYTES,
+};
 use crate::{
     AuthorizedModelRequest, CloudError, DispatchedModelRequest, ModelAccessReceipt,
     ModelReceiptStatus, RawModelOutput,
@@ -27,7 +31,6 @@ use crate::{
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const OPERATION_TIMEOUT: Duration = Duration::from_mins(2);
-const MAX_PROVIDER_RESPONSE_BYTES: u64 = MAX_OUTPUT_BYTES as u64;
 const OPENAI_DEFAULT_BASE_URL: &str = "https://api.openai.com/v1/";
 const AZURE_API_VERSION: &str = "v1";
 const DIRECT_RECEIPT_SCHEMA: &str = "sapphirus.model-access-receipt.v1";
@@ -336,9 +339,12 @@ impl DirectProviderTransport {
         Ok(Self { config, client })
     }
 
-    /// Sends one already-authorized request through `OpenAI`'s Responses shape.
-    /// Azure uses the same payload and a resource-scoped base URL, matching the
-    /// route used by `OpenCode`'s Azure provider facade.
+    /// Sends one already-authorized request and reports failure as a stable
+    /// [`CloudError`], exactly as it did before failures were classified.
+    ///
+    /// Prefer [`Self::send_classified`]: this signature cannot say whether the
+    /// provider rate limited the key, went down, or refused it, so a caller
+    /// using it can only tell the user something generic.
     ///
     /// # Errors
     ///
@@ -349,13 +355,51 @@ impl DirectProviderTransport {
         request: AuthorizedModelRequest,
         started_at: UnixMillis,
     ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-        request.verify()?;
-        let body = responses_request(&request, self.config.model())?;
-        let body = serde_json::to_vec(&body).map_err(|_| CloudError::TransportFailed)?;
+        self.send_classified(request, started_at)
+            .await
+            .map_err(CloudError::from)
+    }
+
+    /// Sends one already-authorized request through `OpenAI`'s Responses shape.
+    /// Azure uses the same payload and a resource-scoped base URL, matching the
+    /// route used by `OpenCode`'s Azure provider facade.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ProviderFailure`]: what went wrong, whether sending the same
+    /// request again could work, and how long the provider asked us to wait.
+    /// It carries no provider text — see the module docs on `provider_failure`.
+    pub async fn send_classified(
+        &self,
+        request: AuthorizedModelRequest,
+        started_at: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
+        // Pre-flight. None of this has touched the provider, so none of it may
+        // be reported as the provider's fault — and each keeps the exact
+        // `CloudError` its lane already reads.
+        request.verify().map_err(|error| {
+            ProviderFailure::local(ProviderFailureKind::HostRequestInvalid, error)
+        })?;
+        let body = responses_request(&request, self.config.model()).map_err(|error| {
+            ProviderFailure::local(ProviderFailureKind::HostRequestInvalid, error)
+        })?;
+        let body = serde_json::to_vec(&body).map_err(|_| {
+            ProviderFailure::local(
+                ProviderFailureKind::HostRequestInvalid,
+                CloudError::TransportFailed,
+            )
+        })?;
         if body.len() > MAX_OUTPUT_BYTES {
-            return Err(CloudError::TransportFailed);
+            // Locally detected, before it costs a round trip — and the user's
+            // move is to detach something, not to check their key.
+            return Err(ProviderFailure::local(
+                ProviderFailureKind::RequestTooLarge,
+                CloudError::TransportFailed,
+            ));
         }
-        let url = self.config.responses_url()?;
+        let url = self.config.responses_url().map_err(|error| {
+            ProviderFailure::local(ProviderFailureKind::HostRequestInvalid, error)
+        })?;
         let builder = self
             .client
             .post(url)
@@ -373,27 +417,35 @@ impl DirectProviderTransport {
         let response = builder
             .send()
             .await
-            .map_err(|_| CloudError::TransportFailed)?;
+            .map_err(|error| classify_transport_error(&error))?;
         let response_json = read_bounded_json_response(response).await?;
         if response_json.get("status").and_then(Value::as_str) != Some("completed") {
-            return Err(CloudError::InvalidModelOutput);
+            return Err(unusable_output());
         }
-        let payload_json = extract_output_text(&response_json)?;
+        let payload_json = extract_output_text(&response_json).map_err(|_| unusable_output())?;
         if payload_json.len() > MAX_OUTPUT_BYTES {
-            return Err(CloudError::InvalidModelOutput);
+            return Err(unusable_output());
         }
-        parse_untrusted_json(payload_json.as_bytes())?;
+        parse_untrusted_json(payload_json.as_bytes()).map_err(|_| unusable_output())?;
         let payload_hash = sha256_bytes(payload_json.as_bytes());
-        let completed_at = now_millis()?.max(started_at);
+        let completed_at = now_millis()
+            .map_err(|error| {
+                ProviderFailure::local(ProviderFailureKind::HostRequestInvalid, error)
+            })?
+            .max(started_at);
         let receipt_seed = format!("{}:{}", request.request_id(), payload_hash);
         let receipt_hash = sha256_bytes(receipt_seed.as_bytes());
         let receipt_id = ContractId::new(format!(
             "receipt_direct_{}",
             &hex::encode(receipt_hash.as_bytes())[..32]
         ))
-        .map_err(|_| CloudError::ReceiptInvalid)?;
-        let output_bytes =
-            u64::try_from(payload_json.len()).map_err(|_| CloudError::InvalidModelOutput)?;
+        .map_err(|_| {
+            ProviderFailure::local(
+                ProviderFailureKind::HostRequestInvalid,
+                CloudError::ReceiptInvalid,
+            )
+        })?;
+        let output_bytes = u64::try_from(payload_json.len()).map_err(|_| unusable_output())?;
         let output = RawModelOutput {
             request_id: request.request_id().clone(),
             output_schema_id: request.canonical_output_schema_id().clone(),
@@ -426,40 +478,83 @@ impl DirectProviderTransport {
     }
 }
 
-async fn read_bounded_json_response(mut response: reqwest::Response) -> Result<Value, CloudError> {
-    if !response.status().is_success()
-        || response
-            .content_length()
-            .is_some_and(|length| length > MAX_PROVIDER_RESPONSE_BYTES)
-        || !response
-            .headers()
-            .get(CONTENT_TYPE)
-            .and_then(|value| value.to_str().ok())
-            .is_some_and(|value| value.to_ascii_lowercase().starts_with("application/json"))
-    {
-        return Err(CloudError::TransportFailed);
+/// A well-formed response envelope whose payload this host cannot use.
+///
+/// Kept as one helper so the `CloudError` these paths have always returned —
+/// which the BMAD lanes distinguish — cannot drift from the new class.
+fn unusable_output() -> ProviderFailure {
+    ProviderFailure::local(
+        ProviderFailureKind::UnusableModelOutput,
+        CloudError::InvalidModelOutput,
+    )
+}
+
+async fn read_bounded_json_response(
+    mut response: reqwest::Response,
+) -> Result<Value, ProviderFailure> {
+    let head = ProviderResponseHead::from_response(&response);
+    // `accept` is the only thing that mints an `AcceptedResponseHead`, and the
+    // body reader below demands one. Deleting the classification therefore
+    // fails to compile rather than quietly feeding a 429's error body to the
+    // model-output parser.
+    let accepted = match head.accept() {
+        Ok(accepted) => accepted,
+        Err(failure) => return Err(refine_from_error_body(failure, &mut response).await),
+    };
+    read_accepted_body(response, &accepted).await
+}
+
+/// Reads a bounded slice of a rejected response so a fixed allowlist of
+/// provider error codes can sharpen the classification.
+///
+/// Best effort by design: a read that fails part way leaves the status-only
+/// classification standing, which is always the safer of the two.
+async fn refine_from_error_body(
+    failure: ProviderFailure,
+    response: &mut reqwest::Response,
+) -> ProviderFailure {
+    if !failure.wants_error_body() {
+        return failure;
     }
+    let mut bytes = Vec::new();
+    while bytes.len() < MAX_ERROR_BODY_BYTES {
+        match response.chunk().await {
+            Ok(Some(chunk)) => {
+                let remaining = MAX_ERROR_BODY_BYTES - bytes.len();
+                bytes.extend_from_slice(&chunk[..chunk.len().min(remaining)]);
+            }
+            Ok(None) | Err(_) => break,
+        }
+    }
+    failure.refined_by_error_body(&bytes)
+}
+
+async fn read_accepted_body(
+    mut response: reqwest::Response,
+    accepted: &AcceptedResponseHead,
+) -> Result<Value, ProviderFailure> {
+    let malformed = || {
+        ProviderFailure::local(
+            ProviderFailureKind::MalformedResponse,
+            CloudError::TransportFailed,
+        )
+    };
     let mut bytes = Vec::with_capacity(
-        response
-            .content_length()
+        accepted
+            .declared_length
             .and_then(|length| usize::try_from(length).ok())
             .unwrap_or_default(),
     );
-    while let Some(chunk) = response
-        .chunk()
-        .await
-        .map_err(|_| CloudError::TransportFailed)?
-    {
-        let next_length = bytes
-            .len()
-            .checked_add(chunk.len())
-            .ok_or(CloudError::TransportFailed)?;
-        if next_length > MAX_OUTPUT_BYTES {
-            return Err(CloudError::TransportFailed);
+    while let Some(chunk) = response.chunk().await.map_err(|_| malformed())? {
+        let next_length = bytes.len().checked_add(chunk.len()).ok_or_else(malformed)?;
+        // The same ceiling the declared-length check used. A chunked reply —
+        // which is what these providers actually send — reaches only this arm.
+        if next_length > MAX_PROVIDER_RESPONSE_BYTES {
+            return Err(malformed());
         }
         bytes.extend_from_slice(&chunk);
     }
-    parse_untrusted_json(&bytes)
+    parse_untrusted_json(&bytes).map_err(|_| unusable_output())
 }
 
 fn parse_untrusted_json(bytes: &[u8]) -> Result<Value, CloudError> {
@@ -760,9 +855,10 @@ mod tests {
     use serde_json::json;
 
     use super::{
-        extract_output_text, model_instructions, parse_untrusted_json, responses_request,
-        validate_base_url, AuthorizedModelRequest, CloudError, DirectProviderConfig,
-        DirectProviderKind, ProviderAuth,
+        extract_output_text, model_instructions, parse_untrusted_json, read_bounded_json_response,
+        responses_request, validate_base_url, AuthorizedModelRequest, CloudError,
+        DirectProviderConfig, DirectProviderKind, ProviderAuth, ProviderFailureKind,
+        MAX_PROVIDER_RESPONSE_BYTES,
     };
 
     fn id(value: &str) -> ContractId {
@@ -1212,6 +1308,168 @@ persona.md (persona; reviewedContentHash=deadbeef)\n";
         assert_ne!(
             first["input"][0]["content"][0]["text"], second["input"][0]["content"][0]["text"],
             "a fence marker reused across requests would become predictable"
+        );
+    }
+
+    /// Serves exactly one canned HTTP response on loopback and returns the
+    /// `reqwest::Response` for it.
+    ///
+    /// The point is to drive the *production* reader — header extraction,
+    /// [`ProviderResponseHead::accept`], the bounded error-body read, and the
+    /// refinement — rather than the pure classifier underneath it. A test that
+    /// only called the classifier would still pass if the reader stopped
+    /// calling it, which is the shape of dead safety this repo keeps finding.
+    ///
+    /// `DirectProviderTransport`'s own client is `https_only` and pinned to the
+    /// provider hosts, so it cannot be aimed here; a plain client produces the
+    /// same `reqwest::Response` type the reader consumes.
+    async fn canned_response(head: &str, body: Vec<u8>) -> reqwest::Response {
+        use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("loopback listener");
+        let port = listener.local_addr().expect("bound address").port();
+        let head = head.to_owned();
+        tokio::spawn(async move {
+            let Ok((mut socket, _)) = listener.accept().await else {
+                return;
+            };
+            let mut discard = [0_u8; 2048];
+            let _ = socket.read(&mut discard).await;
+            let _ = socket.write_all(head.as_bytes()).await;
+            let _ = socket.write_all(&body).await;
+            let _ = socket.shutdown().await;
+        });
+        reqwest::Client::new()
+            .get(format!("http://127.0.0.1:{port}/responses"))
+            .send()
+            .await
+            .expect("loopback response")
+    }
+
+    /// The defect, end to end through the real reader: a 429 on a working key
+    /// must not be reported the same way a missing provider is, and the two
+    /// meanings of 429 must be told apart by the body.
+    #[tokio::test]
+    async fn a_rate_limited_response_is_classified_through_the_real_reader() {
+        let rate_limited = read_bounded_json_response(
+            canned_response(
+                "HTTP/1.1 429 Too Many Requests\r\n\
+                 content-type: application/json\r\n\
+                 retry-after: 20\r\n\
+                 content-length: 46\r\n\r\n",
+                br#"{"error":{"code":"rate_limit_exceeded"}}     "#.to_vec(),
+            )
+            .await,
+        )
+        .await
+        .expect_err("a 429 is a failure");
+        assert_eq!(rate_limited.kind(), ProviderFailureKind::RateLimited);
+        assert!(
+            rate_limited.retryable(),
+            "the user was told to reconnect a provider that was already connected, \
+             and that retrying was pointless when it was the only thing that would work"
+        );
+        assert_eq!(
+            rate_limited.retry_after(),
+            Some(std::time::Duration::from_secs(20)),
+            "the reader must carry the provider's own advice through"
+        );
+        assert_eq!(rate_limited.status(), Some(429));
+
+        // Same status, opposite advice — and only the body says so.
+        let quota = read_bounded_json_response(
+            canned_response(
+                "HTTP/1.1 429 Too Many Requests\r\n\
+                 content-type: application/json\r\n\
+                 retry-after: 20\r\n\
+                 content-length: 42\r\n\r\n",
+                br#"{"error":{"code":"insufficient_quota"}}   "#.to_vec(),
+            )
+            .await,
+        )
+        .await
+        .expect_err("a 429 is a failure");
+        assert_eq!(quota.kind(), ProviderFailureKind::QuotaExhausted);
+        assert!(
+            !quota.retryable(),
+            "an exhausted balance retried on a timer is a loop against a provider that cannot say yes"
+        );
+        assert_eq!(quota.retry_after(), None);
+    }
+
+    /// A rejected key and a provider outage must reach the reader as different
+    /// facts, since one is fixed in Settings and the other by waiting.
+    #[tokio::test]
+    async fn a_rejected_key_and_an_outage_are_distinguishable_at_the_reader() {
+        let rejected = read_bounded_json_response(
+            canned_response(
+                "HTTP/1.1 401 Unauthorized\r\n\
+                 content-type: application/json\r\n\
+                 content-length: 2\r\n\r\n",
+                b"{}".to_vec(),
+            )
+            .await,
+        )
+        .await
+        .expect_err("a 401 is a failure");
+        assert_eq!(rejected.kind(), ProviderFailureKind::CredentialRejected);
+        assert!(!rejected.retryable());
+
+        let outage = read_bounded_json_response(
+            canned_response(
+                "HTTP/1.1 503 Service Unavailable\r\n\
+                 content-type: application/json\r\n\
+                 retry-after: 5\r\n\
+                 content-length: 2\r\n\r\n",
+                b"{}".to_vec(),
+            )
+            .await,
+        )
+        .await
+        .expect_err("a 503 is a failure");
+        assert_eq!(outage.kind(), ProviderFailureKind::ProviderUnavailable);
+        assert!(outage.retryable());
+        assert_ne!(rejected.user_message(), outage.user_message());
+    }
+
+    /// The body ceiling, at the boundary, on the arm that actually carries
+    /// these providers' replies.
+    ///
+    /// A chunked or `Connection: close` reply declares no `Content-Length`, so
+    /// the header check never runs and the streaming accumulator is the only
+    /// bound. Exactly at the ceiling is inside it; one byte more is refused.
+    #[tokio::test]
+    async fn an_undeclared_length_is_bounded_by_the_same_ceiling_at_the_boundary() {
+        let padded_json = |total: usize| {
+            let envelope = br#"{"pad":""}"#.len();
+            let mut body = br#"{"pad":""#.to_vec();
+            body.extend(std::iter::repeat_n(b'a', total - envelope));
+            body.extend_from_slice(br#""}"#);
+            assert_eq!(body.len(), total);
+            body
+        };
+        let head = "HTTP/1.1 200 OK\r\n\
+                    content-type: application/json\r\n\
+                    connection: close\r\n\r\n";
+
+        let at_ceiling = read_bounded_json_response(
+            canned_response(head, padded_json(MAX_PROVIDER_RESPONSE_BYTES)).await,
+        )
+        .await
+        .expect("exactly at the ceiling is inside it");
+        assert!(at_ceiling.get("pad").is_some());
+
+        let over_ceiling = read_bounded_json_response(
+            canned_response(head, padded_json(MAX_PROVIDER_RESPONSE_BYTES + 1)).await,
+        )
+        .await
+        .expect_err("one byte past the ceiling is refused");
+        assert_eq!(
+            over_ceiling.kind(),
+            ProviderFailureKind::MalformedResponse,
+            "an undeclared body past the ceiling must be stopped by the streaming bound"
         );
     }
 

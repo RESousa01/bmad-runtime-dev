@@ -14,6 +14,8 @@ mod installation_identity;
 mod model;
 mod production;
 mod production_round_trip;
+#[cfg(feature = "direct-provider")]
+mod provider_failure;
 mod support_contract;
 mod transport;
 #[cfg(windows)]
@@ -48,6 +50,8 @@ pub use production::{
     VerifiedSignedPolicy,
 };
 pub use production_round_trip::{ProductionRoundTrip, RegistrationMaterial};
+#[cfg(feature = "direct-provider")]
+pub use provider_failure::{ProviderFailure, ProviderFailureKind, MAX_RETRY_AFTER};
 pub use support_contract::{
     project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,
     ConsentWindow, InstallationConsentSigner, LeaseBinding,
@@ -91,7 +95,15 @@ pub struct EntitlementLease {
     pub signature: String,
 }
 
-#[derive(Debug, Eq, Error, PartialEq)]
+/// The stable, secret-free error surface of this crate.
+///
+/// `Clone` is derived so a classified provider failure can carry the exact
+/// variant its lane already reads (see `ProviderFailure`), rather than
+/// re-deriving one and changing what the BMAD help and capability coordinators
+/// see. `Copy` is deliberately *not* derived: the existing consumers take
+/// `&CloudError`, and a `Copy` type behind a reference is a clippy `pedantic`
+/// finding at every one of those call sites.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum CloudError {
     #[error("the desktop support plane is offline")]
     Offline,

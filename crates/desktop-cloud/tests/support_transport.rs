@@ -336,6 +336,14 @@ async fn stale_access_status_and_untrusted_body_fail_before_projection() {
     assert_eq!(requests.lock().len(), 1);
 }
 
+/// Each row names the error it must produce, not merely that *some* error
+/// appeared.
+///
+/// `is_err()` was not enough. Deleting the declared-vs-actual length check in
+/// `validate_response` left every row still failing — but for the wrong reason,
+/// in `serde_json` rather than in the transport guard — so the whole test
+/// passed with the guard gone. A guard whose test cannot tell it apart from a
+/// downstream parse failure is not a tested guard.
 #[tokio::test]
 async fn oversized_or_non_json_responses_fail_closed() {
     let session = CloudSession::new(StaticBroker, id("tenant_ref"));
@@ -344,32 +352,58 @@ async fn oversized_or_non_json_responses_fail_closed() {
         .await
         .expect("access");
     let entitlement = entitlement_for(b"policy", UnixMillis(1_000));
-    for response in [
-        HttpResponse::new(
-            200,
-            Some("application/json".to_owned()),
-            Some(2 * 1024 * 1024),
-            b"{}".to_vec(),
+    for (label, response, expected) in [
+        (
+            "a declared length past the response ceiling",
+            HttpResponse::new(
+                200,
+                Some("application/json".to_owned()),
+                Some(2 * 1024 * 1024),
+                b"{}".to_vec(),
+            ),
+            CloudError::TransportFailed,
         ),
-        HttpResponse::new(200, Some("text/html".to_owned()), Some(2), b"{}".to_vec()),
-        HttpResponse::new(
-            200,
-            Some("application/json".to_owned()),
-            Some(8),
-            b"not-json".to_vec(),
+        (
+            "a body that is not JSON at all",
+            HttpResponse::new(200, Some("text/html".to_owned()), Some(2), b"{}".to_vec()),
+            CloudError::TransportFailed,
         ),
-        HttpResponse::new(
-            200,
-            Some("application/json".to_owned()),
-            Some(99),
-            b"{}".to_vec(),
+        (
+            "a declared length that does not match the body delivered",
+            HttpResponse::new(
+                200,
+                Some("application/json".to_owned()),
+                Some(99),
+                b"{}".to_vec(),
+            ),
+            CloudError::TransportFailed,
+        ),
+        (
+            "a JSON media type carrying bytes that are not JSON",
+            HttpResponse::new(
+                200,
+                Some("application/json".to_owned()),
+                Some(8),
+                b"not-json".to_vec(),
+            ),
+            CloudError::InvalidModelOutput,
+        ),
+        (
+            "well-formed JSON that is not a model output",
+            HttpResponse::new(
+                200,
+                Some("application/json".to_owned()),
+                Some(2),
+                b"{}".to_vec(),
+            ),
+            CloudError::InvalidModelOutput,
         ),
     ] {
         let transport = SupportApiTransport::new(
             SupportApiOrigin::new("https://support.example.com").expect("origin"),
             executor(response),
         );
-        assert!(transport
+        let error = transport
             .send(
                 &session,
                 &access,
@@ -378,7 +412,8 @@ async fn oversized_or_non_json_responses_fail_closed() {
                 UnixMillis(1_000),
             )
             .await
-            .is_err());
+            .expect_err(label);
+        assert_eq!(error, expected, "{label} produced the wrong error");
     }
 }
 
