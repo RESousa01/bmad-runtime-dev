@@ -330,6 +330,18 @@ export function App({
     useState<ReadonlyMap<string, GovernedChangesUiState | null>>(new Map());
   const [changesError, setChangesError] = useState<string | null>(null);
   const [changesHistory, setChangesHistory] = useState<ChangesHistoryProjection | null>(null);
+  /// Whether the workspace's execution history has actually been read.
+  ///
+  /// `changesHistory === null` meant both "never asked" and "asked, nothing
+  /// there", and the Activity panel rendered the pair identically as "No
+  /// activity yet". Worse, nothing asked: `refreshChangesHistory` was reachable
+  /// only from post-mutation sites and the Refresh button, from no effect at
+  /// all — so opening Activity on a workspace with real governed history showed
+  /// "No activity yet" until the user happened to press Refresh. Someone
+  /// checking whether a change could still be rolled back was told it could not.
+  const [changesHistoryStatus, setChangesHistoryStatus] = useState<
+    "unread" | "loading" | "loaded" | "unavailable"
+  >("unread");
   const [changesHistoryBusy, setChangesHistoryBusy] = useState(false);
   const [recoveryReview, setRecoveryReview] = useState<
     Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null
@@ -937,6 +949,7 @@ export function App({
     clearAllChangesFlows();
     setChangesError(null);
     setChangesHistory(null);
+    setChangesHistoryStatus("unread");
     setChangesHistoryBusy(false);
     setEnableEditsBusy(false);
     recoveryGenerationRef.current += 1;
@@ -2428,6 +2441,33 @@ export function App({
     ] as const)
       .every((command) => hostRuntime.bootstrap.supportedCommands.includes(command));
   const changesHistoryAvailable = governedEditsCommandsAvailable && activeWorkspace !== null;
+
+  // Read the execution history when Activity is opened.
+  //
+  // Nothing did. `refreshChangesHistory` was reachable only from the sites that
+  // mutate history and from the Refresh button, from no effect at all — so
+  // opening Activity on a workspace with real governed changes showed "No
+  // activity yet" indefinitely. Someone opening it to check whether yesterday's
+  // change could still be rolled back was told there was nothing to roll back.
+  //
+  // Gated on `unread`, so this is one read per workspace binding rather than a
+  // poll: `loading` is its own lock, and the binding change that resets the
+  // status back to `unread` is exactly when a re-read is wanted.
+  useEffect(() => {
+    if (
+      contextDrawer !== "activity"
+      || changesHistoryStatus !== "unread"
+      || !changesHistoryAvailable
+    ) {
+      return;
+    }
+    void refreshChangesHistory();
+    // `refreshChangesHistory` is re-created every render and is guarded
+    // internally; depending on it here would re-run this effect on every
+    // render, which is the poll this is written to avoid.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changesHistoryAvailable, changesHistoryStatus, contextDrawer]);
+
   const editsEnabled = activeWorkspace?.permissions === "governed_edits";
   const canEnableEdits = governedEditsCommandsAvailable
     && activeWorkspace !== null
@@ -2661,6 +2701,7 @@ export function App({
     const generation = changesGenerationRef.current;
     const sequence = hostRuntime.bootstrap.projectionSequence;
     setChangesHistoryBusy(true);
+    setChangesHistoryStatus("loading");
     setChangesError(null);
     try {
       const history = await client.changesHistory(workspace.workspaceId, workspace.grantEpoch);
@@ -2670,8 +2711,10 @@ export function App({
         && hostRuntime.kind === "ready"
       ) {
         setChangesHistory(history);
+        setChangesHistoryStatus("loaded");
       }
     } catch (error) {
+      setChangesHistoryStatus("unavailable");
       if (
         generation === changesGenerationRef.current
         && workspaceAuthorityKeyRef.current === authorityKey
@@ -3165,6 +3208,8 @@ export function App({
           helpState={bmadHelpState}
           history={changesHistory}
           historyAvailable={changesHistoryAvailable}
+          historyError={changesError}
+          historyStatus={changesHistoryStatus}
           historyBusy={changesHistoryBusy}
           onRefreshHistory={() => void refreshChangesHistory()}
           onDecideRecovery={(choice) => void decideChangesRecovery(choice)}

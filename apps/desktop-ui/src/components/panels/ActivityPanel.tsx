@@ -13,6 +13,13 @@ export interface ActivityPanelProps {
   history: ChangesHistoryProjection | null;
   historyBusy: boolean;
   historyAvailable: boolean;
+  /// Whether the history has been read, so "nothing happened" is only said when
+  /// it is known. `history === null` alone cannot tell "never asked" from
+  /// "asked, empty", and the panel used to render both as "No activity yet".
+  historyStatus: "unread" | "loading" | "loaded" | "unavailable";
+  /// Why the read failed, when it did. Without this a failed read renders as an
+  /// empty list, which claims the opposite of what happened.
+  historyError: string | null;
   onRefreshHistory: () => void;
   onDecideRecovery: (choice: RecoveryApprovalChoice) => void;
   onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
@@ -66,6 +73,8 @@ export function ActivityPanel({
   history,
   historyAvailable,
   historyBusy,
+  historyStatus,
+  historyError,
   onRefreshHistory,
   onDecideRecovery,
   onPrepareRecovery,
@@ -167,15 +176,45 @@ export function ActivityPanel({
       ) : null}
 
       {entries.length === 0 && help === null && openJournals.length === 0 ? (
-        <div className="activity-panel__empty">
-          <History aria-hidden="true" size={22} />
-          <h3>No activity yet</h3>
-          <p>
-            {historyAvailable
-              ? "Governed changes and skill-guidance runs will appear here after they happen."
-              : "Enable governed edits on a workspace to record executions here."}
-          </p>
-        </div>
+        // "No activity yet" is a claim about the workspace, so it is only made
+        // once the history has actually been read. The other three states are
+        // claims about this panel, and each says which one it is.
+        historyAvailable && historyStatus === "unavailable" ? (
+          <div className="activity-panel__empty" role="alert">
+            <History aria-hidden="true" size={22} />
+            <h3>Activity could not be read</h3>
+            <p>
+              Forge could not read this workspace&apos;s execution history, so it
+              cannot say whether anything has happened.
+              {historyError === null ? "" : ` ${historyError}`}
+            </p>
+          </div>
+        ) : historyAvailable && historyStatus === "loading" ? (
+          <div className="activity-panel__empty">
+            <History aria-hidden="true" size={22} />
+            <h3>Reading activity…</h3>
+            <p>Asking the host for this workspace&apos;s execution history.</p>
+          </div>
+        ) : historyAvailable && historyStatus === "unread" ? (
+          <div className="activity-panel__empty">
+            <History aria-hidden="true" size={22} />
+            <h3>Activity has not been read yet</h3>
+            <p>
+              Forge has not asked the host for this workspace&apos;s execution
+              history. Refresh to read it.
+            </p>
+          </div>
+        ) : (
+          <div className="activity-panel__empty">
+            <History aria-hidden="true" size={22} />
+            <h3>No activity yet</h3>
+            <p>
+              {historyAvailable
+                ? "Governed changes and skill-guidance runs will appear here after they happen."
+                : "Enable governed edits on a workspace to record executions here."}
+            </p>
+          </div>
+        )
       ) : (
         <ul aria-label="Governed executions" className="activity-panel__list">
           {entries.map((entry) => (

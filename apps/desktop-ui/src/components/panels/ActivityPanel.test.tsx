@@ -13,6 +13,10 @@ function createProps(overrides: Partial<ActivityPanelProps> = {}): ActivityPanel
     history: null,
     historyAvailable: true,
     historyBusy: false,
+    // Default to a completed read, so a test that does not care about the read
+    // state exercises the same "loaded and empty" branch it always did.
+    historyStatus: "loaded",
+    historyError: null,
     onRefreshHistory: vi.fn(),
     onDecideRecovery: vi.fn(),
     onPrepareRecovery: vi.fn(),
@@ -102,6 +106,50 @@ describe("ActivityPanel", () => {
 
   it("shows an empty state when there is no activity", () => {
     render(<ActivityPanel {...createProps()} />);
+    expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
+  });
+
+  /// "No activity yet" is a claim about the workspace. It used to be rendered
+  /// from `history === null`, which is also what "never asked" looks like — and
+  /// nothing asked, because the read was reachable only from the Refresh button
+  /// and the sites that mutate history. So a user opening Activity to check
+  /// whether yesterday's change could still be rolled back was told there was
+  /// nothing to roll back.
+  it("says the history has not been read rather than that nothing happened", () => {
+    render(<ActivityPanel {...createProps({ history: null, historyStatus: "unread" })} />);
+    expect(
+      screen.getByRole("heading", { name: "Activity has not been read yet" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "No activity yet" })).toBeNull();
+  });
+
+  it("surfaces a failed read as an error, not as an empty list", () => {
+    render(
+      <ActivityPanel
+        {...createProps({
+          history: null,
+          historyStatus: "unavailable",
+          historyError: "The host could not read the journal.",
+        })}
+      />,
+    );
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toContain("cannot say whether anything has happened");
+    // The host's own reason has to survive to the user, or the panel is just
+    // asserting failure without saying what failed.
+    expect(alert.textContent).toContain("The host could not read the journal.");
+    expect(screen.queryByRole("heading", { name: "No activity yet" })).toBeNull();
+  });
+
+  it("says nothing happened only once the history has actually been read", () => {
+    render(
+      <ActivityPanel
+        {...createProps({
+          history: { workspaceId: "workspace_1", entries: [], openJournals: [] },
+          historyStatus: "loaded",
+        })}
+      />,
+    );
     expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
   });
 
