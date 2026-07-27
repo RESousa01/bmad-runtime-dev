@@ -1541,7 +1541,14 @@ fn validate_builder_path(path: &str) -> Result<(), BuilderError> {
                 && segment != &".."
                 && segment.len() <= 120
                 && !segment.ends_with(['.', ' '])
-                && !is_windows_reserved(segment)
+                // One implementation, shared with `RelativeWorkspacePath`.
+                // There was a second copy here and it had already drifted —
+                // it did not know about `CONIN$`, `CONOUT$` or the superscript
+                // digits, so a finding path of `conin$.md` was accepted here
+                // and refused there. `valid_inventory` hid that for proposed
+                // files; it does not cover analysis findings, which reach
+                // `validate_builder_path` with nothing else behind them.
+                && !crate::ids::is_windows_reserved_device(segment)
                 && !segment.to_ascii_lowercase().starts_with("bmad-")
                 && !segment.chars().any(char::is_control)
         });
@@ -1552,18 +1559,6 @@ fn validate_builder_path(path: &str) -> Result<(), BuilderError> {
             BuilderErrorCode::BuilderFutureCapabilityForbidden,
         ))
     }
-}
-
-fn is_windows_reserved(segment: &str) -> bool {
-    let stem = segment
-        .split_once('.')
-        .map_or(segment, |(candidate, _)| candidate)
-        .to_ascii_lowercase();
-    matches!(stem.as_str(), "con" | "prn" | "aux" | "nul")
-        || stem
-            .strip_prefix("com")
-            .or_else(|| stem.strip_prefix("lpt"))
-            .is_some_and(|suffix| suffix.len() == 1 && matches!(suffix.as_bytes()[0], b'1'..=b'9'))
 }
 
 fn valid_inventory(kind: BuilderKind, paths: &BTreeSet<&str>) -> bool {

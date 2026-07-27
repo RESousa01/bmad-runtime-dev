@@ -215,16 +215,33 @@ fn is_safe_component(component: &str) -> bool {
     {
         return false;
     }
+    !is_windows_reserved_device(component)
+}
 
+/// Whether one path component names a Windows device rather than a file.
+///
+/// **This is the only implementation.** `bmad::builder::validate_builder_path`
+/// calls it too. It used to carry its own copy, and the copy had drifted: it
+/// was missing `CONIN$`, `CONOUT$` and the superscript digits, so `conin$.md`
+/// was a legal builder path and an illegal workspace path at the same time.
+/// Two sites that must agree, pinned separately, is this repository's most
+/// expensive recurring defect class, and this was an instance of it.
+///
+/// The rule Windows actually applies is about the *stem* — everything before
+/// the first `.` — because `NUL.txt` opens the null device rather than a file.
+/// The superscript digits are in the list because the OEM and ANSI code pages
+/// fold them onto `1`, `2` and `3`, which makes `COM¹` a device under a name an
+/// ASCII-only check reads as ordinary text.
+pub(crate) fn is_windows_reserved_device(component: &str) -> bool {
     let stem = component
         .split_once('.')
         .map_or(component, |(prefix, _)| prefix)
         .to_ascii_uppercase();
-    !matches!(
+    matches!(
         stem.as_str(),
         "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
-    ) && !is_numbered_device(&stem, "COM")
-        && !is_numbered_device(&stem, "LPT")
+    ) || is_numbered_device(&stem, "COM")
+        || is_numbered_device(&stem, "LPT")
 }
 
 fn is_numbered_device(stem: &str, prefix: &str) -> bool {

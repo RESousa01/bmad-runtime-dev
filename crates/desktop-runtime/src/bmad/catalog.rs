@@ -606,15 +606,23 @@ fn apply_availability(installed: &[BmadInstalledSkillRecord], actions: &mut [Bma
                 .map(|action| action.skill_name.clone()),
         )
         .collect::<BTreeSet<_>>();
+    // There is deliberately no second `contains_authority_directive` check on
+    // `phase` here. One used to sit in the `DependencyUnavailable` arm and it
+    // could not fire: `normalize_help_row` scans **all thirteen** cells with the
+    // same predicate and fails the entire catalog before a `BmadHelpAction`
+    // exists, and `apply_availability` is only ever reached from that path
+    // (`BmadCatalogBuilder::build`). `valid_source_reference` independently
+    // rejects `<` and `>` in `phase`, so `<script` could not reach here either.
+    //
+    // It is removed rather than left as belt-and-braces because unreachable
+    // defensive code is not free. It reads as a live control, so the next person
+    // relaxing the row scan upstream — as just happened, when "airlock" came off
+    // the token list — checks what else covers `phase`, finds this, and believes
+    // they are still covered. False assurance is the expensive kind.
     for action in actions {
         action.availability = if action.skill_name == "_meta" {
             BmadCatalogAvailability::NetworkUnavailable
-        } else if !dependency_available(action, &action_skills)
-            || action
-                .phase
-                .as_ref()
-                .is_some_and(|phase| contains_authority_directive(phase))
-        {
+        } else if !dependency_available(action, &action_skills) {
             BmadCatalogAvailability::DependencyUnavailable
         } else if let Some(skill) =
             installed_by_key.get(&(action.module_code.as_str(), action.skill_name.as_str()))
@@ -682,10 +690,36 @@ fn valid_menu_code(value: &str) -> bool {
             .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
+/// Tripwire for directive-shaped prose in a Method catalog row.
+///
+/// # What this actually defends
+///
+/// Catalog rows reach [`normalize_help_row`] from exactly one production call
+/// site — `desktop-app/src/bmad_foundation.rs:773`, inside
+/// `load_bmad_foundation`, which reads the **bundled** foundation out of the
+/// app's resource directory under an inventory integrity check. No user-supplied
+/// and no model-supplied path reaches here. So this is not an injection filter on
+/// untrusted input; it is a tamper tripwire on the artifact we ship, and failing
+/// the whole catalog is the right granularity for that: if our own Method library
+/// has acquired an instruction to the host, distrust the package, not one row.
+///
+/// # Why "airlock" is not on this list
+///
+/// It used to be, and it was the one entry that could not do the job. The other
+/// three are *directives* — an imperative phrase or a markup opener. "airlock" is
+/// a bare noun, and specifically a **Forge** noun, so the single most likely way
+/// it ever fires is a Method description legitimately discussing this product's
+/// own airlock. Because the input is our shipped artifact rather than an
+/// attacker's, that misfire has no upside and a maximal blast radius: the whole
+/// Method library refuses to build, for every user, behind an opaque
+/// `HelpCatalogInvalid`. Removing it costs no defence against a directive,
+/// because a noun was never one.
+///
+/// The same care applies to anything added here. A token belongs on this list
+/// only if legitimate Method prose would never contain it.
 fn contains_authority_directive(value: &str) -> bool {
     let lower = value.to_ascii_lowercase();
-    lower.contains("airlock")
-        || lower.contains("grant permission")
+    lower.contains("grant permission")
         || lower.contains("execute command")
         || lower.contains("<script")
 }

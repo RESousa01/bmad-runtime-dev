@@ -224,6 +224,62 @@ fn change_sets_reject_duplicates_and_oversized_content() {
     assert!(RelativeWorkspacePath::new("../outside.txt").is_err());
 }
 
+/// Two paths differing only in case are one file on Windows, and
+/// `build_changes_candidate` refuses them (`edits.rs:195`, case-folded). The
+/// archetype used to compare exact strings, so such a set was accepted here and
+/// died after the model call, after storage, and after verification — arriving
+/// as a generic error on work the user had already paid for.
+///
+/// The test above cannot catch this: it duplicates one path with `.clone()`, so
+/// it passes under either rule.
+#[test]
+fn change_sets_reject_paths_differing_only_in_case() {
+    assert_eq!(
+        BmadGovernedChangeSet::new(
+            "s".to_owned(),
+            vec![
+                BmadCandidateChange::Create {
+                    path: RelativeWorkspacePath::new("docs/API.md").expect("relative path"),
+                    content: "one".to_owned(),
+                },
+                BmadCandidateChange::Create {
+                    path: RelativeWorkspacePath::new("docs/api.md").expect("relative path"),
+                    content: "two".to_owned(),
+                },
+            ],
+        )
+        .unwrap_err(),
+        BmadCapabilityRunError::DuplicatePath
+    );
+}
+
+/// The builder-draft constructor had the identical gap, while `builder.rs:218`
+/// in the same crate already folded. Same reasoning as the change set above.
+#[test]
+fn builder_drafts_reject_paths_differing_only_in_case() {
+    assert_eq!(
+        BmadInactiveBuilderDraft::new(
+            BmadBuilderDraftKind::Agent,
+            "Draft agent".to_owned(),
+            "First draft.".to_owned(),
+            vec![
+                BmadBuilderDraftFile {
+                    path: RelativeWorkspacePath::new("Agent.Instructions.md")
+                        .expect("relative path"),
+                    content: "# One".to_owned(),
+                },
+                BmadBuilderDraftFile {
+                    path: RelativeWorkspacePath::new("agent.instructions.md")
+                        .expect("relative path"),
+                    content: "# Two".to_owned(),
+                },
+            ],
+        )
+        .unwrap_err(),
+        BmadCapabilityRunError::DuplicatePath
+    );
+}
+
 #[test]
 fn builder_drafts_stay_bounded_and_deduplicated() {
     let file = BmadBuilderDraftFile {

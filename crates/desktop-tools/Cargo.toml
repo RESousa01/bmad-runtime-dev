@@ -12,6 +12,20 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 
+# The Job Object that bounds a spawned process *tree* rather than just the
+# shell we started. `windows` is already a workspace dependency at a pinned
+# version (used by desktop-cloud, desktop-store and desktop-workspace); this
+# adds no new crate, only the `Win32_System_JobObjects` feature. The rest are
+# already enabled workspace-wide and are restated so this crate's requirement
+# is legible without reading the root manifest.
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true, features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_JobObjects",
+  "Win32_System_Threading",
+] }
+
 [dev-dependencies]
 tempfile.workspace = true
 

@@ -262,9 +262,16 @@ impl BmadGovernedChangeSet {
         {
             return Err(BmadCapabilityRunError::BoundsViolation);
         }
+        // Fold before comparing, because `build_changes_candidate` does
+        // (`edits.rs:195`) and it is the one that actually refuses. Comparing
+        // exact strings here accepted `docs/API.md` alongside `docs/api.md`,
+        // carried it through storage and verification, and only then hit the
+        // case-folded check — arriving as a generic error on work the user had
+        // already paid for. That is the same journey the file-count ceiling
+        // took above; the count was unified and this alias rule was not.
         let mut seen = std::collections::BTreeSet::new();
         for change in &changes {
-            if !seen.insert(change.path().as_str().to_owned()) {
+            if !seen.insert(change.path().case_folded()) {
                 return Err(BmadCapabilityRunError::DuplicatePath);
             }
         }
@@ -325,9 +332,11 @@ impl BmadInactiveBuilderDraft {
         {
             return Err(BmadCapabilityRunError::BoundsViolation);
         }
+        // Same fold as the change set above, and as `builder.rs:218-225`, which
+        // is where these files are eventually validated for real.
         let mut seen = std::collections::BTreeSet::new();
         for file in &files {
-            if !seen.insert(file.path.as_str().to_owned()) {
+            if !seen.insert(file.path.case_folded()) {
                 return Err(BmadCapabilityRunError::DuplicatePath);
             }
         }

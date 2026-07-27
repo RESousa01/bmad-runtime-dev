@@ -2,8 +2,9 @@
 
 use desktop_runtime::{
     canonical_hash_without_field, sha256_bytes, AuthorityRef, BuilderAnalysisRun,
-    BuilderAuthoringAction, BuilderDraft, BuilderDraftRecord, BuilderDraftRevision,
-    BuilderDraftState, BuilderErrorCode, BuilderModelAnalysisDecisionInput, ContractId,
+    BuilderAuthoringAction, BuilderDeterministicFinding, BuilderDraft, BuilderDraftRecord,
+    BuilderDraftRevision, BuilderDraftState, BuilderErrorCode, BuilderFindingSeverity,
+    BuilderModelAnalysisDecisionInput, ContractId,
 };
 
 fn fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
@@ -226,6 +227,74 @@ fn model_lens_rejects_forged_and_revision_drifted_decisions() {
             .code(),
         BuilderErrorCode::BuilderRevisionStale
     );
+}
+
+/// The builder and the workspace must agree on what a Windows device name is.
+///
+/// They did not. `validate_builder_path` carried its own copy of the rule and
+/// the copy had drifted — no `CONIN$`, no `CONOUT$`, no superscript digits — so
+/// `conin$.md` was a legal builder path and an illegal
+/// [`RelativeWorkspacePath`] simultaneously. For proposed files `valid_inventory`
+/// hid the gap, because a capability filename cannot contain `$` anyway. It does
+/// not cover an analysis finding's `relativePath`, which reaches
+/// `validate_builder_path` with nothing behind it, so that is where this checks.
+///
+/// The assertion is deliberately *agreement*, not a fixed list: pinning the two
+/// sites to the same answer is what stops the next copy from drifting, and a
+/// list would just be a third place to forget to update.
+#[test]
+fn the_builder_and_the_workspace_agree_on_windows_device_names() {
+    let source: BuilderDraftRecord = fixture("builder-agent-draft.json");
+    let revision: BuilderDraftRevision = fixture("builder-agent-revision.json");
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-deterministic.json");
+
+    for candidate in [
+        // The names both copies always had.
+        "con.md",
+        "NUL.txt",
+        "references/aux.md",
+        "com1.md",
+        "lpt9.md",
+        // The ones only the workspace had. These are the regression.
+        "conin$.md",
+        "CONOUT$.md",
+        "com\u{b9}.md",
+        "references/com\u{b3}.md",
+        // …and ordinary paths, so this cannot pass by rejecting everything.
+        "references/architecture.md",
+        "SKILL.md",
+        "customize.toml",
+    ] {
+        let workspace_rejects = desktop_runtime::RelativeWorkspacePath::new(candidate).is_err();
+
+        let mut findings = analysis.clone();
+        findings.deterministic_findings = vec![BuilderDeterministicFinding {
+            finding_id: ContractId::new("agentfinding_01J00000000000000000000000")
+                .expect("finding id"),
+            rule_id: "builder.path".to_owned(),
+            severity: BuilderFindingSeverity::Low,
+            message: "path shape".to_owned(),
+            relative_path: Some(candidate.to_owned()),
+        }];
+        // Re-seal the record after editing it, so the only thing that can fail
+        // is the path rule rather than the self-hash the edit invalidated.
+        findings.analysis_hash =
+            canonical_hash_without_field("bmad-builder-analysis", 1, &findings, "analysisHash")
+                .expect("analysis hash");
+
+        let mut draft = BuilderDraft::create(source.clone()).expect("draft");
+        draft.bind_authority(authority()).expect("authority");
+        draft
+            .append_revision(1, revision.clone())
+            .expect("revision");
+        let builder_rejects = draft.record_analysis(2, findings).is_err();
+
+        assert_eq!(
+            builder_rejects, workspace_rejects,
+            "{candidate}: the builder and the workspace disagree about whether this \
+             names a Windows device, which is the drift this rule was unified to stop",
+        );
+    }
 }
 
 fn decision_input(analysis: &BuilderAnalysisRun) -> BuilderModelAnalysisDecisionInput {
