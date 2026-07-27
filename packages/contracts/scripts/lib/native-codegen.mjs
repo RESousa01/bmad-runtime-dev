@@ -114,11 +114,17 @@ const expectedBootstrapLocks = Object.freeze({
   },
   cargo: {
     file: "Cargo.lock",
-    // Re-reviewed 2026-07-26 for ADR-0009 Phase 1: the only change is two
-    // dependency edges, `globset` and `regex`, promoted from transitive (via
-    // `ignore`) to direct for `desktop-workspace`'s glob/grep tools. No package
-    // versions changed and no package was added to the tree.
-    sha256: "dcbced46fc957aa09e5b249b3c558e20bfe40df884805a2eba59691b188ebf97",
+    // Re-reviewed 2026-07-27: the only change is one dependency edge —
+    // `windows 0.62.2` added to `desktop-tools`, so `shell.rs` can put a child
+    // process in a Job Object with `KILL_ON_JOB_CLOSE` and stop a timed-out
+    // command leaving a grandchild running with the user's privileges. The
+    // package was already in the tree (desktop-cloud, desktop-store,
+    // desktop-workspace) and is pinned `=0.62.2` at the workspace root, so no
+    // package was added and no version changed. Diff verified as a single line.
+    //
+    // Previously re-reviewed 2026-07-26 for ADR-0009 Phase 1: `globset` and
+    // `regex` promoted from transitive to direct for desktop-workspace.
+    sha256: "64626507873245476179ca6b5ee4dfefe1b3757de98fa59a508bdce52677e228",
     status: "reviewed",
   },
   dotnetTools: {

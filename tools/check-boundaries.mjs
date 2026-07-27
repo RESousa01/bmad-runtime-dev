@@ -1203,6 +1203,64 @@ if (runtimeCommandSource !== undefined) {
     violations.push(`${relative(root, runtimeCommandPath)}: recovery authority is not separated from ordinary approval`);
   }
 }
+// The Local data panel names every category the store reports. The two lists
+// live in different languages and nothing made them agree: the host grew to 23
+// while the renderer curated 8, and the renderer's fallback humaniser hid the
+// gap by inventing a label from the raw table name. That is the same drift the
+// host list's own comment records having suffered two migrations earlier, so
+// pin it rather than fix it once.
+//
+// Compared as sets: the host list is ordered and the renderer's is an object
+// literal, so ordering carries no meaning across the boundary. Membership does.
+const storeRetentionPath = join(root, "crates", "desktop-store", "src", "lib.rs");
+const storeRetentionSource = await requiredText(storeRetentionPath);
+const settingsDialogPath = join(
+  root,
+  "apps",
+  "desktop-ui",
+  "src",
+  "components",
+  "settings",
+  "SettingsDialog.tsx",
+);
+const settingsDialogSource = await requiredText(settingsDialogPath);
+if (storeRetentionSource !== undefined && settingsDialogSource !== undefined) {
+  const hostListSource = /const RETENTION_CATEGORIES:[^=]+=\s*\[([\s\S]*?)\n\];/u.exec(
+    storeRetentionSource,
+  )?.[1];
+  const labelMapSource = /const retentionCategoryLabels:\s*Record<string,\s*string>\s*=\s*\{([\s\S]*?)\n\};/u.exec(
+    settingsDialogSource,
+  )?.[1];
+  if (hostListSource === undefined || labelMapSource === undefined) {
+    violations.push(
+      `${relative(root, settingsDialogPath)}: the retention category lists could not be read on both sides`,
+    );
+  } else {
+    // Each host entry is a `("category", "table")` pair; the category is the
+    // first string of each pair.
+    const hostCategories = quotedStrings(hostListSource).filter((_, index) => index % 2 === 0);
+    const labelledCategories = [...labelMapSource.matchAll(/^\s*([a-z][a-z0-9_]*)\s*:/gmu)].map(
+      (match) => match[1],
+    );
+    const missing = hostCategories.filter((category) => !labelledCategories.includes(category));
+    const extra = labelledCategories.filter((category) => !hostCategories.includes(category));
+    if (hostCategories.length === 0 || labelledCategories.length === 0) {
+      violations.push(
+        `${relative(root, settingsDialogPath)}: a retention category list parsed as empty`,
+      );
+    }
+    if (missing.length > 0) {
+      violations.push(
+        `${relative(root, settingsDialogPath)}: retention categories reported by the host have no label: ${missing.join(", ")}`,
+      );
+    }
+    if (extra.length > 0) {
+      violations.push(
+        `${relative(root, settingsDialogPath)}: retention labels name categories the host never reports: ${extra.join(", ")}`,
+      );
+    }
+  }
+}
 if (editsSource !== undefined) {
   const openRecoveryProjection = /"recovery_required"\s*\|\s*"restoring"\s*\|\s*"manual_review"/u;
   if (!openRecoveryProjection.test(editsSource)) {
