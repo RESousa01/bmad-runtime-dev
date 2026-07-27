@@ -17,7 +17,7 @@ body {
   background: var(--color-canvas);
   color: var(--color-text);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: var(--text-input);
   overflow: hidden;
   text-rendering: optimizeLegibility;
 }
@@ -154,7 +154,7 @@ code {
 }
 
 .task-header__workspace > strong {
-  font-size: 0.875rem;
+  font-size: var(--text-input);
   font-weight: 600;
   letter-spacing: -0.015em;
   overflow: hidden;
@@ -168,7 +168,7 @@ code {
   border-radius: var(--shell-radius-sm);
   color: var(--color-text-soft);
   display: flex;
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   gap: 6px;
   height: 23px;
   padding: 0 8px;
@@ -217,7 +217,7 @@ code {
 }
 
 .task-header h1 {
-  font-size: 1.18rem;
+  font-size: var(--text-title);
   font-weight: 640;
   letter-spacing: -0.025em;
   line-height: 1.25;
@@ -231,7 +231,7 @@ code {
   border-radius: 999px;
   color: var(--color-text-muted);
   flex: 0 0 auto;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   letter-spacing: 0.02em;
   padding: 3px 7px;
@@ -255,12 +255,12 @@ code {
 
 .recovery-banner strong {
   color: var(--color-text);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
 }
 
 .recovery-banner span {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
 }
 
@@ -293,12 +293,12 @@ code {
 .preview-notice strong {
   color: var(--color-accent-strong);
   flex: 0 0 auto;
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
 }
 
 .preview-notice span {
   color: var(--color-text-muted);
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
 }
 
@@ -326,13 +326,13 @@ code {
 .message__avatar--user {
   background: var(--color-surface-raised);
   color: var(--color-text-soft);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 650;
 }
 
 .message p {
   color: var(--color-text-soft);
-  font-size: 0.8rem;
+  font-size: var(--text-body);
   line-height: 1.65;
   margin: 0;
   max-width: 620px;
@@ -341,7 +341,7 @@ code {
 .message__label {
   color: var(--color-text-muted);
   display: block;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 650;
   letter-spacing: 0.03em;
   margin-bottom: 4px;
@@ -351,7 +351,7 @@ code {
 .message time {
   color: var(--color-text-muted);
   display: block;
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   margin-top: 5px;
 }
 
@@ -380,7 +380,7 @@ code {
   align-items: center;
   color: var(--color-text-muted);
   display: grid;
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   gap: 7px;
   grid-template-columns: 18px minmax(0, 1fr);
   grid-template-rows: 20px auto;
@@ -455,14 +455,14 @@ code {
 
 .review-summary h2 {
   color: var(--color-accent-strong);
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   font-weight: 650;
   margin: 0 0 11px;
 }
 
 .review-summary > p {
   color: var(--color-text-soft);
-  font-size: 0.78rem;
+  font-size: var(--text-body);
   line-height: 1.7;
   margin: 0;
   max-width: 590px;
@@ -476,7 +476,7 @@ code {
 }
 
 .review-summary h3 {
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   font-weight: 600;
   margin: 0 0 14px;
 }
@@ -503,7 +503,7 @@ code {
 }
 
 .impact-grid span {
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   line-height: 1.35;
 }
 
@@ -521,14 +521,14 @@ code {
 }
 
 .empty-session h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-title);
   letter-spacing: -0.025em;
   margin: 0 0 10px;
 }
 
 .empty-session p {
   color: var(--color-text-muted);
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   line-height: 1.65;
   margin: 0;
 }
@@ -561,7 +561,7 @@ code {
 
 .attach-notice {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   line-height: 1.45;
   margin: 0 0 8px;
 }
@@ -594,7 +594,7 @@ code {
   color: var(--color-text);
   cursor: default;
   font-family: var(--font-ui);
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   padding: 8px 9px;
   text-align: left;
 }
@@ -616,7 +616,7 @@ code {
   max-height: 40vh;
   flex: 1 1 auto;
   font-family: var(--font-ui);
-  font-size: 0.79rem;
+  font-size: var(--text-body);
   line-height: 1.55;
   min-width: 0;
   min-height: 44px;
@@ -650,7 +650,7 @@ code {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   color: var(--color-text-soft);
-  font-size: 0.71rem;
+  font-size: var(--text-ui);
   height: 34px;
   outline: none;
   padding: 0 33px 0 11px;
@@ -674,7 +674,7 @@ code {
 
 .composer__availability {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.4;
   margin: 7px 0 0 42px;
 }
@@ -683,7 +683,7 @@ code {
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   gap: 7px;
 }
 
@@ -713,7 +713,7 @@ code {
 }
 
 .inspector .sapphirus-tab {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 560;
   min-width: 0;
   padding: 0 8px;
@@ -751,12 +751,12 @@ code {
 
 .inspector-preview-callout strong {
   color: var(--color-accent-strong);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
 }
 
 .inspector-preview-callout span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 
@@ -767,7 +767,7 @@ code {
 
 .proposal-files > strong {
   display: block;
-  font-size: 0.77rem;
+  font-size: var(--text-body);
   margin: 0 0 11px 1px;
 }
 
@@ -777,7 +777,7 @@ code {
   border: 1px solid var(--color-border);
   color: var(--color-text-soft);
   display: grid;
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   grid-template-columns: 17px minmax(0, 1fr) auto;
   min-height: 38px;
   padding: 0 10px;
@@ -804,7 +804,7 @@ code {
   color: var(--color-text-muted);
   font-family: var(--font-code);
   font-style: normal;
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   margin-left: 8px;
 }
 
@@ -842,7 +842,7 @@ code {
 
 .diff-card > header strong {
   font-family: var(--font-code);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -856,7 +856,7 @@ code {
   color: #241400;
   display: flex;
   font-family: var(--font-code);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   font-weight: 800;
   height: 15px;
   justify-content: center;
@@ -898,7 +898,7 @@ code {
 
 .diff-line__sign {
   font-family: var(--font-code);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   text-align: center;
   width: 17px;
 }
@@ -908,14 +908,14 @@ code {
   border-right: 1px solid var(--color-border-subtle);
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   padding: 0 5px;
   text-align: right;
   width: 31px;
 }
 
 .diff-line__code {
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   overflow: hidden;
   padding: 0 9px;
   white-space: pre;
@@ -938,7 +938,7 @@ code {
 
 .inspector-footnote {
   color: var(--color-text-muted);
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 12px 14px 18px;
 }
@@ -958,7 +958,7 @@ code {
 
 .changes-composer label {
   color: var(--color-text-soft);
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   font-weight: 600;
 }
 
@@ -977,7 +977,7 @@ code {
 
 .changes-composer textarea {
   font-family: var(--font-code);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   line-height: 1.5;
   resize: vertical;
 }
@@ -992,7 +992,7 @@ code {
 .changes-composer__hint,
 .changes-composer__warning {
   color: var(--color-text-muted);
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 0 0 3px;
 }
@@ -1030,7 +1030,7 @@ code {
 
 .changes-draft-row span {
   color: var(--color-text-muted);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
 }
 
 .changes-history {
@@ -1068,7 +1068,7 @@ code {
 
 .changes-history__row strong,
 .changes-history__row time {
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
 }
 
 .changes-history__row time {
@@ -1092,14 +1092,14 @@ code {
 }
 
 .inspector-section-heading h2 {
-  font-size: 0.8125rem;
+  font-size: var(--text-body);
   font-weight: 620;
   margin: 0;
 }
 
 .inspector-section-heading span {
   color: var(--color-text-muted);
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
 }
 
 .context-panel,
@@ -1111,7 +1111,7 @@ code {
 
 .panel-intro {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   line-height: 1.55;
   margin: 0 0 15px;
 }
@@ -1153,7 +1153,7 @@ code {
 }
 
 .context-list summary code {
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1162,7 +1162,7 @@ code {
 .context-list summary span,
 .context-list summary em {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-style: normal;
 }
 
@@ -1178,7 +1178,7 @@ code {
 
 .context-list details > dl > div {
   display: grid;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   gap: 8px;
   grid-template-columns: 78px minmax(0, 1fr);
   padding: 4px 0;
@@ -1204,7 +1204,7 @@ code {
 .context-metadata > div,
 .applied-panel dl > div {
   display: flex;
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   justify-content: space-between;
   padding: 7px 0;
 }
@@ -1237,7 +1237,7 @@ code {
 .log-panel li {
   border-bottom: 1px solid var(--color-border-subtle);
   display: grid;
-  font-size: 0.71rem;
+  font-size: var(--text-ui);
   gap: 12px;
   grid-template-columns: 62px minmax(0, 1fr);
   padding: 11px 2px;
@@ -1246,7 +1246,7 @@ code {
 .log-panel time {
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .evidence-panel li {
@@ -1277,13 +1277,13 @@ code {
 }
 
 .evidence-panel strong {
-  font-size: 0.71rem;
+  font-size: var(--text-ui);
 }
 
 .evidence-panel li span,
 .evidence-panel time {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .applied-panel__status {
@@ -1295,13 +1295,13 @@ code {
 
 .applied-panel__status h3 {
   color: var(--color-text);
-  font-size: 0.87rem;
+  font-size: var(--text-input);
   margin: 1px 0 5px;
 }
 
 .applied-panel__status p {
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   margin: 0;
 }
 
@@ -1337,7 +1337,7 @@ code {
 }
 
 .rollback-file-list code {
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1345,12 +1345,12 @@ code {
 
 .rollback-file-list span {
   color: var(--color-warning);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
 }
 
 .rollback-notice {
   color: var(--color-text-muted);
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 17px 1px;
 }
@@ -1371,12 +1371,12 @@ code {
 
 .inspector-empty-state h3 {
   color: var(--color-text);
-  font-size: 0.87rem;
+  font-size: var(--text-input);
   margin: 15px 0 7px;
 }
 
 .inspector-empty-state p {
-  font-size: 0.71rem;
+  font-size: var(--text-ui);
   line-height: 1.55;
   margin: 0;
 }
@@ -1422,7 +1422,7 @@ code {
 .workspace-panel__eyebrow {
   color: var(--color-text-muted);
   display: block;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 650;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
@@ -1430,14 +1430,14 @@ code {
 }
 
 .workspace-panel h2 {
-  font-size: 1rem;
+  font-size: var(--text-title);
   margin: 0;
 }
 
 .workspace-panel__intro,
 .workspace-panel__privacy {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
 }
 
@@ -1485,7 +1485,7 @@ code {
 }
 
 .workspace-panel__row strong {
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1493,7 +1493,7 @@ code {
 
 .workspace-panel__details > span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .workspace-panel__actions {
@@ -1504,7 +1504,7 @@ code {
 }
 
 .workspace-panel__actions .sapphirus-button {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   min-height: 27px;
   padding-left: 7px;
   padding-right: 7px;
@@ -1522,7 +1522,7 @@ code {
   align-items: center;
   color: var(--color-success);
   display: flex;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 650;
   gap: 3px;
   justify-content: center;
@@ -1543,11 +1543,11 @@ code {
 
 .workspace-panel__empty strong {
   color: var(--color-text);
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
 }
 
 .workspace-panel__empty span {
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
 }
 
@@ -1558,7 +1558,7 @@ code {
   border-radius: 6px;
   color: var(--color-danger);
   display: flex;
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   gap: 8px;
   line-height: 1.45;
   margin: 12px 0;
@@ -1582,7 +1582,7 @@ code {
 }
 
 .utility-panel h2 {
-  font-size: 0.88rem;
+  font-size: var(--text-input);
   margin: 0;
 }
 
@@ -1595,7 +1595,7 @@ code {
 
 .utility-panel legend {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   padding: 0 0 9px;
 }
 
@@ -1627,7 +1627,7 @@ code {
 
 .utility-panel > p {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 9px 2px 2px;
 }
@@ -1646,7 +1646,7 @@ code {
   border-radius: 50%;
   color: var(--color-accent-strong);
   display: flex;
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   font-weight: 700;
   height: 42px;
   justify-content: center;
@@ -1659,12 +1659,12 @@ code {
 }
 
 .account-summary strong {
-  font-size: 0.77rem;
+  font-size: var(--text-body);
 }
 
 .account-summary span {
   color: var(--color-text-muted);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
 }
 
 .account-status {
@@ -1716,7 +1716,7 @@ code {
 .workspace-explorer__header > div:first-child > span {
   color: var(--color-text-muted);
   display: block;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 650;
   letter-spacing: 0.055em;
   margin-bottom: 4px;
@@ -1724,7 +1724,7 @@ code {
 }
 
 .workspace-explorer__header h1 {
-  font-size: 1rem;
+  font-size: var(--text-title);
   line-height: 1.2;
   margin: 0;
   overflow: hidden;
@@ -1734,7 +1734,7 @@ code {
 
 .workspace-explorer__header p {
   color: var(--color-text-muted);
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
   margin: 5px 0 0;
 }
@@ -1747,7 +1747,7 @@ code {
   color: var(--color-text-muted);
   display: inline-flex;
   flex: 0 0 auto;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   gap: 6px;
   min-height: 27px;
   padding: 0 10px;
@@ -1785,7 +1785,7 @@ code {
 .browser-demo-banner strong,
 .browser-demo-banner span,
 .workspace-read-error span {
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 
@@ -1810,12 +1810,12 @@ code {
 
 .workspace-unavailable h2 {
   color: var(--color-text);
-  font-size: 0.93rem;
+  font-size: var(--text-input);
   margin: 15px 0 8px;
 }
 
 .workspace-unavailable p {
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 0;
   max-width: 390px;
@@ -1854,7 +1854,7 @@ code {
 }
 
 .workspace-browser__tabs > .sapphirus-tab-list .sapphirus-tab {
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   padding: 0 7px;
 }
 
@@ -1882,12 +1882,12 @@ code {
 }
 
 .workspace-panel-heading strong {
-  font-size: 0.73rem;
+  font-size: var(--text-ui);
 }
 
 .workspace-panel-heading span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .workspace-tree {
@@ -1911,7 +1911,7 @@ code {
 .workspace-tree__entry.sapphirus-button {
   border-radius: var(--shell-radius-sm);
   font-family: var(--font-ui);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   font-weight: 440;
   height: 30px;
   justify-content: flex-start;
@@ -1943,7 +1943,7 @@ code {
 .workspace-tree__entry small {
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   margin-left: auto;
 }
 
@@ -1958,7 +1958,7 @@ code {
 
 .workspace-tree__load-more.sapphirus-button,
 .workspace-tree__root-more.sapphirus-button {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .workspace-tree__load-more.sapphirus-button {
@@ -1974,7 +1974,7 @@ code {
   align-items: center;
   color: var(--color-text-muted);
   display: flex;
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   gap: 8px;
   padding: 15px 10px;
 }
@@ -1996,7 +1996,7 @@ code {
 
 .workspace-search > label {
   color: var(--color-text-soft);
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   font-weight: 570;
 }
 
@@ -2015,7 +2015,7 @@ code {
   background: transparent;
   border: 0;
   color: var(--color-text);
-  font-size: 0.69rem;
+  font-size: var(--text-meta);
   min-width: 0;
   outline: none;
 }
@@ -2050,7 +2050,7 @@ code {
 
 .search-result__path.sapphirus-button {
   flex: 1;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   height: 27px;
   justify-content: flex-start;
   min-width: 0;
@@ -2065,7 +2065,7 @@ code {
 
 .search-result__path span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   margin-left: auto;
   white-space: nowrap;
 }
@@ -2073,7 +2073,7 @@ code {
 .workspace-search-results li > p {
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 5px 5px 0 24px;
   overflow-wrap: anywhere;
@@ -2082,7 +2082,7 @@ code {
 
 .workspace-inline-empty {
   color: var(--color-text-muted);
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 0;
   padding: 18px 13px;
@@ -2116,12 +2116,12 @@ code {
 }
 
 .bmad-help strong {
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
 }
 
 .bmad-help span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
 }
 
@@ -2149,7 +2149,7 @@ code {
 }
 
 .bmad-assets code {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2159,7 +2159,7 @@ code {
 .bmad-assets em,
 .bmad-truncated {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-style: normal;
 }
 
@@ -2193,7 +2193,7 @@ code {
 }
 
 .bmad-library-panel > h2 {
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   font-weight: 650;
   letter-spacing: -0.01em;
 }
@@ -2208,7 +2208,7 @@ code {
 .bmad-library-panel dt,
 .bmad-library-panel dd,
 .bmad-library-panel li {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
 }
 
@@ -2231,7 +2231,7 @@ code {
 
 .bmad-library-section > h3,
 .bmad-internal-identifiers h3 {
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   font-weight: 620;
 }
 
@@ -2314,7 +2314,7 @@ code {
 }
 
 .bmad-agent-row__icon {
-  font-size: 1rem;
+  font-size: var(--text-title);
   line-height: 1;
 }
 
@@ -2340,7 +2340,7 @@ code {
 
 .bmad-blockers code,
 .bmad-internal-identifiers code {
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
 
@@ -2359,7 +2359,7 @@ code {
 .bmad-internal-identifiers > summary {
   color: var(--color-text-soft);
   cursor: pointer;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 600;
 }
 
@@ -2380,7 +2380,7 @@ code {
   color: var(--color-text-soft);
   cursor: pointer;
   display: flex;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   gap: 8px;
   justify-content: space-between;
@@ -2388,7 +2388,7 @@ code {
 
 .bmad-source-details > summary span {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   font-weight: 500;
 }
 
@@ -2432,13 +2432,13 @@ code {
 .text-preview > header span {
   color: var(--color-text-muted);
   display: block;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   margin-bottom: 3px;
 }
 
 .text-preview > header h2 {
   font-family: var(--font-code);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   font-weight: 540;
   margin: 0;
   overflow: hidden;
@@ -2455,7 +2455,7 @@ code {
 
 .text-preview__metrics em {
   color: var(--color-success);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-style: normal;
 }
 
@@ -2463,7 +2463,7 @@ code {
   background: var(--color-surface-raised);
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   line-height: 1.65;
   margin: 0;
   min-height: 0;
@@ -2491,12 +2491,12 @@ code {
 
 .text-preview > footer span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
 }
 
 .text-preview > footer code {
   color: var(--color-text-soft);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2514,12 +2514,12 @@ code {
 
 .text-preview__empty h2 {
   color: var(--color-text);
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   margin: 4px 0 0;
 }
 
 .text-preview__empty p {
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 0;
   max-width: 290px;
@@ -2540,7 +2540,7 @@ code {
 .context-selection-bar > div {
   align-items: center;
   display: flex;
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   gap: 8px;
   white-space: nowrap;
 }
@@ -2551,7 +2551,7 @@ code {
 
 .context-selection-bar > p {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   margin: 0;
   text-align: right;
 }
@@ -2568,12 +2568,12 @@ code {
 
 .context-review-notice strong {
   color: var(--color-accent-strong);
-  font-size: 0.67rem;
+  font-size: var(--text-meta);
 }
 
 .context-review-notice span {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
 }
 
@@ -2583,7 +2583,7 @@ code {
   border-radius: 5px;
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 0 10px 12px;
   max-height: 240px;
@@ -2643,7 +2643,7 @@ code {
   }
 
   .impact-grid span {
-    font-size: 0.65rem;
+    font-size: var(--text-meta);
   }
 
   .change-actions {
@@ -2651,7 +2651,7 @@ code {
   }
 
   .change-actions .sapphirus-button {
-    font-size: 0.74rem;
+    font-size: var(--text-ui);
   }
 
   .workspace-explorer__header {
@@ -2776,7 +2776,7 @@ code {
   }
 
   .workspace-explorer__header h1 {
-    font-size: 0.93rem;
+    font-size: var(--text-input);
   }
 
   .projection-provenance {
@@ -2813,11 +2813,11 @@ code {
   }
 
   .context-selection-bar > div {
-    font-size: 0.6875rem;
+    font-size: var(--text-meta);
   }
 
   .context-selection-bar .sapphirus-button {
-    font-size: 0.68rem;
+    font-size: var(--text-meta);
     padding-left: 9px;
     padding-right: 9px;
   }
@@ -2828,7 +2828,7 @@ code {
   }
 
   .task-header h1 {
-    font-size: 1.04rem;
+    font-size: var(--text-title);
     margin: 0;
   }
 
@@ -2866,7 +2866,7 @@ code {
   }
 
   .message p {
-    font-size: 0.76rem;
+    font-size: var(--text-ui);
   }
 
   .stage-rail,
@@ -2879,7 +2879,7 @@ code {
   }
 
   .stage-rail li > span:last-child {
-    font-size: 0.6875rem;
+    font-size: var(--text-meta);
   }
 
   .impact-grid {
@@ -2952,7 +2952,7 @@ code {
   }
 
   .task-header h1 {
-    font-size: 1.1rem;
+    font-size: var(--text-title);
     margin: 0;
   }
 
@@ -3137,7 +3137,7 @@ code {
   color: var(--color-status-pending);
   cursor: help;
   display: inline-flex;
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   font-weight: 620;
   gap: 5px;
   justify-self: start;
@@ -3171,7 +3171,7 @@ code {
 
 .bmad-blockers > span {
   color: var(--color-status-pending);
-  font-size: 0.62rem;
+  font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -3209,14 +3209,14 @@ code {
   border: 1px solid color-mix(in srgb, var(--color-accent), transparent 72%);
   border-radius: 9px;
   display: inline-flex;
-  font-size: 1.05rem;
+  font-size: var(--text-title);
   height: 30px;
   justify-content: center;
   width: 30px;
 }
 
 .bmad-agent-row > .bmad-library-row__heading strong {
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   font-weight: 680;
   letter-spacing: -0.01em;
 }
@@ -3234,7 +3234,7 @@ code {
   color: var(--color-accent-strong);
   flex: 0 0 auto;
   font-family: var(--font-code);
-  font-size: 0.62rem;
+  font-size: var(--text-meta);
   font-weight: 640;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -3250,7 +3250,7 @@ code {
   color: var(--color-accent-strong);
   cursor: default;
   font: inherit;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 600;
   justify-self: start;
   padding: 4px 9px;
@@ -3273,7 +3273,7 @@ code {
 .bmad-library-section > h3,
 .bmad-library-panel > h2 {
   color: var(--color-text-muted);
-  font-size: 0.64rem;
+  font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -3282,7 +3282,7 @@ code {
 .bmad-library-panel__source {
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.64rem !important;
+  font-size: var(--text-meta) !important;
 }
 
 /* --- Empty states: intentional, not accidental --- */
@@ -3337,7 +3337,7 @@ code {
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--shell-radius-md);
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin-top: 8px;
   overflow-x: auto;
@@ -3404,7 +3404,7 @@ code {
   cursor: pointer;
   display: block;
   font: inherit;
-  font-size: 0.64rem;
+  font-size: var(--text-meta);
   padding: 3px 0;
   text-align: center;
   width: 100%;
@@ -3423,7 +3423,7 @@ code {
 .diff-counts {
   display: inline-flex;
   font-family: var(--font-code);
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   gap: 6px;
 }
 
@@ -3484,7 +3484,7 @@ code {
   cursor: pointer;
   display: flex;
   font: inherit;
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   gap: 8px;
   padding: 6px 10px;
   text-align: left;
@@ -3550,7 +3550,7 @@ code {
    message cards, because neither is anybody speaking. */
 .chat-transcript__notice {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   margin: 0 0 4px;
   text-align: center;
 }
@@ -3602,7 +3602,7 @@ code {
 .message__tool-subject {
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   margin: 0;
   overflow-wrap: anywhere;
   /* The subject is a model-supplied path or pattern. Isolating it stops bidi
@@ -3631,7 +3631,7 @@ code {
 .tool-result__preview {
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3648,7 +3648,7 @@ code {
   border-radius: var(--shell-radius-md);
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 6px 0 0;
   max-height: 320px;
@@ -3710,7 +3710,7 @@ code {
   border-bottom: 1px solid var(--color-border-subtle);
   color: var(--color-text);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--text-input);
   outline: none;
   padding: 13px 15px;
 }
@@ -3726,7 +3726,7 @@ code {
 
 .command-palette__empty {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   padding: 12px;
   text-align: center;
 }
@@ -3740,7 +3740,7 @@ code {
   cursor: default;
   display: flex;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--text-body);
   justify-content: space-between;
   padding: 8px 10px;
   text-align: left;
@@ -3758,7 +3758,7 @@ code {
   border-radius: 4px;
   color: var(--color-text-muted);
   font-family: var(--font-code);
-  font-size: 0.6rem;
+  font-size: var(--text-meta);
   padding: 2px 5px;
 }
 
@@ -3799,7 +3799,7 @@ code {
   display: inline-flex;
   flex: 0 0 auto;
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   font-weight: 600;
   gap: 6px;
   max-width: 220px;
@@ -3849,7 +3849,7 @@ code {
   cursor: pointer;
   display: flex;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   gap: 6px;
   justify-self: center;
   margin: 8px auto 12px;
@@ -3911,7 +3911,7 @@ code {
   border: 0;
   color: var(--color-text);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--text-input);
   outline: none;
   padding: 4px 0;
 }
@@ -3929,7 +3929,7 @@ code {
 
 .home-view__hint {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
 }
 
 /* ============================================================
@@ -4000,12 +4000,12 @@ code {
  */
 @media (min-width: 1024px) {
   .app-shell--forge-v2 .task-workspace--opencode-v2 .message p {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.62;
   }
 
   .app-shell--forge-v2 .task-workspace--opencode-v2 .preview-notice span {
-    font-size: 0.76rem;
+    font-size: var(--text-ui);
   }
 }
 
@@ -4060,7 +4060,7 @@ code {
   border-radius: 9px;
   color: var(--color-text-soft);
   display: flex;
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   line-height: 1.45;
   min-height: 64px;
   padding: 13px 14px;
@@ -4095,14 +4095,14 @@ code {
 
 .app-shell--forge-v2 .task-workspace--opencode-v2 .chat-transcript__error > p {
   color: var(--color-text);
-  font-size: 0.78rem;
+  font-size: var(--text-body);
   line-height: 1.55;
   max-width: var(--task-measure);
 }
 
 .app-shell--forge-v2 .task-workspace--opencode-v2 .chat-transcript__notice {
   border-bottom: 1px solid var(--color-border-subtle);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   padding-bottom: 14px;
   margin-bottom: 22px;
@@ -4196,7 +4196,7 @@ code {
 
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button > span {
   color: var(--color-text);
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   grid-area: 1 / 2;
 }
 
@@ -4260,7 +4260,7 @@ code {
  */
 .retention-lede {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 6px 0 2px;
 }
@@ -4272,14 +4272,14 @@ code {
 }
 
 .retention-group > h4 {
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   font-weight: 650;
   margin: 0;
 }
 
 .retention-group > p {
   color: var(--color-text-muted);
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 5px 0 10px;
   max-width: 64ch;
@@ -4310,7 +4310,7 @@ code {
 
 .retention-group__counts dt {
   color: var(--color-text-soft);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.4;
   min-width: 0;
 }
@@ -4319,7 +4319,7 @@ code {
   color: var(--color-text);
   flex: 0 0 auto;
   font-family: var(--font-code);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   margin: 0;
 }
 
@@ -4357,14 +4357,14 @@ code {
 }
 
 .bmad-capability-panel__header h2 {
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   font-weight: 650;
   margin: 0;
 }
 
 .bmad-capability-panel__header code,
 .bmad-capability-panel code {
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
 
@@ -4434,14 +4434,14 @@ code {
 }
 
 .workflow-panel h3 {
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   font-weight: 650;
   margin: 0;
 }
 
 .workflow-panel h4 {
   color: var(--color-text-soft);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   font-weight: 640;
   letter-spacing: 0.06em;
   margin: 0 0 6px;
@@ -4470,12 +4470,12 @@ code {
 .workflow-panel__code {
   color: var(--color-text-soft);
   font-family: monospace;
-  font-size: 0.65rem;
+  font-size: var(--text-meta);
 }
 
 .workflow-panel__gate {
   color: var(--color-status-pending);
-  font-size: 0.65rem;
+  font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4484,7 +4484,7 @@ code {
 .workflow-panel__evidence,
 .workflow-panel__waiting {
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
 }
 
 /* A failed refresh keeps the progress it already had; the failure sits beside

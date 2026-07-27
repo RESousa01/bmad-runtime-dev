@@ -63,7 +63,7 @@
   color: var(--color-text-soft);
   cursor: default;
   font-family: var(--font-ui);
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   line-height: 1;
   padding: 8px 13px;
   transition:
@@ -175,7 +175,7 @@
 }
 
 .task-workspace--opencode-v2 .composer textarea {
-  font-size: 0.8rem;
+  font-size: var(--text-body);
   line-height: 1.5;
   min-height: 34px;
   padding: 4px 2px;

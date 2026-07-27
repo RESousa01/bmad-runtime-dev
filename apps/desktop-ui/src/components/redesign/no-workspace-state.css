@@ -24,7 +24,7 @@
 
 .no-workspace-state__eyebrow {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   font-weight: 700;
   letter-spacing: 0.08em;
   margin: 0;
@@ -40,7 +40,7 @@
 
 .no-workspace-state__copy {
   color: var(--color-text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--text-input);
   line-height: 1.6;
   margin: 13px 0 0;
 }

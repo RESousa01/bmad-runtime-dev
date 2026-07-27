@@ -96,7 +96,7 @@
   }
 
   .task-header__workspace > strong {
-    font-size: 0.9rem;
+    font-size: var(--text-input);
     font-weight: 650;
   }
 
@@ -139,12 +139,12 @@
 
   .task-kicker {
     color: var(--color-accent-strong);
-    font-size: 0.625rem;
+    font-size: var(--text-meta);
     letter-spacing: 0.11em;
   }
 
   .task-header h1 {
-    font-size: 1.34rem;
+    font-size: var(--text-display);
     font-weight: 665;
     letter-spacing: -0.032em;
   }
@@ -153,7 +153,7 @@
     background: var(--color-accent-soft);
     border-color: color-mix(in srgb, var(--color-accent), transparent 64%);
     color: var(--color-accent-strong);
-    font-size: 0.625rem;
+    font-size: var(--text-meta);
     letter-spacing: 0.025em;
     padding: 4px 9px;
     text-transform: none;
@@ -182,13 +182,13 @@
   }
 
   .preview-notice strong {
-    font-size: 0.7rem;
+    font-size: var(--text-meta);
     line-height: 1.45;
     padding-top: 1px;
   }
 
   .preview-notice span {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.6;
   }
 
@@ -216,14 +216,14 @@
   }
 
   .empty-session h2 {
-    font-size: 1.48rem;
+    font-size: var(--text-display);
     font-weight: 670;
     letter-spacing: -0.035em;
     margin-bottom: 12px;
   }
 
   .empty-session p {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.7;
   }
 
@@ -232,7 +232,7 @@
   }
 
   .message p {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
   }
 
   .message__avatar {
@@ -312,7 +312,7 @@
   }
 
   .composer textarea {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.6;
     min-height: 48px;
     padding-top: 5px;
@@ -398,7 +398,7 @@
   }
 
   .agent-control__popover h2 {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     font-weight: 660;
   }
 
@@ -446,7 +446,7 @@
   }
 
   .composer__availability {
-    font-size: 0.75rem;
+    font-size: var(--text-ui);
     line-height: 1.5;
     margin: 8px 3px 0;
   }
@@ -465,7 +465,7 @@
   }
 
   .attached-context__note {
-    font-size: 0.75rem;
+    font-size: var(--text-ui);
   }
 
   /* Context drawers */
@@ -501,7 +501,7 @@
   }
 
   .context-drawer__title {
-    font-size: 1.0625rem;
+    font-size: var(--text-title);
     font-weight: 670;
     letter-spacing: -0.022em;
   }
@@ -553,7 +553,7 @@
   }
 
   .utility-panel--settings .utility-panel__header h2 {
-    font-size: 1.125rem;
+    font-size: var(--text-title);
     font-weight: 680;
     letter-spacing: -0.028em;
   }
@@ -586,7 +586,7 @@
   .settings-nav .sapphirus-button {
     border: 1px solid transparent;
     border-radius: 9px;
-    font-size: 0.78125rem;
+    font-size: var(--text-body);
     gap: 10px;
     min-height: 40px;
     padding-inline: 12px;
@@ -637,14 +637,14 @@
   }
 
   .settings-pane__header h3 {
-    font-size: 1.08rem;
+    font-size: var(--text-title);
     font-weight: 675;
     letter-spacing: -0.025em;
   }
 
   .settings-pane__header p,
   .settings-pane__copy {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.6;
     margin-top: 7px;
   }
@@ -662,12 +662,12 @@
   }
 
   .settings-row strong {
-    font-size: 0.78125rem;
+    font-size: var(--text-body);
     letter-spacing: -0.006em;
   }
 
   .settings-row small {
-    font-size: 0.875rem;
+    font-size: var(--text-input);
     line-height: 1.55;
   }
 
@@ -684,7 +684,7 @@
   }
 
   .settings-choice-group legend {
-    font-size: 0.78125rem;
+    font-size: var(--text-body);
     padding-bottom: 12px;
   }
 
@@ -709,7 +709,7 @@
   }
 
   .settings-choice-group .preference-option small {
-    font-size: 0.75rem;
+    font-size: var(--text-ui);
   }
 
   .settings-choice-group .preference-option[aria-pressed="true"],
@@ -761,7 +761,7 @@
   }
 
   .workspace-setting-summary strong {
-    font-size: 0.78125rem;
+    font-size: var(--text-body);
   }
 
   .account-summary {
@@ -788,13 +788,13 @@
   }
 
   .no-workspace-state h1 {
-    font-size: 1.85rem;
+    font-size: var(--text-display);
     font-weight: 680;
     letter-spacing: -0.04em;
   }
 
   .no-workspace-state__copy {
-    font-size: 0.9375rem;
+    font-size: var(--text-input);
     line-height: 1.7;
   }
 }

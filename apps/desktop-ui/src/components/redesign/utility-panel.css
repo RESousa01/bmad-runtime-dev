@@ -25,7 +25,7 @@
 .utility-panel__eyebrow {
   color: var(--color-accent-strong);
   display: block;
-  font-size: 0.625rem;
+  font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-bottom: 5px;
@@ -33,7 +33,7 @@
 }
 
 .utility-panel--settings .utility-panel__header h2 {
-  font-size: 1.0625rem;
+  font-size: var(--text-title);
   letter-spacing: -0.02em;
 }
 
@@ -56,7 +56,7 @@
 .settings-nav .sapphirus-button {
   border-radius: 7px;
   color: var(--color-text-soft);
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   justify-content: flex-start;
   min-height: 38px;
   padding-inline: 10px;
@@ -88,7 +88,7 @@
 }
 
 .settings-pane__header h3 {
-  font-size: 1rem;
+  font-size: var(--text-title);
   letter-spacing: -0.015em;
   margin: 0;
 }
@@ -96,7 +96,7 @@
 .settings-pane__header p,
 .settings-pane__copy {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
   margin: 6px 0 0;
 }
@@ -122,13 +122,13 @@
 }
 
 .settings-row strong {
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
 }
 
 .settings-row small {
   color: var(--color-text-muted);
   display: grid;
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   gap: 2px;
   line-height: 1.45;
 }
@@ -136,7 +136,7 @@
 .settings-row > em {
   color: var(--color-text-soft);
   flex: 0 0 auto;
-  font-size: 0.65625rem;
+  font-size: var(--text-meta);
   font-style: normal;
   max-width: 180px;
   overflow: hidden;
@@ -164,7 +164,7 @@
 
 .settings-choice-group legend {
   color: var(--color-text);
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   font-weight: 650;
   padding: 0 0 10px;
 }
@@ -212,7 +212,7 @@
 
 .utility-panel--settings .utility-panel__header p {
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 5px 0 0;
 }
@@ -251,7 +251,7 @@
   align-items: center;
   color: var(--color-text);
   display: flex;
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   font-weight: 670;
   gap: 7px;
   padding: 0 6px;
@@ -260,7 +260,7 @@
 .settings-section > p,
 .settings-section--appearance > p {
   color: var(--color-text-muted);
-  font-size: 0.65625rem;
+  font-size: var(--text-meta);
   line-height: 1.5;
   margin: 0;
 }
@@ -293,12 +293,12 @@
 }
 
 .preference-option strong {
-  font-size: 0.71875rem;
+  font-size: var(--text-ui);
 }
 
 .preference-option small {
   color: var(--color-text-muted);
-  font-size: 0.59375rem;
+  font-size: var(--text-meta);
   font-weight: 450;
 }
 
@@ -313,7 +313,7 @@
 
 .density-setting > span {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
 }
 
 .utility-panel--settings .density-options {
@@ -321,7 +321,7 @@
 }
 
 .utility-panel--settings .density-options .sapphirus-button {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   min-height: 34px;
   padding-inline: 9px;
 }
@@ -340,7 +340,7 @@
 }
 
 .settings-section__header h3 {
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   margin: 0;
 }
 
@@ -348,7 +348,7 @@
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: 0.59375rem;
+  font-size: var(--text-meta);
   gap: 6px;
   white-space: nowrap;
 }
@@ -383,13 +383,13 @@
 .settings-detail-grid small,
 .workspace-setting-summary small {
   color: var(--color-text-muted);
-  font-size: 0.5625rem;
+  font-size: var(--text-label);
   text-transform: uppercase;
 }
 
 .settings-detail-grid strong,
 .workspace-setting-summary strong {
-  font-size: 0.6875rem;
+  font-size: var(--text-meta);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -398,7 +398,7 @@
 .settings-detail-grid em,
 .workspace-setting-summary em {
   color: var(--color-text-muted);
-  font-size: 0.59375rem;
+  font-size: var(--text-meta);
   font-style: normal;
   line-height: 1.35;
 }

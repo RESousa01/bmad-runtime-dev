@@ -1,5 +1,70 @@
+/*
+ * Token contract, in three layers.
+ *
+ *   primitive  raw values with no meaning attached
+ *   semantic   roles that reference primitives
+ *   component  per-component tokens, declared next to the component
+ *
+ * Only the semantic layer should be referenced from component CSS. Reaching
+ * past it to a primitive re-creates the ad hoc scale this replaces.
+ */
+
 :root {
   color-scheme: light;
+
+  /* ---- primitive: typography ------------------------------------------ */
+  /* Type scale of the approved 3a prototype. Seven steps, no intermediates:
+     anything that does not fit a step is a design question, not a new value. */
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-17: 17px;
+  --fs-24: 24px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  --lh-tight: 1;
+  --lh-control: 1.2;
+  --lh-prose: 1.65;
+
+  /* ---- primitive: geometry -------------------------------------------- */
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-10: 10px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ---- semantic: typography ------------------------------------------- */
+  /* --text-label is the 10px uppercase section label. In the 3a prototype it
+     is one role used nine times with identical treatment, never body copy.
+     It sits below the 11px floor that the design specification recommends;
+     it is a single token so the decision stays reversible in one edit. */
+  --text-label: var(--fs-10);
+  --text-meta: var(--fs-11);
+  --text-ui: var(--fs-12);
+  --text-body: var(--fs-13);
+  --text-input: var(--fs-14);
+  --text-title: var(--fs-17);
+  --text-display: var(--fs-24);
+
+  --label-tracking: 0.12em;
+  --label-weight: var(--fw-medium);
+
+  /* ---- semantic: geometry --------------------------------------------- */
+  --radius-row: var(--radius-4);
+  --radius-control: var(--radius-6);
+  --radius-overlay: var(--radius-10);
+
   --font-ui: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-code: "JetBrains Mono Variable", "Cascadia Code", Consolas, monospace;
 
@@ -84,7 +149,7 @@
   cursor: default;
   display: inline-flex;
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
+  font-size: var(--text-body);
   font-weight: 540;
   gap: 0.55rem;
   justify-content: center;
@@ -175,7 +240,7 @@
   cursor: default;
   display: inline-flex;
   font-family: var(--font-ui);
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   gap: 0.5rem;
   outline: none;
 }
@@ -231,7 +296,7 @@
   color: var(--color-text-muted);
   cursor: default;
   display: inline-flex;
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
   font-weight: 520;
   justify-content: center;
   outline: none;

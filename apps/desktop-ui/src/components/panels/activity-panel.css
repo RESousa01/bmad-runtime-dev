@@ -15,7 +15,7 @@
 
 .activity-panel__toolbar p {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   line-height: 1.5;
   margin: 0;
 }
@@ -27,7 +27,7 @@
   border-radius: 9px;
   color: var(--color-text-soft);
   display: flex;
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   gap: 8px;
   line-height: 1.45;
   padding: 9px 11px;
@@ -67,13 +67,13 @@
 }
 
 .activity-panel__entry-main strong {
-  font-size: 0.76rem;
+  font-size: var(--text-ui);
   font-weight: 570;
 }
 
 .activity-panel__entry-main small {
   color: var(--color-text-muted);
-  font-size: 0.66rem;
+  font-size: var(--text-meta);
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -90,12 +90,12 @@
 
 .activity-panel__empty h3 {
   color: var(--color-text-soft);
-  font-size: 0.82rem;
+  font-size: var(--text-body);
   margin: 0;
 }
 
 .activity-panel__empty p {
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
   line-height: 1.55;
   margin: 0;
   max-width: 260px;

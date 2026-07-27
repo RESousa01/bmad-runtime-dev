@@ -34,7 +34,7 @@
 }
 
 .settings-dialog__header h2 {
-  font-size: 0.95rem;
+  font-size: var(--text-title);
   letter-spacing: -0.015em;
   margin: 0;
 }
@@ -88,7 +88,7 @@
   border-radius: 6px;
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.7rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
   padding: 6px 8px;
   user-select: text;
@@ -113,14 +113,14 @@
 .provider-row small,
 .provider-footnote {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   font-style: normal;
   line-height: 1.45;
 }
 
 .provider-summary strong,
 .provider-row strong {
-  font-size: 0.75rem;
+  font-size: var(--text-ui);
 }
 
 .provider-summary__policy {
@@ -129,7 +129,7 @@
   border-radius: 999px;
   color: var(--color-text-soft);
   flex: 0 0 auto;
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   padding: 4px 8px;
 }
 
@@ -183,7 +183,7 @@
 
 .provider-row__status em {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   font-style: normal;
 }
 
@@ -194,7 +194,7 @@
 .provider-row__status code {
   color: var(--color-text-soft);
   font-family: var(--font-code);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
 }
 
 .provider-footnote {
@@ -209,7 +209,7 @@
 
 .provider-model-field > label {
   color: var(--color-text-soft);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   font-weight: 600;
 }
 
@@ -236,7 +236,7 @@
 
 .provider-model-field > small {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
 }
 
@@ -255,7 +255,7 @@
 .provider-connection form > label,
 .provider-connection__azure label {
   color: var(--color-text-soft);
-  font-size: 0.68rem;
+  font-size: var(--text-meta);
   font-weight: 600;
 }
 
@@ -304,7 +304,7 @@
 .provider-connection form > small,
 .provider-connection__connected small {
   color: var(--color-text-muted);
-  font-size: 0.625rem;
+  font-size: var(--text-meta);
   line-height: 1.45;
 }
 
@@ -327,7 +327,7 @@
 }
 
 .provider-connection__connected strong {
-  font-size: 0.72rem;
+  font-size: var(--text-ui);
 }
 
 @media (max-width: 700px) {
