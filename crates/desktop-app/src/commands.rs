@@ -1287,10 +1287,6 @@ fn bmad_workflow_state(
     workspace_grant_epoch: u64,
 ) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_workspace_commit()?;
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
-        .map_err(|error| map_workspace_error(&error))?;
     let graph = foundation.workflow_graph().ok_or_else(|| {
         LocalError::new(
             LocalErrorCode::IntegrityFailure,
@@ -1298,12 +1294,22 @@ fn bmad_workflow_state(
             false,
         )
     })?;
+    // Authorize, then release before the walk. `compute_workflow_state` reads
+    // the workspace through the broker, and every broker method re-acquires the
+    // same task-fair barrier this guard holds: re-entering under it parks the
+    // moment a writer queues between the two acquisitions. The walk needs no
+    // fact from the guard, and each broker call re-checks the grant itself, so
+    // a revocation crossing the walk truncates it rather than being read past.
+    let scope = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    drop(scope);
     let projection = crate::bmad_workflow::compute_workflow_state(
         &state.workspace,
         workspace_id.as_str(),
         graph,
     );
-    drop(workspace_authority);
     drop(authority);
     Ok(HostCommandData::BmadWorkflowState(projection))
 }
@@ -1349,6 +1355,46 @@ pub(crate) struct SendChatMessageInput {
     pub now: UnixMillis,
 }
 
+/// The turn's clock.
+///
+/// The loop used to reuse the single `now` sampled when the dispatch envelope
+/// was admitted, for every one of its iterations. That froze the turn's clock:
+/// `TurnEgressGrant::authorize_call` only ever saw `at == granted_at`, so
+/// `EgressError::TurnGrantExpired` was unreachable outside the grant's own unit
+/// tests, `record_call` always answered `WithinGrant` and `overruns()` was
+/// permanently zero, and a whole multi-call turn landed in the transcript at
+/// one instant.
+///
+/// Every read is clamped forward. `ChatSession::append` refuses a backwards
+/// timestamp (`ChatError::NonMonotonicClock`), and the host clock is
+/// `SystemTime`, which an NTP correction can step backwards mid-turn; without
+/// the clamp a resampled clock would turn that step into a rejected reply.
+/// Clamping keeps the transcript appendable without freezing the clock again —
+/// it can stall, but only for as long as the real clock is behind.
+struct TurnClock<'a> {
+    source: &'a dyn Fn() -> UnixMillis,
+    last: UnixMillis,
+}
+
+impl<'a> TurnClock<'a> {
+    /// Opens at the timestamp the turn's first message was already appended
+    /// under, so the first read can never precede it.
+    fn opened_at(source: &'a dyn Fn() -> UnixMillis, opened_at: UnixMillis) -> Self {
+        Self {
+            source,
+            last: opened_at,
+        }
+    }
+
+    fn read(&mut self) -> UnixMillis {
+        let sampled = (self.source)();
+        if sampled.0 > self.last.0 {
+            self.last = sampled;
+        }
+        self.last
+    }
+}
+
 /// One ordinary chat turn — the app's default lane.
 ///
 /// BMAD is optional here: with no agent selected this is a plain assistant.
@@ -1361,12 +1407,62 @@ fn send_chat_message(
     foundation: &BmadLoadedFoundation,
     input: SendChatMessageInput,
 ) -> Result<HostCommandData, LocalError> {
+    let transport = crate::bmad_capability_host::active_capability_transport(state);
+    run_chat_turn(state, foundation, input, &now, transport.as_ref())
+}
+
+/// The body of [`send_chat_message`], with the two seams a turn cannot be
+/// exercised as the loop it is without: the clock it reads on every iteration,
+/// and the transport it sends through.
+///
+/// Production supplies the host clock and the configured provider. A test
+/// supplies a scripted pair, which is the only way a multi-call tool loop — and
+/// therefore a revocation or an elapsed grant window landing *mid*-turn — is
+/// reachable at all; the deterministic transport only ever answers with one
+/// text reply, so it closes the turn on its first pass.
+fn run_chat_turn(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    input: SendChatMessageInput,
+    clock: &dyn Fn() -> UnixMillis,
+    transport: &dyn crate::bmad_model::capability_coordinator::BmadCapabilityTransport,
+) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_workspace_commit()?;
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(input.workspace_id.as_str(), input.workspace_grant_epoch)
-        .map_err(|error| map_workspace_error(&error))?;
-    let workspace = workspace_authority.projection();
+    // Authorize the scope, take the facts it proves, and release the barrier
+    // before any of the long work below.
+    //
+    // `WorkspaceScopeAuthorityGuard` holds the broker's task-fair revocation
+    // barrier for its whole lifetime, and every broker method re-acquires it.
+    // Holding it across `reviewed_context_candidates` (which reads files
+    // through the broker) or across the tool loop (where `run_tool` does) is a
+    // re-entrant read that parks forever the moment a writer queues between the
+    // two acquisitions — `WorkspaceBroker::revoke`, or the
+    // `advance_all_context_read_epochs` that a model sign-out performs, which
+    // unlike revocation is not also serialized by the host commit barrier.
+    // `edits::authorize_edits_scope` and `recovery::prepare_recovery` are the
+    // shape this now follows.
+    //
+    // What the guard proved is not lost, it is re-proved. It proved that the
+    // grant existed at exactly `workspace_grant_epoch` with its root identity
+    // revalidated; every later broker call re-checks the same facts itself
+    // (`active_grant` filters revoked grants, `ensure_grant_current` re-compares
+    // epoch, root and root identity), and a revoked grant is never resurrected —
+    // `revoke` sets a flag that only a fresh workspace id could clear. The loop
+    // additionally re-authorizes the exact epoch before every send, so a
+    // revocation arriving mid-turn ends the turn rather than being ignored.
+    // What is genuinely given up is atomicity across the send: a revocation can
+    // land between the re-authorization and the send it guards. Nothing can
+    // close that window without holding the barrier across a provider round
+    // trip, which is the deadlock itself.
+    let workspace = {
+        let scope = state
+            .workspace
+            .authorize_scope(input.workspace_id.as_str(), input.workspace_grant_epoch)
+            .map_err(|error| map_workspace_error(&error))?;
+        let projection = scope.projection();
+        drop(scope);
+        projection
+    };
 
     // A selected agent must be one the sealed foundation actually carries.
     // An unknown code fails closed rather than silently becoming a plain chat.
@@ -1390,7 +1486,6 @@ fn send_chat_message(
     })?;
     let configuration = state.model_configuration()?;
     let store = state.local_store(authority.authority())?;
-    let transport = crate::bmad_capability_host::active_capability_transport(state);
 
     // Whether this turn may ask for a tool is decided here, once, before
     // anything is sealed — and it decides the reply schema with it. The
@@ -1422,36 +1517,87 @@ fn send_chat_message(
             now: input.now,
         })
         .map_err(map_chat_error)?;
-    // The tool loop. Each pass sends, then either completes the turn or runs one
-    // permitted read-only tool and re-seals. The iteration ceiling is not here:
-    // it is the turn's egress grant, which `seal_turn` consults before every
-    // call, so a runaway loop is stopped by the accounting rather than by a
-    // count kept somewhere the user cannot see.
-    let mut dispatch = dispatch;
-    let turn = loop {
+    let turn = drive_chat_tool_loop(ChatToolLoop {
+        state,
+        workspace_id: &input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        store,
+        transport,
+        clock: TurnClock::opened_at(clock, input.now),
+        dispatch,
+    })?;
+    drop(authority);
+    Ok(HostCommandData::ChatTurn(turn))
+}
+
+struct ChatToolLoop<'a> {
+    state: &'a HostState,
+    workspace_id: &'a ContractId,
+    workspace_grant_epoch: u64,
+    store: &'a desktop_store::LocalStore,
+    transport: &'a dyn crate::bmad_model::capability_coordinator::BmadCapabilityTransport,
+    clock: TurnClock<'a>,
+    dispatch: crate::chat::ChatDispatch,
+}
+
+/// The tool loop. Each pass sends, then either completes the turn or runs one
+/// permitted read-only tool and re-seals.
+///
+/// The iteration ceiling is not here: it is the turn's egress grant, which
+/// `seal_turn` consults before every call, so a runaway loop is stopped by the
+/// accounting rather than by a count kept somewhere the user cannot see.
+///
+/// Nothing in this loop may hold a lock across the provider round trip. Not the
+/// chat coordinator — a slow reply would block every other conversation — and
+/// above all not a `WorkspaceScopeAuthorityGuard`, whose barrier `run_tool`
+/// re-enters on every iteration.
+fn drive_chat_tool_loop(
+    loop_input: ChatToolLoop<'_>,
+) -> Result<crate::chat::ChatTurnProjection, LocalError> {
+    let ChatToolLoop {
+        state,
+        workspace_id,
+        workspace_grant_epoch,
+        store,
+        transport,
+        mut clock,
+        mut dispatch,
+    } = loop_input;
+    loop {
         let dispatch_id = dispatch.dispatch_id;
         let Ok((_dispatched, raw_output)) = transport.send(
             dispatch.authorized_request,
             &dispatch.deterministic_fixture,
             dispatch.sent_at,
         ) else {
+            // Still needed, and safe: nothing has removed this dispatch, its
+            // context has already left the machine and must reach the ledger,
+            // and no chat guard is alive here — a `let`-`else` drops the
+            // initializer's temporaries before the `else` block runs.
             state.chat.lock().abort_turn(dispatch_id);
             return Err(map_chat_error(crate::chat::ChatCoordinatorError::Transport));
         };
-        let outcome =
-            match state
-                .chat
-                .lock()
-                .finalize_turn(dispatch_id, &raw_output, input.now, store)
-            {
-                Ok(outcome) => outcome,
-                Err(error) => {
-                    state.chat.lock().abort_turn(dispatch_id);
-                    return Err(map_chat_error(error));
-                }
-            };
+        // The reply has arrived, so this is when the turn's clock is read. The
+        // admission sample is by now a whole provider round trip stale.
+        let at = clock.read();
+        // Bound to a local first. A `.lock()` in a `match` scrutinee lives until
+        // the end of the whole match, so an arm that locked again — as the error
+        // arms below once did — parked the UI thread on `parking_lot`'s
+        // non-reentrant mutex, permanently, with no panic and no timeout.
+        let outcome = state
+            .chat
+            .lock()
+            .finalize_turn(dispatch_id, &raw_output, at, store);
+        let outcome = match outcome {
+            Ok(outcome) => outcome,
+            // No `abort_turn`: `finalize_turn` has already taken this dispatch
+            // out of flight, recorded its call on the ledger, and rolled the
+            // open turn back, so the call was a no-op even before it was a
+            // deadlock.
+            Err(error) => return Err(map_chat_error(error)),
+        };
         let invocation = match outcome {
-            crate::chat::TurnOutcome::Completed(turn) => break *turn,
+            crate::chat::TurnOutcome::Completed(turn) => return Ok(*turn),
             crate::chat::TurnOutcome::ToolRequested(invocation) => invocation,
         };
         // A refused or failed tool is reported back to the model as text rather
@@ -1461,26 +1607,42 @@ fn send_chat_message(
         let rendered = crate::chat_tools::run_tool(
             &state.workspace,
             &state.tool_grants.lock(),
-            input.workspace_id.as_str(),
+            workspace_id.as_str(),
             &invocation.tool,
             &invocation.subject,
         )
         .unwrap_or_else(|error| format!("tool refused: {error:?}"));
-        dispatch = match state
-            .chat
-            .lock()
-            .resume_turn(dispatch_id, rendered, input.now)
+        // The grant is re-proved before every re-seal, because the guard that
+        // used to prove it once for the whole turn cannot be held across one.
+        // Without this the loop would keep going after a revocation — a refused
+        // tool is only ever reported back as text — and would send up to fifteen
+        // more requests before its egress ceiling stopped it. Here the turn ends
+        // instead, and `abort_turn` names the dispatch that really was sent, so
+        // its egress still reaches the ledger.
+        match state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         {
-            Ok(next) => next,
+            Ok(scope) => drop(scope),
             Err(error) => {
                 state.chat.lock().abort_turn(dispatch_id);
-                return Err(map_chat_error(error));
+                return Err(map_workspace_error(&error));
             }
+        }
+        // The tool run took time too, so the next call is sealed — and its
+        // egress authorized — at the moment it is actually sent.
+        let at = clock.read();
+        let resumed = state.chat.lock().resume_turn(dispatch_id, rendered, at);
+        dispatch = match resumed {
+            Ok(next) => next,
+            // Same as above: `resume_turn` has already taken the dispatch out of
+            // flight and rolled back, so `abort_turn` was dead code that could
+            // only ever deadlock. This is the arm the turn's own egress ceiling
+            // arrives through, so the runaway-loop guard used to end the app
+            // rather than the loop.
+            Err(error) => return Err(map_chat_error(error)),
         };
-    };
-    drop(workspace_authority);
-    drop(authority);
-    Ok(HostCommandData::ChatTurn(turn))
+    }
 }
 
 fn chat_history(
@@ -1712,11 +1874,22 @@ fn prepare_bmad_capability_run(
         ));
     }
     let authority = state.ready_workspace_commit()?;
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
-        .map_err(|error| map_workspace_error(&error))?;
-    let workspace = workspace_authority.projection();
+    // Authorize, take the projection, release. `capability_context_candidates`
+    // reads the user's attachments through the broker, which re-acquires the
+    // same task-fair barrier this guard holds; re-entering under it parks as
+    // soon as a writer queues between the two acquisitions. The epochs captured
+    // here go into a *proposal* that a human must still approve, and both
+    // `approve_bmad_capability_run` and `submit_bmad_capability_run`
+    // re-authorize the exact grant epoch before anything is sent.
+    let workspace = {
+        let scope = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+            .map_err(|error| map_workspace_error(&error))?;
+        let projection = scope.projection();
+        drop(scope);
+        projection
+    };
 
     let instruction_bytes = foundation
         .resource_bytes(binding.projection_path)
@@ -1771,7 +1944,6 @@ fn prepare_bmad_capability_run(
         .lock()
         .prepare(prepare_input)
         .map_err(map_capability_error)?;
-    drop(workspace_authority);
     drop(authority);
     Ok(HostCommandData::CapabilityReview(
         crate::wire::CapabilityReviewWire::new(
@@ -2530,7 +2702,13 @@ fn latest_bmad_help_run(
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
-    if let Some(lifecycle) = state.bmad_model.lock().snapshot_for_workspace(workspace_id) {
+    // Bound to a local first: an `if let` scrutinee temporary lives for the
+    // whole consequent block, so the coordinator guard was still held when
+    // `enter_recovery` below reached for it again — a permanent park on
+    // `parking_lot`'s non-reentrant mutex. `submit_bmad_capability_run` already
+    // uses this shape.
+    let lifecycle = state.bmad_model.lock().snapshot_for_workspace(workspace_id);
+    if let Some(lifecycle) = lifecycle {
         let data = in_memory_bmad_help_data(workspace_id, lifecycle);
         drop(workspace_authority);
         if let Ok(data) = data {
@@ -5269,6 +5447,383 @@ planning_artifacts = \"{project-root}/docs/plan\"
             assert_eq!(value["value"]["status"], "unavailable");
             assert_eq!(value["value"]["mode"], "offline");
             assert_eq!(value["value"]["developmentOnly"], false);
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // The chat turn as a loop.
+    //
+    // Nothing here could be reached before: the deterministic transport always
+    // answers with one text reply, which closes a turn on its first pass, and
+    // the turn read its clock once at dispatch admission. So the tool loop —
+    // and every failure that can only happen on a later iteration — was
+    // untested end to end. `run_chat_turn` takes the clock and the transport as
+    // seams for exactly that reason.
+    //
+    // Every turn below runs on a worker thread behind a timeout. Three of these
+    // defects were permanent parks on a `parking_lot` mutex or rwlock: there is
+    // no timeout on `lock()` and no deadlock detection in this build, so a
+    // regression joined inline would hang the whole suite instead of failing it.
+    // ---------------------------------------------------------------------
+    #[cfg(feature = "deterministic-help")]
+    mod chat_turn_loop {
+        use std::collections::VecDeque;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::sync::mpsc::{channel, Receiver};
+        use std::sync::Arc;
+        use std::time::Duration;
+
+        use desktop_cloud::{
+            AuthorizedModelRequest, CloudError, DeterministicModelTransport,
+            DispatchedModelRequest, RawModelOutput,
+        };
+        use desktop_runtime::{
+            ContractId, LocalError, LocalErrorCode, UnixMillis, CHAT_TOOL_TURN_SCHEMA,
+            CHAT_TURN_SCHEMA,
+        };
+        use parking_lot::Mutex;
+
+        use super::super::{run_chat_turn, SendChatMessageInput};
+        use super::{foundation_path, ready_workspace_state};
+        use crate::bmad_foundation::{load_bmad_foundation, BmadLoadedFoundation};
+        use crate::bmad_model::capability_coordinator::BmadCapabilityTransport;
+        use crate::state::HostState;
+        use crate::wire::HostCommandData;
+
+        /// Generous: it only has to exceed the real work, and it is only ever
+        /// waited out when something has already gone permanently wrong.
+        const TURN_TIMEOUT: Duration = Duration::from_secs(30);
+        /// The turn's egress ceiling, `desktop_egress::MAX_TURN_MODEL_CALLS`.
+        const MAX_TURN_MODEL_CALLS: usize = desktop_egress::MAX_TURN_MODEL_CALLS as usize;
+
+        /// A model reply asking for one tool. Sealed turns are tool-bearing
+        /// here because `default_rules` grants all four read-only tools, so the
+        /// fixture must declare the v2 schema or the parser refuses it.
+        fn tool_reply(tool: &str, subject: &str) -> String {
+            serde_json::json!({
+                "schemaVersion": CHAT_TOOL_TURN_SCHEMA,
+                "tool": tool,
+                "subject": subject,
+            })
+            .to_string()
+        }
+
+        /// A model reply that closes the turn.
+        fn text_reply() -> String {
+            serde_json::json!({
+                "schemaVersion": CHAT_TOOL_TURN_SCHEMA,
+                "text": "done",
+            })
+            .to_string()
+        }
+
+        /// A reply the turn was not sealed under. `parse_chat_reply` refuses it,
+        /// which is `ChatCoordinatorError::OutputRejected` — the ordinary
+        /// malformed-reply path, not an exotic one.
+        fn off_schema_reply() -> String {
+            serde_json::json!({
+                "schemaVersion": CHAT_TURN_SCHEMA,
+                "text": "wrong schema for a tool-bearing turn",
+            })
+            .to_string()
+        }
+
+        /// A transport that answers from a script, so a turn can be driven
+        /// through more than one iteration, with a hook that runs before each
+        /// reply so a test can make something happen *while the turn is open*.
+        struct ScriptedTransport {
+            replies: Mutex<VecDeque<String>>,
+            calls: AtomicUsize,
+            before_reply: Box<dyn Fn(usize) + Send + Sync>,
+        }
+
+        impl ScriptedTransport {
+            fn new(replies: Vec<String>) -> Self {
+                Self::with_hook(replies, |_| ())
+            }
+
+            fn with_hook(
+                replies: Vec<String>,
+                before_reply: impl Fn(usize) + Send + Sync + 'static,
+            ) -> Self {
+                Self {
+                    replies: Mutex::new(replies.into()),
+                    calls: AtomicUsize::new(0),
+                    before_reply: Box::new(before_reply),
+                }
+            }
+
+            fn calls(&self) -> usize {
+                self.calls.load(Ordering::SeqCst)
+            }
+        }
+
+        impl BmadCapabilityTransport for ScriptedTransport {
+            fn send(
+                &self,
+                request: AuthorizedModelRequest,
+                _deterministic_fixture: &str,
+                now: UnixMillis,
+            ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+                let index = self.calls.fetch_add(1, Ordering::SeqCst);
+                (self.before_reply)(index);
+                let payload = self.replies.lock().pop_front().unwrap_or_else(text_reply);
+                DeterministicModelTransport.send_fixture(request, payload, now)
+            }
+        }
+
+        /// An exact timeline for one turn, so "the grant window elapsed" is a
+        /// fact of the test rather than of how long the test took to run. The
+        /// last value repeats once the script is spent.
+        struct ScriptedClock {
+            ticks: Vec<u64>,
+            next: AtomicUsize,
+        }
+
+        impl ScriptedClock {
+            fn new(ticks: Vec<u64>) -> Self {
+                Self {
+                    ticks,
+                    next: AtomicUsize::new(0),
+                }
+            }
+
+            fn read(&self) -> UnixMillis {
+                let index = self.next.fetch_add(1, Ordering::SeqCst);
+                let last = self.ticks.last().copied().unwrap_or_default();
+                UnixMillis(self.ticks.get(index).copied().unwrap_or(last))
+            }
+        }
+
+        struct TurnFixture {
+            state: Arc<HostState>,
+            foundation: Arc<BmadLoadedFoundation>,
+            workspace_id: String,
+            _storage: tempfile::TempDir,
+            _workspace: tempfile::TempDir,
+        }
+
+        /// The turn opens here, which is what `TurnEgressGrant` is granted at.
+        const OPENED_AT: u64 = 1_700_000_000_000;
+
+        fn turn_fixture() -> TurnFixture {
+            let (state, storage, workspace, workspace_id) = ready_workspace_state();
+            std::fs::write(workspace.path().join("notes.md"), b"workspace notes")
+                .expect("workspace file");
+            TurnFixture {
+                state: Arc::new(state),
+                foundation: Arc::new(
+                    load_bmad_foundation(foundation_path()).expect("sealed foundation"),
+                ),
+                workspace_id,
+                _storage: storage,
+                _workspace: workspace,
+            }
+        }
+
+        fn turn_input(fixture: &TurnFixture) -> SendChatMessageInput {
+            SendChatMessageInput {
+                workspace_id: ContractId::new(fixture.workspace_id.clone())
+                    .expect("workspace identity"),
+                workspace_grant_epoch: 1,
+                client_session_ref: "task_chat_loop".to_owned(),
+                agent_code: None,
+                text: "look at my notes".to_owned(),
+                context_paths: Vec::new(),
+                now: UnixMillis(OPENED_AT),
+            }
+        }
+
+        /// Runs one turn on a detached worker thread.
+        ///
+        /// Detached rather than joined: a scoped or joined thread would wait
+        /// forever on a parked worker, so the very regressions these tests exist
+        /// to catch would hang the suite rather than fail it.
+        fn spawn_turn(
+            fixture: &TurnFixture,
+            transport: &Arc<ScriptedTransport>,
+            clock: &Arc<ScriptedClock>,
+        ) -> Receiver<Result<HostCommandData, LocalError>> {
+            let (sender, receiver) = channel();
+            let state = Arc::clone(&fixture.state);
+            let foundation = Arc::clone(&fixture.foundation);
+            let transport = Arc::clone(transport);
+            let clock = Arc::clone(clock);
+            let input = turn_input(fixture);
+            std::thread::spawn(move || {
+                let read = || clock.read();
+                let outcome = run_chat_turn(&state, &foundation, input, &read, transport.as_ref());
+                let _ = sender.send(outcome);
+            });
+            receiver
+        }
+
+        fn awaited(
+            receiver: &Receiver<Result<HostCommandData, LocalError>>,
+        ) -> Result<HostCommandData, LocalError> {
+            receiver
+                .recv_timeout(TURN_TIMEOUT)
+                .expect("the chat turn never returned: the host is deadlocked")
+        }
+
+        fn refusal_code(outcome: Result<HostCommandData, LocalError>) -> LocalErrorCode {
+            outcome
+                .err()
+                .map(|error| error.code)
+                .expect("the turn was expected to be refused")
+        }
+
+        /// A malformed model reply is the ordinary failure of `finalize_turn`.
+        /// It used to park the host: the `state.chat.lock()` in the `match`
+        /// scrutinee lives until the end of the whole match, so the error arm's
+        /// second `lock()` waited on a guard the same thread was still holding.
+        #[test]
+        fn a_rejected_reply_ends_the_turn_instead_of_parking_the_host() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::new(vec![off_schema_reply()]));
+            let clock = Arc::new(ScriptedClock::new(vec![OPENED_AT]));
+
+            let outcome = awaited(&spawn_turn(&fixture, &transport, &clock));
+
+            assert_eq!(refusal_code(outcome), LocalErrorCode::IntegrityFailure);
+            assert_eq!(transport.calls(), 1);
+        }
+
+        /// The turn's egress ceiling is the runaway-loop guard, and it arrives
+        /// through `resume_turn`'s error arm — which had the same parked-mutex
+        /// shape, so the guard against a runaway loop terminated the app rather
+        /// than the loop.
+        #[test]
+        fn the_turn_egress_ceiling_ends_the_loop_instead_of_parking_the_host() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::new(
+                std::iter::repeat_with(|| tool_reply("read", "notes.md"))
+                    .take(MAX_TURN_MODEL_CALLS)
+                    .collect(),
+            ));
+            let clock = Arc::new(ScriptedClock::new(vec![OPENED_AT]));
+
+            let outcome = awaited(&spawn_turn(&fixture, &transport, &clock));
+
+            // Refused by the accounting, at the ceiling, not one call past it.
+            assert_eq!(refusal_code(outcome), LocalErrorCode::Conflict);
+            assert_eq!(transport.calls(), MAX_TURN_MODEL_CALLS);
+        }
+
+        /// Revoking a workspace while a turn is in flight.
+        ///
+        /// `WorkspaceScopeAuthorityGuard` holds the broker's task-fair
+        /// revocation barrier, and every broker method re-acquires it. The turn
+        /// used to hold that guard across its whole loop while `run_tool`
+        /// re-entered the broker on every iteration, so a revocation queued a
+        /// writer that the next tool read then waited behind — for a guard the
+        /// waiting thread itself was holding. Neither ever returned.
+        #[test]
+        fn revoking_a_workspace_mid_turn_ends_the_turn_without_hanging() {
+            let fixture = turn_fixture();
+            let (opened, turn_opened) = channel::<()>();
+            let (revoked, revocation_done) = channel::<bool>();
+            // A `Receiver` is `Send` but not `Sync`, and the transport is shared.
+            let revocation_done = Mutex::new(revocation_done);
+            let transport = Arc::new(ScriptedTransport::with_hook(
+                vec![tool_reply("read", "notes.md")],
+                move |index| {
+                    if index == 0 {
+                        let _ = opened.send(());
+                        // Wait for the revocation to actually land before
+                        // answering, so the tool read below meets a revoked
+                        // grant rather than racing it. On the unguarded code the
+                        // revocation never lands, and this wait is what turns a
+                        // deadlock into an observable one.
+                        let _ = revocation_done.lock().recv_timeout(TURN_TIMEOUT);
+                    }
+                },
+            ));
+            let clock = Arc::new(ScriptedClock::new(vec![OPENED_AT]));
+
+            let turn = spawn_turn(&fixture, &transport, &clock);
+
+            turn_opened
+                .recv_timeout(TURN_TIMEOUT)
+                .expect("the turn reached the provider");
+            let revoking_state = Arc::clone(&fixture.state);
+            let revoking_workspace = fixture.workspace_id.clone();
+            std::thread::spawn(move || {
+                let outcome = revoking_state.workspace.revoke(&revoking_workspace);
+                let _ = revoked.send(outcome.is_ok());
+            });
+
+            // Fails closed on the workspace, not on the model or the store.
+            assert_eq!(refusal_code(awaited(&turn)), LocalErrorCode::NotFound);
+            assert!(fixture.state.workspace.list().is_empty());
+        }
+
+        /// The lifetime half of the turn's egress grant.
+        ///
+        /// The grant's window is absolute — it opens when the turn opens and is
+        /// carried across every iteration — so only a clock that moves can close
+        /// it. Reusing the admission sample made `authorize_call` see
+        /// `at == granted_at` on every pass, which is why `TurnGrantExpired` was
+        /// unreachable outside the grant's own unit tests.
+        #[test]
+        fn a_turn_whose_grant_window_elapses_mid_loop_is_refused() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::new(vec![
+                tool_reply("read", "notes.md"),
+                text_reply(),
+            ]));
+            // One hour: past any decision window, and it does not have to match
+            // `CHAT_DECISION_WINDOW_MS` to prove the point.
+            let elapsed = Arc::new(ScriptedClock::new(vec![
+                OPENED_AT + 10,
+                OPENED_AT + 60 * 60 * 1_000,
+            ]));
+
+            let outcome = awaited(&spawn_turn(&fixture, &transport, &elapsed));
+
+            // `resume_turn` reports both grant failures as `Conflict`, but only
+            // one of them is reachable here: exhaustion needs
+            // `MAX_TURN_MODEL_CALLS` recorded calls and exactly one was made, so
+            // this is `EgressError::TurnGrantExpired` and nothing else. The
+            // control below pins that down further — same script, same replies,
+            // only the timeline differs.
+            assert_eq!(refusal_code(outcome), LocalErrorCode::Conflict);
+            assert_eq!(transport.calls(), 1);
+
+            let control = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::new(vec![
+                tool_reply("read", "notes.md"),
+                text_reply(),
+            ]));
+            let within = Arc::new(ScriptedClock::new(vec![OPENED_AT + 10, OPENED_AT + 20]));
+
+            let completed = awaited(&spawn_turn(&control, &transport, &within));
+
+            assert!(matches!(completed, Ok(HostCommandData::ChatTurn(_))));
+            assert_eq!(transport.calls(), 2);
+        }
+
+        /// The clock also has to keep the transcript appendable: `ChatSession`
+        /// refuses a message stamped before the one ahead of it, and the host
+        /// clock is `SystemTime`, which an NTP correction can step backwards
+        /// mid-turn.
+        #[test]
+        fn a_backwards_clock_step_does_not_reject_the_turn() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::new(vec![
+                tool_reply("read", "notes.md"),
+                text_reply(),
+            ]));
+            let stepped_back = Arc::new(ScriptedClock::new(vec![
+                OPENED_AT + 5_000,
+                OPENED_AT - 60_000,
+                OPENED_AT - 60_000,
+            ]));
+
+            let outcome = awaited(&spawn_turn(&fixture, &transport, &stepped_back));
+
+            assert!(matches!(outcome, Ok(HostCommandData::ChatTurn(_))));
+            assert_eq!(transport.calls(), 2);
         }
     }
 }

@@ -81,3 +81,9 @@ pedantic = { level = "warn", priority = -1 }
 unwrap_used = "deny"
 expect_used = "deny"
 panic = "deny"
+# Nursery lints, enabled individually rather than as a group. A lock guard
+# created in a `match`/`if let` scrutinee lives until the end of the whole
+# expression, so an arm that takes the same lock again parks forever on
+# `parking_lot`, which is not reentrant and has no timeout. Three of those
+# shipped in the chat lane and none of them was a warning until now.
+significant_drop_in_scrutinee = "deny"
