@@ -471,7 +471,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 16);
+    assert_eq!(fresh.schema_version()?, 17);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -485,6 +485,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE payload_quarantine;
              DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
@@ -507,7 +508,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 16);
+        assert_eq!(reopened.schema_version()?, 17);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())

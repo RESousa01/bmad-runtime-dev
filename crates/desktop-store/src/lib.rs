@@ -74,6 +74,12 @@ const LOCAL_IDENTITY_STATE_SEALED: &str = "sealed";
 const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
 const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
+/// How far the last completed payload sweep got. See [`LocalStore::verify_integrity`].
+const PAYLOAD_VERIFICATION_WATERMARK_KEY: &str = "payload_verification_watermark";
+/// Separator for the watermark's ordering key. A space sorts below every byte
+/// that can appear in a timestamp, a content hash, or a validated label, so
+/// comparing the joined strings agrees with comparing the fields in order.
+const VERIFICATION_KEY_SEPARATOR: char = ' ';
 mod bmad_architecture;
 mod bmad_builder;
 mod bmad_capability;
@@ -82,6 +88,9 @@ mod chat;
 mod execution;
 mod memlog;
 mod migrations;
+mod retention;
+
+pub use retention::MAX_DURABLE_CHAT_MESSAGES;
 
 pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSession};
 pub use bmad_capability::BmadCapabilityRunRecord;
@@ -256,11 +265,77 @@ struct StoredConsumptionRow {
     consumed_at: String,
 }
 
+/// One registered payload plus the stamp that orders it against the
+/// verification watermark.
+#[derive(Debug)]
+struct StoredPayloadRow {
+    reference: PayloadRef,
+    created_at: String,
+}
+
+impl StoredPayloadRow {
+    /// A total order over registered payloads, stable across boots. Registration
+    /// time alone is not unique — a turn registers several payloads inside one
+    /// millisecond — so the identity of the row breaks the tie.
+    fn verification_key(&self) -> String {
+        let separator = VERIFICATION_KEY_SEPARATOR;
+        format!(
+            "{}{separator}{}{separator}{}{separator}{}",
+            self.created_at,
+            self.reference.content_hash,
+            self.reference.kind,
+            self.reference.schema_version
+        )
+    }
+}
+
+/// Why boot verification could not read a payload. A closed vocabulary, matched
+/// by the `payload_quarantine` CHECK constraint.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum QuarantineReason {
+    /// Authenticated decryption or the content-hash check failed.
+    Authentication,
+    /// The stored header is not a format this build can read.
+    UnsupportedPayload,
+    /// The ciphertext could not be read from disk at all.
+    Unreadable,
+}
+
+impl QuarantineReason {
+    const fn code(self) -> &'static str {
+        match self {
+            Self::Authentication => "authentication",
+            Self::UnsupportedPayload => "unsupported_payload",
+            Self::Unreadable => "unreadable",
+        }
+    }
+}
+
+/// One payload boot verification found unreadable and set aside.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuarantinedPayload {
+    pub content_hash: String,
+    pub kind: String,
+    pub schema_version: String,
+    /// One of `authentication`, `unsupported_payload`, `unreadable`.
+    pub reason: String,
+    pub detected_at: String,
+}
+
+/// How much of the payload store one verification pass re-reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum VerificationScope {
+    /// Payloads registered since the last completed pass. What boot uses.
+    SinceWatermark,
+    /// Every registered payload, watermark ignored.
+    Everything,
+}
+
 struct IntegritySnapshot {
     quick_check: String,
     outbox_link_errors: u64,
     events: Vec<StoredEvidenceRow>,
-    payloads: Vec<PayloadRef>,
+    payloads: Vec<StoredPayloadRow>,
     consumptions: Vec<StoredConsumptionRow>,
 }
 
@@ -286,7 +361,14 @@ pub struct LocalStore {
     cas_root: PathBuf,
     store_id: String,
     key_version: u32,
-    key: StoreKey,
+    /// `None` once offboarding has destroyed it.
+    ///
+    /// Behind a lock because `erase_for_offboarding` takes `&self` and must be
+    /// able to drop the key: `ZeroizeOnDrop` only fires on drop, and nothing
+    /// dropped this before — the host holds the store in a plain field, so a
+    /// partially failed erase left the key live and able to decrypt payloads
+    /// the user had just asked to have destroyed.
+    key: Mutex<Option<StoreKey>>,
     connection: Mutex<Connection>,
 }
 
@@ -323,7 +405,7 @@ impl LocalStore {
             cas_root,
             store_id,
             key_version: 1,
-            key,
+            key: Mutex::new(Some(key)),
             connection: Mutex::new(connection),
         };
         store.load_or_create_local_identity()?;
@@ -366,7 +448,7 @@ impl LocalStore {
                 cas_root,
                 store_id,
                 key_version: 1,
-                key,
+                key: Mutex::new(Some(key)),
                 connection: Mutex::new(connection),
             },
         };
@@ -718,25 +800,62 @@ impl LocalStore {
         total.saturating_add(directory_bytes(&self.cas_root))
     }
 
+    /// The live payload cipher, or [`StoreError::KeyProtection`] once
+    /// offboarding has destroyed the key.
+    ///
+    /// Every read and write of a content-addressed payload goes through here,
+    /// so a session that has erased its key fails closed on all of them rather
+    /// than continuing to decrypt with a copy the user believes is gone.
+    fn cipher(&self) -> Result<Aes256Gcm, StoreError> {
+        let key = self.key.lock();
+        let key = key.as_ref().ok_or(StoreError::KeyProtection)?;
+        Aes256Gcm::new_from_slice(&key.0).map_err(|_| StoreError::KeyProtection)
+    }
+
     /// Cryptographically erases the authority store (ADR-0004).
     ///
-    /// Order is deliberate: the DPAPI-wrapped store key is destroyed first,
-    /// so even a failure partway leaves every encrypted payload
-    /// undecryptable. Content-addressed payloads and the database files are
-    /// then removed; the live connection is replaced with an inert
-    /// in-memory one so the database file can be deleted on Windows. The
-    /// store is unusable afterwards and the next launch starts fresh.
+    /// Order is deliberate: the DPAPI-wrapped store key is destroyed first —
+    /// on disk *and* in memory — so a failure after that point leaves
+    /// content-addressed payloads as undecryptable ciphertext. The payloads
+    /// and database files are then removed; the live connection is replaced
+    /// with an inert in-memory one so the database file can be deleted on
+    /// Windows. The store is unusable afterwards and the next launch starts
+    /// fresh.
+    ///
+    /// # What a partial failure actually leaves behind
+    ///
+    /// The previous version of this comment claimed the key was "destroyed
+    /// before any fallible step, so the failure mode is retained ciphertext,
+    /// never retained readable data". Both halves were wrong:
+    ///
+    /// * Deleting the key file **is** the first fallible step. When it is the
+    ///   step that fails, nothing has been destroyed at all — which is why the
+    ///   in-memory key is dropped only after that deletion is known to have
+    ///   succeeded. Zeroizing earlier would strand a running session with an
+    ///   intact store it could no longer read.
+    /// * "Never retained readable data" was false regardless. Only the CAS
+    ///   payloads are encrypted. This crate has no `SQLCipher`, so
+    ///   `authority.sqlite3` is plaintext and holds the evidence log,
+    ///   aggregate state and memlog text (stored inline by design). A failure
+    ///   between key destruction and database removal leaves a **readable**
+    ///   database, and a surviving `-wal` alone carries page images.
     ///
     /// # Errors
     ///
-    /// Returns [`StoreError`] when a filesystem deletion fails; the key is
-    /// destroyed before any fallible step, so the failure mode is retained
-    /// ciphertext, never retained readable data.
+    /// Returns [`StoreError`] when a filesystem deletion fails. A failure
+    /// before the key is gone leaves the store intact; a failure after it
+    /// leaves undecryptable payloads and possibly a readable database.
     pub fn erase_for_offboarding(&self) -> Result<(), StoreError> {
         let key_path = self.root.join("store.key");
         if key_path.exists() {
             fs::remove_file(&key_path)?;
         }
+        // The wrapped key is now gone from disk, so this process holds the only
+        // copy and a restart could not recover it either. Dropping it destroys
+        // nothing recoverable; it stops a still-running session from decrypting
+        // payloads the user has just asked to have destroyed. Placed *after*
+        // the file deletion on purpose — see the note above.
+        drop(self.key.lock().take());
         if self.cas_root.exists() {
             fs::remove_dir_all(&self.cas_root)?;
         }
@@ -762,11 +881,83 @@ impl LocalStore {
 
     /// Verifies `SQLite`, evidence, payload, and consumption integrity.
     ///
+    /// ## Boot cost is bounded
+    ///
+    /// This used to decrypt *every* registered payload on every call, and
+    /// `HostState::initialize` calls it once per launch — so start-up was
+    /// `O(total history)` and a heavy user's app got slower every day they used
+    /// it, with no ceiling. A payload is now re-read only until it has survived
+    /// one complete pass; after that a persisted watermark skips it, and each
+    /// boot re-reads only what was written since the last one.
+    ///
+    /// **What that gives up, stated plainly.** Authenticated decryption still
+    /// runs on *every* read through [`Self::get_payload`], so tampered or
+    /// corrupt ciphertext can never be *accepted* — it fails closed exactly as
+    /// before. What is given up is *eager detection*: at-rest damage to a
+    /// payload that has already passed one sweep is no longer found on the next
+    /// boot, but when the record is next read. The guarantee that weakens is
+    /// detection latency for cold data, not authenticity. Where latency matters
+    /// — a disk the user suspects, a support investigation —
+    /// [`Self::verify_integrity_full`] re-reads everything.
+    ///
+    /// ## One bad payload no longer capsizes the store
+    ///
+    /// An unreadable payload is recorded in the quarantine ledger and the sweep
+    /// continues. See [`Self::quarantined_payloads`].
+    ///
     /// # Errors
     ///
-    /// Returns [`StoreError`] when any durable relationship, canonical hash,
-    /// payload authentication, or database invariant fails.
+    /// Returns [`StoreError`] when any durable relationship, canonical hash, or
+    /// database invariant fails. An individual unreadable payload is quarantined
+    /// rather than returned as an error.
     pub fn verify_integrity(&self) -> Result<(), StoreError> {
+        self.run_integrity(VerificationScope::SinceWatermark, true)
+    }
+
+    /// Re-reads and re-authenticates every registered payload, ignoring the
+    /// watermark [`Self::verify_integrity`] keeps.
+    ///
+    /// This is the deep check: `O(total history)` by design, for when eager
+    /// detection is worth the wait rather than paid for on every launch.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::verify_integrity`].
+    pub fn verify_integrity_full(&self) -> Result<(), StoreError> {
+        self.run_integrity(VerificationScope::Everything, true)
+    }
+
+    /// Every payload a verification pass found unreadable, oldest first.
+    ///
+    /// Carries identifiers and a failure code only — never content, and never a
+    /// path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StoreError`] when the ledger cannot be read.
+    pub fn quarantined_payloads(&self) -> Result<Vec<QuarantinedPayload>, StoreError> {
+        let connection = self.connection.lock();
+        let mut statement = connection.prepare(
+            "SELECT content_hash, kind, schema_version, reason, detected_at
+             FROM payload_quarantine ORDER BY detected_at, content_hash",
+        )?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(QuarantinedPayload {
+                    content_hash: row.get(0)?,
+                    kind: row.get(1)?,
+                    schema_version: row.get(2)?,
+                    reason: row.get(3)?,
+                    detected_at: row.get(4)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// `persist` is false for the read-only recovery view, which must diagnose
+    /// without writing.
+    fn run_integrity(&self, scope: VerificationScope, persist: bool) -> Result<(), StoreError> {
         self.load_local_identity()?;
         let IntegritySnapshot {
             quick_check,
@@ -779,27 +970,119 @@ impl LocalStore {
             load_integrity_snapshot(&connection)?
         };
         if quick_check != "ok" || outbox_link_errors != 0 {
-            Err(StoreError::Inconsistent)
-        } else {
-            let registered_payload_hashes = payloads
-                .iter()
-                .map(|payload| payload.content_hash.as_str())
-                .collect::<HashSet<_>>();
-            verify_evidence_rows(&events, &registered_payload_hashes)?;
-            for payload in &payloads {
-                let plaintext = self.get_payload(payload)?;
-                if u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?
-                    != payload.byte_count
-                {
-                    return Err(StoreError::Inconsistent);
-                }
-            }
-            verify_consumption_rows(&consumptions)?;
-            self.verify_method_integrity()?;
-            self.verify_builder_integrity()?;
-            self.verify_execution_integrity()?;
-            Ok(())
+            return Err(StoreError::Inconsistent);
         }
+        let registered_payload_hashes = payloads
+            .iter()
+            .map(|payload| payload.reference.content_hash.as_str())
+            .collect::<HashSet<_>>();
+        verify_evidence_rows(&events, &registered_payload_hashes)?;
+        self.sweep_payloads(scope, persist, &payloads)?;
+        verify_consumption_rows(&consumptions)?;
+        self.verify_method_integrity()?;
+        self.verify_builder_integrity()?;
+        self.verify_execution_integrity()?;
+        Ok(())
+    }
+
+    /// Re-authenticates the payloads this pass is responsible for, quarantining
+    /// the ones that cannot be read and advancing the watermark past both.
+    fn sweep_payloads(
+        &self,
+        scope: VerificationScope,
+        persist: bool,
+        payloads: &[StoredPayloadRow],
+    ) -> Result<(), StoreError> {
+        let watermark = match scope {
+            VerificationScope::Everything => None,
+            VerificationScope::SinceWatermark => {
+                load_verification_watermark(&self.connection.lock())?
+            }
+        };
+        let mut quarantined = Vec::new();
+        let mut reached = watermark.clone();
+        for row in payloads {
+            let key = row.verification_key();
+            if watermark
+                .as_deref()
+                .is_some_and(|mark| key.as_str() <= mark)
+            {
+                continue;
+            }
+            match self.get_payload(&row.reference) {
+                Ok(plaintext) => {
+                    if u64::try_from(plaintext.len()).map_err(|_| StoreError::Inconsistent)?
+                        != row.reference.byte_count
+                    {
+                        // Length disagreeing with the registration is the
+                        // database contradicting itself, not damaged media, so
+                        // it still fails the whole store closed.
+                        return Err(StoreError::Inconsistent);
+                    }
+                }
+                // Damage the store cannot repair and did not cause. Setting the
+                // row aside keeps the blast radius at the record: every later
+                // read of it still fails closed, and the user is told which
+                // records were lost instead of losing the product.
+                Err(StoreError::Authentication) => {
+                    quarantined.push((row.reference.clone(), QuarantineReason::Authentication));
+                }
+                Err(StoreError::UnsupportedPayload) => {
+                    quarantined.push((row.reference.clone(), QuarantineReason::UnsupportedPayload));
+                }
+                Err(StoreError::Io(_)) => {
+                    quarantined.push((row.reference.clone(), QuarantineReason::Unreadable));
+                }
+                Err(error) => return Err(error),
+            }
+            // Advanced for a quarantined row too: it is known-bad and already
+            // recorded, so re-reading it every boot would buy nothing.
+            if reached.as_deref().is_none_or(|mark| mark < key.as_str()) {
+                reached = Some(key);
+            }
+        }
+        if persist {
+            self.record_verification_outcome(reached.as_deref(), &quarantined)?;
+        }
+        Ok(())
+    }
+
+    fn record_verification_outcome(
+        &self,
+        watermark: Option<&str>,
+        quarantined: &[(PayloadRef, QuarantineReason)],
+    ) -> Result<(), StoreError> {
+        if watermark.is_none() && quarantined.is_empty() {
+            return Ok(());
+        }
+        let detected_at = canonical_now();
+        let mut connection = self.connection.lock();
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        for (reference, reason) in quarantined {
+            transaction.execute(
+                "INSERT INTO payload_quarantine
+                 (content_hash, kind, schema_version, reason, detected_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5)
+                 ON CONFLICT(content_hash, kind, schema_version) DO UPDATE SET
+                   reason = excluded.reason",
+                params![
+                    reference.content_hash,
+                    reference.kind,
+                    reference.schema_version,
+                    reason.code(),
+                    detected_at
+                ],
+            )?;
+        }
+        if let Some(watermark) = watermark {
+            transaction.execute(
+                "INSERT INTO store_meta (key, value) VALUES (?1, ?2)
+                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                params![PAYLOAD_VERIFICATION_WATERMARK_KEY, watermark],
+            )?;
+        }
+        transaction.commit()?;
+        Ok(())
     }
 
     /// Runs a controlled truncating WAL checkpoint.
@@ -1012,8 +1295,7 @@ impl LocalStore {
         content_hash: &str,
         plaintext: &[u8],
     ) -> Result<Vec<u8>, StoreError> {
-        let cipher =
-            Aes256Gcm::new_from_slice(&self.key.0).map_err(|_| StoreError::KeyProtection)?;
+        let cipher = self.cipher()?;
         let mut nonce = [0_u8; CAS_NONCE_BYTES];
         rand::rng().fill_bytes(&mut nonce);
         let aad = self.aad(kind, schema_version, content_hash, self.key_version);
@@ -1061,8 +1343,7 @@ impl LocalStore {
         let nonce_end = version_end + CAS_NONCE_BYTES;
         let nonce = Nonce::from_slice(&encrypted[version_end..nonce_end]);
         let aad = self.aad(kind, schema_version, content_hash, key_version);
-        Aes256Gcm::new_from_slice(&self.key.0)
-            .map_err(|_| StoreError::KeyProtection)?
+        self.cipher()?
             .decrypt(
                 nonce,
                 Payload {
@@ -1174,11 +1455,17 @@ impl LocalStoreRecovery {
 
     /// Runs non-mutating integrity diagnostics across retained data.
     ///
+    /// Deliberately the full sweep with nothing persisted: recovery is the
+    /// diagnostic path, so it re-reads everything and neither advances the
+    /// watermark nor writes a quarantine entry — the connection is read-only,
+    /// and a diagnosis must not become a durable verdict.
+    ///
     /// # Errors
     ///
     /// Returns [`StoreError`] when corruption or unavailable schema is detected.
     pub fn verify_integrity(&self) -> Result<(), StoreError> {
-        self.inner.verify_integrity()
+        self.inner
+            .run_integrity(VerificationScope::Everything, false)
     }
 }
 
@@ -1345,18 +1632,23 @@ fn load_integrity_snapshot(connection: &Connection) -> Result<IntegritySnapshot,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
+    // Ordered by registration time first, so the sweep can stop at a watermark
+    // rather than re-reading history that has already been authenticated once.
     let mut payload_statement = connection.prepare(
-        "SELECT content_hash, kind, schema_version, byte_count, key_version
-         FROM payloads ORDER BY content_hash, kind, schema_version",
+        "SELECT content_hash, kind, schema_version, byte_count, key_version, created_at
+         FROM payloads ORDER BY created_at, content_hash, kind, schema_version",
     )?;
     let payloads = payload_statement
         .query_map([], |row| {
-            Ok(PayloadRef {
-                content_hash: row.get(0)?,
-                kind: row.get(1)?,
-                schema_version: row.get(2)?,
-                byte_count: row.get(3)?,
-                key_version: row.get(4)?,
+            Ok(StoredPayloadRow {
+                reference: PayloadRef {
+                    content_hash: row.get(0)?,
+                    kind: row.get(1)?,
+                    schema_version: row.get(2)?,
+                    byte_count: row.get(3)?,
+                    key_version: row.get(4)?,
+                },
+                created_at: row.get(5)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -1423,6 +1715,17 @@ fn load_local_identity_meta(
             params![LOCAL_IDENTITY_META_KEY, LOCAL_IDENTITY_STATE_KEY],
             |row| Ok((row.get(0)?, row.get(1)?)),
         )
+        .map_err(StoreError::from)
+}
+
+fn load_verification_watermark(connection: &Connection) -> Result<Option<String>, StoreError> {
+    connection
+        .query_row(
+            "SELECT value FROM store_meta WHERE key = ?1",
+            params![PAYLOAD_VERIFICATION_WATERMARK_KEY],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
         .map_err(StoreError::from)
 }
 
@@ -1874,9 +2177,11 @@ mod tests {
     #[test]
     fn retention_manifest_discloses_every_user_content_table(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        /// Tables that hold no user-originated content: schema bookkeeping and
-        /// the transient dispatch queue.
-        const NOT_USER_CONTENT: [&str; 3] = ["store_meta", "user_version", "outbox"];
+        /// Tables that hold no user-originated content: schema bookkeeping, the
+        /// transient dispatch queue, and the quarantine ledger — which holds
+        /// hashes and a failure code, never content.
+        const NOT_USER_CONTENT: [&str; 4] =
+            ["store_meta", "user_version", "outbox", "payload_quarantine"];
 
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
@@ -1894,7 +2199,10 @@ mod tests {
             .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(disclosed.len(), RETENTION_CATEGORIES.len());
 
-        for table in crate::migrations::V15_TABLES {
+        // Pinned to the *current* table set, not a frozen one: the list this
+        // guards fell behind two migrations once already, and a guard that
+        // checks a stale inventory cannot notice the next time.
+        for table in crate::migrations::V17_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }
@@ -1922,6 +2230,84 @@ mod tests {
         // A fresh open after erase starts a brand-new store identity.
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
         assert!(reopened.local_identity().is_ok());
+        Ok(())
+    }
+
+    /// Opens a path denying every share mode, so Windows refuses to delete it
+    /// while the handle lives. Rust's ordinary `File::open` grants
+    /// `FILE_SHARE_DELETE`, so it does **not** block deletion and cannot be
+    /// used to force this failure.
+    #[cfg(windows)]
+    fn hold_exclusively(path: &std::path::Path) -> std::io::Result<fs::File> {
+        use std::os::windows::fs::OpenOptionsExt;
+        fs::OpenOptions::new().read(true).share_mode(0).open(path)
+    }
+
+    /// Erase deletes the key file, then the payloads, then the database. When a
+    /// step *after* the key deletion fails, the wrapped key is already gone from
+    /// disk — so the in-memory copy is the only one left, and leaving it live
+    /// let a still-running session keep decrypting payloads the user had just
+    /// asked to destroy.
+    #[cfg(windows)]
+    #[test]
+    fn a_partially_failed_erase_leaves_no_usable_key() -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let reference = store.put_payload("evidence", "evidence.v1", b"payload bytes")?;
+        let payload_path = store.cas_path("evidence", "evidence.v1", &reference.content_hash)?;
+        assert!(payload_path.exists());
+
+        // Hold the ciphertext so `remove_dir_all(cas_root)` fails — a partial
+        // erase, after the key file has already gone.
+        let held = hold_exclusively(&payload_path)?;
+        let outcome = store.erase_for_offboarding();
+        assert!(outcome.is_err(), "the erase must actually have failed");
+        assert!(
+            payload_path.exists(),
+            "the failure must be partial: the ciphertext is still there",
+        );
+        assert!(
+            !directory.path().join("store.key").exists(),
+            "the key file was deleted before the step that failed",
+        );
+        assert!(
+            store.key.lock().is_none(),
+            "the in-memory key must not survive a failure past key destruction",
+        );
+        // And the store fails closed rather than continuing to decrypt.
+        let read_back = store.get_payload(&reference);
+        assert!(
+            read_back.is_err(),
+            "a session whose key is destroyed must not keep decrypting: {read_back:?}",
+        );
+        drop(held);
+        Ok(())
+    }
+
+    /// The mirror, and the guard against over-zeroizing. When the *key file*
+    /// deletion is the step that fails, nothing has been destroyed — the
+    /// wrapped key is still on disk and a later retry can still finish. Dropping
+    /// the in-memory copy there would strand a running session with an intact
+    /// store it could no longer read.
+    #[cfg(windows)]
+    #[test]
+    fn a_failed_erase_before_key_destruction_keeps_the_key(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let reference = store.put_payload("evidence", "evidence.v1", b"payload bytes")?;
+        let key_path = directory.path().join("store.key");
+
+        let held = hold_exclusively(&key_path)?;
+        let outcome = store.erase_for_offboarding();
+        assert!(outcome.is_err(), "the erase must actually have failed");
+        assert!(key_path.exists(), "the wrapped key is still on disk");
+        assert!(
+            store.key.lock().is_some(),
+            "nothing was destroyed, so the session must still be able to read its own store",
+        );
+        assert!(store.get_payload(&reference).is_ok());
+        drop(held);
         Ok(())
     }
     use super::*;
@@ -1987,6 +2373,189 @@ mod tests {
             store.get_payload(&reference),
             Err(StoreError::Authentication)
         ));
+        Ok(())
+    }
+
+    /// A bad sector under one message body used to take the entire product
+    /// offline: `verify_integrity` returned `Err`, and `HostState::initialize`
+    /// turns any error from it into global read-only recovery. Damage confined
+    /// to one record must stay confined to one record.
+    #[test]
+    fn an_unreadable_payload_is_quarantined_rather_than_capsizing_the_store(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        store.append_chat_message(
+            "chat_damaged",
+            "ws_1",
+            None,
+            "user",
+            "what is in src?",
+            1_000,
+        )?;
+        store.append_chat_message(
+            "chat_damaged",
+            "ws_1",
+            None,
+            "assistant",
+            "one file.",
+            1_001,
+        )?;
+        store.append_chat_message(
+            "chat_intact",
+            "ws_1",
+            None,
+            "user",
+            "still readable?",
+            2_000,
+        )?;
+        store.append_chat_message("chat_intact", "ws_1", None, "assistant", "yes.", 2_001)?;
+
+        // Re-registering identical content is a no-op that hands back the
+        // reference, which is how the test names the file to damage without
+        // reaching past the store's own API for it.
+        let damaged = store.put_payload(
+            "chat_message",
+            "sapphirus.chat-message.v1",
+            b"what is in src?",
+        )?;
+        let path = store.cas_path(
+            &damaged.kind,
+            &damaged.schema_version,
+            &damaged.content_hash,
+        )?;
+        let mut bytes = fs::read(&path)?;
+        let index = bytes.len().saturating_sub(1);
+        if let Some(byte) = bytes.get_mut(index) {
+            *byte ^= 0x01;
+        }
+        fs::write(&path, bytes)?;
+
+        // The store opens.
+        store.verify_integrity()?;
+
+        // The damage is recorded, named, and attributed to a failure mode —
+        // never silently swallowed.
+        let quarantined = store.quarantined_payloads()?;
+        assert_eq!(quarantined.len(), 1);
+        assert_eq!(quarantined[0].content_hash, damaged.content_hash);
+        assert_eq!(quarantined[0].reason, "authentication");
+
+        // Reading the damaged record still fails closed — quarantine sets a row
+        // aside, it does not admit it.
+        assert!(store.chat_session("chat_damaged").is_err());
+
+        // And nothing else was taken away: the rest still reads, and the store
+        // is still writable rather than in recovery.
+        assert_eq!(
+            store
+                .chat_session("chat_intact")?
+                .ok_or(StoreError::Inconsistent)?
+                .messages
+                .len(),
+            2
+        );
+        store.append_chat_message("chat_intact", "ws_1", None, "user", "and writable?", 3_000)?;
+        Ok(())
+    }
+
+    /// Boot decrypted every payload ever written, so start-up was
+    /// `O(total history)` and got slower every day the app was used. A payload
+    /// is now re-read until it survives one pass; after that the watermark
+    /// skips it.
+    ///
+    /// This also pins the guarantee that was traded away, so it cannot be
+    /// weakened further by accident: eager detection moves to the deep check,
+    /// and the deep check still finds the damage.
+    #[test]
+    fn boot_verification_does_not_re_read_what_it_has_already_authenticated(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let payload = store.put_payload("context", "context.v1", b"authenticated once")?;
+        store.verify_integrity()?;
+
+        // The ciphertext rots after the pass that cleared it.
+        let path = store.cas_path(
+            &payload.kind,
+            &payload.schema_version,
+            &payload.content_hash,
+        )?;
+        fs::remove_file(&path)?;
+
+        // Boot does not pay for it again, which is the whole point of the
+        // watermark.
+        store.verify_integrity()?;
+        assert!(
+            store.quarantined_payloads()?.is_empty(),
+            "boot re-read a payload it had already authenticated"
+        );
+
+        // The deep check is the escape hatch, and it works.
+        store.verify_integrity_full()?;
+        let quarantined = store.quarantined_payloads()?;
+        assert_eq!(quarantined.len(), 1);
+        assert_eq!(quarantined[0].content_hash, payload.content_hash);
+        assert_eq!(quarantined[0].reason, "unreadable");
+        Ok(())
+    }
+
+    /// A migration test that never runs the migration proves nothing — this
+    /// repository has shipped one. So this builds a genuine v16 database: the
+    /// ledger removed, the version wound back, real history already in it. The
+    /// preconditions are asserted first, so every assertion after the reopen can
+    /// only be satisfied by the v16 -> v17 step actually executing.
+    #[test]
+    fn a_v16_store_gains_the_quarantine_ledger_and_keeps_its_history(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        let database_path = {
+            let store = LocalStore::open(directory.path(), &TestProtector)?;
+            store.append_chat_message("chat_v16", "ws_1", None, "user", "asked before", 1_000)?;
+            store.append_chat_message(
+                "chat_v16",
+                "ws_1",
+                None,
+                "assistant",
+                "answered before",
+                1_001,
+            )?;
+            let path = store.database_path();
+            store.connection.lock().execute_batch(
+                "DROP TABLE payload_quarantine;
+                 PRAGMA user_version = 16;",
+            )?;
+            path
+        };
+
+        // Precondition: this really is a v16 store with no ledger.
+        {
+            let connection = Connection::open(&database_path)?;
+            let version: u32 =
+                connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
+            assert_eq!(version, 16);
+            let ledger: u64 = connection.query_row(
+                "SELECT COUNT(*) FROM sqlite_schema
+                 WHERE type = 'table' AND name = 'payload_quarantine'",
+                [],
+                |row| row.get(0),
+            )?;
+            assert_eq!(ledger, 0, "the fixture is not a pre-migration store");
+        }
+
+        let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+        assert_eq!(reopened.schema_version()?, LATEST_STORE_VERSION);
+        // The ledger exists and answers, rather than merely appearing in the
+        // catalog.
+        assert!(reopened.quarantined_payloads()?.is_empty());
+        // And the step carried the history across instead of rebuilding the
+        // database out from under it.
+        let session = reopened
+            .chat_session("chat_v16")?
+            .ok_or(StoreError::Inconsistent)?;
+        assert_eq!(session.messages.len(), 2);
+        assert_eq!(session.messages[0].text, "asked before");
+        assert_eq!(session.messages[1].text, "answered before");
         Ok(())
     }
 
@@ -2350,6 +2919,7 @@ mod tests {
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE payload_quarantine;
              DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
@@ -2402,6 +2972,7 @@ mod tests {
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE payload_quarantine;
              DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;
@@ -2507,6 +3078,7 @@ mod tests {
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
+             DROP TABLE payload_quarantine;
              DROP TABLE bmad_architecture_sessions;
              DROP TABLE bmad_capability_results;
              DROP TABLE bmad_capability_runs;

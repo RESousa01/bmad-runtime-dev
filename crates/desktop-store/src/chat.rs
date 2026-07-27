@@ -24,8 +24,8 @@ use rusqlite::{params, OptionalExtension, TransactionBehavior};
 
 use super::{canonical_now, LocalStore, StoreError};
 
-const CHAT_MESSAGE_PAYLOAD_KIND: &str = "chat_message";
-const CHAT_MESSAGE_SCHEMA: &str = "sapphirus.chat-message.v1";
+pub(crate) const CHAT_MESSAGE_PAYLOAD_KIND: &str = "chat_message";
+pub(crate) const CHAT_MESSAGE_SCHEMA: &str = "sapphirus.chat-message.v1";
 
 /// One persisted transcript message.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -204,7 +204,12 @@ impl LocalStore {
                 message.text.as_bytes(),
             )?);
         }
-        self.write_chat_turn(&append, &payloads)
+        // Retention rides inside the same transaction as the write, so the
+        // durable transcript is bounded at the moment it grows rather than by a
+        // sweep someone has to remember to run.
+        let discarded = self.write_chat_turn(&append, &payloads)?;
+        self.discard_cas_files(&discarded);
+        Ok(())
     }
 
     /// Checks a turn against what is already durable *before* any payload is
@@ -230,13 +235,15 @@ impl LocalStore {
         )
     }
 
-    /// Writes every message of one turn in a single transaction. Returns
-    /// without having written anything at all if any part of it is refused.
+    /// Writes every message of one turn in a single transaction, then trims the
+    /// transcript to its durable ceiling in that same transaction. Returns
+    /// without having written anything at all if any part of it is refused, and
+    /// hands back the payloads whose ciphertext the caller should unlink.
     fn write_chat_turn(
         &self,
         append: &ChatTurnAppend<'_>,
         payloads: &[super::PayloadRef],
-    ) -> Result<(), StoreError> {
+    ) -> Result<Vec<super::PayloadRef>, StoreError> {
         let first = append
             .messages
             .first()
@@ -309,9 +316,14 @@ impl LocalStore {
              WHERE session_id = ?1",
             params![append.session_id, append.agent_code, last_at],
         )?;
+        // After the insert, never before: a payload the new turn re-uses is
+        // still cited once its own rows are down, so retention cannot pull the
+        // ciphertext out from under the message just written.
+        let (_removed, discarded) =
+            super::retention::prune_chat_session(&transaction, append.session_id)?;
         let _ = canonical_now();
         transaction.commit()?;
-        Ok(())
+        Ok(discarded)
     }
 
     /// Removes the trailing messages that belong to no completed turn, so a

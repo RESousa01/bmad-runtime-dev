@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 16;
+pub(crate) const LATEST_STORE_VERSION: u32 = 17;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -198,6 +198,67 @@ pub(crate) const V15_TABLES: [&str; 25] = [
 
 /// The table set is unchanged from v15 — v16 only widens a CHECK constraint.
 pub(crate) const V16_TABLES: [&str; 25] = V15_TABLES;
+
+/// v17 adds the quarantine ledger.
+pub(crate) const V17_TABLES: [&str; 26] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// Records the payloads boot verification found unreadable, so one damaged
+/// record stops taking the whole product offline.
+///
+/// Before this table an undecryptable payload — a bad sector, an interrupted
+/// write, a half-written blob — made `verify_integrity` return `Err`, and
+/// `HostState::initialize` turns any such error into global read-only recovery.
+/// A single corrupt chat message therefore cost the user every workspace, every
+/// capability and every conversation they had. Damage that is confined to one
+/// row is now recorded as confined to one row: the payload stays unreadable and
+/// every read of it still fails closed, but the store opens.
+///
+/// Deliberately carries no foreign key to `payloads`. Retention may drop the
+/// payload row later, and the fact that a record was found damaged outlives the
+/// record — a quarantine entry the store silently forgot would be worse than
+/// none, because the user would never learn what was lost.
+///
+/// `reason` is a closed vocabulary because it is surfaced to the user: it says
+/// which failure mode was seen, never what the payload held.
+const V16_TO_V17_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE payload_quarantine (
+   content_hash TEXT NOT NULL,
+   kind TEXT NOT NULL,
+   schema_version TEXT NOT NULL,
+   reason TEXT NOT NULL
+     CHECK(reason IN ('authentication', 'unsupported_payload', 'unreadable')),
+   detected_at TEXT NOT NULL,
+   PRIMARY KEY(content_hash, kind, schema_version)
+ ) STRICT;
+ PRAGMA user_version = 17;
+ COMMIT;";
 
 /// Widens `chat_messages.role` to admit the two tool roles (ADR-0009).
 ///
@@ -883,8 +944,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V15_TO_V16_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            16 => {
                 require_store_tables(connection, &V16_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V16_TO_V17_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V17_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

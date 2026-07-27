@@ -2,7 +2,10 @@
 //! restart and refuse to reconstruct a corrupt one.
 #![allow(clippy::expect_used, clippy::unwrap_used)]
 
-use desktop_store::{ChatTurnAppend, ChatTurnMessage, KeyProtector, LocalStore, StoreError};
+use desktop_store::{
+    ChatTurnAppend, ChatTurnMessage, KeyProtector, LocalStore, StoreError,
+    MAX_DURABLE_CHAT_MESSAGES,
+};
 
 #[derive(Debug)]
 struct TestProtector;
@@ -352,6 +355,236 @@ fn a_rejected_turn_writes_no_payload() -> Result<(), Box<dyn std::error::Error>>
         before,
         "a turn refused on its own grammar must not write payloads first"
     );
+    Ok(())
+}
+
+/// Writes one turn — `user -> (tool_call -> tool_result)* -> assistant` —
+/// and returns how many rows it wrote.
+///
+/// The number of tool exchanges varies with the index on purpose. Fixed-length
+/// turns let a retention that cut purely on row count land on a turn boundary by
+/// arithmetic coincidence, and a test that passes by coincidence is not a test:
+/// varying the length means a cut that ignores the grammar lands mid-turn and
+/// gets caught.
+fn varied_turn(
+    opened: &LocalStore,
+    session_id: &str,
+    index: usize,
+) -> Result<usize, Box<dyn std::error::Error>> {
+    let at = 1_000 + (index as u64) * 100;
+    let exchanges = index % 3;
+    let question = format!("question {index}");
+    let answer = format!("answer {index}");
+    let bodies: Vec<(String, String)> = (0..exchanges)
+        .map(|step| {
+            (
+                format!("glob src{index}/{step}/**"),
+                format!("src{index}/{step}/main.rs"),
+            )
+        })
+        .collect();
+
+    let mut messages = vec![ChatTurnMessage {
+        role: "user",
+        text: &question,
+        created_at_ms: at,
+    }];
+    for (step, (call, result)) in bodies.iter().enumerate() {
+        let step_at = at + 1 + (step as u64) * 2;
+        messages.push(ChatTurnMessage {
+            role: "tool_call",
+            text: call,
+            created_at_ms: step_at,
+        });
+        messages.push(ChatTurnMessage {
+            role: "tool_result",
+            text: result,
+            created_at_ms: step_at + 1,
+        });
+    }
+    messages.push(ChatTurnMessage {
+        role: "assistant",
+        text: &answer,
+        created_at_ms: at + 90,
+    });
+
+    opened.append_chat_turn(turn(session_id, &messages))?;
+    Ok(messages.len())
+}
+
+/// Whether a role sequence is a whole number of complete turns and nothing
+/// else: `(user -> (tool_call -> tool_result)* -> assistant)+`.
+///
+/// This is the property retention must never break. A leading fragment — a
+/// `tool_result` with no call, an `assistant` with no question — is exactly what
+/// wedges a conversation, because the grammar then permits only a continuation
+/// that no fresh turn ever sends.
+fn is_whole_turns(roles: &[&str]) -> bool {
+    let mut index = 0;
+    while index < roles.len() {
+        if roles[index] != "user" {
+            return false;
+        }
+        index += 1;
+        while roles.get(index) == Some(&"tool_call") {
+            if roles.get(index + 1) != Some(&"tool_result") {
+                return false;
+            }
+            index += 2;
+        }
+        if roles.get(index) != Some(&"assistant") {
+            return false;
+        }
+        index += 1;
+    }
+    !roles.is_empty()
+}
+
+/// Nothing pruned the durable transcript: `MAX_SESSION_MESSAGES` trims a `Vec`
+/// in memory, so `chat_messages` and the encrypted payloads behind it grew for
+/// the life of the install — for rows the runtime's own prune makes unreachable
+/// the moment it rebuilds the conversation.
+///
+/// A turn is the unit of durability here, so it has to be the unit of deletion:
+/// a durable `user` or `tool_call` row with nothing behind it wedges a
+/// conversation permanently. This is the guard that retention never leaves one.
+#[test]
+fn retention_bounds_a_transcript_and_only_ever_drops_whole_turns(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let opened = store(&directory)?;
+
+    // Enough turns that a comfortable margin of history is past the ceiling,
+    // and enough of them that the retained window cannot line up with a turn
+    // boundary by accident.
+    let mut written = 0_usize;
+    let mut turns = 0_usize;
+    while written <= MAX_DURABLE_CHAT_MESSAGES + 60 {
+        written += varied_turn(&opened, "chat_retained", turns)?;
+        turns += 1;
+    }
+
+    let session = opened
+        .chat_session("chat_retained")?
+        .expect("the conversation survives");
+    assert!(
+        session.messages.len() <= MAX_DURABLE_CHAT_MESSAGES,
+        "the durable transcript is unbounded: {} of {written} rows retained",
+        session.messages.len()
+    );
+    assert!(!session.messages.is_empty());
+
+    let seen = roles(&session);
+    assert!(
+        is_whole_turns(&seen),
+        "retention left a turn fragment: {seen:?}"
+    );
+
+    // The newest turns are the ones kept, not an arbitrary window.
+    assert_eq!(
+        session.messages.last().expect("newest").text,
+        format!("answer {}", turns - 1)
+    );
+
+    // And the conversation is not wedged: it still accepts the next turn.
+    varied_turn(&opened, "chat_retained", turns)?;
+    let after = opened.chat_session("chat_retained")?.expect("session");
+    assert_eq!(
+        after.messages.last().expect("newest").text,
+        format!("answer {turns}")
+    );
+    assert!(is_whole_turns(&roles(&after)));
+    Ok(())
+}
+
+/// The ceiling yields, the turn does not. Half a turn costs the user the whole
+/// conversation, so a single turn longer than the entire budget is kept intact
+/// and the bound is allowed to be exceeded instead.
+#[test]
+fn a_turn_longer_than_the_whole_budget_is_kept_whole() -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let opened = store(&directory)?;
+
+    let exchanges = MAX_DURABLE_CHAT_MESSAGES / 2 + 1;
+    let bodies: Vec<(String, String)> = (0..exchanges)
+        .map(|index| (format!("glob src{index}/**"), format!("src{index}/main.rs")))
+        .collect();
+    let mut messages = vec![ChatTurnMessage {
+        role: "user",
+        text: "trace every file",
+        created_at_ms: 1_000,
+    }];
+    for (index, (call, result)) in bodies.iter().enumerate() {
+        let at = 1_001 + (index as u64) * 2;
+        messages.push(ChatTurnMessage {
+            role: "tool_call",
+            text: call,
+            created_at_ms: at,
+        });
+        messages.push(ChatTurnMessage {
+            role: "tool_result",
+            text: result,
+            created_at_ms: at + 1,
+        });
+    }
+    messages.push(ChatTurnMessage {
+        role: "assistant",
+        text: "traced.",
+        created_at_ms: 9_000_000,
+    });
+    let expected = messages.len();
+    assert!(expected > MAX_DURABLE_CHAT_MESSAGES);
+    opened.append_chat_turn(turn("chat_long", &messages))?;
+
+    let session = opened.chat_session("chat_long")?.expect("session");
+    assert_eq!(
+        session.messages.len(),
+        expected,
+        "an oversized turn was cut instead of kept whole"
+    );
+    assert_eq!(roles(&session).first().copied(), Some("user"));
+    assert_eq!(roles(&session).last().copied(), Some("assistant"));
+    Ok(())
+}
+
+/// Dropping the rows without dropping what they point at would leave the
+/// encrypted bodies — the actual bulk — behind, and boot verification would keep
+/// paying to decrypt them.
+#[test]
+fn retention_releases_the_payloads_of_the_turns_it_drops() -> Result<(), Box<dyn std::error::Error>>
+{
+    let directory = tempfile::tempdir()?;
+    let opened = store(&directory)?;
+    let registered = || -> Result<u64, StoreError> {
+        let connection = rusqlite::Connection::open(opened.database_path())?;
+        Ok(connection.query_row(
+            "SELECT COUNT(*) FROM payloads WHERE kind = 'chat_message'",
+            [],
+            |row| row.get(0),
+        )?)
+    };
+
+    let mut written = 0_usize;
+    let mut turns = 0_usize;
+    while written <= MAX_DURABLE_CHAT_MESSAGES + 60 {
+        written += varied_turn(&opened, "chat_payloads", turns)?;
+        turns += 1;
+    }
+
+    let retained = opened
+        .chat_session("chat_payloads")?
+        .expect("session")
+        .messages
+        .len();
+    let written = u64::try_from(written)?;
+    let held = registered()?;
+    assert!(
+        held < written,
+        "every message body is still registered: {held} of {written}"
+    );
+    // One registration per retained message body. Every body in this transcript
+    // is distinct, so content addressing does not fold any of them together.
+    assert_eq!(held, u64::try_from(retained)?);
     Ok(())
 }
 

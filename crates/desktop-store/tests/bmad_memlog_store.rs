@@ -252,6 +252,7 @@ fn a_v12_store_gains_the_memlog_table_on_open() -> Result<(), Box<dyn std::error
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_memlog_entries;
          PRAGMA user_version = 12;",
@@ -279,6 +280,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_memlog_entries;
          PRAGMA user_version = 12;",
@@ -293,7 +295,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 16);
+    assert_eq!(reopened.schema_version()?, 17);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -315,6 +317,7 @@ fn a_half_applied_v13_schema_fails_closed() -> Result<(), Box<dyn std::error::Er
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          PRAGMA user_version = 12;",
     )?;
@@ -391,6 +394,7 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_architecture_session_steps;
+         DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_memlog_entries;
          CREATE TABLE bmad_memlog_entries (
@@ -416,7 +420,7 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 16);
+    assert_eq!(upgraded.schema_version()?, 17);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 
