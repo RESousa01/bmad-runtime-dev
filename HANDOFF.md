@@ -91,8 +91,15 @@ nine letter-spacings to one.
    perimeter conflict (already tracked as NET-001), and 228-of-597 BMAD drift.
 3. **CI compiles neither trust mode.** No workflow passes `--features`, which
    is what would have caught the compile default mechanically.
-4. **F-04's nineteen dependent backlog items** need re-reading — the finding
-   describes the prototype HTML, not the renderer.
+4. **F-04 is partially live, not stale** — the reconciliation said stale, and
+   the re-read of its seventeen dependents corrected it. `ContextWindow.tsx:19`
+   derives its budget from `workspaceReadLimits.contextBytes / 4`
+   (`contracts.ts:267` = `256 * 1024`), so the surface labelled **Context**
+   shows a workspace read cap as `64K` rather than a model context window,
+   with the attached-file count beside it. The prototype hard-coded `32K`; the
+   literal moved and got a better name, and the conflation survived. `FE-16` is
+   the real work: read model-route data, and label estimates as estimates per
+   specification 7.5.
 
 ## Verifying renderer work without a screenshot
 
