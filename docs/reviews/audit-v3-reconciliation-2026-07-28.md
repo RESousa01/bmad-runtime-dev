@@ -109,6 +109,53 @@ get adopted because they pay off immediately; cascade ownership does not, becaus
 its payoff only appears when you try to delete something. That asymmetry is how
 `styles.css` reached 3,858 lines with four `redesign/` override files beside it.
 
+## FE-03 was attempted and reverted — read this before retrying
+
+Cascade layers were implemented on 2026-07-28 and backed out the same
+session. The work is recoverable from this description; the reasons are worth
+more than the diff.
+
+**What was built.** A `layers.css` declaring
+`@layer properties, theme, base, components, utilities, forge-tokens,
+forge-panels, forge-redesign, forge-app, forge-shell`, imported first in
+`main.tsx`, with all sixteen stylesheets wrapped in the layer matching their
+measured position in the built bundle.
+
+**Why that order.** The emitted order was measured from `dist` rather than
+assumed, because it does not match the import list. It runs: `packages/ui`
+tokens, the six panel stylesheets, the seven `redesign/` stylesheets,
+`styles.css`, then `forge-v2.css`. So `styles.css` and `forge-v2.css` emit
+*last* and beat both files named `design-polish` and `design-refinement`, and
+`design-refinement` emits *before* `design-polish`, the reverse of the App.tsx
+import order. Emission follows module-graph traversal, since components import
+their own CSS.
+
+**The measurement worth keeping.** Of 4,638 distinct selector/property pairs,
+only 145 are declared in more than one file, and `design-polish.css` is party
+to 142 of them. Because it emits before `styles.css` and `utility-panel.css`,
+roughly 96 of its 290 declarations never take effect. A third of a file named
+"polish" is inert, and nothing in the source says so.
+
+**Why it was reverted.** A computed-style snapshot of 137 elements across 20
+properties, taken before and after, showed `line-height` changing from 12px to
+18px on 83 elements. The app had been relying on being *unlayered*: unlayered
+CSS beats every layered rule, so `.sapphirus-button { line-height: 1 }`
+automatically won against Tailwind preflight's
+`button, input, … { font: inherit }` — a shorthand that resets `line-height` —
+and against `html { line-height: 1.5 }`. Naming Tailwind's layers ahead of the
+`forge-*` layers was supposed to preserve that, and did not. There is also a
+`BLOCK[<anonymous>]` layer appearing before the order statement that this
+session did not author and did not identify.
+
+**What a retry needs.** The premise "reproduce the emission order and behaviour
+is preserved" is false, and that is the main lesson. Emission order only ever
+decided ties at equal specificity; layer order overrides specificity outright,
+so every rule that won on specificity from a lower-emitting file is a candidate
+regression. Retry with the anonymous layer identified first, with Tailwind
+preflight's shorthand resets handled explicitly, and with the before/after
+computed-style snapshot as the gate — it is what caught this, and the 550
+frontend tests did not.
+
 ## Coverage and confidence
 
 Every row in `audit-v3-reconciliation.csv` carries a `confidence` column. Read it
