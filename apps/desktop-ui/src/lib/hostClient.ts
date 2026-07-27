@@ -97,6 +97,7 @@ export {
   getDefaultHostRuntime,
   getSafeHostMessage,
   initializeHostRuntime,
+  resetDefaultHostRuntime,
 } from "./hostClient/runtime";
 export type {
   HostRuntime,

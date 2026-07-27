@@ -353,7 +353,10 @@ impl BmadCapabilityCoordinator {
         }
     }
 
-    #[cfg(test)]
+    /// Gated on the same feature as its only callers: the whole capability
+    /// coordinator test module is `deterministic-help`-only, so a bare
+    /// `#[cfg(test)]` left this dead in a default-feature test build.
+    #[cfg(all(test, feature = "deterministic-help"))]
     pub(crate) fn terminal_reason_for_test(
         &self,
         workspace_id: &ContractId,
@@ -863,7 +866,7 @@ impl BmadCapabilityCoordinator {
     /// [`Self::begin_dispatch`]/[`Self::finalize_dispatch`] so the mutex is
     /// released during the network wait; this wrapper preserves the original
     /// single-call contract for the in-process coordinator tests.
-    #[cfg(test)]
+    #[cfg(all(test, feature = "deterministic-help"))]
     pub(crate) fn submit(
         &mut self,
         input: &SubmitCapabilityRunInput,

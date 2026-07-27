@@ -1,17 +1,59 @@
 import { useEffect, useRef, type KeyboardEvent, type RefObject } from "react";
 
+/// Everything Chromium puts in the sequential focus order.
+///
+/// `containModalPanelFocus` treats an `activeElement` it cannot find in this
+/// list as *outside* the panel and forces focus back to the first entry, so a
+/// natively tabbable element missing from the selector is not a cosmetic gap —
+/// it is a keyboard trap for everything after it in DOM order. `summary` was
+/// the one that bit: the governed-change review renders one
+/// `<details><summary>` per changed file above its Apply / Revise / Discard
+/// row, so under the <=1240px contained drawer, tabbing into a file summary
+/// snapped focus back to the top and those three controls could not be
+/// reached by keyboard at all. `BmadLibraryPanel` has the same shape.
 const focusableSelector = [
   "button:not([disabled])",
   "[href]",
   "input:not([disabled])",
   "select:not([disabled])",
   "textarea:not([disabled])",
+  "details > summary:not([tabindex='-1'])",
+  "[contenteditable]:not([contenteditable='false'])",
+  "audio[controls]",
+  "video[controls]",
+  "iframe",
   "[tabindex]:not([tabindex='-1'])",
 ].join(", ");
 
+/// A collapsed `<details>` does not render its contents, so nothing inside it
+/// is in the tab order — only its own summary is. Counting that content as
+/// focusable is the mirror image of the bug above: `first`/`last` would land
+/// on an element that cannot take focus, `focus()` would no-op, and the
+/// suppressed Tab would leave the user stuck.
+function isInsideCollapsedDetails(element: HTMLElement): boolean {
+  let node: HTMLElement | null = element;
+  while (node !== null) {
+    const details: HTMLDetailsElement | null =
+      node.parentElement?.closest("details") ?? null;
+    if (details === null) {
+      return false;
+    }
+    // A disclosure's own summary stays in the tab order whether or not the
+    // disclosure is open; everything else inside it does not.
+    const isOwnSummary = node.parentElement === details && node.tagName === "SUMMARY";
+    if (!details.open && !isOwnSummary) {
+      return true;
+    }
+    node = details;
+  }
+  return false;
+}
+
 function focusableElements(panel: HTMLElement): HTMLElement[] {
   return Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-    (element) => !element.closest("[hidden], [aria-hidden='true'], [inert]"),
+    (element) =>
+      !element.closest("[hidden], [aria-hidden='true'], [inert]")
+      && !isInsideCollapsedDetails(element),
   );
 }
 

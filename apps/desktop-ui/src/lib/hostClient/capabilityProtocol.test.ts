@@ -236,10 +236,18 @@ describe("latestResultForRun", () => {
 describe("architecture progression protocol", () => {
   const capabilityId = "bmm:bmad-architecture";
   const runId = "caprun_01ARZ3NDEKTSV4RRFFQ69G5FAV";
+  // Shaped as the host actually serializes `BmadDocumentArtifact`. `decisionLog`
+  // has no `skip_serializing_if` and the result schema marks it required, so a
+  // fixture without it asserts the parser accepts something the host cannot
+  // produce — which is how the missing key allowlist entry went unnoticed.
   const spine = {
     schemaVersion: "sapphirus.bmad-document-artifact.v1",
     title: "Architecture spine",
     sections: [{ heading: "1. System context", body: "AD-1 — Scope\nBounded." }],
+    decisionLog: [
+      { kind: "decision", text: "AD-1 — Scope: bounded to the desktop host." },
+      { kind: "event", text: "spine finalized" },
+    ],
     evidenceRefs: [],
     openQuestions: ["Which tenant model?"],
   };

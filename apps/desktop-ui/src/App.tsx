@@ -73,6 +73,7 @@ import {
   getDefaultHostRuntime,
   getSafeHostMessage,
   latestResultForRun,
+  resetDefaultHostRuntime,
   type AboutProjection,
   type BmadWorkflowStateProjection,
   type RetentionManifestProjection,
@@ -289,6 +290,11 @@ export function App({
   // whichever tab is visible. Bound after `selectedSessionId` is derived.
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
+  /// Bumped to re-run the bootstrap effect. `unavailable` is otherwise
+  /// terminal for the life of the window, because the default loader memoises
+  /// its promise — so a host that failed to verify once, or a persisted
+  /// projection this renderer could not parse, could never be retried.
+  const [hostRuntimeAttempt, setHostRuntimeAttempt] = useState(0);
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
@@ -1453,7 +1459,16 @@ export function App({
     return () => {
       isCurrent = false;
     };
-  }, [adoptHostRuntime, hostRuntimeLoader]);
+  }, [adoptHostRuntime, hostRuntimeAttempt, hostRuntimeLoader]);
+
+  /// The way back out of `unavailable`. Clearing the memoised default runtime
+  /// is what makes the retry real: without it the loader would hand back the
+  /// same settled failure forever.
+  const retryHostRuntime = useCallback(() => {
+    resetDefaultHostRuntime();
+    setHostRuntime({ kind: "loading" });
+    setHostRuntimeAttempt((attempt) => attempt + 1);
+  }, []);
 
   useEffect(() => {
     invalidateWorkspaceBoundUi();
@@ -3182,6 +3197,7 @@ export function App({
               recentTasks={recentTaskList}
               closedTasks={closedTasks}
               onReopenTask={reopenTaskById}
+              onRetryHost={hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined}
               statusHint={methodRequestAvailable
                 ? "Ready to send through the selected model."
                 : "Start locally, then connect OpenAI in Settings before sending."}
@@ -3235,6 +3251,7 @@ export function App({
               }}
               onSuggestContext={suggestContext}
               onSendRequest={sendChatMessage}
+              onAbandonTurn={chatSessions.supersedeActive}
               chatLane={chatLane}
               onAskMethodGuidance={sendBmadMessage}
               onSelectAgent={(agentCode) => {
@@ -3252,6 +3269,7 @@ export function App({
                 copy={explorerAvailabilityMessage}
                 mode={hostRuntime.kind}
                 onOpenWorkspace={() => void selectWorkspace()}
+                onRetryHost={hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined}
               />
             </main>
           )}

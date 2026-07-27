@@ -485,6 +485,9 @@ impl HostState {
         self.bmad_capabilities.lock().invalidate();
         self.bmad_architecture.lock().invalidate();
         self.chat.lock().invalidate();
+        // ADR-0009: an "allow always" answer was given to a model that is now
+        // signed out. The next model must ask for itself.
+        self.tool_grants.lock().clear();
         // ADR-0002: sign-out withdraws D2 context-read authority everywhere
         // without touching D3 proposals or local work.
         self.advance_model_auth_epoch()
@@ -687,6 +690,12 @@ impl HostState {
         self.bmad_capabilities.lock().invalidate();
         self.bmad_architecture.lock().invalidate();
         self.chat.lock().invalidate();
+        // ADR-0009: recovery is a read-only session with no agent tool lane, so
+        // no session grant may survive into whatever authority is restored next.
+        // Taken and released by its own statement; `tool_grants` is a leaf, held
+        // only across `WorkspaceBroker` calls, which reach neither `boot_mode`
+        // nor any coordinator, so this adds no ordering edge.
+        self.tool_grants.lock().clear();
         self.invalidate_pending_recoveries();
         *mode = BootMode::ReadOnlyRecovery;
         self.record_event(ProjectionEventKind::BootStateChanged {

@@ -146,8 +146,40 @@ export function dropLane(store: ChatSessionStore, sessionId: string): ChatSessio
   return { lanes, generations };
 }
 
-export function clearAllLanes(): ChatSessionStore {
-  return emptyChatSessionStore;
+/// Abandons the active task's turn: the composer stops waiting, and the reply
+/// already computed for that turn is dropped instead of appended.
+///
+/// The lane is cleared before the generation advances, because
+/// `applyToLane` would refuse the write afterwards and the composer would stay
+/// disabled with a pending question that can never resolve.
+export function supersedeLane(
+  store: ChatSessionStore,
+  sessionId: string,
+): ChatSessionStore {
+  const lane = laneForSession(store, sessionId);
+  const cleared = lane.sending
+    ? setLane(store, sessionId, { ...lane, sending: false, pending: null })
+    : store;
+  return bumpGeneration(cleared, sessionId);
+}
+
+/// Drops every transcript, for a host rebind or a workspace revocation.
+///
+/// Generations advance rather than resetting to the empty map. Returning
+/// `emptyChatSessionStore` looked equivalent — the lanes are gone either way —
+/// but it reset every generation to 0, so a routing token captured at
+/// generation 0 (the first send in a task, the common case) still satisfied
+/// `routingIsCurrent` afterwards. A reply computed against the *revoked*
+/// workspace could then be appended to the transcript of the workspace that
+/// replaced it. Keeping a bumped generation per known task is what makes those
+/// in-flight replies drop. Mirrors `clearAllRuns` in `taskSessions`.
+export function clearAllLanes(store: ChatSessionStore): ChatSessionStore {
+  const generations = new Map(store.generations);
+  const known = new Set<string>([...store.lanes.keys(), ...store.generations.keys()]);
+  for (const sessionId of known) {
+    generations.set(sessionId, (generations.get(sessionId) ?? 0) + 1);
+  }
+  return { lanes: new Map(), generations };
 }
 
 export interface ChatSessionsApi {
@@ -164,6 +196,9 @@ export interface ChatSessionsApi {
   readonly setActiveLane: (
     update: ChatLaneState | ((current: ChatLaneState) => ChatLaneState),
   ) => void;
+  /// Abandons the active task's in-flight turn. The host still finishes the
+  /// request it was given — this is a client-side abandon — but the reply is
+  /// dropped rather than appended, and the composer is released.
   readonly supersedeActive: () => void;
   /// Discards one task's conversation and supersedes any reply in flight for
   /// it. Used when that task is closed or deleted.
@@ -224,7 +259,7 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
   );
 
   const supersedeActive = useCallback(() => {
-    commit((current) => bumpGeneration(current, activeSessionId));
+    commit((current) => supersedeLane(current, activeSessionId));
   }, [activeSessionId, commit]);
 
   const dropSession = useCallback(
@@ -235,7 +270,7 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
   );
 
   const clearAll = useCallback(() => {
-    commit(clearAllLanes);
+    commit((current) => clearAllLanes(current));
   }, [commit]);
 
   const messageCountFor = useCallback(

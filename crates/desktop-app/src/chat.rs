@@ -28,7 +28,7 @@ use std::fmt::Write as _;
 use desktop_cloud::{AuthorizedModelRequest, RawModelOutput};
 use desktop_egress::{
     ApproveDecisionInput, ConsentService, ConsumeDecisionInput, ContextCandidate,
-    ContextClassification, ContextPreparer, EgressLimits, MemoryDecisionLedger,
+    ContextClassification, ContextPreparer, EgressError, EgressLimits, MemoryDecisionLedger,
     ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput, TurnEgressEntry,
     TurnEgressGrant, MAX_TURN_MODEL_CALLS,
 };
@@ -74,6 +74,14 @@ const CHAT_PURPOSE: &str = "chat.turn";
 pub(crate) enum ChatCoordinatorError {
     Unauthorized,
     Conflict,
+    /// The turn's egress grant window closed before this call was authorized.
+    /// Distinct from `Conflict` because it is a different fact about a
+    /// different thing: nothing is in flight, the turn simply ran out of time.
+    TurnExpired,
+    /// The turn spent every model call its grant allows. Also distinct from
+    /// `Conflict`, and from `TurnExpired`: the user's next step is a new
+    /// message, not the same one again.
+    TurnBudgetSpent,
     OutputRejected,
     Transport,
     Integrity,
@@ -296,6 +304,17 @@ impl ChatCoordinator {
         self.order.clear();
         self.in_flight.clear();
         self.unreadable.clear();
+    }
+
+    /// How many conversations this process is holding in memory.
+    ///
+    /// Test-only, and the only observable `invalidate` has: residency is the
+    /// whole point of it, and `history` will happily rehydrate a cleared
+    /// session straight back out of the store, so the ordinary read path cannot
+    /// distinguish "dropped" from "never dropped".
+    #[cfg(test)]
+    pub(crate) fn resident_session_count(&self) -> usize {
+        self.sessions.len()
     }
 
     /// Loads one conversation, rehydrating it from the store when this process
@@ -821,8 +840,10 @@ impl ChatCoordinator {
     /// # Errors
     ///
     /// Returns [`ChatCoordinatorError::Conflict`] when this dispatch was
-    /// superseded, when no tool call is outstanding, or when the turn has spent
-    /// its egress budget.
+    /// superseded or no tool call is outstanding,
+    /// [`ChatCoordinatorError::TurnBudgetSpent`] when the turn has spent its
+    /// egress budget, and [`ChatCoordinatorError::TurnExpired`] when the
+    /// turn's grant window closed while the tool ran.
     pub(crate) fn resume_turn(
         &mut self,
         dispatch_id: u64,
@@ -901,9 +922,18 @@ fn turn_grant_for(
         )
         .map_err(|_| ChatCoordinatorError::Integrity)?,
     };
-    grant
-        .authorize_call(now)
-        .map_err(|_| ChatCoordinatorError::Conflict)?;
+    // The two ways a grant refuses are two different things to tell the user,
+    // and they were both reported as `Conflict` — which the renderer renders as
+    // "A reply is already in flight for this conversation." For an elapsed
+    // window that is simply untrue: nothing is in flight, and the advice it
+    // implies (wait) is the one thing that does not help.
+    grant.authorize_call(now).map_err(|error| match error {
+        EgressError::TurnGrantExpired => ChatCoordinatorError::TurnExpired,
+        EgressError::TurnGrantExhausted => ChatCoordinatorError::TurnBudgetSpent,
+        // `authorize_call` returns nothing else. If it ever does, a genuine
+        // conflict is the conservative reading: the turn does not continue.
+        _ => ChatCoordinatorError::Conflict,
+    })?;
     Ok(grant)
 }
 

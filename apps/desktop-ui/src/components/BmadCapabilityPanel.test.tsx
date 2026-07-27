@@ -282,6 +282,10 @@ describe("BmadCapabilityPanel — ordered architecture progression", () => {
               { heading: "1. System context", body: "AD-1 — Scope\nBounded to one workspace." },
               { heading: "8. Verification", body: "AD-8 — Evidence\nEach decision is testable." },
             ],
+            decisionLog: [
+              { kind: "decision", subject: "System context", text: "AD-1 — Scope: one workspace." },
+              { kind: "event", subject: null, text: "spine finalized" },
+            ],
             openQuestions: ["Which tenant model?"],
             mermaidText: null,
           },

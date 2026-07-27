@@ -175,9 +175,24 @@ export interface BmadWorkflowStateProjection {
 /// One bounded document artifact as the host serializes it. Used for the
 /// distilled architecture spine, which arrives inline rather than as a stored
 /// run result.
+/// One line of the run's own working memory, in the order the author recorded
+/// it. The host mints these as each step lands and carries them on the
+/// distilled spine, so the artifact is derived from the log rather than
+/// reverse-engineered out of the finished prose afterwards.
+export interface CapabilityDocumentLogEntry {
+  kind: string;
+  subject: string | null;
+  text: string;
+}
+
 export interface CapabilityDocumentArtifact {
   title: string;
   sections: readonly { readonly heading: string; readonly body: string }[];
+  /// The chronological record the artifact was distilled from. The host always
+  /// serializes this field — `decision_log` carries no `skip_serializing_if`,
+  /// and `bmad-capability-result.schema.json` marks it required — so it is
+  /// present on the wire even when it is empty.
+  decisionLog: readonly CapabilityDocumentLogEntry[];
   openQuestions: readonly string[];
   mermaidText: string | null;
 }

@@ -26,6 +26,11 @@ export interface HomeViewProps {
   /// from deleting.
   readonly closedTasks: readonly HomeTaskSummary[];
   readonly onReopenTask: (taskId: string) => void;
+  /// Re-runs host verification. Supplied only when the host is unavailable.
+  /// Home is where a failed bootstrap always lands, so this is the retry the
+  /// user can actually reach; without it `unavailable` is terminal until the
+  /// app is restarted.
+  readonly onRetryHost?: (() => void) | undefined;
   readonly statusHint: string;
   readonly workspaces: readonly WorkspaceProjection[];
   readonly workspaceStatusLabel: string;
@@ -48,6 +53,7 @@ export function HomeView({
   recentTasks,
   closedTasks,
   onReopenTask,
+  onRetryHost,
   statusHint,
   workspaces,
   workspaceStatusLabel,
@@ -115,6 +121,12 @@ export function HomeView({
               <OpenCodeIcon name="settings-gear" size={14} />
               Manage workspaces
             </button>
+            {onRetryHost ? (
+              <button onClick={onRetryHost} type="button">
+                <OpenCodeIcon name="reset" size={14} />
+                Retry host
+              </button>
+            ) : null}
             <span>{workspaceStatusLabel}</span>
           </div>
         </section>

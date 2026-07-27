@@ -1327,6 +1327,19 @@ fn map_chat_error(error: crate::chat::ChatCoordinatorError) -> LocalError {
             "A reply is already in flight for this conversation.",
             true,
         ),
+        // Neither of these is a conflict, and reporting them as one told the
+        // user to wait for a reply that was never coming. Both are retryable,
+        // but by different actions, so each says which one.
+        E::TurnExpired => LocalError::new(
+            LocalErrorCode::Expired,
+            "This reply took longer than the turn was authorized for. Send the message again.",
+            true,
+        ),
+        E::TurnBudgetSpent => LocalError::new(
+            LocalErrorCode::ResourceLimit,
+            "This turn used every model call it was allowed. Send another message to continue.",
+            true,
+        ),
         E::OutputRejected => LocalError::new(
             LocalErrorCode::IntegrityFailure,
             "The model reply failed verification and was discarded.",
@@ -2046,12 +2059,31 @@ fn submit_bmad_capability_run(
     submitted_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_workspace_commit()?;
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
-        .map_err(|error| map_workspace_error(&error))?;
+    // Authorize the scope, take the facts it proves, and release the barrier
+    // before the provider round trip below — the same shape `run_chat_turn`
+    // uses, and for the same reason.
+    //
+    // `WorkspaceScopeAuthorityGuard` holds the broker's task-fair revocation
+    // barrier for its whole lifetime. Held across `transport.send` it blocked
+    // every broker writer — `revoke`, and the `advance_all_context_read_epochs`
+    // a model sign-out performs — for the length of a model call, and because
+    // the barrier is task-fair, every broker *reader* queued behind that writer
+    // too. The comment three lines below already claimed this was released; it
+    // was describing the coordinator mutex, not this.
+    //
+    // What the guard proved is re-proved after the round trip, before the
+    // result is recorded. What is given up is atomicity across the send, which
+    // nothing can keep without holding the barrier across a provider call.
+    let workspace = {
+        let scope = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+            .map_err(|error| map_workspace_error(&error))?;
+        let projection = scope.projection();
+        drop(scope);
+        projection
+    };
     let store = state.local_store(authority.authority())?;
-    let workspace = workspace_authority.projection();
     let stepwise = crate::bmad_architecture::is_stepwise_capability(foundation, capability_id);
     // Retained only for the stepwise capability, whose progression is keyed by
     // workspace; every other capability consumes the identity outright.
@@ -2102,6 +2134,30 @@ fn submit_bmad_capability_run(
             crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError::Transport,
         ));
     };
+    // The grant is re-proved now the round trip is over, because the guard that
+    // used to prove it for the whole call cannot be held across one, and
+    // `finalize_dispatch` is what writes the run and its result durably. A
+    // revocation or grant-epoch change that landed mid-flight ends the run here
+    // rather than being recorded against a workspace the user withdrew.
+    //
+    // Bound as a `match` with the guard moved into its own arm and dropped
+    // there: an `if let`/`?` would keep the guard alive for the arm that
+    // re-locks the coordinator, which is the `significant_drop_in_scrutinee`
+    // shape this crate now denies.
+    match state
+        .workspace
+        .authorize_scope(dispatch_workspace.as_str(), workspace_grant_epoch)
+    {
+        Ok(scope) => drop(scope),
+        Err(error) => {
+            state.bmad_capabilities.lock().abort_dispatch(
+                &dispatch_workspace,
+                dispatch_id,
+                crate::bmad_model::capability_coordinator::CapabilityTerminalReason::ConsentConsumed,
+            );
+            return Err(map_workspace_error(&error));
+        }
+    }
     let completed = state
         .bmad_capabilities
         .lock()
@@ -2128,7 +2184,6 @@ fn submit_bmad_capability_run(
         )?),
         None => None,
     };
-    drop(workspace_authority);
     drop(authority);
     Ok(HostCommandData::CapabilityCompleted(
         crate::wire::CapabilityCompletedWire::new(completed, architecture),
@@ -3034,7 +3089,25 @@ fn revoke_workspace(
         authority.enter_recovery();
         return Err(recovery_error());
     };
+    // Revocation withdraws everything the grant authorized, not just the Help
+    // lane. Each coordinator's own `invalidate` documents itself as serving
+    // "sign-out and workspace revocation (ADR-0002)", and `HostState` says the
+    // same of `tool_grants` — but only `bmad_model` was ever called here, so a
+    // revoked workspace's file contents and tool results stayed resident in
+    // chat transcripts and an in-flight capability run kept its slot.
+    //
+    // The same set, in the same order, as `HostState::enter_recovery` and
+    // `sign_out_model`: `bmad_model` -> `bmad_capabilities` ->
+    // `bmad_architecture` -> `chat`. Each lock is taken and released by its own
+    // statement, so unlike `enter_recovery` no two are ever held at once and no
+    // ordering edge is added at all.
     state.bmad_model.lock().invalidate(now());
+    state.bmad_capabilities.lock().invalidate();
+    state.bmad_architecture.lock().invalidate();
+    state.chat.lock().invalidate();
+    // ADR-0009: a session "allow always" answer was given about this
+    // workspace's contents, so it cannot outlive the grant it was given under.
+    state.tool_grants.lock().clear();
     state.record_event(ProjectionEventKind::WorkspaceChanged { workspace_id });
     let data = HostCommandData::WorkspaceRevoked(projection);
     drop(authority);
@@ -5205,6 +5278,98 @@ planning_artifacts = \"{project-root}/docs/plan\"
         assert!(!state.bmad_model.lock().has_active_review());
     }
 
+    /// Revocation has to withdraw every lane the grant authorized, not only the
+    /// Help lane. It withdrew only `bmad_model` for a long time, which left the
+    /// revoked workspace's file contents and tool results resident in chat
+    /// transcripts, left its architecture progression continuable, and left the
+    /// session "allow always" answers standing — all of them contradicting the
+    /// comments on the very functions that were never called.
+    #[test]
+    fn workspace_revocation_withdraws_every_lane_the_grant_authorized() {
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        let workspace = id(&workspace_id);
+        let authority = state
+            .ready_workspace_commit()
+            .expect("ready workspace commit");
+        let store = state
+            .local_store(authority.authority())
+            .expect("local authority store");
+
+        // A conversation whose transcript really holds workspace bytes. The
+        // first read derives the durable identity; the second rehydrates the
+        // rows written under it, which is what makes the session resident.
+        let session_id = state
+            .chat
+            .lock()
+            .history(state.installation_id(), &workspace, "task_revoke", store)
+            .expect("empty history")
+            .session_id;
+        store
+            .append_chat_turn(desktop_store::ChatTurnAppend {
+                session_id: session_id.as_str(),
+                workspace_id: workspace_id.as_str(),
+                agent_code: None,
+                messages: &[
+                    desktop_store::ChatTurnMessage {
+                        role: "user",
+                        text: "read my notes",
+                        created_at_ms: 1,
+                    },
+                    desktop_store::ChatTurnMessage {
+                        role: "assistant",
+                        text: "the workspace file said something private",
+                        created_at_ms: 2,
+                    },
+                ],
+            })
+            .expect("durable transcript");
+        state
+            .chat
+            .lock()
+            .history(state.installation_id(), &workspace, "task_revoke", store)
+            .expect("rehydrated history");
+        state
+            .bmad_architecture
+            .lock()
+            .select_step(store, &workspace, UnixMillis(3))
+            .expect("architecture progression");
+        assert!(state.tool_grants.lock().grant("read", "notes.md"));
+        drop(authority);
+
+        assert_eq!(state.chat.lock().resident_session_count(), 1);
+        assert!(state
+            .bmad_architecture
+            .lock()
+            .current_step(&workspace)
+            .is_some());
+        assert!(!state.tool_grants.lock().rules().is_empty());
+
+        revoke_workspace(
+            &state,
+            &id("request_01J00000000000000000000032"),
+            workspace.clone(),
+        )
+        .expect("workspace revoked");
+
+        assert_eq!(
+            state.chat.lock().resident_session_count(),
+            0,
+            "a revoked workspace's transcript must not stay resident",
+        );
+        assert!(
+            state
+                .bmad_architecture
+                .lock()
+                .current_step(&workspace)
+                .is_none(),
+            "a revoked workspace's architecture progression must not stay continuable",
+        );
+        assert!(
+            state.tool_grants.lock().rules().is_empty(),
+            "a session tool grant must not outlive the grant it was given under",
+        );
+    }
+
     #[test]
     fn model_access_mutations_never_enter_the_general_reply_cache() {
         let workspace_id = id("workspace_01J00000000000000000000000");
@@ -5705,8 +5870,16 @@ planning_artifacts = \"{project-root}/docs/plan\"
 
             let outcome = awaited(&spawn_turn(&fixture, &transport, &clock));
 
-            // Refused by the accounting, at the ceiling, not one call past it.
-            assert_eq!(refusal_code(outcome), LocalErrorCode::Conflict);
+            // Refused by the accounting, at the ceiling, not one call past it —
+            // and named as the budget, not as a conflict. Reporting exhaustion
+            // and expiry both as `Conflict` told the user a reply was already in
+            // flight, which is a different thing that needs a different action.
+            let outcome = outcome.err().expect("the turn was expected to be refused");
+            assert_eq!(outcome.code, LocalErrorCode::ResourceLimit);
+            assert_eq!(
+                outcome.safe_message,
+                "This turn used every model call it was allowed. Send another message to continue.",
+            );
             assert_eq!(transport.calls(), MAX_TURN_MODEL_CALLS);
         }
 
@@ -5781,13 +5954,23 @@ planning_artifacts = \"{project-root}/docs/plan\"
 
             let outcome = awaited(&spawn_turn(&fixture, &transport, &elapsed));
 
-            // `resume_turn` reports both grant failures as `Conflict`, but only
-            // one of them is reachable here: exhaustion needs
+            // Only one grant failure is reachable here: exhaustion needs
             // `MAX_TURN_MODEL_CALLS` recorded calls and exactly one was made, so
             // this is `EgressError::TurnGrantExpired` and nothing else. The
             // control below pins that down further — same script, same replies,
             // only the timeline differs.
-            assert_eq!(refusal_code(outcome), LocalErrorCode::Conflict);
+            //
+            // The code and the message have to say *expired*. Both grant
+            // failures used to arrive as `Conflict`, so a turn that ran out of
+            // time told the user "A reply is already in flight for this
+            // conversation." — describing a state that does not exist, and
+            // advising the one action (wait) that cannot help.
+            let outcome = outcome.err().expect("the turn was expected to be refused");
+            assert_eq!(outcome.code, LocalErrorCode::Expired);
+            assert_eq!(
+                outcome.safe_message,
+                "This reply took longer than the turn was authorized for. Send the message again.",
+            );
             assert_eq!(transport.calls(), 1);
 
             let control = turn_fixture();

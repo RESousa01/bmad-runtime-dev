@@ -23,6 +23,30 @@ export function fail(): never {
   throw new HostProtocolError();
 }
 
+/// Characters the renderer refuses to accept inside a name, a path or a line
+/// of display text: the C0/C1 control set, plus the bidi and isolate
+/// formatting controls that can visually reorder what is shown and disguise a
+/// path's real trailing segment.
+///
+/// Deliberately narrower than `\p{C}`. That group is Cc + Cf + Cn + Co + Cs,
+/// so it also covers ZWJ (U+200D) and the variation selectors that ordinary
+/// emoji are assembled from. The Windows host validates names with
+/// `char::is_control`, which is Cc only, and derives a workspace display name
+/// verbatim from the selected folder's `file_name()` — so a folder named
+/// `👨‍💻 platform` is accepted and persisted by the host and then rejected
+/// here on every subsequent launch. Any character the host can persist must
+/// not be a renderer hard-fail; the denylist below is limited to characters
+/// that are a rendering hazard rather than merely non-graphic.
+///
+/// Kept identical to the check `asBmadSafeText` already applied, so the two
+/// sides of the same reply cannot disagree about what is renderable.
+const UNSAFE_TEXT_PATTERN =
+  /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
+
+export function hasUnsafeTextCharacter(value: string): boolean {
+  return UNSAFE_TEXT_PATTERN.test(value);
+}
+
 export function asRecord(value: unknown): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return fail();
@@ -150,7 +174,7 @@ export function asBmadSafeText(value: unknown, maximumBytes: number): string {
     typeof value !== "string" ||
     utf8Length(value) > maximumBytes ||
     hasUnpairedSurrogate(value) ||
-    /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+    hasUnsafeTextCharacter(value)
   ) {
     return fail();
   }
@@ -174,7 +198,7 @@ export function asBmadHelpIntent(value: unknown): string {
     value.trim().length === 0 ||
     utf8Length(value) > bmadProjectionLimits.helpIntentBytes ||
     hasUnpairedSurrogate(value) ||
-    /[\p{Cc}\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)
+    hasUnsafeTextCharacter(value)
   ) {
     return fail();
   }
@@ -286,7 +310,7 @@ export function asRelativePath(value: unknown): string {
     value.includes("\\") ||
     value.includes(":") ||
     /[<>"|?*]/u.test(value) ||
-    /\p{C}/u.test(value) ||
+    hasUnsafeTextCharacter(value) ||
     hasUnpairedSurrogate(value)
   ) {
     return fail();
@@ -326,7 +350,7 @@ export function asSingleLineText(
   maximumLength: number,
 ): string {
   const text = asBoundedString(value, maximumLength);
-  if (/\p{C}/u.test(text) || hasUnpairedSurrogate(text)) {
+  if (hasUnsafeTextCharacter(text) || hasUnpairedSurrogate(text)) {
     return fail();
   }
   return text;
@@ -382,7 +406,8 @@ export function asSafeDisplayName(value: unknown): string {
     displayName.includes("/") ||
     displayName.includes("\\") ||
     displayName.includes(":") ||
-    /\p{C}/u.test(displayName) ||
+    hasUnsafeTextCharacter(displayName) ||
+    hasUnpairedSurrogate(displayName) ||
     displayName === "." ||
     displayName === ".."
   ) {
@@ -391,6 +416,10 @@ export function asSafeDisplayName(value: unknown): string {
   return displayName;
 }
 
+/// Host error prose. Unlike a name or a path this never carries user-chosen
+/// text — every `safeMessage` the host can emit is a fixed literal — so the
+/// wide `\p{C}` rejection stays: nothing the host can legitimately produce is
+/// excluded by it, and it keeps the field to plain prose.
 export function asRendererSafeMessage(value: unknown): string {
   const message = asBoundedString(value, 512);
   if (

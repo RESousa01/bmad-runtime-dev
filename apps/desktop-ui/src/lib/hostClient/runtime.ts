@@ -73,6 +73,18 @@ export function getDefaultHostRuntime(): Promise<HostRuntime> {
   return defaultRuntimePromise;
 }
 
+/// Discards the memoised bootstrap so the next `getDefaultHostRuntime()` call
+/// talks to the host again.
+///
+/// Without this the memoised promise makes `unavailable` permanent for the
+/// life of the window: a transient bootstrap failure, or one caused by a reply
+/// this renderer could not parse, could never be retried, and the only way out
+/// was to restart the app. The `unavailable` UI calls this before re-running
+/// the loader.
+export function resetDefaultHostRuntime(): void {
+  defaultRuntimePromise = null;
+}
+
 export function getSafeHostMessage(error: unknown): string {
   if (
     error instanceof HostCommandError ||

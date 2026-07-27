@@ -1,5 +1,5 @@
 import { Button } from "@sapphirus/ui";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, RotateCcw } from "lucide-react";
 
 export type NoWorkspaceMode =
   | "browser_demo"
@@ -12,6 +12,9 @@ export interface NoWorkspaceStateProps {
   copy?: string;
   mode: NoWorkspaceMode;
   onOpenWorkspace: () => void;
+  /// Re-runs host verification. Supplied only when the host is unavailable —
+  /// that state is otherwise terminal for the life of the window.
+  onRetryHost?: (() => void) | undefined;
 }
 
 const defaultCopy: Record<NoWorkspaceMode, string> = {
@@ -30,6 +33,7 @@ export function NoWorkspaceState({
   copy,
   mode,
   onOpenWorkspace,
+  onRetryHost,
 }: NoWorkspaceStateProps) {
   return (
     <section aria-label="No workspace open" className="no-workspace-state">
@@ -49,6 +53,12 @@ export function NoWorkspaceState({
           <FolderOpen aria-hidden="true" size={17} strokeWidth={1.8} />
           Open workspace
         </Button>
+        {onRetryHost ? (
+          <Button onPress={onRetryHost} size="large" variant="secondary">
+            <RotateCcw aria-hidden="true" size={17} strokeWidth={1.8} />
+            Try again
+          </Button>
+        ) : null}
       </div>
     </section>
   );

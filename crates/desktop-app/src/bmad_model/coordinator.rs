@@ -330,7 +330,12 @@ impl BmadHelpCoordinator {
         }
     }
 
-    #[cfg(test)]
+    /// Gated on the same feature as its only callers. The coordinator tests
+    /// that substitute a transport are themselves `deterministic-help`-only, so
+    /// a bare `#[cfg(test)]` made this dead code in a default-feature test
+    /// build — which is why `cargo clippy` was clean under `--all-features` and
+    /// failed on `dead_code` without them.
+    #[cfg(all(test, feature = "deterministic-help"))]
     pub(super) fn with_transport_for_test(transport: Box<dyn BmadHelpTransport>) -> Self {
         Self {
             ledger: MemoryDecisionLedger::default(),
@@ -448,7 +453,7 @@ impl BmadHelpCoordinator {
         }
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "deterministic-help"))]
     #[must_use]
     pub fn active_fixture_for_test(&self) -> &str {
         match self.active.as_ref() {

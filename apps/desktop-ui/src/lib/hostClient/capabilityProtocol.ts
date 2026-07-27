@@ -4,6 +4,7 @@ import type {
   CapabilityCancelledProjection,
   CapabilityCompletedProjection,
   CapabilityDocumentArtifact,
+  CapabilityDocumentLogEntry,
   CapabilityReviewProjection,
   CapabilityRunLatestProjection,
 } from "./contracts";
@@ -40,6 +41,50 @@ const MAX_SPINE_SECTIONS = 64;
 const MAX_SPINE_QUESTIONS = 64;
 const MAX_SECTION_BODY = 32_768;
 const MAX_MERMAID = 16_384;
+const MAX_LOG_ENTRIES = 128;
+const MAX_LOG_TEXT = 4_096;
+
+/// The host's closed memlog vocabulary (`MemlogEntryKind`, serialized
+/// snake_case). Pinned here for the same reason the step codes are: a renamed
+/// or invented kind must not reach the UI.
+const LOG_ENTRY_KINDS = new Set([
+  "idea",
+  "insight",
+  "question",
+  "decision",
+  "direction",
+  "assumption",
+  "constraint",
+  "capability",
+  "change",
+  "override",
+  "version",
+  "gap",
+  "technique",
+  "event",
+  "note",
+]);
+
+/// One recorded line of the run's working memory.
+///
+/// `subject` is optional on the wire (the host skips it when absent); every
+/// other field is required. Bounds mirror `BmadDocumentArtifact::new`.
+function asSpineLogEntry(value: unknown): CapabilityDocumentLogEntry {
+  const entry = asRecord(value);
+  for (const key of Object.keys(entry)) {
+    if (!["kind", "subject", "text"].includes(key)) return fail();
+  }
+  const kind = asBoundedString(entry.kind, 64);
+  if (!LOG_ENTRY_KINDS.has(kind)) return fail();
+  const text = asTextContent(entry.text, MAX_LOG_TEXT);
+  if (text.length === 0) return fail();
+  const subject = entry.subject ?? null;
+  return {
+    kind,
+    subject: subject === null ? null : asSingleLineText(subject, 200),
+    text,
+  };
+}
 
 /// Spine bodies are multi-line by construction — each carries the decision-log
 /// entries minted for one step — so they are bounded as text content rather
@@ -63,14 +108,26 @@ function asSpine(value: unknown): CapabilityDocumentArtifact {
   const keys = Object.keys(spine);
   for (const key of keys) {
     if (
-      !["schemaVersion", "title", "sections", "evidenceRefs", "openQuestions", "mermaidText"].includes(
-        key,
-      )
+      ![
+        "schemaVersion",
+        "title",
+        "sections",
+        "decisionLog",
+        "evidenceRefs",
+        "openQuestions",
+        "mermaidText",
+      ].includes(key)
     ) {
       return fail();
     }
   }
   if (!Array.isArray(spine.sections) || spine.sections.length > MAX_SPINE_SECTIONS) return fail();
+  // `decisionLog` is always on the wire — the host does not skip it and the
+  // result schema requires it. Omitting it from the allowlist discarded the
+  // final step of every architecture run, and no retry could recover it
+  // because the host session was already finalized by then.
+  const decisionLog = spine.decisionLog ?? [];
+  if (!Array.isArray(decisionLog) || decisionLog.length > MAX_LOG_ENTRIES) return fail();
   const openQuestions = spine.openQuestions ?? [];
   if (!Array.isArray(openQuestions) || openQuestions.length > MAX_SPINE_QUESTIONS) return fail();
   const mermaidText = spine.mermaidText;
@@ -80,6 +137,7 @@ function asSpine(value: unknown): CapabilityDocumentArtifact {
   return {
     title: asSingleLineText(spine.title, 200),
     sections: spine.sections.map(asSpineSection),
+    decisionLog: decisionLog.map(asSpineLogEntry),
     openQuestions: openQuestions.map((question) => asSingleLineText(question, 1_024)),
     mermaidText:
       typeof mermaidText === "string" ? asTextContent(mermaidText, MAX_MERMAID) : null,
