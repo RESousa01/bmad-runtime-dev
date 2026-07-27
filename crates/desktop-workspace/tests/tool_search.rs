@@ -33,7 +33,42 @@ fn seeded_workspace() -> TestResult<tempfile::TempDir> {
     // trip the repository's own secret scanner.
     std::fs::write(temp.path().join(".env"), "hunter2-sentinel\n")?;
     std::fs::write(temp.path().join(".ssh/id_rsa"), "hunter2-sentinel\n")?;
+    // A conventional non-secret template. The broker blocks it anyway; see
+    // `example_env_files_are_blocked_like_every_other_dot_env`.
+    std::fs::write(temp.path().join(".env.example"), "API_KEY=\n")?;
     Ok(temp)
+}
+
+/// `default_rules()` used to carry a `read`/`*.env.example`/`Allow` carve-out on
+/// the reasoning that an example file is a template rather than a secret. The
+/// rule was inert: the permission gate passed the call and the broker refused it
+/// on the `.env.` prefix, so the model saw a generic `PathBlocked` and the rule,
+/// its comment and its test all described behaviour that did not exist.
+///
+/// This asserts the broker half **behaviourally** rather than asserting the
+/// shape of the rule table, which is what let the contradiction survive. If a
+/// future change unblocks example env files, this test fails and the decision
+/// gets made deliberately instead of by accident.
+#[test]
+fn example_env_files_are_blocked_like_every_other_dot_env() -> TestResult {
+    let temp = seeded_workspace()?;
+    let broker = WorkspaceBroker::new();
+    let projection = broker.grant("project_forge_dotenv", temp.path())?;
+
+    for subject in [".env", ".env.example"] {
+        let outcome = broker.read_text(&projection.workspace_id, subject, 8 * 1024);
+        assert!(
+            matches!(outcome, Err(WorkspaceError::PathBlocked)),
+            "{subject} must be refused by the broker, got {outcome:?}",
+        );
+    }
+
+    // The control: an ordinary file in the same workspace still reads, so the
+    // assertion above is about these paths and not about the broker refusing
+    // everything.
+    let readable = broker.read_text(&projection.workspace_id, "README.md", 8 * 1024)?;
+    assert!(readable.content.contains("plain prose"));
+    Ok(())
 }
 
 #[test]

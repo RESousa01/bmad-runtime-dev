@@ -17,6 +17,7 @@ use std::io::{Seek, SeekFrom};
 #[cfg(windows)]
 use std::sync::Arc;
 
+#[cfg(not(windows))]
 use ulid::Ulid;
 
 use crate::{
@@ -123,10 +124,13 @@ impl GovernedRecoveryTransaction<'_> {
 
     /// Replaces an exact identity-bound preimage in the retained scope.
     ///
-    /// Recovery intentionally rewrites the retained verified handle in place,
-    /// rather than performing the ordinary adapter's atomic path replacement.
-    /// The journal is already durably `restoring`; interruption therefore
-    /// becomes terminal `manual_review` and is never retried automatically.
+    /// Recovery rewrites the retained verified handle in place. The ordinary
+    /// adapter now applies its replacement through the verified handle too; the
+    /// difference that remains is only which handle is used - recovery reuses
+    /// the one pinned at observation time, the ordinary adapter opens a fresh
+    /// one per effect. The journal is already durably `restoring`; interruption
+    /// therefore becomes terminal `manual_review` and is never retried
+    /// automatically.
     ///
     /// # Errors
     ///
@@ -379,9 +383,12 @@ impl WorkspaceBroker {
         Ok(())
     }
 
-    /// Atomically replaces an existing governed file after verifying its exact
-    /// preimage through a handle that denies concurrent writers, then durably
-    /// flushes the replacement and its owning directory.
+    /// Replaces an existing governed file after verifying its exact preimage,
+    /// then durably flushes the replacement and its owning directory.
+    ///
+    /// The verifying handle is also the handle the replacement is written
+    /// through, so the effect lands on the object that was checked rather than
+    /// on whatever the path resolves to afterwards.
     ///
     /// # Errors
     ///
@@ -528,7 +535,7 @@ fn pin_recovery_path(
         |relative| grant.root.join(relative.replace('/', "\\")),
     );
     let target = parent.join(leaf_segment(&normalized)?);
-    match open_recovery_verified_file(&target) {
+    match open_welded_verified_file(&target) {
         Ok(verified) => {
             let content = String::from_utf8(verified.content.clone())
                 .map_err(|_| WorkspaceError::UnsupportedText)?;
@@ -705,31 +712,89 @@ fn recovery_replace_pinned(
         .parent()
         .ok_or(WorkspaceError::InvalidRelativePath)?;
     after_validation(&pinned.target, parent)?;
-    verified.file.seek(SeekFrom::Start(0))?;
-    verified.file.set_len(0)?;
-    verified.file.write_all(content.as_bytes())?;
-    verified.file.sync_all()?;
+    rewrite_verified_file(&mut verified, content)?;
     drop(verified.file);
     sync_pinned_parent(&pinned)
 }
 
+/// Rewrites the exact verified object through its own welded handle.
+///
+/// The handle is the only thing the write targets, so no directory entry is
+/// re-resolved between the preimage check and the effect. This is the shared
+/// identity-bound replacement primitive for both the recovery scope and the
+/// ordinary governed adapter.
+///
+/// # Do not "restore" temp-file + rename here
+///
+/// The obvious objection to writing in place is that it is not crash-atomic: a
+/// power loss mid-write leaves a torn file, where `write_temp_sibling` +
+/// `fs::rename` never could. That is a real cost and it was accepted knowingly.
+///
+/// It cannot be had both ways on Win32. `fs::rename` resolves the destination by
+/// **name**, so it re-resolves the very directory entry the preimage check just
+/// verified through a handle — which is the time-of-check-to-time-of-use hole
+/// this function exists to close. Welding the destination handle instead (the
+/// share mode that makes the identity binding hold) makes rename-over fail with
+/// `Access is denied`, and Win32's `SetFileInformationByHandle` rejects a
+/// `RootDirectory`-relative rename outright, so there is no handle-relative
+/// rename to fall back to without `NtSetInformationFile`. Both were probed
+/// empirically before this shape was chosen.
+///
+/// The torn write is recoverable, and that is what makes the trade acceptable:
+/// `desktop-execution/src/executor.rs` persists a full preimage checkpoint
+/// *before* any mutation, `rollback.rs` restores from it, and an installation
+/// with any open effect journal both surfaces `recovery_required` on the next
+/// governed operation and refuses to update (pinned by `check-boundaries.mjs`).
+/// A silent TOCTOU is not recoverable, because nothing knows it happened.
 #[cfg(windows)]
-#[allow(
+fn rewrite_verified_file(verified: &mut VerifiedFile, content: &str) -> Result<(), WorkspaceError> {
+    verified.file.seek(SeekFrom::Start(0))?;
+    verified.file.set_len(0)?;
+    verified.file.write_all(content.as_bytes())?;
+    verified.file.sync_all()?;
+    Ok(())
+}
+
+/// Deletes the exact verified object through its own welded handle.
+///
+/// `SetFileInformationByHandle`/`FileDispositionInfo` is the only Win32 delete
+/// that names a file object rather than a directory entry, so the deletion
+/// cannot be redirected onto a substituted path after the preimage check.
+#[cfg(windows)]
+#[expect(
     unsafe_code,
     reason = "Windows exposes identity-preserving delete only through SetFileInformationByHandle"
 )]
-fn recovery_delete_pinned(
-    mut pinned: PinnedRecoveryPath,
-    expected_content_hash: &str,
-    expected_file_identity_hash: &str,
-    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
-) -> Result<(), WorkspaceError> {
+fn delete_verified_file(verified: &VerifiedFile) -> Result<(), WorkspaceError> {
     use std::os::windows::io::AsRawHandle;
     use windows::Win32::Foundation::HANDLE;
     use windows::Win32::Storage::FileSystem::{
         FileDispositionInfo, SetFileInformationByHandle, FILE_DISPOSITION_INFO,
     };
 
+    let disposition = FILE_DISPOSITION_INFO { DeleteFile: true };
+    // SAFETY: the handle is owned and live, the information pointer and size
+    // exactly describe FILE_DISPOSITION_INFO, and no alias can close the file.
+    unsafe {
+        SetFileInformationByHandle(
+            HANDLE(verified.file.as_raw_handle()),
+            FileDispositionInfo,
+            std::ptr::from_ref(&disposition).cast(),
+            u32::try_from(std::mem::size_of::<FILE_DISPOSITION_INFO>())
+                .map_err(|_| WorkspaceError::UnsupportedRoot)?,
+        )
+    }
+    .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+    Ok(())
+}
+
+#[cfg(windows)]
+fn recovery_delete_pinned(
+    mut pinned: PinnedRecoveryPath,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
     if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
         return Err(WorkspaceError::StalePreimage);
     }
@@ -747,19 +812,7 @@ fn recovery_delete_pinned(
         .parent()
         .ok_or(WorkspaceError::InvalidRelativePath)?;
     after_validation(&pinned.target, parent)?;
-    let disposition = FILE_DISPOSITION_INFO { DeleteFile: true };
-    // SAFETY: the handle is owned and live, the information pointer and size
-    // exactly describe FILE_DISPOSITION_INFO, and no alias can close the file.
-    unsafe {
-        SetFileInformationByHandle(
-            HANDLE(verified.file.as_raw_handle()),
-            FileDispositionInfo,
-            std::ptr::from_ref(&disposition).cast(),
-            u32::try_from(std::mem::size_of::<FILE_DISPOSITION_INFO>())
-                .map_err(|_| WorkspaceError::UnsupportedRoot)?,
-        )
-    }
-    .map_err(|error| WorkspaceError::Io(std::io::Error::other(error.to_string())))?;
+    delete_verified_file(&verified)?;
     drop(verified.file);
     sync_pinned_parent(&pinned)
 }
@@ -821,6 +874,33 @@ fn replace_utf8_for_grant(
     expected_file_identity_hash: &str,
     content: &str,
 ) -> Result<(), WorkspaceError> {
+    replace_utf8_verified(
+        grant,
+        relative_path,
+        expected_content_hash,
+        expected_file_identity_hash,
+        content,
+        |_, _| Ok(()),
+    )
+}
+
+/// Replaces one governed file, binding the effect to the object proved by the
+/// preimage check rather than to the name that object happened to have.
+///
+/// The handle returned by [`open_verified_file_for_mutation`] is opened without
+/// `FILE_SHARE_DELETE`, so for as long as it lives the directory entry cannot
+/// be renamed away, unlinked, overwritten, or replaced by a concurrent
+/// rename - not by another process, and not by the user's editor. The same
+/// handle carries both the preimage proof and the write, so nothing re-resolves
+/// the path between the check and the effect.
+fn replace_utf8_verified(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
     let normalized = validate_effect_path(relative_path)?;
     validate_governed_content(content)?;
     if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
@@ -832,20 +912,77 @@ fn replace_utf8_for_grant(
         .ok_or(WorkspaceError::InvalidRelativePath)?
         .to_path_buf();
 
-    // Keep the identity-verified source handle pinned through replacement.
-    let verified = open_verified_file(&target)?;
+    let mut verified = open_verified_file_for_mutation(&target)?;
     if verified.content_hash != expected_content_hash
         || verified.file_identity_hash != expected_file_identity_hash
     {
         return Err(WorkspaceError::StalePreimage);
     }
-    let temp = write_temp_sibling(&parent, content)?;
-    if let Err(error) = fs::rename(&temp, &target) {
+    after_validation(&target, &parent)?;
+    apply_verified_replace(&mut verified, &target, &parent, content)?;
+    drop(verified.file);
+    flush_directory(&parent)
+}
+
+#[cfg(windows)]
+fn apply_verified_replace(
+    verified: &mut VerifiedFile,
+    _target: &Path,
+    _parent: &Path,
+    content: &str,
+) -> Result<(), WorkspaceError> {
+    rewrite_verified_file(verified, content)
+}
+
+/// Residual security blocker on non-Windows hosts: the effect is still applied
+/// by name, so the verified object can be substituted between the check and the
+/// rename. The identity-bound equivalents there are `renameat`/`unlinkat`
+/// against an `O_PATH` parent descriptor, which this crate does not yet carry.
+/// Windows is the only supported governed-mutation host (ADR-0002).
+#[cfg(not(windows))]
+fn apply_verified_replace(
+    _verified: &mut VerifiedFile,
+    target: &Path,
+    parent: &Path,
+    content: &str,
+) -> Result<(), WorkspaceError> {
+    let temp = write_temp_sibling(parent, content)?;
+    if let Err(error) = fs::rename(&temp, target) {
         let _ = fs::remove_file(&temp);
         return Err(WorkspaceError::Io(error));
     }
-    drop(verified.file);
-    flush_directory(&parent)
+    Ok(())
+}
+
+/// Opens a governed file for mutation with a handle that both proves the
+/// preimage and receives the effect.
+#[cfg(windows)]
+fn open_verified_file_for_mutation(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
+    open_welded_verified_file(path)
+}
+
+#[cfg(not(windows))]
+fn open_verified_file_for_mutation(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
+    open_verified_file(path)
+}
+
+#[cfg(all(test, windows))]
+fn replace_utf8_with_seam(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    content: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    replace_utf8_verified(
+        grant,
+        relative_path,
+        expected_content_hash,
+        expected_file_identity_hash,
+        content,
+        after_validation,
+    )
 }
 
 #[cfg(all(test, windows))]
@@ -874,6 +1011,25 @@ fn delete_for_grant(
     expected_content_hash: &str,
     expected_file_identity_hash: &str,
 ) -> Result<(), WorkspaceError> {
+    delete_verified(
+        grant,
+        relative_path,
+        expected_content_hash,
+        expected_file_identity_hash,
+        |_, _| Ok(()),
+    )
+}
+
+/// Deletes one governed file, binding the effect to the object proved by the
+/// preimage check rather than to the name that object happened to have. See
+/// [`replace_utf8_verified`] for why the welded handle closes the window.
+fn delete_verified(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
     let normalized = validate_effect_path(relative_path)?;
     if !is_sha256(expected_content_hash) || !is_sha256(expected_file_identity_hash) {
         return Err(WorkspaceError::StalePreimage);
@@ -883,15 +1039,47 @@ fn delete_for_grant(
         .parent()
         .ok_or(WorkspaceError::InvalidRelativePath)?
         .to_path_buf();
-    let verified = open_verified_file(&target)?;
+    let verified = open_verified_file_for_mutation(&target)?;
     if verified.content_hash != expected_content_hash
         || verified.file_identity_hash != expected_file_identity_hash
     {
         return Err(WorkspaceError::StalePreimage);
     }
-    fs::remove_file(&target)?;
+    after_validation(&target, &parent)?;
+    apply_verified_delete(&verified, &target)?;
+    // The disposition takes effect when the last handle closes, so the entry is
+    // still present until this drop.
     drop(verified.file);
     flush_directory(&parent)
+}
+
+#[cfg(windows)]
+fn apply_verified_delete(verified: &VerifiedFile, _target: &Path) -> Result<(), WorkspaceError> {
+    delete_verified_file(verified)
+}
+
+/// Residual security blocker on non-Windows hosts; see [`apply_verified_replace`].
+#[cfg(not(windows))]
+fn apply_verified_delete(_verified: &VerifiedFile, target: &Path) -> Result<(), WorkspaceError> {
+    fs::remove_file(target)?;
+    Ok(())
+}
+
+#[cfg(all(test, windows))]
+fn delete_with_seam(
+    grant: &WorkspaceGrant,
+    relative_path: &str,
+    expected_content_hash: &str,
+    expected_file_identity_hash: &str,
+    after_validation: impl FnOnce(&Path, &Path) -> Result<(), WorkspaceError>,
+) -> Result<(), WorkspaceError> {
+    delete_verified(
+        grant,
+        relative_path,
+        expected_content_hash,
+        expected_file_identity_hash,
+        after_validation,
+    )
 }
 
 #[cfg(all(test, windows))]
@@ -951,6 +1139,7 @@ fn validate_governed_content(content: &str) -> Result<(), WorkspaceError> {
     Ok(())
 }
 
+#[cfg(not(windows))]
 fn write_temp_sibling(parent: &Path, content: &str) -> Result<PathBuf, WorkspaceError> {
     let temp = parent.join(format!(".sapphirus.tmp.{}", Ulid::new()));
     let result = OpenOptions::new()
@@ -970,6 +1159,14 @@ fn write_temp_sibling(parent: &Path, content: &str) -> Result<PathBuf, Workspace
     }
 }
 
+/// Opens one governed file for observation only.
+///
+/// This handle grants `FILE_SHARE_DELETE`, so the directory entry it was
+/// reached through may be renamed, unlinked, or replaced while the handle is
+/// still open. That is fine for a read, whose result is the bytes already in
+/// hand, but it means a preimage proved through this handle says nothing about
+/// what the path resolves to a moment later. Mutations must use
+/// [`open_verified_file_for_mutation`] instead.
 #[cfg(windows)]
 fn open_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
     use std::fs::OpenOptions;
@@ -1026,8 +1223,15 @@ fn open_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
     })
 }
 
+/// Opens one governed file so the returned handle can carry both the preimage
+/// proof and the effect.
+///
+/// Denying `FILE_SHARE_DELETE` welds the directory entry to this exact file
+/// object: while the handle lives, no other opener can rename it away, unlink
+/// it, write it, or rename another file over it. `DELETE` access is what lets
+/// the effect be applied through the handle instead of through the name.
 #[cfg(windows)]
-fn open_recovery_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
+fn open_welded_verified_file(path: &Path) -> Result<VerifiedFile, WorkspaceError> {
     use std::os::windows::fs::OpenOptionsExt;
     use windows::Win32::Foundation::{GENERIC_READ, GENERIC_WRITE};
     use windows::Win32::Storage::FileSystem::{
@@ -1517,6 +1721,136 @@ mod tests {
         let result =
             broker.create_utf8_durable(&workspace_id, epoch, edit_epoch, "late.txt", "content");
         assert!(matches!(result, Err(WorkspaceError::GrantUnavailable)));
+        Ok(())
+    }
+
+    /// The ordinary replace path must apply to the object it verified, not to
+    /// whatever the name resolves to after the check.
+    ///
+    /// The seam runs in the check-to-apply window and mounts the exact attack
+    /// from the report: move the verified file aside, then drop an unverified
+    /// file at the name. `displaced` existing afterwards means the verified
+    /// object was successfully swapped out from under the effect.
+    #[cfg(windows)]
+    #[test]
+    fn replace_rejects_target_substitution_after_verification(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "main.rs")?;
+        let content_hash = before.content_hash.ok_or("missing content hash")?;
+        let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
+        let displaced = dir.path().join("main.displaced.rs");
+        let substitution = std::cell::RefCell::new(String::new());
+
+        let result =
+            broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
+                super::replace_utf8_with_seam(
+                    &transaction.grant,
+                    "main.rs",
+                    &content_hash,
+                    &identity_hash,
+                    "fn main() { governed(); }\n",
+                    |target, _parent| {
+                        substitution.replace(format!(
+                            "rename={:?} write={:?}",
+                            fs::rename(target, &displaced).map_err(|error| error.to_string()),
+                            fs::write(target, "attacker\n").map_err(|error| error.to_string()),
+                        ));
+                        Ok(())
+                    },
+                )
+            })?;
+
+        assert!(result.is_ok(), "governed replace failed: {result:?}");
+        assert!(
+            !displaced.exists(),
+            "the verified object was displaced during the effect window: {}",
+            substitution.borrow()
+        );
+        assert_eq!(
+            fs::read(dir.path().join("main.rs"))?,
+            b"fn main() { governed(); }\n",
+            "substitution outcome: {}",
+            substitution.borrow()
+        );
+        Ok(())
+    }
+
+    /// The ordinary delete path must remove the object it verified, not
+    /// whatever the name resolves to after the check.
+    ///
+    /// Under a path-form delete the seam wins twice: the unverified file it
+    /// planted is destroyed, and the verified file survives under `displaced`.
+    #[cfg(windows)]
+    #[test]
+    fn delete_rejects_target_substitution_after_verification(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let (dir, broker, workspace_id, epoch, edit_epoch) = governed_fixture()?;
+        let before = broker.observe_preimage(&workspace_id, epoch, edit_epoch, "src/lib.rs")?;
+        let content_hash = before.content_hash.ok_or("missing content hash")?;
+        let identity_hash = before.file_identity_hash.ok_or("missing identity hash")?;
+        let displaced = dir.path().join("src").join("lib.displaced.rs");
+        let substitution = std::cell::RefCell::new(String::new());
+
+        let result =
+            broker.with_governed_recovery(&workspace_id, epoch, edit_epoch, |transaction| {
+                super::delete_with_seam(
+                    &transaction.grant,
+                    "src/lib.rs",
+                    &content_hash,
+                    &identity_hash,
+                    |target, _parent| {
+                        substitution.replace(format!(
+                            "rename={:?} write={:?}",
+                            fs::rename(target, &displaced).map_err(|error| error.to_string()),
+                            fs::write(target, "attacker\n").map_err(|error| error.to_string()),
+                        ));
+                        Ok(())
+                    },
+                )
+            })?;
+
+        assert!(result.is_ok(), "governed delete failed: {result:?}");
+        assert!(
+            !displaced.exists(),
+            "the verified object survived the delete under another name: {}",
+            substitution.borrow()
+        );
+        assert!(
+            !dir.path().join("src").join("lib.rs").exists(),
+            "substitution outcome: {}",
+            substitution.borrow()
+        );
+        Ok(())
+    }
+
+    /// The weld is the mechanism the two tests above depend on, so assert it
+    /// directly: while a governed mutation holds the verified handle, the
+    /// directory entry cannot be renamed, unlinked, or overwritten at all.
+    #[cfg(windows)]
+    #[test]
+    fn mutation_handle_welds_the_directory_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("welded.txt");
+        fs::write(&target, "governed\n")?;
+        let other = dir.path().join("other.txt");
+        fs::write(&other, "attacker\n")?;
+
+        let verified = super::open_verified_file_for_mutation(&target)?;
+        let rename = fs::rename(&target, dir.path().join("moved.txt"));
+        let remove = fs::remove_file(&target);
+        let write = fs::write(&target, "attacker\n");
+        let rename_over = fs::rename(&other, &target);
+        drop(verified.file);
+
+        assert!(rename.is_err(), "external rename of the verified entry");
+        assert!(remove.is_err(), "external unlink of the verified entry");
+        assert!(write.is_err(), "external write to the verified entry");
+        assert!(
+            rename_over.is_err(),
+            "external rename over the verified entry"
+        );
+        assert_eq!(fs::read(&target)?, b"governed\n");
         Ok(())
     }
 
