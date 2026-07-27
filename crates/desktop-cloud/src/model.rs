@@ -27,7 +27,24 @@ pub struct AuthorizedContextItem {
     pub relative_label: RelativeWorkspacePath,
     pub semantic_role: String,
     pub language: Option<String>,
+    /// Hash of `content`: the exact bytes that leave the machine. This is the
+    /// egress-accounting hash — the manifest, the consent decision, and the
+    /// support-plane projection all bind these bytes, so it must keep matching
+    /// `content` and nothing else.
     pub content_hash: Sha256Digest,
+    /// Hash of the workspace file as it was read, before redaction.
+    ///
+    /// Redaction rewrites the bytes the model sees, so `content_hash` is a hash
+    /// of something that exists nowhere on disk. Any answer the model gives
+    /// about *the file* — most concretely the `preimageSha256` of a governed
+    /// replace or delete, which the host re-checks against freshly read bytes —
+    /// has to be anchored to the on-disk hash instead. Carrying both keeps
+    /// egress accounting and workspace identity from being the same number.
+    ///
+    /// Attested upstream: the manifest's `original_content_hash` is covered by
+    /// the item's preparation attestation and by `manifest_hash`, and the copy
+    /// here is covered by `request_hash`.
+    pub original_content_hash: Sha256Digest,
     pub byte_count: u64,
     pub token_estimate: u64,
     pub classification: ContextClassification,
@@ -153,6 +170,7 @@ impl AuthorizedModelRequest {
                 semantic_role: item.semantic_role.clone(),
                 language: item.language.clone(),
                 content_hash: item.outbound_content_hash,
+                original_content_hash: item.original_content_hash,
                 byte_count: item.outbound_byte_count,
                 token_estimate: item.token_estimate,
                 classification: item.classification,
@@ -760,6 +778,13 @@ fn validate_request_draft(draft: &AuthorizedModelRequestDraft) -> Result<(), Clo
         if byte_count != item.byte_count
             || sha256_bytes(item.content.as_bytes()) != item.content_hash
         {
+            return Err(CloudError::ContextDrift);
+        }
+        // Nothing but redaction may separate the outbound bytes from the file
+        // they came from. An item that reports no redactions and two different
+        // hashes is a preparation bug, and the hash the model would anchor a
+        // preimage to is the one that would be wrong.
+        if item.redactions.is_empty() && item.original_content_hash != item.content_hash {
             return Err(CloudError::ContextDrift);
         }
         total_bytes = total_bytes

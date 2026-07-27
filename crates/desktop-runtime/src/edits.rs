@@ -141,7 +141,7 @@ impl ChangesReviewProjection {
 pub enum EditsError {
     #[error("a proposal must contain at least one file change")]
     EmptyProposal,
-    #[error("the proposal exceeds the governed changed-file limit")]
+    #[error("a proposal may change at most {HARD_MAX_CHANGED_FILES} files")]
     TooManyChanges,
     #[error("the proposal names the same path more than once")]
     DuplicatePath,

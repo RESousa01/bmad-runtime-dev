@@ -300,12 +300,43 @@ fn redact_private_key_blocks(value: &mut String) -> u32 {
     count
 }
 
+/// Bytes a credential can be built from, and therefore the bytes that cannot
+/// separate one from the word in front of it.
+const fn is_token_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-')
+}
+
+/// True when `start` begins a word rather than continuing one.
+///
+/// Without this, `find(prefix)` matches mid-word: `risk-assessment` contains
+/// `sk-` at offset two, the scan then eats `assessment`, and a thirteen-byte
+/// span clears the minimum length. Ordinary prose came back as
+/// `ri[REDACTED:openai_token]` — the subject of the document deleted before it
+/// reached the model, plus a fabricated `openai_token` finding on the consent
+/// surface, which teaches reviewers to wave through the one signal the
+/// disclosure asks them to weigh.
+///
+/// The check costs nothing in real detection: a credential in a file is
+/// preceded by start-of-input, whitespace, `=`, `:`, a quote, or a path
+/// separator, and every one of those is a boundary. A multi-byte character in
+/// front leaves a continuation byte here, which is not a token byte, so it
+/// reads as a boundary too.
+fn starts_at_token_boundary(value: &str, start: usize) -> bool {
+    start
+        .checked_sub(1)
+        .is_none_or(|previous| !is_token_byte(value.as_bytes()[previous]))
+}
+
 fn redact_prefixed_tokens(
     value: &mut String,
     prefix: &str,
     kind: &'static str,
     minimum_bytes: usize,
 ) -> u32 {
+    debug_assert!(
+        prefix.bytes().all(is_token_byte),
+        "a prefix built from non-token bytes would break the skip below"
+    );
     let replacement = format!("[REDACTED:{kind}]");
     let mut count = 0_u32;
     let mut cursor = 0_usize;
@@ -313,13 +344,17 @@ fn redact_prefixed_tokens(
         let start = cursor + relative_start;
         let mut end = start + prefix.len();
         for byte in value.as_bytes()[end..].iter().copied() {
-            if byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-') {
+            if is_token_byte(byte) {
                 end += 1;
             } else {
                 break;
             }
         }
-        if end - start < minimum_bytes {
+        if !starts_at_token_boundary(value, start) || end - start < minimum_bytes {
+            // Everything in `start..end` is a token byte, so any further
+            // occurrence inside this span is mid-word too and would fail the
+            // same boundary check. Skipping the span keeps the walk linear
+            // without hiding a candidate.
             cursor = end;
             continue;
         }

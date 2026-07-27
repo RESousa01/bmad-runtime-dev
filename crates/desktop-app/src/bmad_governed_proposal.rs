@@ -6,6 +6,16 @@
 //! compared before any proposal exists. The output of this module feeds
 //! the existing `changes.propose` review path unchanged — model origin
 //! grants nothing.
+//!
+//! The comparison is against live on-disk bytes, and it must stay that way:
+//! comparing against anything the model was shown would make the tripwire
+//! agree with itself. What the model echoes is the *pre-redaction* hash of
+//! the workspace file (`AuthorizedContextItem::original_content_hash`,
+//! printed as `reviewedContentHash`), which is exactly what a fresh read of
+//! an unchanged file produces. Feeding the model the post-redaction hash
+//! instead — as this path once did — made every replace or delete against a
+//! file containing a redactable pattern fail here permanently, under a
+//! message claiming the workspace had moved when nothing had.
 
 use desktop_runtime::{
     deserialize_strict_json, sha256_bytes, BmadCandidateChange, BmadCapabilityOutput, LocalError,

@@ -144,6 +144,64 @@ fn preparation_redacts_prefixed_tokens_without_retaining_the_secret() {
 }
 
 #[test]
+fn preparation_leaves_ordinary_prose_that_merely_contains_a_prefix_untouched() {
+    // Every one of these carries `sk-` or `ghp_` inside a longer word. A
+    // scanner that matches without a left word boundary deletes the subject
+    // of the sentence and reports a false secret finding on the consent
+    // surface, which is worse than the redaction itself.
+    let source = "risk-assessment, task-management, disk-encryption, risk-register, \
+desk-checking, and the ask-response-log for high-ghp_relevance-scoring.";
+    let manifest = ContextPreparer::new(PatternSecretScanner)
+        .prepare(fixture_input(vec![candidate("prd.md", source)]))
+        .expect("prose manifest");
+
+    let item = &manifest.draft.items[0];
+    assert_eq!(
+        item.outbound_content, source,
+        "ordinary prose was rewritten"
+    );
+    assert_eq!(item.outbound_content_hash, item.original_content_hash);
+    assert!(item.redactions.is_empty(), "{:?}", item.redactions);
+    assert!(
+        manifest.draft.secret_findings.is_empty(),
+        "{:?}",
+        manifest.draft.secret_findings
+    );
+}
+
+#[test]
+fn preparation_still_redacts_real_prefixed_tokens_at_every_word_boundary() {
+    let openai = concat!("sk-", "proj-abcdefghijklmnopqrstuvwxyz0123456789");
+    let github = concat!("ghp_", "abcdefghijklmnopqrstuvwxyz0123456789");
+    // Start of input, after an assignment, after a quote, and after a slash:
+    // the four ways a real credential actually shows up in a file.
+    let source =
+        format!("{openai} OPENAI_KEY={openai}\n\"{github}\" https://x:{github}@example.invalid\n");
+    let manifest = ContextPreparer::new(PatternSecretScanner)
+        .prepare(fixture_input(vec![candidate("notes.txt", &source)]))
+        .expect("redacted manifest");
+
+    let item = &manifest.draft.items[0];
+    assert!(!item.outbound_content.contains(openai));
+    assert!(!item.outbound_content.contains(github));
+    let serialized = serde_json::to_string(&manifest.review_projection()).expect("projection json");
+    assert!(!serialized.contains(openai));
+    assert!(!serialized.contains(github));
+    let openai_finding = item
+        .redactions
+        .iter()
+        .find(|redaction| redaction.kind == "openai_token")
+        .expect("openai finding");
+    assert_eq!(openai_finding.occurrence_count, 2);
+    let github_finding = item
+        .redactions
+        .iter()
+        .find(|redaction| redaction.kind == "github_token")
+        .expect("github finding");
+    assert_eq!(github_finding.occurrence_count, 2);
+}
+
+#[test]
 fn preparation_enforces_the_outbound_byte_budget_after_redaction() {
     let mut input = fixture_input(vec![candidate("notes.txt", "12345")]);
     input.limits.maximum_context_bytes = 4;

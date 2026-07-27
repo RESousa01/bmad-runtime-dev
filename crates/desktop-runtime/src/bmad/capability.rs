@@ -8,7 +8,7 @@
 //! declared output schema is rejected before it is ever stored.
 
 use crate::bmad::memlog::MemlogEntryKind;
-use crate::{ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis};
+use crate::{ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES};
 
 pub const BMAD_CAPABILITY_RUN_SCHEMA: &str = "sapphirus.bmad-capability-run.v1";
 pub const BMAD_DOCUMENT_ARTIFACT_SCHEMA: &str = "sapphirus.bmad-document-artifact.v1";
@@ -26,7 +26,19 @@ const LOG_ENTRY_LIMIT: usize = 128;
 const LOG_TEXT_LIMIT: usize = 4_096;
 const MERMAID_LIMIT: usize = 16_384;
 const SUMMARY_LIMIT: usize = 4_096;
-const CHANGE_LIMIT: usize = 128;
+/// A governed change set exists to become a D3 proposal, and D3 refuses more
+/// than [`HARD_MAX_CHANGED_FILES`] files in one patch — a ceiling the airlock,
+/// the execution model, and the IPC envelope all enforce independently.
+///
+/// Accepting more here never raised that ceiling. It only moved the refusal
+/// past the model call, past storage, and past verification, to
+/// `build_changes_candidate`, where it arrived as a generic bounds error on
+/// work the user had already paid for. `bmad-shard-doc`, whose whole job is
+/// splitting one document into many files, is the capability that lived on the
+/// wrong side of that gap. The two constants are now one constant; the model
+/// is told the number up front (see the governed-change-set instructions in
+/// `desktop-cloud`), and a set that exceeds it dies at archetype parse.
+const CHANGE_LIMIT: usize = HARD_MAX_CHANGED_FILES as usize;
 const CONTENT_LIMIT: usize = 262_144;
 const FILE_LIMIT: usize = 64;
 const REVISION_NOTE_LIMIT: usize = 2_048;

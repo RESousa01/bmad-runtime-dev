@@ -5,7 +5,7 @@ use desktop_runtime::{
     BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCapabilityRun, BmadCapabilityRunError, BmadCapabilityRunParams, BmadClosureCapabilityId,
     BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA, HARD_MAX_CHANGED_FILES,
 };
 use desktop_runtime::{ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis};
 
@@ -151,6 +151,40 @@ fn document_artifacts_enforce_reviewed_bounds() {
         )
         .unwrap_err(),
         BmadCapabilityRunError::BoundsViolation
+    );
+}
+
+/// The archetype's ceiling and the D3 patch ceiling have to be one number.
+/// While they were 128 and 20, a change set of 21 was accepted, stored,
+/// verified, and only then refused by `build_changes_candidate` — after the
+/// model call it was built from had already been paid for.
+#[test]
+fn change_set_size_agrees_with_the_governed_patch_ceiling() {
+    let changes = |count: u32| {
+        (0..count)
+            .map(|index| BmadCandidateChange::Create {
+                path: RelativeWorkspacePath::new(format!("docs/shard-{index}.md"))
+                    .expect("relative path"),
+                content: "# Shard\n".to_owned(),
+            })
+            .collect::<Vec<_>>()
+    };
+
+    let at_ceiling = BmadGovernedChangeSet::new(
+        "Shard the document.".to_owned(),
+        changes(HARD_MAX_CHANGED_FILES),
+    )
+    .expect("a change set at the governed ceiling must be constructible");
+    assert_eq!(at_ceiling.changes.len(), HARD_MAX_CHANGED_FILES as usize);
+
+    assert_eq!(
+        BmadGovernedChangeSet::new(
+            "Shard the document.".to_owned(),
+            changes(HARD_MAX_CHANGED_FILES + 1),
+        )
+        .unwrap_err(),
+        BmadCapabilityRunError::BoundsViolation,
+        "a change set the D3 patch path cannot apply must be refused at archetype parse"
     );
 }
 
