@@ -2197,6 +2197,47 @@ describe("DesktopHostClient", () => {
     })).toThrow(HostProtocolError);
   });
 
+  it("accepts a workspace label the host can persist, ZWJ emoji included", () => {
+    // Regression guard for an unrecoverable boot brick. The host validates
+    // names with `char::is_control` — Cc only — and takes a workspace label
+    // verbatim from the chosen folder's `file_name()`, so a folder called
+    // "👨‍💻 platform" is accepted and written to disk. The renderer used to
+    // reject the whole `\p{C}` group, which also covers the ZWJ (U+200D) and
+    // the variation selectors ordinary emoji are assembled from, so bootstrap
+    // threw on every launch afterwards. Because bootstrap is the reply the
+    // whole session hangs off, that disabled the app permanently and reported
+    // it as host tampering. Anything the host can persist must parse here.
+    const emojiLabel = "👨‍💻 platform";
+    expect(emojiLabel).toContain("\u200d");
+
+    const reply = parseBootstrapReply({
+      ...readyBootstrap,
+      workspaces: [{ ...readyBootstrap.workspaces[0], displayName: emojiLabel }],
+    });
+
+    expect(reply.workspaces[0]?.displayName).toBe(emojiLabel);
+  });
+
+  it("still rejects labels that can visually disguise themselves", () => {
+    // The narrowing above is not a free-for-all. A label is rendered next to a
+    // path in the workspace list, so the bidi and isolate controls that can
+    // reorder what is shown stay refused, as do lone surrogates — which used to
+    // be covered incidentally by `\p{C}` matching the Cs group.
+    const disguised = [
+      "\u202eplatform",
+      "plat\u2066form",
+      "plat\u200fform",
+      "plat\u061cform",
+      `lone${String.fromCharCode(0xd800)}`,
+    ];
+    for (const displayName of disguised) {
+      expect(() => parseBootstrapReply({
+        ...readyBootstrap,
+        workspaces: [{ ...readyBootstrap.workspaces[0], displayName }],
+      })).toThrow(HostProtocolError);
+    }
+  });
+
   it("rejects path-bearing errors and non-advancing projection events", async () => {
     const rootedMessages = [
       "Failed at C:\\private\\source",

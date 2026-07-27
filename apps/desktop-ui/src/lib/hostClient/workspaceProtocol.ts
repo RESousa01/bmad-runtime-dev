@@ -12,7 +12,6 @@ import {
   desktopHostCommands,
   DISPATCH_REPLY_SCHEMA,
   HostCommandError,
-  HostProtocolError,
   type LocalHostError,
   type WorkspaceEntriesProjection,
   type WorkspaceEntryKind,
@@ -69,33 +68,6 @@ export function parseWorkspace(value: unknown): WorkspaceProjection {
   };
 }
 
-/// Bootstrap-only tolerant decode of one workspace row.
-///
-/// Bootstrap is the reply the whole session hangs off: `initializeHostRuntime`
-/// catches any throw from it and lands on `unavailable`, and
-/// `getDefaultHostRuntime` memoises that promise, so one unparseable row used
-/// to disable local actions for the rest of the process — and, because the row
-/// is persisted, for every launch after it, under a message that wrongly
-/// blamed host tampering.
-///
-/// A row this renderer cannot represent is dropped instead. The surviving rows
-/// are still validated in full and still have to be uniquely identified, so
-/// nothing weaker than `parseWorkspace` reaches the UI; the user sees one
-/// workspace missing from the list and can re-open it, rather than a host that
-/// refuses to work at all. Every other reply keeps the strict behaviour: a
-/// revocation or a selection that cannot be parsed is a real protocol failure
-/// and must still fail closed.
-function parseBootstrapWorkspace(value: unknown): WorkspaceProjection | null {
-  try {
-    return parseWorkspace(value);
-  } catch (error: unknown) {
-    if (error instanceof HostProtocolError) {
-      return null;
-    }
-    throw error;
-  }
-}
-
 export function parseSupportedCommands(value: unknown): DesktopHostCommand[] {
   if (!Array.isArray(value) || value.length > desktopHostCommands.length) {
     return fail();
@@ -133,9 +105,19 @@ export function parseBootstrapReply(value: unknown): BootstrapReply {
   ) {
     return fail();
   }
-  const workspaces = reply.workspaces
-    .map(parseBootstrapWorkspace)
-    .filter((workspace): workspace is WorkspaceProjection => workspace !== null);
+  // Every row is parsed strictly, bootstrap included. Dropping rows the
+  // renderer cannot represent was tried and reverted: it turns a malformed host
+  // reply into silent, invisible data loss, and it discards exactly the signal
+  // `asSafeDisplayName` exists to raise — a path-shaped or bidi-spoofed label is
+  // something the host cannot legitimately produce (a display name is derived
+  // from a folder's `file_name()`, which on Windows cannot contain `\`, `/` or
+  // `:`), so seeing one means the reply is not trustworthy and the session must
+  // fail closed rather than continue with a quietly shortened workspace list.
+  //
+  // The ZWJ-emoji boot brick this was meant to solve is fixed at its root in
+  // `validation.ts` instead: the renderer's character rejection now matches the
+  // host's `char::is_control`, so anything the host can persist parses here.
+  const workspaces = reply.workspaces.map(parseWorkspace);
   if (
     new Set(workspaces.map(({ workspaceId }) => workspaceId)).size !==
     workspaces.length

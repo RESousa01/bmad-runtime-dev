@@ -5,7 +5,6 @@ import {
   Pencil,
   Send,
   ShieldAlert,
-  Square,
   Terminal,
   Trash2,
   X,
@@ -69,11 +68,6 @@ export interface TaskWorkspaceProps {
   onDraftChange?: ((draft: string) => void) | undefined;
   onOpenWorkspaceManager?: (() => void) | undefined;
   onSendRequest: (intent: string) => Promise<void>;
-  /// Abandons the turn currently in flight. The host still finishes the
-  /// request it was given — this is a client-side abandon — but the reply is
-  /// dropped rather than appended and the composer is released, so a send that
-  /// never resolves cannot leave the task unable to take another message.
-  onAbandonTurn?: (() => void) | undefined;
   /// Renames this task. A name typed here is never overwritten by the
   /// automatic title derived from the first message.
   onRenameTask?: ((title: string) => void) | undefined;
@@ -276,7 +270,6 @@ export function TaskWorkspace({
   onDraftChange,
   onOpenWorkspaceManager,
   onSendRequest,
-  onAbandonTurn,
   onRenameTask,
   onCloseTask,
   onDeleteTask,
@@ -725,35 +718,29 @@ export function TaskWorkspace({
               : undefined}
           />
           <div className="composer__right">
-            {chatLane.sending && onAbandonTurn ? (
-              // While a turn is in flight the submit control is inert anyway,
-              // so this is the only thing the user could press. Stopping is
-              // client-side: the host finishes the request it was handed, but
-              // its reply is superseded rather than appended.
-              <Button
-                aria-label="Stop this message"
-                className="composer__submit"
-                onPress={onAbandonTurn}
-                size="icon"
-                title="Stop this message"
-                type="button"
-                variant="secondary"
-              >
-                <Square aria-hidden="true" size={16} />
-              </Button>
-            ) : (
-              <Button
-                aria-label={methodGuidanceView ? "Send message" : "Send task"}
-                className="composer__submit"
-                isDisabled={submitDisabled || !draft.trim()}
-                size="icon"
-                title={methodGuidanceView ? "Send message" : "Send task"}
-                type="submit"
-                variant="primary"
-              >
-                <Send aria-hidden="true" size={16} />
-              </Button>
-            )}
+            {/*
+              The submit control stays mounted and goes disabled while a turn is
+              in flight; it is never swapped for a different action.
+
+              An in-place swap to a "Stop" control was tried and reverted. React
+              reconciles both branches of a ternary to the same <button> node, so
+              the second click of a double-click landed on whatever replaced the
+              send button — abandoning the very turn the first click started, and
+              dropping the host's reply. That is the same lost-message failure
+              `sendChatMessage`'s `sending` guard exists to prevent, so an abandon
+              affordance must not occupy the submit slot.
+            */}
+            <Button
+              aria-label={methodGuidanceView ? "Send message" : "Send task"}
+              className="composer__submit"
+              isDisabled={submitDisabled || !draft.trim()}
+              size="icon"
+              title={methodGuidanceView ? "Send message" : "Send task"}
+              type="submit"
+              variant="primary"
+            >
+              <Send aria-hidden="true" size={16} />
+            </Button>
           </div>
         </div>
         <p

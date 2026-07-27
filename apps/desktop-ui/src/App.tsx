@@ -3251,7 +3251,6 @@ export function App({
               }}
               onSuggestContext={suggestContext}
               onSendRequest={sendChatMessage}
-              onAbandonTurn={chatSessions.supersedeActive}
               chatLane={chatLane}
               onAskMethodGuidance={sendBmadMessage}
               onSelectAgent={(agentCode) => {

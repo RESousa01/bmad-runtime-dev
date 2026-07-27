@@ -114,6 +114,16 @@ export function hasUnpairedSurrogate(value: string): boolean {
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index);
     if (code >= 0xd800 && code <= 0xdbff) {
+      // A high surrogate as the final code unit is unpaired. It has to be
+      // tested before reading the next one: `charCodeAt` past the end yields
+      // NaN, every NaN comparison is false, and the pair check below therefore
+      // used to accept it as if a low surrogate followed. This is the commonest
+      // way a string arrives truncated mid-character, and it stopped being
+      // caught elsewhere when the name and path validators narrowed from
+      // `\p{C}` — which matched the whole surrogate group — to `\p{Cc}`.
+      if (index + 1 >= value.length) {
+        return true;
+      }
       const next = value.charCodeAt(index + 1);
       if (next < 0xdc00 || next > 0xdfff) {
         return true;

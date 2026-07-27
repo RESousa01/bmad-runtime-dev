@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   appendDispatchExchange,
   bumpGeneration,
+  clearAllLanes,
   dropLane,
   emptyChatLane,
   emptyChatSessionStore,
@@ -73,6 +74,44 @@ describe("chat session store", () => {
     expect(routing.generation).toBe(0);
 
     store = dropLane(store, "task-a");
+
+    expect(routingIsCurrent(store, routing)).toBe(false);
+  });
+
+  it("drops replies still in flight when every transcript is cleared", () => {
+    // The cross-workspace leak this guards. `clearAllLanes` runs on a workspace
+    // revocation or a host rebind, and a task's *first* send captures
+    // generation 0. Returning an empty store looked equivalent — the lanes are
+    // gone either way — but it reset every generation to 0 as well, so a token
+    // captured before the revocation still passed `routingIsCurrent`, and a
+    // reply computed against the revoked workspace was appended to the
+    // transcript of the workspace that replaced it.
+    let store = emptyChatSessionStore;
+    store = setLane(store, "task-a", {
+      ...emptyChatLane,
+      sending: true,
+      pending: "against the old workspace",
+    });
+    const firstSend = { sessionId: "task-a", generation: generationForSession(store, "task-a") };
+    expect(firstSend.generation).toBe(0);
+
+    store = clearAllLanes(store);
+
+    expect(store.lanes.size).toBe(0);
+    expect(routingIsCurrent(store, firstSend)).toBe(false);
+  });
+
+  it("keeps supersededing a task whose lane was already evicted", () => {
+    // A task can be known only by its generation: `setLane` evicts old lanes
+    // while their sends are still in flight. Clearing must advance those too,
+    // or the eviction itself would re-open the routing hole.
+    let store = emptyChatSessionStore;
+    store = bumpGeneration(store, "evicted-task");
+    const routing = { sessionId: "evicted-task", generation: 1 };
+    expect(store.lanes.has("evicted-task")).toBe(false);
+    expect(routingIsCurrent(store, routing)).toBe(true);
+
+    store = clearAllLanes(store);
 
     expect(routingIsCurrent(store, routing)).toBe(false);
   });
