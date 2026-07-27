@@ -17,7 +17,7 @@
 //! directive; the provenance fence around reviewed context does the rest.
 
 use desktop_tools::{default_rules, evaluate, GrantedRules, PermissionAction};
-use desktop_workspace::{GrepRequest, WorkspaceBroker, WorkspaceError};
+use desktop_workspace::{EntryKind, GrepRequest, WorkspaceBroker, WorkspaceError};
 
 /// The tools a chat turn may ask for in this phase.
 ///
@@ -110,9 +110,20 @@ pub(crate) fn run_tool(
             }
         }
         "list" => {
+            // `list_entries` TAGS a sensitive entry `Blocked` rather than
+            // omitting it, because its other caller renders a greyed-out row
+            // for a human. A model is not a human looking at a file manager:
+            // handing it the *name* `.env` or `.ssh/id_rsa` is the disclosure,
+            // and that name then re-enters reviewed context on every later
+            // iteration of the loop.
+            //
+            // `read`, `glob` and `grep` are safe because the broker excludes
+            // these structurally. `list` is the one tool where the caller has to
+            // do it, which is exactly why it was missed.
             let mut rows: Vec<String> = broker
                 .list_entries(workspace_id, subject, MAX_TOOL_RESULT_ROWS)?
                 .iter()
+                .filter(|entry| entry.kind != EntryKind::Blocked)
                 .map(|entry| entry.relative_path.clone())
                 .collect();
             rows.sort();
@@ -248,6 +259,20 @@ mod tests {
 
         let grepped = run_tool(&broker, &granted, &id, "grep", "sentinel").expect("grep");
         assert_eq!(grepped, "(no matches)");
+
+        // `list` is the tool that leaked: the broker tags a sensitive entry
+        // `Blocked` but still returns it, so the caller must filter. Naming a
+        // secret file to the model is the disclosure, even without its contents.
+        let listed = run_tool(&broker, &granted, &id, "list", ".").expect("list");
+        assert!(
+            !listed.contains(".env"),
+            "list leaked a secret name: {listed}"
+        );
+        // Not vacuous: ordinary entries are still listed.
+        assert!(
+            listed.contains("README.md"),
+            "list returned nothing: {listed}"
+        );
     }
 
     #[test]
