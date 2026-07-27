@@ -1611,8 +1611,7 @@ describe("Forge desktop workbench", () => {
     await enterFirstTask();
     await readyMethodGuidanceComposer();
 
-    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
-    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    await user.click(screen.getByRole("button", { name: "Add file" }));
     await waitFor(() => {
       expect(dispatchedCommandNames(invoke)).toContain("context.preview");
     });
@@ -1648,8 +1647,7 @@ describe("Forge desktop workbench", () => {
     await enterFirstTask();
     await readyMethodGuidanceComposer();
 
-    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
-    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    await user.click(screen.getByRole("button", { name: "Add file" }));
     await waitFor(() => {
       expect(dispatchedCommandNames(invoke)).toContain("context.preview");
     });
@@ -1782,7 +1780,7 @@ describe("Forge desktop workbench", () => {
     expect(screen.queryByText("Refactor config loader")).toBeNull();
     expect(screen.queryByText("Demo response")).toBeNull();
     expect(screen.queryByRole("button", { name: "Review changes" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Review" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run details" })).toBeTruthy();
     // Governed edits stay fail-closed without a real reviewed proposal.
@@ -1942,7 +1940,7 @@ describe("Forge desktop workbench", () => {
     expect(screen.queryByRole("heading", { name: "Files" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();
     expect(screen.getByText("README.md")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/[A-Z]:\\/);
   });
 
@@ -3253,7 +3251,7 @@ describe("Forge desktop workbench", () => {
     });
     expect(screen.getAllByText("Local host ready").length).toBeGreaterThan(0);
     expect(screen.queryByText("Read-only recovery")).toBeNull();
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
   });
 
   it("ignores a stale projection poll that completes after renderer rebind", async () => {

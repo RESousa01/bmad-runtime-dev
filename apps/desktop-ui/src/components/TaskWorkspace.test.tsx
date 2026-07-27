@@ -75,7 +75,7 @@ describe("TaskWorkspace Method guidance", () => {
     expect(
       screen.getByLabelText("Describe what you want skill guidance for"),
     ).toHaveProperty("disabled", false);
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toHaveProperty(
+    expect(screen.getByRole("button", { name: "Add file" })).toHaveProperty(
       "disabled",
       false,
     );
@@ -225,15 +225,19 @@ describe("TaskWorkspace Method guidance", () => {
       onOpenContext,
     })} />);
 
-    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
-    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    // Design specification 7.4: one press reaches the native dialog. Nothing
+    // may open in between, so the absence of a menu is the assertion that
+    // matters here, not merely that the callback fired.
+    await user.click(screen.getByRole("button", { name: "Add file" }));
     expect(onAttachFiles).toHaveBeenCalledOnce();
     expect(onOpenContext).not.toHaveBeenCalled();
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(screen.queryByRole("menuitem")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
-    await user.click(screen.getByRole("menuitem", { name: "Add folder…" }));
+    await user.click(screen.getByRole("button", { name: "Add folder" }));
     expect(onAttachFolder).toHaveBeenCalledOnce();
     expect(onOpenContext).not.toHaveBeenCalled();
+    expect(screen.queryByRole("menu")).toBeNull();
   });
 
   it("opens Review, Run details, and Skills and agents through presentation callbacks", async () => {
@@ -315,7 +319,7 @@ describe("TaskWorkspace Method guidance", () => {
 
     expect(screen.getByLabelText("Describe what you want skill guidance for")).toHaveProperty("disabled", true);
     expect(screen.getByRole("button", { name: "Send message" })).toHaveProperty("disabled", true);
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Add file" })).toHaveProperty("disabled", false);
   });
 
   it("preserves the draft when request creation rejects", async () => {

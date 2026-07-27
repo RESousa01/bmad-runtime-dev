@@ -353,14 +353,12 @@ export function TaskWorkspace({
   workspaceStatusLabel,
 }: TaskWorkspaceProps) {
   const composerRef = useRef<HTMLTextAreaElement>(null);
-  const attachMenuRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const scrollRegionRef = useRef<HTMLDivElement>(null);
   /// Whether the user is reading the newest turn. Starts true so the first
   /// reply of a task is followed, and is re-evaluated on every scroll.
   const anchoredToBottomRef = useRef(true);
-  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [draft, setDraft] = useState(initialDraft);
   const [renameDraft, setRenameDraft] = useState<string | null>(null);
   const renaming = renameDraft !== null;
@@ -414,16 +412,6 @@ export function TaskWorkspace({
     anchoredToBottomRef.current = distanceFromBottom <= bottomAnchorSlackPx;
   }
 
-  useEffect(() => {
-    if (!attachMenuOpen) return undefined;
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!attachMenuRef.current?.contains(event.target as Node)) {
-        setAttachMenuOpen(false);
-      }
-    }
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
-  }, [attachMenuOpen]);
   const [submittedTask, setSubmittedTask] = useState<string | null>(null);
   const methodGuidanceView = methodGuidanceAvailable
     || submittedTask !== null
@@ -752,55 +740,32 @@ export function TaskWorkspace({
           <p className="attach-notice" role="status">{attachNotice}</p>
         ) : null}
         <div className="composer__input-row">
-          <div
-            className="attach-menu"
-            onKeyDown={(event) => {
-              if (event.key === "Escape" && attachMenuOpen) {
-                event.preventDefault();
-                event.stopPropagation();
-                setAttachMenuOpen(false);
-              }
-            }}
-            ref={attachMenuRef}
-          >
+          {/* Design specification 7.4: pressing the composer control invokes
+              the native dialog immediately. No Forge popover, menu, workspace
+              search step or route change may come first. Windows has no dialog
+              mode that accepts files and folders together -- IFileOpenDialog
+              either has FOS_PICKFOLDERS set or it does not -- so folder
+              support stays a sibling control rather than a menu item. */}
+          <div className="composer__attach">
             <Button
-              aria-label="Add files or folder"
-              aria-expanded={attachMenuOpen}
-              aria-haspopup="menu"
-              isDisabled={!canAttachFiles || (!onAttachFiles && !onAttachFolder)}
-              onPress={() => setAttachMenuOpen((open) => !open)}
+              aria-label="Add file"
+              isDisabled={!canAttachFiles || !onAttachFiles}
+              onPress={() => { void onAttachFiles?.(); }}
               size="small"
               variant="quiet"
             >
-              <OpenCodeIcon name="folder-add-left" />
-              <span className="composer__attach-label">Add context</span>
+              <OpenCodeIcon name="plus" />
+              <span className="composer__attach-label">Add file</span>
             </Button>
-            {attachMenuOpen ? (
-              <div className="attach-menu__popover" role="menu">
-                <button
-                  disabled={!onAttachFiles}
-                  onClick={() => {
-                    setAttachMenuOpen(false);
-                    void onAttachFiles?.();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  Add files…
-                </button>
-                <button
-                  disabled={!onAttachFolder}
-                  onClick={() => {
-                    setAttachMenuOpen(false);
-                    void onAttachFolder?.();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  Add folder…
-                </button>
-              </div>
-            ) : null}
+            <Button
+              aria-label="Add folder"
+              isDisabled={!canAttachFiles || !onAttachFolder}
+              onPress={() => { void onAttachFolder?.(); }}
+              size="small"
+              variant="quiet"
+            >
+              <OpenCodeIcon name="folder" />
+            </Button>
           </div>
           <label className="sr-only" htmlFor="task-composer">
             {methodGuidanceView

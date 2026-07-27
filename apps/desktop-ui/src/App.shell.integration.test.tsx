@@ -60,7 +60,8 @@ describe("App task-shell integration", () => {
     const task = screen.getByRole("main");
     expect(within(task).getByRole("heading", { name: "New task" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "New task" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Add files or folder" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add file" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add folder" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Review" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run details" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Skills and agents" })).toBeTruthy();
