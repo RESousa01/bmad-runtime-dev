@@ -2445,10 +2445,32 @@ describe("Forge desktop workbench", () => {
     expect(screen.getByText("Local Review Budget")).toBeTruthy();
     expect(screen.getByText("Input Estimate")).toBeTruthy();
     expect(screen.queryByText("Context Limit")).toBeNull();
-    expect(screen.getByText("Model").parentElement?.textContent)
-      .toBe("Modelforge-bmad-preview");
+    // This test is named "without inventing provider cost" and used to pin
+    // `forge-bmad-preview` — an invented model name, for a browser session that
+    // cannot contact a model at all. Naming one told the reader a model had been
+    // involved. Absent renders as "—", which is what is true here.
+    expect(screen.getByText("Model").parentElement?.textContent).toBe("Model—");
     expect(screen.getByText("Total Cost").parentElement?.textContent).toBe("Total Cost—");
     expect(screen.queryByText("$0.00")).toBeNull();
+  });
+
+  /// Browser preview pushed a fabricated two-message exchange into every new
+  /// task, so a session that had never sent anything displayed a conversation,
+  /// a provider, a model and a token count. A reader concluded a model had been
+  /// contacted and billed.
+  it("shows no invented conversation for a browser session that sent nothing", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await enterFirstTask();
+    await screen.findAllByText("Browser preview");
+
+    await user.click(screen.getByRole("button", { name: "Open context details" }));
+
+    expect(
+      screen.queryByText(/Review this workspace and identify the next BMAD milestone/u),
+    ).toBeNull();
+    expect(screen.queryByText("forge-bmad-preview")).toBeNull();
+    expect(screen.queryByText("1,842")).toBeNull();
   });
 
   it("shows the actual host model ID in session context", async () => {

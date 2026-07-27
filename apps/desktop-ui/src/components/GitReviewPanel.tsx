@@ -33,6 +33,14 @@ export interface GitReviewSource {
 
 export interface GitReviewPanelProps {
   readonly availabilityMessage?: string | undefined;
+  /// Whether `source` returns fixed example data rather than a real repository.
+  ///
+  /// Browser preview serves a fabricated branch, file list and diff. Rendered
+  /// unlabelled, that is indistinguishable from the user's own repository: a
+  /// branch name, three modified files and real-looking `+N/−N` counts, none of
+  /// which came from anywhere. The label has to sit with the content, not in a
+  /// corner, because the content is what is being misread.
+  readonly isSampleData?: boolean | undefined;
   readonly secondaryAction?: ReactNode | undefined;
   readonly source: GitReviewSource | null;
 }
@@ -206,6 +214,7 @@ function ReviewTree({
 
 export function GitReviewPanel({
   availabilityMessage = "Git review is unavailable for this workspace.",
+  isSampleData = false,
   secondaryAction,
   source,
 }: GitReviewPanelProps) {
@@ -322,6 +331,17 @@ export function GitReviewPanel({
       data-source="opencode"
     >
       <h2 className="sr-only" id={headingId}>Working tree</h2>
+      {isSampleData ? (
+        <div className="browser-demo-banner" role="note">
+          <div>
+            <strong>Sample data — not your repository</strong>
+            <span>
+              This branch, file list and diff are fixed examples. No Git
+              repository has been read.
+            </span>
+          </div>
+        </div>
+      ) : null}
       {status.kind === "ready" || !secondaryAction ? null : (
         <div className="git-review__secondary-fallback">{secondaryAction}</div>
       )}
@@ -485,11 +505,13 @@ export function GitReviewPanel({
 export function ReviewPanel({
   availabilityMessage,
   governedReview,
+  isSampleData = false,
   proposalAttention = false,
   source,
 }: {
   readonly availabilityMessage?: string;
   readonly governedReview: ReactNode;
+  readonly isSampleData?: boolean;
   readonly proposalAttention?: boolean;
   readonly source: GitReviewSource | null;
 }) {
@@ -506,6 +528,7 @@ export function ReviewPanel({
       {view === "git" ? (
         <GitReviewPanel
           availabilityMessage={availabilityMessage}
+          isSampleData={isSampleData}
           secondaryAction={(
             <button
               aria-label="Agent proposals"

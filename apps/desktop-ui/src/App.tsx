@@ -586,9 +586,10 @@ export function App({
       : modelAuthStatus?.providerId === "forge-local"
         ? "Forge local"
         : "Forge BMAD";
-  const sessionContextModelId = hostRuntime.kind === "browser_demo"
-    ? "forge-bmad-preview"
-    : modelAuthStatus?.modelId;
+  // Browser preview used to answer "forge-bmad-preview" here, so the session
+  // panel named a model for a session that had never contacted one. There is no
+  // model in browser preview; saying so is `undefined`, which renders as "—".
+  const sessionContextModelId = modelAuthStatus?.modelId;
   const modelSelection: ModelSelection = {
     providerId: modelAuthStatus?.providerId === "azure" ? "azure" : "openai",
     modelId: modelAuthStatus?.modelId ?? "gpt-5-mini",
@@ -2533,66 +2534,15 @@ export function App({
           : undefined)
       ?? selectedSessionId;
     const messages: SessionContextMessage[] = [];
-    const demoCreatedAt = hostRuntime.kind === "browser_demo" ? 1_784_731_394_657 : undefined;
-    if (demoCreatedAt !== undefined && currentBmadIntent === null) {
-      const userId = "msg_forge_demo_user";
-      const assistantId = "msg_forge_demo_assistant";
-      messages.push({
-        id: userId,
-        role: "user",
-        createdAt: demoCreatedAt,
-        value: {
-          message: {
-            id: userId,
-            sessionID: sessionId,
-            role: "user",
-            time: { created: demoCreatedAt },
-          },
-          agent: "bmad",
-          model: {
-            modelID: "forge-bmad-preview",
-            providerID: "forge",
-          },
-          summary: {
-            title: "Review the next BMAD milestone",
-            diffs: [],
-          },
-          parts: [{
-            id: "part_forge_demo_intent",
-            type: "text",
-            text: "Review this workspace and identify the next BMAD milestone.",
-          }],
-        },
-      });
-      messages.push({
-        id: assistantId,
-        role: "assistant",
-        createdAt: demoCreatedAt + 8_412,
-        value: {
-          message: {
-            id: assistantId,
-            sessionID: sessionId,
-            role: "assistant",
-            time: { created: demoCreatedAt + 1_205, completed: demoCreatedAt + 8_412 },
-          },
-          agent: "bmad",
-          model: {
-            modelID: "forge-bmad-preview",
-            providerID: "forge",
-          },
-          parts: [{
-            id: "part_forge_demo_result",
-            type: "text",
-            text: "Continue the governed Help request path, then review the exact context before model access.",
-          }],
-          bmad: {
-            status: "browser_demo",
-            authority: "read_only",
-            recommendation: "Governed BMAD Help",
-          },
-        },
-      });
-    }
+    // A fabricated two-message transcript used to be pushed here in browser
+    // preview, with a fabricated provider, model and token count alongside it.
+    // A brand-new task that had never sent anything showed a two-turn
+    // conversation with a named model and a token cost, so a reader concluded a
+    // model had been contacted and billed. Nothing had been sent anywhere.
+    //
+    // Deleted rather than labelled: the panel already has an honest empty state
+    // ("No raw messages in this session yet"), and annotating an invented
+    // conversation is a worse answer than not inventing one.
     if (currentBmadIntent) {
       const id = `msg_user_${sessionId}`;
       messages.push({
@@ -2649,13 +2599,19 @@ export function App({
     }
     return {
       createdAt: currentBmadIntent?.createdAt
-        ?? (bmadHelpState.kind === "completed" ? bmadHelpState.result.receipt.startedAt : demoCreatedAt),
+        ?? (bmadHelpState.kind === "completed"
+          ? bmadHelpState.result.receipt.startedAt
+          : undefined),
+      // No invented token count either. It fed the context meter and the session
+      // panel's "Total Tokens", so a session that had sent nothing reported a
+      // cost. An absent number renders as "—", which is the truth.
       inputTokens: reviewState?.review.totalTokenEstimate
-        ?? contextPreview?.estimatedTokens
-        ?? (demoCreatedAt === undefined ? undefined : 1_842),
+        ?? contextPreview?.estimatedTokens,
       messages,
     };
-  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, hostRuntime.kind, selectedSessionId, sessionContextModelId]);
+    // `hostRuntime.kind` was a dependency only because this used to branch on
+    // browser preview to fabricate a transcript. Nothing in here reads it now.
+  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, selectedSessionId, sessionContextModelId]);
 
   function resetChangesFlow() {
     changesGenerationRef.current += 1;
@@ -3167,6 +3123,7 @@ export function App({
               state={changesState}
             />
           )}
+          isSampleData={hostRuntime.kind === "browser_demo"}
           proposalAttention={changesState.kind === "review" || recoveryReview !== null}
           source={gitReviewSource}
         />

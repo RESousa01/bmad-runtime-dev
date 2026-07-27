@@ -51,6 +51,32 @@ function createSource(): GitReviewSource {
 afterEach(cleanup);
 
 describe("GitReviewPanel", () => {
+  /// Browser preview serves a fabricated branch, file list and diff. Unlabelled,
+  /// that is indistinguishable from the user's own repository — a branch name,
+  /// modified files and real-looking counts, none of which came from anywhere.
+  /// The label has to sit with the content, because the content is what is
+  /// being misread.
+  it("labels a sample-data working tree, above the content it describes", async () => {
+    const source = createSource();
+    render(<GitReviewPanel isSampleData source={source} />);
+
+    const note = await screen.findByRole("note");
+    expect(note.textContent).toContain("not your repository");
+    const branch = await screen.findByText("codex/forge-v2");
+    // Above, not tucked in a corner below.
+    expect(note.compareDocumentPosition(branch) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+  });
+
+  it("does not label a real working tree as sample data", async () => {
+    const source = createSource();
+    render(<GitReviewPanel source={source} />);
+
+    // The branch must still render, so this cannot pass by rendering nothing.
+    expect(await screen.findByText("codex/forge-v2")).toBeTruthy();
+    expect(screen.queryByRole("note")).toBeNull();
+  });
+
   it("shows the working-tree summary and exact per-line Git difference", async () => {
     const source = createSource();
     render(<GitReviewPanel source={source} />);
