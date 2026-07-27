@@ -83,7 +83,21 @@ pub(crate) enum ChatCoordinatorError {
     /// message, not the same one again.
     TurnBudgetSpent,
     OutputRejected,
-    Transport,
+    /// The send failed, and *this* is what went wrong.
+    ///
+    /// The variant used to be fieldless, so every send failure — a 429 on a
+    /// working key, a dead key, a spent quota, a provider outage, a timeout —
+    /// arrived at `map_chat_error` as the same value and left it as the same
+    /// sentence: *"Connect a model provider in Settings before sending a
+    /// message"*, with `retryable: false`. Two lies at once for most of them,
+    /// and the one class for which it is true is still reachable, as
+    /// [`desktop_cloud::ProviderFailureKind::ProviderNotConfigured`].
+    ///
+    /// A kind and not a whole `ProviderFailure`: the kind is `Copy`, so this
+    /// enum keeps every derive it had, and it is fieldless, so no byte of
+    /// provider text can ride in on it. The status and retry advice belong to
+    /// the diagnostic at the send site, not to a value the renderer receives.
+    Transport(desktop_cloud::ProviderFailureKind),
     Integrity,
 }
 
@@ -486,8 +500,15 @@ impl ChatCoordinator {
                 .values()
                 .any(|turn| turn.session_id == *id)
         };
+        // The honest producer of this variant, and the only one. Offline is not
+        // a provider that failed; it is the absence of a provider, which is the
+        // single case where "connect one in Settings" is the right advice. It
+        // must keep saying exactly that — the risk in this change is not that it
+        // stops being true here, but that it goes on being said everywhere else.
         if input.configuration.mode == HelpModelMode::Offline {
-            return Err(ChatCoordinatorError::Transport);
+            return Err(ChatCoordinatorError::Transport(
+                desktop_cloud::ProviderFailureKind::ProviderNotConfigured,
+            ));
         }
         let session_id = chat_session_id(
             input.installation_id,

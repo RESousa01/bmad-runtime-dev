@@ -3,7 +3,9 @@ use std::sync::Arc;
 
 #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
 use desktop_cloud::verify_dispatched_model_response;
-use desktop_cloud::{AuthorizedModelRequest, CloudError, ModelReceiptStatus};
+use desktop_cloud::{
+    AuthorizedModelRequest, CloudError, DispatchedModelRequest, ModelReceiptStatus, RawModelOutput,
+};
 use desktop_egress::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
     ContextDecisionEvidence, ContextEgressManifest, ContextReviewProjection, DecisionEvidenceInput,
@@ -18,8 +20,9 @@ use desktop_ipc::{
 use desktop_runtime::{
     canonical_hash, BmadCompiledHelpInvocation, BmadHelpBindingCompiler, BmadHelpIntent,
     BmadHelpMaterializer, BmadHelpRecordIds, BmadMethodHelpRecommendation,
-    BmadVerifiedHelpProposal, ContractId, MethodAdvanceRequest, MethodServiceError, MethodSession,
-    MethodSessionRepository, MethodSessionService, MethodState, Sha256Digest, UnixMillis,
+    BmadVerifiedHelpProposal, ContractId, MethodAdvanceReceipt, MethodAdvanceRequest,
+    MethodServiceError, MethodSession, MethodSessionRepository, MethodSessionService, MethodState,
+    Sha256Digest, UnixMillis,
 };
 use desktop_store::{BmadHelpRunCreationReceipt, BmadHelpRunLatest, StoreError};
 use desktop_workspace::WorkspaceScopeAuthorityGuard;
@@ -85,6 +88,79 @@ pub(crate) struct SubmitBmadHelpReviewInput<'a> {
     pub manifest_hash: Sha256Digest,
     pub decision_id: ContractId,
     pub submitted_at: UnixMillis,
+}
+
+/// The second half of one reviewed Help submission: the provider has answered
+/// and the caller has re-acquired every authority it released for the round
+/// trip. Mirrors [`SubmitBmadHelpReviewInput`] so the two halves are named the
+/// same way, and quotes `dispatch_id` so a superseded dispatch cannot be
+/// finalized against a newer one.
+pub(crate) struct FinalizeBmadHelpDispatchInput<'a> {
+    pub renderer_session: &'a RendererSessionGuard<'a>,
+    pub workspace_id: ContractId,
+    pub workspace_grant_epoch: u64,
+    pub dispatch_id: u64,
+    pub dispatched: DispatchedModelRequest,
+    pub raw_output: RawModelOutput,
+}
+
+/// Everything one Help transport round trip needs, and nothing that borrows the
+/// coordinator. Returned by [`BmadHelpCoordinator::begin_submit`] once the
+/// decision is consumed and the durable v4 -> v5 advance receipt is written;
+/// the caller drops the coordinator mutex, the workspace revocation barrier,
+/// and the host commit barrier, calls [`Self::send`], and hands the answer to
+/// [`BmadHelpCoordinator::finalize_submit`].
+pub(crate) struct BmadHelpDispatch {
+    pub dispatch_id: u64,
+    /// The workspace whose lifecycle slot this dispatch occupies, so the caller
+    /// needs nothing but this request to name the run it finalizes or aborts.
+    pub workspace_id: ContractId,
+    /// Shared rather than borrowed: the transport outlives the coordinator
+    /// borrow precisely so the send can happen with every lock released.
+    transport: Arc<dyn BmadHelpTransport>,
+    authorized_request: AuthorizedModelRequest,
+    deterministic_fixture: String,
+    submitted_at: UnixMillis,
+}
+
+impl fmt::Debug for BmadHelpDispatch {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("BmadHelpDispatch")
+            .field("dispatch_id", &self.dispatch_id)
+            .field("workspace_id", &self.workspace_id)
+            .field("authorized_request", &"<redacted>")
+            .field("deterministic_fixture", &"<redacted>")
+            .field("submitted_at", &self.submitted_at)
+            // The transport is deliberately omitted: it is a shared provider
+            // seam, not state of this dispatch, and has no safe rendering.
+            .finish_non_exhaustive()
+    }
+}
+
+impl BmadHelpDispatch {
+    /// Runs the provider round trip.
+    ///
+    /// Takes no borrow of the coordinator and consumes the dispatch, so there is
+    /// no way to reach the blocking send while the coordinator mutex — or any
+    /// authority guard the caller had to release to get here — is still held.
+    /// That is the whole point of the split, expressed as a signature rather
+    /// than as a comment.
+    ///
+    /// The transport error is mapped here so the caller never handles a
+    /// `CloudError`, and so the error a transport failure produces is the same
+    /// value the in-line `transport.send` arm produced before the split.
+    pub(crate) fn send(
+        self,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), BmadHelpCoordinatorError> {
+        self.transport
+            .send(
+                self.authorized_request,
+                &self.deterministic_fixture,
+                self.submitted_at,
+            )
+            .map_err(|error| map_cloud_error(&error))
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -183,6 +259,42 @@ struct BmadHelpAdvancing {
     invocation: ContractId,
 }
 
+/// The finalize-time record for a Help run whose decision is already consumed,
+/// whose durable v4 -> v5 advance receipt is already written, and whose
+/// authorized request has been handed to the caller for transport dispatch.
+///
+/// The coordinator mutex, the workspace revocation barrier, and the host commit
+/// barrier are all released while the round trip runs, so this holds everything
+/// the second half needs to verify, materialize, and finalize the run without
+/// re-deriving any of it — and, in `prepared`, everything the second half needs
+/// to re-prove the authority the first half checked.
+struct DispatchingBmadHelp {
+    /// Identifies this exact dispatch so a stale `finalize_submit` /
+    /// `abort_dispatch` — whose transport was still in flight while an
+    /// `invalidate` and then a fresh run replaced the slot — cannot act on a
+    /// newer dispatch.
+    dispatch_id: u64,
+    identities: BmadHelpAdvancing,
+    prepared: PreparedBmadHelpReview,
+    invocation_id: ContractId,
+    advance_receipt: MethodAdvanceReceipt,
+    submitted_at: UnixMillis,
+}
+
+impl fmt::Debug for DispatchingBmadHelp {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DispatchingBmadHelp")
+            .field("dispatch_id", &self.dispatch_id)
+            .field("identities", &self.identities)
+            .field("prepared", &"<redacted>")
+            .field("invocation_id", &self.invocation_id)
+            .field("advance_receipt", &"<redacted>")
+            .field("submitted_at", &self.submitted_at)
+            .finish()
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum BmadHelpTerminalReason {
     Cancelled,
@@ -217,7 +329,11 @@ pub(crate) enum BmadHelpInMemoryLifecycle {
 enum ActiveBmadHelp {
     ReviewRequired(Box<PreparedBmadHelpReview>),
     Approved(Box<ApprovedBmadHelpReview>),
-    Advancing(BmadHelpAdvancing),
+    /// The decision is consumed, the advance receipt is durable, and the
+    /// authorized request is in flight at the caller with every lock released.
+    /// A concurrent `invalidate` (sign-out / workspace revocation) clears this
+    /// slot, which is what makes `finalize_submit` drop the answer.
+    Advancing(Box<DispatchingBmadHelp>),
     Completed(Box<CompletedBmadHelp>),
     Terminal(BmadHelpTerminalState),
 }
@@ -227,7 +343,10 @@ impl fmt::Debug for ActiveBmadHelp {
         match self {
             Self::ReviewRequired(_) => formatter.write_str("ReviewRequired(<redacted>)"),
             Self::Approved(_) => formatter.write_str("Approved(<redacted>)"),
-            Self::Advancing(value) => formatter.debug_tuple("Advancing").field(value).finish(),
+            Self::Advancing(value) => formatter
+                .debug_tuple("Advancing")
+                .field(&value.identities)
+                .finish(),
             Self::Completed(_) => formatter.write_str("Completed(<renderer-safe>)"),
             Self::Terminal(value) => formatter.debug_tuple("Terminal").field(value).finish(),
         }
@@ -260,8 +379,14 @@ pub(crate) enum BmadHelpCoordinatorError {
 pub(crate) struct BmadHelpCoordinator {
     ledger: MemoryDecisionLedger,
     active: Option<ActiveBmadHelp>,
-    transport: Box<dyn BmadHelpTransport>,
+    /// Shared, not owned exclusively: `begin_submit` hands a clone out with the
+    /// dispatch so the blocking round trip runs with the coordinator mutex
+    /// released.
+    transport: Arc<dyn BmadHelpTransport>,
     configuration_override: Option<HelpModelConfiguration>,
+    /// Monotonic id stamped on each dispatch so a stale finalize or abort cannot
+    /// act on a dispatch that replaced it while the lock was released.
+    dispatch_seq: u64,
     #[cfg(feature = "direct-model-providers")]
     direct_provider_config: Option<desktop_cloud::DirectProviderConfig>,
     #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
@@ -292,6 +417,7 @@ impl fmt::Debug for BmadHelpCoordinator {
             .field("ledger", &"<redacted>")
             .field("active", &self.active)
             .field("transport", &"<redacted>")
+            .field("dispatch_seq", &self.dispatch_seq)
             .field(
                 "configuration_override",
                 &self.configuration_override.is_some(),
@@ -321,8 +447,9 @@ impl BmadHelpCoordinator {
         Self {
             ledger: MemoryDecisionLedger::default(),
             active: None,
-            transport,
+            transport: Arc::from(transport),
             configuration_override: None,
+            dispatch_seq: 0,
             #[cfg(feature = "direct-model-providers")]
             direct_provider_config: None,
             #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
@@ -340,8 +467,9 @@ impl BmadHelpCoordinator {
         Self {
             ledger: MemoryDecisionLedger::default(),
             active: None,
-            transport,
+            transport: Arc::from(transport),
             configuration_override: None,
+            dispatch_seq: 0,
             #[cfg(feature = "direct-model-providers")]
             direct_provider_config: None,
             #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
@@ -368,19 +496,19 @@ impl BmadHelpCoordinator {
         #[cfg(feature = "direct-model-providers")]
         {
             if let Some(config) = composition.direct_provider.as_ref() {
-                self.transport = Box::new(DirectModelTransport::new(config.clone())?);
+                self.transport = Arc::new(DirectModelTransport::new(config.clone())?);
                 self.receipt_verifier =
                     development_receipt_verifier(desktop_cloud::DIRECT_PROVIDER_DEVELOPMENT_PROOF)
                         .ok();
             } else {
-                self.transport = Box::new(OfflineHelpTransport);
+                self.transport = Arc::new(OfflineHelpTransport);
                 self.receipt_verifier = None;
             }
             self.direct_provider_config = composition.direct_provider;
         }
         #[cfg(not(feature = "direct-model-providers"))]
         {
-            self.transport = Box::new(OfflineHelpTransport);
+            self.transport = Arc::new(OfflineHelpTransport);
         }
         self.configuration_override = Some(composition.configuration);
         Ok(())
@@ -451,6 +579,29 @@ impl BmadHelpCoordinator {
             | ActiveBmadHelp::Completed(_)
             | ActiveBmadHelp::Terminal(_) => None,
         }
+    }
+
+    /// The lifecycle's terminal reason, for the transition table.
+    ///
+    /// A refusal's error code alone does not pin down where the lifecycle
+    /// landed: several distinct transitions map to the same
+    /// `BmadHelpCoordinatorError`, and one of them (`Completed`) is not an error
+    /// at all. Asserting the reason is what makes "this transition is still
+    /// reachable, and still lands in the same state" a checkable claim.
+    #[cfg(all(test, feature = "deterministic-help"))]
+    #[must_use]
+    pub(crate) fn terminal_reason_for_test(&self) -> Option<BmadHelpTerminalReason> {
+        match self.active.as_ref() {
+            Some(ActiveBmadHelp::Terminal(terminal)) => Some(terminal.reason),
+            _ => None,
+        }
+    }
+
+    /// Whether the lifecycle completed, as distinct from ending terminally.
+    #[cfg(all(test, feature = "deterministic-help"))]
+    #[must_use]
+    pub(crate) fn is_completed_for_test(&self) -> bool {
+        matches!(self.active.as_ref(), Some(ActiveBmadHelp::Completed(_)))
     }
 
     #[cfg(all(test, feature = "deterministic-help"))]
@@ -613,6 +764,22 @@ impl BmadHelpCoordinator {
         Ok(())
     }
 
+    /// Begins one reviewed Help dispatch **under the coordinator lock**: it
+    /// re-proves the authority, records the durable v4 -> v5 advance receipt,
+    /// consumes the single-use decision, builds the authorized model request,
+    /// and parks the run in `Advancing`.
+    ///
+    /// The caller then releases the coordinator mutex, the workspace revocation
+    /// barrier, *and* the host commit barrier, runs the round trip via
+    /// [`BmadHelpDispatch::send`], and hands the answer back to
+    /// [`Self::finalize_submit`]. On transport failure it must call
+    /// [`Self::abort_dispatch`], because the context has already left the
+    /// machine and the decision is already spent.
+    ///
+    /// Every terminal transition this half could reach before the split is still
+    /// reached here, in the same order and with the same reason; the transport
+    /// failure alone moved out to `abort_dispatch`, which lands the identical
+    /// `Terminal(ConsentConsumed)`.
     #[expect(
         clippy::too_many_lines,
         reason = "the one-shot submit path keeps every consent, Method v4/v5, dispatch, verification, materialization, projection, and v6 finalization edge visibly ordered"
@@ -621,13 +788,13 @@ impl BmadHelpCoordinator {
         clippy::needless_pass_by_value,
         reason = "the transition input is a small one-use command capability whose complete value is validated together"
     )]
-    pub fn submit(
+    pub(crate) fn begin_submit(
         &mut self,
         state: &HostState,
         authority: &ReadyWorkspaceCommitGuard<'_>,
         workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
         input: SubmitBmadHelpReviewInput<'_>,
-    ) -> Result<BmadHelpRunCompletedProjection, BmadHelpCoordinatorError> {
+    ) -> Result<BmadHelpDispatch, BmadHelpCoordinatorError> {
         let approved = match self.active.as_ref() {
             Some(ActiveBmadHelp::Approved(approved)) => approved,
             Some(ActiveBmadHelp::ReviewRequired(_)) => {
@@ -837,34 +1004,153 @@ impl BmadHelpCoordinator {
             session: approved.prepared.creation.session_id.clone(),
             invocation: invocation_id.clone(),
         };
-        self.active = Some(ActiveBmadHelp::Advancing(advancing));
-
-        let (dispatched, raw_output) = match self.transport.send(
+        self.dispatch_seq = self.dispatch_seq.wrapping_add(1);
+        let dispatch_id = self.dispatch_seq;
+        let ApprovedBmadHelpReview { prepared, .. } = *approved;
+        let dispatch = BmadHelpDispatch {
+            dispatch_id,
+            workspace_id: prepared.workspace_id.clone(),
+            transport: Arc::clone(&self.transport),
             authorized_request,
-            &approved.prepared.deterministic_fixture,
-            input.submitted_at,
+            deterministic_fixture: prepared.deterministic_fixture.clone(),
+            submitted_at: input.submitted_at,
+        };
+        self.active = Some(ActiveBmadHelp::Advancing(Box::new(DispatchingBmadHelp {
+            dispatch_id,
+            identities: advancing,
+            prepared,
+            invocation_id,
+            advance_receipt,
+            submitted_at: input.submitted_at,
+        })));
+        Ok(dispatch)
+    }
+
+    /// Marks *this* in-flight dispatch terminal after a transport failure at the
+    /// caller, landing exactly the `Terminal(ConsentConsumed)` the in-line
+    /// `transport.send` arm used to land.
+    ///
+    /// A no-op if the run already left `Advancing`, was invalidated by a
+    /// concurrent sign-out or workspace revocation, or was superseded by a newer
+    /// dispatch — a stale abort must never disturb a run that replaced it.
+    pub(crate) fn abort_dispatch(
+        &mut self,
+        workspace_id: &ContractId,
+        dispatch_id: u64,
+        reason: BmadHelpTerminalReason,
+    ) {
+        if matches!(
+            self.active.as_ref(),
+            Some(ActiveBmadHelp::Advancing(dispatching))
+                if dispatching.dispatch_id == dispatch_id
+                    && &dispatching.prepared.workspace_id == workspace_id
         ) {
-            Ok(output) => output,
+            self.active = Some(terminal_active(workspace_id.clone(), reason));
+        }
+    }
+
+    /// Finalizes an in-flight dispatch **under the coordinator lock**, with the
+    /// host commit barrier and the workspace revocation barrier freshly
+    /// re-acquired by the caller: it re-proves the authority, verifies the
+    /// output, materializes the canonical records, and completes the run at v6.
+    ///
+    /// If the run left `Advancing` while the round trip ran — a concurrent
+    /// `invalidate` from sign-out or workspace revocation clears the slot — the
+    /// answer is dropped rather than recorded against a withdrawn grant.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "the one-shot submit path keeps every consent, Method v4/v5, dispatch, verification, materialization, projection, and v6 finalization edge visibly ordered"
+    )]
+    pub(crate) fn finalize_submit(
+        &mut self,
+        state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
+        input: FinalizeBmadHelpDispatchInput<'_>,
+    ) -> Result<BmadHelpRunCompletedProjection, BmadHelpCoordinatorError> {
+        // Inspected before it is taken, so a stale or superseded finalize leaves
+        // the slot exactly as it found it. The reason arms mirror `submit`'s
+        // opening match, so the errors a caller can observe are unchanged.
+        match self.active.as_ref() {
+            Some(ActiveBmadHelp::Advancing(dispatching))
+                if dispatching.dispatch_id == input.dispatch_id
+                    && dispatching.prepared.workspace_id == input.workspace_id => {}
+            Some(ActiveBmadHelp::ReviewRequired(_)) => {
+                return Err(BmadHelpCoordinatorError::ConsentBindingMismatch);
+            }
+            Some(
+                ActiveBmadHelp::Advancing(_)
+                | ActiveBmadHelp::Approved(_)
+                | ActiveBmadHelp::Completed(_)
+                | ActiveBmadHelp::Terminal(_),
+            ) => return Err(BmadHelpCoordinatorError::ConsentAlreadyConsumed),
+            // The slot was cleared while the request was in flight — a sign-out
+            // or a workspace revocation ran `invalidate`. The answer is dropped.
+            None => return Err(BmadHelpCoordinatorError::Unauthorized),
+        }
+        let Some(ActiveBmadHelp::Advancing(dispatching)) = self.active.take() else {
+            return Err(BmadHelpCoordinatorError::Conflict);
+        };
+        let DispatchingBmadHelp {
+            prepared,
+            invocation_id,
+            advance_receipt,
+            submitted_at,
+            ..
+        } = *dispatching;
+
+        // *** The post-round-trip authority re-check. ***
+        //
+        // This is what the released barriers cost and what buys them back. The
+        // guard that used to prove the grant for the whole call cannot be held
+        // across a provider round trip, so every fact it proved is proved again
+        // here, against a `ReadyWorkspaceCommitGuard` and a
+        // `WorkspaceScopeAuthorityGuard` the caller re-acquired *after* the send
+        // and before this call: renderer session identity, workspace identity,
+        // grant epoch, D2 context-read epoch, project identity, catalog version,
+        // and the sealed manifest/binding pair.
+        //
+        // A revocation, a sign-out, or a context-read withdrawal that lands
+        // mid-flight therefore ends the run here instead of being recorded
+        // against a grant the user has withdrawn. The decision is already spent
+        // and the context has already left the machine, so the refusal is
+        // terminal-consumed, never a restore.
+        if let Err(error) = validate_prepared_scope(
+            authority,
+            workspace_authority,
+            input.renderer_session,
+            &prepared,
+            &input.workspace_id,
+            input.workspace_grant_epoch,
+        ) {
+            self.active = Some(terminal_active(
+                prepared.workspace_id.clone(),
+                BmadHelpTerminalReason::ConsentConsumed,
+            ));
+            return Err(error);
+        }
+        // Re-derived from the authority the caller just re-acquired, never
+        // carried across the round trip on the strength of a dropped guard.
+        let store = match state.method_store(authority.authority()) {
+            Ok(store) => store,
             Err(error) => {
-                self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                    workspace_id: approved.prepared.workspace_id.clone(),
-                    reason: BmadHelpTerminalReason::ConsentConsumed,
-                }));
-                return Err(map_cloud_error(&error));
+                let mapped = map_store_error(&error);
+                self.active = Some(terminal_active(
+                    prepared.workspace_id.clone(),
+                    BmadHelpTerminalReason::ConsentConsumed,
+                ));
+                return Err(mapped);
             }
         };
+
+        let FinalizeBmadHelpDispatchInput {
+            dispatched,
+            raw_output,
+            ..
+        } = input;
         let validator = BmadHelpProposalValidator::new(
-            approved
-                .prepared
-                .manifest
-                .draft
-                .canonical_output_schema_id
-                .clone(),
-            approved
-                .prepared
-                .manifest
-                .draft
-                .canonical_output_schema_hash,
+            prepared.manifest.draft.canonical_output_schema_id.clone(),
+            prepared.manifest.draft.canonical_output_schema_hash,
         );
         #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
         let verified = match self.receipt_verifier.as_ref() {
@@ -881,10 +1167,10 @@ impl BmadHelpCoordinator {
         let verified = match verified {
             Ok(verified) => verified,
             Err(error) => {
-                self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                    workspace_id: approved.prepared.workspace_id.clone(),
-                    reason: BmadHelpTerminalReason::ConsentConsumed,
-                }));
+                self.active = Some(terminal_active(
+                    prepared.workspace_id.clone(),
+                    BmadHelpTerminalReason::ConsentConsumed,
+                ));
                 return Err(map_cloud_error(&error));
             }
         };
@@ -898,31 +1184,28 @@ impl BmadHelpCoordinator {
         )
         .map_err(|_| BmadHelpCoordinatorError::InvalidModelOutput)?;
         let session_v5 = store
-            .load_method_session(
-                &approved.prepared.creation.scope,
-                &approved.prepared.creation.session_id,
-            )
+            .load_method_session(&prepared.creation.scope, &prepared.creation.session_id)
             .map_err(|error| map_store_error(&error))?
             .ok_or(BmadHelpCoordinatorError::Integrity)?;
         if session_v5.state() != MethodState::Advancing || session_v5.version() != 5 {
-            self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                workspace_id: approved.prepared.workspace_id.clone(),
-                reason: BmadHelpTerminalReason::ConsentConsumed,
-            }));
+            self.active = Some(terminal_active(
+                prepared.workspace_id.clone(),
+                BmadHelpTerminalReason::ConsentConsumed,
+            ));
             return Err(BmadHelpCoordinatorError::Integrity);
         }
         let record_digest = canonical_hash(
             "bmad-help-canonical-record-ids",
             1,
             &CanonicalRecordIdentity {
-                session_id: &approved.prepared.creation.session_id,
+                session_id: &prepared.creation.session_id,
                 invocation_id: &invocation_id,
                 receipt_id: &verified.receipt().receipt_id,
             },
         )
         .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
         let records = BmadHelpMaterializer::materialize(
-            &approved.prepared.compiled,
+            &prepared.compiled,
             &session_v5,
             &proposal,
             BmadHelpRecordIds {
@@ -935,27 +1218,27 @@ impl BmadHelpCoordinator {
                 )
                 .map_err(|_| BmadHelpCoordinatorError::Integrity)?,
             },
-            input.submitted_at,
+            submitted_at,
         )
         .map_err(|_| BmadHelpCoordinatorError::InvalidModelOutput)?;
         let display_name =
-            recommendation_display_name(records.recommendation(), &approved.prepared.compiled)?;
+            recommendation_display_name(records.recommendation(), &prepared.compiled)?;
         let receipt = verified.receipt();
         if receipt.status != ModelReceiptStatus::Succeeded
             || receipt.retention_mode != RetentionMode::TransientNoStore
         {
-            self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                workspace_id: approved.prepared.workspace_id.clone(),
-                reason: BmadHelpTerminalReason::ConsentConsumed,
-            }));
+            self.active = Some(terminal_active(
+                prepared.workspace_id.clone(),
+                BmadHelpTerminalReason::ConsentConsumed,
+            ));
             return Err(BmadHelpCoordinatorError::ReceiptInvalid);
         }
         let completed_projection = project_completed_bmad_help_run(
             records.recommendation(),
             display_name.as_deref(),
-            approved.prepared.workspace_id.clone(),
-            approved.prepared.creation.run_id.clone(),
-            approved.prepared.creation.session_id.clone(),
+            prepared.workspace_id.clone(),
+            prepared.creation.run_id.clone(),
+            prepared.creation.session_id.clone(),
             &BmadHelpReceiptSummaryInput {
                 receipt_id: receipt.receipt_id.clone(),
                 status: BmadHelpReceiptStatusProjection::Succeeded,
@@ -971,34 +1254,79 @@ impl BmadHelpCoordinator {
         let completed_bytes = serde_json::to_vec(&completed_projection)
             .map_err(|_| BmadHelpCoordinatorError::InvalidModelOutput)?;
         let completed_session = match store.finalize_bmad_help(
-            &approved.prepared.creation.scope,
-            &approved.prepared.creation.session_id,
+            &prepared.creation.scope,
+            &prepared.creation.session_id,
             5,
             &records,
             &completed_bytes,
-            input.submitted_at,
+            submitted_at,
         ) {
             Ok(session) => session,
             Err(error) => {
-                self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                    workspace_id: approved.prepared.workspace_id.clone(),
-                    reason: BmadHelpTerminalReason::ConsentConsumed,
-                }));
+                self.active = Some(terminal_active(
+                    prepared.workspace_id.clone(),
+                    BmadHelpTerminalReason::ConsentConsumed,
+                ));
                 return Err(map_store_error(&error));
             }
         };
         if completed_session.state() != MethodState::Completed || completed_session.version() != 6 {
-            self.active = Some(ActiveBmadHelp::Terminal(BmadHelpTerminalState {
-                workspace_id: approved.prepared.workspace_id.clone(),
-                reason: BmadHelpTerminalReason::ConsentConsumed,
-            }));
+            self.active = Some(terminal_active(
+                prepared.workspace_id.clone(),
+                BmadHelpTerminalReason::ConsentConsumed,
+            ));
             return Err(BmadHelpCoordinatorError::Integrity);
         }
         self.active = Some(ActiveBmadHelp::Completed(Box::new(CompletedBmadHelp {
-            workspace_id: approved.prepared.workspace_id.clone(),
+            workspace_id: prepared.workspace_id.clone(),
             projection: completed_projection.clone(),
         })));
         Ok(completed_projection)
+    }
+
+    /// One-shot submit that holds the coordinator across the transport round
+    /// trip. The production command handler uses
+    /// [`Self::begin_submit`]/[`Self::finalize_submit`] so no lock is held
+    /// during the network wait; this wrapper preserves the original single-call
+    /// contract for the in-process coordinator tests.
+    #[cfg(all(test, feature = "deterministic-help"))]
+    pub(crate) fn submit(
+        &mut self,
+        state: &HostState,
+        authority: &ReadyWorkspaceCommitGuard<'_>,
+        workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
+        input: SubmitBmadHelpReviewInput<'_>,
+    ) -> Result<BmadHelpRunCompletedProjection, BmadHelpCoordinatorError> {
+        let renderer_session = input.renderer_session;
+        let workspace_id = input.workspace_id.clone();
+        let workspace_grant_epoch = input.workspace_grant_epoch;
+        let dispatch = self.begin_submit(state, authority, workspace_authority, input)?;
+        let dispatch_id = dispatch.dispatch_id;
+        let dispatch_workspace = dispatch.workspace_id.clone();
+        let (dispatched, raw_output) = match dispatch.send() {
+            Ok(output) => output,
+            Err(error) => {
+                self.abort_dispatch(
+                    &dispatch_workspace,
+                    dispatch_id,
+                    BmadHelpTerminalReason::ConsentConsumed,
+                );
+                return Err(error);
+            }
+        };
+        self.finalize_submit(
+            state,
+            authority,
+            workspace_authority,
+            FinalizeBmadHelpDispatchInput {
+                renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                dispatch_id,
+                dispatched,
+                raw_output,
+            },
+        )
     }
 
     #[expect(
@@ -1297,20 +1625,22 @@ fn recommendation_display_name(
         .ok_or(BmadHelpCoordinatorError::Integrity)
 }
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "the authority check keeps every renderer, workspace, Method, and binding expectation explicit"
-)]
-fn validate_active_authority(
-    state: &HostState,
+/// Every authority fact a prepared Help lifecycle is bound to that can be
+/// proved from the two guards alone, with no durable read.
+///
+/// Split out of [`validate_active_authority`] so the *same* checks, in the same
+/// order, run both before a dispatch begins and after the provider round trip
+/// returns. The durable half of `validate_active_authority` cannot be reused
+/// after a dispatch — by then the Method session has advanced past the v3 state
+/// that half asserts — so factoring the guard-provable half is what lets
+/// `finalize_submit` re-prove the authority rather than assume it.
+fn validate_prepared_scope(
     authority: &ReadyWorkspaceCommitGuard<'_>,
     workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
     renderer_session: &RendererSessionGuard<'_>,
     prepared: &PreparedBmadHelpReview,
     workspace_id: &ContractId,
     workspace_grant_epoch: u64,
-    expected_state: MethodState,
-    expected_version: u64,
 ) -> Result<(), BmadHelpCoordinatorError> {
     if renderer_session.session_id() != &prepared.renderer_session_id
         || workspace_id != &prepared.workspace_id
@@ -1337,6 +1667,32 @@ fn validate_active_authority(
     {
         return Err(BmadHelpCoordinatorError::Unauthorized);
     }
+    Ok(())
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the authority check keeps every renderer, workspace, Method, and binding expectation explicit"
+)]
+fn validate_active_authority(
+    state: &HostState,
+    authority: &ReadyWorkspaceCommitGuard<'_>,
+    workspace_authority: &WorkspaceScopeAuthorityGuard<'_>,
+    renderer_session: &RendererSessionGuard<'_>,
+    prepared: &PreparedBmadHelpReview,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+    expected_state: MethodState,
+    expected_version: u64,
+) -> Result<(), BmadHelpCoordinatorError> {
+    validate_prepared_scope(
+        authority,
+        workspace_authority,
+        renderer_session,
+        prepared,
+        workspace_id,
+        workspace_grant_epoch,
+    )?;
     let latest = state
         .latest_bmad_help_run(
             authority.authority(),

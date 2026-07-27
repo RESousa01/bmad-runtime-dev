@@ -10,7 +10,9 @@
 
 use std::collections::BTreeMap;
 
-use desktop_cloud::{AuthorizedModelRequest, CloudError, DispatchedModelRequest, RawModelOutput};
+use desktop_cloud::{
+    AuthorizedModelRequest, DispatchedModelRequest, ProviderFailure, RawModelOutput,
+};
 use desktop_egress::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
     ContextEgressManifest, EgressError, MemoryDecisionLedger, ModelInvocationBinding,
@@ -43,13 +45,55 @@ pub(crate) const MAX_TRACKED_CAPABILITY_WORKSPACES: usize = 32;
 /// Transport seam shared by deterministic, offline, and (later) production
 /// capability dispatch. Mirrors the Help transport so Task 9 can supply the
 /// deployed round trip once.
+///
+/// The failure type is [`ProviderFailure`], not `CloudError`, and that is the
+/// whole point of this seam now. `CloudError::TransportFailed` is one value for
+/// every way a provider can refuse — a rate limit, a dead key, a spent quota, a
+/// 500 — so a caller holding one could only ever say something generic, and what
+/// it said was *"Connect a model provider in Settings"* to users whose provider
+/// was connected and working. A `ProviderFailure` carries the class alongside
+/// the exact `CloudError` this lane already read, so `CloudError::from(failure)`
+/// still answers what it always answered and nothing downstream loses a fact.
 pub(crate) trait BmadCapabilityTransport: Send + Sync {
+    /// # Errors
+    ///
+    /// Returns the classified [`ProviderFailure`]. It carries no provider text
+    /// — see `desktop_cloud::provider_failure` — so it is safe to log whole.
     fn send(
         &self,
         request: AuthorizedModelRequest,
         deterministic_fixture: &str,
         now: UnixMillis,
-    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError>;
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure>;
+}
+
+/// Emits the one line a failed send now leaves behind.
+///
+/// `RUST_LOG=debug` produces nothing from this binary because there is no
+/// logging facility in it at all — no `tracing`, no `log`, no `env_logger`. A
+/// failed turn therefore left no trace anywhere: Activity showed *"No activity
+/// yet"*, stdout and stderr were empty, and the only evidence anyone had was the
+/// sentence on screen, which was the same sentence whatever had happened.
+///
+/// Three fields, all of them host-authored or a number off the wire: the stable
+/// diagnostic token, the HTTP status, and the clamped retry delay. The
+/// provider's body, the request, and every header are deliberately absent — an
+/// error body routinely echoes the request, which for this app is reviewed
+/// workspace content, and that is exactly what must not reach a log file. This
+/// is `eprintln!` rather than a logging crate on purpose: one line at one call
+/// site does not justify a dependency, and a dependency would invite the
+/// formatting seam this deliberately does not have.
+pub(crate) fn note_provider_failure(lane: &str, failure: &ProviderFailure) {
+    let status = failure
+        .status()
+        .map_or_else(|| "none".to_owned(), |status| status.to_string());
+    let retry_after_ms = failure
+        .retry_after()
+        .map_or_else(|| "none".to_owned(), |delay| delay.as_millis().to_string());
+    eprintln!(
+        "forge {lane}: send failed code={} status={status} retry_after_ms={retry_after_ms}",
+        failure.diagnostic_code()
+    );
 }
 
 /// Verifies raw model output into exactly one sealed capability output.
@@ -877,17 +921,25 @@ impl BmadCapabilityCoordinator {
         let dispatch = self.begin_dispatch(input)?;
         let dispatch_id = dispatch.dispatch_id;
         let workspace_id = dispatch.workspace_id.clone();
-        let Ok((_dispatched, raw_output)) = transport.send(
+        // A `let`-`else` here — which is what this was — discards the failure
+        // before anything can read it, so no amount of classification upstream
+        // could have reached a caller. Bound and read instead.
+        let sent = transport.send(
             dispatch.authorized_request,
             &dispatch.deterministic_fixture,
             dispatch.submitted_at,
-        ) else {
-            self.abort_dispatch(
-                &workspace_id,
-                dispatch_id,
-                CapabilityTerminalReason::ConsentConsumed,
-            );
-            return Err(BmadCapabilityCoordinatorError::Transport);
+        );
+        let (_dispatched, raw_output) = match sent {
+            Ok(sent) => sent,
+            Err(failure) => {
+                note_provider_failure("capability", &failure);
+                self.abort_dispatch(
+                    &workspace_id,
+                    dispatch_id,
+                    CapabilityTerminalReason::ConsentConsumed,
+                );
+                return Err(BmadCapabilityCoordinatorError::Transport);
+            }
         };
         self.finalize_dispatch(&workspace_id, dispatch_id, &raw_output, verifier, store)
     }

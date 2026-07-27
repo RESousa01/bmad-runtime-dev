@@ -5,8 +5,8 @@
 #![cfg(feature = "deterministic-help")]
 
 use desktop_cloud::{
-    AuthorizedModelRequest, CloudError, DeterministicModelTransport, DispatchedModelRequest,
-    RawModelOutput,
+    AuthorizedModelRequest, DeterministicModelTransport, DispatchedModelRequest, ProviderFailure,
+    ProviderFailureKind, RawModelOutput,
 };
 use desktop_egress::{
     ContextCandidate, ContextClassification, ContextEgressManifest, ContextPreparer, EgressLimits,
@@ -49,8 +49,16 @@ impl BmadCapabilityTransport for FixtureTransport {
         request: AuthorizedModelRequest,
         deterministic_fixture: &str,
         now: UnixMillis,
-    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-        DeterministicModelTransport.send_fixture(request, deterministic_fixture.to_owned(), now)
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
+        // No provider is contacted, so the only way this refuses is that the
+        // request could not be turned into a fixture call — a host fault, and
+        // classified as one. The `CloudError` the lane already read is carried
+        // through untouched.
+        DeterministicModelTransport
+            .send_fixture(request, deterministic_fixture.to_owned(), now)
+            .map_err(|error| {
+                ProviderFailure::reported(ProviderFailureKind::HostRequestInvalid, error)
+            })
     }
 }
 

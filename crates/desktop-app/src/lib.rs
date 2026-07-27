@@ -114,6 +114,58 @@ fn is_allowed_navigation(url: &tauri::Url) -> bool {
 mod tests {
     use super::is_allowed_navigation;
 
+    /// Which thread each registered command runs on, guarded at the source.
+    ///
+    /// A `#[tauri::command]` on a synchronous function runs on the thread
+    /// pumping the `WebView2` message loop; `#[tauri::command(async)]` on the
+    /// same function runs it on an `async_runtime::spawn` worker instead. That
+    /// one attribute is the whole difference between a dispatch that freezes
+    /// the window and one that does not.
+    ///
+    /// It is guarded here, textually, because it cannot be guarded any other
+    /// way from inside this crate: driving the generated wrapper needs a real
+    /// or mocked app, `tauri::test` is behind a cargo feature this crate does
+    /// not enable, and `tauri::AppHandle` cannot be constructed without one. So
+    /// deleting `(async)` compiles, passes every other test in the repository,
+    /// and silently restores the "Not Responding" defect.
+    ///
+    /// The two projection reads stay blocking on purpose. They are a few atomic
+    /// loads and a workspace list, and keeping them on the UI thread is what
+    /// keeps every renderer-visible projection sequence totally ordered: a
+    /// blocking command answers inside its own invoke, so its reply cannot
+    /// overtake a dispatch reply that was sampled earlier.
+    ///
+    /// `install_app_update` is a true `async fn`, which the macro promotes to
+    /// the async lane whether or not the attribute says so; its bare
+    /// `#[tauri::command]` is pinned here only so that turning it back into a
+    /// synchronous function is a visible decision rather than an accident.
+    #[test]
+    fn the_registered_commands_keep_their_declared_thread_lanes() -> Result<(), String> {
+        const COMMANDS: &str = include_str!("commands.rs");
+        const UPDATE: &str = include_str!("update.rs");
+
+        for (source, command, attribute) in [
+            (COMMANDS, "host_bootstrap", "#[tauri::command(async)]"),
+            (COMMANDS, "host_dispatch", "#[tauri::command(async)]"),
+            (COMMANDS, "host_projection_snapshot", "#[tauri::command]"),
+            (COMMANDS, "host_projection_events", "#[tauri::command]"),
+            (UPDATE, "install_app_update", "#[tauri::command]"),
+        ] {
+            let position = source
+                .find(&format!(" fn {command}("))
+                .ok_or_else(|| format!("`{command}` is no longer declared where expected"))?;
+            let start = source[..position]
+                .rfind("#[tauri::command")
+                .ok_or_else(|| format!("`{command}` carries no `#[tauri::command]` attribute"))?;
+            assert!(
+                source[start..].starts_with(attribute),
+                "`{command}` must be declared `{attribute}`; changing it moves the command \
+                 between the UI thread and the async lane",
+            );
+        }
+        Ok(())
+    }
+
     #[test]
     fn navigation_guard_allows_only_packaged_or_exact_development_origin() {
         let packaged = tauri::Url::parse("http://tauri.localhost/index.html");

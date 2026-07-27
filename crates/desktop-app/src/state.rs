@@ -99,6 +99,8 @@ pub(crate) struct HostState {
     /// outlives the context it was granted in.
     pub(crate) tool_grants: Mutex<desktop_tools::GrantedRules>,
     pub gate: RequestGate,
+    /// The renderer dispatch lane. See [`HostState::dispatch_lane`].
+    dispatch_lane: Mutex<()>,
     workspace_commits: Mutex<()>,
     store: Option<LocalStore>,
     installation_id: ContractId,
@@ -185,6 +187,15 @@ impl ReadyWorkspaceCommitGuard<'_> {
 /// Pins the renderer session mapped to a window until request processing is
 /// complete. A new bootstrap must acquire the corresponding write lock and
 /// therefore cannot revoke this session midway through a native operation.
+///
+/// This pin must not span a provider round trip or a native dialog.
+/// `bind_renderer` takes the write half of the same lock, so a pin held across
+/// one parks every rebind for its whole duration — and because a parked writer
+/// makes `parking_lot` queue every later *reader* behind it, it parks the
+/// projection lane too. `host_dispatch` therefore takes the pin only long
+/// enough to read the bound identity, and each command that genuinely needs the
+/// pin re-takes it, checked against the identity the envelope was validated
+/// under (see `HostState::pin_renderer_session`).
 pub(crate) struct RendererSessionGuard<'a> {
     _sessions: RwLockReadGuard<'a, HashMap<String, ContractId>>,
     session_id: ContractId,
@@ -193,6 +204,49 @@ pub(crate) struct RendererSessionGuard<'a> {
 impl RendererSessionGuard<'_> {
     pub fn session_id(&self) -> &ContractId {
         &self.session_id
+    }
+}
+
+/// Exclusive occupancy of the renderer dispatch lane.
+///
+/// Until `host_dispatch` was moved off the main thread this exclusion existed
+/// by accident: a synchronous `#[tauri::command]` runs on the thread that pumps
+/// the `WebView2` message loop, so exactly one dispatch could be in flight and
+/// nothing else could record a projection event while one was. That accident is
+/// what made three separate host invariants true, and removing it without
+/// replacing it would have turned a reported freeze into an unreported race:
+///
+/// * **One event writer.** Every `record_event` call site is reached from a
+///   dispatch. With one dispatch at a time, the projection sequence a reply
+///   carries covers that dispatch's own events and nothing else. Concurrent
+///   dispatches would let a reply be stamped with a sequence that includes an
+///   event some *other* dispatch recorded, which the renderer then treats as
+///   delivered — `HostClient.projectionEvents` asks only for events after its
+///   cursor, so the skipped event is never sent again.
+/// * **Monotone reply sequences.** `HostClient.advanceProjectionSequence`
+///   refuses a sequence below the one it already holds, and refusing is a hard
+///   protocol error, not a retry. Two dispatch replies that race can arrive in
+///   the opposite order to the one they sampled in.
+/// * **Terminating seqlocks.** `host_bootstrap` and [`HostState::snapshot`]
+///   both re-read until the sequence is unchanged across the read. They cannot
+///   livelock while at most one bounded writer exists.
+///
+/// The lane is the outermost host lock: it is taken first and nothing else ever
+/// waits on it, so it introduces no ordering edge and cannot participate in a
+/// cycle. It does *not* keep the UI thread busy — that is the whole point of
+/// the move — so a queued dispatch waits without the window freezing.
+pub(crate) struct DispatchLaneGuard<'a> {
+    state: &'a HostState,
+    _lane: MutexGuard<'a, ()>,
+}
+
+impl DispatchLaneGuard<'_> {
+    /// The projection sequence this dispatch's reply may publish.
+    ///
+    /// Sampled through the lane guard so the value is, by construction, a point
+    /// the event log reached under this dispatch's own exclusion.
+    pub fn sequence(&self) -> u64 {
+        self.state.sequence()
     }
 }
 
@@ -246,6 +300,7 @@ impl HostState {
             workspace,
             tool_grants: Mutex::new(desktop_tools::GrantedRules::new()),
             gate: RequestGate::new(AdmissionPolicy::default()),
+            dispatch_lane: Mutex::new(()),
             workspace_commits: Mutex::new(()),
             store: Some(store),
             installation_id,
@@ -276,6 +331,7 @@ impl HostState {
             workspace: WorkspaceBroker::new(),
             tool_grants: Mutex::new(desktop_tools::GrantedRules::new()),
             gate: RequestGate::new(AdmissionPolicy::default()),
+            dispatch_lane: Mutex::new(()),
             workspace_commits: Mutex::new(()),
             store,
             installation_id,
@@ -514,11 +570,37 @@ impl HostState {
                 let _ = self.workspace.revoke(&workspace.workspace_id);
             }
             let store = self.store.as_ref().ok_or_else(recovery_error)?;
+            // The message this replaced said: "the store key was destroyed, so
+            // remaining bytes are undecryptable. Restart and retry." Every
+            // clause of that was capable of being false, and the last one was
+            // actively harmful.
+            //
+            //   - "the store key was destroyed" — deleting the key file is
+            //     itself fallible. If *that* is the step that failed, the
+            //     wrapped key is still on disk and nothing was destroyed.
+            //   - "remaining bytes are undecryptable" — only the
+            //     content-addressed payloads are encrypted. There is no
+            //     SQLCipher in this crate, so `authority.sqlite3` is plaintext,
+            //     and it holds the evidence log, aggregate state and memlog
+            //     text (stored inline by design). A surviving database, or even
+            //     a surviving `-wal`, is readable.
+            //   - "Restart and retry" — restarting is the one action that makes
+            //     this unrecoverable. A partial erase leaves no key file beside
+            //     a live database, which is exactly the state `LocalStore::open`
+            //     refuses, so the next launch lands in recovery with no store
+            //     at all and `app.offboarding.erase` is not in the recovery
+            //     command set. Retrying *in this session* does work:
+            //     `erase_for_offboarding` is idempotent and this lane is still
+            //     Ready, because the `?` below returns before `enter_recovery`.
+            //
+            // So the instruction is inverted, and `retryable` is now true.
             store.erase_for_offboarding().map_err(|_| {
                 LocalError::new(
                     LocalErrorCode::IntegrityFailure,
-                    "Local data could not be fully erased; the store key was destroyed, so remaining bytes are undecryptable. Restart and retry.",
-                    false,
+                    "Erase did not finish, and some local data may remain readable. \
+                     Run Erase again now, in this window — do not restart, because after a \
+                     restart this app can no longer complete the erase.",
+                    true,
                 )
             })?;
         }
@@ -725,6 +807,42 @@ impl HostState {
         })
     }
 
+    /// The renderer session bound to a window, copied instead of pinned.
+    ///
+    /// `host_dispatch` needs the identity to validate the envelope against; it
+    /// does not need to stop a rebind for the length of a provider round trip,
+    /// which is what pinning it would do. Every later use re-takes the pin
+    /// through [`Self::pin_renderer_session`], which refuses if the binding
+    /// moved in between.
+    pub fn renderer_session_id(&self, window_label: &str) -> Option<ContractId> {
+        self.renderer_sessions.read().get(window_label).cloned()
+    }
+
+    /// Re-takes the renderer pin, but only while the window is still bound to
+    /// the session the caller was authorized under.
+    ///
+    /// Holding one pin for a whole dispatch used to make this check vacuous:
+    /// nothing could rebind, so nothing could be observed to have rebound.
+    /// Releasing the pin between validation and execution makes a mid-dispatch
+    /// rebind reachable, and this is where it is caught — the command fails
+    /// closed rather than completing against a session the renderer replaced.
+    pub fn pin_renderer_session(
+        &self,
+        window_label: &str,
+        expected: &ContractId,
+    ) -> Option<RendererSessionGuard<'_>> {
+        let authority = self.renderer_session_authority(window_label)?;
+        (authority.session_id() == expected).then_some(authority)
+    }
+
+    /// Enters the serialised renderer dispatch lane. See [`DispatchLaneGuard`].
+    pub fn dispatch_lane(&self) -> DispatchLaneGuard<'_> {
+        DispatchLaneGuard {
+            _lane: self.dispatch_lane.lock(),
+            state: self,
+        }
+    }
+
     pub fn persist_workspace(
         &self,
         _authority: &ReadyAuthorityGuard<'_>,
@@ -882,6 +1000,16 @@ impl HostState {
         self.sequence.load(Ordering::SeqCst)
     }
 
+    /// An optimistic consistent read of the renderer-visible host projection.
+    ///
+    /// The retry can now actually be taken: `host_projection_snapshot` runs on
+    /// the UI thread while a dispatch runs on the async lane, so a dispatch's
+    /// `record_event` can land between the two sequence reads. It still
+    /// terminates, and that rests on the dispatch lane
+    /// ([`DispatchLaneGuard`]): with at most one dispatch in flight there is at
+    /// most one event writer, and it records a bounded number of events and
+    /// then stops. Remove the lane and this becomes a loop with an unbounded
+    /// number of concurrent writers, which can spin.
     pub fn snapshot(&self) -> ProjectionSnapshot {
         loop {
             let before = self.sequence();
@@ -897,6 +1025,7 @@ impl HostState {
                     active_session_id: None,
                 };
             }
+            std::hint::spin_loop();
         }
     }
 
@@ -1419,6 +1548,184 @@ mod tests {
         assert_eq!(transition_sequence, 1);
         assert_eq!(state.boot_mode(), BootMode::ReadOnlyRecovery);
         assert_single_recovery_event(&state)
+    }
+
+    fn workspace_event(label: &str) -> Result<ProjectionEventKind, String> {
+        Ok(ProjectionEventKind::WorkspaceChanged {
+            workspace_id: ContractId::new(label).map_err(|error| error.to_string())?,
+        })
+    }
+
+    /// The freeze, and its absence, as far as this process can observe them.
+    ///
+    /// The thread placement itself is the compiler's to prove —
+    /// `#[tauri::command(async)]` routes the body through
+    /// `async_runtime::spawn` — but the consequence that made the freeze
+    /// *survive* the move is observable here: a dispatch that blocks for a
+    /// provider round trip must not park the commands the window itself needs.
+    /// `host_bootstrap` takes the write half of `renderer_sessions`, and
+    /// `host_dispatch` used to hold the read half for its entire body, so a
+    /// rebind — and, `parking_lot` being task-fair, every projection read queued
+    /// behind that rebind — waited out the whole round trip.
+    ///
+    /// The worker below is `host_dispatch`'s shape exactly: enter the lane, read
+    /// the bound renderer identity *without* pinning it, then block.
+    #[test]
+    fn a_blocked_dispatch_does_not_park_the_window_facing_commands() -> Result<(), String> {
+        let state = Arc::new(ready_state()?);
+        let bound = state.bind_renderer("main").map_err(map_local_error)?;
+
+        let (in_flight_tx, in_flight) = mpsc::channel();
+        let (release_tx, release) = mpsc::channel::<()>();
+        let dispatch_state = Arc::clone(&state);
+        let dispatch = thread::spawn(move || {
+            let lane = dispatch_state.dispatch_lane();
+            let session_id = dispatch_state.renderer_session_id("main");
+            let _ = in_flight_tx.send(session_id);
+            // Stands in for the blocking provider round trip.
+            let _ = release.recv_timeout(COMPLETION_TIMEOUT);
+            drop(lane);
+        });
+
+        let in_flight_session = in_flight
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("the dispatch never reached its round trip: {error}"))?
+            .ok_or_else(|| "the dispatch read no renderer session".to_owned())?;
+        assert_eq!(in_flight_session, bound);
+
+        // Detached rather than joined: on the code this test exists to catch
+        // these calls never return, so joining would hang the suite instead of
+        // failing it.
+        let (attempted_tx, attempted_rx) = mpsc::channel();
+        let (completed_tx, completed_rx) = mpsc::channel();
+        let window_state = Arc::clone(&state);
+        thread::spawn(move || {
+            let _ = attempted_tx.send(());
+            // `host_bootstrap`, then `host_projection_snapshot`/`_events`.
+            let rebound = window_state.bind_renderer("main");
+            let snapshot = window_state.snapshot();
+            let events = window_state.events_after(0);
+            let _ = completed_tx.send(rebound.map(|session| (session, snapshot, events)));
+        });
+
+        attempted_rx
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("the window-facing worker did not start: {error}"))?;
+        let (rebound, snapshot, events) = completed_rx
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| {
+                format!("the window lane parked behind an in-flight dispatch: {error}")
+            })?
+            .map_err(map_local_error)?;
+
+        assert_ne!(rebound, bound);
+        assert_eq!(snapshot.boot_mode, BootMode::Ready.as_str());
+        assert!(events.map_err(map_local_error)?.is_empty());
+
+        let _ = release_tx.send(());
+        dispatch
+            .join()
+            .map_err(|_| "the dispatch worker panicked".to_owned())?;
+        Ok(())
+    }
+
+    /// A dispatch reply may publish its own dispatch's projection sequence and
+    /// no other's.
+    ///
+    /// `HostClient.projectionEvents` only ever asks for events *after* the
+    /// cursor it holds, so a reply stamped with a sequence covering an event
+    /// some other dispatch appended tells the renderer that event was delivered
+    /// when it never was — and it is never offered again. On the main thread
+    /// this was impossible by accident; the lane is what keeps it impossible.
+    #[test]
+    fn a_dispatch_cannot_publish_a_sequence_another_dispatch_appended() -> Result<(), String> {
+        let state = Arc::new(ready_state()?);
+
+        let (recorded_tx, recorded) = mpsc::channel();
+        let (release_tx, release) = mpsc::channel::<()>();
+        let (published_tx, published) = mpsc::channel();
+        let first_state = Arc::clone(&state);
+        let first_event = workspace_event("workspace_first")?;
+        let first = thread::spawn(move || {
+            let lane = first_state.dispatch_lane();
+            let entered_at = lane.sequence();
+            first_state.record_event(first_event);
+            let _ = recorded_tx.send(());
+            let _ = release.recv_timeout(COMPLETION_TIMEOUT);
+            let _ = published_tx.send((entered_at, lane.sequence()));
+        });
+
+        recorded
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("the first dispatch never recorded its event: {error}"))?;
+
+        // A second dispatch arrives while the first is still open.
+        let (second_tx, second_rx) = mpsc::channel();
+        let second_state = Arc::clone(&state);
+        let second_event = workspace_event("workspace_second")?;
+        let second = thread::spawn(move || {
+            let lane = second_state.dispatch_lane();
+            let entered_at = lane.sequence();
+            second_state.record_event(second_event);
+            let _ = second_tx.send((entered_at, lane.sequence()));
+        });
+
+        // It cannot append anything into the window the first will publish.
+        let blocked = matches!(
+            second_rx.recv_timeout(BLOCKED_ASSERTION_WINDOW),
+            Err(RecvTimeoutError::Timeout)
+        );
+        assert!(
+            blocked,
+            "a second dispatch appended a projection event inside the first dispatch's window",
+        );
+
+        let _ = release_tx.send(());
+        let (first_entered_at, first_published) = published
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("the first dispatch never published: {error}"))?;
+        assert_eq!(first_entered_at, 0);
+        assert_eq!(
+            first_published, 1,
+            "a reply published a sequence that covers another dispatch's event",
+        );
+
+        let (second_entered_at, second_published) = second_rx
+            .recv_timeout(COMPLETION_TIMEOUT)
+            .map_err(|error| format!("the second dispatch never published: {error}"))?;
+        assert_eq!(second_entered_at, 1);
+        assert_eq!(second_published, 2);
+
+        for worker in [first, second] {
+            worker
+                .join()
+                .map_err(|_| "a dispatch worker panicked".to_owned())?;
+        }
+        assert_eq!(state.sequence(), 2);
+        Ok(())
+    }
+
+    /// Releasing the pin between validation and execution makes a mid-dispatch
+    /// rebind reachable for the first time, so the identity check that was
+    /// previously vacuous now has to hold.
+    #[test]
+    fn re_pinning_a_rebound_window_is_refused() -> Result<(), String> {
+        let state = ready_state()?;
+        let first = state.bind_renderer("main").map_err(map_local_error)?;
+        assert!(state.pin_renderer_session("main", &first).is_some());
+
+        let second = state.bind_renderer("main").map_err(map_local_error)?;
+        assert_ne!(second, first);
+        assert!(
+            state.pin_renderer_session("main", &first).is_none(),
+            "a command must not execute against the renderer session the window replaced",
+        );
+        let current = state
+            .pin_renderer_session("main", &second)
+            .ok_or_else(|| "the current renderer session must still pin".to_owned())?;
+        assert_eq!(current.session_id(), &second);
+        assert!(state.pin_renderer_session("other", &second).is_none());
+        Ok(())
     }
 
     #[test]

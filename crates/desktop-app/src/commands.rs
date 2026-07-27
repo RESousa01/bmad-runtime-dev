@@ -32,8 +32,8 @@ use crate::bmad_foundation::BmadLoadedFoundation;
 use crate::bmad_model::config::HelpModelMode;
 use crate::bmad_model::coordinator::{
     ApproveBmadHelpReviewInput, BmadHelpCoordinatorError, BmadHelpInMemoryLifecycle,
-    BmadHelpTerminalReason, CancelBmadHelpReviewInput, PrepareBmadHelpReviewInput,
-    SubmitBmadHelpReviewInput,
+    BmadHelpTerminalReason, CancelBmadHelpReviewInput, FinalizeBmadHelpDispatchInput,
+    PrepareBmadHelpReviewInput, SubmitBmadHelpReviewInput,
 };
 use crate::state::{
     conflict_error, invalid_request, not_found_error, now, recovery_error, resource_limit_error,
@@ -181,6 +181,43 @@ fn should_cache_reply(command: &LocalCommand) -> bool {
         )
 }
 
+/// The renderer identity a dispatch was validated under, carried instead of a
+/// held pin so the pin cannot span the command body.
+#[derive(Clone, Copy)]
+struct RendererDispatchIdentity<'a> {
+    window_label: &'a str,
+    session_id: &'a ContractId,
+}
+
+/// Re-takes the renderer pin for one command, refusing if the window was
+/// rebound after the envelope was validated.
+///
+/// The pin is a read guard on `renderer_sessions`, and `bind_renderer` takes
+/// the write half, so it must not span a provider round trip or a native
+/// dialog. `host_dispatch` therefore releases it after validation and every
+/// command that needs it comes back through here — which is also what makes the
+/// rebind check real rather than vacuous.
+fn pin_renderer_session<'a>(
+    state: &'a HostState,
+    window_label: &str,
+    expected: &ContractId,
+) -> Result<RendererSessionGuard<'a>, LocalError> {
+    state
+        .pin_renderer_session(window_label, expected)
+        .ok_or_else(renderer_session_expired)
+}
+
+/// Admission and idempotent replay for one envelope.
+///
+/// Both halves are internally atomic and neither depended on the dispatch
+/// serialisation for that: `RequestGate::admit` does all of its rate-limit and
+/// mutation-identity work inside one `Mutex`, so exactly one caller can ever be
+/// told `Admission::New` for a given fingerprinted mutation, and `cache_reply`
+/// tests and inserts under one `Mutex` too. What the serialisation does buy is
+/// that a `Replay` verdict always arrives *after* the reply it replays was
+/// cached; overlapping duplicates would instead find the cache still empty and
+/// be answered with the expired-receipt conflict below. That is fail-closed,
+/// not a double execution — but it is another reason this lane is serialised.
 fn admit_dispatch_envelope(
     state: &HostState,
     envelope: &ValidatedCommandEnvelope,
@@ -204,7 +241,15 @@ fn admit_dispatch_envelope(
     Ok(())
 }
 
-#[tauri::command]
+/// Binds a renderer session to a window.
+///
+/// `(async)` for the same reason `host_dispatch` is, and specifically because
+/// of `host_dispatch`: `bind_renderer` takes the write half of
+/// `renderer_sessions`, which a command holding the read half parks. Left on
+/// the UI thread, one such command would freeze the window for as long as it
+/// held the pin — the very defect the dispatch move exists to remove, arriving
+/// through a different door.
+#[tauri::command(async)]
 #[expect(
     clippy::needless_pass_by_value,
     reason = "Tauri injects command arguments through owned boundary wrapper types"
@@ -216,6 +261,10 @@ pub(crate) fn host_bootstrap(
     let renderer_session_id = state
         .bind_renderer(window.label())
         .map_err(|_| "The desktop host could not initialize a renderer session.".to_owned())?;
+    // Optimistic consistent read, and the retry is now reachable: a dispatch
+    // can record an event between the two sequence reads. It terminates for the
+    // reason `HostState::snapshot` documents — the dispatch lane keeps the
+    // number of concurrent event writers at one.
     let (boot_mode, workspaces, projection_sequence) = loop {
         let before = state.sequence();
         let boot_mode = state.boot_mode();
@@ -224,6 +273,7 @@ pub(crate) fn host_bootstrap(
         if before == after {
             break (boot_mode, workspaces, after);
         }
+        std::hint::spin_loop();
     };
     let supported_commands = supported_commands(boot_mode);
 
@@ -239,7 +289,30 @@ pub(crate) fn host_bootstrap(
     })
 }
 
-#[tauri::command]
+/// The one renderer-to-host command lane.
+///
+/// `(async)` on a *synchronous* function, which is Tauri's `sync_threadpool`
+/// form: the body still runs start to finish on one thread, but that thread is
+/// an `async_runtime::spawn` worker instead of the thread pumping the `WebView2`
+/// message loop. A plain `#[tauri::command]` runs on the main thread, and a
+/// turn here is up to sixteen blocking provider round trips, so the window
+/// stopped painting and Windows marked the process Not Responding.
+///
+/// Deliberately not a true `async fn`. Tauri refuses one that takes a borrowed
+/// `State<'_, _>` and does not return `Result` — "async commands that contain
+/// references as inputs must return a `Result`" — and refuses the borrow
+/// itself, because the generated future must be `'static`. Neither applies to
+/// the sync form: the arguments are temporaries of a single statement inside
+/// the generated future rather than parameters of it, so nothing is held across
+/// a suspension, the `!Send` guards this lane takes never have to be `Send`,
+/// and the return type stays the bare `HostDispatchReply` the renderer already
+/// parses. No pinned catalog site moves.
+///
+/// Moving off the main thread removes an *accidental* exclusion, which
+/// [`crate::state::DispatchLaneGuard`] replaces with a deliberate one — read
+/// that first; the invariants it lists are the reason this is one lane and not
+/// N concurrent ones.
+#[tauri::command(async)]
 #[expect(
     clippy::needless_pass_by_value,
     reason = "Tauri injects command arguments through owned boundary wrapper types"
@@ -251,14 +324,20 @@ pub(crate) fn host_dispatch(
     foundation: tauri::State<'_, BmadLoadedFoundation>,
     body: String,
 ) -> HostDispatchReply {
-    let Some(renderer_authority) = state.renderer_session_authority(window.label()) else {
-        return HostDispatchReply::error(None, state.sequence(), renderer_session_expired());
+    let lane = state.dispatch_lane();
+    let window_label = window.label();
+    // Read rather than pinned. The pin is a read guard on `renderer_sessions`
+    // and `bind_renderer` takes the write half, so pinning here — as this did
+    // until the body moved off the main thread — parks every rebind, and every
+    // projection read queued behind that rebind, for a whole provider round
+    // trip. Each command that needs the pin re-takes it below, checked.
+    let Some(renderer_session_id) = state.renderer_session_id(window_label) else {
+        return HostDispatchReply::error(None, lane.sequence(), renderer_session_expired());
     };
-    let renderer_session_id = renderer_authority.session_id().clone();
     let accepted_at = now();
     let context = IpcValidationContext {
-        expected_window_label: window.label().to_owned(),
-        renderer_session_id,
+        expected_window_label: window_label.to_owned(),
+        renderer_session_id: renderer_session_id.clone(),
         installation_id: state.installation_id().clone(),
         now: accepted_at,
         allowed_commands: supported_commands(state.boot_mode()),
@@ -266,7 +345,7 @@ pub(crate) fn host_dispatch(
     let envelope = match CommandEnvelopeValidator::parse(body.as_bytes(), &context) {
         Ok(envelope) => envelope,
         Err(error) => {
-            return HostDispatchReply::error(None, state.sequence(), map_ipc_error(&error));
+            return HostDispatchReply::error(None, lane.sequence(), map_ipc_error(&error));
         }
     };
     let request_id = envelope.request_id().clone();
@@ -280,15 +359,23 @@ pub(crate) fn host_dispatch(
         &app,
         &state,
         &foundation,
-        &renderer_authority,
+        RendererDispatchIdentity {
+            window_label,
+            session_id: &renderer_session_id,
+        },
         &request_id,
         accepted_at,
         command,
     );
+    // Sampled once, through the lane guard, after the command has recorded
+    // whatever it records. Under the lane that is exactly this dispatch's own
+    // high-water mark; it can never carry an event another dispatch appended,
+    // which the renderer would treat as delivered and never ask for again.
+    let sequence = lane.sequence();
     let reply = match result {
         Ok(execution) => HostDispatchReply::success(
             request_id.clone(),
-            state.sequence(),
+            sequence,
             CommandReceipt {
                 request_id: request_id.clone(),
                 accepted_at: execution.accepted_at,
@@ -298,14 +385,14 @@ pub(crate) fn host_dispatch(
         ),
         Err(error) => HostDispatchReply::error(
             Some(request_id.clone()),
-            state.sequence(),
+            sequence,
             error.with_correlation_id(request_id.clone()),
         ),
     };
     if cache_reply {
         state.cache_reply(request_id, reply.clone());
     }
-    drop(renderer_authority);
+    drop(lane);
     reply
 }
 
@@ -378,11 +465,15 @@ fn execute_command(
     app: &tauri::AppHandle,
     state: &HostState,
     foundation: &BmadLoadedFoundation,
-    renderer_session: &RendererSessionGuard<'_>,
+    renderer: RendererDispatchIdentity<'_>,
     request_id: &ContractId,
     accepted_at: UnixMillis,
     command: LocalCommand,
 ) -> Result<CommandExecution, LocalError> {
+    let RendererDispatchIdentity {
+        window_label,
+        session_id: renderer_session_id,
+    } = renderer;
     let data = match command {
         LocalCommand::GetBootState => Ok(HostCommandData::BootState(boot_state(state))),
         LocalCommand::SelectWorkspace => select_workspace(app, state, request_id),
@@ -394,13 +485,7 @@ fn execute_command(
             workspace_id,
             cursor,
             limit,
-        } => list_workspace_entries(
-            state,
-            renderer_session.session_id(),
-            workspace_id,
-            cursor,
-            limit,
-        ),
+        } => list_workspace_entries(state, renderer_session_id, workspace_id, cursor, limit),
         LocalCommand::ReadWorkspaceText {
             workspace_id,
             relative_path,
@@ -457,16 +542,19 @@ fn execute_command(
             workspace_grant_epoch,
             capability_id,
             context_paths,
-        } => prepare_bmad_capability_run(
-            state,
-            foundation,
-            renderer_session,
-            workspace_id,
-            workspace_grant_epoch,
-            &capability_id,
-            context_paths,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            prepare_bmad_capability_run(
+                state,
+                foundation,
+                &renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                &capability_id,
+                context_paths,
+                accepted_at,
+            )
+        }
         LocalCommand::ApproveBmadCapabilityRun {
             workspace_id,
             workspace_grant_epoch,
@@ -606,55 +694,74 @@ fn execute_command(
             workspace_id,
             workspace_grant_epoch,
             context_paths,
-        } => prepare_bmad_help_review(
-            state,
-            foundation,
-            renderer_session,
-            workspace_id,
-            workspace_grant_epoch,
-            context_paths,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            prepare_bmad_help_review(
+                state,
+                foundation,
+                &renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                context_paths,
+                accepted_at,
+            )
+        }
         LocalCommand::ApproveBmadHelpReview {
             workspace_id,
             workspace_grant_epoch,
             manifest_hash,
-        } => approve_bmad_help_review(
-            state,
-            renderer_session,
-            workspace_id,
-            workspace_grant_epoch,
-            manifest_hash,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            approve_bmad_help_review(
+                state,
+                &renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                accepted_at,
+            )
+        }
         LocalCommand::CancelBmadHelpReview {
             workspace_id,
             workspace_grant_epoch,
             manifest_hash,
             decision_id,
-        } => cancel_bmad_help_review(
-            state,
-            renderer_session,
-            workspace_id,
-            workspace_grant_epoch,
-            manifest_hash,
-            decision_id,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            cancel_bmad_help_review(
+                state,
+                &renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                decision_id,
+                accepted_at,
+            )
+        }
         LocalCommand::SubmitBmadHelpReview {
             workspace_id,
             workspace_grant_epoch,
             manifest_hash,
             decision_id,
-        } => submit_bmad_help_review(
-            state,
-            renderer_session,
-            workspace_id,
-            workspace_grant_epoch,
-            manifest_hash,
-            decision_id,
-            accepted_at,
-        ),
+        } => {
+            // The one command that still holds the pin across a provider round
+            // trip. `SubmitBmadHelpReviewInput` and `FinalizeBmadHelpDispatchInput`
+            // both take `&RendererSessionGuard`, and those live in the Help
+            // coordinator, so narrowing this to the two locked sections the way
+            // the three host authorities already are needs a change there.
+            // Bounded to one call rather than a whole sixteen-call turn, and it
+            // no longer parks the UI thread, which is what made it a freeze.
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            submit_bmad_help_review(
+                state,
+                &renderer_session,
+                workspace_id,
+                workspace_grant_epoch,
+                manifest_hash,
+                decision_id,
+                accepted_at,
+            )
+        }
         LocalCommand::LatestBmadHelpRun {
             workspace_id,
             workspace_grant_epoch,
@@ -711,26 +818,32 @@ fn execute_command(
             workspace_id,
             workspace_grant_epoch,
             journal_id,
-        } => crate::recovery::prepare_recovery(
-            state,
-            renderer_session,
-            &workspace_id,
-            workspace_grant_epoch,
-            &journal_id,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            crate::recovery::prepare_recovery(
+                state,
+                &renderer_session,
+                &workspace_id,
+                workspace_grant_epoch,
+                &journal_id,
+                accepted_at,
+            )
+        }
         LocalCommand::DecideChangesRecovery {
             recovery_approval_id,
             displayed_recovery_hash,
             choice,
-        } => crate::recovery::decide_recovery(
-            state,
-            renderer_session,
-            &recovery_approval_id,
-            displayed_recovery_hash,
-            choice,
-            accepted_at,
-        ),
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            crate::recovery::decide_recovery(
+                state,
+                &renderer_session,
+                &recovery_approval_id,
+                displayed_recovery_hash,
+                choice,
+                accepted_at,
+            )
+        }
         LocalCommand::GetPreferences => load_preferences(state),
         LocalCommand::SetPreferences { theme, density } => {
             save_preferences(state, request_id, theme, density, accepted_at)
@@ -965,6 +1078,35 @@ fn cancel_bmad_help_review(
     ))
 }
 
+/// One reviewed Help submission: seal and consume under the locks, dispatch
+/// with every lock released, complete under the locks again.
+///
+/// This lane used to hold *three* host authorities across `transport.send` — a
+/// blocking provider round trip that can take tens of seconds:
+///
+/// * `ReadyWorkspaceCommitGuard`, which is the `workspace_commits` mutex plus a
+///   `boot_mode` read guard. `revoke_workspace` and `enter_recovery` both take
+///   it, so a revocation could not even *start* while a Help request was in
+///   flight — which is what made the "re-check the authority" property vacuous
+///   rather than merely unenforced, and what defeated the recent
+///   `revoke_workspace` cache-invalidation fix for exactly this lane.
+/// * `WorkspaceScopeAuthorityGuard`, the broker's task-fair revocation barrier.
+///   Held across a send it blocks every broker writer, and because the barrier
+///   is task-fair, every broker *reader* queued behind that writer too.
+/// * The `bmad_model` coordinator mutex, which every other Help command needs.
+///
+/// `run_chat_turn` and `run_bmad_capability_submission` are the shape this
+/// follows, with one deliberate difference: they keep the commit barrier for
+/// the whole command and this does not. Keeping it here would leave the
+/// revocation this lane must observe unable to land at all, so the guard is
+/// released with the other two and everything it proved is re-proved in
+/// `finalize_submit` before anything durable is written.
+///
+/// What is genuinely given up is atomicity across the send. Nothing can keep
+/// that without holding a lock across a provider round trip, which is the
+/// defect itself. What is not given up is the terminal-state set: every
+/// transition the one-shot path could reach is still reachable, in the same
+/// order, with the same reason.
 fn submit_bmad_help_review(
     state: &HostState,
     renderer_session: &RendererSessionGuard<'_>,
@@ -974,31 +1116,129 @@ fn submit_bmad_help_review(
     decision_id: ContractId,
     submitted_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
-    let authority = state.ready_workspace_commit()?;
-    let workspace_authority = state
-        .workspace
-        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
-        .map_err(|error| map_workspace_error(&error))?;
-    let completed = state
-        .bmad_model
-        .lock()
-        .submit(
+    // Scoped so all three guards are dropped at the closing brace, before the
+    // round trip below. `begin_submit` writes the durable v4 -> v5 advance
+    // receipt and consumes the single-use consent, so from here on the run is
+    // committed and every exit must be terminal, never a restore.
+    let dispatch = {
+        let authority = state.ready_workspace_commit()?;
+        let workspace_authority = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+            .map_err(|error| map_workspace_error(&error))?;
+        let begun = state.bmad_model.lock().begin_submit(
             state,
             &authority,
             &workspace_authority,
             SubmitBmadHelpReviewInput {
                 renderer_session,
-                workspace_id,
+                workspace_id: workspace_id.clone(),
                 workspace_grant_epoch,
                 manifest_hash,
                 decision_id,
                 submitted_at,
             },
-        )
-        .map_err(map_bmad_model_error)?;
+        );
+        drop(workspace_authority);
+        drop(authority);
+        begun.map_err(map_bmad_model_error)?
+    };
+    let dispatch_id = dispatch.dispatch_id;
+    let dispatch_workspace = dispatch.workspace_id.clone();
+
+    // No guard is alive here. `BmadHelpDispatch::send` borrows nothing from the
+    // coordinator, so this cannot compile any other way.
+    let (dispatched, raw_output) = match dispatch.send() {
+        Ok(output) => output,
+        Err(error) => {
+            state.bmad_model.lock().abort_dispatch(
+                &dispatch_workspace,
+                dispatch_id,
+                BmadHelpTerminalReason::ConsentConsumed,
+            );
+            return Err(map_bmad_model_error(error));
+        }
+    };
+
+    // Re-acquired in the same order they were taken in: commit barrier, then
+    // revocation barrier, then coordinator. Anything that landed mid-flight —
+    // a revocation, a sign-out, a recovery transition — is observed here, and
+    // `finalize_submit` re-proves every authority fact before it writes.
+    let authority = match state.ready_workspace_commit() {
+        Ok(authority) => authority,
+        Err(error) => {
+            state.bmad_model.lock().abort_dispatch(
+                &dispatch_workspace,
+                dispatch_id,
+                BmadHelpTerminalReason::ConsentConsumed,
+            );
+            return Err(error);
+        }
+    };
+    let workspace_authority = match state
+        .workspace
+        .authorize_scope(dispatch_workspace.as_str(), workspace_grant_epoch)
+    {
+        Ok(scope) => scope,
+        Err(error) => {
+            state.bmad_model.lock().abort_dispatch(
+                &dispatch_workspace,
+                dispatch_id,
+                BmadHelpTerminalReason::ConsentConsumed,
+            );
+            drop(authority);
+            return Err(map_workspace_error(&error));
+        }
+    };
+    let completed = state.bmad_model.lock().finalize_submit(
+        state,
+        &authority,
+        &workspace_authority,
+        FinalizeBmadHelpDispatchInput {
+            renderer_session,
+            workspace_id,
+            workspace_grant_epoch,
+            dispatch_id,
+            dispatched,
+            raw_output,
+        },
+    );
     drop(workspace_authority);
     drop(authority);
-    Ok(HostCommandData::BmadHelpRunCompleted(completed))
+    Ok(HostCommandData::BmadHelpRunCompleted(
+        completed.map_err(map_bmad_model_error)?,
+    ))
+}
+
+/// Drives the real submission command from the coordinator's own test module.
+///
+/// The lock-release property lives in `submit_bmad_help_review`, not in the
+/// coordinator, so a test that only exercised `begin_submit`/`finalize_submit`
+/// could not observe it at all. Mirrors `create_bmad_help_run_for_test`.
+///
+/// Gated on the same feature as its only callers, for the reason
+/// `BmadHelpCoordinator::with_transport_for_test` documents: the tests that
+/// substitute a transport are themselves `deterministic-help`-only, so a bare
+/// `#[cfg(test)]` makes this dead code in a default-feature test build.
+#[cfg(all(test, feature = "deterministic-help"))]
+pub(crate) fn submit_bmad_help_review_for_test(
+    state: &HostState,
+    renderer_session: &RendererSessionGuard<'_>,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    submitted_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    submit_bmad_help_review(
+        state,
+        renderer_session,
+        workspace_id,
+        workspace_grant_epoch,
+        manifest_hash,
+        decision_id,
+        submitted_at,
+    )
 }
 
 #[expect(
@@ -1345,17 +1585,78 @@ fn map_chat_error(error: crate::chat::ChatCoordinatorError) -> LocalError {
             "The model reply failed verification and was discarded.",
             true,
         ),
-        E::Transport => LocalError::new(
-            LocalErrorCode::FeatureDisabled,
-            "Connect a model provider in Settings before sending a message.",
-            false,
-        ),
+        E::Transport(kind) => transport_failure_error(kind),
         E::Integrity => LocalError::new(
             LocalErrorCode::IntegrityFailure,
             "The message could not be sealed for sending.",
             false,
         ),
     }
+}
+
+/// Turns one classified send failure into the error the renderer shows.
+///
+/// This arm used to be a single literal — *"Connect a model provider in Settings
+/// before sending a message"*, `FeatureDisabled`, `retryable: false` — for every
+/// way a send could fail. On a rate-limited but perfectly working `OpenAI` key
+/// that is two false statements in one sentence: the provider *is* connected,
+/// and retrying is the only thing that would have worked. Chat was unusable and
+/// this line is why.
+///
+/// Two rules hold it honest.
+///
+/// The match is **exhaustive on purpose**, with no catch-all. A class added to
+/// `ProviderFailureKind` upstream must stop this crate compiling, because the
+/// alternative — a `_ =>` arm quietly claiming the new class means whatever the
+/// fallback says — is the exact failure being repaired here, and it would return
+/// silently.
+///
+/// The message and the retry flag are **taken from the kind**, never restated.
+/// `user_message()` and `retryable()` are `desktop-cloud`'s, tested there
+/// against every variant; copying either into a literal here would let this
+/// table drift out of step with the classification it claims to render. Only the
+/// `LocalErrorCode` is decided here, because only this crate knows the renderer's
+/// vocabulary — and every code below already exists in
+/// `desktop_runtime::LocalErrorCode`, so the contract schema-lock is untouched.
+fn transport_failure_error(kind: desktop_cloud::ProviderFailureKind) -> LocalError {
+    use desktop_cloud::ProviderFailureKind as Kind;
+    let code = match kind {
+        // The key itself is wrong. Not "no provider" — one is configured, and
+        // the user's move is to re-enter it.
+        Kind::CredentialRejected => LocalErrorCode::AuthenticationRequired,
+        // The key is real and simply not entitled to this model or deployment.
+        Kind::PermissionDenied => LocalErrorCode::Unauthorized,
+        Kind::ModelUnavailable => LocalErrorCode::NotFound,
+        Kind::RequestRejected => LocalErrorCode::InvalidRequest,
+        // Too much for this model in one request, and fixed by removing
+        // something rather than by retrying or reconnecting.
+        Kind::RequestTooLarge => LocalErrorCode::ResourceLimit,
+        // The request never reached the model: its content was refused.
+        Kind::ContentFiltered => LocalErrorCode::ContextRejected,
+        // Nothing about the key or the network changes an empty balance.
+        Kind::QuotaExhausted => LocalErrorCode::EntitlementUnavailable,
+        // The provider's side, or the path to it. Transient by nature, and all
+        // of them are answered by waiting rather than by changing anything.
+        //
+        // `RateLimited` belongs here and not with `RequestTooLarge`: a 429 is
+        // not fixed by removing an attachment, it is fixed by waiting, which is
+        // why the classifier marks it retryable and its message says to send
+        // again. Grouping it under `ResourceLimit` put the error code, the
+        // message and the retry flag in three different minds.
+        Kind::ProviderUnavailable
+        | Kind::NetworkUnreachable
+        | Kind::Timeout
+        | Kind::RateLimited => LocalErrorCode::TemporarilyUnavailable,
+        // Something came back and it was not a usable model reply.
+        Kind::MalformedResponse | Kind::UnusableModelOutput => LocalErrorCode::InvalidModelOutput,
+        // The request never left this machine, and it is not the user's fault.
+        Kind::HostRequestInvalid => LocalErrorCode::Internal,
+        // The one class the old sentence was ever true for. `chat.rs` produces
+        // it for `HelpModelMode::Offline`, and this arm is what keeps that case
+        // byte-identical to what it said before any of this existed.
+        Kind::ProviderNotConfigured => LocalErrorCode::FeatureDisabled,
+    };
+    LocalError::new(code, kind.user_message(), kind.retryable())
 }
 
 pub(crate) struct SendChatMessageInput {
@@ -1578,17 +1879,35 @@ fn drive_chat_tool_loop(
     } = loop_input;
     loop {
         let dispatch_id = dispatch.dispatch_id;
-        let Ok((_dispatched, raw_output)) = transport.send(
+        // The structural defect, and the reason enriching the error type alone
+        // would have changed nothing: this was a `let`-`else`, which discards
+        // the initializer's `Err` before any binding exists to read it. Every
+        // classification `desktop-cloud` computed died here, one frame from the
+        // user, and the `else` block could only ever name the one generic error
+        // it names below. Bound to a `match` so the failure survives the send.
+        //
+        // Bound to a local first, too: a `.lock()` in a `match` scrutinee lives
+        // until the end of the whole match, so an arm that locked again would
+        // park this thread on a guard it is still holding.
+        let sent = transport.send(
             dispatch.authorized_request,
             &dispatch.deterministic_fixture,
             dispatch.sent_at,
-        ) else {
-            // Still needed, and safe: nothing has removed this dispatch, its
-            // context has already left the machine and must reach the ledger,
-            // and no chat guard is alive here — a `let`-`else` drops the
-            // initializer's temporaries before the `else` block runs.
-            state.chat.lock().abort_turn(dispatch_id);
-            return Err(map_chat_error(crate::chat::ChatCoordinatorError::Transport));
+        );
+        let (_dispatched, raw_output) = match sent {
+            Ok(sent) => sent,
+            Err(failure) => {
+                // The only trace a failed turn leaves. Emitted before the abort
+                // so a panic in the coordinator cannot swallow it.
+                crate::bmad_model::capability_coordinator::note_provider_failure("chat", &failure);
+                // Still needed, and safe: nothing has removed this dispatch, its
+                // context has already left the machine and must reach the
+                // ledger, and no chat guard is alive here.
+                state.chat.lock().abort_turn(dispatch_id);
+                return Err(map_chat_error(
+                    crate::chat::ChatCoordinatorError::Transport(failure.kind()),
+                ));
+            }
         };
         // The reply has arrived, so this is when the turn's clock is read. The
         // admission sample is by now a whole provider round trip stale.
@@ -2157,19 +2476,31 @@ fn run_bmad_capability_submission(
     // and aborting name the workspace as well as the dispatch. The request
     // carries it, so nothing else has to be kept alive across the round trip.
     let dispatch_workspace = dispatch.workspace_id.clone();
-    let Ok((_dispatched, raw_output)) = transport.send(
+    // The same `let`-`else` discard the chat loop had. The capability lane's
+    // own error enum is still fieldless, so what reaches the user here is
+    // unchanged — but the failure is no longer thrown away before anything can
+    // read it, and it reaches the diagnostic line.
+    let sent = transport.send(
         dispatch.authorized_request,
         &dispatch.deterministic_fixture,
         dispatch.submitted_at,
-    ) else {
-        state.bmad_capabilities.lock().abort_dispatch(
-            &dispatch_workspace,
-            dispatch_id,
-            crate::bmad_model::capability_coordinator::CapabilityTerminalReason::ConsentConsumed,
-        );
-        return Err(map_capability_error(
-            crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError::Transport,
-        ));
+    );
+    let (_dispatched, raw_output) = match sent {
+        Ok(sent) => sent,
+        Err(failure) => {
+            crate::bmad_model::capability_coordinator::note_provider_failure(
+                "capability",
+                &failure,
+            );
+            state.bmad_capabilities.lock().abort_dispatch(
+                &dispatch_workspace,
+                dispatch_id,
+                crate::bmad_model::capability_coordinator::CapabilityTerminalReason::ConsentConsumed,
+            );
+            return Err(map_capability_error(
+                crate::bmad_model::capability_coordinator::BmadCapabilityCoordinatorError::Transport,
+            ));
+        }
     };
     // The grant is re-proved now the round trip is over, because the guard that
     // used to prove it for the whole call cannot be held across one, and
@@ -3587,6 +3918,104 @@ pub(crate) fn map_workspace_error(error: &WorkspaceError) -> LocalError {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
+
+    /// A user with a connected, working key was told "Connect a model provider
+    /// in Settings before sending a message." with `retryable: false`, for every
+    /// provider failure there is — a 429, a 500, a timeout, a wrong model name.
+    /// Reproduced live against a real key before this was fixed.
+    ///
+    /// This pins the two halves that matter: the dishonest cases stopped saying
+    /// it, and the one honest case still does.
+    mod transport_failures {
+        use super::super::transport_failure_error;
+        use desktop_cloud::ProviderFailureKind as Kind;
+        use desktop_runtime::LocalErrorCode;
+
+        const OFFLINE_SENTENCE: &str =
+            "Connect a model provider in Settings before sending a message.";
+
+        #[test]
+        fn a_rate_limited_provider_is_reported_as_retryable_and_not_as_disconnected() {
+            let error = transport_failure_error(Kind::RateLimited);
+            assert!(
+                error.retryable,
+                "a rate limit is answered by waiting, so refusing to offer a retry is wrong",
+            );
+            assert!(
+                !error.safe_message.contains("Connect a model provider"),
+                "a connected provider must not be described as disconnected: {}",
+                error.safe_message,
+            );
+            assert_eq!(error.code, LocalErrorCode::TemporarilyUnavailable);
+        }
+
+        /// The regression this change could most easily cause. `chat.rs` returns
+        /// `ProviderNotConfigured` for `HelpModelMode::Offline`, which is the one
+        /// case where the old sentence was true, and it must survive byte for
+        /// byte — including its `FeatureDisabled` code, which the renderer uses.
+        #[test]
+        fn an_unconfigured_provider_still_says_exactly_what_it_used_to() {
+            let error = transport_failure_error(Kind::ProviderNotConfigured);
+            assert_eq!(error.safe_message, OFFLINE_SENTENCE);
+            assert_eq!(error.code, LocalErrorCode::FeatureDisabled);
+            assert!(!error.retryable);
+        }
+
+        /// Every other class must have stopped claiming the provider is
+        /// unconnected. Exhaustiveness of the mapping is enforced by the
+        /// compiler; that the *messages* diverged is not, and this is the half
+        /// that was actually broken.
+        #[test]
+        fn no_other_failure_class_claims_the_provider_is_unconnected() {
+            for kind in [
+                Kind::CredentialRejected,
+                Kind::PermissionDenied,
+                Kind::ModelUnavailable,
+                Kind::RequestRejected,
+                Kind::RequestTooLarge,
+                Kind::ContentFiltered,
+                Kind::QuotaExhausted,
+                Kind::RateLimited,
+                Kind::ProviderUnavailable,
+                Kind::NetworkUnreachable,
+                Kind::Timeout,
+                Kind::MalformedResponse,
+                Kind::UnusableModelOutput,
+                Kind::HostRequestInvalid,
+            ] {
+                let error = transport_failure_error(kind);
+                assert_ne!(
+                    error.safe_message, OFFLINE_SENTENCE,
+                    "{kind:?} still tells the user to connect a provider",
+                );
+                assert!(
+                    !error.safe_message.is_empty(),
+                    "{kind:?} has no message at all",
+                );
+            }
+        }
+
+        /// A retry flag that is wrong in the permissive direction is the worse
+        /// one: it invites a loop against a provider that will never succeed
+        /// until the user changes something.
+        #[test]
+        fn failures_the_user_must_act_on_are_never_offered_as_retryable() {
+            for kind in [
+                Kind::CredentialRejected,
+                Kind::PermissionDenied,
+                Kind::ModelUnavailable,
+                Kind::QuotaExhausted,
+                Kind::RequestTooLarge,
+                Kind::ContentFiltered,
+                Kind::ProviderNotConfigured,
+            ] {
+                assert!(
+                    !transport_failure_error(kind).retryable,
+                    "{kind:?} cannot be fixed by sending the same thing again",
+                );
+            }
+        }
+    }
 
     use desktop_runtime::{
         sha256_bytes, BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalCommand,
@@ -5677,7 +6106,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
 
         use desktop_cloud::{
             AuthorizedModelRequest, CloudError, DeterministicModelTransport,
-            DispatchedModelRequest, RawModelOutput,
+            DispatchedModelRequest, ProviderFailure, ProviderFailureKind, RawModelOutput,
         };
         use desktop_runtime::{
             ContractId, LocalError, LocalErrorCode, UnixMillis, CHAT_TOOL_TURN_SCHEMA,
@@ -5733,8 +6162,15 @@ planning_artifacts = \"{project-root}/docs/plan\"
         /// A transport that answers from a script, so a turn can be driven
         /// through more than one iteration, with a hook that runs before each
         /// reply so a test can make something happen *while the turn is open*.
+        ///
+        /// It can also refuse, which is what makes a real provider failure
+        /// reachable end to end without a provider: `refusal` stands in for the
+        /// class `desktop-cloud` would have computed off the wire.
         struct ScriptedTransport {
             replies: Mutex<VecDeque<String>>,
+            /// When set, every send is refused with this class instead of
+            /// answering — the shape of a provider that said no.
+            refusal: Option<ProviderFailureKind>,
             calls: AtomicUsize,
             before_reply: Box<dyn Fn(usize) + Send + Sync>,
         }
@@ -5744,12 +6180,26 @@ planning_artifacts = \"{project-root}/docs/plan\"
                 Self::with_hook(replies, |_| ())
             }
 
+            /// A transport that always fails the way a provider does.
+            ///
+            /// `ProviderFailure::reported` is the composition-layer constructor,
+            /// and it carries `CloudError::TransportFailed` — exactly what a
+            /// non-2xx carried before this classification existed — so nothing
+            /// downstream of the send sees a value it did not see before.
+            fn refusing(kind: ProviderFailureKind) -> Self {
+                Self {
+                    refusal: Some(kind),
+                    ..Self::new(Vec::new())
+                }
+            }
+
             fn with_hook(
                 replies: Vec<String>,
                 before_reply: impl Fn(usize) + Send + Sync + 'static,
             ) -> Self {
                 Self {
                     replies: Mutex::new(replies.into()),
+                    refusal: None,
                     calls: AtomicUsize::new(0),
                     before_reply: Box::new(before_reply),
                 }
@@ -5766,11 +6216,18 @@ planning_artifacts = \"{project-root}/docs/plan\"
                 request: AuthorizedModelRequest,
                 _deterministic_fixture: &str,
                 now: UnixMillis,
-            ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+            ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
                 let index = self.calls.fetch_add(1, Ordering::SeqCst);
                 (self.before_reply)(index);
+                if let Some(kind) = self.refusal {
+                    return Err(ProviderFailure::reported(kind, CloudError::TransportFailed));
+                }
                 let payload = self.replies.lock().pop_front().unwrap_or_else(text_reply);
-                DeterministicModelTransport.send_fixture(request, payload, now)
+                DeterministicModelTransport
+                    .send_fixture(request, payload, now)
+                    .map_err(|error| {
+                        ProviderFailure::reported(ProviderFailureKind::HostRequestInvalid, error)
+                    })
             }
         }
 
@@ -5889,6 +6346,56 @@ planning_artifacts = \"{project-root}/docs/plan\"
 
             assert_eq!(refusal_code(outcome), LocalErrorCode::IntegrityFailure);
             assert_eq!(transport.calls(), 1);
+        }
+
+        /// The defect this classification exists for, driven through the real
+        /// command rather than through the mapping function.
+        ///
+        /// A user with a connected, working key was told to connect a provider,
+        /// with `retryable: false`, for every provider failure there is. This
+        /// asserts on the `LocalError` a turn actually returns, so it fails if
+        /// the classification is correct but never reaches the user — which is
+        /// how the wiring was missing in the first place.
+        #[test]
+        fn a_rate_limited_provider_reaches_the_user_as_a_retry_not_a_disconnection() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::refusing(
+                ProviderFailureKind::RateLimited,
+            ));
+            let clock = Arc::new(ScriptedClock::new(vec![OPENED_AT]));
+
+            let error = awaited(&spawn_turn(&fixture, &transport, &clock))
+                .expect_err("a refusing provider ends the turn");
+
+            assert!(
+                error.retryable,
+                "a rate limit is answered by waiting, so the user must be offered the retry",
+            );
+            assert!(
+                !error.safe_message.contains("Connect a model provider"),
+                "a connected provider was described as disconnected: {}",
+                error.safe_message,
+            );
+            assert_eq!(error.code, LocalErrorCode::TemporarilyUnavailable);
+            assert_eq!(transport.calls(), 1);
+        }
+
+        /// The other half: a spent balance is also a 429, and telling the user
+        /// to wait for it would be a retry loop against an account that cannot
+        /// succeed until someone pays.
+        #[test]
+        fn an_exhausted_quota_is_not_offered_as_something_to_retry() {
+            let fixture = turn_fixture();
+            let transport = Arc::new(ScriptedTransport::refusing(
+                ProviderFailureKind::QuotaExhausted,
+            ));
+            let clock = Arc::new(ScriptedClock::new(vec![OPENED_AT]));
+
+            let error = awaited(&spawn_turn(&fixture, &transport, &clock))
+                .expect_err("a refusing provider ends the turn");
+
+            assert!(!error.retryable, "{}", error.safe_message);
+            assert_eq!(error.code, LocalErrorCode::EntitlementUnavailable);
         }
 
         /// The turn's egress ceiling is the runaway-loop guard, and it arrives
@@ -6062,7 +6569,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
         use std::time::Duration;
 
         use desktop_cloud::{
-            AuthorizedModelRequest, CloudError, DispatchedModelRequest, RawModelOutput,
+            AuthorizedModelRequest, DispatchedModelRequest, ProviderFailure, RawModelOutput,
         };
         use desktop_runtime::{
             ContractId, LocalError, LocalErrorCode, RelativeWorkspacePath, UnixMillis,
@@ -6099,7 +6606,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
                 request: AuthorizedModelRequest,
                 deterministic_fixture: &str,
                 now: UnixMillis,
-            ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+            ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
                 // Bound to a local first: a guard created in an `if let`
                 // scrutinee lives until the end of the whole expression, which
                 // is the shape this crate denies.

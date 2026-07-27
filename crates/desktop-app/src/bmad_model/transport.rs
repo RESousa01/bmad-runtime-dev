@@ -34,12 +34,35 @@ impl DirectModelTransport {
         })
     }
 
+    /// The legacy signature. Kept for the BMAD help lane, whose coordinator
+    /// still speaks `CloudError`; every failure through it collapses to one
+    /// value, so a caller using it can only say something generic.
     pub(crate) fn send_authorized(
         &self,
         request: AuthorizedModelRequest,
         now: UnixMillis,
     ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
         self.runtime.block_on(self.transport.send(request, now))
+    }
+
+    /// The same round trip, reporting *what* went wrong.
+    ///
+    /// Nothing here classifies anything: `desktop-cloud` already did, and this
+    /// only stops throwing the answer away at the runtime boundary. The two
+    /// methods are the same call — `DirectProviderTransport::send` is
+    /// `send_classified` followed by `CloudError::from` — so they cannot drift.
+    ///
+    /// # Errors
+    ///
+    /// Returns the classified [`desktop_cloud::ProviderFailure`], which carries
+    /// no provider text.
+    pub(crate) fn send_classified(
+        &self,
+        request: AuthorizedModelRequest,
+        now: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), desktop_cloud::ProviderFailure> {
+        self.runtime
+            .block_on(self.transport.send_classified(request, now))
     }
 }
 

@@ -9,7 +9,10 @@
 
 use std::collections::BTreeSet;
 
-use desktop_cloud::{AuthorizedModelRequest, CloudError, DispatchedModelRequest, RawModelOutput};
+use desktop_cloud::{
+    AuthorizedModelRequest, DispatchedModelRequest, ProviderFailure, ProviderFailureKind,
+    RawModelOutput,
+};
 use desktop_egress::{
     ContextCandidate, ContextClassification, ContextPreparer, EgressLimits,
     ModelInvocationBindingDraft, PatternSecretScanner, PrepareContextInput,
@@ -923,20 +926,35 @@ This draft cannot install, register, or execute.
 /// is activated (readiness Task 9); never degrades silently.
 pub(crate) struct OfflineCapabilityTransport;
 
+/// The one composition for which *"Connect a model provider in Settings"* is a
+/// true sentence: this transport is selected precisely because no provider was
+/// configured. It was also the sentence every other failure produced, which is
+/// the defect. Reported rather than observed — the offline seam never reaches a
+/// provider, so it has no status and no retry advice to carry — and it keeps the
+/// exact `CloudError` this lane already read.
 impl BmadCapabilityTransport for OfflineCapabilityTransport {
     fn send(
         &self,
         request: AuthorizedModelRequest,
         _deterministic_fixture: &str,
         _now: UnixMillis,
-    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-        desktop_cloud::OfflineModelTransport.send(request)
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
+        desktop_cloud::OfflineModelTransport
+            .send(request)
+            .map_err(|error| {
+                ProviderFailure::reported(ProviderFailureKind::ProviderNotConfigured, error)
+            })
     }
 }
 
 #[cfg(feature = "deterministic-help")]
 pub(crate) struct DeterministicCapabilityTransport;
 
+/// No provider is contacted here, so no failure this seam produces is the
+/// provider's fault or the user's: the fixture is host-authored and the only
+/// way it refuses is that the request could not be turned into one.
+/// `HostRequestInvalid` says exactly that, and says it without sending the
+/// developer to check a key or a network that had nothing to do with it.
 #[cfg(feature = "deterministic-help")]
 impl BmadCapabilityTransport for DeterministicCapabilityTransport {
     fn send(
@@ -944,15 +962,19 @@ impl BmadCapabilityTransport for DeterministicCapabilityTransport {
         request: AuthorizedModelRequest,
         deterministic_fixture: &str,
         now: UnixMillis,
-    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-        desktop_cloud::DeterministicModelTransport.send_fixture(
-            request,
-            deterministic_fixture.to_owned(),
-            now,
-        )
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
+        desktop_cloud::DeterministicModelTransport
+            .send_fixture(request, deterministic_fixture.to_owned(), now)
+            .map_err(|error| {
+                ProviderFailure::reported(ProviderFailureKind::HostRequestInvalid, error)
+            })
     }
 }
 
+/// The lane the reported defect actually runs on. `send_classified` is the same
+/// round trip as `send_authorized`; the difference is that the classification
+/// `desktop-cloud` already computed survives the call instead of being collapsed
+/// into `CloudError::TransportFailed` one frame later.
 #[cfg(feature = "direct-model-providers")]
 impl BmadCapabilityTransport for crate::bmad_model::transport::DirectModelTransport {
     fn send(
@@ -960,8 +982,8 @@ impl BmadCapabilityTransport for crate::bmad_model::transport::DirectModelTransp
         request: AuthorizedModelRequest,
         _deterministic_fixture: &str,
         now: UnixMillis,
-    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
-        self.send_authorized(request, now)
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), ProviderFailure> {
+        self.send_classified(request, now)
     }
 }
 

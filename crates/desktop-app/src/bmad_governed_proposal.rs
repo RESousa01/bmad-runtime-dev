@@ -70,6 +70,13 @@ pub(crate) fn proposed_changes_from_stored_result(
                         "A file the model would create already exists; re-run against current context.",
                     ));
                 }
+                // Nothing is on disk, so every redaction marker in the body is
+                // net-new by definition. See the `Replace` arm for why.
+                if desktop_egress::reintroduced_redaction_marker("", &content).is_some() {
+                    return Err(integrity_error(
+                        "The model's new file contains redacted-secret markers from the context it was shown; re-run against current context.",
+                    ));
+                }
                 proposed.push(ProposedFileChange::SetContent {
                     relative_path: path,
                     content,
@@ -93,6 +100,26 @@ pub(crate) fn proposed_changes_from_stored_result(
                 {
                     return Err(integrity_error(
                         "The workspace changed after the model saw it; re-run against current context.",
+                    ));
+                }
+                // The preimage check above is a *staleness* tripwire, and it
+                // passes here by construction: the file has not moved. What it
+                // cannot see is a faithful echo of the *redacted view* the model
+                // was shown. Egress rewrites secrets to `[REDACTED:…]` before
+                // the body leaves the machine, so a whole-file replace that
+                // repeats what the model read writes those markers over the
+                // user's real credential — destroying it, in the one lane whose
+                // whole purpose is governed writes.
+                //
+                // Net-new marker counts, not presence: a file may legitimately
+                // contain the literal text (a redaction corpus, a ticket quoting
+                // an egress preview), and refusing those would be another false
+                // alarm of exactly the kind this codebase keeps producing.
+                if desktop_egress::reintroduced_redaction_marker(&observed.content, &content)
+                    .is_some()
+                {
+                    return Err(integrity_error(
+                        "The model's replacement writes redacted-secret markers over real content; re-run against current context.",
                     ));
                 }
                 proposed.push(ProposedFileChange::SetContent {
@@ -126,4 +153,107 @@ pub(crate) fn proposed_changes_from_stored_result(
         }
     }
     Ok(proposed)
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::proposed_changes_from_stored_result;
+    use crate::state::HostState;
+    use desktop_runtime::sha256_bytes;
+
+    type TestResult<T = ()> = Result<T, Box<dyn std::error::Error>>;
+
+    /// The literal a model echoes back after egress rewrote a secret. Split so
+    /// this file never carries a whole marker as one token, matching the way
+    /// `desktop-egress`'s own fixtures avoid tripping the repository scanner.
+    const MARKER: &str = concat!("[REDACTED:", "credential]");
+
+    fn stored_replace(path: &str, content: &str, preimage: &str) -> String {
+        let digest = format!("sha256:{}", sha256_bytes(preimage.as_bytes()).hex_value());
+        let content = serde_json::to_string(content).expect("content json");
+        format!(
+            r#"{{"resultKind":"governed_change_set","governedChangeSet":{{"schemaVersion":"sapphirus.bmad-governed-change-set.v1","summary":"Rotate the key.","changes":[{{"operation":"replace","path":"{path}","content":{content},"preimageSha256":"{digest}"}}]}}}}"#
+        )
+    }
+
+    fn granted_workspace(body: &str) -> TestResult<(HostState, String, tempfile::TempDir)> {
+        let storage = tempfile::tempdir()?;
+        let state = HostState::initialize(Some(storage.path().join("authority")))
+            .map_err(|error| format!("{error:?}"))?;
+        let root = tempfile::tempdir()?;
+        std::fs::write(root.path().join("notes.md"), body)?;
+        let projection = state
+            .workspace
+            .grant("project_forge_redaction", root.path())
+            .map_err(|error| format!("{error:?}"))?;
+        // `root` is returned so the directory outlives the broker grant.
+        let _ = storage.keep();
+        Ok((state, projection.workspace_id, root))
+    }
+
+    /// The preimage check above this guard is a *staleness* tripwire and passes
+    /// by construction here — the file has not moved. Only the marker check can
+    /// see that the model is echoing the redacted view it was shown, which would
+    /// write `[REDACTED:…]` over the user's real credential.
+    ///
+    /// This test exists because the guard was built in `desktop-egress` and
+    /// initially not wired into this path at all. An unwired guard reads like
+    /// protection and is not.
+    #[test]
+    fn a_replacement_echoing_the_redacted_view_is_refused() -> TestResult {
+        let on_disk = "key: hunter2-correct-horse\n";
+        let (state, workspace_id, _root) = granted_workspace(on_disk)?;
+
+        let echoed = format!("key: {MARKER}\n");
+        let error = proposed_changes_from_stored_result(
+            &state,
+            &workspace_id,
+            &stored_replace("notes.md", &echoed, on_disk),
+        )
+        .expect_err("a body reintroducing a redaction marker must be refused");
+        assert!(
+            error.safe_message.contains("redacted-secret markers"),
+            "unexpected refusal: {}",
+            error.safe_message,
+        );
+        Ok(())
+    }
+
+    /// The control. Without it the test above would also pass if this path
+    /// refused every replacement.
+    #[test]
+    fn an_ordinary_replacement_is_still_accepted() -> TestResult {
+        let on_disk = "key: hunter2-correct-horse\n";
+        let (state, workspace_id, _root) = granted_workspace(on_disk)?;
+
+        let proposed = proposed_changes_from_stored_result(
+            &state,
+            &workspace_id,
+            &stored_replace("notes.md", "key: rotated-value\n", on_disk),
+        )
+        .map_err(|error| error.safe_message)?;
+        assert_eq!(proposed.len(), 1);
+        Ok(())
+    }
+
+    /// Net-new counts, not presence. A file that legitimately documents the
+    /// marker text — a redaction corpus, a ticket quoting an egress preview —
+    /// must stay editable, or the guard becomes the next false alarm.
+    #[test]
+    fn a_file_that_already_documents_a_marker_stays_editable() -> TestResult {
+        let on_disk = format!("The scanner writes {MARKER} in place of a secret.\n");
+        let (state, workspace_id, _root) = granted_workspace(&on_disk)?;
+
+        let edited = format!("The scanner writes {MARKER} in place of any secret.\n");
+        let proposed = proposed_changes_from_stored_result(
+            &state,
+            &workspace_id,
+            &stored_replace("notes.md", &edited, &on_disk),
+        )
+        .map_err(|error| error.safe_message)?;
+        assert_eq!(proposed.len(), 1);
+        Ok(())
+    }
 }
