@@ -10,7 +10,6 @@ members = [
   "crates/desktop-tools",
   "crates/desktop-store",
   "crates/desktop-cloud",
-  "crates/desktop-update",
   "tests/generator-qualification/rust",
   "tests/conformance/rust",
 ]

@@ -11,7 +11,6 @@ const adapterCrates = new Set([
   "desktop-execution",
   "desktop-store",
   "desktop-cloud",
-  "desktop-update",
 ]);
 const requiredCrates = new Set([
   "desktop-app",
@@ -1103,7 +1102,12 @@ const editsPath = join(root, "crates", "desktop-app", "src", "edits.rs");
 const editsSource = await requiredText(editsPath);
 const storeExecutionPath = join(root, "crates", "desktop-store", "src", "execution.rs");
 const storeExecutionSource = await requiredText(storeExecutionPath);
-const updatePath = join(root, "crates", "desktop-update", "src", "lib.rs");
+// The in-app updater, as it actually runs. This assertion used to read
+// `crates/desktop-update/src/lib.rs`, a crate no `.rs` file in the repository
+// referenced: the whole of `ensure_update_is_safe` could be deleted and this
+// gate stayed green, because it was reading a policy that never executed. That
+// crate is gone; this is the code that decides.
+const updatePath = join(root, "crates", "desktop-app", "src", "update.rs");
 const updateSource = await requiredText(updatePath);
 if (hostCommandsSource !== undefined) {
   const readySource = /const READY_COMMANDS:[^=]+\[([\s\S]*?)\];/.exec(hostCommandsSource)?.[1];
@@ -1207,11 +1211,25 @@ if (editsSource !== undefined) {
 }
 if (storeExecutionSource !== undefined && updateSource !== undefined) {
   const unresolvedRecoveryTest = /assert_eq!\(states,\s*\["recovery_required",\s*"restoring",\s*"manual_review"\]\)/u;
-  const updateBlocksOpenJournal = /if has_active_journal\s*\{[\s\S]{0,160}UpdateBlockReason::ActiveEffectJournal/u;
+  // The decision itself: an installation with any open effect journal — which
+  // `edits.rs` above projects every unresolved recovery state into — refuses to
+  // update, and it only ever asks a store it reached through `ready_authority`,
+  // so a recovery boot never gets as far as the question.
+  const updateBlocksOpenJournal =
+    /fn ensure_update_is_safe\([\s\S]{0,400}?ready_authority\(\)[\s\S]{0,400}?list_open_effect_journals\(\)[\s\S]{0,240}?if open_journals\.is_empty\(\)\s*\{\s*Ok\(\(\)\)\s*\}\s*else\s*\{\s*Err\(update_blocked\(\)\)/u;
+  // And both places it has to be asked. Checking once before the download is
+  // not enough: the download is the long part, and recovery or a governed
+  // effect can begin while it runs, so the handoff to the installer is
+  // re-authorized immediately before it happens.
+  const checkedBeforeDownload = /ensure_update_is_safe\(&state\)\?;[\s\S]{0,1200}?\.download\(/u;
+  const recheckedBeforeInstall =
+    /\.download\([\s\S]{0,800}?ensure_update_is_safe\(&state\)\?;[\s\S]{0,240}?update\.install\(/u;
   if (
     !sameOrderedValues(updateBlockingRecoveryStates, ["recovery_required", "restoring", "manual_review"])
     || !unresolvedRecoveryTest.test(storeExecutionSource)
     || !updateBlocksOpenJournal.test(updateSource)
+    || !checkedBeforeDownload.test(updateSource)
+    || !recheckedBeforeInstall.test(updateSource)
   ) {
     violations.push("unresolved recovery journals must remain update-blocking");
   }

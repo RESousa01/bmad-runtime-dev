@@ -136,6 +136,25 @@ impl RequestGate {
             .session_requests
             .entry(envelope.renderer_session_id.clone())
             .or_default();
+        // Eviction below is front-only, which is correct exactly while the
+        // recorded samples are non-decreasing — and `now` is the host's wall
+        // clock (`SystemTime`), which an NTP correction, a manual change, or a
+        // resume from sleep can step backwards by an arbitrary amount. A
+        // backwards step used to append a smaller sample behind a larger one,
+        // after which the large front value was never below the cutoff, nothing
+        // was ever evicted, the window filled, and the session stayed
+        // rate-limited until the real clock caught up — for a step of days or
+        // years, until the process restarted.
+        //
+        // Rebasing rather than dropping: these requests really were made, so a
+        // clock correction must not buy a fresh window. They stay counted for
+        // one more full window, measured from the corrected clock, and the
+        // ordering the eviction below depends on is restored.
+        if requests.back().is_some_and(|latest| *latest > now.0) {
+            for issued in &mut *requests {
+                *issued = now.0;
+            }
+        }
         while requests.front().is_some_and(|issued| *issued < cutoff) {
             requests.pop_front();
         }
@@ -205,7 +224,7 @@ mod tests {
     use desktop_runtime::{BmadHelpIntent, ContractId, LocalCommand, UnixMillis};
 
     use super::{Admission, AdmissionPolicy, RequestGate};
-    use crate::ValidatedCommandEnvelope;
+    use crate::{IpcValidationError, ValidatedCommandEnvelope};
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
         Ok(ContractId::new(value)?)
@@ -312,6 +331,161 @@ mod tests {
         assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
         assert_eq!(gate.admit(&first, UnixMillis(1_001))?, Admission::Replay);
         assert!(gate.admit(&changed, UnixMillis(1_002)).is_err());
+        Ok(())
+    }
+
+    /// The rate limit, asserted rather than assumed.
+    ///
+    /// `IpcValidationError::RateLimited` was not named by a single test in the
+    /// repository, `max_requests_per_window` was never overridden, and the
+    /// whole limiting block could be deleted with the suite green — including
+    /// the one test whose name claims this property.
+    ///
+    /// A read-only command is used deliberately:
+    /// `requires_request_tracking` is false for it, so the rate limit is the
+    /// only thing this can be refused by.
+    #[test]
+    fn a_session_is_refused_once_it_fills_its_window() -> Result<(), Box<dyn std::error::Error>> {
+        let gate = RequestGate::new(AdmissionPolicy {
+            max_requests_per_window: 3,
+            window_ms: 1_000,
+            ..AdmissionPolicy::default()
+        });
+        let request = envelope(LocalCommand::GetBootState)?;
+
+        for tick in 0..3 {
+            assert_eq!(
+                gate.admit(&request, UnixMillis(1_000 + tick))?,
+                Admission::New,
+            );
+        }
+        assert!(matches!(
+            gate.admit(&request, UnixMillis(1_003)),
+            Err(IpcValidationError::RateLimited),
+        ));
+
+        // A window, not a quota: it reopens once it has passed.
+        assert_eq!(gate.admit(&request, UnixMillis(2_100))?, Admission::New);
+        Ok(())
+    }
+
+    /// The window is measured on whatever clock the caller samples. The host
+    /// samples `SystemTime` (`desktop_app::state::now`), which an NTP
+    /// correction, a manual change, or a resume from sleep can step backwards
+    /// by an arbitrary amount.
+    ///
+    /// Eviction is front-only. Before the rebase in `admit`, a backwards step
+    /// appended a smaller sample behind a larger one; from then on the large
+    /// front value was never below the cutoff, so nothing was ever evicted, the
+    /// window filled, and every later request from that session was refused —
+    /// for a step of days or years, until the process restarted. The last
+    /// assertion is the one that fails on that code.
+    #[test]
+    fn a_backwards_clock_step_does_not_permanently_rate_limit_a_session(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        /// Far enough ahead of the corrected clock below that "wait for real
+        /// time to catch up" is not a recovery any user would ever see.
+        const CLOCK_FAR_AHEAD: u64 = 1_700_000_000_000;
+
+        let gate = RequestGate::new(AdmissionPolicy {
+            max_requests_per_window: 3,
+            window_ms: 60_000,
+            ..AdmissionPolicy::default()
+        });
+        let request = envelope(LocalCommand::GetBootState)?;
+
+        // One request while the clock is a year fast, then the correction.
+        assert_eq!(
+            gate.admit(&request, UnixMillis(CLOCK_FAR_AHEAD))?,
+            Admission::New
+        );
+        for tick in 0..2 {
+            assert_eq!(
+                gate.admit(&request, UnixMillis(1_000 + tick))?,
+                Admission::New,
+            );
+        }
+
+        // Still enforced across the correction: three requests really were
+        // made, so the fourth inside the window is still refused. A clock
+        // correction is not a way to buy a fresh window.
+        assert!(matches!(
+            gate.admit(&request, UnixMillis(1_002)),
+            Err(IpcValidationError::RateLimited),
+        ));
+
+        // And the session recovers after one window rather than after a year.
+        assert_eq!(gate.admit(&request, UnixMillis(61_001))?, Admission::New);
+        Ok(())
+    }
+
+    /// The session table is bounded, and the bound is kept by evicting the
+    /// oldest session. Neither of the gate's two eviction branches was ever
+    /// executed by a test, so both were free to be wrong.
+    #[test]
+    fn evicting_the_oldest_session_forgets_its_window() -> Result<(), Box<dyn std::error::Error>> {
+        let gate = RequestGate::new(AdmissionPolicy {
+            max_requests_per_window: 1,
+            max_tracked_sessions: 2,
+            ..AdmissionPolicy::default()
+        });
+        let mut first = envelope(LocalCommand::GetBootState)?;
+        first.renderer_session_id = id("rs_first")?;
+
+        assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
+        assert!(matches!(
+            gate.admit(&first, UnixMillis(1_001)),
+            Err(IpcValidationError::RateLimited),
+        ));
+
+        // Two further sessions push the first one out of the table.
+        for session in ["rs_second", "rs_third"] {
+            let mut other = envelope(LocalCommand::GetBootState)?;
+            other.renderer_session_id = id(session)?;
+            assert_eq!(gate.admit(&other, UnixMillis(1_002))?, Admission::New);
+        }
+
+        // Its window is forgotten, which is what being evicted means. This
+        // table is an in-memory abuse guard; the durable store remains the
+        // authority for anything that has to survive eviction or a restart.
+        assert_eq!(gate.admit(&first, UnixMillis(1_003))?, Admission::New);
+        Ok(())
+    }
+
+    /// The mutation table is bounded the same way, and evicting an identity is
+    /// exactly what makes its request id admissible again.
+    #[test]
+    fn evicting_the_oldest_mutation_frees_its_request_id() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let gate = RequestGate::new(AdmissionPolicy {
+            max_tracked_mutations: 2,
+            ..AdmissionPolicy::default()
+        });
+        let mut first = envelope(LocalCommand::SelectWorkspace)?;
+        first.request_id = id("req_first")?;
+        let mut conflicting = envelope(LocalCommand::RevokeWorkspace {
+            workspace_id: id("workspace_1")?,
+        })?;
+        conflicting.request_id = id("req_first")?;
+
+        assert_eq!(gate.admit(&first, UnixMillis(1_000))?, Admission::New);
+        // A different command under the same id conflicts while the identity is
+        // still tracked.
+        assert!(matches!(
+            gate.admit(&conflicting, UnixMillis(1_001)),
+            Err(IpcValidationError::IdempotencyConflict),
+        ));
+
+        for request_id in ["req_second", "req_third"] {
+            let mut other = envelope(LocalCommand::SelectWorkspace)?;
+            other.request_id = id(request_id)?;
+            assert_eq!(gate.admit(&other, UnixMillis(1_002))?, Admission::New);
+        }
+
+        // The identity is gone, so the id reads as new rather than as a
+        // conflict. Same caveat as above: replay authority across eviction is
+        // the durable store's, not this table's.
+        assert_eq!(gate.admit(&conflicting, UnixMillis(1_003))?, Admission::New);
         Ok(())
     }
 }

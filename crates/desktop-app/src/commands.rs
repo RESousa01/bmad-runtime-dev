@@ -2058,6 +2058,44 @@ fn submit_bmad_capability_run(
     decision_id: ContractId,
     submitted_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
+    let transport = crate::bmad_capability_host::active_capability_transport(state);
+    run_bmad_capability_submission(
+        state,
+        foundation,
+        workspace_id,
+        workspace_grant_epoch,
+        capability_id,
+        manifest_hash,
+        decision_id,
+        submitted_at,
+        transport.as_ref(),
+    )
+}
+
+/// The body of [`submit_bmad_capability_run`], with the one seam a submission
+/// cannot be exercised as a *round trip* without: the transport it sends
+/// through.
+///
+/// Production supplies the configured provider, which answers as fast as it
+/// answers. A test supplies one that can be held open, which is the only way
+/// anything landing *while the request is in flight* — a revocation, a
+/// sign-out — is reachable at all. `run_chat_turn` has the same seam for the
+/// same reason.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the dispatch surface passes each validated envelope field explicitly"
+)]
+fn run_bmad_capability_submission(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    capability_id: &str,
+    manifest_hash: Sha256Digest,
+    decision_id: ContractId,
+    submitted_at: UnixMillis,
+    transport: &dyn crate::bmad_model::capability_coordinator::BmadCapabilityTransport,
+) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_workspace_commit()?;
     // Authorize the scope, take the facts it proves, and release the barrier
     // before the provider round trip below — the same shape `run_chat_turn`
@@ -2105,7 +2143,6 @@ fn submit_bmad_capability_run(
         run_scope,
     )
     .map_err(map_capability_error)?;
-    let transport = crate::bmad_capability_host::active_capability_transport(state);
     // Begin the dispatch under the coordinator lock, then release the lock for
     // the model round trip so a slow request cannot block sign-out, workspace
     // revocation (`invalidate`), or other capability operations. Re-acquire the
@@ -5874,7 +5911,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
             // and named as the budget, not as a conflict. Reporting exhaustion
             // and expiry both as `Conflict` told the user a reply was already in
             // flight, which is a different thing that needs a different action.
-            let outcome = outcome.err().expect("the turn was expected to be refused");
+            let outcome = outcome.expect_err("the turn was expected to be refused");
             assert_eq!(outcome.code, LocalErrorCode::ResourceLimit);
             assert_eq!(
                 outcome.safe_message,
@@ -5965,7 +6002,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
             // time told the user "A reply is already in flight for this
             // conversation." — describing a state that does not exist, and
             // advising the one action (wait) that cannot help.
-            let outcome = outcome.err().expect("the turn was expected to be refused");
+            let outcome = outcome.expect_err("the turn was expected to be refused");
             assert_eq!(outcome.code, LocalErrorCode::Expired);
             assert_eq!(
                 outcome.safe_message,
@@ -6007,6 +6044,203 @@ planning_artifacts = \"{project-root}/docs/plan\"
 
             assert!(matches!(outcome, Ok(HostCommandData::ChatTurn(_))));
             assert_eq!(transport.calls(), 2);
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // The capability lane's round trip, held open on purpose.
+    //
+    // Same construction as `chat_turn_loop` above and for the same reason: the
+    // defect is a permanent park on a `parking_lot` rwlock, which has no
+    // timeout and no deadlock detection in this build, so a regression joined
+    // inline would hang the suite rather than fail it.
+    // ---------------------------------------------------------------------
+    #[cfg(feature = "deterministic-help")]
+    mod capability_round_trip {
+        use std::sync::mpsc::{channel, Receiver, Sender};
+        use std::sync::{Arc, Mutex};
+        use std::time::Duration;
+
+        use desktop_cloud::{
+            AuthorizedModelRequest, CloudError, DispatchedModelRequest, RawModelOutput,
+        };
+        use desktop_runtime::{
+            ContractId, LocalError, LocalErrorCode, RelativeWorkspacePath, UnixMillis,
+        };
+
+        use super::super::{
+            approve_bmad_capability_run, prepare_bmad_capability_run,
+            run_bmad_capability_submission,
+        };
+        use super::{foundation_path, ready_workspace_state};
+        use crate::bmad_foundation::load_bmad_foundation;
+        use crate::bmad_model::capability_coordinator::BmadCapabilityTransport;
+        use crate::wire::HostCommandData;
+
+        /// Generous: it only has to exceed the real work, and it is only ever
+        /// waited out when something has already gone permanently wrong.
+        const IN_FLIGHT_TIMEOUT: Duration = Duration::from_secs(20);
+
+        /// The production transport, with the round trip pinned open until the
+        /// test says otherwise.
+        ///
+        /// Wrapping the real one rather than scripting a reply keeps the whole
+        /// verified-output path exactly as it ships: the only difference is
+        /// *when* the answer arrives.
+        struct HeldOpenTransport {
+            inner: Box<dyn BmadCapabilityTransport>,
+            opened: Mutex<Option<Sender<()>>>,
+            released: Mutex<Receiver<()>>,
+        }
+
+        impl BmadCapabilityTransport for HeldOpenTransport {
+            fn send(
+                &self,
+                request: AuthorizedModelRequest,
+                deterministic_fixture: &str,
+                now: UnixMillis,
+            ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+                // Bound to a local first: a guard created in an `if let`
+                // scrutinee lives until the end of the whole expression, which
+                // is the shape this crate denies.
+                let opened = self
+                    .opened
+                    .lock()
+                    .expect("the in-flight signal is not poisoned")
+                    .take();
+                if let Some(opened) = opened {
+                    let _ = opened.send(());
+                }
+                // Wait for the revocation to actually land before answering, so
+                // the re-authorization after this call meets a revoked grant
+                // rather than racing it. On the code that held the authority
+                // guard across this call the revocation never lands at all, and
+                // this wait is what turns that deadlock into an observable
+                // failure instead of a hung suite.
+                let _ = self
+                    .released
+                    .lock()
+                    .expect("the release signal is not poisoned")
+                    .recv_timeout(IN_FLIGHT_TIMEOUT);
+                self.inner.send(request, deterministic_fixture, now)
+            }
+        }
+
+        /// Revoking a workspace while a capability run is in flight.
+        ///
+        /// `WorkspaceScopeAuthorityGuard` holds the broker's task-fair
+        /// revocation barrier for its whole lifetime.
+        /// `submit_bmad_capability_run` held it across `transport.send`, so
+        /// `WorkspaceBroker::revoke` — and the
+        /// `advance_all_context_read_epochs` that a model sign-out performs —
+        /// queued a writer for the length of a provider call, and because the
+        /// barrier is task-fair every broker *reader* queued behind that writer
+        /// too. A comment three lines below the acquisition already claimed the
+        /// lock was released; it was describing the coordinator mutex.
+        ///
+        /// Two things are asserted, and both need the guard released: the
+        /// revocation returns rather than parking, and the run that was in
+        /// flight when it landed is refused rather than recorded against a
+        /// workspace the user had already withdrawn.
+        #[test]
+        fn revoking_a_workspace_mid_capability_run_ends_the_run_without_hanging(
+        ) -> Result<(), Box<dyn std::error::Error>> {
+            let foundation = Arc::new(load_bmad_foundation(foundation_path())?);
+            let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+            let state = Arc::new(state);
+            std::fs::write(
+                workspace.path().join("brief-notes.md"),
+                b"# Notes\n\nThe product under discussion.\n",
+            )?;
+            state.bind_renderer("main").expect("renderer binding");
+            let renderer = state
+                .renderer_session_authority("main")
+                .expect("renderer authority");
+            let workspace_contract = ContractId::new(workspace_id.clone())?;
+            let capability = "bmm:bmad-product-brief";
+
+            let HostCommandData::CapabilityReview(review) = prepare_bmad_capability_run(
+                &state,
+                &foundation,
+                &renderer,
+                workspace_contract.clone(),
+                1,
+                capability,
+                vec![RelativeWorkspacePath::new("brief-notes.md")?],
+                UnixMillis(10_000),
+            )
+            .expect("prepared capability review") else {
+                return Err("expected a capability review projection".into());
+            };
+            let HostCommandData::CapabilityApproved(approved) = approve_bmad_capability_run(
+                &state,
+                workspace_contract.clone(),
+                1,
+                capability,
+                review.manifest_hash,
+                UnixMillis(20_000),
+            )
+            .expect("approved capability review") else {
+                return Err("expected a capability approval projection".into());
+            };
+            drop(renderer);
+
+            let (opened, run_opened) = channel::<()>();
+            let (release, released) = channel::<()>();
+            let transport = HeldOpenTransport {
+                inner: crate::bmad_capability_host::active_capability_transport(&state),
+                opened: Mutex::new(Some(opened)),
+                released: Mutex::new(released),
+            };
+
+            // Detached rather than joined: a joined thread would wait forever on
+            // a parked worker, so the very regression this test exists to catch
+            // would hang the suite instead of failing it.
+            let (finished, outcome) = channel::<Result<HostCommandData, LocalError>>();
+            let submitting_state = Arc::clone(&state);
+            let submitting_foundation = Arc::clone(&foundation);
+            let submitting_workspace = workspace_contract.clone();
+            let decision_id = approved.decision_id;
+            std::thread::spawn(move || {
+                let result = run_bmad_capability_submission(
+                    &submitting_state,
+                    &submitting_foundation,
+                    submitting_workspace,
+                    1,
+                    capability,
+                    review.manifest_hash,
+                    decision_id,
+                    UnixMillis(30_000),
+                    &transport,
+                );
+                let _ = finished.send(result);
+            });
+
+            run_opened.recv_timeout(IN_FLIGHT_TIMEOUT)?;
+
+            // The revocation itself runs detached too, for the same reason: it
+            // is the call that used to park.
+            let (revoked, revocation_done) = channel::<bool>();
+            let revoking_state = Arc::clone(&state);
+            std::thread::spawn(move || {
+                let result = revoking_state.workspace.revoke(&workspace_id);
+                let _ = revoked.send(result.is_ok());
+            });
+
+            assert!(
+                revocation_done.recv_timeout(IN_FLIGHT_TIMEOUT)?,
+                "revocation must not wait for a provider round trip to finish",
+            );
+            let _ = release.send(());
+
+            let refused = outcome
+                .recv_timeout(IN_FLIGHT_TIMEOUT)?
+                .err()
+                .ok_or("a run whose grant was revoked mid-flight must not be recorded")?;
+            // Fails closed on the workspace, not on the model or the store.
+            assert_eq!(refused.code, LocalErrorCode::NotFound);
+            assert!(state.workspace.list().is_empty());
+            Ok(())
         }
     }
 }

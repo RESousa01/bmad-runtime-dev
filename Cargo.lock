@@ -932,7 +932,6 @@ dependencies = [
  "desktop-runtime",
  "desktop-store",
  "desktop-tools",
- "desktop-update",
  "desktop-workspace",
  "parking_lot",
  "serde",
@@ -1048,15 +1047,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.19",
-]
-
-[[package]]
-name = "desktop-update"
-version = "0.1.0"
-dependencies = [
- "semver",
- "serde",
  "thiserror 2.0.19",
 ]
 

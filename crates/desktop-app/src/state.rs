@@ -1203,6 +1203,47 @@ mod tests {
         Ok(())
     }
 
+    /// An "allow always" answer (ADR-0009) is authority the user handed to a
+    /// particular model, about a particular workspace, in a particular session.
+    /// Every transition that withdraws one of those has to withdraw the answer
+    /// with it, or the next model inherits a yes it never asked for.
+    ///
+    /// `GrantedRules::clear` had no caller at all for a while — `tool_grants`
+    /// was only ever read — so this was true of sign-out, of recovery, and of
+    /// revocation alike. Revocation is covered by
+    /// `commands::tests::workspace_revocation_withdraws_every_lane_the_grant_authorized`;
+    /// these are the other two.
+    #[test]
+    fn model_sign_out_withdraws_every_session_tool_grant() -> Result<(), String> {
+        let state = ready_state()?;
+        assert!(state.tool_grants.lock().grant("read", "notes.md"));
+        assert!(!state.tool_grants.lock().rules().is_empty());
+
+        state.sign_out_model().map_err(map_local_error)?;
+
+        assert!(
+            state.tool_grants.lock().rules().is_empty(),
+            "a session tool grant must not outlive the model it was given to",
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn entering_recovery_withdraws_every_session_tool_grant() -> Result<(), String> {
+        let state = ready_state()?;
+        assert!(state.tool_grants.lock().grant("read", "notes.md"));
+        assert!(!state.tool_grants.lock().rules().is_empty());
+
+        state.enter_recovery();
+
+        assert_eq!(state.boot_mode(), BootMode::ReadOnlyRecovery);
+        assert!(
+            state.tool_grants.lock().rules().is_empty(),
+            "recovery has no agent tool lane, so no session grant may survive into it",
+        );
+        Ok(())
+    }
+
     fn assert_single_recovery_event(state: &HostState) -> Result<(), String> {
         let events = state.events_after(0).map_err(map_local_error)?;
         assert_eq!(state.sequence(), 1);
