@@ -2,11 +2,15 @@ import { Button } from "@sapphirus/ui";
 import {
   ChevronDown,
   FileCode,
+  Pencil,
   Send,
   ShieldAlert,
   Terminal,
+  Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
 import type { ChatMessage, ContextPreviewProjection } from "../lib/hostClient";
@@ -37,7 +41,6 @@ export interface TaskWorkspaceProps {
   interactionDisabled: boolean;
   isBrowserDemo: boolean;
   isInert?: boolean;
-  isNewSession: boolean;
   isReadOnlyRecovery: boolean;
   methodGuidanceAvailable: boolean;
   methodGuidanceState: BmadRequestState;
@@ -65,6 +68,14 @@ export interface TaskWorkspaceProps {
   onDraftChange?: ((draft: string) => void) | undefined;
   onOpenWorkspaceManager?: (() => void) | undefined;
   onSendRequest: (intent: string) => Promise<void>;
+  /// Renames this task. A name typed here is never overwritten by the
+  /// automatic title derived from the first message.
+  onRenameTask?: ((title: string) => void) | undefined;
+  /// Closes this task: it leaves the tab strip but keeps its transcript.
+  onCloseTask?: (() => void) | undefined;
+  /// Asks to delete this task. The confirmation lives in the shell, because
+  /// destroying a transcript is not something a header button does directly.
+  onDeleteTask?: (() => void) | undefined;
   sessionTitle: string;
   workspaceName: string;
   workspaceStatusLabel?: string | undefined;
@@ -236,7 +247,6 @@ export function TaskWorkspace({
   interactionDisabled,
   isBrowserDemo,
   isInert = false,
-  isNewSession,
   isReadOnlyRecovery,
   methodGuidanceAvailable,
   methodGuidanceState,
@@ -260,14 +270,54 @@ export function TaskWorkspace({
   onDraftChange,
   onOpenWorkspaceManager,
   onSendRequest,
+  onRenameTask,
+  onCloseTask,
+  onDeleteTask,
   sessionTitle,
   workspaceName,
   workspaceStatusLabel,
 }: TaskWorkspaceProps) {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [draft, setDraft] = useState(initialDraft);
+  const [renameDraft, setRenameDraft] = useState<string | null>(null);
+  const renaming = renameDraft !== null;
+
+  function startRename() {
+    setRenameDraft(sessionTitle);
+  }
+
+  function cancelRename() {
+    setRenameDraft(null);
+    // The trigger is re-rendered by leaving rename mode, so restore focus once
+    // it is back rather than dropping the user on <body>.
+    window.requestAnimationFrame(() => {
+      headerRef.current
+        ?.querySelector<HTMLElement>(".task-rename-trigger")
+        ?.focus();
+    });
+  }
+
+  function commitRename(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (renameDraft === null) return;
+    onRenameTask?.(renameDraft);
+    setRenameDraft(null);
+    window.requestAnimationFrame(() => {
+      headerRef.current
+        ?.querySelector<HTMLElement>(".task-rename-trigger")
+        ?.focus();
+    });
+  }
+
+  useEffect(() => {
+    if (renaming) {
+      renameInputRef.current?.select();
+    }
+  }, [renaming]);
 
   function updateDraft(value: string) {
     setDraft(value);
@@ -325,7 +375,7 @@ export function TaskWorkspace({
       className={`task-workspace ${isReadOnlyRecovery ? "has-recovery" : ""} task-workspace--opencode-v2`}
       inert={isInert}
     >
-      <header className="task-header">
+      <header className="task-header" ref={headerRef}>
         <div className="task-header__workspace">
           <strong>{workspaceName}</strong>
           <span className="workspace-status">
@@ -355,11 +405,74 @@ export function TaskWorkspace({
               Skills and agents
             </Button>
           ) : null}
+          {onRenameTask === undefined ? null : (
+            <Button
+              aria-label={`Rename task ${sessionTitle}`}
+              className="task-rename-trigger"
+              onPress={startRename}
+              size="small"
+              variant="quiet"
+            >
+              <Pencil aria-hidden="true" size={14} />
+              Rename
+            </Button>
+          )}
+          {onCloseTask === undefined ? null : (
+            <Button onPress={onCloseTask} size="small" variant="quiet">
+              <X aria-hidden="true" size={14} />
+              Close task
+            </Button>
+          )}
+          {onDeleteTask === undefined ? null : (
+            <Button
+              className="task-header__destructive"
+              onPress={onDeleteTask}
+              size="small"
+              variant="quiet"
+            >
+              <Trash2 aria-hidden="true" size={14} />
+              Delete task
+            </Button>
+          )}
         </div>
+        {/*
+          The heading carries the task's name for assistive tech and for the
+          base shell. The v2 shell hides `.task-title-row` visually because the
+          tab strip is where the name is read, so the rename *control* lives in
+          the visible actions row above rather than next to this heading.
+        */}
         <div className="task-title-row">
           <span className="task-kicker">Task</span>
-          <h1>{isNewSession && !submittedTask && sessionTitle === "New task" ? "New task" : sessionTitle}</h1>
+          <h1>{sessionTitle}</h1>
         </div>
+        {renaming ? (
+          <form
+            aria-label="Rename task"
+            className="task-rename"
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                cancelRename();
+              }
+            }}
+            onSubmit={commitRename}
+          >
+            <label htmlFor="task-rename">Task name</label>
+            <input
+              autoComplete="off"
+              id="task-rename"
+              maxLength={MAX_TASK_TITLE_CHARS}
+              onChange={(event) => setRenameDraft(event.target.value)}
+              ref={renameInputRef}
+              spellCheck={false}
+              type="text"
+              value={renameDraft}
+            />
+            <Button size="small" type="submit" variant="primary">Save name</Button>
+            <Button onPress={cancelRename} size="small" variant="quiet">Cancel</Button>
+          </form>
+        ) : null}
       </header>
 
       {isReadOnlyRecovery ? (

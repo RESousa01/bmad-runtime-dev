@@ -46,7 +46,6 @@ function createProps(
     hostStatusLabel: "Desktop host ready",
     interactionDisabled: false,
     isBrowserDemo: false,
-    isNewSession: true,
     isReadOnlyRecovery: false,
     methodGuidanceAvailable: true,
     methodGuidanceState: initialBmadRequestState,

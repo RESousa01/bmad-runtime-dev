@@ -131,6 +131,21 @@ export function routingIsCurrent(store: ChatSessionStore, routing: ChatRouting):
   return generationForSession(store, routing.sessionId) === routing.generation;
 }
 
+/// Discards one task's conversation, for closing or deleting that task.
+///
+/// The generation is advanced rather than deleted. Dropping the entry outright
+/// would reset it to 0, and a reply captured under generation 0 — the very
+/// first send in a task — would then still pass `routingIsCurrent` and
+/// resurrect the transcript the user just discarded. Keeping a bumped
+/// generation is what makes a late reply for a removed task drop.
+export function dropLane(store: ChatSessionStore, sessionId: string): ChatSessionStore {
+  const lanes = new Map(store.lanes);
+  lanes.delete(sessionId);
+  const generations = new Map(store.generations);
+  generations.set(sessionId, generationForSession(store, sessionId) + 1);
+  return { lanes, generations };
+}
+
 export function clearAllLanes(): ChatSessionStore {
   return emptyChatSessionStore;
 }
@@ -150,6 +165,12 @@ export interface ChatSessionsApi {
     update: ChatLaneState | ((current: ChatLaneState) => ChatLaneState),
   ) => void;
   readonly supersedeActive: () => void;
+  /// Discards one task's conversation and supersedes any reply in flight for
+  /// it. Used when that task is closed or deleted.
+  readonly dropSession: (sessionId: string) => void;
+  /// How many messages one task's transcript holds. Used to tell the user what
+  /// a delete would actually discard.
+  readonly messageCountFor: (sessionId: string) => number;
   readonly clearAll: () => void;
 }
 
@@ -206,9 +227,21 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
     commit((current) => bumpGeneration(current, activeSessionId));
   }, [activeSessionId, commit]);
 
+  const dropSession = useCallback(
+    (sessionId: string) => {
+      commit((current) => dropLane(current, sessionId));
+    },
+    [commit],
+  );
+
   const clearAll = useCallback(() => {
     commit(clearAllLanes);
   }, [commit]);
+
+  const messageCountFor = useCallback(
+    (sessionId: string) => laneForSession(store, sessionId).messages.length,
+    [store],
+  );
 
   return {
     lane: laneForSession(store, activeSessionId),
@@ -217,6 +250,8 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
     applyToLane,
     setActiveLane,
     supersedeActive,
+    dropSession,
+    messageCountFor,
     clearAll,
   };
 }

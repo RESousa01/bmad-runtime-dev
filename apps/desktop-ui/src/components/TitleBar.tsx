@@ -16,6 +16,9 @@ export interface TitleBarProps {
   onMenu?: (() => void) | undefined;
   onHome?: (() => void) | undefined;
   onNewTask?: (() => void) | undefined;
+  /// Closes a task from its tab. Closing keeps the transcript; deleting is a
+  /// separate, confirmed action on the task itself.
+  onCloseTask?: ((id: string) => void) | undefined;
   onOpenAccount?: (() => void) | undefined;
   onOpenSettings?: (() => void) | undefined;
   onSelectTask?: ((id: string) => void) | undefined;
@@ -29,6 +32,7 @@ export function TitleBar({
   onMenu,
   onHome,
   onNewTask,
+  onCloseTask,
   onOpenAccount,
   onOpenSettings,
   onSelectTask,
@@ -82,6 +86,18 @@ export function TitleBar({
             aria-label="Open tasks"
             className="title-strip__tabs"
             onKeyDown={(event) => {
+              // Delete on the focused tab closes it. This is the ARIA pattern
+              // for closable tabs and the only way to reach the close action
+              // from the keyboard without putting a second tab stop inside the
+              // roving tabindex.
+              if (event.key === "Delete" && onCloseTask && selectedTaskId !== undefined) {
+                const focused = visibleTaskTabs.find((task) => task.id === selectedTaskId);
+                if (focused) {
+                  event.preventDefault();
+                  onCloseTask(focused.id);
+                  return;
+                }
+              }
               // Roving tabindex means only the active tab is reachable by Tab,
               // so without arrow handling the other tasks could not be reached
               // from the keyboard at all.
@@ -123,6 +139,30 @@ export function TitleBar({
                 >
                   <OpenCodeIcon name="edit" size={14} />
                   <span>{task.title}</span>
+                  {/*
+                    A tablist may contain nothing but tabs, so the close
+                    affordance cannot be a sibling button — axe rejects that
+                    outright — and a nested <button> would be invalid HTML.
+                    It is therefore a pointer-only target inside the tab, and
+                    the keyboard route to the same action is Delete on the
+                    focused tab (handled by the tablist), the "Close task"
+                    control in the task header, and the command palette.
+                  */}
+                  {onCloseTask === undefined ? null : (
+                    <span
+                      aria-hidden="true"
+                      className="title-strip__tab-close"
+                      onClick={(event) => {
+                        // Without this the tab's own click also fires and the
+                        // shell selects the task it is closing.
+                        event.stopPropagation();
+                        onCloseTask(task.id);
+                      }}
+                      title={`Close task ${task.title}`}
+                    >
+                      <X size={12} strokeWidth={2} />
+                    </span>
+                  )}
                 </button>
               );
             })}

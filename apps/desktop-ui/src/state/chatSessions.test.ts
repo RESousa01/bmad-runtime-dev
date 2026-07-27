@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   appendDispatchExchange,
   bumpGeneration,
+  dropLane,
   emptyChatLane,
   emptyChatSessionStore,
   generationForSession,
@@ -48,6 +49,32 @@ describe("chat session store", () => {
     expect(laneForSession(store, "task-a").agentCode).toBe("bmad-agent-architect");
     // Plain chat stays the default everywhere else — BMAD is never imposed.
     expect(laneForSession(store, "task-b").agentCode).toBeNull();
+  });
+
+  it("discards one task's transcript when that task is deleted", () => {
+    let store = emptyChatSessionStore;
+    store = setLane(store, "task-a", { ...emptyChatLane, messages: [message("from A")] });
+    store = setLane(store, "task-b", { ...emptyChatLane, messages: [message("from B")] });
+
+    store = dropLane(store, "task-a");
+
+    expect(laneForSession(store, "task-a")).toEqual(emptyChatLane);
+    // Deleting one task never touches another's conversation.
+    expect(laneForSession(store, "task-b").messages[0]?.text).toBe("from B");
+  });
+
+  it("drops a reply that lands after its task was deleted, rather than resurrecting it", () => {
+    // The subtle case: the very first send in a task captures generation 0.
+    // If deleting merely removed the generation entry it would read back as 0
+    // again, the late reply would pass the routing check, and the transcript
+    // the user just destroyed would reappear.
+    let store = emptyChatSessionStore;
+    const routing = { sessionId: "task-a", generation: generationForSession(store, "task-a") };
+    expect(routing.generation).toBe(0);
+
+    store = dropLane(store, "task-a");
+
+    expect(routingIsCurrent(store, routing)).toBe(false);
   });
 
   it("bounds retained lanes and never evicts the one just written", () => {

@@ -192,3 +192,49 @@
     order: -1;
   }
 }
+
+/* Task lifecycle: rename, close, delete.
+   The rename field sits under the header actions rather than beside the
+   heading, because the v2 shell hides `.task-title-row` visually — the tab
+   strip is where a task's name is read. */
+.task-rename {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding-top: 10px;
+}
+
+.task-rename label {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.task-rename input {
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  flex: 1 1 220px;
+  font: inherit;
+  font-size: 0.8125rem;
+  min-width: 0;
+  padding: 5px 9px;
+}
+
+.task-rename input:focus-visible {
+  border-color: var(--color-accent, var(--color-border));
+  outline: 2px solid var(--color-focus-ring, var(--color-accent, currentColor));
+  outline-offset: 1px;
+}
+
+.task-header__destructive.sapphirus-button {
+  color: var(--color-danger-text, var(--color-text-muted));
+}
+
+.task-header__destructive.sapphirus-button[data-hovered] {
+  background: var(--color-danger-surface, var(--color-surface-hover));
+  color: var(--color-danger-text, var(--color-text));
+}

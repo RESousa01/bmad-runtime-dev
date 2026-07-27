@@ -24,6 +24,22 @@ import {
   useCapabilitySessions,
 } from "./state/taskSessions";
 import { appendDispatchExchange, useChatSessions } from "./state/chatSessions";
+import {
+  appendTask,
+  autoTitleTask,
+  closeTask,
+  closedTasks as closedTaskList,
+  createTask,
+  createTaskId,
+  deleteTask,
+  findTask,
+  nextSelectionAfter,
+  openTasks as openTaskList,
+  renameTask,
+  reopenTask,
+  type TaskRecord,
+} from "./state/taskList";
+import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
   type OffboardingStatus,
@@ -101,24 +117,15 @@ import {
   rankContextPaths,
 } from "./lib/contextSuggestions";
 
-export interface SessionSummary {
-  id: string;
-  title: string;
-  updatedAt: string;
-  unread?: boolean;
-}
-
-const initialProductSession: SessionSummary = {
-  id: "new-0",
-  title: "New task",
-  updatedAt: "Now",
-};
-
-function taskTitleFromIntent(intent?: string): string {
-  const value = intent?.trim();
-  if (!value) return "New task";
-  return value.length <= 64 ? value : `${value.slice(0, 63).trimEnd()}…`;
-}
+/// The id the per-task stores key on while no task is selected (Home).
+///
+/// The shell used to keep a phantom `new-0` "New task" tab that was never a
+/// real record: it could not be renamed, closed, or deleted, and it is the
+/// reason every task looked like it was called "New task". The task list is now
+/// the only source of truth, so "no task" is a real state and this constant is
+/// only an inert key for the per-task lane stores — it is never sent to the
+/// host as a `client_session_ref`.
+const NO_TASK_SESSION_ID = "task-none";
 
 const browserDemoWorkspace: WorkspaceProjection = {
   workspaceId: "workspace_browser_demo",
@@ -228,7 +235,12 @@ type HostUiRuntime = HostRuntime | { kind: "loading" };
 export type PrimaryRoute =
   | { kind: "home" }
   | { kind: "task"; taskId: string | null };
-export type AppModalKind = "workspace-manager" | "settings" | "account" | null;
+export type AppModalKind =
+  | "workspace-manager"
+  | "settings"
+  | "account"
+  | "delete-task"
+  | null;
 
 export interface AppProps {
   hostRuntimeLoader?: () => Promise<HostRuntime>;
@@ -251,7 +263,11 @@ export function App({
 }: AppProps = {}) {
   const [primaryRoute, setPrimaryRoute] = useState<PrimaryRoute>({ kind: "home" });
   const [density, setDensity] = useState<DensityPreference>("comfortable");
-  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [tasks, setTasks] = useState<readonly TaskRecord[]>([]);
+  /// The task a pending delete confirmation refers to. Held separately from
+  /// the selection so the dialog can never act on a different task than the
+  /// one it named.
+  const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState<string | null>(null);
   const [taskDrafts, setTaskDrafts] = useState<ReadonlyMap<string, string>>(new Map());
   const [contextDrawer, setContextDrawer] = useState<ContextDrawerKind | null>(null);
   const [theme, setTheme] = useState<ThemePreference>("dark");
@@ -333,11 +349,9 @@ export function App({
   const workspaceAuthorityKeyRef = useRef("");
   const contextSuggestionGenerationRef = useRef(0);
   const contextSuggestionInFlightRef = useRef(false);
-  const sessionSequenceRef = useRef(0);
 
-  const selectedSessionId = primaryRoute.kind === "task"
-    ? primaryRoute.taskId ?? initialProductSession.id
-    : initialProductSession.id;
+  const routedTaskId = primaryRoute.kind === "task" ? primaryRoute.taskId : null;
+  const selectedSessionId = routedTaskId ?? NO_TASK_SESSION_ID;
   const capabilitySessions = useCapabilitySessions(selectedSessionId);
   // Chat is the default lane: every task owns a conversation, and BMAD is an
   // optional overlay on it rather than the only way to say something.
@@ -383,15 +397,18 @@ export function App({
     [],
   );
   const clearAllChangesFlows = useCallback(() => setChangesFlowByTask(new Map()), []);
-  const selectedSession = useMemo(
-    () => sessions.find((session) => session.id === selectedSessionId) ?? initialProductSession,
-    [selectedSessionId, sessions],
+  const selectedTask = useMemo(
+    () => findTask(tasks, routedTaskId),
+    [routedTaskId, tasks],
   );
-  const openTaskTabs = useMemo(
-    () => [initialProductSession, ...sessions.toReversed()],
-    [sessions],
+  // Tabs read left to right in creation order; Home lists the newest first.
+  const openTaskTabs = useMemo(() => openTaskList(tasks), [tasks]);
+  const recentTaskList = useMemo(() => openTaskList(tasks).toReversed(), [tasks]);
+  const closedTasks = useMemo(() => closedTaskList(tasks), [tasks]);
+  const pendingDeleteTask = useMemo(
+    () => findTask(tasks, pendingDeleteTaskId),
+    [pendingDeleteTaskId, tasks],
   );
-  const isNewSession = selectedSession.id.startsWith("new-");
   const activeWorkspace = hostWorkspaces.find(({ workspaceId }) => workspaceId === activeWorkspaceId)
     ?? hostWorkspaces[0]
     ?? null;
@@ -1757,9 +1774,8 @@ export function App({
     document.documentElement.dataset.density = density;
   }, [density]);
 
-  // Retained for the multi-task tab slice of the shell rework.
   function selectSession(id: string) {
-    if (id !== initialProductSession.id && !sessions.some((session) => session.id === id)) {
+    if (findTask(tasks, id) === null) {
       return;
     }
     if (id !== selectedSessionId) {
@@ -1781,12 +1797,11 @@ export function App({
       || currentRequest.kind === "approved"
       || currentRequest.kind === "submitting"
     ) return null;
-    sessionSequenceRef.current += 1;
-    const session: SessionSummary = {
-      id: `new-${sessionSequenceRef.current}`,
-      title: taskTitleFromIntent(intent),
-      updatedAt: "Now",
-    };
+    // The id becomes the host's `client_session_ref`, from which the durable
+    // chat session identity is derived. It must never repeat — see
+    // `createTaskId` — or a fresh task silently adopts an older task's
+    // persisted transcript, including one the user deleted.
+    const session = createTask(createTaskId(), intent);
     bmadHelpGenerationRef.current += 1;
     bmadHelpCreationRef.current = null;
     bmadHelpOperationRef.current = null;
@@ -1801,12 +1816,130 @@ export function App({
         return next;
       });
     }
-    setSessions((current) => [session, ...current.filter(({ id }) => id !== session.id)].slice(0, 20));
+    setTasks((current) => appendTask(current, session));
     setPrimaryRoute({ kind: "task", taskId: session.id });
     setContextDrawer(null);
     // The new task starts with no capability run of its own; other tasks keep
     // theirs (per-task isolation), so no global capability reset here.
     return session.id;
+  }
+
+  /// Names a task from the first message sent in it.
+  ///
+  /// Most tasks never get named by hand, so the opening message is the only
+  /// honest label available. `autoTitleTask` is a no-op once the task has any
+  /// title, which is what keeps a name the user typed from being overwritten.
+  function autoTitleFromMessage(taskId: string, message: string) {
+    setTasks((current) => autoTitleTask(current, taskId, message));
+  }
+
+  function renameSelectedTask(title: string) {
+    if (routedTaskId === null) return;
+    setTasks((current) => renameTask(current, routedTaskId, title));
+  }
+
+  /// Drops the transient run state a task owns, leaving its transcript alone.
+  ///
+  /// Shared by close and delete. A capability run and a governed-changes flow
+  /// are in-progress work, not a record of what was said, so neither survives
+  /// the task leaving the open list; `closeCapabilitySession` also makes a late
+  /// result for that task drop instead of reappearing.
+  function releaseTaskRunState(taskId: string) {
+    capabilitySessions.closeCapabilitySession(taskId);
+    setChangesFlowForTask(taskId, null);
+  }
+
+  function dropTaskDraft(taskId: string) {
+    setTaskDrafts((current) => {
+      if (!current.has(taskId)) return current;
+      const next = new Map(current);
+      next.delete(taskId);
+      return next;
+    });
+  }
+
+  /// Moves the route off a task that is leaving the open list.
+  function reselectAfterRemoval(taskId: string) {
+    const next = nextSelectionAfter(tasks, taskId, routedTaskId);
+    if (routedTaskId !== taskId) {
+      return;
+    }
+    clearContext();
+    setContextDrawer(null);
+    // No phantom task to land on: with nothing open, Home *is* the empty
+    // state.
+    setPrimaryRoute(next === null ? { kind: "home" } : { kind: "task", taskId: next });
+  }
+
+  /// Closes a task: it leaves the tab strip but keeps its transcript and its
+  /// unsent draft, so reopening it from Home restores the conversation.
+  /// Non-destructive, hence no confirmation.
+  function closeTaskById(taskId: string) {
+    if (findTask(tasks, taskId) === null) return;
+    reselectAfterRemoval(taskId);
+    releaseTaskRunState(taskId);
+    setTasks((current) => closeTask(current, taskId));
+  }
+
+  function reopenTaskById(taskId: string) {
+    if (findTask(tasks, taskId) === null) return;
+    setTasks((current) => reopenTask(current, taskId));
+    clearContext();
+    setContextDrawer(null);
+    setPrimaryRoute({ kind: "task", taskId });
+  }
+
+  function requestTaskDeletion(taskId: string) {
+    if (findTask(tasks, taskId) === null) return;
+    workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    setPendingDeleteTaskId(taskId);
+    setContextDrawer(null);
+    setAppModal("delete-task");
+  }
+
+  function dismissTaskDeletion() {
+    setPendingDeleteTaskId(null);
+    setAppModal(null);
+    const returnFocus = workspaceReturnFocusRef.current;
+    workspaceReturnFocusRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
+        returnFocus.focus();
+      }
+    });
+  }
+
+  /// Destroys a task. Irreversible from Forge's side, which is why it is only
+  /// reachable through the confirmation dialog.
+  ///
+  /// This drops the renderer's record and its conversation lane. The host's
+  /// durable transcript is *not* deleted: the command catalog exposes no
+  /// per-session chat delete, and the store (`crates/desktop-store/src/chat.rs`)
+  /// offers no removal at all. Because task ids are never reused, the orphaned
+  /// row can no longer be addressed by any task; erasing it from disk is
+  /// Settings → Local data. `DeleteTaskDialog` says exactly this rather than
+  /// promising an erase that does not happen.
+  function confirmTaskDeletion() {
+    const taskId = pendingDeleteTaskId;
+    setPendingDeleteTaskId(null);
+    setAppModal(null);
+    if (taskId === null || findTask(tasks, taskId) === null) return;
+    reselectAfterRemoval(taskId);
+    releaseTaskRunState(taskId);
+    dropTaskDraft(taskId);
+    // Discards the conversation and supersedes it, so a reply already in
+    // flight is dropped rather than resurrecting the transcript.
+    chatSessions.dropSession(taskId);
+    setTasks((current) => deleteTask(current, taskId));
+    const returnFocus = workspaceReturnFocusRef.current;
+    workspaceReturnFocusRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
+        returnFocus.focus();
+      }
+    });
   }
 
   function openMethodLibrary() {
@@ -1918,6 +2051,12 @@ export function App({
     // same message twice and the host's strict user->assistant alternation
     // rejects the second, losing it.
     if (chatLane.sending) return;
+    // Name the task after its opening message. This is the whole reason tasks
+    // used to sit there called "New task": only the Home composer ever titled
+    // one, so every task started from a tab or the palette stayed unnamed
+    // forever. Applied before the send so the tab is labelled even if the
+    // request then fails, and a no-op once the task has any title.
+    autoTitleFromMessage(sessionId ?? selectedSessionId, intent);
     // With an agent bound, a message that unambiguously names one of that
     // agent's menu items dispatches it instead — the behaviour the method's
     // own activation describes. Anything else stays an ordinary conversation.
@@ -2026,6 +2165,9 @@ export function App({
       ? hostRuntime.bootstrap.projectionSequence
       : 0;
     const generation = ++bmadHelpGenerationRef.current;
+    // Asking BMAD Help is still the task's opening message, so it names the
+    // task the same way an ordinary chat turn does.
+    autoTitleFromMessage(selectedSessionId, currentIntent);
     setCurrentBmadIntent({ createdAt: Date.now(), text: currentIntent });
     applyBmadEvent({ type: "create_started" });
 
@@ -2151,7 +2293,7 @@ export function App({
         : bmadHelpState.kind === "idle" || bmadHelpState.kind === "unavailable"
           ? bmadHelpState.run?.sessionId
           : undefined)
-      ?? selectedSession.id;
+      ?? selectedSessionId;
     const messages: SessionContextMessage[] = [];
     const demoCreatedAt = hostRuntime.kind === "browser_demo" ? 1_784_731_394_657 : undefined;
     if (demoCreatedAt !== undefined && currentBmadIntent === null) {
@@ -2275,7 +2417,7 @@ export function App({
         ?? (demoCreatedAt === undefined ? undefined : 1_842),
       messages,
     };
-  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, hostRuntime.kind, selectedSession.id, sessionContextModelId]);
+  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, hostRuntime.kind, selectedSessionId, sessionContextModelId]);
 
   function resetChangesFlow() {
     changesGenerationRef.current += 1;
@@ -2781,7 +2923,7 @@ export function App({
           messages={sessionContext.messages}
           model={sessionContextModelId}
           provider={modelProviderLabel}
-          sessionTitle={selectedSession.title}
+          sessionTitle={selectedTask?.title ?? "No task selected"}
         />
       ) : contextDrawer === "skills" ? (
         <div className="method-library-panel">
@@ -2898,6 +3040,13 @@ export function App({
       workspaceDetail={workspaceDescription}
       workspaceLabel={workspaceName}
     />
+  ) : appModal === "delete-task" && pendingDeleteTask !== null ? (
+    <DeleteTaskDialog
+      messageCount={chatSessions.messageCountFor(pendingDeleteTask.id)}
+      onCancel={dismissTaskDeletion}
+      onConfirm={confirmTaskDeletion}
+      taskTitle={pendingDeleteTask.title}
+    />
   ) : undefined;
 
   // The palette shortcut has to be a real document listener, not a React
@@ -2918,12 +3067,28 @@ export function App({
 
   const paletteActions: readonly PaletteAction[] = [
     { id: "new-task", label: "New task", hint: "chat", run: () => { startNewSession(); } },
-    {
-      id: "current-task",
-      label: `Go to task: ${selectedSession.title}`,
-      hint: "tab",
-      run: () => selectSession(selectedSessionId),
-    },
+    // Task lifecycle actions appear only with a task open, so the palette
+    // never offers to rename or delete something that does not exist.
+    ...(selectedTask === null ? [] : [
+      {
+        id: "current-task",
+        label: `Go to task: ${selectedTask.title}`,
+        hint: "tab",
+        run: () => selectSession(selectedTask.id),
+      },
+      {
+        id: "close-task",
+        label: `Close task: ${selectedTask.title}`,
+        hint: "task",
+        run: () => closeTaskById(selectedTask.id),
+      },
+      {
+        id: "delete-task",
+        label: `Delete task: ${selectedTask.title}`,
+        hint: "task",
+        run: () => requestTaskDeletion(selectedTask.id),
+      },
+    ] satisfies PaletteAction[]),
     {
       id: "open-workspace",
       label: "Open or switch workspace",
@@ -2977,15 +3142,19 @@ export function App({
         }}
         onMenu={() => setPaletteOpen(true)}
         onNewTask={() => { startNewSession(); }}
+        onCloseTask={closeTaskById}
         onOpenSettings={() => openUtilityPanel("settings")}
-        activeTaskId={selectedSessionId}
+        activeTaskId={routedTaskId ?? undefined}
         onSelectTask={selectSession}
         taskTabs={openTaskTabs}
       />
       <div className="workbench workbench--task-shell">
         <AppShellLayout
           drawer={drawer}
-          main={primaryRoute.kind === "home" ? (
+          main={primaryRoute.kind === "home" || selectedTask === null ? (
+            // No task selected *is* Home. There is no phantom task to fall
+            // back onto any more, so an empty list and a deleted last task
+            // both land here rather than on a tab that cannot be acted on.
             <HomeView
               activeWorkspaceId={activeWorkspaceId}
               canOpenFolder={canSelectWorkspace}
@@ -3010,7 +3179,9 @@ export function App({
                   }
                 }
               }}
-              recentTasks={sessions}
+              recentTasks={recentTaskList}
+              closedTasks={closedTasks}
+              onReopenTask={reopenTaskById}
               statusHint={methodRequestAvailable
                 ? "Ready to send through the selected model."
                 : "Start locally, then connect OpenAI in Settings before sending."}
@@ -3023,10 +3194,9 @@ export function App({
               contextSelectionMode={contextSelectionMode}
               contextSuggestionBusy={contextSuggestionBusy}
               hostStatusLabel={hostStatusLabel}
-              initialDraft={taskDrafts.get(selectedSession.id) ?? ""}
+              initialDraft={taskDrafts.get(selectedTask.id) ?? ""}
               interactionDisabled={!localTaskDraftingAvailable}
               isBrowserDemo={hostRuntime.kind === "browser_demo"}
-              isNewSession={isNewSession}
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
               key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
               methodGuidanceAvailable={methodRequestAvailable}
@@ -3056,9 +3226,9 @@ export function App({
                 setTaskDrafts((current) => {
                   const next = new Map(current);
                   if (draft) {
-                    next.set(selectedSession.id, draft);
+                    next.set(selectedTask.id, draft);
                   } else {
-                    next.delete(selectedSession.id);
+                    next.delete(selectedTask.id);
                   }
                   return next;
                 });
@@ -3070,7 +3240,10 @@ export function App({
               onSelectAgent={(agentCode) => {
                 chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
               }}
-              sessionTitle={selectedSession.title}
+              onRenameTask={renameSelectedTask}
+              onCloseTask={() => closeTaskById(selectedTask.id)}
+              onDeleteTask={() => requestTaskDeletion(selectedTask.id)}
+              sessionTitle={selectedTask.title}
               workspaceName={workspaceName}
             />
           ) : (
@@ -3087,6 +3260,10 @@ export function App({
           onCloseModal={() => {
             if (appModal === "workspace-manager") {
               dismissWorkspacePanel();
+            } else if (appModal === "delete-task") {
+              // Escape and the scrim both mean "no". Dismissing a destructive
+              // confirmation must never be the thing that runs it.
+              dismissTaskDeletion();
             } else {
               dismissUtilityPanel();
             }

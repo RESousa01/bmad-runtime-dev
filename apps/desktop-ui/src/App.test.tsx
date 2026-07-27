@@ -1457,9 +1457,10 @@ describe("Forge desktop workbench", () => {
     ).toBeNull();
 
     // Returning to the first task restores its run. Tabs render as
-    // [initial home, first task, second task]; index 1 is the task the run
-    // was started on (all tabs share the default "New task" label).
-    const firstTaskTab = screen.getAllByRole("tab", { name: "New task" })[1]!;
+    // [first task, second task] in creation order — there is no phantom
+    // "New task" tab any more — so index 0 is the task the run was started
+    // on (both still carry the default "New task" label).
+    const firstTaskTab = screen.getAllByRole("tab", { name: "New task" })[0]!;
     await user.click(firstTaskTab);
     if (screen.queryByRole("heading", { name: "Skills & agents" }) === null) {
       await user.click(screen.getByRole("button", { name: "Skills and agents" }));
@@ -1513,12 +1514,20 @@ describe("Forge desktop workbench", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    expect(screen.getAllByRole("tab", { name: "New task" })).toHaveLength(1);
-    await user.click(
-      within(screen.getByRole("banner", { name: "Forge application" }))
-        .getByRole("button", { name: "New task" }),
-    );
+    // Home starts with no tasks at all. The shell used to seed a phantom
+    // "New task" tab that was not a real record — it could not be renamed,
+    // closed, or deleted — which is what made every task look unnamed.
+    const openTab = () =>
+      user.click(
+        within(screen.getByRole("banner", { name: "Forge application" }))
+          .getByRole("button", { name: "New task" }),
+      );
+    expect(screen.queryAllByRole("tab")).toHaveLength(0);
 
+    await openTab();
+    expect(screen.getAllByRole("tab", { name: "New task" })).toHaveLength(1);
+
+    await openTab();
     const tabs = screen.getAllByRole("tab", { name: "New task" });
     expect(tabs).toHaveLength(2);
     expect(tabs[0]?.getAttribute("aria-selected")).toBe("false");
@@ -3116,6 +3125,288 @@ describe("Forge desktop workbench", () => {
       },
     });
 
+    expect(results.violations).toEqual([]);
+  });
+});
+
+/// The task list itself: how a task gets its name, and how the user gets rid
+/// of one. Before this, a task's title was written once at creation and never
+/// touched again, and there was no close or delete anywhere in the shell.
+describe("Forge task list", () => {
+  function renderApp(runtime: HostRuntime) {
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+  }
+
+  function taskTabNames(): string[] {
+    return screen.queryAllByRole("tab").map((tab) => tab.textContent ?? "");
+  }
+
+  async function sendMessage(
+    user: ReturnType<typeof userEvent.setup>,
+    text: string,
+  ): Promise<void> {
+    await user.type(await readyMethodGuidanceComposer(), text);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findAllByText("Deterministic local reply.");
+  }
+
+  it("names a task after its first message rather than leaving it New task", async () => {
+    // The reported bug: only the Home composer ever titled a task, so every
+    // task opened from the tab strip or the palette stayed called "New task".
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    expect(taskTabNames()).toEqual(["New task"]);
+
+    await sendMessage(user, "Explain how the workspace is structured");
+
+    expect(taskTabNames()).toEqual(["Explain how the workspace is structured"]);
+    expect(
+      screen.getByRole("heading", { name: "Explain how the workspace is structured" }),
+    ).toBeTruthy();
+  });
+
+  it("keeps the automatic name from the opening message as the conversation goes on", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await sendMessage(user, "Plan the migration");
+    await sendMessage(user, "Actually review the parser instead");
+
+    // The title describes how the conversation opened; later messages do not
+    // rewrite it out from under the user.
+    expect(taskTabNames()).toEqual(["Plan the migration"]);
+  });
+
+  it("renames a task by hand and never lets a later message overwrite that name", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await user.click(screen.getByRole("button", { name: "Rename task New task" }));
+    const field = screen.getByLabelText<HTMLInputElement>("Task name");
+    await user.clear(field);
+    await user.type(field, "Release checklist");
+    await user.click(screen.getByRole("button", { name: "Save name" }));
+
+    expect(taskTabNames()).toEqual(["Release checklist"]);
+    expect(screen.queryByLabelText("Task name")).toBeNull();
+
+    await sendMessage(user, "Draft the rollout steps");
+    expect(taskTabNames()).toEqual(["Release checklist"]);
+  });
+
+  it("abandons a rename on Cancel without touching the name", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+    await sendMessage(user, "Audit the IPC catalog");
+
+    await user.click(
+      screen.getByRole("button", { name: "Rename task Audit the IPC catalog" }),
+    );
+    await user.clear(screen.getByLabelText("Task name"));
+    await user.type(screen.getByLabelText("Task name"), "Discarded");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(taskTabNames()).toEqual(["Audit the IPC catalog"]);
+  });
+
+  it("closes a task without destroying it and reopens it with its transcript", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+    await sendMessage(user, "Trace the boot sequence");
+
+    await user.click(screen.getByRole("button", { name: "Close task" }));
+
+    // Closing the only open task lands on Home; there is no phantom tab to
+    // fall back onto.
+    expect(taskTabNames()).toEqual([]);
+    expect(screen.getByRole("heading", { name: "Recent tasks" })).toBeTruthy();
+    // Closing is not deleting: the task is offered back.
+    const closed = screen.getByRole("list", { name: "Closed tasks" });
+    expect(within(closed).getByText("Trace the boot sequence")).toBeTruthy();
+
+    await user.click(
+      screen.getByRole("button", { name: "Reopen task Trace the boot sequence" }),
+    );
+
+    expect(taskTabNames()).toEqual(["Trace the boot sequence"]);
+    // The transcript survived the round trip — that is the whole difference
+    // between closing and deleting.
+    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+    expect(screen.getAllByText("Deterministic local reply.").length).toBeGreaterThan(0);
+  });
+
+  it("never deletes a task without confirmation, and cancelling changes nothing", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+    await sendMessage(user, "Review the recovery path");
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
+    // The dialog names the task and says what is actually at stake.
+    expect(within(dialog).getByText("Review the recovery path")).toBeTruthy();
+    expect(within(dialog).getByText(/2 messages/u)).toBeTruthy();
+    expect(within(dialog).getByText(/cannot be undone/iu)).toBeTruthy();
+    // It offers the non-destructive alternative rather than only a scary button.
+    expect(within(dialog).getByText(/Close the task instead/iu)).toBeTruthy();
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("dialog", { name: "Delete this task?" })).toBeNull();
+    expect(taskTabNames()).toEqual(["Review the recovery path"]);
+    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+  });
+
+  it("is honest that deleting cannot scrub the copy already written to this device", async () => {
+    // Forge has no per-session chat delete in the host command catalog and the
+    // local store offers no removal, so the dialog must not promise an erase
+    // that does not happen. It points at the one control that does erase.
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
+    expect(within(dialog).getByText(/cannot erase the encrypted copy/iu)).toBeTruthy();
+    expect(within(dialog).getByText(/Local data/u)).toBeTruthy();
+  });
+
+  it("destroys the task and its transcript on confirmation and returns Home", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+    await sendMessage(user, "Destroy this task");
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+    const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
+    await user.click(within(dialog).getByRole("button", { name: "Delete task" }));
+
+    // Deleting the last task leaves the list genuinely empty.
+    expect(taskTabNames()).toEqual([]);
+    expect(screen.queryByRole("dialog", { name: "Delete this task?" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Recent tasks" })).toBeTruthy();
+    expect(screen.getByText(/No tasks yet/u)).toBeTruthy();
+    // Unlike closing, nothing is offered back.
+    expect(screen.queryByRole("list", { name: "Closed tasks" })).toBeNull();
+    expect(screen.queryByText("Deterministic local reply.")).toBeNull();
+  });
+
+  it("selects the neighbouring task when a task in the middle is deleted", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    const titlebar = await screen.findByRole("banner", { name: "Forge application" });
+    const newTask = () =>
+      user.click(within(titlebar).getByRole("button", { name: "New task" }));
+
+    await enterFirstTask();
+    await sendMessage(user, "First");
+    await newTask();
+    await sendMessage(user, "Second");
+    await newTask();
+    await sendMessage(user, "Third");
+
+    await user.click(screen.getAllByRole("tab")[1]!);
+    expect(screen.getByRole("heading", { name: "Second" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+    await user.click(
+      within(screen.getByRole("dialog", { name: "Delete this task?" }))
+        .getByRole("button", { name: "Delete task" }),
+    );
+
+    expect(taskTabNames()).toEqual(["First", "Third"]);
+    // The tab to the left, which is where the user most likely came from.
+    expect(screen.getByRole("heading", { name: "First" })).toBeTruthy();
+  });
+
+  it("closes a task from its own tab without selecting it first", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    const titlebar = await screen.findByRole("banner", { name: "Forge application" });
+
+    await enterFirstTask();
+    await sendMessage(user, "Keep this one");
+    await user.click(within(titlebar).getByRole("button", { name: "New task" }));
+    await sendMessage(user, "Close this from its tab");
+
+    const target = screen.getByRole("tab", { name: /Close this from its tab/u });
+    fireEvent.click(target.querySelector(".title-strip__tab-close")!);
+
+    expect(taskTabNames()).toEqual(["Keep this one"]);
+    expect(screen.getByRole("heading", { name: "Keep this one" })).toBeTruthy();
+  });
+
+  it("gives every task a fresh durable session ref so none inherits another transcript", async () => {
+    // The host derives the durable chat session from `clientSessionRef`, so a
+    // recycled id would hand a new task an older task's persisted messages —
+    // including one the user deleted. Ids used to be `new-1`, `new-2`, ...
+    // from a counter that restarted with the process.
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    const titlebar = await screen.findByRole("banner", { name: "Forge application" });
+
+    await enterFirstTask();
+    await sendMessage(user, "First task message");
+    await user.click(within(titlebar).getByRole("button", { name: "New task" }));
+    await sendMessage(user, "Second task message");
+
+    const refs = invoke.mock.calls
+      .filter(([command, args]) => command === "host_dispatch"
+        && (JSON.parse(String(args?.body)) as { command: string }).command === "chat.send")
+      .map(([, args]) => (JSON.parse(String(args?.body)) as {
+        payload: { clientSessionRef: string };
+      }).payload.clientSessionRef);
+
+    expect(refs).toHaveLength(2);
+    expect(new Set(refs).size).toBe(2);
+    for (const ref of refs) {
+      expect(ref).not.toMatch(/^new-\d+$/u);
+      // The host rejects a ref longer than 128 bytes.
+      expect(ref.length).toBeLessThanOrEqual(128);
+    }
+  });
+
+  it("has no automated accessibility violations with tasks open and a delete pending", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    const { container } = render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+    await sendMessage(user, "Audit this task");
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+    await screen.findByRole("dialog", { name: "Delete this task?" });
+
+    const results = await axe.run(container, {
+      rules: { "color-contrast": { enabled: false } },
+    });
     expect(results.violations).toEqual([]);
   });
 });

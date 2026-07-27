@@ -4,6 +4,12 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { WorkspaceProjection } from "../lib/hostClient";
 import { OpenCodeIcon } from "./OpenCodeIcon";
 
+export interface HomeTaskSummary {
+  readonly id: string;
+  readonly title: string;
+  readonly updatedAt: string;
+}
+
 export interface HomeViewProps {
   readonly activeWorkspaceId: string | null;
   readonly canOpenFolder: boolean;
@@ -14,11 +20,12 @@ export interface HomeViewProps {
   readonly onSelectTask: (taskId: string) => void;
   readonly onSubmitIntent: (intent: string) => void;
   readonly onNewTask: () => void;
-  readonly recentTasks: readonly {
-    readonly id: string;
-    readonly title: string;
-    readonly updatedAt: string;
-  }[];
+  readonly recentTasks: readonly HomeTaskSummary[];
+  /// Tasks the user closed. They keep their transcripts, so Home is where they
+  /// come back from — without this list, closing would be indistinguishable
+  /// from deleting.
+  readonly closedTasks: readonly HomeTaskSummary[];
+  readonly onReopenTask: (taskId: string) => void;
   readonly statusHint: string;
   readonly workspaces: readonly WorkspaceProjection[];
   readonly workspaceStatusLabel: string;
@@ -39,6 +46,8 @@ export function HomeView({
   onSubmitIntent,
   onNewTask,
   recentTasks,
+  closedTasks,
+  onReopenTask,
   statusHint,
   workspaces,
   workspaceStatusLabel,
@@ -146,17 +155,47 @@ export function HomeView({
               New task
             </button>
           </header>
-          <ul aria-label="Recent tasks" className="home-view__task-list">
-            {recentTasks.map((task) => (
-              <li key={task.id}>
-                <button onClick={() => onSelectTask(task.id)} type="button">
-                  <OpenCodeIcon name="edit" size={14} />
-                  <span>{task.title}</span>
-                  <time>{task.updatedAt}</time>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {recentTasks.length === 0 ? (
+            <p className="home-view__task-empty">
+              No tasks yet. Describe what you want above, or start an empty one
+              with New task.
+            </p>
+          ) : (
+            <ul aria-label="Recent tasks" className="home-view__task-list">
+              {recentTasks.map((task) => (
+                <li key={task.id}>
+                  <button onClick={() => onSelectTask(task.id)} type="button">
+                    <OpenCodeIcon name="edit" size={14} />
+                    <span>{task.title}</span>
+                    <time>{task.updatedAt}</time>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {closedTasks.length === 0 ? null : (
+            <>
+              <header className="home-view__section-header home-view__section-header--tasks">
+                <h2>Closed tasks</h2>
+              </header>
+              <ul aria-label="Closed tasks" className="home-view__task-list home-view__task-list--closed">
+                {closedTasks.map((task) => (
+                  <li key={task.id}>
+                    <button
+                      aria-label={`Reopen task ${task.title}`}
+                      onClick={() => onReopenTask(task.id)}
+                      type="button"
+                    >
+                      <OpenCodeIcon name="edit" size={14} />
+                      <span>{task.title}</span>
+                      <time>Closed</time>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </section>
       </div>
     </main>

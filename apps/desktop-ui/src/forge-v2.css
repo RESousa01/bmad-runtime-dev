@@ -1535,3 +1535,126 @@
     display: none;
   }
 }
+
+/* Task lifecycle affordances (v2 shell) */
+
+/* The close affordance lives inside the tab: a tablist may contain only tabs,
+   and a nested <button> would be invalid HTML. It is pointer-only by design —
+   Delete on the focused tab, the task header, and the palette are the
+   keyboard routes. */
+.app-shell--forge-v2 .title-strip__tab {
+  gap: 6px;
+  padding-right: 5px;
+}
+
+/* Auto-titling makes long tab labels the norm rather than the exception, and
+   the tab clips its own overflow. Truncate the label itself so the close
+   affordance is never the thing that gets cut off. */
+.app-shell--forge-v2 .title-strip__tab > span:not(.title-strip__tab-close) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell--forge-v2 .title-strip__tab > [data-forge-icon] {
+  flex: none;
+}
+
+.app-shell--forge-v2 .title-strip__tab-close {
+  align-items: center;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  flex: none;
+  height: 17px;
+  justify-content: center;
+  opacity: 0;
+  width: 17px;
+}
+
+.app-shell--forge-v2 .title-strip__tab:hover .title-strip__tab-close,
+.app-shell--forge-v2 .title-strip__tab[data-active] .title-strip__tab-close {
+  opacity: 1;
+}
+
+.app-shell--forge-v2 .title-strip__tab-close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.app-shell--forge-v2 .home-view__task-empty {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  margin: 9px 0 0;
+  max-width: 42ch;
+}
+
+.app-shell--forge-v2 .home-view__task-list--closed button {
+  opacity: 0.72;
+}
+
+.app-shell--forge-v2 .home-view__task-list--closed button:hover {
+  opacity: 1;
+}
+
+/* Delete confirmation */
+.delete-task-dialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+  padding: 18px 20px 16px;
+  width: 100%;
+}
+
+.delete-task-dialog__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 11px;
+}
+
+.delete-task-dialog__icon {
+  color: var(--color-danger-text, var(--color-text-soft));
+  display: flex;
+  padding-top: 1px;
+}
+
+.delete-task-dialog__header h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.delete-task-dialog__subject {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.delete-task-dialog__body {
+  display: grid;
+  font-size: 0.8rem;
+  gap: 9px;
+  line-height: 1.5;
+}
+
+.delete-task-dialog__body p {
+  margin: 0;
+}
+
+.delete-task-dialog__note,
+.delete-task-dialog__alternative {
+  color: var(--color-text-muted);
+  font-size: 0.745rem;
+}
+
+.delete-task-dialog__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
