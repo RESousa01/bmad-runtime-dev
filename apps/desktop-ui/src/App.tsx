@@ -1324,6 +1324,23 @@ export function App({
       await hostRuntime.client.eraseOffboarding(confirm);
       setOffboardingManifest(null);
       setOffboardingStatus("erased");
+      // Erase destroyed the store. Leaving the renderer's copy on screen means
+      // the user looks at the tasks, transcripts, drafts and diffs they just
+      // asked to have destroyed, and can still read them — the bytes are gone
+      // from disk and the words are still in the window. Whatever the store
+      // no longer holds, this must not keep showing.
+      //
+      // `invalidateWorkspaceBoundUi` already discards everything scoped to a
+      // workspace binding, which is the same set. Tasks are not workspace-bound
+      // so they are dropped here explicitly; without it the tab strip still
+      // lists conversations whose transcripts no longer exist anywhere.
+      invalidateWorkspaceBoundUi();
+      setTasks([]);
+      clearContext();
+      setContextDrawer(null);
+      // With no tasks left, Home is the empty state. Staying on a task route
+      // would render a workbench for a conversation that no longer exists.
+      setPrimaryRoute({ kind: "home" });
     } catch (error) {
       setOffboardingStatus("ready");
       setOffboardingNotice(getSafeHostMessage(error));
