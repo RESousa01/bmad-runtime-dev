@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "../test/setup";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
@@ -12,11 +12,18 @@ import {
 
 const manifestHash = `sha256:${"a".repeat(64)}`;
 
+/// Far enough out that no session could outlive it, so the panel arms no timer
+/// and the "still live" branches are deterministic.
+const LIVE_UNTIL = 2_000_000_000_000;
+/// Already gone. The fixtures used to carry a 2024 timestamp for a deadline the
+/// panel never read, which is how an expired consent kept an enabled Send.
+const ALREADY_LAPSED = 1_725_000_300_000;
+
 const review = {
   capabilityId: "bmm:bmad-product-brief",
   runId: "caprun_01ARZ3NDEKTSV4RRFFQ69G5FAV",
   manifestHash,
-  expiresAt: 1_725_000_600_000,
+  expiresAt: LIVE_UNTIL,
   architecture: null,
 };
 
@@ -24,7 +31,7 @@ const approved = {
   capabilityId: "bmm:bmad-product-brief",
   manifestHash,
   decisionId: "decision_01ARZ3NDEKTSV4RRFFQ69G5FAV",
-  expiresAt: 1_725_000_300_000,
+  expiresAt: LIVE_UNTIL,
 };
 
 function createProps(phase: CapabilityRunPhase): BmadCapabilityPanelProps {
@@ -192,7 +199,30 @@ describe("BmadCapabilityPanel", () => {
     await expectAccessible(container);
   });
 
-  it("treats malformed stored results as non-displayable data", () => {
+  /// Regression guard: a failed run used to render the message and a Close
+  /// button and nothing else, so the only route onward was to close the panel,
+  /// find the capability in the agent list again, and retype every path.
+  it("keeps a failed run recoverable by re-preparing the context in place", async () => {
+    const props = createProps({ kind: "error", message: "The provider is rate limited." });
+    const user = userEvent.setup();
+    render(<BmadCapabilityPanel {...props} />);
+
+    const retry = screen.getByRole("button", { name: /prepare reviewed context again/i });
+    expect(retry.hasAttribute("disabled")).toBe(true);
+
+    await user.type(
+      screen.getByRole("textbox", { name: "Context file paths" }),
+      "docs/brief.md",
+    );
+    expect(retry.hasAttribute("disabled")).toBe(false);
+    await user.click(retry);
+    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"]);
+  });
+
+  /// Regression guard: a document result that failed to decode rendered the
+  /// same "stored locally under run" line as a healthy result of an unknown
+  /// kind, so a run whose output never arrived read as a success.
+  it("reports a document result it cannot decode as not shown, not as completed", () => {
     const props = createProps({
       kind: "completed",
       completed: {
@@ -204,7 +234,158 @@ describe("BmadCapabilityPanel", () => {
       resultJson: '{"resultKind":"document_artifact","documentArtifact":{"title":7}}',
     });
     render(<BmadCapabilityPanel {...props} />);
-    expect(screen.getByText(/stored locally under run/u)).toBeTruthy();
+
+    expect(
+      screen.getByRole("heading", { name: /result stored, but not shown/i }),
+    ).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "did not come back in the shape this panel can read",
+    );
+    expect(screen.queryByRole("heading", { name: "Run completed" })).toBeNull();
+  });
+
+  it("names an unknown result kind as unviewable rather than claiming a document", () => {
+    const props = createProps({
+      kind: "completed",
+      completed: {
+        capabilityId: "bmm:bmad-product-brief",
+        runId: review.runId,
+        resultKind: "sealed_receipt",
+        architecture: null,
+      },
+      resultJson: null,
+    });
+    render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.getByRole("heading", { name: "Run completed" })).toBeTruthy();
+    expect(screen.getByText(/this panel has no view for/u)).toBeTruthy();
+  });
+
+  /// Regression guard: the panel renders at the top of the scrolling skills
+  /// drawer while the control that opens it sits far below in the agent list.
+  /// Without a focus move, starting a run looked exactly like a dead button.
+  it("takes focus when the run opens and hands it back when the run closes", () => {
+    const opener = document.createElement("button");
+    opener.textContent = "Start reviewed run";
+    document.body.append(opener);
+    opener.focus();
+    expect(document.activeElement).toBe(opener);
+
+    const { unmount } = render(
+      <BmadCapabilityPanel {...createProps({ kind: "selecting" })} />,
+    );
+    const panel = screen.getByRole("dialog", { name: "Create Brief capability run" });
+    expect(document.activeElement).toBe(panel);
+
+    unmount();
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
+
+  it("discloses the paths dropped past the context cap instead of silently slicing", async () => {
+    const props = createProps({ kind: "selecting" });
+    const user = userEvent.setup();
+    render(<BmadCapabilityPanel {...props} />);
+
+    const paths = Array.from({ length: 102 }, (_, index) => `docs/file-${index}.md`);
+    await user.click(screen.getByRole("textbox", { name: "Context file paths" }));
+    await user.paste(paths.join("\n"));
+
+    expect(screen.getByRole("alert").textContent).toContain(
+      "The remaining 2 paths are not included",
+    );
+    expect(screen.getByRole("status").textContent).toBe("100 files selected.");
+    await user.click(screen.getByRole("button", { name: /prepare reviewed context/i }));
+    expect(props.onPrepare).toHaveBeenCalledWith(paths.slice(0, 100));
+  });
+
+  /// Regression guard: the approved phase said the consent "expires shortly"
+  /// and left Send enabled forever, so the standard way to meet this feature
+  /// was a rejected send with no route back.
+  it("refuses to offer a send once the single-use consent has lapsed", async () => {
+    const props = createProps({
+      kind: "approved",
+      review,
+      approved: { ...approved, expiresAt: ALREADY_LAPSED },
+      contextPaths: ["docs/brief.md"],
+      sending: false,
+    });
+    const user = userEvent.setup();
+    const { container } = render(<BmadCapabilityPanel {...props} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /send once and run/i }).hasAttribute("disabled"),
+      ).toBe(true);
+    });
+    expect(screen.getByRole("alert").textContent).toContain("That consent has lapsed");
+
+    await user.click(screen.getByRole("button", { name: /send once and run/i }));
+    expect(props.onSubmit).not.toHaveBeenCalled();
+
+    // The lapse is recoverable in place, on the same context.
+    await user.click(screen.getByRole("button", { name: "Prepare this context again" }));
+    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"]);
+    await expectAccessible(container);
+  });
+
+  it("keeps the send enabled while the consent is still live", () => {
+    const props = createProps({
+      kind: "approved",
+      review,
+      approved,
+      contextPaths: ["docs/brief.md"],
+      sending: false,
+    });
+    render(<BmadCapabilityPanel {...props} />);
+
+    expect(
+      screen.getByRole("button", { name: /send once and run/i }).hasAttribute("disabled"),
+    ).toBe(false);
+    expect(screen.queryByRole("button", { name: "Prepare this context again" })).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("lapses at");
+  });
+
+  it("refuses to offer an approval once the reviewed manifest has expired", async () => {
+    const props = createProps({
+      kind: "review",
+      review: { ...review, expiresAt: ALREADY_LAPSED },
+      contextPaths: ["docs/brief.md"],
+    });
+    const user = userEvent.setup();
+    render(<BmadCapabilityPanel {...props} />);
+
+    await waitFor(() => {
+      expect(
+        screen
+          .getByRole("button", { name: /approve this exact context/i })
+          .hasAttribute("disabled"),
+      ).toBe(true);
+    });
+    await user.click(screen.getByRole("button", { name: /approve this exact context/i }));
+    expect(props.onApprove).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toContain("expired before it was approved");
+  });
+
+  /// A review over nothing would send nothing; rendering an empty list beside
+  /// "the exact reviewed context" made that look like a broken panel instead.
+  it("names an empty reviewed context rather than rendering an empty list", () => {
+    const props = createProps({ kind: "review", review, contextPaths: [] });
+    render(<BmadCapabilityPanel {...props} />);
+
+    expect(screen.getByRole("alert").textContent).toContain("This review covers no files");
+    expect(screen.queryByRole("list", { name: "Reviewed context files" })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: /approve this exact context/i }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("says what a reviewed run does and where the context goes", () => {
+    render(<BmadCapabilityPanel {...createProps({ kind: "selecting" })} />);
+
+    expect(
+      screen.getByText(/A reviewed run never sends your workspace/u).textContent,
+    ).toContain("sent once to Deterministic (local)");
   });
 });
 
@@ -213,7 +394,7 @@ describe("BmadCapabilityPanel — ordered architecture progression", () => {
     capabilityId: "bmm:bmad-architecture",
     runId: "caprun_01ARZ3NDEKTSV4RRFFQ69G5FAV",
     manifestHash,
-    expiresAt: 1_725_000_600_000,
+    expiresAt: LIVE_UNTIL,
     architecture: {
       stepCode: "trust_boundaries",
       stepTitle: "Trust boundaries",

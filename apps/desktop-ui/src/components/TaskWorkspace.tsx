@@ -14,7 +14,10 @@ import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
 import type { ChatMessage, ContextPreviewProjection } from "../lib/hostClient";
-import type { ChatLaneState } from "../state/chatSessions";
+import {
+  RETAINED_TRANSCRIPT_MESSAGES,
+  type ChatLaneState,
+} from "../state/chatSessions";
 import { brandIdentity } from "../lib/brand";
 import { BrandMark } from "./BrandMark";
 import { OpenCodeIcon } from "./OpenCodeIcon";
@@ -46,6 +49,10 @@ export interface TaskWorkspaceProps {
   methodGuidanceState: BmadRequestState;
   /// The task's conversation. Chat is the default lane; BMAD is optional.
   chatLane: ChatLaneState;
+  /// Asks the shell to re-read this task's transcript from the host after a
+  /// failed read. Optional so the component still renders in surfaces that
+  /// cannot reach the host at all, where the button would be a dead control.
+  onRetryHistory?: (() => void) | undefined;
   /// Explicitly ask the BMAD Help advisor which skill fits — no longer what
   /// an ordinary message does.
   onAskMethodGuidance: (intent: string) => Promise<void>;
@@ -166,7 +173,19 @@ function ToolResultMessage({ message }: { readonly message: ChatMessage }) {
 
 /// The task's conversation. This is the app's ordinary surface: a plain
 /// exchange of messages that needs no BMAD concept to work.
-function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
+function ChatTranscript({
+  lane,
+  onRetryHistory,
+}: {
+  readonly lane: ChatLaneState;
+  readonly onRetryHistory?: (() => void) | undefined;
+}) {
+  const historyUnavailable = lane.historyStatus === "unavailable";
+  // The host keeps the newest `RETAINED_TRANSCRIPT_MESSAGES` messages and drops
+  // whole older turns past that. At the ceiling the user is looking at a window
+  // onto the conversation, not the conversation, and is told so rather than
+  // being left to assume the beginning is simply missing.
+  const atRetentionCeiling = lane.messages.length >= RETAINED_TRANSCRIPT_MESSAGES;
   if (lane.messages.length === 0 && lane.pending === null && lane.error === null) {
     return null;
   }
@@ -187,6 +206,13 @@ function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
       className="chat-transcript"
       role="log"
     >
+      {atRetentionCeiling ? (
+        <p className="chat-transcript__notice">
+          {`Showing the ${RETAINED_TRANSCRIPT_MESSAGES} most recent messages. `}
+          This conversation has reached the limit Forge keeps on this device;
+          older turns are dropped as it continues.
+        </p>
+      ) : null}
       {lane.messages.map((message, index) => {
         const key = `${message.createdAt}-${index}`;
         // The two tool roles are deliberately not folded into the assistant
@@ -233,6 +259,13 @@ function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
               <p>{lane.pending}</p>
             </div>
           </article>
+          {/*
+            Gated on `sending`, not on `pending`. A failed send now leaves the
+            question standing so the user can see and retry what they wrote —
+            but nothing is thinking about it, and saying so would be the app
+            claiming work it is not doing. The error renders below instead.
+          */}
+          {lane.sending ? (
           <article className="message message--agent message--compact" role="status">
             <div className="message__avatar">
               <BrandMark size={22} />
@@ -241,12 +274,29 @@ function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
               <p>Thinking…</p>
             </div>
           </article>
+          ) : null}
         </>
       ) : null}
       {lane.error !== null ? (
-        <p className="chat-transcript__error" role="alert">
-          {lane.error}
-        </p>
+        <div className="chat-transcript__error" role="alert">
+          <p>
+            {historyUnavailable
+              // Naming what is missing matters more than the host's own wording
+              // here: an empty transcript with a bare error reads as "nothing
+              // was ever said", which is the opposite of the truth.
+              ? `This task's earlier messages could not be loaded. They are still on this device. ${lane.error}`
+              : lane.error}
+          </p>
+          {historyUnavailable && onRetryHistory ? (
+            <Button
+              onPress={onRetryHistory}
+              size="small"
+              variant="secondary"
+            >
+              Retry loading messages
+            </Button>
+          ) : null}
+        </div>
       ) : null}
     </section>
   );
@@ -266,6 +316,7 @@ export function TaskWorkspace({
   methodGuidanceAvailable,
   methodGuidanceState,
   chatLane,
+  onRetryHistory,
   onAskMethodGuidance,
   onSelectAgent,
   methodLibraryAvailable,
@@ -559,7 +610,7 @@ export function TaskWorkspace({
           every sent message twice. `submittedTask` still gates the guidance
           view, the failed-submission state, and the title.
         */}
-        <ChatTranscript lane={chatLane} />
+        <ChatTranscript lane={chatLane} onRetryHistory={onRetryHistory} />
         {methodGuidanceView ? (
           <>
             {methodGuidanceState.kind === "creating" ? (

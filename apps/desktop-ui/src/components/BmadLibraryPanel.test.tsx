@@ -312,7 +312,9 @@ describe("BmadLibraryPanel", () => {
 
   it("uses skills and agents catalog language for loading, fallback errors, and reload", () => {
     const { rerender } = render(<BmadLibraryPanel state={{ kind: "idle" }} />);
-    expect(screen.getByText("No skills and agents catalog requested.")).toBeTruthy();
+    expect(
+      screen.getByText("This workspace's skills and agents have not been read yet."),
+    ).toBeTruthy();
 
     rerender(<BmadLibraryPanel state={{ kind: "loading" }} />);
     expect(screen.getByRole("status")).toHaveProperty(
@@ -336,6 +338,166 @@ describe("BmadLibraryPanel", () => {
       expect.stringContaining("The skills and agents catalog is unavailable."),
     );
     expect(screen.getByRole("button", { name: "Reload skills and agents" })).toBeTruthy();
+  });
+
+  /// Regression guard: `idle` is reached on first paint and again after every
+  /// host rebind or workspace revocation, and it rendered one sentence and no
+  /// control — the catalog could never be asked for from this panel.
+  it("offers a read control from the unrequested state", async () => {
+    const onReload = vi.fn();
+    const user = userEvent.setup();
+    render(<BmadLibraryPanel onReload={onReload} state={{ kind: "idle" }} />);
+
+    await user.click(screen.getByRole("button", { name: "Read skills and agents" }));
+    expect(onReload).toHaveBeenCalledOnce();
+  });
+
+  /// Regression guard: the reload was gated on `retryable`, so every failure
+  /// the host did not mark retryable left the panel with an alert and no way
+  /// out. The transport reported *every* failure that way until recently.
+  it("still offers a reload when the failure was not marked retryable", async () => {
+    const onReload = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <BmadLibraryPanel
+        onReload={onReload}
+        state={{
+          kind: "unavailable",
+          message: "Connect a model provider in Settings.",
+          retryable: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain("Connect a model provider");
+    expect(
+      screen.getByText(/did not report this as a temporary failure/u),
+    ).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Reload skills and agents" }));
+    expect(onReload).toHaveBeenCalledOnce();
+  });
+
+  /// The user's own question was "it says start reviewed run, whats that for".
+  /// The label names a mechanism; nothing on screen said what was reviewed.
+  it("explains what a reviewed run does and points every start control at it", () => {
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          methodAgents: [
+            {
+              ...architect,
+              availability: "available",
+              blockerCodes: [],
+              menus: architect.menus.map((menu) => ({
+                ...menu,
+                capabilityId: "bmm:bmad-architecture",
+                availability: "available" as const,
+                availabilityReason: null,
+              })),
+            },
+          ],
+        })}
+      />,
+    );
+
+    const help = screen.getByText(/does not send your workspace/u);
+    expect(help.textContent).toContain("approve them");
+    expect(help.textContent).toContain("approve in Changes before anything is written");
+
+    const start = screen.getByRole("button", { name: "Start reviewed run" });
+    // Guard against the both-null form of this assertion passing vacuously.
+    expect(start.getAttribute("aria-describedby")).toBeTruthy();
+    expect(start.getAttribute("aria-describedby")).toBe(help.getAttribute("id"));
+  });
+
+  it("keeps the reviewed-run explanation off a catalog with nothing startable", () => {
+    render(<BmadLibraryPanel onRunCapability={vi.fn()} state={readyState()} />);
+
+    expect(screen.queryByText(/does not send your workspace/u)).toBeNull();
+  });
+
+  /// Regression guard: an unrecognised blocker rendered as a bare identifier
+  /// and nothing else — the least actionable thing this panel can show.
+  it("explains every blocker, including one it has no wording for", () => {
+    render(
+      <BmadLibraryPanel
+        state={readyState({
+          installedSkills: [{
+            ...baseProjection.installedSkills[0]!,
+            blockerCodes: ["bmad_capability_disabled", "bmad_future_code"] as never,
+          }],
+          helpActions: [],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const sourceDetails = screen.getByText(/Source catalog details/u).closest("details");
+    fireEvent.click(within(sourceDetails!).getByText(/Source catalog details/u));
+    const blockers = screen.getByRole("list", { name: "Blockers" });
+
+    expect(within(blockers).getByText(/not enabled in the sealed foundation/u)).toBeTruthy();
+    expect(within(blockers).getByText(/gives no further reason/u)).toBeTruthy();
+    // The identifier is kept as evidence, but it is no longer the whole answer.
+    expect(within(blockers).getByText("bmad_future_code")).toBeTruthy();
+  });
+
+  /// Regression guard: the fidelity note lived only in a `title` attribute, so
+  /// the honesty marker read as the bare word "Adapted" to keyboard and screen
+  /// reader users.
+  it("exposes the fidelity note to assistive technology, not only as a tooltip", () => {
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          coreSkills: [{
+            capabilityId: "bmm:bmad-spec",
+            skill: "bmad-spec",
+            displayName: "Spec",
+            menuCode: "SP",
+          }],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const badge = screen.getByText("Adapted");
+    expect(badge.textContent).toContain(
+      "A single reviewed, one-shot model request — not the full upstream multi-step BMAD workflow.",
+    );
+  });
+
+  it("gives an agent's reviewed and source-only action lists distinct names", () => {
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          methodAgents: [
+            {
+              ...architect,
+              availability: "available",
+              blockerCodes: [],
+              menus: [
+                {
+                  ...architect.menus[0]!,
+                  capabilityId: "bmm:bmad-architecture",
+                  availability: "available" as const,
+                  availabilityReason: null,
+                },
+                { ...architect.menus[0]!, code: "XX" },
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByRole("list", { name: "Winston reviewed actions" })).toBeTruthy();
+    fireEvent.click(screen.getByText(/1 source-only action/u));
+    expect(screen.getByRole("list", { name: "Winston source-only actions" })).toBeTruthy();
   });
 
   it("shows textual availability without execution, installation, or activation affordances", () => {

@@ -61,18 +61,29 @@ describe("TitleBar Forge identity", () => {
       />,
     );
 
-    screen.getByRole("tab", { name: "Second task" }).focus();
+    const tab = (name: string) => screen.getByRole("tab", { name });
+
+    tab("Second task").focus();
     await user.keyboard("{ArrowRight}");
     expect(onSelectTask).toHaveBeenLastCalledWith("task-3");
+    // Selection alone is not the fix. Roving tabindex leaves the other tabs
+    // unreachable by Tab, so the handler must also *move focus* onto the tab
+    // it selected — otherwise focus is stranded on a tab that is no longer
+    // current and the next arrow press has nowhere to go. Asserting only
+    // `onSelectTask` passed with the `focus()` call deleted.
+    expect(document.activeElement).toBe(tab("Third task"));
 
     await user.keyboard("{ArrowLeft}");
     expect(onSelectTask).toHaveBeenLastCalledWith("task-1");
+    expect(document.activeElement).toBe(tab("First task"));
 
     await user.keyboard("{Home}");
     expect(onSelectTask).toHaveBeenLastCalledWith("task-1");
+    expect(document.activeElement).toBe(tab("First task"));
 
     await user.keyboard("{End}");
     expect(onSelectTask).toHaveBeenLastCalledWith("task-3");
+    expect(document.activeElement).toBe(tab("Third task"));
   });
 
   it("uses the plus action only to create another task", () => {

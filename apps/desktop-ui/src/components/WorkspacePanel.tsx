@@ -1,6 +1,7 @@
 import { Button } from "@sapphirus/ui";
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef } from "react";
 import type { WorkspaceProjection } from "../lib/hostClient";
+import { focusableElements } from "../lib/panelFocus";
 import { OpenCodeIcon } from "./OpenCodeIcon";
 
 export interface WorkspacePanelProps {
@@ -26,11 +27,11 @@ function unavailableCopy(mode: WorkspacePanelProps["mode"]): string {
     case "read_only_recovery":
       return "Workspace changes are blocked while the local authority store is in read-only recovery.";
     case "unavailable":
-      return "The signed Windows host is unavailable.";
+      return "The Windows host is unavailable.";
     case "loading":
-      return "Verifying the signed Windows host…";
+      return "Connecting to the Windows host…";
     case "ready":
-      return "Local workspace access is controlled by the signed desktop host.";
+      return "Local workspace access is controlled by the desktop host.";
   }
 }
 
@@ -52,42 +53,29 @@ export function WorkspacePanel({
   const panelRef = useRef<HTMLElement>(null);
   const previousBusyWorkspaceId = useRef<string | null>(null);
 
-  useEffect(() => {
-    panelRef.current?.querySelector<HTMLElement>("button:not([disabled])")?.focus();
-  }, []);
-
+  // Entry focus and Tab containment are *not* handled here. This panel is
+  // rendered into `AppShellLayout`'s modal slot, whose wrapper already runs
+  // `useModalPanelFocus` + `containModalPanelFocus`. This component used to
+  // duplicate both against its own inline selector — one that lacked `summary`,
+  // the `[hidden]/[aria-hidden]/[inert]` filter, the collapsed-disclosure
+  // filter, and the document-order sort that `focusableElements` applies. Two
+  // handlers ran on every Tab, and the inner one could move focus somewhere the
+  // outer one did not agree was in the ring. Deleting them changed no test.
+  //
+  // What is left is the one behaviour the shared trap does not cover: a removal
+  // unmounts the row that held focus, so focus has to be put back somewhere.
   useEffect(() => {
     const removalCompleted = previousBusyWorkspaceId.current !== null
       && busyWorkspaceId === null;
     previousBusyWorkspaceId.current = busyWorkspaceId;
-    if (removalCompleted) {
-      panelRef.current?.querySelector<HTMLElement>("button:not([disabled])")?.focus();
+    if (removalCompleted && panelRef.current) {
+      // The shared definition of "focusable", so this cannot drift from what
+      // the trap wraps around.
+      focusableElements(panelRef.current).at(0)?.focus();
     }
   }, [busyWorkspaceId]);
 
   const isBusy = isSelecting || busyWorkspaceId !== null;
-
-  function containFocus(event: KeyboardEvent<HTMLElement>) {
-    if (event.key !== "Tab") {
-      return;
-    }
-    const focusable = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(
-      "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
-    ) ?? []);
-    if (focusable.length === 0) {
-      event.preventDefault();
-      return;
-    }
-    const first = focusable[0]!;
-    const last = focusable.at(-1)!;
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
 
   return (
     <section
@@ -97,7 +85,6 @@ export function WorkspacePanel({
       className="workspace-panel workspace-panel--opencode-v2"
       data-component="workspace-manager-v2"
       data-source="opencode"
-      onKeyDown={containFocus}
       ref={panelRef}
       role="dialog"
     >

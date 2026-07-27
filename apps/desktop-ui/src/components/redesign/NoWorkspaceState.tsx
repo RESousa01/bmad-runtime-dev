@@ -20,13 +20,13 @@ export interface NoWorkspaceStateProps {
 const defaultCopy: Record<NoWorkspaceMode, string> = {
   browser_demo:
     "The Windows desktop host is not connected. You can explore Demo mode without local workspace access.",
-  loading: "Verifying the signed Windows desktop host before workspace access.",
+  loading: "Connecting to the Windows desktop host before workspace access.",
   read_only_recovery:
     "Workspace changes are unavailable while local authority is in read-only recovery.",
   ready:
     "Choose a local workspace to start a task. Workspace access remains under desktop host authority.",
   unavailable:
-    "The signed Windows desktop host is unavailable, so a local workspace cannot be opened.",
+    "The Windows desktop host is unavailable, so a local workspace cannot be opened.",
 };
 
 export function NoWorkspaceState({

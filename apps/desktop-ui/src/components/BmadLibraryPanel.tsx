@@ -92,9 +92,19 @@ function FidelityBadge({ capabilityId }: { readonly capabilityId: string }) {
       title={fidelity.note}
     >
       {fidelity.label}
+      {/* The note used to live only in `title`, which never reaches a keyboard
+          or screen-reader user — so the honesty marker read as the bare word
+          "Adapted" and explained nothing to the people least able to guess. */}
+      <span className="sr-only"> — {fidelity.note}</span>
     </span>
   );
 }
+
+/// What to say about a blocker the projection reports but this build has no
+/// wording for. The previous shape rendered the bare identifier and nothing
+/// else, which is the least actionable thing a panel can show a user.
+const UNKNOWN_BLOCKER_EXPLANATION =
+  "The sealed foundation reports this entry as unavailable and gives no further reason, so nothing here can be started. The identifier below is what to quote if you report it.";
 
 function Blockers({ codes }: { readonly codes: readonly string[] }) {
   if (codes.length === 0) {
@@ -102,14 +112,17 @@ function Blockers({ codes }: { readonly codes: readonly string[] }) {
   }
   return (
     <div className="bmad-blockers">
-      <span>Blockers</span>
+      {/* Explanation first, identifier second. A raw code is evidence, not a
+          reason, and leading with it made every unavailable entry look like an
+          internal error the reader had done something to cause. */}
+      <span>Why this is unavailable</span>
       <ul aria-label="Blockers">
         {codes.map((code) => (
           <li key={code}>
+            <p className="bmad-blockers__explanation">
+              {blockerExplanations[code] ?? UNKNOWN_BLOCKER_EXPLANATION}
+            </p>
             <code>{code}</code>
-            {code in blockerExplanations ? (
-              <p className="bmad-blockers__explanation">{blockerExplanations[code]}</p>
-            ) : null}
           </li>
         ))}
       </ul>
@@ -161,6 +174,7 @@ function MethodAgentRow({
   perspective,
   onViewPersona,
   onRunCapability,
+  reviewedRunHelpId,
 }: {
   readonly agent: BmadMethodAgentProjection;
   readonly perspective?: BmadPersonaPerspectiveView | undefined;
@@ -168,6 +182,7 @@ function MethodAgentRow({
   readonly onRunCapability?:
     | ((capabilityId: string, label: string) => void)
     | undefined;
+  readonly reviewedRunHelpId: string;
 }) {
   const runnableMenus = agent.menus.filter(
     (menu) => menu.availability === "available" && menu.capabilityId !== null,
@@ -175,8 +190,11 @@ function MethodAgentRow({
   const sourceOnlyMenus = agent.menus.filter(
     (menu) => menu.availability !== "available" || menu.capabilityId === null,
   );
-  const renderMenus = (menus: typeof agent.menus) => (
-    <ul aria-label={`${agent.name} menu`} className="bmad-agent-menu">
+  // Two lists under one agent used to carry the same `${name} menu` label, so
+  // the reviewed actions and the source-only ones were indistinguishable to
+  // anything navigating by landmark or list name.
+  const renderMenus = (menus: typeof agent.menus, listLabel: string) => (
+    <ul aria-label={listLabel} className="bmad-agent-menu">
       {menus.map((menu) => (
         <li key={`${agent.moduleCode}\u0000${agent.agentCode}\u0000${menu.code}`}>
           <div>
@@ -197,6 +215,7 @@ function MethodAgentRow({
             || menu.availability !== "available"
             || menu.capabilityId === null ? null : (
             <button
+              aria-describedby={reviewedRunHelpId}
               type="button"
               onClick={() => {
                 if (menu.capabilityId !== null) {
@@ -242,11 +261,13 @@ function MethodAgentRow({
         </section>
       )}
       <Blockers codes={agent.blockerCodes} />
-      {runnableMenus.length > 0 ? renderMenus(runnableMenus) : null}
+      {runnableMenus.length > 0
+        ? renderMenus(runnableMenus, `${agent.name} reviewed actions`)
+        : null}
       {sourceOnlyMenus.length > 0 ? (
         <details className="bmad-source-actions">
           <summary>{sourceOnlyMenus.length} source-only {sourceOnlyMenus.length === 1 ? "action" : "actions"}</summary>
-          {renderMenus(sourceOnlyMenus)}
+          {renderMenus(sourceOnlyMenus, `${agent.name} source-only actions`)}
         </details>
       ) : runnableMenus.length === 0 ? (
         <p>No reviewed actions.</p>
@@ -345,12 +366,36 @@ function ReadyLibrary({
   const agentsHeadingId = useId();
   const coreSkillsHeadingId = useId();
   const builderHeadingId = useId();
+  const reviewedRunHelpId = useId();
+
+  // The explanation is rendered only where a startable control actually exists.
+  // A catalog with nothing startable should not carry instructions for a button
+  // that is not on the page.
+  const hasStartableCapability = (onRunCapability !== undefined
+    && (projection.coreSkills.length > 0
+      || projection.methodAgents.some((agent) =>
+        agent.menus.some(
+          (menu) => menu.availability === "available" && menu.capabilityId !== null,
+        ))))
+    || (onRunBuilderCapability !== undefined && projection.builderPackages.length > 0);
 
   return (
     <>
       <p className="bmad-library-panel__source">
         {projection.source.packageName} {projection.source.packageVersion} · Read only
       </p>
+
+      {hasStartableCapability ? (
+        // What "Start reviewed run" means, next to the controls that do it.
+        // The label names the mechanism and not the promise, and nothing else
+        // on this screen said what is reviewed, by whom, or when.
+        <p className="bmad-library-panel__reviewed-run-help" id={reviewedRunHelpId}>
+          <strong>Start reviewed run</strong> does not send your workspace. You
+          choose the exact files, read them back, and approve them — only that
+          approved context is sent, once. Any file change that comes back is a
+          proposal you approve in Changes before anything is written.
+        </p>
+      ) : null}
 
       <section aria-labelledby={agentsHeadingId} className="bmad-library-section">
         <h3 id={agentsHeadingId}>Reviewed agents</h3>
@@ -363,6 +408,7 @@ function ReadyLibrary({
                 key={`${agent.moduleCode}\u0000${agent.agentCode}`}
                 onViewPersona={onViewPersona}
                 perspective={personaPerspectives?.get(agent.agentCode)}
+                reviewedRunHelpId={reviewedRunHelpId}
               />
             ))}
           </ul>
@@ -387,6 +433,7 @@ function ReadyLibrary({
                 </div>
                 {onRunCapability ? (
                   <Button
+                    aria-describedby={reviewedRunHelpId}
                     onPress={() => onRunCapability(skill.capabilityId, skill.displayName)}
                     size="small"
                     variant="secondary"
@@ -428,6 +475,10 @@ function ReadyLibrary({
                   <div className="bmad-builder-actions">
                     {builderOperations[builder.packageKind].map(([capabilityId, label]) => (
                       <Button
+                        // These read as immediate verbs but open the same
+                        // reviewed run as everything else on this screen, so
+                        // they carry the same explanation.
+                        aria-describedby={reviewedRunHelpId}
                         key={capabilityId}
                         onPress={() => onRunBuilderCapability(capabilityId, label)}
                         size="small"
@@ -496,7 +547,21 @@ export function BmadLibraryPanel({
 
   switch (state.kind) {
     case "idle":
-      body = <p>No skills and agents catalog requested.</p>;
+      // Reached on first paint and again after every host rebind or workspace
+      // revocation. With no control it was a terminal state that read like a
+      // failure: the catalog could never be asked for from here.
+      body = (
+        <div>
+          <p>This workspace's skills and agents have not been read yet.</p>
+          {onReload ? (
+            <Button onPress={onReload} size="small" variant="secondary">
+              Read skills and agents
+            </Button>
+          ) : (
+            <p>Reading them needs the Forge desktop host, which is not bound right now.</p>
+          )}
+        </div>
+      );
       break;
     case "loading":
       body = <p aria-live="polite" role="status">Loading skills and agents catalog…</p>;
@@ -506,7 +571,19 @@ export function BmadLibraryPanel({
       body = (
         <div>
           <p role="alert">{message}</p>
-          {state.retryable && onReload ? (
+          {state.retryable ? null : (
+            <p>
+              The host did not report this as a temporary failure, so reading
+              again will most likely give the same answer until whatever caused
+              it is fixed.
+            </p>
+          )}
+          {/* The reload used to be gated on `retryable`, which left every
+              non-retryable failure with no control at all — a dead panel whose
+              only escape was restarting the app. Reading the catalog is a
+              local, side-effect-free host read, so offering it again costs
+              nothing and is the only way back once the cause is fixed. */}
+          {onReload ? (
             <Button onPress={onReload} size="small" variant="secondary">
               Reload skills and agents
             </Button>

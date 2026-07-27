@@ -77,19 +77,18 @@ describe("containModalPanelFocus", () => {
     expect(document.activeElement).toBe(byId(panel, "discard"));
   });
 
-  it("skips controls inside a collapsed disclosure, which cannot take focus", () => {
-    // The mirror image of the bug above: a closed `<details>` does not render
-    // its contents, so `focus()` on anything inside is a no-op. Counting one as
-    // the wrap target would suppress Tab and leave the user with nowhere to go.
+  it("wraps forward off the last control to the first one", () => {
+    // This fixture's collapsed disclosure sits *mid-panel*, where including or
+    // excluding its content changes neither `first` nor `last`. So this case
+    // pins the forward wrap and nothing else — the collapsed-content filter is
+    // pinned by "excludes a collapsed disclosure's content" below, which puts
+    // the disclosure last so a leaked child would actually become the target.
     const panel = renderReviewPanel(false);
-    const copy = byId(panel, "copy");
     byId(panel, "discard").focus();
 
     const { event } = tabEvent();
     containModalPanelFocus(event, { current: panel }, true);
 
-    expect(document.activeElement).not.toBe(copy);
-    // Forward off the last control wraps to the first, which is still reachable.
     expect(document.activeElement).toBe(byId(panel, "close"));
   });
 
@@ -127,6 +126,59 @@ describe("focusableElements", () => {
       "first-action",
       "apply",
     ]);
+  });
+
+  it("excludes a collapsed disclosure's content, which cannot take focus", () => {
+    // A closed `<details>` renders nothing inside itself, so `focus()` on a
+    // control in there is a no-op. The disclosure is deliberately *last* in the
+    // panel: that is the only arrangement in which a leaked child becomes the
+    // wrap target, so Tab would be suppressed and focus would go nowhere.
+    const panel = document.createElement("section");
+    panel.innerHTML = `
+      <button type="button" id="close">Close</button>
+      <details>
+        <summary id="file">src/app.ts</summary>
+        <button type="button" id="copy">Copy diff</button>
+      </details>
+    `;
+    document.body.append(panel);
+
+    // The summary stays in the ring whether or not the disclosure is open.
+    expect(focusableElements(panel).map((element) => element.id)).toEqual(["close", "file"]);
+
+    byId(panel, "file").focus();
+    const { event, preventDefault } = tabEvent();
+    containModalPanelFocus(event, { current: panel }, true);
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(byId(panel, "close"));
+    expect(document.activeElement).not.toBe(byId(panel, "copy"));
+  });
+
+  it("excludes controls hidden from the accessibility tree or made inert", () => {
+    // `AppShellLayout` marks the layer beneath the topmost surface both
+    // `aria-hidden` and `inert`, and panels collapse sections with `hidden`.
+    // A control in any of those subtrees is not in the browser's sequential
+    // focus order, so counting one makes `first`/`last` unfocusable and Tab
+    // dead-ends. Nothing else in the suite exercised this filter.
+    const panel = document.createElement("section");
+    panel.innerHTML = `
+      <button type="button" id="close">Close</button>
+      <div aria-hidden="true"><button type="button" id="decorative">Scrim</button></div>
+      <div hidden><button type="button" id="folded">Hidden</button></div>
+      <div inert><button type="button" id="blocked">Inert</button></div>
+      <button type="button" id="apply">Apply</button>
+    `;
+    document.body.append(panel);
+
+    expect(focusableElements(panel).map((element) => element.id)).toEqual(["close", "apply"]);
+
+    // And the ring wraps across them rather than through them.
+    byId(panel, "apply").focus();
+    const { event } = tabEvent();
+    containModalPanelFocus(event, { current: panel }, true);
+
+    expect(document.activeElement).toBe(byId(panel, "close"));
   });
 
   it("wraps from the last control to the first one in the DOM", () => {

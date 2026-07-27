@@ -14,14 +14,43 @@
 // The host owns the authoritative transcript (it builds each request from it).
 // This store is the renderer's view of it, so a reload or a workspace change
 // re-reads history from the host rather than trusting what is cached here.
+//
+// `historyStatus` is what makes that sentence true rather than aspirational.
+// Nothing used to re-read: the store was the only copy the UI had, so eviction
+// below, a reload, or a workspace switch made a transcript that is still on
+// disk disappear from the screen. A lane starts `unread`, the shell reads
+// `chat.history` for it once, and the answer replaces the empty lane. Because
+// the status lives *in* the lane, it is destroyed exactly when the lane is:
+// an evicted lane reads back as `unread` and is re-read on its next
+// activation, which is what turns eviction from data loss into a cache miss.
 
 import { useCallback, useRef, useState } from "react";
 
-import type { ChatMessage } from "../lib/hostClient";
+import type { ChatHistoryProjection, ChatMessage } from "../lib/hostClient";
 
 /// Matches `MAX_LANE_SESSIONS` in the capability store: the same tab-count
 /// pressure applies, and the same eviction rule keeps it bounded.
 const MAX_LANE_SESSIONS = 20;
+
+/// How many messages the host retains per conversation. Mirrors
+/// `MAX_SESSION_MESSAGES` in `desktop-runtime`'s `chat` module and the parser's
+/// `MAX_TRANSCRIPT_MESSAGES`: past it the host drops whole oldest turns, so a
+/// transcript this long is a window onto the conversation rather than all of
+/// it, and the UI says so instead of presenting it as complete.
+export const RETAINED_TRANSCRIPT_MESSAGES = 200;
+
+/// Where this lane stands in reading the host's copy of its transcript.
+///
+///   - `unread`: never asked. The lane may be genuinely new, or it may have
+///     been evicted, cleared, or lost to a reload — the renderer cannot tell
+///     the difference, and does not need to: it asks.
+///   - `loading`: a read is in flight. Also the lock that stops a second read
+///     being started for the same lane.
+///   - `loaded`: the host answered, or a live turn made the answer moot.
+///   - `unavailable`: the read failed. The lane carries the reason in `error`
+///     and offers a retry; what it must never do is sit there empty and silent,
+///     which reads as "you have said nothing here".
+export type ChatHistoryStatus = "unread" | "loading" | "loaded" | "unavailable";
 
 export interface ChatLaneState {
   readonly messages: readonly ChatMessage[];
@@ -30,9 +59,27 @@ export interface ChatLaneState {
   /// A send is in flight; the composer is disabled and the pending question is
   /// shown optimistically.
   readonly sending: boolean;
-  /// The question awaiting its reply, shown while `sending`.
+  /// The question that has not been answered — either still in flight, or left
+  /// standing because the send failed.
+  ///
+  /// It used to be cleared on failure, which destroyed what the user had typed.
+  /// A failed turn is exactly when they most need it back: the host now
+  /// classifies provider failures, and a rate limit or a provider outage is
+  /// answered by sending the same thing again. Telling someone to retry while
+  /// having thrown away the thing to retry is worse than not telling them.
+  ///
+  /// Keeping it is safe because `composerDisabled` is gated on `sending`, never
+  /// on this — see `TaskWorkspace.tsx`.
   readonly pending: string | null;
   readonly error: string | null;
+  /// Whether `error` is one that sending the same message again could clear.
+  ///
+  /// Comes from the host's `LocalError.retryable`, which is now derived per
+  /// provider-failure class rather than hard-coded `false`. Offering a retry on
+  /// a rejected key would be a loop that can never succeed, so the affordance
+  /// follows this rather than merely following `error !== null`.
+  readonly retryable: boolean;
+  readonly historyStatus: ChatHistoryStatus;
 }
 
 export const emptyChatLane: ChatLaneState = {
@@ -41,6 +88,8 @@ export const emptyChatLane: ChatLaneState = {
   sending: false,
   pending: null,
   error: null,
+  retryable: false,
+  historyStatus: "unread",
 };
 
 /// Records the exchange when a message dispatches an agent menu item instead
@@ -70,7 +119,58 @@ export function appendDispatchExchange(
     ],
     pending: null,
     error: null,
+    // These two messages exist only here — no `chat.send` was issued, so the
+    // host has no record of them. A later restore must therefore not overwrite
+    // them, and marking the lane read is what stops one from trying.
+    historyStatus: "loaded",
   };
+}
+
+/// Folds the host's copy of a transcript into a lane that was waiting for it.
+///
+/// Replacement, not merge: the host is the authority and the lane was empty, so
+/// there is nothing to reconcile and nothing that can be duplicated. The two
+/// refusals below are the whole safety argument, because a read is slow enough
+/// for the lane to have come alive underneath it:
+///
+///   - a turn in flight is left strictly alone. The host's answer predates the
+///     question now being asked, so writing it would drop the optimistic
+///     pending state, and the reply landing afterwards would append a turn the
+///     restored transcript may already contain.
+///   - a lane that has acquired messages by any other route is left alone for
+///     the same reason. That covers a send that completed while the read was
+///     out, and the dispatch exchange, which is renderer-only and would simply
+///     be erased.
+///
+/// Both refusals still mark the lane read. The question "does the host have
+/// something we are missing?" has been asked and answered; asking again on
+/// every render would be a loop.
+export function applyRestoredHistory(
+  lane: ChatLaneState,
+  projection: ChatHistoryProjection,
+): ChatLaneState {
+  if (lane.sending || lane.messages.length > 0) {
+    return { ...lane, historyStatus: "loaded" };
+  }
+  return {
+    ...lane,
+    messages: projection.messages,
+    // Only adopt the persona the host has on record if the user has not bound
+    // one while the read was in flight. Their selection is newer than this
+    // answer, and clearing it would silently return the composer to plain chat.
+    agentCode: lane.agentCode ?? projection.agentCode,
+    error: null,
+    historyStatus: "loaded",
+  };
+}
+
+/// Records a failed read. The lane stays empty, but it stops being *silently*
+/// empty: the message renders as an alert and the retry below is offered.
+export function failHistoryRestore(lane: ChatLaneState, message: string): ChatLaneState {
+  if (lane.sending || lane.messages.length > 0) {
+    return { ...lane, historyStatus: "unavailable" };
+  }
+  return { ...lane, error: message, historyStatus: "unavailable" };
 }
 
 export interface ChatSessionStore {
@@ -116,6 +216,36 @@ export function setLane(
   const lanes = new Map(store.lanes);
   lanes.set(sessionId, next);
   return { lanes: evict(lanes, sessionId), generations: store.generations };
+}
+
+/// Claims the one history read a lane is owed, returning the store to commit
+/// and the routing token to hand back on completion — or `null` when this lane
+/// is not waiting for one.
+///
+/// Claim and mark are one step on purpose. The decision "should I read?" and
+/// the write that records "I am reading" have to be indivisible against the
+/// same store value, or two callers in the same tick — a re-rendering effect,
+/// React's development double-invoke — each see `unread` and each dispatch a
+/// read. The routing token is the same one a send captures, so a read that
+/// outlives its task, its workspace grant, or an explicit supersede is dropped
+/// by exactly the mechanism that already drops a late reply.
+export function beginHistoryRestore(
+  store: ChatSessionStore,
+  sessionId: string,
+): { readonly store: ChatSessionStore; readonly routing: ChatRouting } | null {
+  const lane = laneForSession(store, sessionId);
+  if (lane.historyStatus !== "unread") return null;
+  return {
+    store: setLane(store, sessionId, { ...lane, historyStatus: "loading" }),
+    routing: { sessionId, generation: generationForSession(store, sessionId) },
+  };
+}
+
+/// Puts a failed lane back in line for a read.
+export function retryHistoryRestore(store: ChatSessionStore, sessionId: string): ChatSessionStore {
+  const lane = laneForSession(store, sessionId);
+  if (lane.historyStatus !== "unavailable") return store;
+  return setLane(store, sessionId, { ...lane, error: null, historyStatus: "unread" });
 }
 
 /// Supersedes any in-flight reply for one task, so a stale completion is
@@ -203,9 +333,18 @@ export interface ChatSessionsApi {
   /// Discards one task's conversation and supersedes any reply in flight for
   /// it. Used when that task is closed or deleted.
   readonly dropSession: (sessionId: string) => void;
+  /// Claims the one history read this lane is owed. Returns the routing token
+  /// to hand back to `applyToLane`, or `null` when the lane has already been
+  /// read, is being read, or gave up. Callers must treat `null` as "do not
+  /// dispatch": it is the only thing standing between an effect that re-runs
+  /// and an unbounded stream of reads.
+  readonly beginHistoryRestore: (sessionId: string) => ChatRouting | null;
+  /// Puts a lane whose read failed back in line for another attempt.
+  readonly retryHistoryRestore: (sessionId: string) => void;
   /// How many messages one task's transcript holds. Used to tell the user what
   /// a delete would actually discard.
   readonly messageCountFor: (sessionId: string) => number;
+  readonly historyStatusFor: (sessionId: string) => ChatHistoryStatus;
   readonly clearAll: () => void;
 }
 
@@ -286,8 +425,37 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
     commit((current) => clearAllLanes(current));
   }, [commit]);
 
+  // Reads and writes `storeRef` directly rather than going through `commit`,
+  // because the caller needs the claim's *outcome* synchronously — `commit`
+  // returns nothing, and deciding from the rendered `store` would let two runs
+  // in one tick both see `unread`.
+  const claimHistoryRestore = useCallback((sessionId: string): ChatRouting | null => {
+    const claimed = beginHistoryRestore(storeRef.current, sessionId);
+    if (claimed === null) return null;
+    storeRef.current = claimed.store;
+    setStore(claimed.store);
+    return claimed.routing;
+  }, []);
+
+  const requestHistoryRetry = useCallback(
+    (sessionId: string) => {
+      commit((current) => retryHistoryRestore(current, sessionId));
+    },
+    [commit],
+  );
+
   const messageCountFor = useCallback(
     (sessionId: string) => laneForSession(store, sessionId).messages.length,
+    [store],
+  );
+
+  /// Whether `messageCountFor` is answering from a transcript that was actually
+  /// read, or from a lane that has simply never been filled.
+  ///
+  /// Both return `0` messages, and the difference decides whether the delete
+  /// confirmation may tell the user there is nothing to lose.
+  const historyStatusFor = useCallback(
+    (sessionId: string) => laneForSession(store, sessionId).historyStatus,
     [store],
   );
 
@@ -299,7 +467,10 @@ export function useChatSessions(activeSessionId: string): ChatSessionsApi {
     setActiveLane,
     supersedeActive,
     dropSession,
+    beginHistoryRestore: claimHistoryRestore,
+    retryHistoryRestore: requestHistoryRetry,
     messageCountFor,
+    historyStatusFor,
     clearAll,
   };
 }

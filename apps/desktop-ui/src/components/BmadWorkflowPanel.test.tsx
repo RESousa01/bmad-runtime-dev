@@ -174,4 +174,89 @@ describe("BmadWorkflowPanel", () => {
 
     expect(screen.getByRole("button", { name: "Reading…" })).toHaveProperty("disabled", true);
   });
+
+  /// Regression guard: the error branch returned early and discarded `state`,
+  /// so a refresh that failed wiped every phase, gate and evidence path already
+  /// on screen — indistinguishable from a workspace with no method progress.
+  it("keeps the loaded progress on screen when a refresh fails", async () => {
+    const onRefresh = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(
+      <BmadWorkflowPanel
+        error="The workspace grant expired."
+        loading={false}
+        onRefresh={onRefresh}
+        state={state()}
+      />,
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain("grant expired");
+    // The progress the host already reported is still there and still readable.
+    expect(screen.getByRole("heading", { name: "Current phase: Solutioning" })).toBeTruthy();
+    expect(screen.getByText("docs/plan/prd-checkout.md")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(onRefresh).toHaveBeenCalledOnce();
+    await expectAccessible(container);
+  });
+
+  it("does not accept another refresh while one is in flight", () => {
+    render(
+      <BmadWorkflowPanel error={null} loading onRefresh={vi.fn()} state={state()} />,
+    );
+
+    expect(screen.getByRole("button", { name: "Refreshing…" })).toHaveProperty("disabled", true);
+  });
+
+  /// Regression guard: the no-install branch had no control at all, so
+  /// installing BMAD afterwards left the panel permanently asserting there was
+  /// no install with nothing on screen able to ask the host again.
+  it("can re-check for an install it did not find", async () => {
+    const onRefresh = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <BmadWorkflowPanel
+        error={null}
+        loading={false}
+        onRefresh={onRefresh}
+        state={state({ methodInstalled: false })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Check again" }));
+    expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
+  /// Regression guard: an incomplete step that is not yet available rendered
+  /// its name and nothing else — no control, no reason, no difference from a
+  /// row whose button had failed to render.
+  it("says why an incomplete step offers no start control", () => {
+    render(
+      <BmadWorkflowPanel
+        error={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onStartStep={vi.fn()}
+        state={state({
+          steps: [
+            {
+              key: "bmad-ux",
+              displayName: "UX specification",
+              menuCode: "UX",
+              phaseCode: "3-solutioning",
+              required: false,
+              completed: false,
+              available: false,
+              evidencePath: null,
+            },
+          ],
+          nextRequired: null,
+        })}
+      />,
+    );
+
+    const row = screen.getByRole("listitem");
+    expect(within(row).getByText("waiting on an earlier step")).toBeTruthy();
+    expect(within(row).queryByRole("button")).toBeNull();
+  });
 });

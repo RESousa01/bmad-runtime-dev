@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
 import type { ContextPreviewProjection } from "../lib/hostClient";
 import { TaskWorkspace, type TaskWorkspaceProps } from "./TaskWorkspace";
-import { emptyChatLane } from "../state/chatSessions";
+import { RETAINED_TRANSCRIPT_MESSAGES, emptyChatLane } from "../state/chatSessions";
 
 function createContextPreview(
   relativePaths: readonly string[],
@@ -687,6 +687,79 @@ describe("TaskWorkspace transcript delivery", () => {
     );
 
     expect(region.scrollTop).toBe(100);
+  });
+
+  /// The transcript is a view of a record the host bounds and the renderer may
+  /// have failed to read. Neither of those may be presented as "this is the
+  /// conversation" without qualification.
+  it("says so when the conversation has reached the retained limit", () => {
+    const full = {
+      ...emptyChatLane,
+      messages: Array.from({ length: RETAINED_TRANSCRIPT_MESSAGES }, (_unused, index) => ({
+        role: index % 2 === 0 ? ("user" as const) : ("assistant" as const),
+        text: `turn ${index}`,
+        createdAt: 1_700_000_000_000 + index,
+      })),
+    };
+
+    const { rerender } = render(<TaskWorkspace {...createProps({ chatLane: full })} />);
+    expect(
+      screen.getByText(/Showing the 200 most recent messages/u),
+    ).toBeTruthy();
+
+    // One message short of the ceiling nothing has been dropped, so claiming
+    // otherwise would be its own lie.
+    rerender(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: { ...full, messages: full.messages.slice(1) },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/Showing the 200 most recent messages/u)).toBeNull();
+  });
+
+  it("offers a retry when the transcript could not be read, and says it still exists", async () => {
+    const onRetryHistory = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: {
+            ...emptyChatLane,
+            error: "The stored conversation could not be read.",
+            historyStatus: "unavailable",
+          },
+          onRetryHistory,
+        })}
+      />,
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toContain("earlier messages could not be loaded");
+    expect(alert.textContent).toContain("still on this device");
+
+    await user.click(within(alert).getByRole("button", { name: "Retry loading messages" }));
+    expect(onRetryHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not offer a history retry for an ordinary failed send", () => {
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: {
+            ...emptyChatLane,
+            error: "The message could not be sent. Nothing was changed.",
+            historyStatus: "loaded",
+          },
+          onRetryHistory: vi.fn(),
+        })}
+      />,
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toBe("The message could not be sent. Nothing was changed.");
+    expect(screen.queryByRole("button", { name: "Retry loading messages" })).toBeNull();
   });
 
   it("resumes following once the user scrolls back to the newest turn", () => {

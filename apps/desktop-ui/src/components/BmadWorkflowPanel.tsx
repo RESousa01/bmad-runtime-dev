@@ -34,13 +34,23 @@ export function BmadWorkflowPanel({
   onRefresh,
   onStartStep,
 }: BmadWorkflowPanelProps) {
-  if (error !== null) {
+  // A failed read used to replace the whole panel. Since the host reports the
+  // failure and the last good state independently, that threw away every phase,
+  // gate and evidence path already on screen to say one sentence — so a refresh
+  // that failed looked identical to a workspace with no method progress at all.
+  const failureNotice = error === null ? null : (
+    <div className="workflow-panel__failure">
+      <p role="alert">{error}</p>
+      <button disabled={loading} onClick={onRefresh} type="button">
+        {loading ? "Reading…" : "Try again"}
+      </button>
+    </div>
+  );
+
+  if (error !== null && state === null) {
     return (
       <section aria-label="Method progress" className="workflow-panel">
-        <p role="alert">{error}</p>
-        <button onClick={onRefresh} type="button">
-          Try again
-        </button>
+        {failureNotice}
       </section>
     );
   }
@@ -64,12 +74,19 @@ export function BmadWorkflowPanel({
   if (!state.methodInstalled) {
     return (
       <section aria-label="Method progress" className="workflow-panel">
+        {failureNotice}
         <h3>No BMAD install found</h3>
         <p>
           This workspace has no <code>_bmad</code> folder, so there is no method
           progress to report. Chat and skills still work; install BMAD in the
           project to track phases and gates.
         </p>
+        {/* Without this the branch was terminal: installing BMAD afterwards
+            left the panel asserting there was no install, with nothing on
+            screen able to ask the host again. */}
+        <button disabled={loading} onClick={onRefresh} type="button">
+          {loading ? "Checking…" : "Check again"}
+        </button>
       </section>
     );
   }
@@ -78,7 +95,8 @@ export function BmadWorkflowPanel({
   const nextRequired = state.steps.find((step) => step.key === state.nextRequired) ?? null;
 
   return (
-    <section aria-label="Method progress" className="workflow-panel">
+    <section aria-busy={loading || undefined} aria-label="Method progress" className="workflow-panel">
+      {failureNotice}
       <header>
         {/* Qualified so the current-phase heading is never confusable with the
             phase group of the same name further down. */}
@@ -121,11 +139,19 @@ export function BmadWorkflowPanel({
                       {" "}
                       done — <code>{step.evidencePath}</code>
                     </span>
-                  ) : onStartStep && step.available ? (
+                  ) : onStartStep === undefined ? null : step.available ? (
                     <button onClick={() => onStartStep(step)} type="button">
                       Start
                     </button>
-                  ) : null}
+                  ) : (
+                    // A step with no control and no explanation reads as
+                    // broken. `available` is false exactly when a step this one
+                    // is preceded by is still incomplete, so say that.
+                    <span className="workflow-panel__waiting">
+                      {" "}
+                      waiting on an earlier step
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -133,7 +159,10 @@ export function BmadWorkflowPanel({
         );
       })}
 
-      <button onClick={onRefresh} type="button">
+      {/* Disabled while a read is in flight. It used to stay live and unlabelled
+          as busy, so the only feedback for a slow read was a word swap on a
+          control that still accepted clicks. */}
+      <button disabled={loading} onClick={onRefresh} type="button">
         {loading ? "Refreshing…" : "Refresh"}
       </button>
     </section>

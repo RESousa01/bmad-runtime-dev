@@ -26,6 +26,7 @@ import type {
   ModelProviderConnection,
   ModelProviderId,
   ModelSelection,
+  RetentionCategory,
   RetentionManifestProjection,
   ThemePreference,
 } from "../../lib/hostClient";
@@ -53,14 +54,42 @@ export type OffboardingStatus =
 // Must match the host-validated ADR-0004 phrase byte for byte.
 export const OFFBOARDING_ERASE_CONFIRMATION = "erase-local-authority-data";
 
+/// Every category the host reports, named for the person reading the panel
+/// rather than for the table it came from.
+///
+/// This map had eight entries while `RETENTION_CATEGORIES`
+/// (`crates/desktop-store/src/lib.rs`) had twenty-three, and nothing anywhere
+/// noticed: the fallback below quietly humanised the other fifteen, so the panel
+/// showed `Memlog entries` and `Method decision consumptions` in a section whose
+/// stated job is explaining what the app keeps. The host list carries a comment
+/// recording that *it* had already fallen behind two migrations — the same drift,
+/// one layer down.
+///
+/// `check-boundaries.mjs` now pins this map against the host list, so the next
+/// category added on either side fails the gate instead of shipping.
 const retentionCategoryLabels: Record<string, string> = {
   workspace_and_authority_records: "Workspace and authority records",
   evidence_events: "Evidence events",
   stored_payloads: "Stored payloads",
   approval_consumptions: "Approval consumptions",
+  chat_conversations: "Conversations",
+  chat_messages: "Messages",
   method_sessions: "Method sessions",
   method_checkpoints: "Method checkpoints",
+  method_artifacts: "Method artifacts",
+  method_decision_consumptions: "Method approvals you granted",
+  capability_runs: "Capability runs",
+  capability_results: "Capability results",
+  memlog_entries: "Working-memory entries",
+  architecture_sessions: "Architecture sessions",
+  architecture_session_steps: "Architecture steps",
+  builder_drafts: "Builder drafts",
+  builder_draft_revisions: "Builder draft revisions",
+  builder_analyses: "Builder analyses",
+  builder_analysis_decisions: "Builder approvals you granted",
   execution_journals: "Execution journals",
+  execution_checkpoints: "Change checkpoints",
+  execution_results: "Change results",
   help_runs: "Help runs",
 };
 
@@ -69,6 +98,115 @@ function retentionCategoryLabel(category: string): string {
     retentionCategoryLabels[category]
     ?? category.replaceAll("_", " ").replace(/^./u, (c) => c.toUpperCase())
   );
+}
+
+/// The same categories, arranged so the panel answers "what is this" instead
+/// of only "how many rows".
+///
+/// Every one of the twenty-three rows used to carry the identical sentence
+/// "Kept under the app's local authority store", which is a fact about the
+/// list, not about any row in it. It is stated once above the list now, and
+/// the explanation that varies — what kind of record this is — is stated once
+/// per family.
+///
+/// This is presentation only. `retentionCategoryLabels` above stays the
+/// pinned one-to-one map of every category the host reports; a category that
+/// appears in no family below is still shown, under "Other records", so a new
+/// host category can never go missing from this panel.
+const retentionGroups: ReadonlyArray<{
+  readonly categories: readonly string[];
+  readonly detail: string;
+  readonly id: string;
+  readonly title: string;
+}> = [
+  {
+    id: "conversations",
+    title: "Conversations",
+    detail:
+      "The tasks you have opened and every message in them, including what the agent replied.",
+    categories: ["chat_conversations", "chat_messages"],
+  },
+  {
+    id: "authority",
+    title: "Workspace grants and evidence",
+    detail:
+      "Which folders you granted access to, the approvals you spent, and the record of what was done under them.",
+    categories: [
+      "workspace_and_authority_records",
+      "approval_consumptions",
+      "evidence_events",
+      "stored_payloads",
+    ],
+  },
+  {
+    id: "changes",
+    title: "Governed changes",
+    detail:
+      "Edits proposed against your workspace, the checkpoint that makes applying one reversible, and the outcome.",
+    categories: ["execution_journals", "execution_checkpoints", "execution_results"],
+  },
+  {
+    id: "method",
+    title: "Skills, agents, and runs",
+    detail:
+      "Work driven by the bundled skills and agents: the runs themselves, what they produced, and the approvals you granted them.",
+    categories: [
+      "method_sessions",
+      "method_checkpoints",
+      "method_artifacts",
+      "method_decision_consumptions",
+      "capability_runs",
+      "capability_results",
+      "help_runs",
+      "memlog_entries",
+      "architecture_sessions",
+      "architecture_session_steps",
+    ],
+  },
+  {
+    id: "builder",
+    title: "Builder authoring",
+    detail:
+      "Skill and agent drafts you authored here, their revision history, and the analyses run over them.",
+    categories: [
+      "builder_drafts",
+      "builder_draft_revisions",
+      "builder_analyses",
+      "builder_analysis_decisions",
+    ],
+  },
+];
+
+function groupRetentionCategories(
+  categories: readonly RetentionCategory[],
+): ReadonlyArray<{
+  readonly detail: string;
+  readonly entries: readonly RetentionCategory[];
+  readonly id: string;
+  readonly title: string;
+}> {
+  const placed = new Set(retentionGroups.flatMap((group) => group.categories));
+  const ungrouped = categories.filter((entry) => !placed.has(entry.category));
+  return [
+    ...retentionGroups
+      .map((group) => ({
+        detail: group.detail,
+        entries: categories.filter((entry) => group.categories.includes(entry.category)),
+        id: group.id,
+        title: group.title,
+      }))
+      .filter((group) => group.entries.length > 0),
+    ...(ungrouped.length > 0
+      ? [
+          {
+            detail: "Kept in the same local store as the categories above.",
+            entries: ungrouped,
+            id: "other",
+            title: "Other records",
+          },
+        ]
+      : []),
+  ];
 }
 
 function formatRetainedBytes(bytes: number): string {
@@ -267,7 +405,16 @@ export function SettingsDialog({
               </header>
               <div className="settings-list">
                 <Row
-                  detail="The signed host owns workspace authority."
+                  // Said "The signed host owns workspace authority." Nothing in
+                  // this product verifies a code signature — there is no
+                  // `WinVerifyTrust` call anywhere — and the binary is not
+                  // signed at all: `tauri.conf.json` carries no
+                  // `certificateThumbprint` and no `signCommand`, and the host
+                  // reports `update_install_available: false` for exactly that
+                  // reason. Asserting it in Settings, which is where a user goes
+                  // to check provenance, is the worst possible place to be
+                  // wrong about it.
+                  detail="The desktop host process owns workspace authority. Forge does not verify this build's code signature."
                   label="Desktop runtime"
                   value={runtimeLabel}
                 />
@@ -681,15 +828,29 @@ export function SettingsDialog({
                 </p>
               ) : (
                 <>
+                  <p className="retention-lede">
+                    Each number below counts records, not files, held in the
+                    app&rsquo;s local authority store on this device.
+                  </p>
+                  <div className="retention-groups">
+                    {groupRetentionCategories(offboardingManifest.categories).map(
+                      (group) => (
+                        <div className="retention-group" key={group.id}>
+                          <h4>{group.title}</h4>
+                          <p>{group.detail}</p>
+                          <dl className="retention-group__counts">
+                            {group.entries.map((entry) => (
+                              <div key={entry.category}>
+                                <dt>{retentionCategoryLabel(entry.category)}</dt>
+                                <dd>{entry.count}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      ),
+                    )}
+                  </div>
                   <div className="settings-list">
-                    {offboardingManifest.categories.map((entry) => (
-                      <Row
-                        detail="Kept under the app's local authority store."
-                        key={entry.category}
-                        label={retentionCategoryLabel(entry.category)}
-                        value={`${entry.count}`}
-                      />
-                    ))}
                     <Row
                       detail="Encrypted local store, database, and key material."
                       label="Total retained"

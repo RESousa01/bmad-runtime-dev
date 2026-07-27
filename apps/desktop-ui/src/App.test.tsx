@@ -683,9 +683,23 @@ type BmadHelpLatestFixture =
   | "projection_unavailable"
   | null;
 
+/// The durable transcript this fake host holds for one conversation.
+///
+/// `ordinal` is the position of the conversation in the order the renderer
+/// first asked about it — 0 for the first task activated, 1 for the next — so a
+/// test can seed a specific tab's history without knowing the ULID the renderer
+/// minted for it.
+type ChatHistoryFixture = (
+  sessionRef: string,
+  ordinal: number,
+) => readonly { role: string; text: string; createdAt: number }[];
+
 async function bmadHelpRuntime({
+  chatHistoryFailures = 0,
+  chatHistoryFor,
   createOutcome = "success",
   createRun,
+  holdChatHistory = false,
   holdCreate = false,
   holdLatestWorkspaceId = null,
   latestRuns = {},
@@ -693,8 +707,13 @@ async function bmadHelpRuntime({
   workspaces = recoveryBootstrap.workspaces,
   runnableCapability = false,
 }: {
+  /// Fails this many `chat.history` reads before answering normally, so a test
+  /// can drive the failure surface and then its retry.
+  chatHistoryFailures?: number;
+  chatHistoryFor?: ChatHistoryFixture;
   createOutcome?: "success" | "failure" | "recovery" | "renderer_expired";
   createRun?: BmadHelpRunCreatedProjection;
+  holdChatHistory?: boolean;
   holdCreate?: boolean;
   holdLatestWorkspaceId?: string | null;
   latestRuns?: Readonly<Record<string, BmadHelpLatestFixture>>;
@@ -705,6 +724,8 @@ async function bmadHelpRuntime({
   runtime: HostRuntime;
   invoke: ReturnType<typeof vi.fn<TauriInvoke>>;
   createStarted: Promise<void>;
+  chatHistoryStarted: Promise<void>;
+  releaseChatHistory: () => void;
   releaseCreate: () => void;
   releaseLatest: () => void;
 }> {
@@ -749,9 +770,18 @@ async function bmadHelpRuntime({
   let resolveCreateStarted!: () => void;
   let resolveCreate!: () => void;
   let resolveLatest!: () => void;
+  let resolveChatHistoryStarted!: () => void;
+  let resolveChatHistory!: () => void;
   const createStarted = new Promise<void>((resolve) => { resolveCreateStarted = resolve; });
   const heldCreate = new Promise<void>((resolve) => { resolveCreate = resolve; });
   const heldLatest = new Promise<void>((resolve) => { resolveLatest = resolve; });
+  const chatHistoryStarted = new Promise<void>((resolve) => {
+    resolveChatHistoryStarted = resolve;
+  });
+  const heldChatHistory = new Promise<void>((resolve) => { resolveChatHistory = resolve; });
+  /// The order in which the renderer first asked about each conversation.
+  const chatHistoryOrder: string[] = [];
+  let chatHistoryReads = 0;
   const createdRuns = new Map<string, BmadHelpRunCreatedProjection>();
   const createdIntents = new Map<string, string>();
   let currentModelStatus = modelStatus;
@@ -871,12 +901,35 @@ async function bmadHelpRuntime({
       );
     }
     if (envelope.command === "chat.history") {
+      resolveChatHistoryStarted();
+      if (holdChatHistory) {
+        await heldChatHistory;
+      }
+      const sessionRef = envelope.payload.clientSessionRef!;
+      if (!chatHistoryOrder.includes(sessionRef)) {
+        chatHistoryOrder.push(sessionRef);
+      }
+      chatHistoryReads += 1;
+      if (chatHistoryReads <= chatHistoryFailures) {
+        return {
+          schemaVersion: "desktop-dispatch-reply.v1",
+          requestId: envelope.requestId,
+          sequence: 19,
+          status: "error",
+          error: {
+            code: "temporarily_unavailable",
+            safeMessage: "The stored conversation could not be read.",
+            retryable: true,
+            correlationId: envelope.requestId,
+          },
+        };
+      }
       return bmadReply(envelope.requestId, {
         kind: "chat_history",
         value: {
           sessionId: "chat_01ARZ3NDEKTSV4RRFFQ69G5FAV",
           agentCode: null,
-          messages: [],
+          messages: chatHistoryFor?.(sessionRef, chatHistoryOrder.indexOf(sessionRef)) ?? [],
         },
       });
     }
@@ -1174,9 +1227,29 @@ async function bmadHelpRuntime({
     runtime: { kind: "ready", client, bootstrap },
     invoke,
     createStarted,
+    chatHistoryStarted,
+    releaseChatHistory: resolveChatHistory,
     releaseCreate: resolveCreate,
     releaseLatest: resolveLatest,
   };
+}
+
+/// Every `chat.history` envelope the renderer actually sent, in order.
+function chatHistoryRequests(
+  invoke: ReturnType<typeof vi.fn<TauriInvoke>>,
+): { clientSessionRef: string; workspaceId: string; workspaceGrantEpoch: number }[] {
+  return invoke.mock.calls.flatMap(([command, args]) => {
+    if (command !== "host_dispatch") return [];
+    const envelope = JSON.parse(String(args?.body)) as {
+      command: string;
+      payload: {
+        clientSessionRef: string;
+        workspaceId: string;
+        workspaceGrantEpoch: number;
+      };
+    };
+    return envelope.command === "chat.history" ? [envelope.payload] : [];
+  });
 }
 
 async function readyMethodGuidanceComposer(): Promise<HTMLTextAreaElement> {
@@ -1400,6 +1473,54 @@ describe("Forge desktop workbench", () => {
     expect(payload.text).toBe("What does this workspace do?");
   });
 
+  /// A failed send used to clear `pending`, so the question disappeared along
+  /// with the answer and the user was left with an error about a message they
+  /// could no longer see. That is worst precisely when the failure is worth
+  /// retrying — the host now classifies a rate limit or a provider outage as
+  /// retryable, and telling someone to send it again while having discarded
+  /// what they wrote is advice they cannot take.
+  it("keeps the question on screen when the send fails, not just the error", async () => {
+    const { runtime } = await bmadHelpRuntime({ createOutcome: "failure" });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+
+    await user.type(await readyMethodGuidanceComposer(), "What does this workspace do?");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    // The failure is reported...
+    expect(
+      await screen.findByText(/The message could not be sent\./u),
+    ).toBeTruthy();
+
+    // ...and the question survives *in the transcript*. Scoped to the log on
+    // purpose: the task tab is titled after its opening message and the
+    // composer restores the draft, so an unscoped text query passes whether or
+    // not the transcript kept anything — it did, before this was fixed.
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+    expect(
+      within(conversation).getByText("What does this workspace do?"),
+    ).toBeTruthy();
+
+    // Nothing is in flight, so the app must not still claim to be working on
+    // it. Keeping the question must not keep the spinner.
+    expect(within(conversation).queryByText("Thinking…")).toBeNull();
+
+    // And it is back in the composer, so a retryable failure can be retried
+    // with one action instead of retyping.
+    expect((await readyMethodGuidanceComposer()).value).toBe(
+      "What does this workspace do?",
+    );
+    expect(
+      screen.getByRole("button", { name: "Send message" }).hasAttribute("disabled"),
+    ).toBe(false);
+  });
+
   it("keeps plain chat reachable in one click so BMAD never becomes mandatory", async () => {
     const { runtime, invoke } = await bmadHelpRuntime();
     const user = userEvent.setup();
@@ -1468,6 +1589,48 @@ describe("Forge desktop workbench", () => {
     expect(
       await screen.findByRole("dialog", { name: /Product Brief capability run/ }),
     ).toBeTruthy();
+  });
+
+  /// Attachments used to stay armed after the send that carried them, so every
+  /// later message in the task silently re-sent, re-billed and re-entered the
+  /// same files into the reviewed-context manifest. The user consented once and
+  /// it happened every turn, with nothing on screen distinguishing "these went
+  /// last time" from "these go again".
+  it("disarms attachments once the message carrying them has been sent", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("model.auth.status");
+    });
+    await enterFirstTask();
+    await readyMethodGuidanceComposer();
+
+    await user.click(screen.getByRole("button", { name: "Add files or folder" }));
+    await user.click(screen.getByRole("menuitem", { name: "Add files…" }));
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("context.preview");
+    });
+    expect(await screen.findByText("src/context.ts")).toBeTruthy();
+
+    await user.type(
+      await readyMethodGuidanceComposer(),
+      "Explain the attached module",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    // The attachment is gone from the composer...
+    await waitFor(() => {
+      expect(screen.queryByText("src/context.ts")).toBeNull();
+    });
+    // ...and the user is told it was spent rather than it vanishing silently.
+    expect(await screen.findByText(/Attach again to include it in the next one/u))
+      .toBeTruthy();
   });
 
   it("sends explicitly attached local context without a second review step", async () => {
@@ -1633,7 +1796,7 @@ describe("Forge desktop workbench", () => {
     expect(screen.getByText("No proposed changes")).toBeTruthy();
     expect(screen.getAllByText("Browser preview").length).toBeGreaterThan(0);
     expect(
-      (await screen.findAllByText(/Governed edits require the signed Windows desktop host/i)).length,
+      (await screen.findAllByText(/Governed edits require the Windows desktop host/i)).length,
     ).toBeGreaterThan(0);
 
     expect(screen.queryByText(/^Chat$/i)).toBeNull();
@@ -1695,9 +1858,17 @@ describe("Forge desktop workbench", () => {
       openWorkspaceFiles();
       const filesDrawer = screen.getByRole("dialog", { name: "Files" });
       expect(filesDrawer.getAttribute("aria-modal")).toBe("true");
-      // The focus trap takes the drawer's first focusable node, which is the
-      // leading panel-view tab; the close control remains reachable from there.
-      expect(filesDrawer.contains(document.activeElement)).toBe(true);
+      // The focus trap takes the drawer's *first* focusable node in document
+      // order, which is the leading panel-view tab; the close control remains
+      // reachable from there.
+      //
+      // Naming the element matters. `filesDrawer.contains(activeElement)` is
+      // true for every control in the drawer, so it held even when the trap
+      // took the last node instead of the first — which is precisely the
+      // failure mode `focusableElements` sorts against.
+      expect(document.activeElement).toBe(
+        within(filesDrawer).getByRole("button", { name: "Files" }),
+      );
       expect(screen.getByRole("button", { name: "Close Files" })).toBeTruthy();
       expect(screen.getByRole("main", { hidden: true }).closest(".task-shell-layout__main")?.hasAttribute("inert"))
         .toBe(true);
@@ -3283,12 +3454,53 @@ describe("Forge task list", () => {
     const user = userEvent.setup();
     renderApp(runtime);
     await enterFirstTask();
+    // A message must actually be sent first. This used to delete a task that
+    // had never reached `chat.send` and assert the warning anyway — so it
+    // pinned the dialog warning about an encrypted copy that was never written.
+    await sendMessage(user, "Write something durable");
 
     await user.click(screen.getByRole("button", { name: "Delete task" }));
 
     const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
     expect(within(dialog).getByText(/cannot erase the encrypted copy/iu)).toBeTruthy();
     expect(within(dialog).getByText(/Local data/u)).toBeTruthy();
+  });
+
+  /// `messageCount` is `lane.messages.length`, which is `0` for a genuinely
+  /// empty task *and* for one whose history has not been read. Saying "no
+  /// messages yet" on the second is telling the user there is nothing to lose
+  /// at the moment that is most likely to be false — and because task ids are
+  /// never reused, a transcript discarded on that sentence is orphaned forever.
+  it("never claims a task has no messages before its history has been read", async () => {
+    const { runtime } = await bmadHelpRuntime({ holdChatHistory: true });
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
+    expect(
+      within(dialog).getByText(/has not finished reading this task's messages/iu),
+    ).toBeTruthy();
+    expect(within(dialog).queryByText(/no messages yet/iu)).toBeNull();
+  });
+
+  /// The mirror: a task proven to hold nothing never reached `chat.send`, so no
+  /// durable row exists and warning about one is the same untruth inverted.
+  it("does not warn about an encrypted copy a task never wrote", async () => {
+    const { runtime } = await bmadHelpRuntime();
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await user.click(screen.getByRole("button", { name: "Delete task" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Delete this task?" });
+    // The history read resolves empty, so this is the one state where "no
+    // messages yet" is true — and the encrypted-copy warning is not.
+    expect(await within(dialog).findByText(/no messages yet/iu)).toBeTruthy();
+    expect(within(dialog).queryByText(/cannot erase the encrypted copy/iu)).toBeNull();
   });
 
   it("destroys the task and its transcript on confirmation and returns Home", async () => {
@@ -3408,5 +3620,232 @@ describe("Forge task list", () => {
       rules: { "color-contrast": { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+/// The host owns the transcript; the renderer's store is a bounded cache in
+/// front of it. Nothing used to re-read that copy, so evicting a lane or
+/// switching workspace made a conversation that is still on disk disappear from
+/// the screen.
+///
+/// Every assertion below is written so it can only pass if the host was asked
+/// *and its answer was used*: the text asserted on is content the renderer has
+/// never held and could not have cached.
+describe("Forge conversation restore", () => {
+  const at = 1_700_000_000_000;
+  /// A transcript only the host can know, including a tool exchange — which
+  /// `chat.send` never returns, so it can reach the screen by no other route.
+  const durableTranscript = [
+    { role: "user", text: "Where is the envelope parser?", createdAt: at },
+    {
+      role: "tool_call",
+      text: "read_file crates/desktop-ipc/src/envelope.rs",
+      createdAt: at + 1,
+    },
+    { role: "tool_result", text: "fn parse_chat_history(payload: Value)", createdAt: at + 2 },
+    {
+      role: "assistant",
+      text: "Restored from the durable store, not from the renderer cache.",
+      createdAt: at + 3,
+    },
+  ] as const;
+
+  function renderApp(runtime: HostRuntime) {
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+  }
+
+  function conversation(): HTMLElement {
+    return screen.getByRole("log", { name: "Conversation" });
+  }
+
+  it("reads the host's copy of the transcript when a task is activated", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({
+      chatHistoryFor: () => durableTranscript,
+    });
+    renderApp(runtime);
+
+    await enterFirstTask();
+
+    // Nothing has been sent, and the renderer has never held this text. The
+    // only way it can be on screen is that `chat.history` was dispatched for
+    // this task and its answer was applied.
+    expect(
+      await screen.findByText("Restored from the durable store, not from the renderer cache."),
+    ).toBeTruthy();
+    expect(within(conversation()).getByText("Where is the envelope parser?")).toBeTruthy();
+    expect(dispatchedCommandNames(invoke)).not.toContain("chat.send");
+
+    const requests = chatHistoryRequests(invoke);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]!.workspaceId).toBe(recoveryBootstrap.workspaces[0]!.workspaceId);
+    expect(requests[0]!.workspaceGrantEpoch).toBe(recoveryBootstrap.workspaces[0]!.grantEpoch);
+    // The read is scoped to the durable session ref of the activated task —
+    // the same value `chat.send` carries — not to the Home placeholder.
+    expect(requests[0]!.clientSessionRef).not.toBe("task-none");
+    expect(requests[0]!.clientSessionRef.length).toBeGreaterThan(0);
+  });
+
+  it("renders the tool exchanges a restored transcript carries", async () => {
+    // `chat.send` returns only a question and its answer, so before history was
+    // read there was no path by which a tool call could ever reach the
+    // transcript, even though it has always known how to render one.
+    const { runtime } = await bmadHelpRuntime({ chatHistoryFor: () => durableTranscript });
+    renderApp(runtime);
+
+    await enterFirstTask();
+    await screen.findByText("Restored from the durable store, not from the renderer cache.");
+
+    const transcript = conversation();
+    expect(within(transcript).getByText("Tool requested by the model")).toBeTruthy();
+    expect(
+      within(transcript).getByText("read_file crates/desktop-ipc/src/envelope.rs"),
+    ).toBeTruthy();
+    // Workspace content is labelled as such rather than styled as Forge speaking.
+    expect(
+      within(transcript).getByText("Tool result · workspace content, not Forge"),
+    ).toBeTruthy();
+    expect(
+      within(transcript).getAllByText("fn parse_chat_history(payload: Value)").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("leaves a turn in flight untouched when the read lands mid-send", async () => {
+    const { runtime, createStarted, releaseChatHistory, releaseCreate } = await bmadHelpRuntime({
+      chatHistoryFor: () => durableTranscript,
+      holdChatHistory: true,
+      holdCreate: true,
+    });
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    const composer = await readyMethodGuidanceComposer();
+    await user.type(composer, "Explain the boundary check");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await createStarted;
+
+    // The read comes back while the question is still unanswered.
+    releaseChatHistory();
+    await waitFor(() => expect(screen.getByText("Thinking…")).toBeTruthy());
+    releaseCreate();
+
+    expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
+    const transcript = conversation();
+    // The live turn survived intact and exactly once...
+    expect(within(transcript).getAllByText("Explain the boundary check")).toHaveLength(1);
+    expect(within(transcript).getAllByText("Deterministic local reply.")).toHaveLength(1);
+    // ...and the host's older answer, which predates the question just asked,
+    // was not written over it.
+    expect(
+      within(transcript).queryByText("Restored from the durable store, not from the renderer cache."),
+    ).toBeNull();
+  });
+
+  it("does not replace a completed turn with a read that was still in flight", async () => {
+    const { runtime, releaseChatHistory } = await bmadHelpRuntime({
+      chatHistoryFor: () => durableTranscript,
+      holdChatHistory: true,
+    });
+    const user = userEvent.setup();
+    renderApp(runtime);
+    await enterFirstTask();
+
+    await user.type(await readyMethodGuidanceComposer(), "Explain the boundary check");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findByText("Deterministic local reply.");
+
+    releaseChatHistory();
+    // Give the resolved read a chance to be applied before asserting it was not.
+    await act(async () => { await Promise.resolve(); });
+
+    const transcript = conversation();
+    expect(within(transcript).getAllByText("Explain the boundary check")).toHaveLength(1);
+    expect(within(transcript).getAllByText("Deterministic local reply.")).toHaveLength(1);
+    expect(
+      within(transcript).queryByText("Restored from the durable store, not from the renderer cache."),
+    ).toBeNull();
+  });
+
+  it("re-reads a transcript the bounded lane store evicted, keeping the tab open", async () => {
+    // The reported defect, end to end, and the exact shape in which it is
+    // reachable. `MAX_TASKS` and `MAX_LANE_SESSIONS` are both twenty, but they
+    // do not evict the same thing: the task list drops the oldest *closed*
+    // task first, while the lane store drops the oldest lane it holds. Close
+    // one task and add another and the two disagree — the closed task's record
+    // goes, and the *first* task's transcript goes, while its tab is still open
+    // and selected. That tab used to show a conversation the user had
+    // definitely had as if it had never happened.
+    let firstTaskReads = 0;
+    const { runtime, invoke } = await bmadHelpRuntime({
+      chatHistoryFor: (_sessionRef, ordinal) => {
+        if (ordinal !== 0) return [];
+        firstTaskReads += 1;
+        // Empty on activation — the conversation starts here — and the durable
+        // record on the re-read after eviction. So the text asserted below can
+        // come neither from the first read nor from anything cached.
+        return firstTaskReads === 1 ? [] : durableTranscript;
+      },
+    });
+    const user = userEvent.setup();
+    renderApp(runtime);
+    const titlebar = await screen.findByRole("banner", { name: "Forge application" });
+
+    await enterFirstTask();
+    await user.type(await readyMethodGuidanceComposer(), "Trace the boot sequence");
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findByText("Deterministic local reply.");
+    const [firstRequest] = chatHistoryRequests(invoke);
+    expect(firstRequest, "the activated task's transcript was never requested").toBeDefined();
+    const firstTaskRef = firstRequest!.clientSessionRef;
+
+    // Nineteen more tasks fill both bounds exactly.
+    for (let index = 0; index < 19; index += 1) {
+      fireEvent.click(within(titlebar).getByRole("button", { name: "New task" }));
+    }
+    // Closing keeps the task's record and its transcript, so it is the record
+    // the task list gives up next — but the lane store gives up the oldest lane.
+    await user.click(screen.getByRole("button", { name: "Close task" }));
+    fireEvent.click(within(titlebar).getByRole("button", { name: "New task" }));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Trace the boot sequence" }));
+
+    expect(
+      await screen.findByText("Restored from the durable store, not from the renderer cache."),
+    ).toBeTruthy();
+    // Asked twice for the same conversation: once on first activation, once
+    // after eviction took the lane away.
+    expect(
+      chatHistoryRequests(invoke).filter(({ clientSessionRef }) => clientSessionRef === firstTaskRef),
+    ).toHaveLength(2);
+  });
+
+  it("says a transcript could not be read rather than showing an empty task", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({
+      chatHistoryFailures: 1,
+      chatHistoryFor: () => durableTranscript,
+    });
+    const user = userEvent.setup();
+    renderApp(runtime);
+
+    await enterFirstTask();
+
+    const alert = await screen.findByRole("alert");
+    // An empty transcript with no explanation reads as "you never said
+    // anything here", which is the opposite of the truth.
+    expect(alert.textContent).toContain("earlier messages could not be loaded");
+    expect(alert.textContent).toContain("still on this device");
+
+    await user.click(within(alert).getByRole("button", { name: "Retry loading messages" }));
+
+    expect(
+      await screen.findByText("Restored from the durable store, not from the renderer cache."),
+    ).toBeTruthy();
+    expect(chatHistoryRequests(invoke)).toHaveLength(2);
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

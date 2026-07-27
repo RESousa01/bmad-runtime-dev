@@ -2,17 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   appendDispatchExchange,
+  applyRestoredHistory,
+  beginHistoryRestore,
   bumpGeneration,
   clearAllLanes,
   dropLane,
   emptyChatLane,
   emptyChatSessionStore,
+  failHistoryRestore,
   generationForSession,
   laneForSession,
+  retryHistoryRestore,
   routingIsCurrent,
   setLane,
 } from "./chatSessions";
-import type { ChatMessage } from "../lib/hostClient";
+import type { ChatHistoryProjection, ChatMessage } from "../lib/hostClient";
 
 const message = (text: string, role: "user" | "assistant" = "user"): ChatMessage => ({
   role,
@@ -127,6 +131,179 @@ describe("chat session store", () => {
 
     expect(store.lanes.size).toBeLessThanOrEqual(20);
     expect(laneForSession(store, "task-39").messages[0]?.text).toBe("m39");
+  });
+});
+
+/// The store is a bounded cache in front of a durable transcript the host owns.
+/// Everything here is about the moment those two copies meet: exactly once per
+/// lane, and never on top of something live.
+describe("chat history restore", () => {
+  const projection = (
+    messages: readonly ChatMessage[],
+    agentCode: string | null = null,
+  ): ChatHistoryProjection => ({
+    sessionId: "chat_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    agentCode,
+    messages: [...messages],
+  });
+
+  it("claims the read once, so a re-running effect cannot amplify into many", () => {
+    let store = emptyChatSessionStore;
+    const claimed = beginHistoryRestore(store, "task-a");
+
+    expect(claimed).not.toBeNull();
+    expect(claimed!.routing).toEqual({ sessionId: "task-a", generation: 0 });
+    store = claimed!.store;
+    expect(laneForSession(store, "task-a").historyStatus).toBe("loading");
+
+    // Same store value, second caller: the claim is already taken.
+    expect(beginHistoryRestore(store, "task-a")).toBeNull();
+
+    // And once the answer has landed the lane is not owed another read, or
+    // every re-render of a genuinely empty conversation would issue one.
+    store = setLane(store, "task-a", (lane) => ({ ...lane, historyStatus: "loaded" }));
+    expect(beginHistoryRestore(store, "task-a")).toBeNull();
+  });
+
+  it("shows the host's transcript in a lane the renderer had nothing for", () => {
+    const restored = applyRestoredHistory(
+      { ...emptyChatLane, historyStatus: "loading" },
+      projection([message("from the durable store"), message("and its reply", "assistant")]),
+    );
+
+    expect(restored.messages.map(({ text }) => text)).toEqual([
+      "from the durable store",
+      "and its reply",
+    ]);
+    expect(restored.historyStatus).toBe("loaded");
+  });
+
+  it("adopts the persona on record but never overwrites one just chosen", () => {
+    const adopted = applyRestoredHistory(
+      { ...emptyChatLane, historyStatus: "loading" },
+      projection([message("hello")], "bmad-agent-architect"),
+    );
+    expect(adopted.agentCode).toBe("bmad-agent-architect");
+
+    // The user bound an agent while the read was out. Their choice is newer.
+    const chosen = applyRestoredHistory(
+      { ...emptyChatLane, agentCode: "bmad-agent-analyst", historyStatus: "loading" },
+      projection([message("hello")], null),
+    );
+    expect(chosen.agentCode).toBe("bmad-agent-analyst");
+  });
+
+  it("leaves a turn in flight strictly alone", () => {
+    // The read was dispatched when the lane was empty and came back after the
+    // user asked something. The host's answer predates that question: writing
+    // it would drop the pending state, and the reply landing next would append
+    // a turn the restored transcript may already hold.
+    const inFlight = {
+      ...emptyChatLane,
+      sending: true,
+      pending: "what changed here?",
+      historyStatus: "loading" as const,
+    };
+
+    const applied = applyRestoredHistory(inFlight, projection([message("older turn")]));
+
+    expect(applied.messages).toEqual([]);
+    expect(applied.sending).toBe(true);
+    expect(applied.pending).toBe("what changed here?");
+    // Still marked read: the question was asked and answered, and asking again
+    // on every render would be a loop.
+    expect(applied.historyStatus).toBe("loaded");
+  });
+
+  it("never replaces messages the lane acquired while the read was out", () => {
+    const live = {
+      ...emptyChatLane,
+      messages: [message("just sent"), message("just answered", "assistant")],
+      historyStatus: "loading" as const,
+    };
+
+    const applied = applyRestoredHistory(live, projection([message("older turn")]));
+
+    expect(applied.messages.map(({ text }) => text)).toEqual(["just sent", "just answered"]);
+    expect(applied.historyStatus).toBe("loaded");
+  });
+
+  it("does not erase a dispatch exchange, which exists only in the renderer", () => {
+    // `appendDispatchExchange` writes two messages the host has no record of,
+    // so a restore on top of them would simply delete them.
+    const dispatched = appendDispatchExchange(emptyChatLane, "run CA", "Architecture", 1_700);
+    expect(dispatched.historyStatus).toBe("loaded");
+
+    expect(beginHistoryRestore(setLane(emptyChatSessionStore, "task-a", dispatched), "task-a"))
+      .toBeNull();
+  });
+
+  it("says a failed read failed instead of leaving the lane silently empty", () => {
+    const failed = failHistoryRestore(
+      { ...emptyChatLane, historyStatus: "loading" },
+      "The stored conversation could not be read.",
+    );
+
+    expect(failed.error).toBe("The stored conversation could not be read.");
+    expect(failed.historyStatus).toBe("unavailable");
+
+    let store = setLane(emptyChatSessionStore, "task-a", failed);
+    // A failed lane is not retried on its own — that would be an unbounded
+    // loop against a failing host — but the user can ask for another attempt.
+    expect(beginHistoryRestore(store, "task-a")).toBeNull();
+
+    store = retryHistoryRestore(store, "task-a");
+
+    expect(laneForSession(store, "task-a").error).toBeNull();
+    expect(beginHistoryRestore(store, "task-a")).not.toBeNull();
+  });
+
+  it("does not overwrite a live lane's error when its late read fails", () => {
+    const live = { ...emptyChatLane, messages: [message("kept")], historyStatus: "loading" as const };
+
+    const failed = failHistoryRestore(live, "The stored conversation could not be read.");
+
+    expect(failed.messages.map(({ text }) => text)).toEqual(["kept"]);
+    expect(failed.error).toBeNull();
+  });
+
+  it("makes eviction a cache miss rather than data loss", () => {
+    // The reported defect. A lane pushed out by the twenty-lane bound used to
+    // be gone from the UI while the host still held the conversation; now it
+    // reads back as never-asked, so activating that tab re-reads it.
+    let store = emptyChatSessionStore;
+    store = setLane(store, "task-evicted", {
+      ...emptyChatLane,
+      messages: [message("said out loud")],
+      historyStatus: "loaded",
+    });
+    for (let index = 0; index < 25; index += 1) {
+      store = setLane(store, `task-${index}`, { ...emptyChatLane, historyStatus: "loaded" });
+    }
+
+    expect(store.lanes.has("task-evicted")).toBe(false);
+    expect(laneForSession(store, "task-evicted").historyStatus).toBe("unread");
+    expect(beginHistoryRestore(store, "task-evicted")).not.toBeNull();
+  });
+
+  it("makes a workspace switch a cache miss too, and drops the read it raced", () => {
+    let store = setLane(emptyChatSessionStore, "task-a", {
+      ...emptyChatLane,
+      messages: [message("in the old workspace")],
+      historyStatus: "loaded",
+    });
+    const claimed = beginHistoryRestore(
+      setLane(store, "task-b", emptyChatLane),
+      "task-b",
+    )!;
+    store = claimed.store;
+
+    store = clearAllLanes(store);
+
+    expect(laneForSession(store, "task-a").historyStatus).toBe("unread");
+    // The read issued against the revoked grant must not land in the lane that
+    // replaced it.
+    expect(routingIsCurrent(store, claimed.routing)).toBe(false);
   });
 });
 

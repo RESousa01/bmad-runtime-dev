@@ -61,7 +61,7 @@ export async function initializeHostRuntime({
       client: null,
       bootstrap: null,
       message:
-        "The signed Windows host could not be verified. Local actions remain unavailable.",
+        "Forge could not reach the Windows host. Local actions remain unavailable.",
     };
   }
 }

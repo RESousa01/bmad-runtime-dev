@@ -23,7 +23,12 @@ import {
   MAX_LANE_SESSIONS,
   useCapabilitySessions,
 } from "./state/taskSessions";
-import { appendDispatchExchange, useChatSessions } from "./state/chatSessions";
+import {
+  appendDispatchExchange,
+  applyRestoredHistory,
+  failHistoryRestore,
+  useChatSessions,
+} from "./state/chatSessions";
 import {
   appendTask,
   autoTitleTask,
@@ -363,7 +368,15 @@ export function App({
   // optional overlay on it rather than the only way to say something.
   const chatSessions = useChatSessions(selectedSessionId);
   const chatLane = chatSessions.lane;
-  const { clearAll: clearAllChatLanes } = chatSessions;
+  // All four take the task they act on as an argument, so — unlike
+  // `capabilitySessions`' active-task members below — they are safe to capture
+  // in an effect or a memoized callback without pinning a stale session.
+  const {
+    applyToLane: applyToChatLane,
+    beginHistoryRestore: beginChatHistoryRestore,
+    clearAll: clearAllChatLanes,
+    retryHistoryRestore: retryChatHistoryRestore,
+  } = chatSessions;
   // Deterministic method progress: computed by the host, never a model claim.
   const [workflowState, setWorkflowState] = useState<{
     state: BmadWorkflowStateProjection | null;
@@ -501,6 +514,17 @@ export function App({
     ? hostRuntime.client
     : null;
   const methodGuidanceAvailable = methodGuidanceClient !== null;
+  /// Gated on `chat.history` alone, not on the whole guidance command set. A
+  /// host that can hand back a transcript should hand it back even if it has
+  /// no BMAD advisor: reading what the user already said is not a Method
+  /// feature. The grant epoch matches the send gate because the host
+  /// authorizes the read against the same workspace scope.
+  const chatHistoryClient = hostRuntime.kind === "ready"
+    && activeWorkspace !== null
+    && activeWorkspace.grantEpoch >= 1
+    && hostRuntime.bootstrap.supportedCommands.includes("chat.history")
+    ? hostRuntime.client
+    : null;
   const methodRequestAvailable = methodGuidanceClient !== null
     && modelAuthStatus?.status === "development_ready";
   const methodRequestInFlight = bmadHelpState.kind === "creating"
@@ -613,7 +637,7 @@ export function App({
   const gitReviewAvailabilityMessage = hostRuntime.kind === "read_only_recovery"
     ? "Git review is paused while Forge is in read-only recovery."
     : hostRuntime.kind === "unavailable"
-      ? "Git review requires the signed Forge desktop host."
+      ? "Git review requires the Forge desktop host."
       : activeWorkspace === null
         ? "Choose a workspace to review its Git changes."
         : "Git review is unavailable in this host version.";
@@ -763,7 +787,7 @@ export function App({
   const explorerAvailabilityMessage = (() => {
     switch (hostRuntime.kind) {
       case "loading":
-        return "The signed Windows host is still being verified.";
+        return "Forge is still connecting to the Windows host.";
       case "read_only_recovery":
         return "The local authority store is in recovery. Existing workspace names remain visible, but file projections are blocked.";
       case "unavailable":
@@ -863,7 +887,7 @@ export function App({
             kind: "unavailable",
             client: null,
             bootstrap: null,
-            message: "The signed Windows host could not be verified. Local actions remain unavailable.",
+            message: "Forge could not reach the Windows host. Local actions remain unavailable.",
           }
           : current);
         return;
@@ -1033,7 +1057,7 @@ export function App({
         kind: "unavailable",
         client: null,
         bootstrap: null,
-        message: "The signed Windows host could not be verified. Local actions remain unavailable.",
+        message: "Forge could not reach the Windows host. Local actions remain unavailable.",
       };
     });
   }, [invalidateHostBoundUi]);
@@ -1486,7 +1510,7 @@ export function App({
           kind: "unavailable",
           client: null,
           bootstrap: null,
-          message: "The signed Windows host could not be verified. Local actions remain unavailable.",
+          message: "Forge could not reach the Windows host. Local actions remain unavailable.",
         }, false);
       });
     return () => {
@@ -1506,6 +1530,63 @@ export function App({
   useEffect(() => {
     invalidateWorkspaceBoundUi();
   }, [invalidateWorkspaceBoundUi, workspaceAuthorityKey]);
+
+  /// Reads the host's copy of the active task's transcript once per lane.
+  ///
+  /// The renderer's chat store is a bounded cache — twenty lanes, oldest
+  /// evicted — and `clearAllLanes` empties it outright on a workspace switch or
+  /// a host rebind. Both were silent data loss to look at: the conversation is
+  /// still on disk and still what the host builds the next request from, but the
+  /// screen showed an empty task. Nothing re-read it. This is the re-read.
+  ///
+  /// Activation is the trigger rather than a background sweep, because it is the
+  /// only moment the answer is about to be looked at, and it is exactly when the
+  /// three ways a lane goes missing all present: opening an evicted tab, and
+  /// landing on a task after a workspace switch, are both activations.
+  ///
+  /// The lane's own `historyStatus` bounds it to one read per lane — see
+  /// `beginHistoryRestore`, which claims it atomically — so re-running this
+  /// effect is free and neither tab-switching nor a re-render can amplify into
+  /// repeated host traffic.
+  useEffect(() => {
+    if (routedTaskId === null || chatHistoryClient === null || activeWorkspace === null) {
+      return;
+    }
+    if (chatLane.historyStatus !== "unread") {
+      return;
+    }
+    const routing = beginChatHistoryRestore(routedTaskId);
+    if (routing === null) {
+      return;
+    }
+    chatHistoryClient
+      .chatHistory({
+        workspaceId: activeWorkspace.workspaceId,
+        workspaceGrantEpoch: activeWorkspace.grantEpoch,
+        // The task id *is* the durable session ref — the same value `chat.send`
+        // carries — which is what makes this read return the transcript this tab
+        // has been writing to rather than some other one.
+        clientSessionRef: routing.sessionId,
+      })
+      .then((projection) => {
+        applyToChatLane(routing, (lane) => applyRestoredHistory(lane, projection));
+      })
+      .catch((error: unknown) => {
+        // Deliberately not `markReadOnlyRecovery` even for an integrity code:
+        // failing to read one transcript is not evidence the host's authority is
+        // broken, and tearing the whole session down over it would be a far
+        // larger response than the failure warrants. The lane says so and offers
+        // a retry; everything else keeps working.
+        applyToChatLane(routing, (lane) => failHistoryRestore(lane, getSafeHostMessage(error)));
+      });
+  }, [
+    activeWorkspace,
+    applyToChatLane,
+    beginChatHistoryRestore,
+    chatHistoryClient,
+    chatLane.historyStatus,
+    routedTaskId,
+  ]);
 
   useEffect(() => {
     clearMethodLibraryProjection();
@@ -2182,13 +2263,35 @@ export function App({
         sending: false,
         pending: null,
         error: null,
+        retryable: false,
       }));
+      // Attachments are spent by the send that carried them. Leaving them armed
+      // meant the next message silently re-sent, re-billed and re-entered every
+      // one of them into the reviewed-context manifest — consent given once,
+      // acted on every turn, with nothing on screen distinguishing "these went
+      // last time" from "these go again".
+      //
+      // Ordering matters: `clearContext` sets `attachNotice` to null, so the
+      // notice has to be written after it or it is erased immediately.
+      if (contextPaths.length > 0) {
+        const count = contextPaths.length;
+        clearContext();
+        setAttachNotice(
+          `Sent ${count} attached ${count === 1 ? "file" : "files"} with this message. `
+          + `Attach again to include ${count === 1 ? "it" : "them"} in the next one.`,
+        );
+      }
     } catch (error: unknown) {
+      // `pending` deliberately survives. Clearing it here destroyed what the
+      // user had typed, so a failed turn cost them the message as well as the
+      // answer — and the host can now tell them a rate limit or a provider
+      // outage is worth sending again, which is useless advice if the text is
+      // gone. The composer stays usable because it is gated on `sending`.
       chatSessions.applyToLane(routing, (lane) => ({
         ...lane,
         sending: false,
-        pending: null,
         error: getSafeHostMessage(error),
+        retryable: error instanceof HostCommandError && error.details.retryable,
       }));
       throw error;
     }
@@ -2206,7 +2309,16 @@ export function App({
       });
       setWorkflowState({ state, loading: false, error: null });
     } catch (error: unknown) {
-      setWorkflowState({ state: null, loading: false, error: getSafeHostMessage(error) });
+      // Keep the progress already on screen. Nulling it collapsed four phases,
+      // their gates and their evidence paths down to one error sentence, which
+      // is indistinguishable from a workspace that has no method installed —
+      // so a transient refresh failure looked like the feature was missing.
+      // The panel renders the failure as a banner above the retained state.
+      setWorkflowState((current) => ({
+        state: current.state,
+        loading: false,
+        error: getSafeHostMessage(error),
+      }));
     }
   }
 
@@ -2325,7 +2437,7 @@ export function App({
     if (hostRuntime.kind === "browser_demo") {
       return {
         kind: "unavailable",
-        reason: "Governed edits require the signed Windows desktop host. This browser view is for visual QA only.",
+        reason: "Governed edits require the Windows desktop host. This browser view is for visual QA only.",
       };
     }
     if (!governedEditsCommandsAvailable || hostRuntime.kind !== "ready") {
@@ -3125,6 +3237,19 @@ export function App({
     />
   ) : appModal === "delete-task" && pendingDeleteTask !== null ? (
     <DeleteTaskDialog
+      historyStatus={chatSessions.historyStatusFor(pendingDeleteTask.id)}
+      // A browser preview has no host and no store, so nothing was ever
+      // written. A task proven to hold no messages never reached `chat.send`,
+      // so no durable row exists for it either. Anything else — including a
+      // history read that has not finished or failed — might have one, and the
+      // warning stands.
+      mayHaveDurableCopy={
+        hostRuntime.kind !== "browser_demo"
+        && !(
+          chatSessions.historyStatusFor(pendingDeleteTask.id) === "loaded"
+          && chatSessions.messageCountFor(pendingDeleteTask.id) === 0
+        )
+      }
       messageCount={chatSessions.messageCountFor(pendingDeleteTask.id)}
       onCancel={dismissTaskDeletion}
       onConfirm={confirmTaskDeletion}
@@ -3330,6 +3455,7 @@ export function App({
               onSuggestContext={suggestContext}
               onSendRequest={sendChatMessage}
               chatLane={chatLane}
+              onRetryHistory={() => retryChatHistoryRestore(selectedTask.id)}
               onAskMethodGuidance={sendBmadMessage}
               onSelectAgent={(agentCode) => {
                 chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));

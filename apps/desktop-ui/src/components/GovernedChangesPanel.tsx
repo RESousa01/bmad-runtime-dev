@@ -357,9 +357,25 @@ export function GovernedChangesPanel({
         </div>
         <div className="context-review-notice" role="note">
           <strong>Nothing has changed yet</strong>
+          {/*
+            This used to promise the files were written "atomically". That was
+            true when applying meant writing a temp file and renaming it over
+            the target, and it stopped being true when the write became
+            identity-bound: the host now rewrites the exact file object it
+            verified, through a handle nothing can redirect, because a rename
+            resolves the destination by *name* and a name can be re-pointed
+            between the check and the write.
+
+            The trade is deliberate and documented at
+            `desktop-workspace/src/governed_io.rs`. What protects the user
+            against an interrupted write is the checkpoint, not atomicity — so
+            that is what this says. A guarantee the code does not keep is worse
+            than a weaker one it does.
+          */}
           <span>
-            Applying consumes this exact reviewed proposal once, records a checkpoint, and
-            writes the files atomically.
+            Applying consumes this exact reviewed proposal once. A checkpoint is
+            recorded first, so an apply that is interrupted can be rolled back,
+            and each file is written to the exact object that was checked.
           </span>
         </div>
         <ReviewFiles files={review.files} />
