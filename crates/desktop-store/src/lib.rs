@@ -90,7 +90,7 @@ pub use bmad_method::{
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
     MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
 };
-pub use chat::{StoredChatMessage, StoredChatSession};
+pub use chat::{ChatTurnAppend, ChatTurnMessage, StoredChatMessage, StoredChatSession};
 pub use execution::{
     EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,
     ExecutionResultAppend, ExecutionResultRow, EXECUTION_CHECKPOINT_KIND,

@@ -22,7 +22,7 @@
 //! builds the authorized request under the lock, the caller dispatches
 //! unlocked, and `finalize` or `abort` re-acquires it.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use desktop_cloud::{AuthorizedModelRequest, RawModelOutput};
@@ -37,7 +37,7 @@ use desktop_runtime::{
     ChatTurn, ContractId, RelativeWorkspacePath, Sha256Digest, ToolInvocation, UnixMillis,
     CHAT_TOOL_TURN_SCHEMA, CHAT_TURN_SCHEMA, MAX_PROMPT_TRANSCRIPT_BYTES,
 };
-use desktop_store::LocalStore;
+use desktop_store::{ChatTurnAppend, ChatTurnMessage, LocalStore};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -264,6 +264,15 @@ pub(crate) struct ChatCoordinator {
     /// because that is what `finalize`/`abort`/`resume` are handed; the
     /// per-session rule is enforced separately in `begin_turn`.
     in_flight: BTreeMap<u64, InFlightTurn>,
+    /// Conversations whose durable transcript is on disk but cannot be rebuilt
+    /// into a live session.
+    ///
+    /// Such a transcript is unreadable, not absent, and the difference matters:
+    /// treating it as absent meant `history` handed back an empty conversation
+    /// and the next send opened a *fresh* in-memory session over it, so every
+    /// later turn appended to a durable record the user could never see. A
+    /// conversation in here fails closed on both paths instead.
+    unreadable: BTreeSet<ContractId>,
     dispatch_seq: u64,
 }
 
@@ -274,6 +283,7 @@ impl ChatCoordinator {
             sessions: BTreeMap::new(),
             order: Vec::new(),
             in_flight: BTreeMap::new(),
+            unreadable: BTreeSet::new(),
             dispatch_seq: 0,
         }
     }
@@ -285,11 +295,19 @@ impl ChatCoordinator {
         self.sessions.clear();
         self.order.clear();
         self.in_flight.clear();
+        self.unreadable.clear();
     }
 
     /// Loads one conversation, rehydrating it from the store when this process
     /// has not seen it yet. That is what makes a transcript survive a restart:
     /// the store is the record, this map is only a live cache.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatCoordinatorError::Integrity`] when a durable transcript
+    /// exists but cannot be rebuilt. That is deliberately *not* reported as an
+    /// empty conversation: an empty conversation invites the user to type into
+    /// a record they cannot see.
     pub(crate) fn history(
         &mut self,
         installation_id: &ContractId,
@@ -299,7 +317,7 @@ impl ChatCoordinator {
     ) -> Result<ChatHistoryProjection, ChatCoordinatorError> {
         let session_id = chat_session_id(installation_id, workspace_id, client_session_ref)?;
         if !self.sessions.contains_key(&session_id) {
-            self.rehydrate(&session_id, workspace_id, store);
+            self.rehydrate(&session_id, workspace_id, store)?;
         }
         let session = self.sessions.get(&session_id);
         Ok(ChatHistoryProjection {
@@ -314,17 +332,34 @@ impl ChatCoordinator {
     /// Rebuilds one conversation from durable rows. A stored transcript that
     /// does not satisfy the runtime's own invariants is dropped rather than
     /// half-loaded, so a corrupt record can never become live state.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ChatCoordinatorError::Unauthorized`] when the stored session
+    /// belongs to another workspace, and [`ChatCoordinatorError::Integrity`]
+    /// when it cannot be read or rebuilt. Nothing stored at all is `Ok`: a
+    /// conversation that has never been written to is simply new.
     fn rehydrate(
         &mut self,
         session_id: &ContractId,
         workspace_id: &ContractId,
         store: &LocalStore,
-    ) {
-        let Ok(Some(stored)) = store.chat_session(session_id.as_str()) else {
-            return;
+    ) -> Result<(), ChatCoordinatorError> {
+        let unreadable = |coordinator: &mut Self, error: ChatCoordinatorError| {
+            coordinator.unreadable.insert(session_id.clone());
+            Err(error)
+        };
+        let loaded = store.chat_session(session_id.as_str());
+        let stored = match loaded {
+            Ok(Some(stored)) => stored,
+            Ok(None) => {
+                self.unreadable.remove(session_id);
+                return Ok(());
+            }
+            Err(_) => return unreadable(self, ChatCoordinatorError::Integrity),
         };
         if stored.workspace_id != workspace_id.as_str() {
-            return;
+            return unreadable(self, ChatCoordinatorError::Unauthorized);
         }
         let mut session = ChatSession::open(session_id.clone(), workspace_id.clone());
         session.set_agent_code(stored.agent_code.clone());
@@ -342,20 +377,45 @@ impl ChatCoordinator {
                         ToolInvocation::new(tool.to_owned(), subject.to_owned())
                             .and_then(|invocation| session.append_tool_call(&invocation, at))
                     }
-                    None => return,
+                    None => return unreadable(self, ChatCoordinatorError::Integrity),
                 },
                 "tool_result" => session.append_tool_result(message.text, at),
-                _ => return,
+                _ => return unreadable(self, ChatCoordinatorError::Integrity),
             };
             if applied.is_err() {
-                return;
+                return unreadable(self, ChatCoordinatorError::Integrity);
             }
         }
         // A dangling question would block the next send; drop it on load.
+        let dangling = session.has_pending_user_message();
         session.rollback_pending_user();
+        if dangling {
+            // The durable rows behind it are the ones just dropped, and only
+            // those: `repair_dangling_chat_tail` removes exactly the run after
+            // the newest assistant reply. Reached only for a store an older
+            // build left mid-turn — a turn is now written all-or-nothing, so
+            // this build cannot produce a dangling tail of its own.
+            //
+            // Best effort on purpose. A failed repair leaves the conversation
+            // exactly as wedged as it already was, while still loading for
+            // reading; the next send then fails loudly at the store's grammar
+            // rather than silently growing an invisible transcript. Failing the
+            // whole load here would take away read access too, over a
+            // recovery step that was never owed.
+            let _ = store.repair_dangling_chat_tail(session_id.as_str(), workspace_id.as_str());
+        }
+        self.unreadable.remove(session_id);
         self.sessions.insert(session_id.clone(), session);
         self.order.push(session_id.clone());
         self.evict_oldest(session_id);
+        Ok(())
+    }
+
+    /// Whether this conversation has a durable transcript that could not be
+    /// rebuilt. Sending into one is refused: the record is unreadable, not
+    /// absent, and a new turn appended to it would be invisible to the user.
+    fn is_unreadable(&self, session_id: &ContractId) -> bool {
+        self.unreadable.contains(session_id)
     }
 
     fn session_mut(
@@ -417,6 +477,13 @@ impl ChatCoordinator {
         )?;
         if session_busy(self, &session_id) {
             return Err(ChatCoordinatorError::Conflict);
+        }
+        // A conversation whose durable transcript could not be rebuilt is not
+        // an empty one. Opening a fresh in-memory session over it is what made
+        // every later turn append to a record the user cannot see, so sending
+        // is refused until the record can be read again.
+        if self.is_unreadable(&session_id) {
+            return Err(ChatCoordinatorError::Integrity);
         }
         {
             let session = self.session_mut(&session_id, input.workspace_id);
@@ -695,20 +762,31 @@ impl ChatCoordinator {
         // Persist the completed exchange so it survives a restart. A storage
         // failure must not silently drop a reply the user can already see, so
         // it fails the turn rather than being swallowed.
+        //
+        // One call, one transaction, for the whole turn. Appending message by
+        // message meant a crash or a single failed append between commits left
+        // a durable `user` or `tool_call` row with no turn behind it — which
+        // the store's grammar then refuses to let any later turn follow, and
+        // no delete exists to clear. All-or-nothing is what keeps a partial
+        // turn from becoming a permanent one.
         let agent_code = session.agent_code().map(str::to_owned);
         let workspace_id = session.workspace_id().as_str().to_owned();
-        for message in &turn_messages {
-            store
-                .append_chat_message(
-                    in_flight.session_id.as_str(),
-                    &workspace_id,
-                    agent_code.as_deref(),
-                    message.role.as_str(),
-                    &message.text,
-                    message.created_at.0,
-                )
-                .map_err(|_| ChatCoordinatorError::Integrity)?;
-        }
+        let rows: Vec<ChatTurnMessage<'_>> = turn_messages
+            .iter()
+            .map(|message| ChatTurnMessage {
+                role: message.role.as_str(),
+                text: &message.text,
+                created_at_ms: message.created_at.0,
+            })
+            .collect();
+        store
+            .append_chat_turn(ChatTurnAppend {
+                session_id: in_flight.session_id.as_str(),
+                workspace_id: &workspace_id,
+                agent_code: agent_code.as_deref(),
+                messages: &rows,
+            })
+            .map_err(|_| ChatCoordinatorError::Integrity)?;
         Ok(TurnOutcome::Completed(Box::new(ChatTurnProjection {
             session_id: in_flight.session_id.clone(),
             agent_code,
@@ -1067,6 +1145,9 @@ mod tests {
     use desktop_runtime::{
         ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, CHAT_TURN_SCHEMA,
     };
+    use desktop_store::KeyProtector;
+
+    use super::{ChatCoordinator, ChatTurnAppend, ChatTurnMessage, LocalStore};
 
     fn id(value: &str) -> ContractId {
         ContractId::new(value).expect("identifier")
@@ -1516,5 +1597,260 @@ first answer"
     #[test]
     fn an_empty_transcript_yields_no_item() {
         assert!(transcript_candidate(&[]).expect("transcript").is_none());
+    }
+
+    #[derive(Debug)]
+    struct TestProtector;
+
+    impl KeyProtector for TestProtector {
+        fn protect(&self, plaintext: &[u8]) -> Result<Vec<u8>, desktop_store::StoreError> {
+            Ok(plaintext.to_vec())
+        }
+
+        fn unprotect(&self, protected: &[u8]) -> Result<Vec<u8>, desktop_store::StoreError> {
+            Ok(protected.to_vec())
+        }
+    }
+
+    fn chat_store(directory: &tempfile::TempDir) -> LocalStore {
+        LocalStore::open(directory.path(), &TestProtector).expect("store")
+    }
+
+    fn conversation() -> (ContractId, ContractId, ContractId) {
+        let installation = id("install_chat");
+        let workspace = id("ws_chat");
+        let session_id =
+            super::chat_session_id(&installation, &workspace, "ref_1").expect("session id");
+        (installation, workspace, session_id)
+    }
+
+    /// Regression guard for the wedge. An older build persisted a turn one
+    /// message per transaction, so a crash between commits left a durable
+    /// `user` row with no turn behind it. `rollback_pending_user` hid it from
+    /// the user but only in memory, and the store's grammar then refused every
+    /// later turn — permanently, with no delete anywhere able to clear it.
+    #[test]
+    fn a_partial_turn_left_by_an_older_build_is_repaired_on_load() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let store = chat_store(&directory);
+        let (installation, workspace, session_id) = conversation();
+        store
+            .append_chat_message(
+                session_id.as_str(),
+                workspace.as_str(),
+                None,
+                "user",
+                "the question whose turn never closed",
+                1_000,
+            )
+            .expect("the wedged row an older build left behind");
+
+        let mut coordinator = ChatCoordinator::new();
+        let history = coordinator
+            .history(&installation, &workspace, "ref_1", &store)
+            .expect("a repairable conversation must still load");
+        assert!(history.messages.is_empty());
+
+        // Repaired durably, not just in memory: the row the user could never
+        // see is gone, and it was the only one.
+        assert!(store
+            .chat_session(session_id.as_str())
+            .expect("read back")
+            .is_none_or(|stored| stored.messages.is_empty()));
+
+        // Which is the whole point — the next turn is no longer refused.
+        store
+            .append_chat_turn(ChatTurnAppend {
+                session_id: session_id.as_str(),
+                workspace_id: workspace.as_str(),
+                agent_code: None,
+                messages: &[
+                    ChatTurnMessage {
+                        role: "user",
+                        text: "asked again",
+                        created_at_ms: 2_000,
+                    },
+                    ChatTurnMessage {
+                        role: "assistant",
+                        text: "answered",
+                        created_at_ms: 2_001,
+                    },
+                ],
+            })
+            .expect("a repaired conversation must accept a new turn");
+    }
+
+    /// The repair is only ever applied to a transcript that was understood in
+    /// full. A completed turn behind the wreckage survives it.
+    #[test]
+    fn repair_on_load_keeps_every_completed_turn() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let store = chat_store(&directory);
+        let (installation, workspace, session_id) = conversation();
+        for (role, text, at) in [
+            ("user", "first", 1_000_u64),
+            ("assistant", "answer", 1_001),
+            ("user", "second", 2_000),
+            ("tool_call", "glob src/**", 2_001),
+        ] {
+            store
+                .append_chat_message(
+                    session_id.as_str(),
+                    workspace.as_str(),
+                    None,
+                    role,
+                    text,
+                    at,
+                )
+                .expect("seed");
+        }
+
+        let mut coordinator = ChatCoordinator::new();
+        let history = coordinator
+            .history(&installation, &workspace, "ref_1", &store)
+            .expect("history");
+        let seen: Vec<(&str, &str)> = history
+            .messages
+            .iter()
+            .map(|message| (message.role.as_str(), message.text.as_str()))
+            .collect();
+        assert_eq!(seen, vec![("user", "first"), ("assistant", "answer")]);
+
+        let stored = store
+            .chat_session(session_id.as_str())
+            .expect("read back")
+            .expect("session");
+        let durable: Vec<(&str, &str)> = stored
+            .messages
+            .iter()
+            .map(|message| (message.role.as_str(), message.text.as_str()))
+            .collect();
+        assert_eq!(durable, vec![("user", "first"), ("assistant", "answer")]);
+    }
+
+    /// A durable transcript that cannot be rebuilt is reported as a failure,
+    /// not handed back as an empty conversation. Returning empty is what let
+    /// the app open a *fresh* session over it and keep appending turns the user
+    /// could never see.
+    ///
+    /// The two shapes below are what remains of the store/runtime disagreement
+    /// after the clock is enforced: `chat_messages` bounds neither the message
+    /// text nor a `tool_call`'s "<tool> <subject>" rendering, and
+    /// `ChatMessage::new` / `ToolInvocation::new` refuse both. Closing either
+    /// gap in the store is a fix, not a regression — this test would then need
+    /// a row injected some other way.
+    #[test]
+    fn a_transcript_that_cannot_be_rebuilt_is_reported_rather_than_emptied() {
+        for (label, tail) in [
+            ("a message past the runtime's byte ceiling", None),
+            ("a tool call with no subject", Some(("tool_call", "glob"))),
+        ] {
+            let directory = tempfile::tempdir().expect("tempdir");
+            let store = chat_store(&directory);
+            let (installation, workspace, session_id) = conversation();
+            let oversized = "x".repeat(32_769);
+            let opening = if tail.is_some() {
+                "a question"
+            } else {
+                &oversized
+            };
+            store
+                .append_chat_message(
+                    session_id.as_str(),
+                    workspace.as_str(),
+                    None,
+                    "user",
+                    opening,
+                    1_000,
+                )
+                .expect("the store admits it");
+            if let Some((role, text)) = tail {
+                store
+                    .append_chat_message(
+                        session_id.as_str(),
+                        workspace.as_str(),
+                        None,
+                        role,
+                        text,
+                        1_001,
+                    )
+                    .expect("the store admits it");
+            }
+
+            let mut coordinator = ChatCoordinator::new();
+            let outcome = coordinator.history(&installation, &workspace, "ref_1", &store);
+            assert_eq!(
+                outcome.err(),
+                Some(ChatCoordinatorError::Integrity),
+                "{label}: an unreadable transcript must not read as an empty one"
+            );
+            // And sending is refused too, so nothing is appended to a record
+            // the user cannot see.
+            assert!(
+                coordinator.is_unreadable(&session_id),
+                "{label}: the conversation must stay closed to new turns"
+            );
+            assert!(
+                !coordinator.sessions.contains_key(&session_id),
+                "{label}: no live session may stand in for the durable one"
+            );
+            // Nothing was deleted: a transcript that was never understood is
+            // never repaired.
+            let stored = store
+                .chat_session(session_id.as_str())
+                .expect("read back")
+                .expect("session");
+            assert_eq!(
+                stored.messages.len(),
+                if tail.is_some() { 2 } else { 1 },
+                "{label}: an uninterpretable transcript must be left intact"
+            );
+        }
+    }
+
+    /// A conversation with nothing durable behind it is simply new.
+    #[test]
+    fn an_unwritten_conversation_loads_empty_without_error() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let store = chat_store(&directory);
+        let (installation, workspace, session_id) = conversation();
+        let mut coordinator = ChatCoordinator::new();
+        let history = coordinator
+            .history(&installation, &workspace, "ref_1", &store)
+            .expect("a new conversation is not a failure");
+        assert!(history.messages.is_empty());
+        assert!(!coordinator.is_unreadable(&session_id));
+    }
+
+    /// A transcript belonging to someone else is a grant failure, not an empty
+    /// conversation, and it is never repaired.
+    #[test]
+    fn another_workspace_s_transcript_is_refused() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let store = chat_store(&directory);
+        let (installation, workspace, session_id) = conversation();
+        store
+            .append_chat_message(
+                session_id.as_str(),
+                "ws_someone_else",
+                None,
+                "user",
+                "not yours",
+                1_000,
+            )
+            .expect("seed");
+
+        let mut coordinator = ChatCoordinator::new();
+        let outcome = coordinator.history(&installation, &workspace, "ref_1", &store);
+        assert_eq!(outcome.err(), Some(ChatCoordinatorError::Unauthorized));
+        assert_eq!(
+            store
+                .chat_session(session_id.as_str())
+                .expect("read back")
+                .expect("session")
+                .messages
+                .len(),
+            1
+        );
     }
 }
