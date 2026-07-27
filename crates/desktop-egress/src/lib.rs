@@ -22,7 +22,7 @@ pub use manifest::{
     RedactionRecord, RetentionMode, SecretFinding,
 };
 pub use preparation::{
-    ContextCandidate, ContextPreparer, PatternSecretScanner, PrepareContextInput,
-    SecretScanFinding, SecretScanResult, SecretScanner,
+    reintroduced_redaction_marker, ContextCandidate, ContextPreparer, PatternSecretScanner,
+    PrepareContextInput, SecretScanFinding, SecretScanResult, SecretScanner, REDACTION_MARKERS,
 };
 pub use turn_grant::{CallRecord, TurnEgressEntry, TurnEgressGrant, MAX_TURN_MODEL_CALLS};
