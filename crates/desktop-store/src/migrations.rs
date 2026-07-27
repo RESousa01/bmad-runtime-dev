@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 17;
+pub(crate) const LATEST_STORE_VERSION: u32 = 18;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -258,6 +258,37 @@ const V16_TO_V17_SQL: &str = "BEGIN IMMEDIATE;
    PRIMARY KEY(content_hash, kind, schema_version)
  ) STRICT;
  PRAGMA user_version = 17;
+ COMMIT;";
+
+/// v18 adds a column to an existing table, so the table set is unchanged.
+pub(crate) const V18_TABLES: [&str; 26] = V17_TABLES;
+
+/// Verification state moves onto the row it describes.
+///
+/// The boot sweep used to skip anything at or below a single persisted
+/// watermark, and that watermark was a **wall-clock** key built from
+/// `created_at`. Two ways that permanently disables detection:
+///
+/// * a payload written after the clock steps *backwards* sorts below the mark
+///   and is skipped by every later boot -- and this codebase has already been
+///   bitten once by a backwards step, in the IPC rate limiter;
+/// * worse, a payload written while the clock is *ahead* -- a fast RTC, a VM
+///   restored from a snapshot -- drags the mark into the future, and everything
+///   written until real time catches up is skipped.
+///
+/// A per-row mark is monotonic in nothing, so it is unaffected by the clock, by
+/// insertion order, and by rowid reuse after a retention delete (which a naive
+/// rowid cursor would have reintroduced, because `retention.rs` does delete
+/// payloads and `SQLite` hands the freed rowid to the next insert).
+///
+/// The old key is dropped rather than reinterpreted: an unmarked payload is
+/// simply verified again, so the first boot after this migration is one full
+/// sweep. That is the safe direction -- the alternative is silently trusting a
+/// value whose meaning changed.
+const V17_TO_V18_SQL: &str = "BEGIN IMMEDIATE;
+ ALTER TABLE payloads ADD COLUMN verified_at TEXT;
+ DELETE FROM store_meta WHERE key = 'payload_verification_watermark';
+ PRAGMA user_version = 18;
  COMMIT;";
 
 /// Widens `chat_messages.role` to admit the two tool roles (ADR-0009).
@@ -949,8 +980,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V16_TO_V17_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            17 => {
                 require_store_tables(connection, &V17_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V17_TO_V18_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V18_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

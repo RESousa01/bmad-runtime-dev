@@ -68,6 +68,7 @@ const RESTORE_RELEASED_V8_HELP_RUN_TABLE_SQL: &str = "
  DELETE FROM payloads WHERE kind = 'bmad_help_run_renderer_projection';
  CREATE INDEX bmad_help_run_creations_scope
    ON bmad_help_run_creations(owner_scope_ref, project_id, run_id, session_id);
+ ALTER TABLE payloads DROP COLUMN verified_at;
  PRAGMA user_version = 8;";
 
 #[derive(Debug)]
@@ -879,7 +880,7 @@ fn released_v8_help_history_migrates_without_inventing_a_projection(
     restore_released_v8_help_run_table(&database_path)?;
 
     let migrated = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(migrated.schema_version()?, 17);
+    assert_eq!(migrated.schema_version()?, 18);
     migrated.verify_integrity()?;
     assert!(matches!(
         migrated.replay_bmad_help_run(&replay_request(&legacy)),
@@ -914,7 +915,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
-    assert_eq!(fresh.schema_version()?, 17);
+    assert_eq!(fresh.schema_version()?, 18);
     let expected = fresh.schema_catalog()?;
 
     let upgrade_directory = tempfile::tempdir()?;
@@ -935,11 +936,12 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
          DROP TABLE effect_journals;
          DROP TABLE execution_checkpoints;
          DROP TABLE bmad_help_run_creations;
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 7;",
     )?;
     drop(connection);
     let upgraded = LocalStore::open(upgrade_directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 17);
+    assert_eq!(upgraded.schema_version()?, 18);
     assert_eq!(upgraded.schema_catalog()?, expected);
 
     let interrupted_directory = tempfile::tempdir()?;
@@ -960,13 +962,14 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
          DROP TABLE effect_journals;
          DROP TABLE execution_checkpoints;
          DROP TABLE bmad_help_run_creations;
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 7;
          BEGIN IMMEDIATE;
          CREATE TABLE bmad_help_run_creations (interrupted TEXT) STRICT;",
     )?;
     drop(connection);
     let resumed = LocalStore::open(interrupted_directory.path(), &TestProtector)?;
-    assert_eq!(resumed.schema_version()?, 17);
+    assert_eq!(resumed.schema_version()?, 18);
     assert_eq!(resumed.schema_catalog()?, expected);
     Ok(())
 }

@@ -74,12 +74,6 @@ const LOCAL_IDENTITY_STATE_SEALED: &str = "sealed";
 const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
 const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
-/// How far the last completed payload sweep got. See [`LocalStore::verify_integrity`].
-const PAYLOAD_VERIFICATION_WATERMARK_KEY: &str = "payload_verification_watermark";
-/// Separator for the watermark's ordering key. A space sorts below every byte
-/// that can appear in a timestamp, a content hash, or a validated label, so
-/// comparing the joined strings agrees with comparing the fields in order.
-const VERIFICATION_KEY_SEPARATOR: char = ' ';
 mod bmad_architecture;
 mod bmad_builder;
 mod bmad_capability;
@@ -270,23 +264,17 @@ struct StoredConsumptionRow {
 #[derive(Debug)]
 struct StoredPayloadRow {
     reference: PayloadRef,
-    created_at: String,
-}
-
-impl StoredPayloadRow {
-    /// A total order over registered payloads, stable across boots. Registration
-    /// time alone is not unique — a turn registers several payloads inside one
-    /// millisecond — so the identity of the row breaks the tie.
-    fn verification_key(&self) -> String {
-        let separator = VERIFICATION_KEY_SEPARATOR;
-        format!(
-            "{}{separator}{}{separator}{}{separator}{}",
-            self.created_at,
-            self.reference.content_hash,
-            self.reference.kind,
-            self.reference.schema_version
-        )
-    }
+    /// When boot verification last authenticated this row, or `None` if it
+    /// never has.
+    ///
+    /// This replaced a single persisted watermark ordered by `created_at`.
+    /// A wall clock is the wrong thing to order a cursor by: a payload written
+    /// after the clock steps backwards sorted below the mark and was skipped by
+    /// every later boot, and — worse — a payload written while the clock ran
+    /// ahead dragged the mark into the future, skipping everything until real
+    /// time caught up. Per-row state is monotonic in nothing, so neither
+    /// direction of clock error can hide a payload from the sweep.
+    verified_at: Option<String>,
 }
 
 /// Why boot verification could not read a payload. A closed vocabulary, matched
@@ -993,20 +981,12 @@ impl LocalStore {
         persist: bool,
         payloads: &[StoredPayloadRow],
     ) -> Result<(), StoreError> {
-        let watermark = match scope {
-            VerificationScope::Everything => None,
-            VerificationScope::SinceWatermark => {
-                load_verification_watermark(&self.connection.lock())?
-            }
-        };
         let mut quarantined = Vec::new();
-        let mut reached = watermark.clone();
+        let mut swept = Vec::new();
         for row in payloads {
-            let key = row.verification_key();
-            if watermark
-                .as_deref()
-                .is_some_and(|mark| key.as_str() <= mark)
-            {
+            // `Everything` re-reads regardless, which is what
+            // `verify_integrity_full` and the recovery view are for.
+            if scope == VerificationScope::SinceWatermark && row.verified_at.is_some() {
                 continue;
             }
             match self.get_payload(&row.reference) {
@@ -1035,24 +1015,22 @@ impl LocalStore {
                 }
                 Err(error) => return Err(error),
             }
-            // Advanced for a quarantined row too: it is known-bad and already
+            // Marked for a quarantined row too: it is known-bad and already
             // recorded, so re-reading it every boot would buy nothing.
-            if reached.as_deref().is_none_or(|mark| mark < key.as_str()) {
-                reached = Some(key);
-            }
+            swept.push(row.reference.clone());
         }
         if persist {
-            self.record_verification_outcome(reached.as_deref(), &quarantined)?;
+            self.record_verification_outcome(&swept, &quarantined)?;
         }
         Ok(())
     }
 
     fn record_verification_outcome(
         &self,
-        watermark: Option<&str>,
+        swept: &[PayloadRef],
         quarantined: &[(PayloadRef, QuarantineReason)],
     ) -> Result<(), StoreError> {
-        if watermark.is_none() && quarantined.is_empty() {
+        if swept.is_empty() && quarantined.is_empty() {
             return Ok(());
         }
         let detected_at = canonical_now();
@@ -1074,11 +1052,19 @@ impl LocalStore {
                 ],
             )?;
         }
-        if let Some(watermark) = watermark {
+        // The mark lives on the row it describes, in the same transaction that
+        // records the quarantine, so a row can never be marked verified without
+        // its outcome also being durable.
+        for reference in swept {
             transaction.execute(
-                "INSERT INTO store_meta (key, value) VALUES (?1, ?2)
-                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-                params![PAYLOAD_VERIFICATION_WATERMARK_KEY, watermark],
+                "UPDATE payloads SET verified_at = ?1
+                 WHERE content_hash = ?2 AND kind = ?3 AND schema_version = ?4",
+                params![
+                    detected_at,
+                    reference.content_hash,
+                    reference.kind,
+                    reference.schema_version
+                ],
             )?;
         }
         transaction.commit()?;
@@ -1632,11 +1618,14 @@ fn load_integrity_snapshot(connection: &Connection) -> Result<IntegritySnapshot,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
-    // Ordered by registration time first, so the sweep can stop at a watermark
-    // rather than re-reading history that has already been authenticated once.
+    // Any stable order will do. The sweep decides what to skip from each row's
+    // own `verified_at`, not from its position, so ordering no longer carries a
+    // correctness burden — which is the point: it used to be ordered by
+    // `created_at` so a cursor could stop early, and a clock that moved in
+    // either direction then hid rows from verification permanently.
     let mut payload_statement = connection.prepare(
-        "SELECT content_hash, kind, schema_version, byte_count, key_version, created_at
-         FROM payloads ORDER BY created_at, content_hash, kind, schema_version",
+        "SELECT content_hash, kind, schema_version, byte_count, key_version, verified_at
+         FROM payloads ORDER BY content_hash, kind, schema_version",
     )?;
     let payloads = payload_statement
         .query_map([], |row| {
@@ -1648,7 +1637,7 @@ fn load_integrity_snapshot(connection: &Connection) -> Result<IntegritySnapshot,
                     byte_count: row.get(3)?,
                     key_version: row.get(4)?,
                 },
-                created_at: row.get(5)?,
+                verified_at: row.get(5)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -1715,17 +1704,6 @@ fn load_local_identity_meta(
             params![LOCAL_IDENTITY_META_KEY, LOCAL_IDENTITY_STATE_KEY],
             |row| Ok((row.get(0)?, row.get(1)?)),
         )
-        .map_err(StoreError::from)
-}
-
-fn load_verification_watermark(connection: &Connection) -> Result<Option<String>, StoreError> {
-    connection
-        .query_row(
-            "SELECT value FROM store_meta WHERE key = ?1",
-            params![PAYLOAD_VERIFICATION_WATERMARK_KEY],
-            |row| row.get::<_, String>(0),
-        )
-        .optional()
         .map_err(StoreError::from)
 }
 
@@ -2233,6 +2211,55 @@ mod tests {
         Ok(())
     }
 
+    /// The boot sweep used to skip anything at or below a single watermark
+    /// ordered by `created_at`, so a wall clock decided what got verified. Both
+    /// directions of clock error hid payloads permanently:
+    ///
+    /// * step the clock **back** and the next payload sorts below the mark;
+    /// * run the clock **ahead** and one payload drags the mark into the future,
+    ///   skipping everything written until real time catches up — the worse
+    ///   case, and it needs no NTP step at all, just a VM snapshot restore.
+    ///
+    /// A clock step is not reproducible in a test, but its effect on the row is,
+    /// so this writes the timestamp the step would have produced.
+    #[test]
+    fn a_payload_written_after_a_clock_step_is_still_swept(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        for stepped_to in ["1999-01-01T00:00:00.000Z", "2999-01-01T00:00:00.000Z"] {
+            let directory = tempfile::tempdir()?;
+            let store = LocalStore::open(directory.path(), &TestProtector)?;
+            store.put_payload("evidence", "evidence.v1", b"first")?;
+            // One clean sweep, so the old design would have a mark to skip past.
+            store.verify_integrity()?;
+
+            let stepped = store.put_payload("evidence", "evidence.v1", b"stepped")?;
+            store.connection.lock().execute(
+                "UPDATE payloads SET created_at = ?1, verified_at = NULL
+                 WHERE content_hash = ?2 AND kind = ?3 AND schema_version = ?4",
+                params![
+                    stepped_to,
+                    stepped.content_hash,
+                    stepped.kind,
+                    stepped.schema_version
+                ],
+            )?;
+            // Damage it, so a sweep that reaches it must say so.
+            let path = store.cas_path("evidence", "evidence.v1", &stepped.content_hash)?;
+            fs::write(&path, b"not the ciphertext this row registered")?;
+
+            store.verify_integrity()?;
+
+            let quarantined = store.quarantined_payloads()?;
+            assert!(
+                quarantined
+                    .iter()
+                    .any(|entry| entry.content_hash == stepped.content_hash),
+                "a payload stamped {stepped_to} was never verified: {quarantined:?}",
+            );
+        }
+        Ok(())
+    }
+
     /// Opens a path denying every share mode, so Windows refuses to delete it
     /// while the handle lives. Rust's ordinary `File::open` grants
     /// `FILE_SHARE_DELETE`, so it does **not** block deletion and cannot be
@@ -2523,6 +2550,7 @@ mod tests {
             let path = store.database_path();
             store.connection.lock().execute_batch(
                 "DROP TABLE payload_quarantine;
+                 ALTER TABLE payloads DROP COLUMN verified_at;
                  PRAGMA user_version = 16;",
             )?;
             path
@@ -2936,6 +2964,7 @@ mod tests {
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
              DROP INDEX outbox_event_once;
+             ALTER TABLE payloads DROP COLUMN verified_at;
              PRAGMA user_version = 3;",
         )?;
         drop(store);
@@ -2989,6 +3018,7 @@ mod tests {
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
              DROP INDEX outbox_event_once;
+             ALTER TABLE payloads DROP COLUMN verified_at;
              PRAGMA user_version = 3;",
         )?;
         store.connection.lock().execute(
@@ -3094,6 +3124,7 @@ mod tests {
              DROP TABLE bmad_method_decision_consumptions;
              DROP TABLE bmad_method_checkpoints;
              DROP TABLE bmad_method_sessions;
+             ALTER TABLE payloads DROP COLUMN verified_at;
              PRAGMA user_version = 4;",
         )?;
         drop(store);

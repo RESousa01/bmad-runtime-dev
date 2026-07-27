@@ -255,6 +255,7 @@ fn a_v12_store_gains_the_memlog_table_on_open() -> Result<(), Box<dyn std::error
          DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_memlog_entries;
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 12;",
     )?;
     drop(connection);
@@ -283,6 +284,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
          DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
          DROP TABLE bmad_memlog_entries;
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 12;",
     )?;
     // A crash mid-migration: the batch opens its transaction and never
@@ -295,7 +297,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 17);
+    assert_eq!(reopened.schema_version()?, 18);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -319,6 +321,7 @@ fn a_half_applied_v13_schema_fails_closed() -> Result<(), Box<dyn std::error::Er
         "DROP TABLE bmad_architecture_session_steps;
          DROP TABLE payload_quarantine;
          DROP TABLE bmad_architecture_sessions;
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 12;",
     )?;
     drop(connection);
@@ -415,12 +418,13 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
            (entry_id, workspace_id, doc_workspace, sequence, kind, author, text, recorded_at_ms)
          VALUES ('legacy', 'workspace_01J77777777777777777777777', 'docs/prd', 0,
                  'decision', NULL, 'Goals: from v13', 1700000000000);
+         ALTER TABLE payloads DROP COLUMN verified_at;
          PRAGMA user_version = 13;",
     )?;
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 17);
+    assert_eq!(upgraded.schema_version()?, 18);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 

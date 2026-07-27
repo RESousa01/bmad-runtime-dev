@@ -471,7 +471,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 17);
+    assert_eq!(fresh.schema_version()?, 18);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -497,6 +497,8 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
              DROP TABLE bmad_builder_analyses;
              DROP TABLE bmad_builder_revisions;
              DROP TABLE bmad_builder_drafts;
+             ALTER TABLE payloads DROP COLUMN verified_at;
+             
              PRAGMA user_version = 5;",
         )?;
         if interrupted {
@@ -508,7 +510,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 17);
+        assert_eq!(reopened.schema_version()?, 18);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
@@ -538,6 +540,8 @@ fn populated_v6_model_analysis_is_refused_without_inventing_consent_history(
          DROP TABLE execution_checkpoints;
          DROP TABLE bmad_help_run_creations;
          DROP TABLE bmad_builder_analysis_decisions;
+         ALTER TABLE payloads DROP COLUMN verified_at;
+         
          PRAGMA user_version = 6;",
     )?;
     drop(connection);
