@@ -89,6 +89,43 @@ The distinction matters because F-04 is cited as the driver for nineteen backlog
 items across five subsystems. Those items need re-reading against the renderer
 before any of them is scheduled.
 
+## Correction: F-04's evidence is stale, its conclusion is not
+
+The section above is right that none of F-04's named code exists, and wrong to
+leave it there. A re-read of the seventeen backlog items F-04 drives found the
+defect alive under different code.
+
+`ContextWindow.tsx:19` computes its budget as:
+
+```ts
+const localTokenBudget = Math.floor(workspaceReadLimits.contextBytes / 4);
+```
+
+and `contracts.ts:267` defines `contextBytes: 256 * 1024`. So the surface
+labelled **Context** displays `used / 64K`, where 64K is a **workspace read
+byte cap divided by four** — a bytes-per-token guess — and not any model's
+context window. The attached-file count renders beside it in the same control.
+
+That is F-04's actual complaint. The prototype hard-coded `32K` beside a
+`256,000` model limit; the renderer derives `64K` from `256 * 1024`. The
+literal has moved and been renamed, and the conflation it was evidence for is
+intact: a local read budget is presented to the user as model capacity, with
+attachments counted alongside it.
+
+Design specification 2 reserves **Context** for the model context window and
+its usage, sources, limit, remaining capacity, compaction and truncation
+state, and 7.5 requires values to be labelled `Reported`, `Estimated` or
+`Unavailable`. `preview.estimatedTokens` is an estimate and is not labelled as
+one.
+
+So F-04 is **partially live**, not stale, and its seventeen dependents stay on
+the board. `FE-16` in particular is a real piece of work: the surface needs to
+read from model-route data rather than from `workspaceReadLimits`.
+
+What is genuinely closed is the navigation half: the composer no longer routes
+to Files, `contextFiles` is gone, and as of this session the control reaches
+the native dialog in one press.
+
 ## Two places where the audit's own numbers mislead
 
 **`FE-11` looks 80% done by path presence and is genuinely half done, but not the
