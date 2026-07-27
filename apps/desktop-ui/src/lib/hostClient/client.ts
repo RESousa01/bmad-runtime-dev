@@ -1037,6 +1037,11 @@ export class DesktopHostClient {
     if (
       apiKey.length < 8
       || apiKey.length > 4_096
+      // The control characters are the subject here, not a typo: the class is a
+      // denylist that rejects C0 and DEL from host-supplied strings. The rule
+      // assumes a control character in a pattern is accidental, which is inverted
+      // for a guard that exists to reject them.
+      // eslint-disable-next-line no-control-regex
       || /[\s\u0000-\u001f\u007f]/u.test(apiKey)
       || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u.test(modelId)
       || (providerId === "openai" && (endpoint !== null || region !== null))

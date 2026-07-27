@@ -1381,7 +1381,7 @@ describe("Forge desktop workbench", () => {
 
     // The question and its answer render as an ordinary conversation.
     expect(await screen.findByText("Deterministic local reply.")).toBeTruthy();
-    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+    expect(screen.getByRole("log", { name: "Conversation" })).toBeTruthy();
 
     // No BMAD concept was invoked to hold a conversation.
     const commands = dispatchedCommandNames(invoke);
@@ -3247,7 +3247,7 @@ describe("Forge task list", () => {
     expect(taskTabNames()).toEqual(["Trace the boot sequence"]);
     // The transcript survived the round trip — that is the whole difference
     // between closing and deleting.
-    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+    expect(screen.getByRole("log", { name: "Conversation" })).toBeTruthy();
     expect(screen.getAllByText("Deterministic local reply.").length).toBeGreaterThan(0);
   });
 
@@ -3272,7 +3272,7 @@ describe("Forge task list", () => {
 
     expect(screen.queryByRole("dialog", { name: "Delete this task?" })).toBeNull();
     expect(taskTabNames()).toEqual(["Review the recovery path"]);
-    expect(screen.getByRole("region", { name: "Conversation" })).toBeTruthy();
+    expect(screen.getByRole("log", { name: "Conversation" })).toBeTruthy();
   });
 
   it("is honest that deleting cannot scrub the copy already written to this device", async () => {

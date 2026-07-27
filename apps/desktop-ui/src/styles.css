@@ -3654,6 +3654,20 @@ code {
   z-index: 60;
 }
 
+.command-palette__scrim {
+  background: transparent;
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+}
+
+.command-palette__scrim:focus-visible {
+  outline: 2px solid var(--color-focus, Highlight);
+  outline-offset: 2px;
+}
+
 .command-palette {
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -3662,6 +3676,8 @@ code {
   display: grid;
   max-width: 520px;
   overflow: hidden;
+  /* Paints above the absolutely positioned dismiss scrim beside it. */
+  position: relative;
   width: min(520px, calc(100vw - 48px));
 }
 

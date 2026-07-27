@@ -77,6 +77,11 @@ export function asBoundedString(value: unknown, maximumLength = 512): string {
     typeof value !== "string" ||
     value.length === 0 ||
     value.length > maximumLength ||
+    // The control characters are the subject here, not a typo: the class is a
+    // denylist that rejects C0 and DEL from host-supplied strings. The rule
+    // assumes a control character in a pattern is accidental, which is inverted
+    // for a guard that exists to reject them.
+    // eslint-disable-next-line no-control-regex
     /[\u0000-\u001f\u007f]/u.test(value)
   ) {
     return fail();

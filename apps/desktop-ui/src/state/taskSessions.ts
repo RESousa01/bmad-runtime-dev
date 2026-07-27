@@ -197,8 +197,12 @@ export interface CapabilitySessionsApi {
  */
 export function useCapabilitySessions(activeSessionId: string): CapabilitySessionsApi {
   const [store, setStore] = useState<CapabilitySessionStore>(emptyCapabilitySessionStore);
+  // Written only by `commit` below. The mirror used to be refreshed by
+  // `storeRef.current = store` here in the component body — a write during
+  // render, which a render React discards still performs. Every mutation
+  // already routes through `commit` and `setStore` is called nowhere else, so
+  // the assignment was redundant as well as illegal.
   const storeRef = useRef(store);
-  storeRef.current = store;
 
   const commit = useCallback((next: CapabilitySessionStore) => {
     storeRef.current = next;

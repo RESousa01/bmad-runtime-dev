@@ -49,12 +49,30 @@ function isInsideCollapsedDetails(element: HTMLElement): boolean {
   return false;
 }
 
-function focusableElements(panel: HTMLElement): HTMLElement[] {
-  return Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-    (element) =>
-      !element.closest("[hidden], [aria-hidden='true'], [inert]")
-      && !isInsideCollapsedDetails(element),
-  );
+/// Exported so every focus trap in the shell agrees on what "focusable" means.
+/// A second, hand-rolled selector is how the `summary` gap above went unnoticed
+/// in one panel while being fixed in another.
+export function focusableElements(panel: HTMLElement): HTMLElement[] {
+  return Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector))
+    .filter(
+      (element) =>
+        !element.closest("[hidden], [aria-hidden='true'], [inert]")
+        && !isInsideCollapsedDetails(element),
+    )
+    // Sorted explicitly, because `first` and `last` are only meaningful in
+    // document order and this list is not reliably in it.
+    //
+    // The spec says `querySelectorAll` returns document order, and Chromium
+    // does. jsdom's selector engine stops doing so once the selector list
+    // contains a descendant combinator — adding `details > summary` to the
+    // list above is what tipped it over — and returns a per-selector union
+    // instead. In this palette that put the search input, which is first in
+    // the DOM, last in the list. Every Tab-containment test in the renderer
+    // therefore ran against a wrap-around the browser never performs, so the
+    // tests passed while asserting the wrong element.
+    .sort((left, right) =>
+      (left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 ? -1 : 1,
+    );
 }
 
 export function useModalPanelFocus(active: boolean): RefObject<HTMLElement | null> {

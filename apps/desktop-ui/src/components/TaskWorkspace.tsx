@@ -171,7 +171,22 @@ function ChatTranscript({ lane }: { readonly lane: ChatLaneState }) {
     return null;
   }
   return (
-    <section aria-label="Conversation" className="chat-transcript">
+    // `role="log"` with a polite live region, because this is the one surface
+    // where the app tells the user something without being asked.
+    //
+    // Without it a screen-reader user was told the agent had started — the
+    // "Thinking…" placeholder below carries `role="status"` — and then never
+    // told it had finished. The reply was appended to a silent container, so
+    // the last thing announced was that a request was in flight, indefinitely.
+    // `aria-relevant="additions"` keeps that to newly appended turns rather
+    // than re-reading the transcript whenever anything in it re-renders.
+    <section
+      aria-label="Conversation"
+      aria-live="polite"
+      aria-relevant="additions"
+      className="chat-transcript"
+      role="log"
+    >
       {lane.messages.map((message, index) => {
         const key = `${message.createdAt}-${index}`;
         // The two tool roles are deliberately not folded into the assistant
@@ -281,6 +296,10 @@ export function TaskWorkspace({
   const attachMenuRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const scrollRegionRef = useRef<HTMLDivElement>(null);
+  /// Whether the user is reading the newest turn. Starts true so the first
+  /// reply of a task is followed, and is re-evaluated on every scroll.
+  const anchoredToBottomRef = useRef(true);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [draft, setDraft] = useState(initialDraft);
   const [renameDraft, setRenameDraft] = useState<string | null>(null);
@@ -324,6 +343,17 @@ export function TaskWorkspace({
     onDraftChange?.(value);
   }
 
+  /// A few pixels of slack, so a fractional scroll height or a sub-pixel
+  /// rounding difference does not read as "the user scrolled up".
+  const bottomAnchorSlackPx = 24;
+
+  function rememberScrollAnchor() {
+    const region = scrollRegionRef.current;
+    if (region === null) return;
+    const distanceFromBottom = region.scrollHeight - region.scrollTop - region.clientHeight;
+    anchoredToBottomRef.current = distanceFromBottom <= bottomAnchorSlackPx;
+  }
+
   useEffect(() => {
     if (!attachMenuOpen) return undefined;
     function closeOnOutsidePointer(event: PointerEvent) {
@@ -345,6 +375,28 @@ export function TaskWorkspace({
     || methodGuidanceState.kind === "submitting";
   const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
     && methodGuidanceState.activity === "recovering";
+
+  // Follow the conversation as it grows.
+  //
+  // There was no autoscroll anywhere in this app: every reply landed below the
+  // fold and the user had to scroll to find out that anything had happened at
+  // all. The anchor makes it a *stick to the bottom* rather than a jump —
+  // scroll up to read an earlier turn and the view stays where it was put,
+  // scroll back down and it resumes following.
+  const transcriptSignature = [
+    chatLane.messages.length,
+    chatLane.pending ?? "",
+    chatLane.error ?? "",
+    methodGuidanceState.kind,
+  ].join(" ");
+
+  useEffect(() => {
+    const region = scrollRegionRef.current;
+    if (region === null || !anchoredToBottomRef.current) {
+      return;
+    }
+    region.scrollTop = region.scrollHeight;
+  }, [transcriptSignature]);
   const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
   // A chat turn in flight disables the composer for the same reason a Help
   // request does: the transcript accepts one question at a time.
@@ -485,7 +537,11 @@ export function TaskWorkspace({
         </div>
       ) : null}
 
-      <div className="task-scroll-region">
+      <div
+        className="task-scroll-region"
+        onScroll={rememberScrollAnchor}
+        ref={scrollRegionRef}
+      >
         {!isBrowserDemo ? (
           <div className="preview-notice" role="note">
             <strong>{methodGuidanceView ? "BMAD Help" : "Current local product"}</strong>

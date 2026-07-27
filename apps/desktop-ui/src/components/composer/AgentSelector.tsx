@@ -88,12 +88,16 @@ export function AgentSelector({
         <span>{triggerLabel}</span>
         <ChevronDown aria-hidden="true" size={13} strokeWidth={1.8} />
       </Button>
+      {/*
+        The popover below carries no `role="region"`: a named `<section>`
+        already has that role, and restating it is how a mapping drifts —
+        change the element and the explicit role silently outlives its reason.
+      */}
       {open ? (
         <section
           aria-label="Agent and model"
           className="agent-control__popover agent-selector"
           id="agent-model-access"
-          role="region"
         >
           <fieldset className="agent-selector__agents">
             <legend className="agent-selector__label">Agent</legend>

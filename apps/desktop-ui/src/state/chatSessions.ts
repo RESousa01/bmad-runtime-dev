@@ -211,17 +211,30 @@ export interface ChatSessionsApi {
 
 export function useChatSessions(activeSessionId: string): ChatSessionsApi {
   const [store, setStore] = useState<ChatSessionStore>(emptyChatSessionStore);
-  // Mirrors the store so callbacks read the freshest value without taking the
-  // store as a dependency (StrictMode-safe; same pattern as taskSessions).
+  // The ref is the authoritative store; `store` is its render mirror. Callbacks
+  // read the ref so several mutations in one tick compose against the freshest
+  // value instead of the last rendered one, and so none of them has to take the
+  // store as a dependency.
+  //
+  // The ref is written *only* here, in `commit`. It used to be written in two
+  // other places, both illegal:
+  //
+  //   - `storeRef.current = store` in the component body, i.e. during render. A
+  //     render React discards still ran that assignment.
+  //   - inside the `setStore` updater, which must be a pure function of its
+  //     argument. React double-invokes updaters under StrictMode, so that write
+  //     ran twice per commit against a function the caller supplies.
+  //
+  // Deriving the next store from the ref and passing a plain value to
+  // `setStore` keeps the same "freshest value in this tick" behaviour with no
+  // write during render and a pure state update. `setStore` is not called
+  // anywhere else, so the two cannot diverge.
   const storeRef = useRef(store);
-  storeRef.current = store;
 
   const commit = useCallback((next: (current: ChatSessionStore) => ChatSessionStore) => {
-    setStore((current) => {
-      const updated = next(current);
-      storeRef.current = updated;
-      return updated;
-    });
+    const updated = next(storeRef.current);
+    storeRef.current = updated;
+    setStore(updated);
   }, []);
 
   const captureRouting = useCallback(

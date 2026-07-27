@@ -105,4 +105,26 @@ describe("RecoveryReview", () => {
     );
     expect((await axe.run(container)).violations).toEqual([]);
   });
+/// The guard used to be a ref read during render. Writing a ref schedules no
+  /// render, so the buttons stayed enabled after a decision was sent and only
+  /// went disabled if something unrelated happened to re-render this subtree.
+  /// The parent sets `busy` eventually, but "eventually" is a host round trip.
+  it("disables both decisions as soon as one is taken, without waiting for busy", async () => {
+    const user = userEvent.setup();
+    const onDecide = vi.fn();
+    render(
+      <RecoveryReview busy={false} onDecide={onDecide} returnFocusTarget={null} review={review} />,
+    );
+
+    const restore = screen.getByRole("button", { name: "Restore checkpoint" });
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    expect(restore).toHaveProperty("disabled", false);
+
+    await user.click(restore);
+
+    // `busy` is still false: the parent has not heard back from the host yet.
+    expect(onDecide).toHaveBeenCalledExactlyOnceWith("restore");
+    expect(restore).toHaveProperty("disabled", true);
+    expect(cancel).toHaveProperty("disabled", true);
+  });
 });

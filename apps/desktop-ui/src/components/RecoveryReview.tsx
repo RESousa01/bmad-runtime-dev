@@ -1,6 +1,6 @@
 import { Button } from "@sapphirus/ui";
 import { RotateCcw, ShieldAlert, X } from "lucide-react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type {
   ChangesRecoveryPrepared,
   RecoveryApprovalChoice,
@@ -29,7 +29,19 @@ export function RecoveryReview({
 }: RecoveryReviewProps) {
   const headingId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Two representations of the same fact, deliberately.
+  //
+  // The ref is the synchronous double-submit guard: two presses landing in one
+  // tick both read the pre-update value of state, so state alone cannot stop
+  // the second from reaching `onDecide` and sending a second decision for one
+  // checkpoint recovery.
+  //
+  // The state is what the buttons render from. They used to read the ref during
+  // render, which does not work: writing a ref schedules no render, so the
+  // buttons stayed enabled until something unrelated re-rendered this subtree.
+  // Whether a submitted recovery looked submitted was down to timing.
   const decisionStartedRef = useRef(false);
+  const [decisionStarted, setDecisionStarted] = useState(false);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -43,6 +55,7 @@ export function RecoveryReview({
   const decide = (choice: RecoveryApprovalChoice) => {
     if (busy || decisionStartedRef.current) return;
     decisionStartedRef.current = true;
+    setDecisionStarted(true);
     onDecide(choice);
   };
 
@@ -77,7 +90,7 @@ export function RecoveryReview({
 
       <div className="change-actions">
         <Button
-          isDisabled={busy || decisionStartedRef.current}
+          isDisabled={busy || decisionStarted}
           onPress={() => decide("cancel")}
           size="large"
           variant="secondary"
@@ -86,7 +99,7 @@ export function RecoveryReview({
           Cancel
         </Button>
         <Button
-          isDisabled={busy || decisionStartedRef.current}
+          isDisabled={busy || decisionStarted}
           onPress={() => decide("restore")}
           size="large"
           variant="primary"

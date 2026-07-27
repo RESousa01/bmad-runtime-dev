@@ -230,6 +230,14 @@ export function GitReviewPanel({
   const statusGeneration = useRef(0);
   const diffGeneration = useRef(0);
 
+  // `loading` cannot be derived during render: it is the state of an
+  // outstanding host read, and the read is started by this effect. Announcing
+  // it synchronously is what the rule's own guidance calls subscribing to an
+  // external system, and the generation guard below is what actually keeps the
+  // result correct. The alternative the rule implies — leaving the previous
+  // workspace's status on screen until the new one resolves — would show one
+  // repository's file list under another repository's name.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const generation = ++statusGeneration.current;
     ++diffGeneration.current;
@@ -248,6 +256,7 @@ export function GitReviewPanel({
       setStatus({ kind: "error" });
     });
   }, [refreshEpoch, source]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const comparisonEntries = useMemo(
     () => status.kind === "ready"
@@ -267,6 +276,10 @@ export function GitReviewPanel({
     : visibleEntries[0]?.relativePath ?? null;
   const statusRevision = status.kind === "ready" ? status.revision : 0;
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Same shape as the status
+     read above: the diff belongs to whichever path is active, the read is
+     asynchronous, and showing the previous file's diff under the new file's
+     name while it loads is the failure this synchronous transition prevents. */
   useEffect(() => {
     const generation = ++diffGeneration.current;
     if (source === null || activePath === null || status.kind !== "ready") {
@@ -286,6 +299,7 @@ export function GitReviewPanel({
       setDiff({ kind: "error", relativePath: activePath });
     });
   }, [activePath, comparison, source, status.kind, statusRevision]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const activeComparison = comparisonOptions.find((option) => option.id === comparison)
     ?? comparisonOptions[0]!;

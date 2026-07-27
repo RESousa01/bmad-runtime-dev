@@ -212,10 +212,23 @@ export function SettingsDialog({
       ?.focus();
   }, []);
 
+  // Prop-to-state sync, and the rule is right that it is one. It is kept
+  // because the host's answer is the authority here: after a connect or a
+  // disconnect the dialog must show the provider and model the host actually
+  // holds, not the draft the user typed on the way there.
+  //
+  // The residual defect is narrow and known: if the host pushes a new model
+  // auth status while the user is mid-edit — a projection event rather than
+  // their own submit — the draft is discarded under them. Neither documented
+  // alternative is better here. Remounting on a `key` would also reset the
+  // form notices and pull focus back to the first control; adjusting state
+  // during render trades this rule for `react-hooks/set-state-in-render`.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSelectedProvider(modelSelection.providerId);
     setModelDraft(modelSelection.modelId);
   }, [modelSelection.modelId, modelSelection.providerId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <section
@@ -454,6 +467,10 @@ export function SettingsDialog({
                       const credential = String(new FormData(form).get("apiKey") ?? "");
                       const keyIsValid = credential.length >= 8
                         && credential.length <= 4_096
+                        // Same denylist as `hostClient/validation.ts`: the control characters are
+                        // what the guard exists to reject, so a literal control class here is
+                        // deliberate.
+                        // eslint-disable-next-line no-control-regex
                         && !/[\s\u0000-\u001f\u007f]/u.test(credential);
                       if (!keyIsValid) {
                         setProviderFormNotice("Enter a valid API key.");

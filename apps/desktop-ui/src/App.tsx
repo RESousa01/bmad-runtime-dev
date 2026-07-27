@@ -927,7 +927,7 @@ export function App({
     setContextPreview(null);
     setContextSelectionMode("manual");
     setContextDrawer(null);
-  }, [clearAllChatLanes]);
+  }, [clearAllChangesFlows, clearAllChatLanes]);
 
   const invalidateHostBoundUi = useCallback(() => {
     invalidateWorkspaceBoundUi();
@@ -977,7 +977,18 @@ export function App({
     ));
   }, [invalidateHostBoundUi]);
 
-  function markReadOnlyRecovery(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"], sequence: number) {
+  // `useCallback`, not a plain declaration, because both markers are captured
+  // by long-lived effects — the projection poller and the method-guidance
+  // recovery effect. A declaration is a new function on every render, so it can
+  // never be an honest dependency: naming it would restart the poller on every
+  // render, and omitting it (which is what the code did) leaves the poller
+  // holding the closure from whichever render happened to mount it. That
+  // closure reads `invalidateHostBoundUi` from a stale render, so the transition
+  // into read-only recovery could invalidate the wrong host binding's UI.
+  const markReadOnlyRecovery = useCallback((
+    client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"],
+    sequence: number,
+  ) => {
     hostBindingGenerationRef.current += 1;
     invalidateHostBoundUi();
     setHostRuntime((current) => {
@@ -1003,9 +1014,12 @@ export function App({
     setWorkspaceActionError(
       "Forge entered read-only recovery. Workspace access was not changed.",
     );
-  }
+  }, [invalidateHostBoundUi]);
 
-  function markHostUnavailable(client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"]) {
+  /// Stabilised for the same reason as `markReadOnlyRecovery` above.
+  const markHostUnavailable = useCallback((
+    client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"],
+  ) => {
     hostBindingGenerationRef.current += 1;
     invalidateHostBoundUi();
     setHostRuntime((current) => {
@@ -1022,7 +1036,7 @@ export function App({
         message: "The signed Windows host could not be verified. Local actions remain unavailable.",
       };
     });
-  }
+  }, [invalidateHostBoundUi]);
 
   function dismissWorkspacePanel() {
     setAppModal(null);
@@ -1049,6 +1063,15 @@ export function App({
     void loadAboutProjection();
   }
 
+  /// Reads the About projection for the host binding that was current when the
+  /// call started, and drops the answer if that binding has since been replaced.
+  ///
+  /// Every other host read in this file is generation-guarded; this one was not.
+  /// `invalidateHostBoundUi` clears `aboutProjection` and sets the status back
+  /// to `unavailable` precisely so a revoked or recovered host's identity is not
+  /// left on screen — but an `app.about` call already in flight resolved
+  /// afterwards and wrote the *old* host's version, build and licence back into
+  /// the dialog, with the status reading `ready`.
   async function loadAboutProjection() {
     if (
       hostRuntime.kind !== "ready"
@@ -1057,14 +1080,18 @@ export function App({
       setAboutStatus("unavailable");
       return;
     }
+    const hostBindingGeneration = hostBindingGenerationRef.current;
     setAboutStatus("loading");
     try {
       const about = await hostRuntime.client.getAbout();
+      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
       setAboutProjection(about);
       setAboutStatus("ready");
     } catch {
+      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
       setAboutStatus("unavailable");
     }
+    if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
     await loadRetentionManifest();
   }
 
@@ -1230,12 +1257,18 @@ export function App({
       setOffboardingStatus("unavailable");
       return;
     }
+    // Same guard as `loadAboutProjection`: this is the second half of the same
+    // await chain, so leaving it unguarded would keep the hole open — the
+    // retention manifest of a revoked workspace's host would still land.
+    const hostBindingGeneration = hostBindingGenerationRef.current;
     setOffboardingStatus("loading");
     try {
       const manifest = await hostRuntime.client.inspectOffboarding();
+      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
       setOffboardingManifest(manifest);
       setOffboardingStatus("ready");
     } catch {
+      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
       setOffboardingStatus("unavailable");
     }
   }
@@ -1590,7 +1623,21 @@ export function App({
       bmadHelpCreationRef.current = null;
       bmadHelpOperationRef.current = null;
     };
-  }, [applyBmadEvent, methodGuidanceBindingKey, methodGuidanceClient]);
+    // `hostRuntime` and `activeWorkspace` are declared even though
+    // `methodGuidanceBindingKey` already encodes the authority they carry:
+    // the key is a string, so it cannot tell the linter that the *objects* read
+    // in the body are current. Neither churns per poll tick — `hostRuntime` is
+    // replaced only on adopt/recovery/unavailable, and `activeWorkspace` is an
+    // element of `hostWorkspaces`, not a fresh object per render — so declaring
+    // them costs no extra runs and makes the closure honest.
+  }, [
+    activeWorkspace,
+    applyBmadEvent,
+    hostRuntime,
+    markReadOnlyRecovery,
+    methodGuidanceBindingKey,
+    methodGuidanceClient,
+  ]);
 
   useEffect(() => {
     if (
@@ -1748,7 +1795,14 @@ export function App({
         window.clearTimeout(timerId);
       }
     };
-  }, [adoptHostRuntime, hostRuntime, loadMethodLibrary, projectionPollIntervalMs]);
+  }, [
+    adoptHostRuntime,
+    hostRuntime,
+    loadMethodLibrary,
+    markHostUnavailable,
+    markReadOnlyRecovery,
+    projectionPollIntervalMs,
+  ]);
 
   useEffect(() => {
     if (
@@ -2446,14 +2500,16 @@ export function App({
     setChangesError(null);
   }
 
-  function clearRecoveryReview() {
+  /// Stable identity: the expiry effect below has to be able to name it.
+  /// It touches only refs and state setters, so it has no dependencies.
+  const clearRecoveryReview = useCallback(() => {
     recoveryGenerationRef.current += 1;
     recoveryDecisionRef.current = false;
     recoveryPreparationRef.current = false;
     setRecoveryReview(null);
     setRecoveryBusy(false);
     setRecoveryReturnFocusTarget(null);
-  }
+  }, []);
 
   useEffect(() => {
     if (recoveryReview === null) return;
@@ -2471,7 +2527,13 @@ export function App({
     return () => {
       if (timeout !== null) window.clearTimeout(timeout);
     };
-  }, [recoveryReview?.expiresAt, recoveryReview?.recoveryApprovalId]);
+    // Declared against the whole review, not two of its fields. The body reads
+    // `recoveryReview.expiresAt` through the closure, so listing the fields
+    // pinned the *timer* to the current review while the *closure* stayed on
+    // whichever review was current when those two fields last changed.
+    // `setRecoveryReview` is called with a fresh object per prepared recovery,
+    // so this adds no extra runs.
+  }, [clearRecoveryReview, recoveryReview]);
 
   async function refreshChangesHistory() {
     if (recoveryDecisionRef.current) {
@@ -2878,7 +2940,13 @@ export function App({
     setAppModal("workspace-manager");
   }
 
+  // `paletteOpen` belongs here. The palette declares `aria-modal="true"`, and
+  // that is a claim about the rest of the page, not about the palette: with the
+  // palette excluded from this predicate the title bar behind it stayed
+  // focusable and stayed exposed to assistive technology, so the "modal" was
+  // one Tab press deep.
   const shellOverlayOpen = appModal !== null
+    || paletteOpen
     || (drawerIsOverlay && contextDrawer !== null);
 
   const drawer = contextDrawer ? (
@@ -3163,7 +3231,17 @@ export function App({
         onSelectTask={selectSession}
         taskTabs={openTaskTabs}
       />
-      <div className="workbench workbench--task-shell">
+      {/*
+        The palette is rendered outside `AppShellLayout`, so its own modal
+        bookkeeping does not cover it. Marking the workbench inert is the other
+        half of honouring `aria-modal` on the palette — `AppShellLayout` already
+        does the equivalent for the drawer and the utility panels.
+      */}
+      <div
+        aria-hidden={paletteOpen || undefined}
+        className="workbench workbench--task-shell"
+        inert={paletteOpen || undefined}
+      >
         <AppShellLayout
           drawer={drawer}
           main={primaryRoute.kind === "home" || selectedTask === null ? (

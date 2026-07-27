@@ -192,4 +192,38 @@ describe("App task-shell integration", () => {
       });
     }
   });
+/// The palette declares `aria-modal="true"`. Nothing behind it may be
+  /// reachable while it is open, and until the shell was told about it the
+  /// title bar and the whole workbench stayed focusable and stayed exposed.
+  it("takes the shell out of reach while the command palette is open", async () => {
+    const { runtime } = await createReadyShellRuntime([primaryShellWorkspace]);
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+    await screen.findAllByText("Local host ready");
+
+    const titlebar = screen.getByRole("banner", { name: "Forge application" });
+    const workbench = document.querySelector(".workbench");
+    expect(workbench).toBeTruthy();
+    expect(titlebar.hasAttribute("inert")).toBe(false);
+    expect(workbench?.hasAttribute("inert")).toBe(false);
+
+    await user.click(within(titlebar).getByRole("button", { name: "Open app menu" }));
+    expect(screen.getByRole("dialog", { name: "Command palette" })).toBeTruthy();
+
+    expect(titlebar.hasAttribute("inert")).toBe(true);
+    expect(workbench?.hasAttribute("inert")).toBe(true);
+    expect(workbench?.getAttribute("aria-hidden")).toBe("true");
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog", { name: "Command palette" })).toBeNull();
+    expect(titlebar.hasAttribute("inert")).toBe(false);
+    expect(workbench?.hasAttribute("inert")).toBe(false);
+  });
 });

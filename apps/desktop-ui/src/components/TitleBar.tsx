@@ -82,6 +82,11 @@ export function TitleBar({
           </Button>
         )}
         {visibleTaskTabs.length === 0 ? null : (
+          // A `tablist` in the APG pattern is deliberately not focusable: the
+          // roving `tabindex` lives on the tabs, and each one below carries it.
+          // Making the container focusable would add a tab stop that lands on
+          // nothing and put the tabs one extra key press away.
+          // eslint-disable-next-line jsx-a11y/interactive-supports-focus
           <div
             aria-label="Open tasks"
             className="title-strip__tabs"

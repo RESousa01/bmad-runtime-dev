@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "../test/setup";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
@@ -590,5 +590,129 @@ describe("TaskWorkspace Method guidance", () => {
     expect(screen.getByText(/No access to your device or a model/i)).toBeTruthy();
     expect(screen.queryByText("Demo mode")).toBeNull();
     expect(screen.queryByText("Local workspace")).toBeNull();
+  });
+});
+
+/// The transcript is the only surface where the app speaks without being asked,
+/// and the only one whose new content a screen-reader user has no other way to
+/// discover. These guard both halves of "the reply arrived": that it is
+/// announced, and that it is on screen.
+describe("TaskWorkspace transcript delivery", () => {
+  const lane = (messages: readonly { role: "user" | "assistant"; text: string }[]) => ({
+    ...emptyChatLane,
+    messages: messages.map((message, index) => ({
+      ...message,
+      createdAt: 1_700_000_000_000 + index,
+    })),
+  });
+
+  /// Instals real, writable metrics on the scroll region. jsdom performs no
+  /// layout, so `scrollHeight` and `clientHeight` are 0 and `scrollTop` is a
+  /// no-op accessor; without this the assertion could not distinguish a working
+  /// autoscroll from a missing one.
+  function measurableScrollRegion(container: HTMLElement, contentHeight: number) {
+    const region = container.querySelector(".task-scroll-region");
+    if (region === null) throw new Error("scroll region is missing");
+    Object.defineProperty(region, "scrollHeight", {
+      configurable: true,
+      get: () => contentHeight,
+    });
+    Object.defineProperty(region, "clientHeight", {
+      configurable: true,
+      get: () => 400,
+    });
+    Object.defineProperty(region, "scrollTop", {
+      configurable: true,
+      value: 0,
+      writable: true,
+    });
+    return region as HTMLElement;
+  }
+
+  it("announces the conversation as a live log", () => {
+    render(
+      <TaskWorkspace
+        {...createProps({ chatLane: lane([{ role: "user", text: "Explain the change set" }]) })}
+      />,
+    );
+
+    const transcript = screen.getByRole("log", { name: "Conversation" });
+    expect(transcript.getAttribute("aria-live")).toBe("polite");
+    expect(transcript.getAttribute("aria-relevant")).toBe("additions");
+  });
+
+  it("scrolls to the newest turn when a reply arrives", () => {
+    const { container, rerender } = render(
+      <TaskWorkspace
+        {...createProps({ chatLane: lane([{ role: "user", text: "Explain the change set" }]) })}
+      />,
+    );
+    const region = measurableScrollRegion(container, 2_000);
+
+    rerender(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: lane([
+            { role: "user", text: "Explain the change set" },
+            { role: "assistant", text: "Three files change." },
+          ]),
+        })}
+      />,
+    );
+
+    expect(region.scrollTop).toBe(2_000);
+  });
+
+  it("leaves the view alone once the user has scrolled up to read history", () => {
+    const { container, rerender } = render(
+      <TaskWorkspace
+        {...createProps({ chatLane: lane([{ role: "user", text: "Explain the change set" }]) })}
+      />,
+    );
+    const region = measurableScrollRegion(container, 2_000);
+
+    // 2000 - 100 - 400 = 1500px from the bottom: the user is reading history.
+    region.scrollTop = 100;
+    fireEvent.scroll(region);
+
+    rerender(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: lane([
+            { role: "user", text: "Explain the change set" },
+            { role: "assistant", text: "Three files change." },
+          ]),
+        })}
+      />,
+    );
+
+    expect(region.scrollTop).toBe(100);
+  });
+
+  it("resumes following once the user scrolls back to the newest turn", () => {
+    const { container, rerender } = render(
+      <TaskWorkspace
+        {...createProps({ chatLane: lane([{ role: "user", text: "Explain the change set" }]) })}
+      />,
+    );
+    const region = measurableScrollRegion(container, 2_000);
+
+    region.scrollTop = 100;
+    fireEvent.scroll(region);
+    region.scrollTop = 1_600;
+    fireEvent.scroll(region);
+
+    rerender(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: lane([
+            { role: "user", text: "Explain the change set" },
+            { role: "assistant", text: "Three files change." },
+          ]),
+        })}
+      />,
+    );
+
+    expect(region.scrollTop).toBe(2_000);
   });
 });

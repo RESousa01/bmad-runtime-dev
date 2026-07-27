@@ -16,7 +16,14 @@ import {
   ShieldCheck,
   Workflow,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import type {
   BmadAssetKind,
   BmadScanProjection,
@@ -237,15 +244,71 @@ export function WorkspaceExplorer({
   const refreshRequestToken = useRef<symbol | null>(null);
   const sourceRef = useRef(source);
   const traversalEpoch = useRef(0);
-  sourceRef.current = source;
+  // `useLayoutEffect`, not an assignment in the component body.
+  //
+  // Every reader of this ref is an async continuation asking "is the workspace
+  // I started reading from still the current one?", and they all run after a
+  // commit. Writing during render answered that question from renders React
+  // may throw away: a discarded render for a source that never commits left
+  // the mirror pointing at it, and continuations belonging to the source that
+  // *did* commit then failed their own identity check and dropped silently —
+  // leaving `previewBusy` and the directory spinners stuck on.
+  //
+  // A layout effect runs after the commit and before any passive effect, so
+  // the reset effect below still observes the new source, and the only window
+  // where the mirror lags is the one before the new source is committed —
+  // which is exactly when the old answer is the right one.
+  useLayoutEffect(() => {
+    sourceRef.current = source;
+  }, [source]);
 
-  function safeReadError(error: unknown): string {
+  /// Stable per `source`, so the effects and callbacks that report through it
+  /// can declare it as a dependency instead of quietly closing over it.
+  const safeReadError = useCallback((error: unknown): string => {
     if (source?.provenance === "browser_demo") {
       return "The browser demo could not load that fixture. No local workspace was accessed.";
     }
     return getSafeHostMessage(error);
-  }
+  }, [source]);
 
+  /// Hoisted above the source-change effect below and given a stable identity,
+  /// so that effect can declare it. It reads nothing but `source` and refs, so
+  /// its identity changes exactly when `source` does — which that effect
+  /// already depends on, so declaring it adds no re-runs.
+  const readFile = useCallback(async (relativePath: string) => {
+    if (!source) {
+      return;
+    }
+    const request = latestPreviewRequest.current + 1;
+    latestPreviewRequest.current = request;
+    const activeSource = source;
+    setPreviewBusy(true);
+    setPreview(null);
+    setErrorMessage(null);
+    try {
+      const projection = await activeSource.readText(relativePath, 128 * 1024);
+      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
+        setPreview(projection);
+      }
+    } catch (error) {
+      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
+        setErrorMessage(safeReadError(error));
+      }
+    } finally {
+      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
+        setPreviewBusy(false);
+      }
+    }
+  }, [safeReadError, source]);
+
+  // Everything below discards a workspace's view and reloads it from scratch.
+  // The synchronous `setState` burst is the discard — it is the effect's whole
+  // purpose, not a cascade caused by one — and the loading flags that follow
+  // exist because a host read is asynchronous and there is nothing to derive
+  // "loading" from during render. `react-hooks/set-state-in-effect` cannot tell
+  // the two apart; the deps below are the part that has to stay honest, and
+  // they are.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let current = true;
     const invalidateRequests = () => {
@@ -325,7 +388,10 @@ export function WorkspaceExplorer({
       });
 
     return invalidateRequests;
-  }, [source]);
+    // Both callbacks are rooted at `source`, so this array still re-runs
+    // exactly once per workspace change.
+  }, [readFile, safeReadError, source]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function refreshWorkspace() {
     if (!source || refreshRequestToken.current) {
@@ -489,32 +555,6 @@ export function WorkspaceExplorer({
       }
     } finally {
       finishDirectoryRequest(relativeDirectory, requestToken);
-    }
-  }
-
-  async function readFile(relativePath: string) {
-    if (!source) {
-      return;
-    }
-    const request = latestPreviewRequest.current + 1;
-    latestPreviewRequest.current = request;
-    const activeSource = source;
-    setPreviewBusy(true);
-    setPreview(null);
-    setErrorMessage(null);
-    try {
-      const projection = await activeSource.readText(relativePath, 128 * 1024);
-      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
-        setPreview(projection);
-      }
-    } catch (error) {
-      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
-        setErrorMessage(safeReadError(error));
-      }
-    } finally {
-      if (request === latestPreviewRequest.current && sourceRef.current === activeSource) {
-        setPreviewBusy(false);
-      }
     }
   }
 

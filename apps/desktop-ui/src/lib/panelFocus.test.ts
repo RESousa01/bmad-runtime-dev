@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, type MockInstance, vi } from "vitest";
 import type { KeyboardEvent } from "react";
 
-import { containModalPanelFocus } from "./panelFocus";
+import { containModalPanelFocus, focusableElements } from "./panelFocus";
 
 /// The shape `containModalPanelFocus` actually reads off a React key event.
 function tabEvent(shiftKey = false): {
@@ -102,5 +102,47 @@ describe("containModalPanelFocus", () => {
 
     expect(preventDefault).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(byId(panel, "copy"));
+  });
+});
+
+describe("focusableElements", () => {
+  /// The ring is only meaningful in document order, and `querySelectorAll` is
+  /// not a reliable source of it here: jsdom's selector engine stops returning
+  /// document order once the selector list contains a descendant combinator,
+  /// which `details > summary` added. Under jsdom it grouped the results by
+  /// selector, putting an `<input>` that is first in the DOM after two buttons
+  /// that follow it — so the wrap-around asserted by the tests above was not
+  /// the one Chromium performs.
+  it("returns the ring in document order regardless of selector shape", () => {
+    const panel = document.createElement("section");
+    panel.innerHTML = `
+      <input id="search" type="text" />
+      <button type="button" id="first-action">New task</button>
+      <button type="button" id="apply">Apply</button>
+    `;
+    document.body.append(panel);
+
+    expect(focusableElements(panel).map((element) => element.id)).toEqual([
+      "search",
+      "first-action",
+      "apply",
+    ]);
+  });
+
+  it("wraps from the last control to the first one in the DOM", () => {
+    const panel = document.createElement("section");
+    panel.innerHTML = `
+      <input id="search" type="text" />
+      <button type="button" id="first-action">New task</button>
+      <button type="button" id="apply">Apply</button>
+    `;
+    document.body.append(panel);
+    panel.querySelector<HTMLElement>("#apply")!.focus();
+
+    const { event, preventDefault } = tabEvent();
+    containModalPanelFocus(event, { current: panel }, true);
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(panel.querySelector("#search"));
   });
 });
