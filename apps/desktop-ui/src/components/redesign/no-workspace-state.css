@@ -24,9 +24,9 @@
 
 .no-workspace-state__eyebrow {
   color: var(--color-text-muted);
-  font-size: var(--text-meta);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin: 0;
   text-transform: uppercase;
 }

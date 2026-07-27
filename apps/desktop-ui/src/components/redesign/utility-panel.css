@@ -26,8 +26,8 @@
   color: var(--color-accent-strong);
   display: block;
   font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin-bottom: 5px;
   text-transform: uppercase;
 }

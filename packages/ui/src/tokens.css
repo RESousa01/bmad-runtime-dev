@@ -29,7 +29,9 @@
 
   --lh-tight: 1;
   --lh-control: 1.2;
-  --lh-prose: 1.65;
+  /* 1.7 is the 3a prototype's dominant prose line height and the top of the
+     1.55-1.7 band the design specification allows for the transcript. */
+  --lh-prose: 1.7;
 
   /* ---- primitive: geometry -------------------------------------------- */
   --radius-4: 4px;

@@ -78,8 +78,9 @@
 
 .app-shell--forge-v2 {
   --shell-control-height: 30px;
-  --shell-radius-md: 6px;
-  --shell-radius-sm: 5px;
+  --shell-radius-md: var(--radius-control);
+  --shell-radius-sm: var(--radius-row);
+  /* 36px matches the title bar height in the master audit, section 7.2. */
   --shell-titlebar-height: 36px;
   --task-shell-drawer-width: clamp(560px, 47vw, 760px);
   background: var(--color-canvas);
@@ -191,10 +192,10 @@
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: var(--text-meta);
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
   gap: 7px;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
   width: fit-content;
 }

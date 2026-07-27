@@ -51,17 +51,19 @@ code {
   width: 1px;
 }
 
+/* Component token layer: the shell's own names resolve to semantic tokens
+   rather than to literals, so the scale has one definition. */
 .app-shell {
   --shell-control-height: 34px;
   --shell-inspector-max-width: 500px;
   --shell-inspector-min-width: 390px;
-  --shell-radius-md: 8px;
-  --shell-radius-sm: 6px;
-  --shell-space-1: 4px;
-  --shell-space-2: 8px;
-  --shell-space-3: 12px;
-  --shell-space-4: 16px;
-  --shell-space-6: 24px;
+  --shell-radius-md: var(--radius-control);
+  --shell-radius-sm: var(--radius-row);
+  --shell-space-1: var(--space-1);
+  --shell-space-2: var(--space-2);
+  --shell-space-3: var(--space-3);
+  --shell-space-4: var(--space-4);
+  --shell-space-6: var(--space-6);
   --shell-titlebar-height: 42px;
   background: var(--color-canvas);
   height: 100dvh;
@@ -231,9 +233,9 @@ code {
   border-radius: 999px;
   color: var(--color-text-muted);
   flex: 0 0 auto;
-  font-size: var(--text-meta);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   padding: 3px 7px;
   text-transform: uppercase;
 }
@@ -341,9 +343,9 @@ code {
 .message__label {
   color: var(--color-text-muted);
   display: block;
-  font-size: var(--text-meta);
-  font-weight: 650;
-  letter-spacing: 0.03em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin-bottom: 4px;
   text-transform: uppercase;
 }
@@ -1422,9 +1424,9 @@ code {
 .workspace-panel__eyebrow {
   color: var(--color-text-muted);
   display: block;
-  font-size: var(--text-meta);
-  font-weight: 650;
-  letter-spacing: 0.05em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin-bottom: 4px;
   text-transform: uppercase;
 }
@@ -1716,9 +1718,9 @@ code {
 .workspace-explorer__header > div:first-child > span {
   color: var(--color-text-muted);
   display: block;
-  font-size: var(--text-meta);
-  font-weight: 650;
-  letter-spacing: 0.055em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin-bottom: 4px;
   text-transform: uppercase;
 }
@@ -2193,9 +2195,9 @@ code {
 }
 
 .bmad-library-panel > h2 {
-  font-size: var(--text-body);
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
 }
 
 .bmad-library-panel > p,
@@ -3172,8 +3174,8 @@ code {
 .bmad-blockers > span {
   color: var(--color-status-pending);
   font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
 }
 
@@ -3274,8 +3276,8 @@ code {
 .bmad-library-panel > h2 {
   color: var(--color-text-muted);
   font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.11em;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
 }
 
@@ -4441,9 +4443,9 @@ code {
 
 .workflow-panel h4 {
   color: var(--color-text-soft);
-  font-size: var(--text-ui);
-  font-weight: 640;
-  letter-spacing: 0.06em;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin: 0 0 6px;
   text-transform: uppercase;
 }
@@ -4476,8 +4478,8 @@ code {
 .workflow-panel__gate {
   color: var(--color-status-pending);
   font-size: var(--text-label);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
 }
 

@@ -139,8 +139,8 @@
 
   .task-kicker {
     color: var(--color-accent-strong);
-    font-size: var(--text-meta);
-    letter-spacing: 0.11em;
+    font-size: var(--text-label);
+    letter-spacing: var(--label-tracking);
   }
 
   .task-header h1 {
@@ -153,8 +153,8 @@
     background: var(--color-accent-soft);
     border-color: color-mix(in srgb, var(--color-accent), transparent 64%);
     color: var(--color-accent-strong);
-    font-size: var(--text-meta);
-    letter-spacing: 0.025em;
+    font-size: var(--text-label);
+    letter-spacing: var(--label-tracking);
     padding: 4px 9px;
     text-transform: none;
   }
