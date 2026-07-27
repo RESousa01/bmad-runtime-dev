@@ -24,8 +24,8 @@
     "dotnet": "Corvus.Json.Cli@5.2.7",
     "dotnetRuntime": "Corvus.Text.Json@5.2.7"
   },
-  "toolLockSha256": "sha256:36cbf299e03977698bb54deae0d23d8296430e6e01fe6649e6ee2fc9732072b9",
-  "generationConfigSha256": "sha256:6465c178dbf19f8669403056ce4a54594c1d619423ff72b5f8514310e8a4c76a",
+  "toolLockSha256": "sha256:85bb8ee7c378abcd5da776b3b3de552f6558cc0219ebf835c8f7bc79dafa38aa",
+  "generationConfigSha256": "sha256:1a3506f759aa75b82a31e8e4cb55829fef7b183e3389c950025754363cb3b1df",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
@@ -12914,12 +12914,12 @@
   "bootstrapLocks": [
     {
       "file": "pnpm-lock.yaml",
-      "sha256": "sha256:28fa1837a685e17c9b696e761fd0f86173a09ed22c666c88378910792ae58a93",
+      "sha256": "sha256:5d42ebb11cd644ca857d873e08442b384416a487df777b8933037f4d0e05211b",
       "status": "reviewed"
     },
     {
       "file": "Cargo.lock",
-      "sha256": "sha256:b94d06503d2aa8b05734a40929ba7b08d9d7d71b7d4432b93d35ad3fbb2244de",
+      "sha256": "sha256:dcbced46fc957aa09e5b249b3c558e20bfe40df884805a2eba59691b188ebf97",
       "status": "reviewed"
     },
     {

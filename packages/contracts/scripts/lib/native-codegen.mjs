@@ -109,7 +109,7 @@ const expectedRustArguments = Object.freeze(["typify", "{input}", "--output", "{
 const expectedBootstrapLocks = Object.freeze({
   pnpm: {
     file: "pnpm-lock.yaml",
-    sha256: "28fa1837a685e17c9b696e761fd0f86173a09ed22c666c88378910792ae58a93",
+    sha256: "5d42ebb11cd644ca857d873e08442b384416a487df777b8933037f4d0e05211b",
     status: "reviewed",
   },
   cargo: {
@@ -118,7 +118,7 @@ const expectedBootstrapLocks = Object.freeze({
     // dependency edges, `globset` and `regex`, promoted from transitive (via
     // `ignore`) to direct for `desktop-workspace`'s glob/grep tools. No package
     // versions changed and no package was added to the tree.
-    sha256: "b94d06503d2aa8b05734a40929ba7b08d9d7d71b7d4432b93d35ad3fbb2244de",
+    sha256: "dcbced46fc957aa09e5b249b3c558e20bfe40df884805a2eba59691b188ebf97",
     status: "reviewed",
   },
   dotnetTools: {

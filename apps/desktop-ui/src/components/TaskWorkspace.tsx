@@ -388,7 +388,7 @@ export function TaskWorkspace({
     chatLane.pending ?? "",
     chatLane.error ?? "",
     methodGuidanceState.kind,
-  ].join(" ");
+  ].join("\u0000");
 
   useEffect(() => {
     const region = scrollRegionRef.current;
