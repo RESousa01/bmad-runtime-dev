@@ -1,0 +1,88 @@
+FORGE
+Terms of use and third-party notices
+
+
+1. ABOUT THIS SOFTWARE
+
+Forge is an internal Windows desktop workspace for governed AI-assisted
+development, published by Sapphirus Engineering. It is proprietary
+software, licensed for use by members of the organization that
+distributed this installer. It is not offered to the public and may not
+be copied or redistributed outside that organization.
+
+Your organization's internal software policy is the authoritative
+agreement covering your use of Forge. This page summarizes it and
+records the notices required by the third-party components included in
+this package.
+
+
+2. WHAT THIS INSTALLER DOES
+
+Forge installs for the current user only. It does not require
+administrator rights and it installs under your own user profile.
+
+The Microsoft Edge WebView2 runtime is included inside this installer
+rather than downloaded, so Forge can be installed on a machine with no
+internet connection.
+
+
+3. WHAT FORGE KEEPS ON THIS DEVICE
+
+Forge keeps an encrypted local store in your user profile, under
+AppData\Local. That store holds your conversations, your approval
+decisions, capability results, and the list of workspace folders you
+have granted Forge access to. It stays on this device.
+
+Forge does not change a workspace folder unless you enable governed
+edits for that folder and approve the specific change it proposes.
+
+
+4. WHAT UNINSTALLING DOES
+
+Uninstalling removes the program and leaves your local store in place,
+so that reinstalling restores your history. The uninstaller offers a
+clearly labelled option to erase the local store instead. That erasure
+is permanent and cannot be undone.
+
+You can also erase the local store at any time from inside Forge, under
+Settings > Local data.
+
+Neither path ever deletes or modifies your own workspace files.
+
+
+5. THIRD-PARTY NOTICES
+
+Forge redistributes instruction sources from BMAD Method 6.10.0 and
+BMAD Builder 2.1.0 verbatim, and adapts interface and provider-routing
+source from OpenCode. All are used under the MIT License.
+
+    Copyright (c) 2025 BMad Code, LLC
+    Copyright (c) 2025 opencode
+
+    Permission is hereby granted, free of charge, to any person
+    obtaining a copy of this software and associated documentation
+    files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use, copy,
+    modify, merge, publish, distribute, sublicense, and/or sell copies
+    of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+BMAD names and marks remain the property of BMad Code, LLC and are not
+licensed under the MIT License. They are used here only to identify the
+reviewed sources.
+
+The complete notices, including the exact upstream license texts, are
+installed alongside Forge as THIRD_PARTY_NOTICES.md and in the
+bmad-foundation\licenses folder.

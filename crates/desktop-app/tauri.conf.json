@@ -29,6 +29,10 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "publisher": "Sapphirus Engineering",
+    "copyright": "Copyright © 2026 Sapphirus Engineering",
+    "license": "LicenseRef-Proprietary",
+    "licenseFile": "installer/LICENSE.txt",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -44,11 +48,12 @@
       "../../packages/bmad-foundation/runtime": "bmad-foundation/runtime",
       "../../packages/bmad-foundation/runtime-manifest.json": "bmad-foundation/runtime-manifest.json",
       "../../packages/bmad-foundation/semantic-source-ledger.json": "bmad-foundation/semantic-source-ledger.json",
-      "../../packages/bmad-foundation/source": "bmad-foundation/source"
+      "../../packages/bmad-foundation/source": "bmad-foundation/source",
+      "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
     },
     "createUpdaterArtifacts": false,
     "category": "DeveloperTool",
-    "shortDescription": "Read-only AI workspace companion for internal organization use.",
+    "shortDescription": "Internal desktop workspace for governed AI-assisted development.",
     "longDescription": "Forge is an organization-managed Windows desktop workbench for bounded local workspace inspection, context review, and governed software changes.",
     "windows": {
       "webviewInstallMode": {
@@ -59,7 +64,16 @@
         "installMode": "currentUser",
         "languages": ["English"],
         "displayLanguageSelector": false,
-        "compression": "lzma"
+        "compression": "lzma",
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "headerImage": "installer/header.bmp",
+        "uninstallerHeaderImage": "installer/header.bmp",
+        "sidebarImage": "installer/sidebar.bmp",
+        "customLanguageFiles": {
+          "English": "installer/English.nsh"
+        },
+        "installerHooks": "installer/hooks.nsh"
       }
     }
   },

@@ -4,7 +4,13 @@
 *.bat text eol=crlf
 *.sln text eol=crlf
 *.slnx text eol=lf
+# Installer sources that NSIS reads on Windows. The license page in
+# particular is a rich-text control: a file checked out with lone LFs renders
+# as one unbroken line.
+*.nsh text eol=crlf
+crates/desktop-app/installer/LICENSE.txt text eol=crlf
 *.png binary
+*.bmp binary
 *.ico binary
 *.db binary
 *.sqlite binary

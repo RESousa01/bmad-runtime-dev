@@ -644,8 +644,9 @@ export function SettingsDialog({
                 <h3 id="settings-offboarding-title">Local data</h3>
                 <p>
                   What this app keeps on this device, and how to erase it.
-                  Uninstalling never deletes this data; your workspace files
-                  are yours and are never touched.
+                  Uninstalling keeps this data unless you explicitly ask the
+                  uninstaller to erase it; your workspace files are yours and
+                  are never touched.
                 </p>
               </header>
               {offboardingStatus === "erased" ? (
