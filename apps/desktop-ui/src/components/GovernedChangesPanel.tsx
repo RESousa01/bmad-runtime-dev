@@ -9,15 +9,20 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   beginDecision,
   decisionInFlight,
   decisionLabel,
-  settleDecision,
   undecided,
   type ApprovalDecisionState,
 } from "../features/review/approvalDecision";
+
+/** A decision, and the approval it was made against. */
+interface BoundDecision {
+  readonly reviewId: string | null;
+  readonly state: ApprovalDecisionState;
+}
 import type {
   ApprovalChoice,
   ChangesExecutionProjection,
@@ -288,38 +293,35 @@ export function GovernedChangesPanel({
    * read and written in the same tick as the click, which is the only thing
    * that closes that window.
    *
-   * Reset when the proposal changes: a new envelope is a new decision to make.
+   * The decision is stored *with* the approval it belongs to, so a new
+   * proposal re-opens the choice by derivation rather than by an effect that
+   * writes state. Approval id and not the diff hash: an approval binds to the
+   * id, so keying on the hash would reset an unchanged proposal that
+   * re-rendered and fail to reset a new one that produced an identical diff.
    */
-  const [decision, setDecision] = useState<ApprovalDecisionState>(undecided);
-  const decisionRef = useRef(decision);
-  // Keyed on the approval id, which is what an approval binds to. Keying on
-  // the diff hash instead would reset the guard whenever the same proposal was
-  // re-rendered with identical content, and fail to reset it for a new
-  // proposal that happened to produce the same diff.
   const reviewId = state.kind === "review" ? state.review.approvalId : null;
-
-  useEffect(() => {
-    decisionRef.current = undecided;
-    setDecision(undecided);
-  }, [reviewId]);
-
-  // The host has answered, so the decision is terminal rather than in flight.
-  // Left `deciding` it would keep saying "Applying…" over a finished apply.
-  useEffect(() => {
-    if (state.kind === "review") return;
-    const settled = settleDecision(decisionRef.current);
-    decisionRef.current = settled;
-    setDecision(settled);
-  }, [state.kind]);
+  const [decision, setDecision] = useState<BoundDecision>(
+    { reviewId, state: undecided },
+  );
+  const decisionRef = useRef(decision);
+  /// A decision recorded against a different approval says nothing about this
+  /// one. Derived rather than reset, so nothing has to write state to notice.
+  const forThisReview = (bound: BoundDecision): ApprovalDecisionState =>
+    bound.reviewId === reviewId ? bound.state : undecided;
 
   const decide = (choice: Parameters<typeof onDecide>[0]) => {
-    const next = beginDecision(decisionRef.current, choice);
-    if (next === decisionRef.current) return;
-    decisionRef.current = next;
-    setDecision(next);
+    const base = forThisReview(decisionRef.current);
+    const next = beginDecision(base, choice);
+    if (next === base) return;
+    // Both copies, in the same tick: the ref is what the next press reads, and
+    // the state is what the next render draws from.
+    const bound = { reviewId, state: next };
+    decisionRef.current = bound;
+    setDecision(bound);
     onDecide(choice);
   };
-  const inFlight = decisionInFlight(decision);
+  const current = forThisReview(decision);
+  const inFlight = decisionInFlight(current);
 
   const errorBanner = errorMessage
     ? (
@@ -440,7 +442,7 @@ export function GovernedChangesPanel({
         */}
         <div className="change-actions">
           <Button
-            isDisabled={state.busy || decision.kind !== "undecided"}
+            isDisabled={state.busy || current.kind !== "undecided"}
             onPress={() => { decide("apply"); }}
             size="large"
             variant="primary"
@@ -448,7 +450,7 @@ export function GovernedChangesPanel({
             {decisionLabel("apply", inFlight)}
           </Button>
           <Button
-            isDisabled={state.busy || decision.kind !== "undecided"}
+            isDisabled={state.busy || current.kind !== "undecided"}
             onPress={() => { decide("revise"); }}
             size="large"
             variant="quiet"
@@ -456,7 +458,7 @@ export function GovernedChangesPanel({
             {decisionLabel("revise", inFlight)}
           </Button>
           <Button
-            isDisabled={state.busy || decision.kind !== "undecided"}
+            isDisabled={state.busy || current.kind !== "undecided"}
             onPress={() => { decide("discard"); }}
             size="large"
             variant="quiet"

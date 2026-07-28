@@ -34,16 +34,7 @@ export type ApprovalDecisionState =
    * committed to writing files is owed a sentence about which thing is
    * happening.
    */
-  | { readonly kind: "deciding"; readonly choice: ApprovalChoice }
-  /**
-   * The host answered. Still terminal.
-   *
-   * A settled decision does not re-open the choice, because the proposal it
-   * referred to is spent -- applied, revised into a new one, or discarded. The
-   * panel moves to a different state entirely; this exists so a late second
-   * press during that transition is refused rather than racing it.
-   */
-  | { readonly kind: "decided"; readonly choice: ApprovalChoice };
+  | { readonly kind: "deciding"; readonly choice: ApprovalChoice };
 
 export const undecided: ApprovalDecisionState = { kind: "undecided" };
 
@@ -81,11 +72,16 @@ export function beginDecision(
   return { choice, kind: "deciding" };
 }
 
-/** Records that the host answered, whatever the answer was. */
-export function settleDecision(state: ApprovalDecisionState): ApprovalDecisionState {
-  if (state.kind !== "deciding") return state;
-  return { choice: state.choice, kind: "decided" };
-}
+/*
+ * There is deliberately no `settle` and no `decided` state.
+ *
+ * Both existed and were removed: a decision ends when the proposal it referred
+ * to is gone, and the caller already knows that by the approval id changing.
+ * Keeping a settled state meant an effect writing state on every host reply --
+ * which `react-hooks/set-state-in-effect` flags, correctly, as cascading
+ * renders to represent something already derivable. A state nothing can
+ * observe separately from `deciding` is not a state.
+ */
 
 /**
  * What the control should say while its decision is in flight.

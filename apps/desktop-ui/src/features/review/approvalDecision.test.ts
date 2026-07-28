@@ -5,7 +5,6 @@ import {
   canDecide,
   decisionInFlight,
   decisionLabel,
-  settleDecision,
   undecided,
   type ApprovalChoice,
 } from "./approvalDecision";
@@ -38,15 +37,6 @@ describe("deciding once", () => {
     }
   });
 
-  it("refuses every decision once one has settled", () => {
-    // The proposal is spent -- applied, revised into a new one, or discarded.
-    const settled = settleDecision(beginDecision(undecided, "apply"));
-    for (const choice of choices) {
-      expect(beginDecision(settled, choice)).toBe(settled);
-    }
-    expect(canDecide(settled)).toBe(false);
-  });
-
   it("refuses a decision the shell has withheld", () => {
     // A host that cannot accept the command, or a workspace in recovery.
     expect(canDecide(undecided, true)).toBe(false);
@@ -67,25 +57,15 @@ describe("deciding once", () => {
   });
 });
 
-describe("settling", () => {
-  it("keeps the choice that was made", () => {
-    expect(settleDecision(beginDecision(undecided, "discard")))
-      .toEqual({ kind: "decided", choice: "discard" });
-  });
-
-  it("ignores a settle for a decision that never started", () => {
-    expect(settleDecision(undecided)).toBe(undecided);
-  });
-
-  it("ignores a second settle", () => {
-    const settled = settleDecision(beginDecision(undecided, "apply"));
-    expect(settleDecision(settled)).toBe(settled);
-  });
-
-  it("reports nothing in flight once settled", () => {
-    expect(decisionInFlight(settleDecision(beginDecision(undecided, "apply")))).toBeNull();
-  });
-});
+/*
+ * There is no "settled" state to test, and that is deliberate.
+ *
+ * One existed and was removed. A decision ends when the proposal it referred
+ * to is gone, which the caller already knows from the approval id changing --
+ * so a settled state added an effect writing state on every host reply to
+ * represent something already derivable. Nothing could observe it separately
+ * from `deciding`, which means it was not a state.
+ */
 
 describe("what the controls say", () => {
   /// A user who has just committed to writing files is owed a sentence about
