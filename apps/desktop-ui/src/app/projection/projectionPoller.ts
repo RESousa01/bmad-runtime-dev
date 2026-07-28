@@ -114,3 +114,174 @@ export function shouldReloadLibraryAfterRebind(input: {
     && input.bootMode === "ready"
     && input.supportedCommands.includes("bmad.library.snapshot");
 }
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * The bound runtime a subscription polls against.
+ *
+ * Both halves, because every decision the loop makes needs one or the other:
+ * the client to call, the bootstrap for the sequence to start from.
+ */
+export interface BoundProjectionRuntime<Client> {
+  readonly client: Client;
+  readonly startSequence: number;
+}
+
+export interface ProjectionSubscriptionPorts<Client> {
+  /** Null unless a live host binding exists. The loop does not run without one. */
+  readonly runtime: BoundProjectionRuntime<Client> | null;
+  readonly pollIntervalMs: number;
+  /**
+   * The binding generation, read on every tick.
+   *
+   * A binding replaced mid-flight makes every remaining step of that tick a
+   * no-op: the results belong to a host that is no longer there.
+   */
+  readonly bindingGeneration: () => number;
+  readonly fetchEvents: (
+    client: Client,
+    cursor: number,
+  ) => Promise<readonly ProjectionEventLike[]>;
+  readonly fetchSnapshot: (
+    client: Client,
+  ) => Promise<{ readonly bootMode: string; readonly sequence: number }>;
+  readonly reBootstrap: (client: Client) => Promise<{
+    readonly bootMode: string;
+    readonly supportedCommands: readonly string[];
+  }>;
+  readonly refreshWorkspaces: (client: Client) => Promise<void>;
+  readonly refreshMethodLibrary: (client: Client) => Promise<void>;
+  readonly libraryWasRequested: () => boolean;
+  readonly markReadOnlyRecovery: (client: Client, sequence: number) => void;
+  readonly markHostUnavailable: (client: Client) => void;
+  /** Adopts a runtime rebuilt after a cursor gap, keeping the active workspace. */
+  readonly adoptReboundRuntime: (
+    client: Client,
+    bootstrap: { readonly bootMode: string; readonly supportedCommands: readonly string[] },
+  ) => void;
+}
+
+/**
+ * Runs the polling loop until it is torn down.
+ *
+ * Returned rather than started, so the caller owns the effect boundary and this
+ * module owns nothing about React. The returned function stops the loop and is
+ * safe to call more than once.
+ */
+export function startProjectionSubscription<Client>(
+  ports: ProjectionSubscriptionPorts<Client>,
+): () => void {
+  const { runtime } = ports;
+  if (runtime === null) return () => undefined;
+
+  const boundGeneration = ports.bindingGeneration();
+  let cancelled = false;
+  let cursor = runtime.startSequence;
+  let timerId: number | undefined;
+
+  /*
+   * Stale means one of two things and treats them identically: the effect was
+   * torn down, or the host binding was replaced. Either way the results of this
+   * tick describe a host the app is no longer talking to, so nothing is
+   * written and the loop stops rescheduling itself.
+   */
+  const isStale = () => cancelled || boundGeneration !== ports.bindingGeneration();
+
+  const reportFailure = (error: unknown) => {
+    const failure = classifyProjectionFailure(error);
+    if (failure.kind === "recovery") ports.markReadOnlyRecovery(runtime.client, cursor);
+    // `retry` reschedules by doing nothing; `cursor_gap` is handled before
+    // this is reached.
+    else if (failure.kind === "unavailable") ports.markHostUnavailable(runtime.client);
+  };
+
+  /**
+   * Rebuilds the renderer's authority after a cursor gap.
+   *
+   * The snapshot the host can offer is summary-only, so it cannot reconstruct
+   * the session, approval, execution, evidence, connectivity and update events
+   * that fell in the gap. Advancing past them would leave the renderer showing
+   * a state it never derived, so this establishes a fresh binding instead.
+   */
+  const recoverFromCursorGap = async () => {
+    const snapshot = await ports.fetchSnapshot(runtime.client);
+    if (isStale()) return;
+    if (snapshot.bootMode === "read_only_recovery") {
+      cursor = snapshot.sequence;
+      ports.markReadOnlyRecovery(runtime.client, cursor);
+      return;
+    }
+
+    let rebound;
+    try {
+      rebound = await ports.reBootstrap(runtime.client);
+    } catch {
+      // A host that cannot re-bootstrap is a host that has stopped answering.
+      if (!isStale()) ports.markHostUnavailable(runtime.client);
+      return;
+    }
+    if (isStale()) return;
+
+    const reloadLibrary = shouldReloadLibraryAfterRebind({
+      bootMode: rebound.bootMode,
+      libraryWasRequested: ports.libraryWasRequested(),
+      supportedCommands: rebound.supportedCommands,
+    });
+    ports.adoptReboundRuntime(runtime.client, rebound);
+    if (reloadLibrary) void ports.refreshMethodLibrary(runtime.client);
+  };
+
+  const poll = async () => {
+    // Checked before the call, not only after it. A tick scheduled while the
+    // binding was live can fire after it has been replaced, and asking a host
+    // the app has stopped talking to costs a request whose answer is thrown
+    // away by the very next line.
+    if (isStale()) return;
+    try {
+      const events = await ports.fetchEvents(runtime.client, cursor);
+      if (isStale()) return;
+      const outcome = decideProjectionOutcome(events);
+      if (outcome.cursor !== null) cursor = outcome.cursor;
+
+      if (outcome.refreshWorkspaces) {
+        await ports.refreshWorkspaces(runtime.client);
+        if (isStale()) return;
+      }
+      // After the workspace refresh: a batch can carry both, and the recovery
+      // transition ends the tick, so doing it first would drop the workspace
+      // list the same batch delivered.
+      if (outcome.enterReadOnlyRecovery) {
+        ports.markReadOnlyRecovery(runtime.client, cursor);
+        return;
+      }
+      if (outcome.refreshMethodLibrary && ports.libraryWasRequested()) {
+        await ports.refreshMethodLibrary(runtime.client);
+      }
+    } catch (error) {
+      if (isStale()) return;
+      if (classifyProjectionFailure(error).kind !== "cursor_gap") {
+        reportFailure(error);
+        return;
+      }
+      try {
+        await recoverFromCursorGap();
+      } catch (snapshotError) {
+        if (!isStale()) reportFailure(snapshotError);
+      }
+    } finally {
+      // Rescheduled in `finally` so a thrown tick does not silently end the
+      // subscription -- a poller that stops on one bad response looks exactly
+      // like a host that went quiet.
+      if (!isStale()) {
+        timerId = window.setTimeout(() => void poll(), ports.pollIntervalMs);
+      }
+    }
+  };
+
+  timerId = window.setTimeout(() => void poll(), ports.pollIntervalMs);
+  return () => {
+    cancelled = true;
+    if (timerId !== undefined) window.clearTimeout(timerId);
+  };
+}

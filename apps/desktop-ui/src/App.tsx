@@ -60,11 +60,7 @@ import { useHostProjection } from "./app/projection/hostProjection";
 import { eraseLocalData } from "./app/offboarding/eraseLocalData";
 import { resolveMenuDispatch } from "./app/chat/menuDispatch";
 import { useDeferredFocusReturn } from "./app/focus/deferredFocusReturn";
-import {
-  classifyProjectionFailure,
-  decideProjectionOutcome,
-  shouldReloadLibraryAfterRebind,
-} from "./app/projection/projectionPoller";
+import { startProjectionSubscription } from "./app/projection/projectionPoller";
 import {
   attachmentNotice,
   emptyPickNotice,
@@ -1638,133 +1634,47 @@ export function App({
     return () => window.clearTimeout(timer);
   }, [applyBmadEvent, bmadHelpState]);
 
-  useEffect(() => {
-    if (hostRuntime.kind !== "ready" && hostRuntime.kind !== "read_only_recovery") {
-      return;
-    }
-    const { bootstrap, client } = hostRuntime;
-    const hostBindingGeneration = hostBindingGenerationRef.current;
-    let cancelled = false;
-    let cursor = bootstrap.projectionSequence;
-    let timerId: number | undefined;
-    const isStale = () => cancelled
-      || hostBindingGeneration !== hostBindingGenerationRef.current;
-    const handleProjectionFailure = (error: unknown) => {
-      // One definition of "recovery failure", shared with every other host
-      // call site. This was a sixth inline copy.
-      const failure = classifyProjectionFailure(error);
-      if (failure.kind === "recovery") markReadOnlyRecovery(client, cursor);
-      // `retry` and `cursor_gap` both mean "try again on the next tick" by the
-      // time they reach here -- the gap is handled above, before this runs.
-      else if (failure.kind === "unavailable") markHostUnavailable(client);
-    };
-    const refreshWorkspaceProjection = async () => {
-      const workspaces = await client.listWorkspaces();
-      if (isStale()) {
-        return false;
-      }
-      adoptWorkspaces(workspaces, true);
-      return true;
-    };
-
-    const poll = async () => {
-      try {
-        const events = await client.projectionEvents(cursor);
-        if (isStale()) {
-          return;
-        }
-        const outcome = decideProjectionOutcome(events);
-        if (outcome.cursor !== null) cursor = outcome.cursor;
-        if (outcome.refreshWorkspaces) {
-          if (!(await refreshWorkspaceProjection())) {
-            return;
-          }
-        }
-        if (outcome.enterReadOnlyRecovery) {
-          markReadOnlyRecovery(client, cursor);
-          return;
-        }
-        if (outcome.refreshMethodLibrary && bmadLibraryRequestedRef.current) {
-          await loadMethodLibrary(client, methodLibraryRebind(client));
-        }
-      } catch (error) {
-        if (isStale()) {
-          return;
-        }
-        if (classifyProjectionFailure(error).kind === "cursor_gap") {
-          try {
-            const snapshot = await client.projectionSnapshot();
-            if (isStale()) {
-              return;
-            }
-            if (snapshot.bootMode === "read_only_recovery") {
-              cursor = snapshot.sequence;
-              markReadOnlyRecovery(client, cursor);
-              return;
-            }
-            // The snapshot is intentionally summary-only. A cursor gap can
-            // hide session, approval, execution, evidence, connectivity, and
-            // update events, so establish a fresh renderer authority instead
-            // of advancing past projections this renderer cannot reconstruct.
-            let reboundBootstrap: Awaited<ReturnType<AppClient["bootstrap"]>>;
-            try {
-              reboundBootstrap = await client.bootstrap();
-            } catch {
-              if (!isStale()) {
-                markHostUnavailable(client);
-              }
-              return;
-            }
-            if (isStale()) {
-              return;
-            }
-            const reloadMethodLibrary = shouldReloadLibraryAfterRebind({
-              bootMode: reboundBootstrap.bootMode,
-              libraryWasRequested: bmadLibraryRequestedRef.current,
-              supportedCommands: reboundBootstrap.supportedCommands,
-            });
-            adoptHostRuntime({
-              kind: reboundBootstrap.bootMode === "ready"
-                ? "ready"
-                : "read_only_recovery",
-              client,
-              bootstrap: reboundBootstrap,
-            }, true);
-            if (reloadMethodLibrary) {
-              void loadMethodLibrary(client, methodLibraryRebind(client));
-            }
-          } catch (snapshotError) {
-            if (!isStale()) {
-              handleProjectionFailure(snapshotError);
-            }
-          }
-        } else {
-          handleProjectionFailure(error);
-        }
-      } finally {
-        if (!isStale()) {
-          timerId = window.setTimeout(() => void poll(), projectionPollIntervalMs);
-        }
-      }
-    };
-
-    timerId = window.setTimeout(() => void poll(), projectionPollIntervalMs);
-    return () => {
-      cancelled = true;
-      if (timerId !== undefined) {
-        window.clearTimeout(timerId);
-      }
-    };
-  }, [
+  /*
+   * FE-10 step 3: the projection subscription.
+   *
+   * The loop, its timer and the cursor-gap recovery live in
+   * `startProjectionSubscription`; this is the effect boundary and the ports it
+   * needs. What was 135 lines of interleaved polling and classification is now
+   * a subscription with a declared dependency set.
+   */
+  // The effect returns the subscription's stop function directly: starting
+  // returns the teardown, which is exactly the contract `useEffect` wants.
+  useEffect(() => startProjectionSubscription({
+    adoptReboundRuntime: (client, bootstrap) => adoptHostRuntime({
+      kind: bootstrap.bootMode === "ready" ? "ready" : "read_only_recovery",
+      client,
+      bootstrap: bootstrap as BootstrapReply,
+    }, true),
+    bindingGeneration: () => hostBindingGenerationRef.current,
+    fetchEvents: (client, cursor) => client.projectionEvents(cursor),
+    fetchSnapshot: (client) => client.projectionSnapshot(),
+    libraryWasRequested: () => bmadLibraryRequestedRef.current,
+    markHostUnavailable,
+    markReadOnlyRecovery,
+    pollIntervalMs: projectionPollIntervalMs,
+    reBootstrap: (client) => client.bootstrap(),
+    refreshMethodLibrary: (client) => loadMethodLibrary(client, methodLibraryRebind(client)),
+    refreshWorkspaces: async (client) => {
+      adoptWorkspaces(await client.listWorkspaces(), true);
+    },
+    runtime: hostRuntime.kind === "ready" || hostRuntime.kind === "read_only_recovery"
+      ? { client: hostRuntime.client, startSequence: hostRuntime.bootstrap.projectionSequence }
+      : null,
+  }), [
     adoptHostRuntime,
     // Stable: `useCallback`s over stable dependencies. Naming them does not
     // restart the poller, which matters -- a poller that restarted every render
     // would hammer the host.
     adoptWorkspaces,
     methodLibraryRebind,
-    // A ref object, so naming it never restarts the poller. The poller reads
-    // `.current` on every tick to decide whether its binding is still the live
-    // one, which is why it must be a dependency at all.
+    // A ref object, so naming it never restarts the poller. The subscription
+    // reads `.current` on every tick to decide whether its binding is still
+    // the live one, which is why it must be a dependency at all.
     hostBindingGenerationRef,
     hostRuntime,
     loadMethodLibrary,
