@@ -31,7 +31,7 @@ export interface FilesInspectorProps {
   readonly onReadFile: (relativePath: string) => void;
   readonly onRefresh: () => void;
   readonly onSelectionChange: (relativePath: string, selected: boolean) => void;
-  readonly onToggleDirectory: (entry: WorkspaceTreeEntry) => void;
+  readonly onSetDirectoryExpanded: (entry: WorkspaceTreeEntry, expanded: boolean) => void;
   readonly previewPath: string | null;
   readonly refreshDisabled: boolean;
   readonly rootPage: DirectoryPage | null;
@@ -48,7 +48,7 @@ export function FilesInspector({
   onReadFile,
   onRefresh,
   onSelectionChange,
-  onToggleDirectory,
+  onSetDirectoryExpanded,
   previewPath,
   refreshDisabled,
   rootPage,
@@ -120,7 +120,7 @@ export function FilesInspector({
             onLoadMore={onLoadMore}
             onReadFile={onReadFile}
             onSelectionChange={onSelectionChange}
-            onToggleDirectory={onToggleDirectory}
+            onSetDirectoryExpanded={onSetDirectoryExpanded}
             previewPath={previewPath}
             rows={tree.rows}
             selectedPaths={selectedPaths}

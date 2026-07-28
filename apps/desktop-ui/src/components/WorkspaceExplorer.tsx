@@ -1,17 +1,22 @@
+/**
+ * The workspace read surface: files, search and the BMAD scan.
+ *
+ * FE-21. The Files tab is no longer written here. Its tree used to be a
+ * recursive component that decided visibility as it rendered, which put
+ * `aria-level`, `aria-posinset` and every keyboard question behind jsdom; it
+ * now lives in `./files`, where the shape of the tree is a value and this
+ * component's job is reduced to what it was always actually good at -- holding
+ * the host state and guarding the async continuations that fill it.
+ */
+
 import { Button, Checkbox, Tab, TabList, TabPanel, Tabs } from "@sapphirus/ui";
 import {
   AlertTriangle,
-  Binary,
-  ChevronDown,
-  ChevronRight,
   FileCode2,
   FileSearch,
   FileWarning,
-  Folder,
-  FolderOpen,
   ListChecks,
   LoaderCircle,
-  RefreshCw,
   Search,
   ShieldCheck,
   Workflow,
@@ -37,28 +42,17 @@ import type {
   ReadonlyWorkspaceSource,
   WorkspaceProjectionProvenance,
 } from "../lib/workspaceReadSource";
+import { FilesInspector } from "./files/FilesInspector";
+import {
+  emptyExpansion,
+  expandedForGrant,
+  formatBytes,
+  withExpanded,
+  type DirectoryPage,
+  type TreeExpansion,
+} from "./files/fileTreeModel";
 
 type ExplorerSection = "files" | "search" | "bmad";
-
-interface DirectoryPage {
-  entries: WorkspaceTreeEntry[];
-  nextCursor: string | null;
-}
-
-interface TreeRowsProps {
-  childPages: ReadonlyMap<string, DirectoryPage>;
-  expandedPaths: ReadonlySet<string>;
-  loadingDirectories: ReadonlySet<string>;
-  onLoadMore: (relativeDirectory: string, cursor: string) => void;
-  onReadFile: (relativePath: string) => void;
-  onSelectionChange: (relativePath: string, selected: boolean) => void;
-  onToggleDirectory: (entry: WorkspaceTreeEntry) => void;
-  previewPath: string | null;
-  selectionLimitReached: boolean;
-  selectedPaths: ReadonlySet<string>;
-  entries: WorkspaceTreeEntry[];
-  depth?: number;
-}
 
 const bmadAssetLabels: Record<BmadAssetKind, string> = {
   method_configuration: "Method configuration",
@@ -68,137 +62,6 @@ const bmadAssetLabels: Record<BmadAssetKind, string> = {
   builder_edit_draft: "Builder Edit draft",
   builder_analyze_draft: "Builder Analyze draft",
 };
-
-function filename(relativePath: string): string {
-  return relativePath.split("/").at(-1) ?? relativePath;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(bytes < 10 * 1024 ? 1 : 0)} KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function TreeRows({
-  childPages,
-  depth = 0,
-  entries,
-  expandedPaths,
-  loadingDirectories,
-  onLoadMore,
-  onReadFile,
-  onSelectionChange,
-  onToggleDirectory,
-  previewPath,
-  selectionLimitReached,
-  selectedPaths,
-}: TreeRowsProps) {
-  return (
-    <ul className="workspace-tree__list" data-depth={depth}>
-      {entries.map((entry) => {
-        const isDirectory = entry.kind === "directory";
-        const isExpanded = isDirectory && expandedPaths.has(entry.relativePath);
-        const isLoading = loadingDirectories.has(entry.relativePath);
-        const page = childPages.get(entry.relativePath);
-        const canSelect = entry.kind === "text_file";
-        return (
-          <li className="workspace-tree__item" key={entry.relativePath}>
-            <div className="workspace-tree__row" style={{ paddingInlineStart: `${depth * 16 + 6}px` }}>
-              {isDirectory ? (
-                <Button
-                  aria-expanded={isExpanded}
-                  className="workspace-tree__entry workspace-tree__entry--directory"
-                  isDisabled={isLoading}
-                  onPress={() => onToggleDirectory(entry)}
-                  variant="quiet"
-                >
-                  {isLoading ? (
-                    <LoaderCircle aria-hidden="true" className="spin" size={15} />
-                  ) : isExpanded ? (
-                    <ChevronDown aria-hidden="true" size={15} />
-                  ) : (
-                    <ChevronRight aria-hidden="true" size={15} />
-                  )}
-                  {isExpanded ? (
-                    <FolderOpen aria-hidden="true" size={16} />
-                  ) : (
-                    <Folder aria-hidden="true" size={16} />
-                  )}
-                  <span>{filename(entry.relativePath)}</span>
-                </Button>
-              ) : (
-                <>
-                  <Checkbox
-                    aria-label={`Include ${entry.relativePath} in context`}
-                    className="workspace-tree__checkbox"
-                    isDisabled={
-                      !canSelect
-                      || (selectionLimitReached && !selectedPaths.has(entry.relativePath))
-                    }
-                    isSelected={canSelect && selectedPaths.has(entry.relativePath)}
-                    onChange={(selected) => onSelectionChange(entry.relativePath, selected)}
-                  >
-                    <span className="sr-only">Include in context</span>
-                  </Checkbox>
-                  <Button
-                    {...(previewPath === entry.relativePath ? { "aria-current": "true" as const } : {})}
-                    className="workspace-tree__entry workspace-tree__entry--file"
-                    isDisabled={!canSelect}
-                    onPress={() => onReadFile(entry.relativePath)}
-                    variant="quiet"
-                  >
-                    {entry.kind === "binary_file" ? (
-                      <Binary aria-hidden="true" size={16} />
-                    ) : entry.kind === "blocked" ? (
-                      <FileWarning aria-hidden="true" size={16} />
-                    ) : (
-                      <FileCode2 aria-hidden="true" size={16} />
-                    )}
-                    <span>{filename(entry.relativePath)}</span>
-                    <small>{canSelect ? formatBytes(entry.sizeBytes) : "Unavailable"}</small>
-                  </Button>
-                </>
-              )}
-            </div>
-            {isDirectory && isExpanded && page ? (
-              <>
-                <TreeRows
-                  childPages={childPages}
-                  depth={depth + 1}
-                  entries={page.entries}
-                  expandedPaths={expandedPaths}
-                  loadingDirectories={loadingDirectories}
-                  onLoadMore={onLoadMore}
-                  onReadFile={onReadFile}
-                  onSelectionChange={onSelectionChange}
-                  onToggleDirectory={onToggleDirectory}
-                  previewPath={previewPath}
-                  selectionLimitReached={selectionLimitReached}
-                  selectedPaths={selectedPaths}
-                />
-                {page.nextCursor ? (
-                  <Button
-                    className="workspace-tree__load-more"
-                    isDisabled={isLoading}
-                    onPress={() => onLoadMore(entry.relativePath, page.nextCursor!)}
-                    size="small"
-                    variant="quiet"
-                  >
-                    Load more in {filename(entry.relativePath)}
-                  </Button>
-                ) : null}
-              </>
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
 
 export interface WorkspaceExplorerProps {
   asPanel?: boolean;
@@ -221,13 +84,26 @@ export function WorkspaceExplorer({
   workspaceName,
 }: WorkspaceExplorerProps) {
   const Root = asPanel ? "section" : "main";
+  /*
+   * Which workspace the expansion below belongs to.
+   *
+   * A workspace switch and a re-grant both arrive as a new `source`, and the
+   * reset effect further down discards the pages that went with the old one --
+   * but an effect runs a commit late, and for that one render the outgoing
+   * workspace's expanded set would be applied to the incoming workspace's
+   * entries. `src/` in one workspace is not `src/` in another and the paths
+   * resolve either way, so the result would be a wrong answer that looked like
+   * a right one. Reading the set back through this key during render means a
+   * mismatch reads as "nothing is expanded" before any effect gets a turn.
+   */
+  const grantKey = source?.workspaceId ?? "unavailable";
   const [activeSection, setActiveSection] = useState<ExplorerSection>("files");
   const [bmad, setBmad] = useState<BmadScanProjection | null>(null);
   const [bmadBusy, setBmadBusy] = useState(false);
   const [childPages, setChildPages] = useState<ReadonlyMap<string, DirectoryPage>>(new Map());
   const [contextBusy, setContextBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [expandedPaths, setExpandedPaths] = useState<ReadonlySet<string>>(new Set());
+  const [expansion, setExpansion] = useState<TreeExpansion>(() => emptyExpansion(grantKey));
   const [loadingDirectories, setLoadingDirectories] = useState<ReadonlySet<string>>(new Set());
   const [preview, setPreview] = useState<WorkspaceTextProjection | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
@@ -244,6 +120,7 @@ export function WorkspaceExplorer({
   const refreshRequestToken = useRef<symbol | null>(null);
   const sourceRef = useRef(source);
   const traversalEpoch = useRef(0);
+  const expandedPaths = expandedForGrant(expansion, grantKey);
   // `useLayoutEffect`, not an assignment in the component body.
   //
   // Every reader of this ref is an async continuation asking "is the workspace
@@ -334,8 +211,13 @@ export function WorkspaceExplorer({
     setPreviewBusy(false);
     setSearchBusy(false);
     setRootPage(null);
+    // The expansion and the pages go together: a directory left expanded with
+    // its page discarded is a disclosure that says "open" over nothing, and
+    // nothing would ever fetch it again because the expand is what fetches.
+    // This covers the case the grant key above cannot -- the same workspace
+    // granted afresh, where the key is unchanged but the tree is not.
     setChildPages(new Map());
-    setExpandedPaths(new Set());
+    setExpansion(emptyExpansion(grantKey));
     setSelectedPaths(new Set());
     setPreview(null);
     setSearchResults(null);
@@ -388,9 +270,9 @@ export function WorkspaceExplorer({
       });
 
     return invalidateRequests;
-    // Both callbacks are rooted at `source`, so this array still re-runs
-    // exactly once per workspace change.
-  }, [readFile, safeReadError, source]);
+    // Both callbacks and the grant key are rooted at `source`, so this array
+    // still re-runs exactly once per workspace change.
+  }, [grantKey, readFile, safeReadError, source]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   async function refreshWorkspace() {
@@ -411,7 +293,7 @@ export function WorkspaceExplorer({
     setLoadingDirectories(new Set(["."]));
     setBmadBusy(true);
     setChildPages(new Map());
-    setExpandedPaths(new Set());
+    setExpansion(emptyExpansion(grantKey));
     setPreview(null);
     setPreviewBusy(false);
     setRootPage(null);
@@ -472,20 +354,26 @@ export function WorkspaceExplorer({
     });
   }
 
-  async function toggleDirectory(entry: WorkspaceTreeEntry) {
+  /*
+   * Directional, rather than a toggle that works out which way to go from
+   * `expandedPaths`.
+   *
+   * The filter in the inspector opens whatever it must to reach a match, so a
+   * directory can be shown open while `expandedPaths` does not hold it. Asking
+   * the set which way to go would answer "closed" for a row the user has just
+   * asked to close, and record an expansion instead -- invisible while the
+   * filter holds the row open, and waiting for them the moment they cleared it.
+   */
+  async function setDirectoryExpanded(entry: WorkspaceTreeEntry, expanded: boolean) {
     if (!source || !entry.childCursor) {
       return;
     }
-    if (expandedPaths.has(entry.relativePath)) {
-      setExpandedPaths((current) => {
-        const next = new Set(current);
-        next.delete(entry.relativePath);
-        return next;
-      });
-      return;
-    }
-    setExpandedPaths((current) => new Set(current).add(entry.relativePath));
-    if (childPages.has(entry.relativePath)) {
+    setExpansion((current) => withExpanded(current, grantKey, entry.relativePath, expanded));
+    // Closing never talks to the host. The in-flight token below would refuse
+    // a second request anyway, so today this changes nothing -- but "a collapse
+    // is free" should be true here rather than two hops away in a token map
+    // that exists for a different reason.
+    if (!expanded || childPages.has(entry.relativePath)) {
       return;
     }
     const requestToken = beginDirectoryRequest(entry.relativePath);
@@ -506,11 +394,9 @@ export function WorkspaceExplorer({
       });
     } catch (error) {
       if (sourceRef.current === activeSource && traversalEpoch.current === epoch) {
-        setExpandedPaths((current) => {
-          const next = new Set(current);
-          next.delete(entry.relativePath);
-          return next;
-        });
+        // The page never arrived, so the disclosure goes back to closed rather
+        // than sitting open over an empty directory the user cannot retry.
+        setExpansion((current) => withExpanded(current, grantKey, entry.relativePath, false));
         setErrorMessage(safeReadError(error));
       }
     } finally {
@@ -701,58 +587,26 @@ export function WorkspaceExplorer({
                     <Tab id="bmad">BMAD</Tab>
                   </TabList>
                   <TabPanel id="files">
-                    <div className="workspace-panel-heading">
-                      <div>
-                        <strong>Workspace files</strong>
-                        <span>UTF-8 text only</span>
-                      </div>
-                      <Button
-                        aria-label="Refresh workspace projections"
-                        isDisabled={loadingDirectories.has(".") || bmadBusy}
-                        onPress={() => void refreshWorkspace()}
-                        size="icon"
-                        variant="quiet"
-                      >
-                        <RefreshCw aria-hidden="true" size={16} />
-                      </Button>
-                    </div>
-                    <div className="workspace-tree" aria-busy={loadingDirectories.has(".")}>
-                      {rootPage ? (
-                        <TreeRows
-                          childPages={childPages}
-                          entries={rootPage.entries}
-                          expandedPaths={expandedPaths}
-                          loadingDirectories={loadingDirectories}
-                          onLoadMore={(directory, cursor) => void loadMore(directory, cursor)}
-                          onReadFile={(path) => void readFile(path)}
-                          onSelectionChange={changeSelection}
-                          onToggleDirectory={(entry) => void toggleDirectory(entry)}
-                          previewPath={preview?.relativePath ?? null}
-                          selectionLimitReached={
-                            selectedPaths.size >= workspaceReadLimits.contextPaths
-                          }
-                          selectedPaths={selectedPaths}
-                        />
-                      ) : loadingDirectories.has(".") ? (
-                        <div className="workspace-loading-state" role="status">
-                          <LoaderCircle aria-hidden="true" className="spin" size={18} />
-                          Loading a bounded file page…
-                        </div>
-                      ) : (
-                        <p className="workspace-inline-empty">No visible entries were projected.</p>
-                      )}
-                      {rootPage?.nextCursor ? (
-                        <Button
-                          className="workspace-tree__root-more"
-                          isDisabled={loadingDirectories.has(".")}
-                          onPress={() => void loadMore(".", rootPage.nextCursor!)}
-                          size="small"
-                          variant="secondary"
-                        >
-                          Load more files
-                        </Button>
-                      ) : null}
-                    </div>
+                    <FilesInspector
+                      childPages={childPages}
+                      expandedPaths={expandedPaths}
+                      isRootLoading={loadingDirectories.has(".")}
+                      loadingDirectories={loadingDirectories}
+                      onLoadMore={(directory, cursor) => void loadMore(directory, cursor)}
+                      onReadFile={(path) => void readFile(path)}
+                      onRefresh={() => void refreshWorkspace()}
+                      onSelectionChange={changeSelection}
+                      onSetDirectoryExpanded={
+                        (entry, expanded) => void setDirectoryExpanded(entry, expanded)
+                      }
+                      previewPath={preview?.relativePath ?? null}
+                      refreshDisabled={loadingDirectories.has(".") || bmadBusy}
+                      rootPage={rootPage}
+                      selectedPaths={selectedPaths}
+                      selectionLimitReached={
+                        selectedPaths.size >= workspaceReadLimits.contextPaths
+                      }
+                    />
                   </TabPanel>
                   <TabPanel id="search">
                     <form className="workspace-search" onSubmit={submitSearch}>

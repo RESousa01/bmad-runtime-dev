@@ -53,9 +53,6 @@ export function treeKeyIntent(
   activePath: string | null,
   modifiers: KeyModifiers = {},
 ): TreeKeyIntent | null {
-  if (rows.length === 0) {
-    return null;
-  }
   // A shortcut is not a tree command. Ctrl+Home belongs to the scroll
   // container, and Alt+Left to history.
   if (modifiers.altKey === true || modifiers.ctrlKey === true || modifiers.metaKey === true) {
@@ -70,9 +67,9 @@ export function treeKeyIntent(
       return next === undefined ? null : { kind: "focus", path: next.key };
     }
     case "ArrowUp": {
-      if (index <= 0) {
-        return null;
-      }
+      // An out-of-range read covers both ends: no row holds the tab stop
+      // (index -1) and the tab stop is on the first row (index 0) both land
+      // before the array and so both mean "there is nowhere above here".
       const previous = rows[index - 1];
       return previous === undefined ? null : { kind: "focus", path: previous.key };
     }

@@ -1,0 +1,113 @@
+/*
+ * The Files inspector's own styles.
+ *
+ * FE-21. Scoped to this folder and imported by `FilesInspector`, so the tree's
+ * appearance travels with the component instead of accumulating in the shell
+ * sheet. Everything here is either new to the inspector (the filter, its status
+ * line) or the difference between a list of rows and a `role="tree"`; the row,
+ * entry and checkbox rules the tree shares with the rest of the workspace
+ * surface stay where they are.
+ */
+
+.files-inspector__filter {
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  gap: 6px;
+  padding: 11px 13px;
+}
+
+.files-inspector__filter > label {
+  color: var(--color-text-muted);
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.files-inspector__filter > div {
+  align-items: center;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--shell-radius-md);
+  display: grid;
+  gap: 7px;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  padding: 2px 3px 2px 9px;
+}
+
+.files-inspector__filter > div:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 1px var(--color-focus);
+}
+
+.files-inspector__filter input {
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  min-width: 0;
+  outline: none;
+  padding: 5px 0;
+}
+
+/*
+ * Always occupies its line, empty or not.
+ *
+ * A status region that collapses when it has nothing to say moves the tree up
+ * and down as the user types, and the reflow is more distracting than the one
+ * line of space it saves.
+ */
+.files-inspector__status {
+  color: var(--color-text-soft);
+  font-size: var(--text-meta);
+  margin: 0;
+  min-height: 15px;
+  padding: 7px 13px;
+}
+
+.files-inspector__status:empty {
+  padding-block: 0;
+}
+
+.files-tree {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * The row is the focusable element, not the button inside it.
+ *
+ * A `treeitem` carries the tab stop for the whole tree, so the focus ring has
+ * to be visible on the row itself; without this it would land on a wrapper with
+ * no outline of its own and the keyboard user would lose their place.
+ */
+.files-tree__row {
+  border-radius: var(--shell-radius-sm);
+  outline: none;
+  padding-inline-end: 6px;
+}
+
+.files-tree__row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-focus);
+}
+
+.files-tree__row[aria-busy="true"] .workspace-tree__entry small {
+  color: var(--color-text-muted);
+}
+
+/*
+ * A row kept only because something below it matched.
+ *
+ * It is the path to a hit rather than a hit, and saying so is the difference
+ * between "four things matched" and four rows that all look like matches.
+ */
+.files-tree__row--context .workspace-tree__entry span {
+  color: var(--color-text-muted);
+}
+
+.files-tree__more.sapphirus-button {
+  flex: 1;
+  font-size: var(--text-meta);
+  gap: 6px;
+  justify-content: flex-start;
+}

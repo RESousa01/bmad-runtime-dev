@@ -41,7 +41,17 @@ export interface FileTreeProps {
   readonly onLoadMore: (relativeDirectory: string, cursor: string) => void;
   readonly onReadFile: (relativePath: string) => void;
   readonly onSelectionChange: (relativePath: string, selected: boolean) => void;
-  readonly onToggleDirectory: (entry: WorkspaceTreeEntry) => void;
+  /**
+   * Directional, rather than "toggle this directory".
+   *
+   * A filter opens whatever it must to reach a match, so a row can be shown
+   * open while the caller's expanded set does not hold it. A toggle would ask
+   * that set which way to go, read "closed", and record an expansion for a row
+   * the user just asked to close -- invisible while the filter holds the row
+   * open, and waiting for them the moment they cleared it. Every caller here
+   * already knows which way it meant, so it says so.
+   */
+  readonly onSetDirectoryExpanded: (entry: WorkspaceTreeEntry, expanded: boolean) => void;
   readonly previewPath: string | null;
   readonly rows: readonly FileTreeRow[];
   readonly selectedPaths: ReadonlySet<string>;
@@ -68,7 +78,7 @@ export function FileTree({
   onLoadMore,
   onReadFile,
   onSelectionChange,
-  onToggleDirectory,
+  onSetDirectoryExpanded,
   previewPath,
   rows,
   selectedPaths,
@@ -102,7 +112,7 @@ export function FileTree({
       return;
     }
     if (row.isExpandable) {
-      onToggleDirectory(row.entry);
+      onSetDirectoryExpanded(row.entry, !row.isExpanded);
       return;
     }
     if (row.isSelectable) {
@@ -111,8 +121,11 @@ export function FileTree({
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>, row: FileTreeRow): void {
-    // Keys typed into a row's own checkbox belong to the checkbox. Without
-    // this, Space would toggle the box and then activate the row behind it.
+    // Keys typed into a row's own controls belong to those controls. The
+    // checkbox already stops Space before this sees it, but nothing stops the
+    // arrow keys: without this, ArrowDown from inside the checkbox would move
+    // the tree's tab stop and drag focus out of the control the user is
+    // standing in, mid-selection.
     if (event.target !== event.currentTarget) {
       return;
     }
@@ -135,9 +148,7 @@ export function FileTree({
     } else if (intent.kind === "activate") {
       activate(row);
     } else if (row.kind === "entry") {
-      // Expand and collapse are the same host-backed toggle; the intent says
-      // which way the key asked to go, and the row is already the other way.
-      onToggleDirectory(row.entry);
+      onSetDirectoryExpanded(row.entry, intent.kind === "expand");
     }
     event.preventDefault();
   }
@@ -192,7 +203,7 @@ export function FileTree({
             <Button
               className="workspace-tree__entry workspace-tree__entry--directory"
               excludeFromTabOrder
-              onPress={() => onToggleDirectory(row.entry)}
+              onPress={() => onSetDirectoryExpanded(row.entry, !row.isExpanded)}
               variant="quiet"
             >
               {row.isLoading ? (
