@@ -193,6 +193,43 @@ selection, and a guard test that only checked the projection.
   interactive. Guessing here trades an accessibility floor for a pixel, so it
   is a question for the next session rather than a silent change.
 
+## Audit of phases 0-2
+
+Six findings, five fixed. Recorded because the pattern in them is more useful
+than the individual bugs: **every one was a check that looked like it worked.**
+
+1. **A capability typo silently reintroduced the FE-12 defect.** `featureCommands`
+   was `readonly string[]`, so `"chat.sendd"` compiled and made chat permanently
+   unavailable — the composer greying out and blaming the model provider, which
+   is the exact bug FE-12 fixes. Now typed against `DesktopHostCommand`.
+2. **An empty modal claimed the page.** The provider refactor made `modal` an
+   element that renders nothing for `"account"`, and `AppShellLayout` decides
+   focus containment from whether it was *given* a modal. Latent — nothing calls
+   `openUtilityPanel("account")` — but wiring that button would have exposed it.
+3. **`check-recovery-classification` had a false negative.** It matched only
+   `===`/`!==`, so a `switch` arm or a two-element list read with `.includes`
+   passed. Fixing it produced a fourth instance of the same class: the new
+   switch pattern shipped with a literal backspace where `` belonged, so it
+   matched nothing. The fixture test caught that.
+4. **`check-boundaries` enforced a weaker rule than the one stated.** It required
+   each desktop script to *name* a trust mode but accepted any of them, so
+   `desktop:build` could compile `direct-model-providers` and pass. Now scoped
+   to `tauri build`, because `tauri dev` uses that path deliberately.
+5. **Dead code reading as coverage.** `matchesQuery` had five green tests and no
+   caller — the palette uses `matchesTerms`. Also `keybindingSource`,
+   `layoutStorageKey`, and `STORAGE_KEY`, which was vestigial because the
+   `LayoutStore` port takes no key.
+6. **Not fixed — `capabilities.history/run/library/model` are computed and never
+   read.** FE-12's matrix is wired only for `chat` and `help`; the other four
+   surfaces still use the pre-existing independent gates, which are correct. So
+   behaviour is right and four sixths of the matrix is decoration whose tests
+   assert properties nothing consumes. Either wire them as the single gate for
+   those surfaces or drop them — but do it as its own change, not inside an
+   audit.
+
+Also confirmed by build rather than inference: all three trust modes compile in
+isolation under `--no-default-features`.
+
 ## Still open
 
 0. **Phase 2 is complete.** FE-08 through FE-12 all meet their acceptance
