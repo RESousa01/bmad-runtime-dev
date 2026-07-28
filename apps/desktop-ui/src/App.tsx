@@ -55,6 +55,8 @@ import "./components/settings/settings.css";
 import { WorkspacePanel } from "./components/WorkspacePanel";
 import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
+import { createCommandRegistry, type CommandContext } from "./app/commands/commands";
+import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
 import { HomeView } from "./components/HomeView";
 import {
   AppShellLayout,
@@ -3341,83 +3343,72 @@ export function App({
     />
   ) : undefined;
 
-  // The palette shortcut has to be a real document listener, not a React
-  // handler on the shell. React attaches at the root container, so a keydown
-  // whose target is <body> — the state on first paint, and again every time
-  // the palette or a disabled composer blurs — never reached the shell and
-  // Ctrl+K silently did nothing.
+  /*
+   * FE-09: one catalog behind every entry point.
+   *
+   * The palette used to build its own array and Ctrl+K used to be an unrelated
+   * document listener, so the two could disagree about what a command was and
+   * whether it could run. Both now read the same registry, and a command that
+   * cannot run is *listed with its reason* rather than omitted -- an omitted
+   * command is indistinguishable from a feature the app does not have.
+   */
+  const commandContext: CommandContext = {
+    selectedTaskId: selectedTask?.id ?? null,
+    selectedTaskTitle: selectedTask?.title ?? null,
+    workspaceAvailable: hostRuntime.kind !== "browser_demo",
+    actions: {
+      startNewSession: () => { startNewSession(); },
+      selectSession,
+      closeTask: closeTaskById,
+      requestTaskDeletion,
+      openWorkspaceManager,
+      openContextDrawer,
+      openSettings: () => openUtilityPanel("settings"),
+      togglePalette: () => setPaletteOpen((current) => !current),
+    },
+  };
+  const commandRegistry = createCommandRegistry(commandContext);
+  const apple = isApplePlatform();
+
+  // Still a real document listener, not a React handler on the shell: React
+  // attaches at the root container, so a keydown whose target is <body> — the
+  // state on first paint, and again every time the palette or a disabled
+  // composer blurs — never reached the shell and Ctrl+K silently did nothing.
+  //
+  // What changed is what it does once it fires: it resolves an id and hands it
+  // to the registry, so a shortcut cannot run something the palette greys.
+  const commandRegistryRef = useRef(commandRegistry);
+  const commandContextRef = useRef(commandContext);
+  commandRegistryRef.current = commandRegistry;
+  commandContextRef.current = commandContext;
   useEffect(() => {
     function onShortcut(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setPaletteOpen((current) => !current);
-      }
+      const id = commandForEvent(commandRegistryRef.current, event, apple);
+      if (id === undefined) return;
+      event.preventDefault();
+      void commandRegistryRef.current.invoke(id, commandContextRef.current, "keybinding");
     }
     document.addEventListener("keydown", onShortcut);
     return () => document.removeEventListener("keydown", onShortcut);
-  }, []);
+  }, [apple]);
 
-  const paletteActions: readonly PaletteAction[] = [
-    { id: "new-task", label: "New task", hint: "chat", run: () => { startNewSession(); } },
-    // Task lifecycle actions appear only with a task open, so the palette
-    // never offers to rename or delete something that does not exist.
-    ...(selectedTask === null ? [] : [
-      {
-        id: "current-task",
-        label: `Go to task: ${selectedTask.title}`,
-        hint: "tab",
-        run: () => selectSession(selectedTask.id),
+  const paletteActions: readonly PaletteAction[] = commandRegistry
+    .resolveAll(commandContext)
+    .map(({ definition, availability }) => ({
+      id: definition.id,
+      label: definition.title,
+      category: definition.category,
+      ...(definition.keywords === undefined ? {} : { keywords: definition.keywords }),
+      ...(definition.keybinding === undefined
+        ? {}
+        : { keybinding: formatKeybinding(definition.keybinding, apple) }),
+      ...(availability.kind === "unavailable"
+        ? { unavailableReason: availability.reason }
+        : {}),
+      run: () => {
+        void commandRegistry.invoke(definition.id, commandContext, "palette");
       },
-      {
-        id: "close-task",
-        label: `Close task: ${selectedTask.title}`,
-        hint: "task",
-        run: () => closeTaskById(selectedTask.id),
-      },
-      {
-        id: "delete-task",
-        label: `Delete task: ${selectedTask.title}`,
-        hint: "task",
-        run: () => requestTaskDeletion(selectedTask.id),
-      },
-    ] satisfies PaletteAction[]),
-    {
-      id: "open-workspace",
-      label: "Open or switch workspace",
-      hint: "workspace",
-      run: openWorkspaceManager,
-    },
-    {
-      id: "drawer-files",
-      label: "Show workspace files",
-      hint: "drawer",
-      run: () => openContextDrawer("files"),
-    },
-    {
-      id: "drawer-changes",
-      label: "Show review",
-      hint: "drawer",
-      run: () => openContextDrawer("changes"),
-    },
-    {
-      id: "drawer-activity",
-      label: "Show run activity",
-      hint: "drawer",
-      run: () => openContextDrawer("activity"),
-    },
-    {
-      id: "drawer-skills",
-      label: "Show skills and agents",
-      hint: "drawer",
-      run: () => openContextDrawer("skills"),
-    },
-    {
-      id: "settings",
-      label: "Open settings",
-      hint: "app",
-      run: () => openUtilityPanel("settings"),
-    },
-  ];
+    }));
 
   return (
     <div className="app-shell app-shell--forge-v2">

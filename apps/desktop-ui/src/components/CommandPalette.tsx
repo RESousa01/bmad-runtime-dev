@@ -1,11 +1,30 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 
+import { matchesTerms } from "../app/commands/commands";
 import { focusableElements } from "../lib/panelFocus";
 
 export interface PaletteAction {
   readonly id: string;
   readonly label: string;
-  readonly hint?: string;
+  /**
+   * Which group the command belongs to. Rendered as plain text, not as `kbd`:
+   * this used to be a `hint` holding words like "drawer" inside a `<kbd>`,
+   * which announces them as keyboard input.
+   */
+  readonly category?: string;
+  /** Already formatted for this platform -- "Ctrl+K" or "⌘K". */
+  readonly keybinding?: string;
+  /** Searched alongside the label, so a command is findable by the word the user reaches for. */
+  readonly keywords?: readonly string[];
+  /**
+   * Why the command cannot run, or undefined when it can.
+   *
+   * Present rather than absent when unavailable, because the palette shows the
+   * command either way. Omitting an impossible command is indistinguishable
+   * from the app not having the feature, and leaves the user with nothing to
+   * act on; this way they read "Open a task first" and know what to do.
+   */
+  readonly unavailableReason?: string;
   readonly run: () => void;
 }
 
@@ -114,17 +133,23 @@ function CommandPaletteDialog({
     return () => document.removeEventListener("keydown", containTab);
   }, []);
 
-  const normalized = query.trim().toLocaleLowerCase("en-US");
   const visible = actions.filter((action) =>
-    action.label.toLocaleLowerCase("en-US").includes(normalized),
+    matchesTerms([action.label, action.category ?? "", ...(action.keywords ?? [])], query),
   );
   const clamped = Math.min(selected, Math.max(0, visible.length - 1));
 
   const runAction = (action: PaletteAction | undefined) => {
-    if (action !== undefined) {
-      onClose();
-      action.run();
+    if (action === undefined) {
+      return;
     }
+    // An unavailable command is a no-op that leaves the palette open. Closing
+    // on a refusal looks exactly like the command having run, which is worse
+    // than nothing happening: the user believes the app did something.
+    if (action.unavailableReason !== undefined) {
+      return;
+    }
+    onClose();
+    action.run();
   };
 
   return (
@@ -184,25 +209,75 @@ function CommandPaletteDialog({
           ) : (
             visible.map((action, index) => (
               <li key={action.id}>
-                <button
-                  aria-label={action.label}
-                  className={`command-palette__action${index === clamped ? " command-palette__action--selected" : ""}`}
-                  onClick={() => {
-                    runAction(action);
-                  }}
-                  onMouseEnter={() => {
-                    setSelected(index);
-                  }}
-                  type="button"
-                >
-                  <span>{action.label}</span>
-                  {action.hint === undefined ? null : <kbd>{action.hint}</kbd>}
-                </button>
+                <PaletteRow
+                  action={action}
+                  onHover={() => setSelected(index)}
+                  onRun={() => runAction(action)}
+                  selected={index === clamped}
+                />
               </li>
             ))
           )}
         </ul>
       </section>
     </div>
+  );
+}
+
+/**
+ * One command in the list, available or not.
+ *
+ * `aria-disabled` rather than `disabled`, because a disabled button is removed
+ * from the tab order and from most screen-reader listings -- which would hide
+ * the reason from exactly the users who most need it read aloud. The control
+ * stays reachable and announces itself as unavailable; the refusal to run is
+ * enforced in `runAction`, not by the DOM.
+ */
+function PaletteRow({
+  action,
+  onHover,
+  onRun,
+  selected,
+}: {
+  readonly action: PaletteAction;
+  readonly onHover: () => void;
+  readonly onRun: () => void;
+  readonly selected: boolean;
+}) {
+  const reasonId = useId();
+  const unavailable = action.unavailableReason !== undefined;
+  const className = [
+    "command-palette__action",
+    selected ? "command-palette__action--selected" : "",
+    unavailable ? "command-palette__action--unavailable" : "",
+  ].filter(Boolean).join(" ");
+
+  return (
+    <button
+      // The label alone is the accessible *name*; the reason goes in the
+      // description channel so it is announced after the name rather than
+      // becoming part of it. A command named "Close task Open a task first"
+      // is unusable in a screen reader's element list.
+      aria-describedby={unavailable ? reasonId : undefined}
+      aria-disabled={unavailable || undefined}
+      aria-label={action.label}
+      className={className}
+      onClick={onRun}
+      onMouseEnter={onHover}
+      type="button"
+    >
+      <span className="command-palette__action-label">{action.label}</span>
+      {action.unavailableReason === undefined ? null : (
+        <span className="command-palette__action-reason" id={reasonId}>
+          {action.unavailableReason}
+        </span>
+      )}
+      {action.category === undefined ? null : (
+        <span className="command-palette__action-category">{action.category}</span>
+      )}
+      {/* A real `kbd` now that it holds a real chord. It used to carry words
+          like "drawer", which announces category names as keyboard input. */}
+      {action.keybinding === undefined ? null : <kbd>{action.keybinding}</kbd>}
+    </button>
   );
 }

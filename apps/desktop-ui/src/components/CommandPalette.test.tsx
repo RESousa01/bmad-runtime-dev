@@ -137,6 +137,117 @@ describe("CommandPalette", () => {
     expect(screen.getByText("New task")).toBeTruthy();
   });
 
+  /// FE-09 acceptance: unavailability always has a user-readable reason. The
+  /// palette used to omit commands it could not run, which reads as the app
+  /// not having the feature at all.
+  it("lists an unavailable command with its reason instead of hiding it", () => {
+    render(
+      <CommandPalette
+        actions={[
+          {
+            id: "close-task",
+            label: "Close task",
+            unavailableReason: "Open a task first.",
+            run: vi.fn(),
+          },
+        ]}
+        onClose={vi.fn()}
+        open
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Close task" })).toBeTruthy();
+    expect(screen.getByText("Open a task first.")).toBeTruthy();
+  });
+
+  it("refuses to run an unavailable command and stays open", () => {
+    const run = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <CommandPalette
+        actions={[
+          { id: "close-task", label: "Close task", unavailableReason: "Open a task first.", run },
+        ]}
+        onClose={onClose}
+        open
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Close task" }));
+    expect(run).not.toHaveBeenCalled();
+    // Closing on a refusal is worse than nothing happening: it looks exactly
+    // like the command having run.
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(screen.getByLabelText("Search commands"), { key: "Enter" });
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  /// `aria-disabled`, not `disabled`: a disabled button leaves the tab order and
+  /// most screen-reader element lists, hiding the reason from the users who
+  /// most need it read out.
+  it("keeps an unavailable command reachable and describes why", () => {
+    render(
+      <CommandPalette
+        actions={[
+          {
+            id: "close-task",
+            label: "Close task",
+            unavailableReason: "Open a task first.",
+            run: vi.fn(),
+          },
+        ]}
+        onClose={vi.fn()}
+        open
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: "Close task" });
+    expect(button.hasAttribute("disabled")).toBe(false);
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+
+    const describedBy = button.getAttribute("aria-describedby");
+    expect(describedBy).not.toBeNull();
+    expect(document.getElementById(describedBy as string)?.textContent)
+      .toBe("Open a task first.");
+  });
+
+  /// `kbd` means keyboard input. It used to carry category words like "drawer",
+  /// which announces a filing category as something the user typed.
+  it("puts only a real chord in kbd, and the category in plain text", () => {
+    const { container } = render(
+      <CommandPalette
+        actions={[
+          { id: "settings", label: "Open settings", category: "Application", keybinding: "Ctrl+,", run: vi.fn() },
+        ]}
+        onClose={vi.fn()}
+        open
+      />,
+    );
+
+    expect(container.querySelector("kbd")?.textContent).toBe("Ctrl+,");
+    expect(screen.getByText("Application").tagName).not.toBe("KBD");
+  });
+
+  it("finds a command by a keyword its label does not contain", () => {
+    render(
+      <CommandPalette
+        actions={[
+          { id: "settings", label: "Open settings", keywords: ["preferences"], run: vi.fn() },
+          { id: "new-task", label: "New task", run: vi.fn() },
+        ]}
+        onClose={vi.fn()}
+        open
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Search commands"), {
+      target: { value: "preferences" },
+    });
+    expect(screen.getByRole("button", { name: "Open settings" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "New task" })).toBeNull();
+  });
+
   it("focuses the search field on open and returns focus on close", async () => {
     const { actions } = createActions();
     const shell = (open: boolean) => (

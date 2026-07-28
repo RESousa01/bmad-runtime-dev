@@ -3729,10 +3729,21 @@ code {
   display: flex;
   font: inherit;
   font-size: var(--text-body);
-  justify-content: space-between;
+  gap: 8px;
   padding: 8px 10px;
   text-align: left;
   width: 100%;
+}
+
+/* Takes the slack so the reason, category and chord group at the trailing
+   edge. `space-between` spread four children evenly and left the reason
+   floating in the middle of the row. */
+.command-palette__action-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .command-palette__action--selected {
@@ -3740,7 +3751,31 @@ code {
   color: var(--color-text);
 }
 
+/* Dimmed, never hidden. The whole point of listing an unavailable command is
+   that the user can read why, so the reason keeps the readable colour and the
+   label is what recedes. */
+.command-palette__action--unavailable .command-palette__action-label {
+  color: var(--color-text-muted);
+}
+
+.command-palette__action-reason {
+  color: var(--color-text-soft);
+  flex: 0 1 auto;
+  font-size: var(--text-meta);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-palette__action-category {
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: var(--text-meta);
+}
+
 .command-palette__action kbd {
+  flex: 0 0 auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-row);
