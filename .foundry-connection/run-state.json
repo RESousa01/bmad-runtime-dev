@@ -382,6 +382,33 @@
         "FND-065"
       ],
       "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Container App resource ID, Foundry role scope, intended deployment list, or authenticated Azure CLI session is available.",
+      "operatorReportedState": {
+        "reportedAt": "2026-07-28T19:05:00Z",
+        "hasAccountHost": true,
+        "hasCompleteProjectEndpoint": false,
+        "hasContainerApp": false,
+        "detail": "The operator has an account host ending in .services.ai.azure.com but not the /api/projects/<project> suffix, and no Container App resource exists yet.",
+        "consequence": "The support plane that would carry the model-broker identity has not been deployed, so the identity-attachment and role-assignment prerequisites cannot be satisfied by supplying values. They require FND-060's template to be deployed first."
+      },
+      "tieredUnblockPath": [
+        {
+          "tier": 1,
+          "requires": ["complete project endpoint", "authenticated Azure CLI session"],
+          "doesNotRequire": ["Container App", "managed identity", "role assignment"],
+          "unblocks": "The real deployment inventory. This removes the guessed-deployment-name risk from FND-024, FND-025, and FND-061, and gives FND-022 and FND-023 real response shapes to normalize. The prerequisite report still says ready=false for identity and role, which is correct and expected."
+        },
+        {
+          "tier": 2,
+          "requires": ["FND-060 template deployed", "model-broker user-assigned identity attached", "Foundry data-plane role assigned at the project scope"],
+          "unblocks": "A full ready=true prerequisite report, which clears FND-002 and the FND-002-dependent gates."
+        },
+        {
+          "tier": 3,
+          "requires": ["staging tenant, user, and device", "explicit model-call cost budget"],
+          "unblocks": "FND-064 deployed smoke and therefore FND-065 final certification."
+        }
+      ],
+      "sequencingNote": "Tier 2 is created by this plan rather than supplied to it. FND-060 provisions the Container App, the dedicated model-broker identity, and the role assignment, so the correct order is: land and review the template, deploy it, then rerun the prerequisite checker.",
       "nextAction": "Authenticate Azure CLI and supply FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_MODEL_IDENTITY_CLIENT_ID, FOUNDRY_CONTAINER_APP_RESOURCE_ID, FOUNDRY_PROJECT_RESOURCE_ID, and FOUNDRY_PROFILE_DEPLOYMENTS, then rerun the checker.",
       "evidencePath": "artifacts/foundry/prerequisites.json",
       "policyApplied": {
