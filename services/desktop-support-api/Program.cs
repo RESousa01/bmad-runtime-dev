@@ -97,6 +97,14 @@ builder.Services.AddRateLimiter(rateLimiter =>
 
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton<Sapphirus.DesktopSupportApi.Observability.SupportPlaneTelemetry>();
+
+// The streaming route's consent verifier fails closed by default. Version two
+// installation-key verification has no provider yet, and a model-egress route
+// must never read "cannot verify" as "verified", so the route refuses until a
+// real verifier is composed over it.
+builder.Services.AddSingleton<
+    Sapphirus.DesktopSupportApi.Model.IModelStreamConsentVerifier,
+    Sapphirus.DesktopSupportApi.Model.UnavailableModelStreamConsentVerifier>();
 builder.Services.AddSingleton(provider =>
     new Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinator(
         provider.GetRequiredService<IDeviceRegistry>(),
@@ -216,6 +224,7 @@ desktop.MapGet("/bootstrap", (SupportPlaneOptions configuration) => Results.Ok(n
             "windows_local",
             "transient_no_store",
             Sapphirus.DesktopSupportApi.Model.ModelCatalogEndpoint.BootstrapCapability,
+            Sapphirus.DesktopSupportApi.Model.ModelStreamEndpoint.BootstrapCapability,
         ],
         DateTimeOffset.UtcNow)))
     .RequireAuthorization(DesktopScopes.Access);
@@ -412,6 +421,11 @@ desktop.MapPost("/model-access/calls", async (
     })
     .RequireAuthorization(DesktopScopes.ModelInvoke)
     .DisableAntiforgery();
+
+// The one fixed, reviewed streaming route. It is never renderer-supplied, and
+// it carries the same authorization posture as the model-access call above:
+// the approved desktop client and the model-invocation scope.
+desktop.MapModelStream();
 
 desktop.MapGet("/model-access/receipts/{receiptId}", async (
         string receiptId,

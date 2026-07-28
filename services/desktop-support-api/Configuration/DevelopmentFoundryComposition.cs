@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Sapphirus.DesktopSupportApi.Foundry;
 using Sapphirus.DesktopSupportApi.Health;
+using Sapphirus.DesktopSupportApi.Model;
 
 namespace Sapphirus.DesktopSupportApi.Configuration;
 
@@ -145,6 +146,21 @@ public static class DevelopmentFoundryComposition
         services.AddSingleton<IFoundryDeploymentDiscovery>(provider =>
             new FoundryDeploymentDiscovery(
                 provider.GetRequiredService<FoundryDeploymentDiscoveryClient>()));
+
+        // The Responses adapter, composed exactly as Production composes it.
+        // The endpoint is derived from the same validated project endpoint,
+        // and the executor holds the same authenticator seam; only the
+        // mechanism behind that seam differs, and the mechanism identifier is
+        // folded into every receipt's credential-binding hash so a development
+        // receipt can never be mistaken for a managed-identity one.
+        services.AddFoundryResponsesHttpClient(
+            new Uri(projectEndpoint, "openai/v1/"));
+        services.AddSingleton(provider => new FoundryResponsesProviderExecutor(
+            provider.GetRequiredService<IHttpClientFactory>()
+                .CreateClient(FoundryResponsesProviderExecutor.HttpClientName),
+            provider.GetRequiredService<IFoundryRequestAuthenticator>()));
+        services.AddSingleton<IModelStreamTransport>(provider =>
+            provider.GetRequiredService<FoundryResponsesProviderExecutor>());
 
         // The same cache, the same background refresh, and the same health
         // check Production composes. Only the credential differs.

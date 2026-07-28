@@ -24,21 +24,70 @@ public sealed class ModelProviderException(string outcome, bool retryable)
     public bool Retryable { get; } = retryable;
 }
 
-/// <summary>The exact bytes of one provider call; retries reuse it as-is.</summary>
+/// <summary>
+/// One function tool the model is allowed to call. The parameter document is
+/// a server-side canonical schema resolved from the declared schema identifier
+/// — never an inline provider-shaped payload supplied by a request.
+/// </summary>
+public sealed record ModelProviderTool(
+    string ToolName,
+    string Description,
+    string ParametersSchemaJson);
+
+/// <summary>
+/// The exact bytes of one provider call; retries reuse it as-is.
+///
+/// The trailing members carry the resolved model identity: which profile and
+/// variant the support plane chose, which operating point that variant names,
+/// and whether the call streams. They are optional so the legacy fixed Chat
+/// Completions path — which has no catalog, no profile, and no variant —
+/// keeps constructing this record unchanged until FND-065 removes it.
+///
+/// None of them is ever request-supplied. Every one comes from
+/// <see cref="ResolvedModelRoute"/>, which is server-only.
+/// </summary>
 public sealed record ModelProviderRequest(
     string Deployment,
     string ApiVersion,
     string SystemInstruction,
     string UserPayloadJson,
     string OutputSchemaJson,
-    int MaximumOutputBytes);
+    int MaximumOutputBytes,
+    string ProfileId = "",
+    string VariantId = "",
+    string RequestMode = ModelRequestModes.StructuredResponse,
+    string ReasoningEffort = "",
+    string Verbosity = "",
+    int MaximumOutputTokens = 0,
+    IReadOnlyList<ModelProviderTool>? Tools = null)
+{
+    /// <summary>Tools, never null, so a builder cannot forget the empty case.</summary>
+    public IReadOnlyList<ModelProviderTool> DeclaredTools => Tools ?? [];
+
+    public bool IsStreaming =>
+        string.Equals(RequestMode, ModelRequestModes.StreamingChat, StringComparison.Ordinal);
+}
 
 public sealed record ModelProviderResponse(
     string OutputJson,
     long InputTokens,
     long OutputTokens,
     string? ProviderRequestId,
-    string FinishReason);
+    string FinishReason,
+    ModelProviderReportedUsage? ReportedUsage = null,
+    string? ReportedModel = null);
+
+/// <summary>
+/// Usage exactly as the provider reported it. A category the provider never
+/// mentioned stays null so the receipt can record "not reported" rather than
+/// zero.
+/// </summary>
+public sealed record ModelProviderReportedUsage(
+    long? InputTokens,
+    long? OutputTokens,
+    long? ReasoningTokens,
+    long? CacheReadTokens,
+    long? CacheWriteTokens);
 
 /// <summary>Executes one fixed-profile provider call.</summary>
 public interface IModelProviderExecutor

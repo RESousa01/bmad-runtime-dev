@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-028-031",
+  "tasks": ["FND-028", "FND-029", "FND-030", "FND-031"],
+  "title": "Foundry Responses adapter, stream normalization, receipt binding, and truthful readiness",
+  "state": "complete_local",
+  "completedAt": "2026-07-29T00:00:00Z",
+  "packageDecision": {
+    "chosen": "bounded_httpclient",
+    "rejected": "openai_responses_client",
+    "reasons": [
+      "The credential must flow through IFoundryRequestAuthenticator so managed identity and the development API key are interchangeable without either being visible in the adapter. An SDK client owns its own credential pipeline and would bypass that seam.",
+      "The pinned Azure.AI.OpenAI 2.1.0 / OpenAI 2.1.0 pair ships no responses client, and the version that does exposes it behind an experimental diagnostic that TreatWarningsAsErrors turns into a build failure.",
+      "A new PackageReference requires regenerating both packages.lock.json files, and this development environment cannot resolve the provider host at all.",
+      "The fake Foundry server and the canonical fixtures model the raw HTTP and SSE shapes, which is the wire the bounded client speaks directly."
+    ],
+    "packageReferencesAdded": 0,
+    "lockFilesChanged": 0
+  },
+  "changedFiles": [
+    "services/desktop-support-api/Contracts.cs",
+    "services/desktop-support-api/ModelAuthority.cs",
+    "services/desktop-support-api/Security.cs",
+    "services/desktop-support-api/Program.cs",
+    "services/desktop-support-api/Model/AzureOpenAiModelAccessBroker.cs",
+    "services/desktop-support-api/Model/FoundryResponseRequestBuilder.cs",
+    "services/desktop-support-api/Model/FoundryResponseParser.cs",
+    "services/desktop-support-api/Model/FoundryResponsesProviderExecutor.cs",
+    "services/desktop-support-api/Model/FoundryModelStreamNormalizer.cs",
+    "services/desktop-support-api/Model/ModelStreamingCoordinator.cs",
+    "services/desktop-support-api/Model/ModelStreamEndpoint.cs",
+    "services/desktop-support-api/Signing/AzureModelReceiptSigner.cs",
+    "services/desktop-support-api/Health/FoundryHealthChecks.cs",
+    "services/desktop-support-api/Observability/SupportPlaneTelemetry.cs",
+    "services/desktop-support-api/Configuration/ProductionComposition.cs",
+    "services/desktop-support-api/Configuration/DevelopmentFoundryComposition.cs",
+    "services/desktop-support-api.Tests/Model/FoundryResponsesTestFixtures.cs",
+    "services/desktop-support-api.Tests/Model/FoundryResponsesProviderTests.cs",
+    "services/desktop-support-api.Tests/Model/FoundryModelStreamNormalizerTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelStreamingCoordinatorTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelStreamRequestAdmissionTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelStreamEndpointTests.cs",
+    "services/desktop-support-api.Tests/Model/SupportPlaneModelTelemetryTests.cs",
+    "services/desktop-support-api.Tests/Signing/ModelReceiptV2Tests.cs",
+    "services/desktop-support-api.Tests/Foundry/FoundryReadinessTests.cs",
+    "artifacts/foundry/api/FND-028-031.json"
+  ],
+  "commands": [
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "phase": "baseline",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "519 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet build services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "0 warnings, 0 errors under TreatWarningsAsErrors and Nullable=enable."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*FoundryResponsesProvider*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "35 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*FoundryModelStreamNormalizer*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "17 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelStreamingCoordinator*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "13 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelStreamRequestAdmission*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "22 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelStreamEndpointTests*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "6 passed, 0 failed, 0 skipped; includes a real end-to-end server-sent event run over the fixed route."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelReceiptV2*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "16 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*FoundryReadiness*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "16 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*SupportPlaneModelTelemetry*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "26 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "phase": "final",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "670 passed, 0 failed, 0 skipped; the 519-test baseline is intact and 151 tests were added."
+    },
+    {
+      "command": "dotnet restore Sapphirus.slnx --locked-mode",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Locked restore succeeded; neither packages.lock.json changed, because no PackageReference was added."
+    },
+    {
+      "command": "node tools/check-secrets.mjs",
+      "exitCode": 1,
+      "classification": "blocked_external",
+      "result": "Two findings, both outside this lease and both in concurrently edited paths: crates/desktop-runtime/tests/bmad_config.rs (literal secret assignment) and packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js (C0 control byte). A targeted rescan of every file changed by this task found zero assignment matches."
+    }
+  ],
+  "fixtureScenariosExercised": [
+    "structured_output",
+    "streaming_text_deltas",
+    "streaming_tool_call_deltas",
+    "streaming_usage",
+    "refusal",
+    "content_filter",
+    "rate_limited_429",
+    "forbidden_403",
+    "deployment_missing_404",
+    "server_error_500",
+    "malformed_sse",
+    "truncated_stream",
+    "client_cancellation"
+  ],
+  "safeOutcomesAdded": [
+    "deployment_missing",
+    "capability_unsupported",
+    "context_limit",
+    "authentication_failed",
+    "stream_invalid"
+  ],
+  "problemVocabulary": [
+    "foundry_authentication_failed",
+    "foundry_project_unavailable",
+    "model_rate_limited",
+    "model_quota_exhausted",
+    "model_content_filtered",
+    "model_refused",
+    "model_stream_invalid",
+    "model_call_uncertain",
+    "model_deployment_missing",
+    "model_capability_mismatch",
+    "model_context_limit_exceeded"
+  ],
+  "telemetryTagKeysAdded": [
+    "terminal_type",
+    "cancellation_source",
+    "request_mode",
+    "credential_mechanism",
+    "catalog_state",
+    "usage_provenance"
+  ],
+  "streamRoute": {
+    "route": "/desktop/v1/model-access/streams",
+    "method": "POST",
+    "authorization": "Desktop.Model.Invoke plus the approved desktop client",
+    "rendererSupplied": false,
+    "bootstrapCapability": "model_stream"
+  },
+  "receiptV2": {
+    "digestPurpose": "model-access-receipt-v2",
+    "serverAuthoritativeHashes": [
+      "providerProfileHash",
+      "modelProfileHash",
+      "modelCapabilityHash",
+      "resolvedProfileHash",
+      "resolvedDeploymentHash",
+      "credentialBindingHash"
+    ],
+    "credentialMechanismFoldedIn": true,
+    "historicalV1Preserved": "The version one record, digest, and guard are untouched; the version two digest uses a distinct purpose so the two preimages can never collide."
+  },
+  "reportedGaps": [
+    {
+      "id": "V2-EGRESS-MANIFEST-PREIMAGE",
+      "summary": "No canonical preimage exists anywhere in the repository for a version two local egress manifest hash. Rust computes sapphirus.context-egress-manifest.v1 only, and the golden hash vectors carry no version two manifest case.",
+      "consequence": "ValidateStreamRequest checks that the consent envelope and the request agree on localEgressManifestHash, but it cannot recompute it. That check remains a client-consistency check until the cross-language preimage is defined.",
+      "ownedBy": "packages/contracts"
+    },
+    {
+      "id": "V2-CONSENT-VERIFIER",
+      "summary": "Installation-key verification over the version two consent envelope has no provider. The streaming route composes UnavailableModelStreamConsentVerifier and refuses every request with consent_binding_unavailable.",
+      "consequence": "Fail-closed by construction, mirroring UnavailableContextConsentVerifier. A real verifier belongs in Security/InstallationConsentVerifier, outside this lease.",
+      "ownedBy": "services/desktop-support-api/Security"
+    },
+    {
+      "id": "V2-IDEMPOTENCY-AND-CONSUMPTION",
+      "summary": "IModelCallIdempotencyStore and IContextConsentConsumptionStore are typed against the version one request, so the streaming route reserves no idempotency key and consumes no consent.",
+      "consequence": "A streaming run is not yet single-use. The seams live in Idempotency.cs and ConsentConsumption.cs, outside this lease.",
+      "ownedBy": "services/desktop-support-api/Idempotency.cs, ConsentConsumption.cs"
+    },
+    {
+      "id": "DEVELOPMENT-V2-RECEIPT-SIGNER",
+      "summary": "Development composes DevelopmentModelReceiptSigner, which implements only the version one signer, and has no IHashSigner. The streaming coordinator therefore is not composed in Development and the route answers foundry_project_unavailable.",
+      "consequence": "The development Foundry credential reaches deployment discovery and the Responses transport, but not a signed streaming run. A development version two signer belongs in DevelopmentAdapters.cs, outside this lease.",
+      "ownedBy": "services/desktop-support-api/DevelopmentAdapters.cs"
+    },
+    {
+      "id": "CACHE-WRITE-TOKEN-PRICE",
+      "summary": "ModelPriceProfile carries input, output, reasoning, and cache-read rates but no cache-write rate.",
+      "consequence": "Cache-write tokens are recorded on the receipt and left unpriced rather than being charged at a rate nobody published.",
+      "ownedBy": "services/desktop-support-api/Model/IModelProfileRegistry.cs"
+    },
+    {
+      "id": "FOUNDRY-ONLY-STRUCTURED-BROKER",
+      "summary": "ProductionComposition registers IModelAccessBroker only when the legacy Chat Completions path is configured, so a Foundry-only revision composes no broker for POST /desktop/v1/model-access/calls. The Responses executor is registered under its own type and IModelStreamTransport, not under IModelProviderExecutor, to avoid colliding with the legacy registration.",
+      "consequence": "Pre-existing hole, unchanged by this task. Wiring a version two structured broker is FND-065 territory.",
+      "ownedBy": "services/desktop-support-api/Configuration/ProductionComposition.cs"
+    }
+  ],
+  "contractChangesNeededButNotMade": [
+    {
+      "id": "STREAM-FAILURE-CODE-COVERAGE",
+      "summary": "model-stream-event.schema.json's StreamFailureCode has no member meaning 'the provider transcript could not be normalized'. The coordinator therefore reports output_schema_violation on the wire while recording model_stream_invalid as the support-plane problem code and metric.",
+      "requestedChange": "Either accept the current mapping as deliberate, or add a stream_invalid member to StreamFailureCode."
+    }
+  ]
+}

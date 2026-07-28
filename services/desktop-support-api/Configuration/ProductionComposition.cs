@@ -35,10 +35,14 @@ public static class ProductionComposition
                 provider.GetRequiredService<AppConfigurationPolicyProvider>(),
                 provider.GetRequiredService<IHashSigner>(),
                 TimeProvider.System));
-        builder.Services.AddSingleton<IModelReceiptSigner>(provider =>
+        builder.Services.AddSingleton(provider =>
             new AzureModelReceiptSigner(
                 provider.GetRequiredService<IHashSigner>(),
                 supportPlane));
+        builder.Services.AddSingleton<IModelReceiptSigner>(provider =>
+            provider.GetRequiredService<AzureModelReceiptSigner>());
+        builder.Services.AddSingleton<IModelReceiptSignerV2>(provider =>
+            provider.GetRequiredService<AzureModelReceiptSigner>());
 
         // The legacy fixed Chat Completions broker is registered only when the
         // legacy model path is configured. A Foundry-only revision composes
@@ -130,6 +134,36 @@ public static class ProductionComposition
                 // constructor is the first one.
                 untrustedRegistryPermitted: false));
 
+        // Foundry Responses adapter and the streaming surface (FND-028..FND-031).
+        //
+        // The transport is its own named client: a model call needs a far
+        // longer header budget than an inventory read, and a streaming read
+        // must not inherit a buffered client's response size cap. The
+        // credential goes through the same authenticator seam discovery uses,
+        // so this composition never sees a token or a key.
+        builder.Services.AddFoundryResponsesHttpClient(production.FoundryResponsesEndpoint);
+        builder.Services.AddSingleton(provider => new FoundryResponsesProviderExecutor(
+            provider.GetRequiredService<IHttpClientFactory>()
+                .CreateClient(FoundryResponsesProviderExecutor.HttpClientName),
+            provider.GetRequiredService<IFoundryRequestAuthenticator>()));
+        builder.Services.AddSingleton<IModelStreamTransport>(provider =>
+            provider.GetRequiredService<FoundryResponsesProviderExecutor>());
+        builder.Services.AddSingleton(provider => new ModelStreamingCoordinator(
+            provider.GetRequiredService<IModelStreamTransport>(),
+            provider.GetRequiredService<IModelReceiptSignerV2>(),
+            TimeProvider.System,
+            ModelStreamLimits.Default,
+            provider.GetRequiredService<FoundryResponsesProviderExecutor>()
+                .CredentialMechanismId,
+            provider.GetRequiredService<Observability.SupportPlaneTelemetry>()));
+        builder.Services.AddSingleton<IModelStreamRouteResolver>(provider =>
+            new EffectiveCatalogStreamRouteResolver(
+                provider.GetRequiredService<EffectiveModelCatalogService>(),
+                provider.GetRequiredService<IModelEntitlementSource>(),
+                provider.GetRequiredService<IModelCatalogPolicySource>(),
+                supportPlane.Region,
+                provider.GetRequiredService<Observability.SupportPlaneTelemetry>()));
+
         // Durable SQL authority stores (Task 7): the transactional
         // active/epoch checks in these adapters are the cross-replica
         // authority for revocation, consent single-use, and idempotency.
@@ -150,13 +184,39 @@ public static class ProductionComposition
         // Privacy-safe observability (Task 8): dependency health probes and
         // trace redaction; Azure Monitor export activates only when the
         // platform injects a connection string.
+        //
+        // Readiness reports the Foundry dependency classes; it never gates the
+        // non-model routes. Bootstrap, device registration, entitlements, and
+        // policy keep serving through a Foundry outage, which is the whole
+        // point of reporting these separately rather than folding them into
+        // one aggregate.
         builder.Services.AddHealthChecks()
             .AddCheck<SqlAuthorityHealthCheck>(
                 AzureDependencyHealthChecks.SqlDependency)
             .AddCheck<PolicyConfigurationHealthCheck>(
                 AzureDependencyHealthChecks.ConfigurationDependency)
             .AddCheck<FoundryCatalogHealthCheck>(
-                FoundryCatalogHealthCheck.FoundryCatalogDependency);
+                FoundryCatalogHealthCheck.FoundryCatalogDependency)
+            .AddCheck<FoundryProjectConfigurationHealthCheck>(
+                FoundryHealthChecks.ProjectConfigurationDependency)
+            .AddCheck<FoundryCredentialHealthCheck>(
+                FoundryHealthChecks.CredentialDependency)
+            .AddCheck<FoundryEffectiveProfilesHealthCheck>(
+                FoundryHealthChecks.EffectiveProfilesDependency)
+            .AddCheck<FoundryResponsesReachabilityHealthCheck>(
+                FoundryHealthChecks.ResponsesReachabilityDependency);
+        builder.Services.AddSingleton(new FoundryProjectConfigurationHealthCheck(production));
+        builder.Services.AddSingleton(provider => new FoundryCredentialHealthCheck(
+            provider.GetRequiredService<IFoundryRequestAuthenticator>(),
+            TimeProvider.System));
+        builder.Services.AddSingleton(provider => new FoundryEffectiveProfilesHealthCheck(
+            provider.GetRequiredService<IModelProfileRegistry>()));
+        builder.Services.AddSingleton(provider =>
+            new FoundryResponsesReachabilityHealthCheck(
+                provider.GetRequiredService<IHttpClientFactory>()
+                    .CreateClient(FoundryResponsesProviderExecutor.HttpClientName),
+                provider.GetRequiredService<IFoundryRequestAuthenticator>(),
+                TimeProvider.System));
         builder.Services.AddSingleton<SqlAuthorityHealthCheck>();
         builder.Services.AddSingleton<PolicyConfigurationHealthCheck>(provider =>
             new PolicyConfigurationHealthCheck(

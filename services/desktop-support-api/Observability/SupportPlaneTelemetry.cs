@@ -14,6 +14,13 @@ public sealed class SupportPlaneTelemetry : IDisposable
 {
     public const string MeterName = "Sapphirus.DesktopSupport";
 
+    /// <summary>
+    /// The hard tag allowlist. Every key here is deliberately low cardinality:
+    /// a closed vocabulary, a status class, or a configured constant. Nothing
+    /// derived from a subject, a request, a receipt, a deployment name, a
+    /// project endpoint, or model content may ever appear, which is why adding
+    /// a key is a decision rather than a convenience.
+    /// </summary>
     private static readonly string[] AllowedTagKeys =
     [
         "outcome",
@@ -26,6 +33,20 @@ public sealed class SupportPlaneTelemetry : IDisposable
         "environment",
         "release",
         "http.route",
+
+        // Added by FND-031. Each is a closed enumeration:
+        //   terminal_type        four stream terminal variants
+        //   cancellation_source  four cancellation sources
+        //   request_mode         two request modes
+        //   credential_mechanism two credential mechanisms
+        //   catalog_state        four catalog states
+        //   usage_provenance     three usage provenances
+        "terminal_type",
+        "cancellation_source",
+        "request_mode",
+        "credential_mechanism",
+        "catalog_state",
+        "usage_provenance",
     ];
 
     private readonly Meter _meter;
@@ -41,6 +62,15 @@ public sealed class SupportPlaneTelemetry : IDisposable
     private readonly Counter<long> _receiptsIssued;
     private readonly Counter<long> _replays;
     private readonly Counter<long> _revocations;
+    private readonly Counter<long> _catalogRefreshes;
+    private readonly Histogram<double> _catalogAge;
+    private readonly Histogram<long> _effectiveProfiles;
+    private readonly Counter<long> _routeResolutionFailures;
+    private readonly Histogram<double> _streamDuration;
+    private readonly Counter<long> _streamCancellations;
+    private readonly Counter<long> _receiptOutcomes;
+    private readonly Counter<long> _reasoningTokens;
+    private readonly Counter<long> _cacheReadTokens;
 
     public SupportPlaneTelemetry()
     {
@@ -70,6 +100,26 @@ public sealed class SupportPlaneTelemetry : IDisposable
             "sapphirus.support.replays.observed");
         _revocations = _meter.CreateCounter<long>(
             "sapphirus.support.revocations.observed");
+        _catalogRefreshes = _meter.CreateCounter<long>(
+            "sapphirus.support.catalog.refreshes");
+        _catalogAge = _meter.CreateHistogram<double>(
+            "sapphirus.support.catalog.age",
+            "s");
+        _effectiveProfiles = _meter.CreateHistogram<long>(
+            "sapphirus.support.catalog.effective_profiles");
+        _routeResolutionFailures = _meter.CreateCounter<long>(
+            "sapphirus.support.route.resolution_failures");
+        _streamDuration = _meter.CreateHistogram<double>(
+            "sapphirus.support.stream.duration",
+            "ms");
+        _streamCancellations = _meter.CreateCounter<long>(
+            "sapphirus.support.stream.cancellations");
+        _receiptOutcomes = _meter.CreateCounter<long>(
+            "sapphirus.support.receipts.outcomes");
+        _reasoningTokens = _meter.CreateCounter<long>(
+            "sapphirus.support.usage.reasoning_tokens");
+        _cacheReadTokens = _meter.CreateCounter<long>(
+            "sapphirus.support.usage.cache_read_tokens");
     }
 
     public void RecordAuthenticationOutcome(bool succeeded) =>
@@ -108,6 +158,87 @@ public sealed class SupportPlaneTelemetry : IDisposable
         _costMicrounits.Add(costMicrounits, role, budget);
         _retryCounts.Record(retryCount, role);
     }
+
+    /// <summary>
+    /// Version two usage. A category the provider never reported contributes
+    /// nothing rather than a zero, so a dashboard cannot read silence as a
+    /// free call, and the provenance is carried as a dimension so reported and
+    /// estimated totals are never summed together by accident.
+    /// </summary>
+    public void RecordUsageV2(
+        ModelUsageV2 usage,
+        int retryCount,
+        string modelRole,
+        string budgetClass)
+    {
+        ArgumentNullException.ThrowIfNull(usage);
+        KeyValuePair<string, object?> role = SafeTag("model_role", modelRole);
+        KeyValuePair<string, object?> budget = SafeTag("budget_class", budgetClass);
+        KeyValuePair<string, object?> provenance =
+            SafeTag("usage_provenance", usage.UsageProvenance);
+        if (usage.InputTokens is long input)
+        {
+            _inputTokens.Add(input, role, budget, provenance);
+        }
+        if (usage.OutputTokens is long output)
+        {
+            _outputTokens.Add(output, role, budget, provenance);
+        }
+        if (usage.ReasoningTokens is long reasoning)
+        {
+            _reasoningTokens.Add(reasoning, role, budget, provenance);
+        }
+        if (usage.CacheReadTokens is long cacheRead)
+        {
+            _cacheReadTokens.Add(cacheRead, role, budget, provenance);
+        }
+        if (usage.CostMicrounits is long cost)
+        {
+            _costMicrounits.Add(cost, role, budget, provenance);
+        }
+        _retryCounts.Record(retryCount, role);
+    }
+
+    /// <summary>Catalog refresh outcome and how old the snapshot now is.</summary>
+    public void RecordCatalogRefresh(string outcome, string catalogState, double ageSeconds)
+    {
+        _catalogRefreshes.Add(
+            1,
+            SafeTag("outcome", outcome),
+            SafeTag("catalog_state", catalogState));
+        _catalogAge.Record(ageSeconds, SafeTag("catalog_state", catalogState));
+    }
+
+    /// <summary>How many profiles the effective catalog actually offered.</summary>
+    public void RecordEffectiveProfileCount(int count) =>
+        _effectiveProfiles.Record(count);
+
+    /// <summary>A request that named a profile the resolver would not serve.</summary>
+    public void RecordRouteResolutionFailure(string errorCode) =>
+        _routeResolutionFailures.Add(1, SafeTag("error_code", errorCode));
+
+    /// <summary>How one stream ended and how long it ran.</summary>
+    public void RecordStreamRun(string terminalType, double milliseconds) =>
+        _streamDuration.Record(milliseconds, SafeTag("terminal_type", terminalType));
+
+    public void RecordStreamCancellation(string source) =>
+        _streamCancellations.Add(1, SafeTag("cancellation_source", source));
+
+    /// <summary>
+    /// Whether a run produced a signed receipt or deliberately withheld one.
+    /// A withheld receipt is the expected outcome of a failed, refused, or
+    /// cancelled run, not an error.
+    /// </summary>
+    public void RecordReceiptOutcome(string outcome) =>
+        _receiptOutcomes.Add(1, SafeTag("outcome", outcome));
+
+    /// <summary>Which credential mechanism a model call authenticated with.</summary>
+    public void RecordCredentialMechanism(string mechanismId, string requestMode) =>
+        _providerStatuses.Add(
+            1,
+            SafeTag("credential_mechanism", mechanismId),
+            SafeTag("request_mode", requestMode),
+            SafeTag("provider_status_class", "authenticated"));
 
     public void RecordReceiptIssued() => _receiptsIssued.Add(1);
 
