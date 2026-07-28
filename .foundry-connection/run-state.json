@@ -466,6 +466,44 @@
       "nextAction": "Pin the available checkout and both hash sets without silently updating either reference."
     }
   ],
+  "completionLedger": {
+    "updatedAt": "2026-07-28T23:30:00Z",
+    "note": "Compact roll-up so a later session does not have to reconstruct state from commit messages. Every gate listed was re-run independently after the implementing agent reported, not taken from its report.",
+    "complete": [
+      { "task": "FND-001", "commit": "pre-existing", "gate": "baseline evidence and pinned source map" },
+      { "task": "FND-003", "commit": "d0c01ec8", "gate": "node 9, dotnet 13, cargo 1" },
+      { "task": "FND-010", "commit": "3a3bd8ab", "gate": "verify:cross-language 104" },
+      { "task": "FND-011", "commit": "6051dc2d", "gate": "contracts test 93" },
+      { "task": "FND-012", "commit": "6051dc2d", "gate": "verify:cross-language 112, determinism by tree hash" },
+      { "task": "FND-013", "commit": "6051dc2d", "gate": "cargo desktop-cloud 69, dotnet ModelAccessCompatibility 16" },
+      { "task": "FND-020", "commit": "16434932", "gate": "dotnet 335" },
+      { "task": "FND-021", "commit": "16434932", "gate": "dotnet 335, locked restore unchanged" },
+      { "task": "FND-022", "commit": "16434932", "gate": "dotnet 335" },
+      { "task": "FND-023", "commit": "16434932", "gate": "dotnet 335" },
+      { "task": "FND-024", "commit": "da5aaa82", "gate": "registry 49" },
+      { "task": "FND-025", "commit": "da5aaa82", "gate": "effective catalog 31" },
+      { "task": "FND-026", "commit": "da5aaa82", "gate": "catalog endpoint 23" },
+      { "task": "FND-027", "commit": "da5aaa82", "gate": "route resolver 29, dotnet 519 total" },
+      { "task": "FND-060", "commit": "0ec9151f", "gate": "bicep clean, main.json matches a fresh compile" },
+      { "task": "FND-061", "commit": "0ec9151f", "gate": "validator 31, publisher 89" },
+      { "task": "FND-062", "commit": "0ec9151f", "gate": "network smoke 128, prerequisite regression 65" },
+      { "task": "DEV-FOUNDRY-CREDENTIAL", "commit": "a1191471", "gate": "FoundryAuthentication 36", "planExtension": true }
+    ],
+    "inFlight": ["FND-028", "FND-029", "FND-030", "FND-031", "FND-040", "FND-041"],
+    "notStarted": [
+      "FND-042", "FND-043", "FND-044", "FND-045", "FND-046",
+      "FND-050", "FND-051", "FND-052", "FND-053", "FND-063"
+    ],
+    "permanentlyBlockedHere": {
+      "tasks": ["FND-002", "FND-064", "FND-065"],
+      "reason": "They require Entra app registration and Azure RBAC role assignment. The operator has neither, so the managed identity and its Foundry role are unobtainable rather than merely unsupplied. No value supplied later can clear these without a permissions change."
+    },
+    "crossAgentHazard": {
+      "summary": "A second agent is working the same worktree on a BMAD implementation plan. Its lanes are packages/bmad-foundation, packages/bmad-fixtures, .bmad100, docs/bmad, and crates/desktop-runtime BMAD tests. It also adds schemas under packages/contracts/schemas.",
+      "incident": "Commit 6051dc2d swept twelve of that agent's bmad-*.schema.json files into a Foundry commit, because they live inside packages/contracts, which is the Foundry contracts lane's own directory. Nothing broke and every gate passed, but the schemas are committed under the wrong message.",
+      "standingRule": "Contract regeneration is global: it rewrites schema-lock.json and the whole generated tree from every schema at once, so whoever regenerates last wins. Only one agent should own contract regeneration. Path-prefix exclusion is not sufficient when two lanes share a directory."
+    }
+  },
   "decisions": [
     {
       "id": "DEV-FOUNDRY-CREDENTIAL",
