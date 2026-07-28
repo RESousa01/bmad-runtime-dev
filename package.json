@@ -46,6 +46,8 @@
     "css:ownership": "node tools/check-css-ownership.mjs",
     "imports:cycles": "node tools/check-import-cycles.mjs",
     "imports:cycles:test": "node --test tools/check-import-cycles.test.mjs",
+    "recovery:classification": "node tools/check-recovery-classification.mjs",
+    "recovery:classification:test": "node --test tools/check-recovery-classification.test.mjs",
     "css:conflicts:test": "node --test tools/check-css-conflicts.test.mjs",
     "brand:test": "node --test tools/forge-brand.test.mjs",
     "ci:policy:test": "node --test tools/check-workflows.test.mjs tools/check-workflows-exist.test.mjs",
@@ -53,7 +55,7 @@
     "readiness:check": "node tools/check-readiness-scorecard.mjs",
     "readiness:test": "node --test tools/check-readiness-scorecard.test.mjs",
     "toolchain:check": "node tools/check-toolchain.mjs",
-    "verify:source": "pnpm toolchain:check && pnpm ci:policy:test && pnpm ci:reachable && pnpm boundaries:test && pnpm brand:test && pnpm css:conflicts:test && pnpm imports:cycles:test && pnpm local:contracts:test && pnpm support:cloud-contracts:test && pnpm bmad:foundation:verify && pnpm bmad:coverage && pnpm bmad:coverage:test && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm release:test && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm css:conflicts && pnpm css:ownership && pnpm imports:cycles && pnpm build",
+    "verify:source": "pnpm toolchain:check && pnpm ci:policy:test && pnpm ci:reachable && pnpm boundaries:test && pnpm brand:test && pnpm css:conflicts:test && pnpm imports:cycles:test && pnpm recovery:classification:test && pnpm local:contracts:test && pnpm support:cloud-contracts:test && pnpm bmad:foundation:verify && pnpm bmad:coverage && pnpm bmad:coverage:test && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm release:test && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm css:conflicts && pnpm css:ownership && pnpm imports:cycles && pnpm recovery:classification && pnpm build",
     "verify": "pnpm verify:source",
     "verify:deferred-full": "pnpm contracts:verify:cross-language && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm rust:fmt && pnpm rust:clippy && pnpm rust:test && pnpm build"
   },

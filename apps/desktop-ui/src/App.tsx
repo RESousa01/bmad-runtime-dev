@@ -1583,10 +1583,9 @@ export function App({
         if (generation !== bmadHelpGenerationRef.current) {
           return;
         }
-        if (
-          error instanceof HostCommandError
-          && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-        ) {
+        // The shared predicate, like every other host call site. This was the
+        // seventh inline copy of it.
+        if (isRecoveryFailure(error)) {
           markReadOnlyRecovery(client, projectionSequence);
           return;
         }
