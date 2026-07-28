@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "sapphirus.model-profile.v1",
+  "profileId": "coding-balanced",
+  "displayName": "Coding Balanced",
+  "description": "General coding and reviewed change proposals.",
+  "family": "fixture-model",
+  "priority": 10,
+  "enabled": true,
+  "visible": true,
+  "deploymentName": "fixture-deployment-a",
+  "expectedModel": {
+    "publisher": "FixturePublisher",
+    "name": "fixture-model",
+    "version": "2026-06-01"
+  },
+  "purposeAllowlist": [
+    "ordinary_chat",
+    "bmad_help"
+  ],
+  "modelRoleAllowlist": [
+    "assistant",
+    "planner"
+  ],
+  "requestModeAllowlist": [
+    "structured_response",
+    "streaming_chat"
+  ],
+  "canonicalOutputSchemaAllowlist": [
+    "sapphirus.bmad-method-help-proposal.v1"
+  ],
+  "supportedModalities": [
+    "text"
+  ],
+  "requiredCapabilities": {
+    "textInput": true,
+    "imageInput": false,
+    "pdfInput": false,
+    "attachments": false,
+    "toolCalling": true,
+    "structuredOutput": true,
+    "reasoning": true,
+    "streaming": true
+  },
+  "limits": {
+    "contextTokens": 256000,
+    "maxInputTokens": 220000,
+    "maxOutputTokens": 16000,
+    "maxAttachmentBytes": 0,
+    "maxOutputBytes": 262144
+  },
+  "variants": [
+    {
+      "variantId": "balanced",
+      "displayName": "Balanced",
+      "reasoningEffort": "medium",
+      "verbosity": "medium",
+      "maxOutputTokens": 16000
+    },
+    {
+      "variantId": "deep",
+      "displayName": "Deep",
+      "reasoningEffort": "high",
+      "verbosity": "high",
+      "maxOutputTokens": 32000
+    }
+  ],
+  "retryPolicy": {
+    "maximumAttempts": 3,
+    "initialBackoffMilliseconds": 250,
+    "maximumBackoffMilliseconds": 4000
+  },
+  "retentionMode": "transient_no_store",
+  "allowedRegions": [
+    "westeurope"
+  ],
+  "qualification": {
+    "status": "qualified",
+    "evidenceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "qualifiedAt": "2026-07-28T00:00:00.000Z"
+  },
+  "priceProfile": {
+    "version": "foundry-price-2026-07",
+    "currency": "EUR",
+    "inputMicrounitsPerThousand": 2750,
+    "outputMicrounitsPerThousand": 11000,
+    "reasoningMicrounitsPerThousand": 11000,
+    "cacheReadMicrounitsPerThousand": 275
+  }
+}

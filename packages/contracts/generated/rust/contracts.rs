@@ -26137,6 +26137,443 @@ impl ::std::convert::TryFrom<::std::string::String> for FilesystemCapabilitySnap
         value.parse()
     }
 }
+#[doc = "Canonical normalized inventory of the Microsoft Foundry project deployments that physically exist. This contract describes what exists, never how to reach it: the project endpoint, subscription, resource group, role assignment, and managed-identity client ID are deliberately unrepresentable."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.foundry-deployment.v1\","]
+#[doc = "  \"description\": \"Canonical normalized inventory of the Microsoft Foundry project deployments that physically exist. This contract describes what exists, never how to reach it: the project endpoint, subscription, resource group, role assignment, and managed-identity client ID are deliberately unrepresentable.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"deployments\","]
+#[doc = "    \"retrievedAt\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"snapshotHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"deployments\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/FoundryDeploymentSnapshotFoundryDeployment\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    },"]
+#[doc = "    \"retrievedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.foundry-deployment.v1\""]
+#[doc = "    },"]
+#[doc = "    \"snapshotHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FoundryDeploymentSnapshot {
+    pub deployments: ::std::vec::Vec<FoundryDeploymentSnapshotFoundryDeployment>,
+    #[serde(rename = "retrievedAt")]
+    pub retrieved_at: CommonUtcInstant,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "snapshotHash")]
+    pub snapshot_hash: CommonSha256,
+}
+impl FoundryDeploymentSnapshot {
+    pub fn builder() -> builder::FoundryDeploymentSnapshot {
+        Default::default()
+    }
+}
+#[doc = "`FoundryDeploymentSnapshotDeploymentName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 2,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9][A-Za-z0-9_-]{0,126}[A-Za-z0-9]$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct FoundryDeploymentSnapshotDeploymentName(::std::string::String);
+impl ::std::ops::Deref for FoundryDeploymentSnapshotDeploymentName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<FoundryDeploymentSnapshotDeploymentName> for ::std::string::String {
+    fn from(value: FoundryDeploymentSnapshotDeploymentName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for FoundryDeploymentSnapshotDeploymentName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 2usize {
+            return Err("shorter than 2 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[A-Za-z0-9][A-Za-z0-9_-]{0,126}[A-Za-z0-9]$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^[A-Za-z0-9][A-Za-z0-9_-]{0,126}[A-Za-z0-9]$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for FoundryDeploymentSnapshotDeploymentName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for FoundryDeploymentSnapshotDeploymentName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for FoundryDeploymentSnapshotDeploymentName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for FoundryDeploymentSnapshotDeploymentName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`FoundryDeploymentSnapshotFoundryDeployment`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"capabilities\","]
+#[doc = "    \"deploymentHash\","]
+#[doc = "    \"deploymentName\","]
+#[doc = "    \"deploymentType\","]
+#[doc = "    \"modelName\","]
+#[doc = "    \"modelPublisher\","]
+#[doc = "    \"modelVersion\","]
+#[doc = "    \"sku\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"capabilities\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotFoundryDeploymentCapabilities\""]
+#[doc = "    },"]
+#[doc = "    \"deploymentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"deploymentName\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotDeploymentName\""]
+#[doc = "    },"]
+#[doc = "    \"deploymentType\": {"]
+#[doc = "      \"const\": \"ModelDeployment\""]
+#[doc = "    },"]
+#[doc = "    \"modelName\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"modelPublisher\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"modelVersion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"sku\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotFoundryDeploymentSku\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FoundryDeploymentSnapshotFoundryDeployment {
+    pub capabilities: FoundryDeploymentSnapshotFoundryDeploymentCapabilities,
+    #[serde(rename = "deploymentHash")]
+    pub deployment_hash: CommonSha256,
+    #[serde(rename = "deploymentName")]
+    pub deployment_name: FoundryDeploymentSnapshotDeploymentName,
+    #[serde(rename = "deploymentType")]
+    pub deployment_type: ::serde_json::Value,
+    #[serde(rename = "modelName")]
+    pub model_name: FoundryDeploymentSnapshotModelIdentityPart,
+    #[serde(rename = "modelPublisher")]
+    pub model_publisher: FoundryDeploymentSnapshotModelIdentityPart,
+    #[serde(rename = "modelVersion")]
+    pub model_version: FoundryDeploymentSnapshotModelIdentityPart,
+    pub sku: FoundryDeploymentSnapshotFoundryDeploymentSku,
+}
+impl FoundryDeploymentSnapshotFoundryDeployment {
+    pub fn builder() -> builder::FoundryDeploymentSnapshotFoundryDeployment {
+        Default::default()
+    }
+}
+#[doc = "Allowlisted provider capability keys normalized to canonical names. Every key is required so the canonical ordering is total and hashable. A capability the provider did not advertise normalizes to false: deployment data may narrow a profile, never broaden it."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Allowlisted provider capability keys normalized to canonical names. Every key is required so the canonical ordering is total and hashable. A capability the provider did not advertise normalizes to false: deployment data may narrow a profile, never broaden it.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"attachments\","]
+#[doc = "    \"imageInput\","]
+#[doc = "    \"pdfInput\","]
+#[doc = "    \"reasoning\","]
+#[doc = "    \"streaming\","]
+#[doc = "    \"structuredOutput\","]
+#[doc = "    \"textInput\","]
+#[doc = "    \"toolCalling\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"attachments\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"imageInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"pdfInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"reasoning\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"streaming\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"structuredOutput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"textInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"toolCalling\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+    pub attachments: bool,
+    #[serde(rename = "imageInput")]
+    pub image_input: bool,
+    #[serde(rename = "pdfInput")]
+    pub pdf_input: bool,
+    pub reasoning: bool,
+    pub streaming: bool,
+    #[serde(rename = "structuredOutput")]
+    pub structured_output: bool,
+    #[serde(rename = "textInput")]
+    pub text_input: bool,
+    #[serde(rename = "toolCalling")]
+    pub tool_calling: bool,
+}
+impl FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+    pub fn builder() -> builder::FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+        Default::default()
+    }
+}
+#[doc = "`FoundryDeploymentSnapshotFoundryDeploymentSku`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"capacity\","]
+#[doc = "    \"family\","]
+#[doc = "    \"name\","]
+#[doc = "    \"size\","]
+#[doc = "    \"tier\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"capacity\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"integer\","]
+#[doc = "          \"maximum\": 1000000.0,"]
+#[doc = "          \"minimum\": 0.0"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"family\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"size\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"tier\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct FoundryDeploymentSnapshotFoundryDeploymentSku {
+    pub capacity: ::std::option::Option<i64>,
+    pub family: ::std::option::Option<FoundryDeploymentSnapshotModelIdentityPart>,
+    pub name: FoundryDeploymentSnapshotModelIdentityPart,
+    pub size: ::std::option::Option<FoundryDeploymentSnapshotModelIdentityPart>,
+    pub tier: ::std::option::Option<FoundryDeploymentSnapshotModelIdentityPart>,
+}
+impl FoundryDeploymentSnapshotFoundryDeploymentSku {
+    pub fn builder() -> builder::FoundryDeploymentSnapshotFoundryDeploymentSku {
+        Default::default()
+    }
+}
+#[doc = "`FoundryDeploymentSnapshotModelIdentityPart`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct FoundryDeploymentSnapshotModelIdentityPart(::std::string::String);
+impl ::std::ops::Deref for FoundryDeploymentSnapshotModelIdentityPart {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<FoundryDeploymentSnapshotModelIdentityPart> for ::std::string::String {
+    fn from(value: FoundryDeploymentSnapshotModelIdentityPart) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for FoundryDeploymentSnapshotModelIdentityPart {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for FoundryDeploymentSnapshotModelIdentityPart {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for FoundryDeploymentSnapshotModelIdentityPart
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for FoundryDeploymentSnapshotModelIdentityPart {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for FoundryDeploymentSnapshotModelIdentityPart {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`MethodAdvanceResult`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -36975,6 +37412,1357 @@ impl<'de> ::serde::Deserialize<'de> for ModelAccessResultPayloadJson {
             })
     }
 }
+#[doc = "The sanitized effective model catalog projected to the desktop. It is the intersection of the Foundry deployment inventory, the enabled signed organization profiles, tenant policy, qualification evidence, and the current subject and device entitlement. Azure authority is deliberately unrepresentable: there is no property that can carry a deployment name, project endpoint, subscription or resource identifier, role assignment, managed-identity client ID, API version, or credential."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-catalog.v1\","]
+#[doc = "  \"description\": \"The sanitized effective model catalog projected to the desktop. It is the intersection of the Foundry deployment inventory, the enabled signed organization profiles, tenant policy, qualification evidence, and the current subject and device entitlement. Azure authority is deliberately unrepresentable: there is no property that can carry a deployment name, project endpoint, subscription or resource identifier, role assignment, managed-identity client ID, API version, or credential.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"catalogHash\","]
+#[doc = "    \"catalogState\","]
+#[doc = "    \"catalogVersion\","]
+#[doc = "    \"defaultProfileId\","]
+#[doc = "    \"deploymentSnapshotHash\","]
+#[doc = "    \"expiresAt\","]
+#[doc = "    \"generatedAt\","]
+#[doc = "    \"policyHash\","]
+#[doc = "    \"policyVersion\","]
+#[doc = "    \"profiles\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"unavailableProfiles\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"catalogHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"catalogState\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogCatalogState\""]
+#[doc = "    },"]
+#[doc = "    \"catalogVersion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogCatalogVersion\""]
+#[doc = "    },"]
+#[doc = "    \"defaultProfileId\": {"]
+#[doc = "      \"description\": \"The profile the host selects when the user has no valid persisted selection. Null when no profile is currently selectable. It is never a profile listed in unavailableProfiles.\","]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"deploymentSnapshotHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"expiresAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"generatedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"policyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"policyVersion\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 9007199254740991.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"profiles\": {"]
+#[doc = "      \"description\": \"Selectable profiles only. A profile appears here exactly when the user may invoke it right now.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelCatalogModelProfileProjection\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.model-catalog.v1\""]
+#[doc = "    },"]
+#[doc = "    \"unavailableProfiles\": {"]
+#[doc = "      \"description\": \"Visible profiles that exist for this organization but cannot be invoked right now. Carrying them lets the desktop explain why a previously selected profile disappeared instead of silently switching models. Each entry states the prerequisite and a recovery action, and nothing else.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelCatalogUnavailableModelProfile\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalog {
+    #[serde(rename = "catalogHash")]
+    pub catalog_hash: CommonSha256,
+    #[serde(rename = "catalogState")]
+    pub catalog_state: ModelCatalogCatalogState,
+    #[serde(rename = "catalogVersion")]
+    pub catalog_version: ModelCatalogCatalogVersion,
+    #[doc = "The profile the host selects when the user has no valid persisted selection. Null when no profile is currently selectable. It is never a profile listed in unavailableProfiles."]
+    #[serde(rename = "defaultProfileId")]
+    pub default_profile_id: ::std::option::Option<ModelProfileModelProfileId>,
+    #[serde(rename = "deploymentSnapshotHash")]
+    pub deployment_snapshot_hash: CommonSha256,
+    #[serde(rename = "expiresAt")]
+    pub expires_at: CommonUtcInstant,
+    #[serde(rename = "generatedAt")]
+    pub generated_at: CommonUtcInstant,
+    #[serde(rename = "policyHash")]
+    pub policy_hash: CommonSha256,
+    #[serde(rename = "policyVersion")]
+    pub policy_version: ::std::num::NonZeroU64,
+    #[doc = "Selectable profiles only. A profile appears here exactly when the user may invoke it right now."]
+    pub profiles: ::std::vec::Vec<ModelCatalogModelProfileProjection>,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[doc = "Visible profiles that exist for this organization but cannot be invoked right now. Carrying them lets the desktop explain why a previously selected profile disappeared instead of silently switching models. Each entry states the prerequisite and a recovery action, and nothing else."]
+    #[serde(rename = "unavailableProfiles")]
+    pub unavailable_profiles: ::std::vec::Vec<ModelCatalogUnavailableModelProfile>,
+}
+impl ModelCatalog {
+    pub fn builder() -> builder::ModelCatalog {
+        Default::default()
+    }
+}
+#[doc = "Why a visible profile is not currently invocable. Together with SelectableAvailability this is the complete availability vocabulary."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Why a visible profile is not currently invocable. Together with SelectableAvailability this is the complete availability vocabulary.\","]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"policy_blocked\","]
+#[doc = "    \"not_entitled\","]
+#[doc = "    \"unqualified\","]
+#[doc = "    \"deployment_missing\","]
+#[doc = "    \"catalog_stale\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelCatalogBlockedAvailability {
+    #[serde(rename = "policy_blocked")]
+    PolicyBlocked,
+    #[serde(rename = "not_entitled")]
+    NotEntitled,
+    #[serde(rename = "unqualified")]
+    Unqualified,
+    #[serde(rename = "deployment_missing")]
+    DeploymentMissing,
+    #[serde(rename = "catalog_stale")]
+    CatalogStale,
+}
+impl ::std::fmt::Display for ModelCatalogBlockedAvailability {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PolicyBlocked => f.write_str("policy_blocked"),
+            Self::NotEntitled => f.write_str("not_entitled"),
+            Self::Unqualified => f.write_str("unqualified"),
+            Self::DeploymentMissing => f.write_str("deployment_missing"),
+            Self::CatalogStale => f.write_str("catalog_stale"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelCatalogBlockedAvailability {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "policy_blocked" => Ok(Self::PolicyBlocked),
+            "not_entitled" => Ok(Self::NotEntitled),
+            "unqualified" => Ok(Self::Unqualified),
+            "deployment_missing" => Ok(Self::DeploymentMissing),
+            "catalog_stale" => Ok(Self::CatalogStale),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogBlockedAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogBlockedAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogBlockedAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Freshness of the deployment snapshot behind this catalog. A catalog is never produced at all when the snapshot is unavailable or failed integrity checks; those states are problems, not catalogs."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Freshness of the deployment snapshot behind this catalog. A catalog is never produced at all when the snapshot is unavailable or failed integrity checks; those states are problems, not catalogs.\","]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"fresh\","]
+#[doc = "    \"stale_usable\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelCatalogCatalogState {
+    #[serde(rename = "fresh")]
+    Fresh,
+    #[serde(rename = "stale_usable")]
+    StaleUsable,
+}
+impl ::std::fmt::Display for ModelCatalogCatalogState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Fresh => f.write_str("fresh"),
+            Self::StaleUsable => f.write_str("stale_usable"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelCatalogCatalogState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "fresh" => Ok(Self::Fresh),
+            "stale_usable" => Ok(Self::StaleUsable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogCatalogState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogCatalogState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogCatalogState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Monotonic catalog epoch plus a short digest of every authority-relevant input. Any change to the deployment snapshot, profile registry, policy, entitlement class, or qualification evidence produces a new value."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Monotonic catalog epoch plus a short digest of every authority-relevant input. Any change to the deployment snapshot, profile registry, policy, entitlement class, or qualification evidence produces a new value.\","]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 40,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^v[1-9][0-9]{0,9}\\\\.[0-9a-f]{16}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogCatalogVersion(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogCatalogVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogCatalogVersion> for ::std::string::String {
+    fn from(value: ModelCatalogCatalogVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogCatalogVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 40usize {
+            return Err("longer than 40 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^v[1-9][0-9]{0,9}\\.[0-9a-f]{16}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^v[1-9][0-9]{0,9}\\.[0-9a-f]{16}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogCatalogVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogCatalogVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogCatalogVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogCatalogVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogModelProfileProjection`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"availability\","]
+#[doc = "    \"capabilities\","]
+#[doc = "    \"defaultVariantId\","]
+#[doc = "    \"description\","]
+#[doc = "    \"displayName\","]
+#[doc = "    \"family\","]
+#[doc = "    \"limits\","]
+#[doc = "    \"profileId\","]
+#[doc = "    \"provider\","]
+#[doc = "    \"qualifiedAt\","]
+#[doc = "    \"statusDetail\","]
+#[doc = "    \"variants\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"availability\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogSelectableAvailability\""]
+#[doc = "    },"]
+#[doc = "    \"capabilities\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogProjectedCapabilities\""]
+#[doc = "    },"]
+#[doc = "    \"defaultVariantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    },"]
+#[doc = "    \"description\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"family\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"string\","]
+#[doc = "          \"maxLength\": 64,"]
+#[doc = "          \"minLength\": 1"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"limits\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogProjectedLimits\""]
+#[doc = "    },"]
+#[doc = "    \"profileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"provider\": {"]
+#[doc = "      \"const\": \"microsoft_foundry\""]
+#[doc = "    },"]
+#[doc = "    \"qualifiedAt\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"statusDetail\": {"]
+#[doc = "      \"description\": \"Short human-readable qualifier for a degraded profile. Never carries a provider body, endpoint, or deployment name.\","]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"string\","]
+#[doc = "          \"maxLength\": 160,"]
+#[doc = "          \"minLength\": 1"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"variants\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelCatalogModelVariantProjection\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 8,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalogModelProfileProjection {
+    pub availability: ModelCatalogSelectableAvailability,
+    pub capabilities: ModelCatalogProjectedCapabilities,
+    #[serde(rename = "defaultVariantId")]
+    pub default_variant_id: ModelProfileModelVariantId,
+    pub description: ModelCatalogModelProfileProjectionDescription,
+    #[serde(rename = "displayName")]
+    pub display_name: ModelCatalogModelProfileProjectionDisplayName,
+    pub family: ::std::option::Option<ModelCatalogModelProfileProjectionFamily>,
+    pub limits: ModelCatalogProjectedLimits,
+    #[serde(rename = "profileId")]
+    pub profile_id: ModelProfileModelProfileId,
+    pub provider: ::serde_json::Value,
+    #[serde(rename = "qualifiedAt")]
+    pub qualified_at: ::std::option::Option<CommonUtcInstant>,
+    #[doc = "Short human-readable qualifier for a degraded profile. Never carries a provider body, endpoint, or deployment name."]
+    #[serde(rename = "statusDetail")]
+    pub status_detail: ::std::option::Option<ModelCatalogModelProfileProjectionStatusDetail>,
+    pub variants: ::std::vec::Vec<ModelCatalogModelVariantProjection>,
+}
+impl ModelCatalogModelProfileProjection {
+    pub fn builder() -> builder::ModelCatalogModelProfileProjection {
+        Default::default()
+    }
+}
+#[doc = "`ModelCatalogModelProfileProjectionDescription`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogModelProfileProjectionDescription(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogModelProfileProjectionDescription {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogModelProfileProjectionDescription> for ::std::string::String {
+    fn from(value: ModelCatalogModelProfileProjectionDescription) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelProfileProjectionDescription {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelProfileProjectionDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelCatalogModelProfileProjectionDescription
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelCatalogModelProfileProjectionDescription
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogModelProfileProjectionDescription {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogModelProfileProjectionDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogModelProfileProjectionDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogModelProfileProjectionDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogModelProfileProjectionDisplayName> for ::std::string::String {
+    fn from(value: ModelCatalogModelProfileProjectionDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelProfileProjectionDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelProfileProjectionDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelCatalogModelProfileProjectionDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelCatalogModelProfileProjectionDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogModelProfileProjectionDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogModelProfileProjectionFamily`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogModelProfileProjectionFamily(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogModelProfileProjectionFamily {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogModelProfileProjectionFamily> for ::std::string::String {
+    fn from(value: ModelCatalogModelProfileProjectionFamily) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelProfileProjectionFamily {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelProfileProjectionFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogModelProfileProjectionFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogModelProfileProjectionFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogModelProfileProjectionFamily {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogModelProfileProjectionStatusDetail`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 160,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogModelProfileProjectionStatusDetail(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogModelProfileProjectionStatusDetail {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogModelProfileProjectionStatusDetail>
+    for ::std::string::String
+{
+    fn from(value: ModelCatalogModelProfileProjectionStatusDetail) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelProfileProjectionStatusDetail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 160usize {
+            return Err("longer than 160 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelProfileProjectionStatusDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelCatalogModelProfileProjectionStatusDetail
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelCatalogModelProfileProjectionStatusDetail
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogModelProfileProjectionStatusDetail {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogModelRecoveryAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"refresh_catalog\","]
+#[doc = "    \"request_entitlement\","]
+#[doc = "    \"awaiting_qualification\","]
+#[doc = "    \"contact_administrator\","]
+#[doc = "    \"select_another_profile\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelCatalogModelRecoveryAction {
+    #[serde(rename = "refresh_catalog")]
+    RefreshCatalog,
+    #[serde(rename = "request_entitlement")]
+    RequestEntitlement,
+    #[serde(rename = "awaiting_qualification")]
+    AwaitingQualification,
+    #[serde(rename = "contact_administrator")]
+    ContactAdministrator,
+    #[serde(rename = "select_another_profile")]
+    SelectAnotherProfile,
+}
+impl ::std::fmt::Display for ModelCatalogModelRecoveryAction {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::RefreshCatalog => f.write_str("refresh_catalog"),
+            Self::RequestEntitlement => f.write_str("request_entitlement"),
+            Self::AwaitingQualification => f.write_str("awaiting_qualification"),
+            Self::ContactAdministrator => f.write_str("contact_administrator"),
+            Self::SelectAnotherProfile => f.write_str("select_another_profile"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelRecoveryAction {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "refresh_catalog" => Ok(Self::RefreshCatalog),
+            "request_entitlement" => Ok(Self::RequestEntitlement),
+            "awaiting_qualification" => Ok(Self::AwaitingQualification),
+            "contact_administrator" => Ok(Self::ContactAdministrator),
+            "select_another_profile" => Ok(Self::SelectAnotherProfile),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelRecoveryAction {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogModelRecoveryAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogModelRecoveryAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelCatalogModelVariantProjection`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"displayName\","]
+#[doc = "    \"maxOutputTokens\","]
+#[doc = "    \"reasoningEffort\","]
+#[doc = "    \"variantId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 32,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"maxOutputTokens\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 10000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"reasoningEffort\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileReasoningEffort\""]
+#[doc = "    },"]
+#[doc = "    \"variantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalogModelVariantProjection {
+    #[serde(rename = "displayName")]
+    pub display_name: ModelCatalogModelVariantProjectionDisplayName,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: ::std::num::NonZeroU64,
+    #[serde(rename = "reasoningEffort")]
+    pub reasoning_effort: ModelProfileReasoningEffort,
+    #[serde(rename = "variantId")]
+    pub variant_id: ModelProfileModelVariantId,
+}
+impl ModelCatalogModelVariantProjection {
+    pub fn builder() -> builder::ModelCatalogModelVariantProjection {
+        Default::default()
+    }
+}
+#[doc = "`ModelCatalogModelVariantProjectionDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 32,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogModelVariantProjectionDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogModelVariantProjectionDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogModelVariantProjectionDisplayName> for ::std::string::String {
+    fn from(value: ModelCatalogModelVariantProjectionDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogModelVariantProjectionDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 32usize {
+            return Err("longer than 32 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogModelVariantProjectionDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelCatalogModelVariantProjectionDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelCatalogModelVariantProjectionDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogModelVariantProjectionDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelCatalogProjectedCapabilities`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"attachments\","]
+#[doc = "    \"imageInput\","]
+#[doc = "    \"pdfInput\","]
+#[doc = "    \"reasoning\","]
+#[doc = "    \"structuredOutput\","]
+#[doc = "    \"textInput\","]
+#[doc = "    \"toolCalling\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"attachments\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"imageInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"pdfInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"reasoning\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"structuredOutput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"textInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"toolCalling\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalogProjectedCapabilities {
+    pub attachments: bool,
+    #[serde(rename = "imageInput")]
+    pub image_input: bool,
+    #[serde(rename = "pdfInput")]
+    pub pdf_input: bool,
+    pub reasoning: bool,
+    #[serde(rename = "structuredOutput")]
+    pub structured_output: bool,
+    #[serde(rename = "textInput")]
+    pub text_input: bool,
+    #[serde(rename = "toolCalling")]
+    pub tool_calling: bool,
+}
+impl ModelCatalogProjectedCapabilities {
+    pub fn builder() -> builder::ModelCatalogProjectedCapabilities {
+        Default::default()
+    }
+}
+#[doc = "Limits Forge will actually enforce. Null means the organization did not publish a qualified value; the desktop must render that as unknown rather than as zero or unlimited."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Limits Forge will actually enforce. Null means the organization did not publish a qualified value; the desktop must render that as unknown rather than as zero or unlimited.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contextTokens\","]
+#[doc = "    \"maxAttachmentBytes\","]
+#[doc = "    \"maxInputTokens\","]
+#[doc = "    \"maxOutputTokens\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contextTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"integer\","]
+#[doc = "          \"maximum\": 100000000.0,"]
+#[doc = "          \"minimum\": 1.0"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"maxAttachmentBytes\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"integer\","]
+#[doc = "          \"maximum\": 134217728.0,"]
+#[doc = "          \"minimum\": 0.0"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"maxInputTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"integer\","]
+#[doc = "          \"maximum\": 100000000.0,"]
+#[doc = "          \"minimum\": 1.0"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"maxOutputTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"integer\","]
+#[doc = "          \"maximum\": 10000000.0,"]
+#[doc = "          \"minimum\": 1.0"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalogProjectedLimits {
+    #[serde(rename = "contextTokens")]
+    pub context_tokens: ::std::option::Option<::std::num::NonZeroU64>,
+    #[serde(rename = "maxAttachmentBytes")]
+    pub max_attachment_bytes: ::std::option::Option<i64>,
+    #[serde(rename = "maxInputTokens")]
+    pub max_input_tokens: ::std::option::Option<::std::num::NonZeroU64>,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: ::std::option::Option<::std::num::NonZeroU64>,
+}
+impl ModelCatalogProjectedLimits {
+    pub fn builder() -> builder::ModelCatalogProjectedLimits {
+        Default::default()
+    }
+}
+#[doc = "Availability of a profile the user may invoke. Blocked states are intentionally not representable here, so a selectable projection cannot carry a reason it should not have been listed."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Availability of a profile the user may invoke. Blocked states are intentionally not representable here, so a selectable projection cannot carry a reason it should not have been listed.\","]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"available\","]
+#[doc = "    \"degraded\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelCatalogSelectableAvailability {
+    #[serde(rename = "available")]
+    Available,
+    #[serde(rename = "degraded")]
+    Degraded,
+}
+impl ::std::fmt::Display for ModelCatalogSelectableAvailability {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Available => f.write_str("available"),
+            Self::Degraded => f.write_str("degraded"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelCatalogSelectableAvailability {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "available" => Ok(Self::Available),
+            "degraded" => Ok(Self::Degraded),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogSelectableAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelCatalogSelectableAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelCatalogSelectableAvailability {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelCatalogUnavailableModelProfile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"availability\","]
+#[doc = "    \"displayName\","]
+#[doc = "    \"profileId\","]
+#[doc = "    \"recoveryAction\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"availability\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogBlockedAvailability\""]
+#[doc = "    },"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"profileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"recoveryAction\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogModelRecoveryAction\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelCatalogUnavailableModelProfile {
+    pub availability: ModelCatalogBlockedAvailability,
+    #[serde(rename = "displayName")]
+    pub display_name: ModelCatalogUnavailableModelProfileDisplayName,
+    #[serde(rename = "profileId")]
+    pub profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "recoveryAction")]
+    pub recovery_action: ModelCatalogModelRecoveryAction,
+}
+impl ModelCatalogUnavailableModelProfile {
+    pub fn builder() -> builder::ModelCatalogUnavailableModelProfile {
+        Default::default()
+    }
+}
+#[doc = "`ModelCatalogUnavailableModelProfileDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelCatalogUnavailableModelProfileDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelCatalogUnavailableModelProfileDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelCatalogUnavailableModelProfileDisplayName>
+    for ::std::string::String
+{
+    fn from(value: ModelCatalogUnavailableModelProfileDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelCatalogUnavailableModelProfileDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelCatalogUnavailableModelProfileDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelCatalogUnavailableModelProfileDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelCatalogUnavailableModelProfileDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelCatalogUnavailableModelProfileDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`ModelContextConsent`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -37789,6 +39577,1833 @@ impl ::std::convert::TryFrom<::std::string::String> for ModelContextConsentRegio
     }
 }
 impl<'de> ::serde::Deserialize<'de> for ModelContextConsentRegion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "One versioned organization model profile. A profile states what the organization permits and how Forge uses it. The profile is the only place a Foundry deployment name appears in a contract, it is read exclusively from signed organization configuration, and it is never projected to the desktop. Request data can never create or modify a profile."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-profile.v1\","]
+#[doc = "  \"description\": \"One versioned organization model profile. A profile states what the organization permits and how Forge uses it. The profile is the only place a Foundry deployment name appears in a contract, it is read exclusively from signed organization configuration, and it is never projected to the desktop. Request data can never create or modify a profile.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"allowedRegions\","]
+#[doc = "    \"canonicalOutputSchemaAllowlist\","]
+#[doc = "    \"deploymentName\","]
+#[doc = "    \"description\","]
+#[doc = "    \"displayName\","]
+#[doc = "    \"enabled\","]
+#[doc = "    \"expectedModel\","]
+#[doc = "    \"family\","]
+#[doc = "    \"limits\","]
+#[doc = "    \"modelRoleAllowlist\","]
+#[doc = "    \"priceProfile\","]
+#[doc = "    \"priority\","]
+#[doc = "    \"profileId\","]
+#[doc = "    \"purposeAllowlist\","]
+#[doc = "    \"qualification\","]
+#[doc = "    \"requestModeAllowlist\","]
+#[doc = "    \"requiredCapabilities\","]
+#[doc = "    \"retentionMode\","]
+#[doc = "    \"retryPolicy\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"supportedModalities\","]
+#[doc = "    \"variants\","]
+#[doc = "    \"visible\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"allowedRegions\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileRegionName\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 16,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaAllowlist\": {"]
+#[doc = "      \"description\": \"Canonical output schema identifiers this profile may be asked to satisfy in structured_response mode. Empty means the profile is chat-only and must never be bound to a structured output schema.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileCanonicalSchemaId\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    },"]
+#[doc = "    \"deploymentName\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotDeploymentName\""]
+#[doc = "    },"]
+#[doc = "    \"description\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"enabled\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"expectedModel\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileExpectedModelIdentity\""]
+#[doc = "    },"]
+#[doc = "    \"family\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"string\","]
+#[doc = "          \"maxLength\": 64,"]
+#[doc = "          \"minLength\": 1"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"limits\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileLimits\""]
+#[doc = "    },"]
+#[doc = "    \"modelRoleAllowlist\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileAllowlistToken\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"priceProfile\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelPriceProfile\""]
+#[doc = "    },"]
+#[doc = "    \"priority\": {"]
+#[doc = "      \"description\": \"Deterministic ordering key for default selection and listing. Lower sorts first; ties break on profileId ordinal order.\","]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"profileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"purposeAllowlist\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileAllowlistToken\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"qualification\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileQualification\""]
+#[doc = "    },"]
+#[doc = "    \"requestModeAllowlist\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileModelRequestMode\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 2,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"requiredCapabilities\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileCapabilities\""]
+#[doc = "    },"]
+#[doc = "    \"retentionMode\": {"]
+#[doc = "      \"const\": \"transient_no_store\""]
+#[doc = "    },"]
+#[doc = "    \"retryPolicy\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileRetryPolicy\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.model-profile.v1\""]
+#[doc = "    },"]
+#[doc = "    \"supportedModalities\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileModelModality\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 3,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"variants\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelProfileModelProfileVariant\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 8,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"visible\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfile {
+    #[serde(rename = "allowedRegions")]
+    pub allowed_regions: ::std::vec::Vec<ModelProfileRegionName>,
+    #[doc = "Canonical output schema identifiers this profile may be asked to satisfy in structured_response mode. Empty means the profile is chat-only and must never be bound to a structured output schema."]
+    #[serde(rename = "canonicalOutputSchemaAllowlist")]
+    pub canonical_output_schema_allowlist: ::std::vec::Vec<ModelProfileCanonicalSchemaId>,
+    #[serde(rename = "deploymentName")]
+    pub deployment_name: FoundryDeploymentSnapshotDeploymentName,
+    pub description: ModelProfileDescription,
+    #[serde(rename = "displayName")]
+    pub display_name: ModelProfileDisplayName,
+    pub enabled: bool,
+    #[serde(rename = "expectedModel")]
+    pub expected_model: ModelProfileExpectedModelIdentity,
+    pub family: ::std::option::Option<ModelProfileFamily>,
+    pub limits: ModelProfileModelProfileLimits,
+    #[serde(rename = "modelRoleAllowlist")]
+    pub model_role_allowlist: ::std::vec::Vec<ModelProfileAllowlistToken>,
+    #[serde(rename = "priceProfile")]
+    pub price_profile: ModelProfileModelPriceProfile,
+    #[doc = "Deterministic ordering key for default selection and listing. Lower sorts first; ties break on profileId ordinal order."]
+    pub priority: ::std::num::NonZeroU64,
+    #[serde(rename = "profileId")]
+    pub profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "purposeAllowlist")]
+    pub purpose_allowlist: ::std::vec::Vec<ModelProfileAllowlistToken>,
+    pub qualification: ModelProfileModelProfileQualification,
+    #[serde(rename = "requestModeAllowlist")]
+    pub request_mode_allowlist: ::std::vec::Vec<ModelProfileModelRequestMode>,
+    #[serde(rename = "requiredCapabilities")]
+    pub required_capabilities: ModelProfileModelProfileCapabilities,
+    #[serde(rename = "retentionMode")]
+    pub retention_mode: ::serde_json::Value,
+    #[serde(rename = "retryPolicy")]
+    pub retry_policy: ModelProfileModelProfileRetryPolicy,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "supportedModalities")]
+    pub supported_modalities: ::std::vec::Vec<ModelProfileModelModality>,
+    pub variants: ::std::vec::Vec<ModelProfileModelProfileVariant>,
+    pub visible: bool,
+}
+impl ModelProfile {
+    pub fn builder() -> builder::ModelProfile {
+        Default::default()
+    }
+}
+#[doc = "`ModelProfileAllowlistToken`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]{0,63}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileAllowlistToken(::std::string::String);
+impl ::std::ops::Deref for ModelProfileAllowlistToken {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileAllowlistToken> for ::std::string::String {
+    fn from(value: ModelProfileAllowlistToken) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileAllowlistToken {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]{0,63}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]{0,63}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileAllowlistToken {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileAllowlistToken {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileAllowlistToken {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileAllowlistToken {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileCanonicalSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileCanonicalSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelProfileCanonicalSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileCanonicalSchemaId> for ::std::string::String {
+    fn from(value: ModelProfileCanonicalSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileCanonicalSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileCanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileCanonicalSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileDescription`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileDescription(::std::string::String);
+impl ::std::ops::Deref for ModelProfileDescription {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileDescription> for ::std::string::String {
+    fn from(value: ModelProfileDescription) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileDescription {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileDescription {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelProfileDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileDisplayName> for ::std::string::String {
+    fn from(value: ModelProfileDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "The exact model identity the organization qualified behind this deployment name. Discovery must confirm all three parts before the profile becomes selectable; a deployment that now serves a different model fails closed."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The exact model identity the organization qualified behind this deployment name. Discovery must confirm all three parts before the profile becomes selectable; a deployment that now serves a different model fails closed.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"name\","]
+#[doc = "    \"publisher\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"publisher\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileExpectedModelIdentity {
+    pub name: FoundryDeploymentSnapshotModelIdentityPart,
+    pub publisher: FoundryDeploymentSnapshotModelIdentityPart,
+    pub version: FoundryDeploymentSnapshotModelIdentityPart,
+}
+impl ModelProfileExpectedModelIdentity {
+    pub fn builder() -> builder::ModelProfileExpectedModelIdentity {
+        Default::default()
+    }
+}
+#[doc = "`ModelProfileFamily`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileFamily(::std::string::String);
+impl ::std::ops::Deref for ModelProfileFamily {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileFamily> for ::std::string::String {
+    fn from(value: ModelProfileFamily) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileFamily {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileFamily {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileFamily {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileModelModality`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"text\","]
+#[doc = "    \"image\","]
+#[doc = "    \"pdf\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelProfileModelModality {
+    #[serde(rename = "text")]
+    Text,
+    #[serde(rename = "image")]
+    Image,
+    #[serde(rename = "pdf")]
+    Pdf,
+}
+impl ::std::fmt::Display for ModelProfileModelModality {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+            Self::Image => f.write_str("image"),
+            Self::Pdf => f.write_str("pdf"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelModality {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            "image" => Ok(Self::Image),
+            "pdf" => Ok(Self::Pdf),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelModality {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelModality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelModality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Versioned server-side price profile. Cost is always computed here, never accepted from a provider or a client."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Versioned server-side price profile. Cost is always computed here, never accepted from a provider or a client.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cacheReadMicrounitsPerThousand\","]
+#[doc = "    \"currency\","]
+#[doc = "    \"inputMicrounitsPerThousand\","]
+#[doc = "    \"outputMicrounitsPerThousand\","]
+#[doc = "    \"reasoningMicrounitsPerThousand\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cacheReadMicrounitsPerThousand\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"currency\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "    },"]
+#[doc = "    \"inputMicrounitsPerThousand\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"outputMicrounitsPerThousand\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"reasoningMicrounitsPerThousand\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 3,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelPriceProfile {
+    #[serde(rename = "cacheReadMicrounitsPerThousand")]
+    pub cache_read_microunits_per_thousand: i64,
+    pub currency: ModelProfileModelPriceProfileCurrency,
+    #[serde(rename = "inputMicrounitsPerThousand")]
+    pub input_microunits_per_thousand: i64,
+    #[serde(rename = "outputMicrounitsPerThousand")]
+    pub output_microunits_per_thousand: i64,
+    #[serde(rename = "reasoningMicrounitsPerThousand")]
+    pub reasoning_microunits_per_thousand: i64,
+    pub version: ModelProfileModelPriceProfileVersion,
+}
+impl ModelProfileModelPriceProfile {
+    pub fn builder() -> builder::ModelProfileModelPriceProfile {
+        Default::default()
+    }
+}
+#[doc = "`ModelProfileModelPriceProfileCurrency`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileModelPriceProfileCurrency(::std::string::String);
+impl ::std::ops::Deref for ModelProfileModelPriceProfileCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileModelPriceProfileCurrency> for ::std::string::String {
+    fn from(value: ModelProfileModelPriceProfileCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelPriceProfileCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Z]{3}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Z]{3}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelPriceProfileCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelPriceProfileCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelPriceProfileCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileModelPriceProfileCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileModelPriceProfileVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 3,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileModelPriceProfileVersion(::std::string::String);
+impl ::std::ops::Deref for ModelProfileModelPriceProfileVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileModelPriceProfileVersion> for ::std::string::String {
+    fn from(value: ModelProfileModelPriceProfileVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelPriceProfileVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9]*(-[a-z0-9]+)*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelPriceProfileVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelPriceProfileVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelPriceProfileVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileModelPriceProfileVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Capabilities Forge relies on for this profile. Discovery may narrow these by refusing a deployment that lacks one; it may never broaden them."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Capabilities Forge relies on for this profile. Discovery may narrow these by refusing a deployment that lacks one; it may never broaden them.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"attachments\","]
+#[doc = "    \"imageInput\","]
+#[doc = "    \"pdfInput\","]
+#[doc = "    \"reasoning\","]
+#[doc = "    \"streaming\","]
+#[doc = "    \"structuredOutput\","]
+#[doc = "    \"textInput\","]
+#[doc = "    \"toolCalling\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"attachments\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"imageInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"pdfInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"reasoning\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"streaming\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"structuredOutput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"textInput\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"toolCalling\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelProfileCapabilities {
+    pub attachments: bool,
+    #[serde(rename = "imageInput")]
+    pub image_input: bool,
+    #[serde(rename = "pdfInput")]
+    pub pdf_input: bool,
+    pub reasoning: bool,
+    pub streaming: bool,
+    #[serde(rename = "structuredOutput")]
+    pub structured_output: bool,
+    #[serde(rename = "textInput")]
+    pub text_input: bool,
+    #[serde(rename = "toolCalling")]
+    pub tool_calling: bool,
+}
+impl ModelProfileModelProfileCapabilities {
+    pub fn builder() -> builder::ModelProfileModelProfileCapabilities {
+        Default::default()
+    }
+}
+#[doc = "Stable organization-chosen profile identifier. Deliberately independent of the Foundry deployment name, so a deployment can be replaced without invalidating persisted user selections."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Stable organization-chosen profile identifier. Deliberately independent of the Foundry deployment name, so a deployment can be replaced without invalidating persisted user selections.\","]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 3,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+){0,7}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileModelProfileId(::std::string::String);
+impl ::std::ops::Deref for ModelProfileModelProfileId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileModelProfileId> for ::std::string::String {
+    fn from(value: ModelProfileModelProfileId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelProfileId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9]*(-[a-z0-9]+){0,7}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]*(-[a-z0-9]+){0,7}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelProfileId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelProfileId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelProfileId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileModelProfileId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileModelProfileLimits`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contextTokens\","]
+#[doc = "    \"maxAttachmentBytes\","]
+#[doc = "    \"maxInputTokens\","]
+#[doc = "    \"maxOutputBytes\","]
+#[doc = "    \"maxOutputTokens\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contextTokens\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 100000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"maxAttachmentBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 134217728.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"maxInputTokens\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 100000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"maxOutputBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 16777216.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"maxOutputTokens\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 10000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelProfileLimits {
+    #[serde(rename = "contextTokens")]
+    pub context_tokens: ::std::num::NonZeroU64,
+    #[serde(rename = "maxAttachmentBytes")]
+    pub max_attachment_bytes: i64,
+    #[serde(rename = "maxInputTokens")]
+    pub max_input_tokens: ::std::num::NonZeroU64,
+    #[serde(rename = "maxOutputBytes")]
+    pub max_output_bytes: ::std::num::NonZeroU64,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: ::std::num::NonZeroU64,
+}
+impl ModelProfileModelProfileLimits {
+    pub fn builder() -> builder::ModelProfileModelProfileLimits {
+        Default::default()
+    }
+}
+#[doc = "Evidence that this exact profile was qualified. A profile without qualification evidence is never selectable."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Evidence that this exact profile was qualified. A profile without qualification evidence is never selectable.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"evidenceHash\","]
+#[doc = "    \"qualifiedAt\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"evidenceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"qualifiedAt\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileQualificationStatus\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelProfileQualification {
+    #[serde(rename = "evidenceHash")]
+    pub evidence_hash: CommonSha256,
+    #[serde(rename = "qualifiedAt")]
+    pub qualified_at: ::std::option::Option<CommonUtcInstant>,
+    pub status: ModelProfileQualificationStatus,
+}
+impl ModelProfileModelProfileQualification {
+    pub fn builder() -> builder::ModelProfileModelProfileQualification {
+        Default::default()
+    }
+}
+#[doc = "`ModelProfileModelProfileRetryPolicy`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"initialBackoffMilliseconds\","]
+#[doc = "    \"maximumAttempts\","]
+#[doc = "    \"maximumBackoffMilliseconds\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"initialBackoffMilliseconds\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 60000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"maximumAttempts\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 8.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"maximumBackoffMilliseconds\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 300000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelProfileRetryPolicy {
+    #[serde(rename = "initialBackoffMilliseconds")]
+    pub initial_backoff_milliseconds: i64,
+    #[serde(rename = "maximumAttempts")]
+    pub maximum_attempts: ::std::num::NonZeroU64,
+    #[serde(rename = "maximumBackoffMilliseconds")]
+    pub maximum_backoff_milliseconds: i64,
+}
+impl ModelProfileModelProfileRetryPolicy {
+    pub fn builder() -> builder::ModelProfileModelProfileRetryPolicy {
+        Default::default()
+    }
+}
+#[doc = "A named operating point of the same deployment. Variants change reasoning effort, verbosity, and output budget; they never change the deployment or the model identity."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A named operating point of the same deployment. Variants change reasoning effort, verbosity, and output budget; they never change the deployment or the model identity.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"displayName\","]
+#[doc = "    \"maxOutputTokens\","]
+#[doc = "    \"reasoningEffort\","]
+#[doc = "    \"variantId\","]
+#[doc = "    \"verbosity\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 32,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"maxOutputTokens\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 10000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"reasoningEffort\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileReasoningEffort\""]
+#[doc = "    },"]
+#[doc = "    \"variantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    },"]
+#[doc = "    \"verbosity\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileOutputVerbosity\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelProfileModelProfileVariant {
+    #[serde(rename = "displayName")]
+    pub display_name: ModelProfileModelProfileVariantDisplayName,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: ::std::num::NonZeroU64,
+    #[serde(rename = "reasoningEffort")]
+    pub reasoning_effort: ModelProfileReasoningEffort,
+    #[serde(rename = "variantId")]
+    pub variant_id: ModelProfileModelVariantId,
+    pub verbosity: ModelProfileOutputVerbosity,
+}
+impl ModelProfileModelProfileVariant {
+    pub fn builder() -> builder::ModelProfileModelProfileVariant {
+        Default::default()
+    }
+}
+#[doc = "`ModelProfileModelProfileVariantDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 32,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileModelProfileVariantDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelProfileModelProfileVariantDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileModelProfileVariantDisplayName> for ::std::string::String {
+    fn from(value: ModelProfileModelProfileVariantDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelProfileVariantDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 32usize {
+            return Err("longer than 32 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelProfileVariantDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelProfileModelProfileVariantDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelProfileVariantDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileModelProfileVariantDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileModelRequestMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"structured_response\","]
+#[doc = "    \"streaming_chat\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelProfileModelRequestMode {
+    #[serde(rename = "structured_response")]
+    StructuredResponse,
+    #[serde(rename = "streaming_chat")]
+    StreamingChat,
+}
+impl ::std::fmt::Display for ModelProfileModelRequestMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::StructuredResponse => f.write_str("structured_response"),
+            Self::StreamingChat => f.write_str("streaming_chat"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelRequestMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "structured_response" => Ok(Self::StructuredResponse),
+            "streaming_chat" => Ok(Self::StreamingChat),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelRequestMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelRequestMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelRequestMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelProfileModelVariantId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 32,"]
+#[doc = "  \"minLength\": 2,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+){0,3}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileModelVariantId(::std::string::String);
+impl ::std::ops::Deref for ModelProfileModelVariantId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileModelVariantId> for ::std::string::String {
+    fn from(value: ModelProfileModelVariantId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileModelVariantId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 32usize {
+            return Err("longer than 32 characters".into());
+        }
+        if value.chars().count() < 2usize {
+            return Err("shorter than 2 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9]*(-[a-z0-9]+){0,3}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]*(-[a-z0-9]+){0,3}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileModelVariantId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileModelVariantId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileModelVariantId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileModelVariantId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelProfileOutputVerbosity`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"low\","]
+#[doc = "    \"medium\","]
+#[doc = "    \"high\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelProfileOutputVerbosity {
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+impl ::std::fmt::Display for ModelProfileOutputVerbosity {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Low => f.write_str("low"),
+            Self::Medium => f.write_str("medium"),
+            Self::High => f.write_str("high"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelProfileOutputVerbosity {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileOutputVerbosity {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileOutputVerbosity {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileOutputVerbosity {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelProfileQualificationStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"qualified\","]
+#[doc = "    \"unqualified\","]
+#[doc = "    \"expired\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelProfileQualificationStatus {
+    #[serde(rename = "qualified")]
+    Qualified,
+    #[serde(rename = "unqualified")]
+    Unqualified,
+    #[serde(rename = "expired")]
+    Expired,
+}
+impl ::std::fmt::Display for ModelProfileQualificationStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Qualified => f.write_str("qualified"),
+            Self::Unqualified => f.write_str("unqualified"),
+            Self::Expired => f.write_str("expired"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelProfileQualificationStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "qualified" => Ok(Self::Qualified),
+            "unqualified" => Ok(Self::Unqualified),
+            "expired" => Ok(Self::Expired),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileQualificationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileQualificationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileQualificationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelProfileReasoningEffort`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"none\","]
+#[doc = "    \"low\","]
+#[doc = "    \"medium\","]
+#[doc = "    \"high\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelProfileReasoningEffort {
+    #[serde(rename = "none")]
+    None,
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+impl ::std::fmt::Display for ModelProfileReasoningEffort {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::None => f.write_str("none"),
+            Self::Low => f.write_str("low"),
+            Self::Medium => f.write_str("medium"),
+            Self::High => f.write_str("high"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelProfileReasoningEffort {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "none" => Ok(Self::None),
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileReasoningEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileReasoningEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileReasoningEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelProfileRegionName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]{0,63}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelProfileRegionName(::std::string::String);
+impl ::std::ops::Deref for ModelProfileRegionName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelProfileRegionName> for ::std::string::String {
+    fn from(value: ModelProfileRegionName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelProfileRegionName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9]{0,63}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]{0,63}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelProfileRegionName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelProfileRegionName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelProfileRegionName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelProfileRegionName {
     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
     where
         D: ::serde::Deserializer<'de>,
@@ -41033,6 +44648,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"filesystemCapabilitySnapshot\": {"]
 #[doc = "      \"$ref\": \"#/$defs/FilesystemCapabilitySnapshot\""]
 #[doc = "    },"]
+#[doc = "    \"foundryDeploymentSnapshot\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshot\""]
+#[doc = "    },"]
 #[doc = "    \"methodAdvanceResult\": {"]
 #[doc = "      \"$ref\": \"#/$defs/MethodAdvanceResult\""]
 #[doc = "    },"]
@@ -41054,8 +44672,14 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"modelAccessResult\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelAccessResult\""]
 #[doc = "    },"]
+#[doc = "    \"modelCatalog\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalog\""]
+#[doc = "    },"]
 #[doc = "    \"modelContextConsent\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelContextConsent\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfile\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfile\""]
 #[doc = "    },"]
 #[doc = "    \"packageCompatibility\": {"]
 #[doc = "      \"$ref\": \"#/$defs/PackageCompatibility\""]
@@ -41177,6 +44801,12 @@ pub struct SapphirusContractsCatalog {
     )]
     pub filesystem_capability_snapshot: ::std::option::Option<FilesystemCapabilitySnapshot>,
     #[serde(
+        rename = "foundryDeploymentSnapshot",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub foundry_deployment_snapshot: ::std::option::Option<FoundryDeploymentSnapshot>,
+    #[serde(
         rename = "methodAdvanceResult",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -41219,11 +44849,23 @@ pub struct SapphirusContractsCatalog {
     )]
     pub model_access_result: ::std::option::Option<ModelAccessResult>,
     #[serde(
+        rename = "modelCatalog",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_catalog: ::std::option::Option<ModelCatalog>,
+    #[serde(
         rename = "modelContextConsent",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub model_context_consent: ::std::option::Option<ModelContextConsent>,
+    #[serde(
+        rename = "modelProfile",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_profile: ::std::option::Option<ModelProfile>,
     #[serde(
         rename = "packageCompatibility",
         default,
@@ -41263,6 +44905,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             evidence_event: Default::default(),
             execution_result_manifest: Default::default(),
             filesystem_capability_snapshot: Default::default(),
+            foundry_deployment_snapshot: Default::default(),
             method_advance_result: Default::default(),
             method_help_proposal: Default::default(),
             method_help_recommendation: Default::default(),
@@ -41270,7 +44913,9 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             model_access_receipt: Default::default(),
             model_access_request: Default::default(),
             model_access_result: Default::default(),
+            model_catalog: Default::default(),
             model_context_consent: Default::default(),
+            model_profile: Default::default(),
             package_compatibility: Default::default(),
             remote_job_handoff: Default::default(),
             spec_consumption_record: Default::default(),
@@ -53624,6 +57269,515 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct FoundryDeploymentSnapshot {
+        deployments: ::std::result::Result<
+            ::std::vec::Vec<super::FoundryDeploymentSnapshotFoundryDeployment>,
+            ::std::string::String,
+        >,
+        retrieved_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        snapshot_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for FoundryDeploymentSnapshot {
+        fn default() -> Self {
+            Self {
+                deployments: Err("no value supplied for deployments".to_string()),
+                retrieved_at: Err("no value supplied for retrieved_at".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                snapshot_hash: Err("no value supplied for snapshot_hash".to_string()),
+            }
+        }
+    }
+    impl FoundryDeploymentSnapshot {
+        pub fn deployments<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::FoundryDeploymentSnapshotFoundryDeployment>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployments = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for deployments: {e}"));
+            self
+        }
+        pub fn retrieved_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retrieved_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retrieved_at: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn snapshot_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.snapshot_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for snapshot_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<FoundryDeploymentSnapshot> for super::FoundryDeploymentSnapshot {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: FoundryDeploymentSnapshot,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                deployments: value.deployments?,
+                retrieved_at: value.retrieved_at?,
+                schema_version: value.schema_version?,
+                snapshot_hash: value.snapshot_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::FoundryDeploymentSnapshot> for FoundryDeploymentSnapshot {
+        fn from(value: super::FoundryDeploymentSnapshot) -> Self {
+            Self {
+                deployments: Ok(value.deployments),
+                retrieved_at: Ok(value.retrieved_at),
+                schema_version: Ok(value.schema_version),
+                snapshot_hash: Ok(value.snapshot_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct FoundryDeploymentSnapshotFoundryDeployment {
+        capabilities: ::std::result::Result<
+            super::FoundryDeploymentSnapshotFoundryDeploymentCapabilities,
+            ::std::string::String,
+        >,
+        deployment_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        deployment_name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotDeploymentName,
+            ::std::string::String,
+        >,
+        deployment_type: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        model_name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        model_publisher: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        model_version: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        sku: ::std::result::Result<
+            super::FoundryDeploymentSnapshotFoundryDeploymentSku,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for FoundryDeploymentSnapshotFoundryDeployment {
+        fn default() -> Self {
+            Self {
+                capabilities: Err("no value supplied for capabilities".to_string()),
+                deployment_hash: Err("no value supplied for deployment_hash".to_string()),
+                deployment_name: Err("no value supplied for deployment_name".to_string()),
+                deployment_type: Err("no value supplied for deployment_type".to_string()),
+                model_name: Err("no value supplied for model_name".to_string()),
+                model_publisher: Err("no value supplied for model_publisher".to_string()),
+                model_version: Err("no value supplied for model_version".to_string()),
+                sku: Err("no value supplied for sku".to_string()),
+            }
+        }
+    }
+    impl FoundryDeploymentSnapshotFoundryDeployment {
+        pub fn capabilities<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::FoundryDeploymentSnapshotFoundryDeploymentCapabilities,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capabilities = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capabilities: {e}"));
+            self
+        }
+        pub fn deployment_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for deployment_hash: {e}"));
+            self
+        }
+        pub fn deployment_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotDeploymentName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for deployment_name: {e}"));
+            self
+        }
+        pub fn deployment_type<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_type = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for deployment_type: {e}"));
+            self
+        }
+        pub fn model_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_name: {e}"));
+            self
+        }
+        pub fn model_publisher<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_publisher = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_publisher: {e}"));
+            self
+        }
+        pub fn model_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_version: {e}"));
+            self
+        }
+        pub fn sku<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotFoundryDeploymentSku>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sku = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sku: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<FoundryDeploymentSnapshotFoundryDeployment>
+        for super::FoundryDeploymentSnapshotFoundryDeployment
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: FoundryDeploymentSnapshotFoundryDeployment,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                capabilities: value.capabilities?,
+                deployment_hash: value.deployment_hash?,
+                deployment_name: value.deployment_name?,
+                deployment_type: value.deployment_type?,
+                model_name: value.model_name?,
+                model_publisher: value.model_publisher?,
+                model_version: value.model_version?,
+                sku: value.sku?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::FoundryDeploymentSnapshotFoundryDeployment>
+        for FoundryDeploymentSnapshotFoundryDeployment
+    {
+        fn from(value: super::FoundryDeploymentSnapshotFoundryDeployment) -> Self {
+            Self {
+                capabilities: Ok(value.capabilities),
+                deployment_hash: Ok(value.deployment_hash),
+                deployment_name: Ok(value.deployment_name),
+                deployment_type: Ok(value.deployment_type),
+                model_name: Ok(value.model_name),
+                model_publisher: Ok(value.model_publisher),
+                model_version: Ok(value.model_version),
+                sku: Ok(value.sku),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+        attachments: ::std::result::Result<bool, ::std::string::String>,
+        image_input: ::std::result::Result<bool, ::std::string::String>,
+        pdf_input: ::std::result::Result<bool, ::std::string::String>,
+        reasoning: ::std::result::Result<bool, ::std::string::String>,
+        streaming: ::std::result::Result<bool, ::std::string::String>,
+        structured_output: ::std::result::Result<bool, ::std::string::String>,
+        text_input: ::std::result::Result<bool, ::std::string::String>,
+        tool_calling: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+        fn default() -> Self {
+            Self {
+                attachments: Err("no value supplied for attachments".to_string()),
+                image_input: Err("no value supplied for image_input".to_string()),
+                pdf_input: Err("no value supplied for pdf_input".to_string()),
+                reasoning: Err("no value supplied for reasoning".to_string()),
+                streaming: Err("no value supplied for streaming".to_string()),
+                structured_output: Err("no value supplied for structured_output".to_string()),
+                text_input: Err("no value supplied for text_input".to_string()),
+                tool_calling: Err("no value supplied for tool_calling".to_string()),
+            }
+        }
+    }
+    impl FoundryDeploymentSnapshotFoundryDeploymentCapabilities {
+        pub fn attachments<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.attachments = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for attachments: {e}"));
+            self
+        }
+        pub fn image_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.image_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for image_input: {e}"));
+            self
+        }
+        pub fn pdf_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.pdf_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for pdf_input: {e}"));
+            self
+        }
+        pub fn reasoning<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning: {e}"));
+            self
+        }
+        pub fn streaming<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.streaming = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for streaming: {e}"));
+            self
+        }
+        pub fn structured_output<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.structured_output = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for structured_output: {e}"));
+            self
+        }
+        pub fn text_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text_input: {e}"));
+            self
+        }
+        pub fn tool_calling<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_calling = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_calling: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<FoundryDeploymentSnapshotFoundryDeploymentCapabilities>
+        for super::FoundryDeploymentSnapshotFoundryDeploymentCapabilities
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: FoundryDeploymentSnapshotFoundryDeploymentCapabilities,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                attachments: value.attachments?,
+                image_input: value.image_input?,
+                pdf_input: value.pdf_input?,
+                reasoning: value.reasoning?,
+                streaming: value.streaming?,
+                structured_output: value.structured_output?,
+                text_input: value.text_input?,
+                tool_calling: value.tool_calling?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::FoundryDeploymentSnapshotFoundryDeploymentCapabilities>
+        for FoundryDeploymentSnapshotFoundryDeploymentCapabilities
+    {
+        fn from(value: super::FoundryDeploymentSnapshotFoundryDeploymentCapabilities) -> Self {
+            Self {
+                attachments: Ok(value.attachments),
+                image_input: Ok(value.image_input),
+                pdf_input: Ok(value.pdf_input),
+                reasoning: Ok(value.reasoning),
+                streaming: Ok(value.streaming),
+                structured_output: Ok(value.structured_output),
+                text_input: Ok(value.text_input),
+                tool_calling: Ok(value.tool_calling),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct FoundryDeploymentSnapshotFoundryDeploymentSku {
+        capacity: ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        family: ::std::result::Result<
+            ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            ::std::string::String,
+        >,
+        name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        size: ::std::result::Result<
+            ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            ::std::string::String,
+        >,
+        tier: ::std::result::Result<
+            ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for FoundryDeploymentSnapshotFoundryDeploymentSku {
+        fn default() -> Self {
+            Self {
+                capacity: Err("no value supplied for capacity".to_string()),
+                family: Err("no value supplied for family".to_string()),
+                name: Err("no value supplied for name".to_string()),
+                size: Err("no value supplied for size".to_string()),
+                tier: Err("no value supplied for tier".to_string()),
+            }
+        }
+    }
+    impl FoundryDeploymentSnapshotFoundryDeploymentSku {
+        pub fn capacity<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capacity = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capacity: {e}"));
+            self
+        }
+        pub fn family<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.family = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for family: {e}"));
+            self
+        }
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn size<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.size = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for size: {e}"));
+            self
+        }
+        pub fn tier<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tier = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tier: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<FoundryDeploymentSnapshotFoundryDeploymentSku>
+        for super::FoundryDeploymentSnapshotFoundryDeploymentSku
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: FoundryDeploymentSnapshotFoundryDeploymentSku,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                capacity: value.capacity?,
+                family: value.family?,
+                name: value.name?,
+                size: value.size?,
+                tier: value.tier?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::FoundryDeploymentSnapshotFoundryDeploymentSku>
+        for FoundryDeploymentSnapshotFoundryDeploymentSku
+    {
+        fn from(value: super::FoundryDeploymentSnapshotFoundryDeploymentSku) -> Self {
+            Self {
+                capacity: Ok(value.capacity),
+                family: Ok(value.family),
+                name: Ok(value.name),
+                size: Ok(value.size),
+                tier: Ok(value.tier),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct MethodSession {
         envelope: ::std::result::Result<super::MethodSessionEnvelope, ::std::string::String>,
         payload:
@@ -59235,6 +63389,837 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct ModelCatalog {
+        catalog_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        catalog_state:
+            ::std::result::Result<super::ModelCatalogCatalogState, ::std::string::String>,
+        catalog_version:
+            ::std::result::Result<super::ModelCatalogCatalogVersion, ::std::string::String>,
+        default_profile_id: ::std::result::Result<
+            ::std::option::Option<super::ModelProfileModelProfileId>,
+            ::std::string::String,
+        >,
+        deployment_snapshot_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        expires_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        generated_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        policy_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        policy_version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        profiles: ::std::result::Result<
+            ::std::vec::Vec<super::ModelCatalogModelProfileProjection>,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        unavailable_profiles: ::std::result::Result<
+            ::std::vec::Vec<super::ModelCatalogUnavailableModelProfile>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelCatalog {
+        fn default() -> Self {
+            Self {
+                catalog_hash: Err("no value supplied for catalog_hash".to_string()),
+                catalog_state: Err("no value supplied for catalog_state".to_string()),
+                catalog_version: Err("no value supplied for catalog_version".to_string()),
+                default_profile_id: Err("no value supplied for default_profile_id".to_string()),
+                deployment_snapshot_hash: Err(
+                    "no value supplied for deployment_snapshot_hash".to_string()
+                ),
+                expires_at: Err("no value supplied for expires_at".to_string()),
+                generated_at: Err("no value supplied for generated_at".to_string()),
+                policy_hash: Err("no value supplied for policy_hash".to_string()),
+                policy_version: Err("no value supplied for policy_version".to_string()),
+                profiles: Err("no value supplied for profiles".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                unavailable_profiles: Err("no value supplied for unavailable_profiles".to_string()),
+            }
+        }
+    }
+    impl ModelCatalog {
+        pub fn catalog_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_hash: {e}"));
+            self
+        }
+        pub fn catalog_state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogCatalogState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_state: {e}"));
+            self
+        }
+        pub fn catalog_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogCatalogVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_version: {e}"));
+            self
+        }
+        pub fn default_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfileModelProfileId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.default_profile_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for default_profile_id: {e}")
+            });
+            self
+        }
+        pub fn deployment_snapshot_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_snapshot_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for deployment_snapshot_hash: {e}")
+            });
+            self
+        }
+        pub fn expires_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.expires_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for expires_at: {e}"));
+            self
+        }
+        pub fn generated_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.generated_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for generated_at: {e}"));
+            self
+        }
+        pub fn policy_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_hash: {e}"));
+            self
+        }
+        pub fn policy_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_version: {e}"));
+            self
+        }
+        pub fn profiles<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelCatalogModelProfileProjection>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profiles = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profiles: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn unavailable_profiles<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelCatalogUnavailableModelProfile>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.unavailable_profiles = value.try_into().map_err(|e| {
+                format!("error converting supplied value for unavailable_profiles: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalog> for super::ModelCatalog {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalog,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                catalog_hash: value.catalog_hash?,
+                catalog_state: value.catalog_state?,
+                catalog_version: value.catalog_version?,
+                default_profile_id: value.default_profile_id?,
+                deployment_snapshot_hash: value.deployment_snapshot_hash?,
+                expires_at: value.expires_at?,
+                generated_at: value.generated_at?,
+                policy_hash: value.policy_hash?,
+                policy_version: value.policy_version?,
+                profiles: value.profiles?,
+                schema_version: value.schema_version?,
+                unavailable_profiles: value.unavailable_profiles?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalog> for ModelCatalog {
+        fn from(value: super::ModelCatalog) -> Self {
+            Self {
+                catalog_hash: Ok(value.catalog_hash),
+                catalog_state: Ok(value.catalog_state),
+                catalog_version: Ok(value.catalog_version),
+                default_profile_id: Ok(value.default_profile_id),
+                deployment_snapshot_hash: Ok(value.deployment_snapshot_hash),
+                expires_at: Ok(value.expires_at),
+                generated_at: Ok(value.generated_at),
+                policy_hash: Ok(value.policy_hash),
+                policy_version: Ok(value.policy_version),
+                profiles: Ok(value.profiles),
+                schema_version: Ok(value.schema_version),
+                unavailable_profiles: Ok(value.unavailable_profiles),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelCatalogModelProfileProjection {
+        availability:
+            ::std::result::Result<super::ModelCatalogSelectableAvailability, ::std::string::String>,
+        capabilities:
+            ::std::result::Result<super::ModelCatalogProjectedCapabilities, ::std::string::String>,
+        default_variant_id:
+            ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+        description: ::std::result::Result<
+            super::ModelCatalogModelProfileProjectionDescription,
+            ::std::string::String,
+        >,
+        display_name: ::std::result::Result<
+            super::ModelCatalogModelProfileProjectionDisplayName,
+            ::std::string::String,
+        >,
+        family: ::std::result::Result<
+            ::std::option::Option<super::ModelCatalogModelProfileProjectionFamily>,
+            ::std::string::String,
+        >,
+        limits: ::std::result::Result<super::ModelCatalogProjectedLimits, ::std::string::String>,
+        profile_id: ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        provider: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        qualified_at: ::std::result::Result<
+            ::std::option::Option<super::CommonUtcInstant>,
+            ::std::string::String,
+        >,
+        status_detail: ::std::result::Result<
+            ::std::option::Option<super::ModelCatalogModelProfileProjectionStatusDetail>,
+            ::std::string::String,
+        >,
+        variants: ::std::result::Result<
+            ::std::vec::Vec<super::ModelCatalogModelVariantProjection>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelCatalogModelProfileProjection {
+        fn default() -> Self {
+            Self {
+                availability: Err("no value supplied for availability".to_string()),
+                capabilities: Err("no value supplied for capabilities".to_string()),
+                default_variant_id: Err("no value supplied for default_variant_id".to_string()),
+                description: Err("no value supplied for description".to_string()),
+                display_name: Err("no value supplied for display_name".to_string()),
+                family: Err("no value supplied for family".to_string()),
+                limits: Err("no value supplied for limits".to_string()),
+                profile_id: Err("no value supplied for profile_id".to_string()),
+                provider: Err("no value supplied for provider".to_string()),
+                qualified_at: Err("no value supplied for qualified_at".to_string()),
+                status_detail: Err("no value supplied for status_detail".to_string()),
+                variants: Err("no value supplied for variants".to_string()),
+            }
+        }
+    }
+    impl ModelCatalogModelProfileProjection {
+        pub fn availability<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogSelectableAvailability>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.availability = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for availability: {e}"));
+            self
+        }
+        pub fn capabilities<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogProjectedCapabilities>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capabilities = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capabilities: {e}"));
+            self
+        }
+        pub fn default_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.default_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for default_variant_id: {e}")
+            });
+            self
+        }
+        pub fn description<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogModelProfileProjectionDescription>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.description = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for description: {e}"));
+            self
+        }
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogModelProfileProjectionDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn family<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelCatalogModelProfileProjectionFamily>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.family = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for family: {e}"));
+            self
+        }
+        pub fn limits<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogProjectedLimits>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.limits = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for limits: {e}"));
+            self
+        }
+        pub fn profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profile_id: {e}"));
+            self
+        }
+        pub fn provider<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provider = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provider: {e}"));
+            self
+        }
+        pub fn qualified_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonUtcInstant>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.qualified_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for qualified_at: {e}"));
+            self
+        }
+        pub fn status_detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelCatalogModelProfileProjectionStatusDetail>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status_detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status_detail: {e}"));
+            self
+        }
+        pub fn variants<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelCatalogModelVariantProjection>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.variants = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for variants: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalogModelProfileProjection>
+        for super::ModelCatalogModelProfileProjection
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalogModelProfileProjection,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                availability: value.availability?,
+                capabilities: value.capabilities?,
+                default_variant_id: value.default_variant_id?,
+                description: value.description?,
+                display_name: value.display_name?,
+                family: value.family?,
+                limits: value.limits?,
+                profile_id: value.profile_id?,
+                provider: value.provider?,
+                qualified_at: value.qualified_at?,
+                status_detail: value.status_detail?,
+                variants: value.variants?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalogModelProfileProjection>
+        for ModelCatalogModelProfileProjection
+    {
+        fn from(value: super::ModelCatalogModelProfileProjection) -> Self {
+            Self {
+                availability: Ok(value.availability),
+                capabilities: Ok(value.capabilities),
+                default_variant_id: Ok(value.default_variant_id),
+                description: Ok(value.description),
+                display_name: Ok(value.display_name),
+                family: Ok(value.family),
+                limits: Ok(value.limits),
+                profile_id: Ok(value.profile_id),
+                provider: Ok(value.provider),
+                qualified_at: Ok(value.qualified_at),
+                status_detail: Ok(value.status_detail),
+                variants: Ok(value.variants),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelCatalogModelVariantProjection {
+        display_name: ::std::result::Result<
+            super::ModelCatalogModelVariantProjectionDisplayName,
+            ::std::string::String,
+        >,
+        max_output_tokens: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        reasoning_effort:
+            ::std::result::Result<super::ModelProfileReasoningEffort, ::std::string::String>,
+        variant_id: ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelCatalogModelVariantProjection {
+        fn default() -> Self {
+            Self {
+                display_name: Err("no value supplied for display_name".to_string()),
+                max_output_tokens: Err("no value supplied for max_output_tokens".to_string()),
+                reasoning_effort: Err("no value supplied for reasoning_effort".to_string()),
+                variant_id: Err("no value supplied for variant_id".to_string()),
+            }
+        }
+    }
+    impl ModelCatalogModelVariantProjection {
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogModelVariantProjectionDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn max_output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_output_tokens: {e}"));
+            self
+        }
+        pub fn reasoning_effort<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileReasoningEffort>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning_effort = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning_effort: {e}"));
+            self
+        }
+        pub fn variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.variant_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for variant_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalogModelVariantProjection>
+        for super::ModelCatalogModelVariantProjection
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalogModelVariantProjection,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                display_name: value.display_name?,
+                max_output_tokens: value.max_output_tokens?,
+                reasoning_effort: value.reasoning_effort?,
+                variant_id: value.variant_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalogModelVariantProjection>
+        for ModelCatalogModelVariantProjection
+    {
+        fn from(value: super::ModelCatalogModelVariantProjection) -> Self {
+            Self {
+                display_name: Ok(value.display_name),
+                max_output_tokens: Ok(value.max_output_tokens),
+                reasoning_effort: Ok(value.reasoning_effort),
+                variant_id: Ok(value.variant_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelCatalogProjectedCapabilities {
+        attachments: ::std::result::Result<bool, ::std::string::String>,
+        image_input: ::std::result::Result<bool, ::std::string::String>,
+        pdf_input: ::std::result::Result<bool, ::std::string::String>,
+        reasoning: ::std::result::Result<bool, ::std::string::String>,
+        structured_output: ::std::result::Result<bool, ::std::string::String>,
+        text_input: ::std::result::Result<bool, ::std::string::String>,
+        tool_calling: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelCatalogProjectedCapabilities {
+        fn default() -> Self {
+            Self {
+                attachments: Err("no value supplied for attachments".to_string()),
+                image_input: Err("no value supplied for image_input".to_string()),
+                pdf_input: Err("no value supplied for pdf_input".to_string()),
+                reasoning: Err("no value supplied for reasoning".to_string()),
+                structured_output: Err("no value supplied for structured_output".to_string()),
+                text_input: Err("no value supplied for text_input".to_string()),
+                tool_calling: Err("no value supplied for tool_calling".to_string()),
+            }
+        }
+    }
+    impl ModelCatalogProjectedCapabilities {
+        pub fn attachments<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.attachments = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for attachments: {e}"));
+            self
+        }
+        pub fn image_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.image_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for image_input: {e}"));
+            self
+        }
+        pub fn pdf_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.pdf_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for pdf_input: {e}"));
+            self
+        }
+        pub fn reasoning<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning: {e}"));
+            self
+        }
+        pub fn structured_output<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.structured_output = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for structured_output: {e}"));
+            self
+        }
+        pub fn text_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text_input: {e}"));
+            self
+        }
+        pub fn tool_calling<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_calling = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_calling: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalogProjectedCapabilities>
+        for super::ModelCatalogProjectedCapabilities
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalogProjectedCapabilities,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                attachments: value.attachments?,
+                image_input: value.image_input?,
+                pdf_input: value.pdf_input?,
+                reasoning: value.reasoning?,
+                structured_output: value.structured_output?,
+                text_input: value.text_input?,
+                tool_calling: value.tool_calling?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalogProjectedCapabilities>
+        for ModelCatalogProjectedCapabilities
+    {
+        fn from(value: super::ModelCatalogProjectedCapabilities) -> Self {
+            Self {
+                attachments: Ok(value.attachments),
+                image_input: Ok(value.image_input),
+                pdf_input: Ok(value.pdf_input),
+                reasoning: Ok(value.reasoning),
+                structured_output: Ok(value.structured_output),
+                text_input: Ok(value.text_input),
+                tool_calling: Ok(value.tool_calling),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelCatalogProjectedLimits {
+        context_tokens: ::std::result::Result<
+            ::std::option::Option<::std::num::NonZeroU64>,
+            ::std::string::String,
+        >,
+        max_attachment_bytes:
+            ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        max_input_tokens: ::std::result::Result<
+            ::std::option::Option<::std::num::NonZeroU64>,
+            ::std::string::String,
+        >,
+        max_output_tokens: ::std::result::Result<
+            ::std::option::Option<::std::num::NonZeroU64>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelCatalogProjectedLimits {
+        fn default() -> Self {
+            Self {
+                context_tokens: Err("no value supplied for context_tokens".to_string()),
+                max_attachment_bytes: Err("no value supplied for max_attachment_bytes".to_string()),
+                max_input_tokens: Err("no value supplied for max_input_tokens".to_string()),
+                max_output_tokens: Err("no value supplied for max_output_tokens".to_string()),
+            }
+        }
+    }
+    impl ModelCatalogProjectedLimits {
+        pub fn context_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<::std::num::NonZeroU64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.context_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for context_tokens: {e}"));
+            self
+        }
+        pub fn max_attachment_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_attachment_bytes = value.try_into().map_err(|e| {
+                format!("error converting supplied value for max_attachment_bytes: {e}")
+            });
+            self
+        }
+        pub fn max_input_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<::std::num::NonZeroU64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_input_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_input_tokens: {e}"));
+            self
+        }
+        pub fn max_output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<::std::num::NonZeroU64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_output_tokens: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalogProjectedLimits> for super::ModelCatalogProjectedLimits {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalogProjectedLimits,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                context_tokens: value.context_tokens?,
+                max_attachment_bytes: value.max_attachment_bytes?,
+                max_input_tokens: value.max_input_tokens?,
+                max_output_tokens: value.max_output_tokens?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalogProjectedLimits> for ModelCatalogProjectedLimits {
+        fn from(value: super::ModelCatalogProjectedLimits) -> Self {
+            Self {
+                context_tokens: Ok(value.context_tokens),
+                max_attachment_bytes: Ok(value.max_attachment_bytes),
+                max_input_tokens: Ok(value.max_input_tokens),
+                max_output_tokens: Ok(value.max_output_tokens),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelCatalogUnavailableModelProfile {
+        availability:
+            ::std::result::Result<super::ModelCatalogBlockedAvailability, ::std::string::String>,
+        display_name: ::std::result::Result<
+            super::ModelCatalogUnavailableModelProfileDisplayName,
+            ::std::string::String,
+        >,
+        profile_id: ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        recovery_action:
+            ::std::result::Result<super::ModelCatalogModelRecoveryAction, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelCatalogUnavailableModelProfile {
+        fn default() -> Self {
+            Self {
+                availability: Err("no value supplied for availability".to_string()),
+                display_name: Err("no value supplied for display_name".to_string()),
+                profile_id: Err("no value supplied for profile_id".to_string()),
+                recovery_action: Err("no value supplied for recovery_action".to_string()),
+            }
+        }
+    }
+    impl ModelCatalogUnavailableModelProfile {
+        pub fn availability<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogBlockedAvailability>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.availability = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for availability: {e}"));
+            self
+        }
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogUnavailableModelProfileDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profile_id: {e}"));
+            self
+        }
+        pub fn recovery_action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogModelRecoveryAction>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.recovery_action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for recovery_action: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelCatalogUnavailableModelProfile>
+        for super::ModelCatalogUnavailableModelProfile
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelCatalogUnavailableModelProfile,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                availability: value.availability?,
+                display_name: value.display_name?,
+                profile_id: value.profile_id?,
+                recovery_action: value.recovery_action?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelCatalogUnavailableModelProfile>
+        for ModelCatalogUnavailableModelProfile
+    {
+        fn from(value: super::ModelCatalogUnavailableModelProfile) -> Self {
+            Self {
+                availability: Ok(value.availability),
+                display_name: Ok(value.display_name),
+                profile_id: Ok(value.profile_id),
+                recovery_action: Ok(value.recovery_action),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct ModelContextConsent {
         budget_class:
             ::std::result::Result<super::ModelContextConsentBudgetClass, ::std::string::String>,
@@ -59883,6 +64868,1109 @@ pub mod builder {
                 proof_type: Ok(value.proof_type),
                 signature: Ok(value.signature),
                 signed_payload_hash: Ok(value.signed_payload_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfile {
+        allowed_regions: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileRegionName>,
+            ::std::string::String,
+        >,
+        canonical_output_schema_allowlist: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileCanonicalSchemaId>,
+            ::std::string::String,
+        >,
+        deployment_name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotDeploymentName,
+            ::std::string::String,
+        >,
+        description: ::std::result::Result<super::ModelProfileDescription, ::std::string::String>,
+        display_name: ::std::result::Result<super::ModelProfileDisplayName, ::std::string::String>,
+        enabled: ::std::result::Result<bool, ::std::string::String>,
+        expected_model:
+            ::std::result::Result<super::ModelProfileExpectedModelIdentity, ::std::string::String>,
+        family: ::std::result::Result<
+            ::std::option::Option<super::ModelProfileFamily>,
+            ::std::string::String,
+        >,
+        limits: ::std::result::Result<super::ModelProfileModelProfileLimits, ::std::string::String>,
+        model_role_allowlist: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileAllowlistToken>,
+            ::std::string::String,
+        >,
+        price_profile:
+            ::std::result::Result<super::ModelProfileModelPriceProfile, ::std::string::String>,
+        priority: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        profile_id: ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        purpose_allowlist: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileAllowlistToken>,
+            ::std::string::String,
+        >,
+        qualification: ::std::result::Result<
+            super::ModelProfileModelProfileQualification,
+            ::std::string::String,
+        >,
+        request_mode_allowlist: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileModelRequestMode>,
+            ::std::string::String,
+        >,
+        required_capabilities: ::std::result::Result<
+            super::ModelProfileModelProfileCapabilities,
+            ::std::string::String,
+        >,
+        retention_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        retry_policy: ::std::result::Result<
+            super::ModelProfileModelProfileRetryPolicy,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        supported_modalities: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileModelModality>,
+            ::std::string::String,
+        >,
+        variants: ::std::result::Result<
+            ::std::vec::Vec<super::ModelProfileModelProfileVariant>,
+            ::std::string::String,
+        >,
+        visible: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfile {
+        fn default() -> Self {
+            Self {
+                allowed_regions: Err("no value supplied for allowed_regions".to_string()),
+                canonical_output_schema_allowlist: Err(
+                    "no value supplied for canonical_output_schema_allowlist".to_string(),
+                ),
+                deployment_name: Err("no value supplied for deployment_name".to_string()),
+                description: Err("no value supplied for description".to_string()),
+                display_name: Err("no value supplied for display_name".to_string()),
+                enabled: Err("no value supplied for enabled".to_string()),
+                expected_model: Err("no value supplied for expected_model".to_string()),
+                family: Err("no value supplied for family".to_string()),
+                limits: Err("no value supplied for limits".to_string()),
+                model_role_allowlist: Err("no value supplied for model_role_allowlist".to_string()),
+                price_profile: Err("no value supplied for price_profile".to_string()),
+                priority: Err("no value supplied for priority".to_string()),
+                profile_id: Err("no value supplied for profile_id".to_string()),
+                purpose_allowlist: Err("no value supplied for purpose_allowlist".to_string()),
+                qualification: Err("no value supplied for qualification".to_string()),
+                request_mode_allowlist: Err(
+                    "no value supplied for request_mode_allowlist".to_string()
+                ),
+                required_capabilities: Err(
+                    "no value supplied for required_capabilities".to_string()
+                ),
+                retention_mode: Err("no value supplied for retention_mode".to_string()),
+                retry_policy: Err("no value supplied for retry_policy".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                supported_modalities: Err("no value supplied for supported_modalities".to_string()),
+                variants: Err("no value supplied for variants".to_string()),
+                visible: Err("no value supplied for visible".to_string()),
+            }
+        }
+    }
+    impl ModelProfile {
+        pub fn allowed_regions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileRegionName>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.allowed_regions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for allowed_regions: {e}"));
+            self
+        }
+        pub fn canonical_output_schema_allowlist<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileCanonicalSchemaId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_allowlist = value.try_into().map_err(|e| {
+                format!(
+                    "error converting supplied value for canonical_output_schema_allowlist: {e}"
+                )
+            });
+            self
+        }
+        pub fn deployment_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotDeploymentName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for deployment_name: {e}"));
+            self
+        }
+        pub fn description<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileDescription>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.description = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for description: {e}"));
+            self
+        }
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn enabled<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.enabled = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for enabled: {e}"));
+            self
+        }
+        pub fn expected_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileExpectedModelIdentity>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.expected_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for expected_model: {e}"));
+            self
+        }
+        pub fn family<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfileFamily>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.family = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for family: {e}"));
+            self
+        }
+        pub fn limits<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileLimits>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.limits = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for limits: {e}"));
+            self
+        }
+        pub fn model_role_allowlist<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileAllowlistToken>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_role_allowlist = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_role_allowlist: {e}")
+            });
+            self
+        }
+        pub fn price_profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelPriceProfile>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.price_profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for price_profile: {e}"));
+            self
+        }
+        pub fn priority<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.priority = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for priority: {e}"));
+            self
+        }
+        pub fn profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profile_id: {e}"));
+            self
+        }
+        pub fn purpose_allowlist<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileAllowlistToken>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.purpose_allowlist = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for purpose_allowlist: {e}"));
+            self
+        }
+        pub fn qualification<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileQualification>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.qualification = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for qualification: {e}"));
+            self
+        }
+        pub fn request_mode_allowlist<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileModelRequestMode>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode_allowlist = value.try_into().map_err(|e| {
+                format!("error converting supplied value for request_mode_allowlist: {e}")
+            });
+            self
+        }
+        pub fn required_capabilities<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileCapabilities>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required_capabilities = value.try_into().map_err(|e| {
+                format!("error converting supplied value for required_capabilities: {e}")
+            });
+            self
+        }
+        pub fn retention_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retention_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retention_mode: {e}"));
+            self
+        }
+        pub fn retry_policy<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileRetryPolicy>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retry_policy = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retry_policy: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn supported_modalities<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileModelModality>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.supported_modalities = value.try_into().map_err(|e| {
+                format!("error converting supplied value for supported_modalities: {e}")
+            });
+            self
+        }
+        pub fn variants<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::ModelProfileModelProfileVariant>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.variants = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for variants: {e}"));
+            self
+        }
+        pub fn visible<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.visible = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for visible: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfile> for super::ModelProfile {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfile,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                allowed_regions: value.allowed_regions?,
+                canonical_output_schema_allowlist: value.canonical_output_schema_allowlist?,
+                deployment_name: value.deployment_name?,
+                description: value.description?,
+                display_name: value.display_name?,
+                enabled: value.enabled?,
+                expected_model: value.expected_model?,
+                family: value.family?,
+                limits: value.limits?,
+                model_role_allowlist: value.model_role_allowlist?,
+                price_profile: value.price_profile?,
+                priority: value.priority?,
+                profile_id: value.profile_id?,
+                purpose_allowlist: value.purpose_allowlist?,
+                qualification: value.qualification?,
+                request_mode_allowlist: value.request_mode_allowlist?,
+                required_capabilities: value.required_capabilities?,
+                retention_mode: value.retention_mode?,
+                retry_policy: value.retry_policy?,
+                schema_version: value.schema_version?,
+                supported_modalities: value.supported_modalities?,
+                variants: value.variants?,
+                visible: value.visible?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfile> for ModelProfile {
+        fn from(value: super::ModelProfile) -> Self {
+            Self {
+                allowed_regions: Ok(value.allowed_regions),
+                canonical_output_schema_allowlist: Ok(value.canonical_output_schema_allowlist),
+                deployment_name: Ok(value.deployment_name),
+                description: Ok(value.description),
+                display_name: Ok(value.display_name),
+                enabled: Ok(value.enabled),
+                expected_model: Ok(value.expected_model),
+                family: Ok(value.family),
+                limits: Ok(value.limits),
+                model_role_allowlist: Ok(value.model_role_allowlist),
+                price_profile: Ok(value.price_profile),
+                priority: Ok(value.priority),
+                profile_id: Ok(value.profile_id),
+                purpose_allowlist: Ok(value.purpose_allowlist),
+                qualification: Ok(value.qualification),
+                request_mode_allowlist: Ok(value.request_mode_allowlist),
+                required_capabilities: Ok(value.required_capabilities),
+                retention_mode: Ok(value.retention_mode),
+                retry_policy: Ok(value.retry_policy),
+                schema_version: Ok(value.schema_version),
+                supported_modalities: Ok(value.supported_modalities),
+                variants: Ok(value.variants),
+                visible: Ok(value.visible),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileExpectedModelIdentity {
+        name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        publisher: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        version: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelProfileExpectedModelIdentity {
+        fn default() -> Self {
+            Self {
+                name: Err("no value supplied for name".to_string()),
+                publisher: Err("no value supplied for publisher".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl ModelProfileExpectedModelIdentity {
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn publisher<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.publisher = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for publisher: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileExpectedModelIdentity>
+        for super::ModelProfileExpectedModelIdentity
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileExpectedModelIdentity,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                name: value.name?,
+                publisher: value.publisher?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileExpectedModelIdentity>
+        for ModelProfileExpectedModelIdentity
+    {
+        fn from(value: super::ModelProfileExpectedModelIdentity) -> Self {
+            Self {
+                name: Ok(value.name),
+                publisher: Ok(value.publisher),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelPriceProfile {
+        cache_read_microunits_per_thousand: ::std::result::Result<i64, ::std::string::String>,
+        currency: ::std::result::Result<
+            super::ModelProfileModelPriceProfileCurrency,
+            ::std::string::String,
+        >,
+        input_microunits_per_thousand: ::std::result::Result<i64, ::std::string::String>,
+        output_microunits_per_thousand: ::std::result::Result<i64, ::std::string::String>,
+        reasoning_microunits_per_thousand: ::std::result::Result<i64, ::std::string::String>,
+        version: ::std::result::Result<
+            super::ModelProfileModelPriceProfileVersion,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelProfileModelPriceProfile {
+        fn default() -> Self {
+            Self {
+                cache_read_microunits_per_thousand: Err(
+                    "no value supplied for cache_read_microunits_per_thousand".to_string(),
+                ),
+                currency: Err("no value supplied for currency".to_string()),
+                input_microunits_per_thousand: Err(
+                    "no value supplied for input_microunits_per_thousand".to_string(),
+                ),
+                output_microunits_per_thousand: Err(
+                    "no value supplied for output_microunits_per_thousand".to_string(),
+                ),
+                reasoning_microunits_per_thousand: Err(
+                    "no value supplied for reasoning_microunits_per_thousand".to_string(),
+                ),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl ModelProfileModelPriceProfile {
+        pub fn cache_read_microunits_per_thousand<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cache_read_microunits_per_thousand = value.try_into().map_err(|e| {
+                format!(
+                    "error converting supplied value for cache_read_microunits_per_thousand: {e}"
+                )
+            });
+            self
+        }
+        pub fn currency<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelPriceProfileCurrency>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.currency = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for currency: {e}"));
+            self
+        }
+        pub fn input_microunits_per_thousand<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.input_microunits_per_thousand = value.try_into().map_err(|e| {
+                format!("error converting supplied value for input_microunits_per_thousand: {e}")
+            });
+            self
+        }
+        pub fn output_microunits_per_thousand<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_microunits_per_thousand = value.try_into().map_err(|e| {
+                format!("error converting supplied value for output_microunits_per_thousand: {e}")
+            });
+            self
+        }
+        pub fn reasoning_microunits_per_thousand<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning_microunits_per_thousand = value.try_into().map_err(|e| {
+                format!(
+                    "error converting supplied value for reasoning_microunits_per_thousand: {e}"
+                )
+            });
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelPriceProfileVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelPriceProfile>
+        for super::ModelProfileModelPriceProfile
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelPriceProfile,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cache_read_microunits_per_thousand: value.cache_read_microunits_per_thousand?,
+                currency: value.currency?,
+                input_microunits_per_thousand: value.input_microunits_per_thousand?,
+                output_microunits_per_thousand: value.output_microunits_per_thousand?,
+                reasoning_microunits_per_thousand: value.reasoning_microunits_per_thousand?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelPriceProfile> for ModelProfileModelPriceProfile {
+        fn from(value: super::ModelProfileModelPriceProfile) -> Self {
+            Self {
+                cache_read_microunits_per_thousand: Ok(value.cache_read_microunits_per_thousand),
+                currency: Ok(value.currency),
+                input_microunits_per_thousand: Ok(value.input_microunits_per_thousand),
+                output_microunits_per_thousand: Ok(value.output_microunits_per_thousand),
+                reasoning_microunits_per_thousand: Ok(value.reasoning_microunits_per_thousand),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelProfileCapabilities {
+        attachments: ::std::result::Result<bool, ::std::string::String>,
+        image_input: ::std::result::Result<bool, ::std::string::String>,
+        pdf_input: ::std::result::Result<bool, ::std::string::String>,
+        reasoning: ::std::result::Result<bool, ::std::string::String>,
+        streaming: ::std::result::Result<bool, ::std::string::String>,
+        structured_output: ::std::result::Result<bool, ::std::string::String>,
+        text_input: ::std::result::Result<bool, ::std::string::String>,
+        tool_calling: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfileModelProfileCapabilities {
+        fn default() -> Self {
+            Self {
+                attachments: Err("no value supplied for attachments".to_string()),
+                image_input: Err("no value supplied for image_input".to_string()),
+                pdf_input: Err("no value supplied for pdf_input".to_string()),
+                reasoning: Err("no value supplied for reasoning".to_string()),
+                streaming: Err("no value supplied for streaming".to_string()),
+                structured_output: Err("no value supplied for structured_output".to_string()),
+                text_input: Err("no value supplied for text_input".to_string()),
+                tool_calling: Err("no value supplied for tool_calling".to_string()),
+            }
+        }
+    }
+    impl ModelProfileModelProfileCapabilities {
+        pub fn attachments<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.attachments = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for attachments: {e}"));
+            self
+        }
+        pub fn image_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.image_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for image_input: {e}"));
+            self
+        }
+        pub fn pdf_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.pdf_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for pdf_input: {e}"));
+            self
+        }
+        pub fn reasoning<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning: {e}"));
+            self
+        }
+        pub fn streaming<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.streaming = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for streaming: {e}"));
+            self
+        }
+        pub fn structured_output<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.structured_output = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for structured_output: {e}"));
+            self
+        }
+        pub fn text_input<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text_input = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text_input: {e}"));
+            self
+        }
+        pub fn tool_calling<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_calling = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_calling: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelProfileCapabilities>
+        for super::ModelProfileModelProfileCapabilities
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelProfileCapabilities,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                attachments: value.attachments?,
+                image_input: value.image_input?,
+                pdf_input: value.pdf_input?,
+                reasoning: value.reasoning?,
+                streaming: value.streaming?,
+                structured_output: value.structured_output?,
+                text_input: value.text_input?,
+                tool_calling: value.tool_calling?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelProfileCapabilities>
+        for ModelProfileModelProfileCapabilities
+    {
+        fn from(value: super::ModelProfileModelProfileCapabilities) -> Self {
+            Self {
+                attachments: Ok(value.attachments),
+                image_input: Ok(value.image_input),
+                pdf_input: Ok(value.pdf_input),
+                reasoning: Ok(value.reasoning),
+                streaming: Ok(value.streaming),
+                structured_output: Ok(value.structured_output),
+                text_input: Ok(value.text_input),
+                tool_calling: Ok(value.tool_calling),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelProfileLimits {
+        context_tokens: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        max_attachment_bytes: ::std::result::Result<i64, ::std::string::String>,
+        max_input_tokens: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        max_output_bytes: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        max_output_tokens: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfileModelProfileLimits {
+        fn default() -> Self {
+            Self {
+                context_tokens: Err("no value supplied for context_tokens".to_string()),
+                max_attachment_bytes: Err("no value supplied for max_attachment_bytes".to_string()),
+                max_input_tokens: Err("no value supplied for max_input_tokens".to_string()),
+                max_output_bytes: Err("no value supplied for max_output_bytes".to_string()),
+                max_output_tokens: Err("no value supplied for max_output_tokens".to_string()),
+            }
+        }
+    }
+    impl ModelProfileModelProfileLimits {
+        pub fn context_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.context_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for context_tokens: {e}"));
+            self
+        }
+        pub fn max_attachment_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_attachment_bytes = value.try_into().map_err(|e| {
+                format!("error converting supplied value for max_attachment_bytes: {e}")
+            });
+            self
+        }
+        pub fn max_input_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_input_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_input_tokens: {e}"));
+            self
+        }
+        pub fn max_output_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_output_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_output_bytes: {e}"));
+            self
+        }
+        pub fn max_output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_output_tokens: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelProfileLimits>
+        for super::ModelProfileModelProfileLimits
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelProfileLimits,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                context_tokens: value.context_tokens?,
+                max_attachment_bytes: value.max_attachment_bytes?,
+                max_input_tokens: value.max_input_tokens?,
+                max_output_bytes: value.max_output_bytes?,
+                max_output_tokens: value.max_output_tokens?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelProfileLimits>
+        for ModelProfileModelProfileLimits
+    {
+        fn from(value: super::ModelProfileModelProfileLimits) -> Self {
+            Self {
+                context_tokens: Ok(value.context_tokens),
+                max_attachment_bytes: Ok(value.max_attachment_bytes),
+                max_input_tokens: Ok(value.max_input_tokens),
+                max_output_bytes: Ok(value.max_output_bytes),
+                max_output_tokens: Ok(value.max_output_tokens),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelProfileQualification {
+        evidence_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        qualified_at: ::std::result::Result<
+            ::std::option::Option<super::CommonUtcInstant>,
+            ::std::string::String,
+        >,
+        status:
+            ::std::result::Result<super::ModelProfileQualificationStatus, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfileModelProfileQualification {
+        fn default() -> Self {
+            Self {
+                evidence_hash: Err("no value supplied for evidence_hash".to_string()),
+                qualified_at: Err("no value supplied for qualified_at".to_string()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl ModelProfileModelProfileQualification {
+        pub fn evidence_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_hash: {e}"));
+            self
+        }
+        pub fn qualified_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonUtcInstant>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.qualified_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for qualified_at: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileQualificationStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelProfileQualification>
+        for super::ModelProfileModelProfileQualification
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelProfileQualification,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                evidence_hash: value.evidence_hash?,
+                qualified_at: value.qualified_at?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelProfileQualification>
+        for ModelProfileModelProfileQualification
+    {
+        fn from(value: super::ModelProfileModelProfileQualification) -> Self {
+            Self {
+                evidence_hash: Ok(value.evidence_hash),
+                qualified_at: Ok(value.qualified_at),
+                status: Ok(value.status),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelProfileRetryPolicy {
+        initial_backoff_milliseconds: ::std::result::Result<i64, ::std::string::String>,
+        maximum_attempts: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        maximum_backoff_milliseconds: ::std::result::Result<i64, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfileModelProfileRetryPolicy {
+        fn default() -> Self {
+            Self {
+                initial_backoff_milliseconds: Err(
+                    "no value supplied for initial_backoff_milliseconds".to_string(),
+                ),
+                maximum_attempts: Err("no value supplied for maximum_attempts".to_string()),
+                maximum_backoff_milliseconds: Err(
+                    "no value supplied for maximum_backoff_milliseconds".to_string(),
+                ),
+            }
+        }
+    }
+    impl ModelProfileModelProfileRetryPolicy {
+        pub fn initial_backoff_milliseconds<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.initial_backoff_milliseconds = value.try_into().map_err(|e| {
+                format!("error converting supplied value for initial_backoff_milliseconds: {e}")
+            });
+            self
+        }
+        pub fn maximum_attempts<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.maximum_attempts = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for maximum_attempts: {e}"));
+            self
+        }
+        pub fn maximum_backoff_milliseconds<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.maximum_backoff_milliseconds = value.try_into().map_err(|e| {
+                format!("error converting supplied value for maximum_backoff_milliseconds: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelProfileRetryPolicy>
+        for super::ModelProfileModelProfileRetryPolicy
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelProfileRetryPolicy,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                initial_backoff_milliseconds: value.initial_backoff_milliseconds?,
+                maximum_attempts: value.maximum_attempts?,
+                maximum_backoff_milliseconds: value.maximum_backoff_milliseconds?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelProfileRetryPolicy>
+        for ModelProfileModelProfileRetryPolicy
+    {
+        fn from(value: super::ModelProfileModelProfileRetryPolicy) -> Self {
+            Self {
+                initial_backoff_milliseconds: Ok(value.initial_backoff_milliseconds),
+                maximum_attempts: Ok(value.maximum_attempts),
+                maximum_backoff_milliseconds: Ok(value.maximum_backoff_milliseconds),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelProfileModelProfileVariant {
+        display_name: ::std::result::Result<
+            super::ModelProfileModelProfileVariantDisplayName,
+            ::std::string::String,
+        >,
+        max_output_tokens: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        reasoning_effort:
+            ::std::result::Result<super::ModelProfileReasoningEffort, ::std::string::String>,
+        variant_id: ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+        verbosity: ::std::result::Result<super::ModelProfileOutputVerbosity, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelProfileModelProfileVariant {
+        fn default() -> Self {
+            Self {
+                display_name: Err("no value supplied for display_name".to_string()),
+                max_output_tokens: Err("no value supplied for max_output_tokens".to_string()),
+                reasoning_effort: Err("no value supplied for reasoning_effort".to_string()),
+                variant_id: Err("no value supplied for variant_id".to_string()),
+                verbosity: Err("no value supplied for verbosity".to_string()),
+            }
+        }
+    }
+    impl ModelProfileModelProfileVariant {
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileVariantDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn max_output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_output_tokens: {e}"));
+            self
+        }
+        pub fn reasoning_effort<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileReasoningEffort>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning_effort = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning_effort: {e}"));
+            self
+        }
+        pub fn variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.variant_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for variant_id: {e}"));
+            self
+        }
+        pub fn verbosity<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileOutputVerbosity>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.verbosity = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for verbosity: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelProfileModelProfileVariant>
+        for super::ModelProfileModelProfileVariant
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelProfileModelProfileVariant,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                display_name: value.display_name?,
+                max_output_tokens: value.max_output_tokens?,
+                reasoning_effort: value.reasoning_effort?,
+                variant_id: value.variant_id?,
+                verbosity: value.verbosity?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelProfileModelProfileVariant>
+        for ModelProfileModelProfileVariant
+    {
+        fn from(value: super::ModelProfileModelProfileVariant) -> Self {
+            Self {
+                display_name: Ok(value.display_name),
+                max_output_tokens: Ok(value.max_output_tokens),
+                reasoning_effort: Ok(value.reasoning_effort),
+                variant_id: Ok(value.variant_id),
+                verbosity: Ok(value.verbosity),
             }
         }
     }
@@ -62768,6 +68856,10 @@ pub mod builder {
             ::std::option::Option<super::FilesystemCapabilitySnapshot>,
             ::std::string::String,
         >,
+        foundry_deployment_snapshot: ::std::result::Result<
+            ::std::option::Option<super::FoundryDeploymentSnapshot>,
+            ::std::string::String,
+        >,
         method_advance_result: ::std::result::Result<
             ::std::option::Option<super::MethodAdvanceResult>,
             ::std::string::String,
@@ -62796,8 +68888,16 @@ pub mod builder {
             ::std::option::Option<super::ModelAccessResult>,
             ::std::string::String,
         >,
+        model_catalog: ::std::result::Result<
+            ::std::option::Option<super::ModelCatalog>,
+            ::std::string::String,
+        >,
         model_context_consent: ::std::result::Result<
             ::std::option::Option<super::ModelContextConsent>,
+            ::std::string::String,
+        >,
+        model_profile: ::std::result::Result<
+            ::std::option::Option<super::ModelProfile>,
             ::std::string::String,
         >,
         package_compatibility: ::std::result::Result<
@@ -62833,6 +68933,7 @@ pub mod builder {
                 evidence_event: Ok(Default::default()),
                 execution_result_manifest: Ok(Default::default()),
                 filesystem_capability_snapshot: Ok(Default::default()),
+                foundry_deployment_snapshot: Ok(Default::default()),
                 method_advance_result: Ok(Default::default()),
                 method_help_proposal: Ok(Default::default()),
                 method_help_recommendation: Ok(Default::default()),
@@ -62840,7 +68941,9 @@ pub mod builder {
                 model_access_receipt: Ok(Default::default()),
                 model_access_request: Ok(Default::default()),
                 model_access_result: Ok(Default::default()),
+                model_catalog: Ok(Default::default()),
                 model_context_consent: Ok(Default::default()),
+                model_profile: Ok(Default::default()),
                 package_compatibility: Ok(Default::default()),
                 remote_job_handoff: Ok(Default::default()),
                 spec_consumption_record: Ok(Default::default()),
@@ -63018,6 +69121,16 @@ pub mod builder {
             });
             self
         }
+        pub fn foundry_deployment_snapshot<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::FoundryDeploymentSnapshot>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.foundry_deployment_snapshot = value.try_into().map_err(|e| {
+                format!("error converting supplied value for foundry_deployment_snapshot: {e}")
+            });
+            self
+        }
         pub fn method_advance_result<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::MethodAdvanceResult>>,
@@ -63088,6 +69201,16 @@ pub mod builder {
             });
             self
         }
+        pub fn model_catalog<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelCatalog>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_catalog = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_catalog: {e}"));
+            self
+        }
         pub fn model_context_consent<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::ModelContextConsent>>,
@@ -63096,6 +69219,16 @@ pub mod builder {
             self.model_context_consent = value.try_into().map_err(|e| {
                 format!("error converting supplied value for model_context_consent: {e}")
             });
+            self
+        }
+        pub fn model_profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfile>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_profile: {e}"));
             self
         }
         pub fn package_compatibility<T>(mut self, value: T) -> Self
@@ -63152,6 +69285,7 @@ pub mod builder {
                 evidence_event: value.evidence_event?,
                 execution_result_manifest: value.execution_result_manifest?,
                 filesystem_capability_snapshot: value.filesystem_capability_snapshot?,
+                foundry_deployment_snapshot: value.foundry_deployment_snapshot?,
                 method_advance_result: value.method_advance_result?,
                 method_help_proposal: value.method_help_proposal?,
                 method_help_recommendation: value.method_help_recommendation?,
@@ -63159,7 +69293,9 @@ pub mod builder {
                 model_access_receipt: value.model_access_receipt?,
                 model_access_request: value.model_access_request?,
                 model_access_result: value.model_access_result?,
+                model_catalog: value.model_catalog?,
                 model_context_consent: value.model_context_consent?,
+                model_profile: value.model_profile?,
                 package_compatibility: value.package_compatibility?,
                 remote_job_handoff: value.remote_job_handoff?,
                 spec_consumption_record: value.spec_consumption_record?,
@@ -63186,6 +69322,7 @@ pub mod builder {
                 evidence_event: Ok(value.evidence_event),
                 execution_result_manifest: Ok(value.execution_result_manifest),
                 filesystem_capability_snapshot: Ok(value.filesystem_capability_snapshot),
+                foundry_deployment_snapshot: Ok(value.foundry_deployment_snapshot),
                 method_advance_result: Ok(value.method_advance_result),
                 method_help_proposal: Ok(value.method_help_proposal),
                 method_help_recommendation: Ok(value.method_help_recommendation),
@@ -63193,7 +69330,9 @@ pub mod builder {
                 model_access_receipt: Ok(value.model_access_receipt),
                 model_access_request: Ok(value.model_access_request),
                 model_access_result: Ok(value.model_access_result),
+                model_catalog: Ok(value.model_catalog),
                 model_context_consent: Ok(value.model_context_consent),
+                model_profile: Ok(value.model_profile),
                 package_compatibility: Ok(value.package_compatibility),
                 remote_job_handoff: Ok(value.remote_job_handoff),
                 spec_consumption_record: Ok(value.spec_consumption_record),

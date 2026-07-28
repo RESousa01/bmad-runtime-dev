@@ -102,6 +102,24 @@
     "reasonCode": null
   },
   {
+    "file": "valid/foundry-deployment.json",
+    "schema": "foundry-deployment.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-profile.json",
+    "schema": "model-profile.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-catalog.json",
+    "schema": "model-catalog.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
     "file": "valid/bmad-capability-run.json",
     "schema": "bmad-capability-run.schema.json",
     "valid": true,
@@ -148,6 +166,42 @@
     "schema": "model-context-consent.schema.json",
     "valid": false,
     "reasonCode": "PATTERN_MISMATCH"
+  },
+  {
+    "file": "invalid/foundry-deployment-unknown-capability.json",
+    "schema": "foundry-deployment.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-profile-missing-qualification.json",
+    "schema": "model-profile.schema.json",
+    "valid": false,
+    "reasonCode": "REQUIRED_PROPERTY_MISSING"
+  },
+  {
+    "file": "invalid/model-catalog-deployment-name.json",
+    "schema": "model-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-catalog-project-endpoint.json",
+    "schema": "model-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-catalog-azure-identity.json",
+    "schema": "model-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-catalog-blocked-availability.json",
+    "schema": "model-catalog.schema.json",
+    "valid": false,
+    "reasonCode": "ENUM_MISMATCH"
   },
   {
     "file": "invalid/bmad-capability-run-unknown-property.json",

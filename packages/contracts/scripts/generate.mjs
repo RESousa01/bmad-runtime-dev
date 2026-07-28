@@ -952,6 +952,218 @@ const modelAccessResultFixture = {
 };
 add("fixtures/valid/model-access-result.json", stableJson(modelAccessResultFixture));
 
+const foundryDeploymentFixture = {
+  schemaVersion: "sapphirus.foundry-deployment.v1",
+  snapshotHash: hash("d"),
+  retrievedAt: "2026-07-28T00:00:00.000Z",
+  deployments: [
+    {
+      deploymentName: "fixture-deployment-a",
+      deploymentType: "ModelDeployment",
+      modelPublisher: "FixturePublisher",
+      modelName: "fixture-model",
+      modelVersion: "2026-06-01",
+      sku: {
+        name: "FixtureStandard",
+        tier: "Fixture",
+        family: "FixturePublisher",
+        size: null,
+        capacity: 10,
+      },
+      capabilities: {
+        textInput: true,
+        imageInput: false,
+        pdfInput: false,
+        attachments: false,
+        toolCalling: true,
+        structuredOutput: true,
+        reasoning: true,
+        streaming: true,
+      },
+      deploymentHash: hash("e"),
+    },
+  ],
+};
+add("fixtures/valid/foundry-deployment.json", stableJson(foundryDeploymentFixture));
+
+const modelProfileFixture = {
+  schemaVersion: "sapphirus.model-profile.v1",
+  profileId: "coding-balanced",
+  displayName: "Coding Balanced",
+  description: "General coding and reviewed change proposals.",
+  family: "fixture-model",
+  priority: 10,
+  enabled: true,
+  visible: true,
+  deploymentName: foundryDeploymentFixture.deployments[0].deploymentName,
+  expectedModel: {
+    publisher: foundryDeploymentFixture.deployments[0].modelPublisher,
+    name: foundryDeploymentFixture.deployments[0].modelName,
+    version: foundryDeploymentFixture.deployments[0].modelVersion,
+  },
+  purposeAllowlist: ["ordinary_chat", "bmad_help"],
+  modelRoleAllowlist: ["assistant", "planner"],
+  requestModeAllowlist: ["structured_response", "streaming_chat"],
+  canonicalOutputSchemaAllowlist: ["sapphirus.bmad-method-help-proposal.v1"],
+  supportedModalities: ["text"],
+  requiredCapabilities: {
+    textInput: true,
+    imageInput: false,
+    pdfInput: false,
+    attachments: false,
+    toolCalling: true,
+    structuredOutput: true,
+    reasoning: true,
+    streaming: true,
+  },
+  limits: {
+    contextTokens: 256000,
+    maxInputTokens: 220000,
+    maxOutputTokens: 16000,
+    maxAttachmentBytes: 0,
+    maxOutputBytes: 262144,
+  },
+  variants: [
+    {
+      variantId: "balanced",
+      displayName: "Balanced",
+      reasoningEffort: "medium",
+      verbosity: "medium",
+      maxOutputTokens: 16000,
+    },
+    {
+      variantId: "deep",
+      displayName: "Deep",
+      reasoningEffort: "high",
+      verbosity: "high",
+      maxOutputTokens: 32000,
+    },
+  ],
+  retryPolicy: {
+    maximumAttempts: 3,
+    initialBackoffMilliseconds: 250,
+    maximumBackoffMilliseconds: 4000,
+  },
+  retentionMode: "transient_no_store",
+  allowedRegions: ["westeurope"],
+  qualification: {
+    status: "qualified",
+    evidenceHash: hash("f"),
+    qualifiedAt: "2026-07-28T00:00:00.000Z",
+  },
+  priceProfile: {
+    version: "foundry-price-2026-07",
+    currency: "EUR",
+    inputMicrounitsPerThousand: 2750,
+    outputMicrounitsPerThousand: 11000,
+    reasoningMicrounitsPerThousand: 11000,
+    cacheReadMicrounitsPerThousand: 275,
+  },
+};
+add("fixtures/valid/model-profile.json", stableJson(modelProfileFixture));
+
+const modelCatalogFixture = {
+  schemaVersion: "sapphirus.model-catalog.v1",
+  catalogVersion: "v1.0123456789abcdef",
+  catalogHash: hash("0"),
+  catalogState: "fresh",
+  policyVersion: 1,
+  policyHash: hash("1"),
+  deploymentSnapshotHash: foundryDeploymentFixture.snapshotHash,
+  generatedAt: "2026-07-28T00:00:00.000Z",
+  expiresAt: "2026-07-28T00:05:00.000Z",
+  defaultProfileId: modelProfileFixture.profileId,
+  profiles: [
+    {
+      profileId: modelProfileFixture.profileId,
+      displayName: modelProfileFixture.displayName,
+      description: modelProfileFixture.description,
+      family: modelProfileFixture.family,
+      provider: "microsoft_foundry",
+      availability: "available",
+      statusDetail: null,
+      capabilities: {
+        textInput: true,
+        imageInput: false,
+        pdfInput: false,
+        attachments: false,
+        toolCalling: true,
+        structuredOutput: true,
+        reasoning: true,
+      },
+      limits: {
+        contextTokens: 256000,
+        maxInputTokens: 220000,
+        maxOutputTokens: 16000,
+        maxAttachmentBytes: null,
+      },
+      variants: [
+        {
+          variantId: "balanced",
+          displayName: "Balanced",
+          reasoningEffort: "medium",
+          maxOutputTokens: 16000,
+        },
+      ],
+      defaultVariantId: "balanced",
+      qualifiedAt: "2026-07-28T00:00:00.000Z",
+    },
+  ],
+  unavailableProfiles: [
+    {
+      profileId: "research-deep",
+      displayName: "Research Deep",
+      availability: "not_entitled",
+      recoveryAction: "request_entitlement",
+    },
+  ],
+};
+add("fixtures/valid/model-catalog.json", stableJson(modelCatalogFixture));
+
+const foundryDeploymentUnknownCapability = structuredClone(foundryDeploymentFixture);
+foundryDeploymentUnknownCapability.deployments[0].capabilities.jsonSchema = true;
+add(
+  "fixtures/invalid/foundry-deployment-unknown-capability.json",
+  stableJson(foundryDeploymentUnknownCapability),
+);
+
+const modelProfileMissingQualification = structuredClone(modelProfileFixture);
+delete modelProfileMissingQualification.qualification;
+add(
+  "fixtures/invalid/model-profile-missing-qualification.json",
+  stableJson(modelProfileMissingQualification),
+);
+
+const modelCatalogDeploymentName = structuredClone(modelCatalogFixture);
+modelCatalogDeploymentName.profiles[0].deploymentName = "fixture-deployment-a";
+add(
+  "fixtures/invalid/model-catalog-deployment-name.json",
+  stableJson(modelCatalogDeploymentName),
+);
+
+const modelCatalogProjectEndpoint = structuredClone(modelCatalogFixture);
+modelCatalogProjectEndpoint.projectEndpoint =
+  "https://fixture.services.ai.azure.com/api/projects/fixture";
+add(
+  "fixtures/invalid/model-catalog-project-endpoint.json",
+  stableJson(modelCatalogProjectEndpoint),
+);
+
+const modelCatalogAzureIdentity = structuredClone(modelCatalogFixture);
+modelCatalogAzureIdentity.managedIdentityClientId = id("identity");
+modelCatalogAzureIdentity.subscriptionId = id("subscription");
+add(
+  "fixtures/invalid/model-catalog-azure-identity.json",
+  stableJson(modelCatalogAzureIdentity),
+);
+
+const modelCatalogBlockedAvailability = structuredClone(modelCatalogFixture);
+modelCatalogBlockedAvailability.profiles[0].availability = "not_entitled";
+add(
+  "fixtures/invalid/model-catalog-blocked-availability.json",
+  stableJson(modelCatalogBlockedAvailability),
+);
+
 const registrationUnknownProperty = structuredClone(desktopDeviceRegistrationFixture);
 registrationUnknownProperty.deviceName = "must-not-cross-boundary";
 add(
@@ -998,6 +1210,9 @@ const catalog = [
   ["valid/model-access-request.json", "model-access-request.schema.json", true, null],
   ["valid/model-access-receipt.json", "model-access-receipt.schema.json", true, null],
   ["valid/model-access-result.json", "model-access-result.schema.json", true, null],
+  ["valid/foundry-deployment.json", "foundry-deployment.schema.json", true, null],
+  ["valid/model-profile.json", "model-profile.schema.json", true, null],
+  ["valid/model-catalog.json", "model-catalog.schema.json", true, null],
   ["valid/bmad-capability-run.json", "bmad-capability-run.schema.json", true, null],
   ["valid/bmad-capability-result-document.json", "bmad-capability-result.schema.json", true, null],
   ["valid/bmad-capability-result-changes.json", "bmad-capability-result.schema.json", true, null],
@@ -1006,6 +1221,12 @@ const catalog = [
   ["invalid/desktop-registration-malformed-public-key.json", "desktop-device-registration.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/model-access-request-unsafe-relative-label.json", "model-access-request.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/model-context-consent-malformed-signature.json", "model-context-consent.schema.json", false, "PATTERN_MISMATCH"],
+  ["invalid/foundry-deployment-unknown-capability.json", "foundry-deployment.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-profile-missing-qualification.json", "model-profile.schema.json", false, "REQUIRED_PROPERTY_MISSING"],
+  ["invalid/model-catalog-deployment-name.json", "model-catalog.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-catalog-project-endpoint.json", "model-catalog.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-catalog-azure-identity.json", "model-catalog.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-catalog-blocked-availability.json", "model-catalog.schema.json", false, "ENUM_MISMATCH"],
   ["invalid/bmad-capability-run-unknown-property.json", "bmad-capability-run.schema.json", false, "UNKNOWN_PROPERTY"],
   ["invalid/bmad-capability-run-forged-capability-id.json", "bmad-capability-run.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/bmad-capability-result-absolute-path.json", "bmad-capability-result.schema.json", false, "ONE_OF_MISMATCH"],
@@ -1312,10 +1533,13 @@ const typescriptSchemaTargets = [
   "evidence-event",
   "execution-result-manifest",
   "filesystem-capability",
+  "foundry-deployment",
   "model-access-receipt",
   "model-access-request",
   "model-access-result",
+  "model-catalog",
   "model-context-consent",
+  "model-profile",
   "package-compatibility",
   "remote-job-handoff",
   "spec-consumption",
@@ -1480,6 +1704,15 @@ export type {
   InstallationProof,
 } from "./schema/model-context-consent.js";
 export type {
+  SapphirusFoundryDeploymentV1 as FoundryDeploymentSnapshot,
+} from "./schema/foundry-deployment.js";
+export type {
+  SapphirusModelProfileV1 as ModelProfile,
+} from "./schema/model-profile.js";
+export type {
+  SapphirusModelCatalogV1 as ModelCatalog,
+} from "./schema/model-catalog.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {
@@ -1542,6 +1775,12 @@ const validatorIds = {
     "https://schemas.sapphirus.dev/v1/model-access-result.schema.json",
   validateModelContextConsent:
     "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
+  validateFoundryDeployment:
+    "https://schemas.sapphirus.dev/v1/foundry-deployment.schema.json",
+  validateModelProfile:
+    "https://schemas.sapphirus.dev/v1/model-profile.schema.json",
+  validateModelCatalog:
+    "https://schemas.sapphirus.dev/v1/model-catalog.schema.json",
   validateContractError: "https://schemas.sapphirus.dev/v1/contract-error.schema.json",
   validatePackageCompatibility:
     "https://schemas.sapphirus.dev/v1/package-compatibility.schema.json",
@@ -1749,6 +1988,9 @@ import {
   validateModelAccessReceipt,
   validateModelAccessResult,
   validateModelContextConsent,
+  validateFoundryDeployment,
+  validateModelProfile,
+  validateModelCatalog,
   validatePackageCompatibility,
   validateRemoteJobHandoff,
   validateSpecConsumption,
@@ -1778,6 +2020,9 @@ export const CONTRACT_VALIDATORS = Object.freeze({
   "model-access-receipt": validateModelAccessReceipt,
   "model-access-result": validateModelAccessResult,
   "model-context-consent": validateModelContextConsent,
+  "foundry-deployment": validateFoundryDeployment,
+  "model-profile": validateModelProfile,
+  "model-catalog": validateModelCatalog,
   "package-compatibility": validatePackageCompatibility,
   "remote-job-handoff": validateRemoteJobHandoff,
   "spec-consumption": validateSpecConsumption,

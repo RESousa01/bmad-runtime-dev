@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "forge.foundry-contract-evidence.v1",
+  "taskId": "FND-010",
+  "capturedAt": "2026-07-28T18:50:00Z",
+  "schemasAdded": [
+    {
+      "file": "packages/contracts/schemas/foundry-deployment.schema.json",
+      "title": "sapphirus.foundry-deployment.v1",
+      "rootTypeName": "FoundryDeploymentSnapshot",
+      "role": "Describes what physically exists in the Foundry project.",
+      "authorityExclusions": [
+        "projectEndpoint",
+        "subscriptionId",
+        "resourceGroup",
+        "roleAssignment",
+        "managedIdentityClientId",
+        "apiVersion",
+        "credential"
+      ]
+    },
+    {
+      "file": "packages/contracts/schemas/model-profile.schema.json",
+      "title": "sapphirus.model-profile.v1",
+      "rootTypeName": "ModelProfile",
+      "role": "Describes what the organization permits and how Forge uses it. This is the only contract in which a deployment name legitimately appears, and it is never projected to the desktop.",
+      "stableIdentity": "profileId is organization-chosen and deliberately independent of deploymentName, so a deployment can be replaced without invalidating a persisted user selection."
+    },
+    {
+      "file": "packages/contracts/schemas/model-catalog.schema.json",
+      "title": "sapphirus.model-catalog.v1",
+      "rootTypeName": "ModelCatalog",
+      "role": "The sanitized effective catalog projected to the desktop: the intersection of deployment inventory, enabled signed profiles, policy, qualification, and subject/device entitlement."
+    }
+  ],
+  "availabilityVocabulary": {
+    "design": "The seven availability states the task names are split across two reachable enums rather than one loose seven-state enum. A selectable projection is structurally incapable of carrying a blocked state, so a profile that should not have been listed cannot describe itself as blocked.",
+    "selectable": ["available", "degraded"],
+    "blocked": [
+      "policy_blocked",
+      "not_entitled",
+      "unqualified",
+      "deployment_missing",
+      "catalog_stale"
+    ],
+    "blockedProfilesAreStillNamed": "Visible but non-invocable profiles appear in unavailableProfiles carrying only profileId, displayName, the blocked state, and a recovery action. This is what lets the desktop explain why a previously selected profile disappeared instead of silently switching models, which FND-041 and FND-051 both require. No group name, deployment name, endpoint, or role assignment is representable there."
+  },
+  "fixtures": {
+    "valid": [
+      "packages/contracts/fixtures/valid/foundry-deployment.json",
+      "packages/contracts/fixtures/valid/model-profile.json",
+      "packages/contracts/fixtures/valid/model-catalog.json"
+    ],
+    "invalid": [
+      {
+        "file": "packages/contracts/fixtures/invalid/model-catalog-deployment-name.json",
+        "proves": "A deployment name cannot be serialized into a desktop profile projection.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-catalog-project-endpoint.json",
+        "proves": "The Foundry project endpoint cannot be serialized into the desktop catalog.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-catalog-azure-identity.json",
+        "proves": "A managed-identity client ID and a subscription ID cannot be serialized into the desktop catalog.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-catalog-blocked-availability.json",
+        "proves": "A selectable profile projection cannot carry a blocked availability state.",
+        "reasonCode": "ENUM_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-profile-missing-qualification.json",
+        "proves": "A profile without qualification evidence fails closed.",
+        "reasonCode": "REQUIRED_PROPERTY_MISSING"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/foundry-deployment-unknown-capability.json",
+        "proves": "A raw provider capability key cannot survive into the canonical deployment contract; only the allowlisted canonical names exist.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      }
+    ]
+  },
+  "registrationSurfaces": {
+    "note": "A new schema family must be added to nine hand-maintained lists in this repository. Two of them fail before generation with opaque codes and are recorded here so later contract tasks do not rediscover them.",
+    "lists": [
+      "packages/contracts/schemas/<name>.schema.json",
+      "tools/contract-codegen/tool-lock.json sourceSet.production.roots, sorted by file",
+      "packages/contracts/scripts/lib/native-codegen.mjs productionRoots constant, cross-checked against the tool lock",
+      "packages/contracts/scripts/generate.mjs typescriptSchemaTargets",
+      "packages/contracts/scripts/generate.mjs typescriptBarrel export blocks",
+      "packages/contracts/scripts/generate.mjs validatorIds",
+      "packages/contracts/scripts/generate.mjs validationRuntime imports and CONTRACT_VALIDATORS",
+      "packages/contracts/scripts/generate.mjs fixture literals and the fixture catalog tuple array",
+      "packages/contracts/scripts/check-typescript-bindings.mjs schemaTargets and the required-symbol list"
+    ],
+    "observedFailures": [
+      {
+        "code": "CONTRACT_LOCK_BOOTSTRAP_UNREVIEWED",
+        "cause": "The productionRoots constant in native-codegen.mjs was not updated alongside tool-lock.json. Generation refuses before running.",
+        "resolution": "Both lists must name the family."
+      },
+      {
+        "code": "Generated TypeScript must not use any",
+        "cause": "check-generated-bindings.mjs regexes /\\bany\\b/ across the whole generated text including doc comments. A schema description reading 'independent of any Foundry deployment name' failed the gate.",
+        "resolution": "Schema descriptions must avoid the bare word in lowercase. The check is blunt but it also guarantees no generated any can hide inside a description."
+      }
+    ]
+  },
+  "generation": {
+    "command": "pnpm --filter @sapphirus/contracts generate",
+    "exitCode": 0,
+    "qualificationFiles": 90,
+    "productionFiles": 3232,
+    "filesUpdated": 318,
+    "schemaCount": 32,
+    "closedObjects": 200,
+    "discriminatorRefinements": 13,
+    "resolvedRefs": 958,
+    "determinism": "Both generators ran twice into separate clean staging roots and were compared byte-for-byte before any committed output was touched."
+  },
+  "constraintsObserved": [
+    "productionOptionalNullablePolicy is fail-closed-v1: a production property may not be both optional and nullable. Every nullable field in these three schemas is required-and-nullable.",
+    "The TypeScript generator runs with unreachableDefinitions:false, so a $def no root reaches produces no type in any language. The blocked-availability vocabulary is reachable through unavailableProfiles for exactly this reason."
+  ]
+}

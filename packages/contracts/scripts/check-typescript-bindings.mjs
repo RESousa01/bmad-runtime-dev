@@ -29,10 +29,13 @@ const schemaTargets = [
   "evidence-event",
   "execution-result-manifest",
   "filesystem-capability",
+  "foundry-deployment",
   "model-access-receipt",
   "model-access-request",
   "model-access-result",
+  "model-catalog",
   "model-context-consent",
+  "model-profile",
   "package-compatibility",
   "remote-job-handoff",
   "spec-consumption",
@@ -115,6 +118,9 @@ for (const symbol of [
   "ModelContextConsent",
   "PackageCompatibility",
   "RemoteJobHandoff",
+  "SapphirusFoundryDeploymentV1",
+  "SapphirusModelProfileV1",
+  "SapphirusModelCatalogV1",
 ]) {
   assert.ok(typeSources.includes(symbol), `TypeScript bindings are missing ${symbol}.`);
 }

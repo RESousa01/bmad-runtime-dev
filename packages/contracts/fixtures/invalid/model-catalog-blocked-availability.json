@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "sapphirus.model-catalog.v1",
+  "catalogVersion": "v1.0123456789abcdef",
+  "catalogHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "catalogState": "fresh",
+  "policyVersion": 1,
+  "policyHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "deploymentSnapshotHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "generatedAt": "2026-07-28T00:00:00.000Z",
+  "expiresAt": "2026-07-28T00:05:00.000Z",
+  "defaultProfileId": "coding-balanced",
+  "profiles": [
+    {
+      "profileId": "coding-balanced",
+      "displayName": "Coding Balanced",
+      "description": "General coding and reviewed change proposals.",
+      "family": "fixture-model",
+      "provider": "microsoft_foundry",
+      "availability": "not_entitled",
+      "statusDetail": null,
+      "capabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": false,
+        "attachments": false,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": true
+      },
+      "limits": {
+        "contextTokens": 256000,
+        "maxInputTokens": 220000,
+        "maxOutputTokens": 16000,
+        "maxAttachmentBytes": null
+      },
+      "variants": [
+        {
+          "variantId": "balanced",
+          "displayName": "Balanced",
+          "reasoningEffort": "medium",
+          "maxOutputTokens": 16000
+        }
+      ],
+      "defaultVariantId": "balanced",
+      "qualifiedAt": "2026-07-28T00:00:00.000Z"
+    }
+  ],
+  "unavailableProfiles": [
+    {
+      "profileId": "research-deep",
+      "displayName": "Research Deep",
+      "availability": "not_entitled",
+      "recoveryAction": "request_entitlement"
+    }
+  ]
+}

@@ -132,6 +132,15 @@ export type {
   InstallationProof,
 } from "./schema/model-context-consent.js";
 export type {
+  SapphirusFoundryDeploymentV1 as FoundryDeploymentSnapshot,
+} from "./schema/foundry-deployment.js";
+export type {
+  SapphirusModelProfileV1 as ModelProfile,
+} from "./schema/model-profile.js";
+export type {
+  SapphirusModelCatalogV1 as ModelCatalog,
+} from "./schema/model-catalog.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {

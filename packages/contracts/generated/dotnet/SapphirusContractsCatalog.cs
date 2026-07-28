@@ -337,6 +337,27 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>foundryDeploymentSnapshot</c> property.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Canonical normalized inventory of the Microsoft Foundry project deployments that physically exist. This contract describes what exists, never how to reach it: the project endpoint, subscription, resource group, role assignment, and managed-identity client ID are deliberately unrepresentable.
+    /// </para>
+    /// </remarks>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot FoundryDeploymentSnapshotValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.FoundryDeploymentSnapshotValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>methodAdvanceResult</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult MethodAdvanceResult
@@ -449,6 +470,27 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>modelCatalog</c> property.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The sanitized effective model catalog projected to the desktop. It is the intersection of the Foundry deployment inventory, the enabled signed organization profiles, tenant policy, qualification evidence, and the current subject and device entitlement. Azure authority is deliberately unrepresentable: there is no property that can carry a deployment name, project endpoint, subscription or resource identifier, role assignment, managed-identity client ID, API version, or credential.
+    /// </para>
+    /// </remarks>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog ModelCatalogValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelCatalogValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>modelContextConsent</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent ModelContextConsentValue
@@ -456,6 +498,27 @@ public readonly partial struct SapphirusContractsCatalog
         get
         {
             if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelContextConsentValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>modelProfile</c> property.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One versioned organization model profile. A profile states what the organization permits and how Forge uses it. The profile is the only place a Foundry deployment name appears in a contract, it is read exclusively from signed organization configuration, and it is never projected to the desktop. Request data can never create or modify a profile.
+    /// </para>
+    /// </remarks>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile ModelProfileValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelProfileValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile value))
             {
                 return value;
             }
@@ -1031,6 +1094,11 @@ public readonly partial struct SapphirusContractsCatalog
         public const string FilesystemCapabilitySnapshotValue = "filesystemCapabilitySnapshot";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="FoundryDeploymentSnapshotValue"/>.
+        /// </summary>
+        public const string FoundryDeploymentSnapshotValue = "foundryDeploymentSnapshot";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="MethodAdvanceResult"/>.
         /// </summary>
         public const string MethodAdvanceResult = "methodAdvanceResult";
@@ -1066,9 +1134,19 @@ public readonly partial struct SapphirusContractsCatalog
         public const string ModelAccessResultValue = "modelAccessResult";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="ModelCatalogValue"/>.
+        /// </summary>
+        public const string ModelCatalogValue = "modelCatalog";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
         /// </summary>
         public const string ModelContextConsentValue = "modelContextConsent";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelProfileValue"/>.
+        /// </summary>
+        public const string ModelProfileValue = "modelProfile";
 
         /// <summary>
         /// Gets the JSON property name for <see cref="PackageCompatibilityValue"/>.
@@ -1171,6 +1249,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValueUtf8 => "filesystemCapabilitySnapshot"u8;
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="FoundryDeploymentSnapshotValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> FoundryDeploymentSnapshotValueUtf8 => "foundryDeploymentSnapshot"u8;
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="MethodAdvanceResult"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodAdvanceResultUtf8 => "methodAdvanceResult"u8;
@@ -1206,9 +1289,19 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ModelAccessResultValueUtf8 => "modelAccessResult"u8;
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="ModelCatalogValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelCatalogValueUtf8 => "modelCatalog"u8;
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="ModelContextConsentValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelContextConsentValueUtf8 => "modelContextConsent"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="ModelProfileValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelProfileValueUtf8 => "modelProfile"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="PackageCompatibilityValue"/>.
@@ -1317,6 +1410,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValue => "filesystemCapabilitySnapshot"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="FoundryDeploymentSnapshotValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> FoundryDeploymentSnapshotValue => "foundryDeploymentSnapshot"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="MethodAdvanceResult"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodAdvanceResult => "methodAdvanceResult"u8;
@@ -1352,9 +1450,19 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ModelAccessResultValue => "modelAccessResult"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelCatalogValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelCatalogValue => "modelCatalog"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="ModelContextConsentValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelContextConsentValue => "modelContextConsent"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="ModelProfileValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelProfileValue => "modelProfile"u8;
 
         /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="PackageCompatibilityValue"/>.
@@ -1464,6 +1572,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> FilesystemCapabilitySnapshotValue => [0xE5, 0x01, 0x00, 0x00, 0x22, 0x66, 0x69, 0x6C, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x43, 0x61, 0x70, 0x61, 0x62, 0x69, 0x6C, 0x69, 0x74, 0x79, 0x53, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x22];
 
         /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="FoundryDeploymentSnapshotValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> FoundryDeploymentSnapshotValue => [0xB5, 0x01, 0x00, 0x00, 0x22, 0x66, 0x6F, 0x75, 0x6E, 0x64, 0x72, 0x79, 0x44, 0x65, 0x70, 0x6C, 0x6F, 0x79, 0x6D, 0x65, 0x6E, 0x74, 0x53, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x22];
+
+        /// <summary>
         /// Gets the pre-baked property name blob for <see cref="MethodAdvanceResult"/>.
         /// </summary>
         public static ReadOnlySpan<byte> MethodAdvanceResult => [0x55, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x65, 0x74, 0x68, 0x6F, 0x64, 0x41, 0x64, 0x76, 0x61, 0x6E, 0x63, 0x65, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
@@ -1499,9 +1612,19 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> ModelAccessResultValue => [0x35, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
 
         /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelCatalogValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelCatalogValue => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x43, 0x61, 0x74, 0x61, 0x6C, 0x6F, 0x67, 0x22];
+
+        /// <summary>
         /// Gets the pre-baked property name blob for <see cref="ModelContextConsentValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> ModelContextConsentValue => [0x55, 0x01, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x43, 0x6F, 0x6E, 0x74, 0x65, 0x78, 0x74, 0x43, 0x6F, 0x6E, 0x73, 0x65, 0x6E, 0x74, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="ModelProfileValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> ModelProfileValue => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x50, 0x72, 0x6F, 0x66, 0x69, 0x6C, 0x65, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="PackageCompatibilityValue"/>.

@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-catalog.schema.json",
+  "title": "sapphirus.model-catalog.v1",
+  "description": "The sanitized effective model catalog projected to the desktop. It is the intersection of the Foundry deployment inventory, the enabled signed organization profiles, tenant policy, qualification evidence, and the current subject and device entitlement. Azure authority is deliberately unrepresentable: there is no property that can carry a deployment name, project endpoint, subscription or resource identifier, role assignment, managed-identity client ID, API version, or credential.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogVersion",
+    "catalogHash",
+    "catalogState",
+    "policyVersion",
+    "policyHash",
+    "deploymentSnapshotHash",
+    "generatedAt",
+    "expiresAt",
+    "defaultProfileId",
+    "profiles",
+    "unavailableProfiles"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.model-catalog.v1" },
+    "catalogVersion": { "$ref": "#/$defs/CatalogVersion" },
+    "catalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "catalogState": { "$ref": "#/$defs/CatalogState" },
+    "policyVersion": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "policyHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deploymentSnapshotHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "generatedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "expiresAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "defaultProfileId": {
+      "description": "The profile the host selects when the user has no valid persisted selection. Null when no profile is currently selectable. It is never a profile listed in unavailableProfiles.",
+      "oneOf": [
+        { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        { "type": "null" }
+      ]
+    },
+    "profiles": {
+      "description": "Selectable profiles only. A profile appears here exactly when the user may invoke it right now.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/ModelProfileProjection" }
+    },
+    "unavailableProfiles": {
+      "description": "Visible profiles that exist for this organization but cannot be invoked right now. Carrying them lets the desktop explain why a previously selected profile disappeared instead of silently switching models. Each entry states the prerequisite and a recovery action, and nothing else.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/UnavailableModelProfile" }
+    }
+  },
+  "$defs": {
+    "CatalogVersion": {
+      "description": "Monotonic catalog epoch plus a short digest of every authority-relevant input. Any change to the deployment snapshot, profile registry, policy, entitlement class, or qualification evidence produces a new value.",
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 40,
+      "pattern": "^v[1-9][0-9]{0,9}\\.[0-9a-f]{16}$"
+    },
+    "CatalogState": {
+      "description": "Freshness of the deployment snapshot behind this catalog. A catalog is never produced at all when the snapshot is unavailable or failed integrity checks; those states are problems, not catalogs.",
+      "enum": [
+        "fresh",
+        "stale_usable"
+      ]
+    },
+    "SelectableAvailability": {
+      "description": "Availability of a profile the user may invoke. Blocked states are intentionally not representable here, so a selectable projection cannot carry a reason it should not have been listed.",
+      "enum": [
+        "available",
+        "degraded"
+      ]
+    },
+    "BlockedAvailability": {
+      "description": "Why a visible profile is not currently invocable. Together with SelectableAvailability this is the complete availability vocabulary.",
+      "enum": [
+        "policy_blocked",
+        "not_entitled",
+        "unqualified",
+        "deployment_missing",
+        "catalog_stale"
+      ]
+    },
+    "ModelRecoveryAction": {
+      "enum": [
+        "refresh_catalog",
+        "request_entitlement",
+        "awaiting_qualification",
+        "contact_administrator",
+        "select_another_profile"
+      ]
+    },
+    "ModelProfileProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileId",
+        "displayName",
+        "description",
+        "family",
+        "provider",
+        "availability",
+        "statusDetail",
+        "capabilities",
+        "limits",
+        "variants",
+        "defaultVariantId",
+        "qualifiedAt"
+      ],
+      "properties": {
+        "profileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "family": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 64 },
+            { "type": "null" }
+          ]
+        },
+        "provider": { "const": "microsoft_foundry" },
+        "availability": { "$ref": "#/$defs/SelectableAvailability" },
+        "statusDetail": {
+          "description": "Short human-readable qualifier for a degraded profile. Never carries a provider body, endpoint, or deployment name.",
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 160 },
+            { "type": "null" }
+          ]
+        },
+        "capabilities": { "$ref": "#/$defs/ProjectedCapabilities" },
+        "limits": { "$ref": "#/$defs/ProjectedLimits" },
+        "variants": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/ModelVariantProjection" }
+        },
+        "defaultVariantId": { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+        "qualifiedAt": {
+          "oneOf": [
+            { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "UnavailableModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileId",
+        "displayName",
+        "availability",
+        "recoveryAction"
+      ],
+      "properties": {
+        "profileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "availability": { "$ref": "#/$defs/BlockedAvailability" },
+        "recoveryAction": { "$ref": "#/$defs/ModelRecoveryAction" }
+      }
+    },
+    "ModelVariantProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variantId",
+        "displayName",
+        "reasoningEffort",
+        "maxOutputTokens"
+      ],
+      "properties": {
+        "variantId": { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "reasoningEffort": { "$ref": "./model-profile.schema.json#/$defs/ReasoningEffort" },
+        "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 10000000 }
+      }
+    },
+    "ProjectedCapabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "textInput",
+        "imageInput",
+        "pdfInput",
+        "attachments",
+        "toolCalling",
+        "structuredOutput",
+        "reasoning"
+      ],
+      "properties": {
+        "textInput": { "type": "boolean" },
+        "imageInput": { "type": "boolean" },
+        "pdfInput": { "type": "boolean" },
+        "attachments": { "type": "boolean" },
+        "toolCalling": { "type": "boolean" },
+        "structuredOutput": { "type": "boolean" },
+        "reasoning": { "type": "boolean" }
+      }
+    },
+    "ProjectedLimits": {
+      "description": "Limits Forge will actually enforce. Null means the organization did not publish a qualified value; the desktop must render that as unknown rather than as zero or unlimited.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contextTokens",
+        "maxInputTokens",
+        "maxOutputTokens",
+        "maxAttachmentBytes"
+      ],
+      "properties": {
+        "contextTokens": {
+          "oneOf": [
+            { "type": "integer", "minimum": 1, "maximum": 100000000 },
+            { "type": "null" }
+          ]
+        },
+        "maxInputTokens": {
+          "oneOf": [
+            { "type": "integer", "minimum": 1, "maximum": 100000000 },
+            { "type": "null" }
+          ]
+        },
+        "maxOutputTokens": {
+          "oneOf": [
+            { "type": "integer", "minimum": 1, "maximum": 10000000 },
+            { "type": "null" }
+          ]
+        },
+        "maxAttachmentBytes": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 134217728 },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

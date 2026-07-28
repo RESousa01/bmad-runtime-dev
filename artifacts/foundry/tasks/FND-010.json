@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-010",
+  "state": "complete",
+  "attemptCount": 1,
+  "repositoryCommit": "d0c01ec8",
+  "startedAt": "2026-07-28T18:20:00Z",
+  "completedAt": "2026-07-28T18:55:00Z",
+  "changedFiles": [
+    ".foundry-connection/run-state.json",
+    "packages/contracts/schemas/foundry-deployment.schema.json",
+    "packages/contracts/schemas/model-profile.schema.json",
+    "packages/contracts/schemas/model-catalog.schema.json",
+    "packages/contracts/scripts/generate.mjs",
+    "packages/contracts/scripts/check-typescript-bindings.mjs",
+    "packages/contracts/scripts/lib/native-codegen.mjs",
+    "tools/contract-codegen/tool-lock.json",
+    "packages/contracts/fixtures/catalog.json",
+    "packages/contracts/fixtures/valid/foundry-deployment.json",
+    "packages/contracts/fixtures/valid/model-profile.json",
+    "packages/contracts/fixtures/valid/model-catalog.json",
+    "packages/contracts/fixtures/invalid/foundry-deployment-unknown-capability.json",
+    "packages/contracts/fixtures/invalid/model-profile-missing-qualification.json",
+    "packages/contracts/fixtures/invalid/model-catalog-deployment-name.json",
+    "packages/contracts/fixtures/invalid/model-catalog-project-endpoint.json",
+    "packages/contracts/fixtures/invalid/model-catalog-azure-identity.json",
+    "packages/contracts/fixtures/invalid/model-catalog-blocked-availability.json",
+    "packages/contracts/generated/**",
+    "packages/contracts/schema-lock.json",
+    "artifacts/foundry/contracts/catalog-fixtures.json",
+    "artifacts/foundry/tasks/FND-010.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @sapphirus/contracts lint",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "32 schemas, 200 closed objects, 13 discriminator refinements, 958 resolved refs."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts generate",
+      "exitCode": 1,
+      "classification": "expected_red",
+      "failureFingerprint": "CONTRACT_LOCK_BOOTSTRAP_UNREVIEWED-production-source-set",
+      "result": "The reviewed production root set is pinned in a second place beyond the tool lock, the productionRoots constant in native-codegen.mjs. Generation refuses before running until both agree."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts generate",
+      "exitCode": 1,
+      "classification": "expected_red",
+      "failureFingerprint": "generated-typescript-must-not-use-any",
+      "result": "check-generated-bindings.mjs regexes the whole generated text including doc comments. A schema description containing the bare lowercase word failed the gate; the description was reworded rather than the check weakened."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts generate",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "90 qualification files and 3232 production files generated, 318 updated; both native generators double-ran into separate clean staging roots and compared byte-identical."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts test",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "85 passed, 0 failed, 1 environment skip; all nine new fixtures validated through the shared fixture harness."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts verify:cross-language",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "104 passed, 0 failed, 1 environment skip, including the native generator artifact lane."
+    }
+  ],
+  "acceptance": {
+    "catalogRepresentsPickerAndContextStatesWithoutAzureAuthority": "passed",
+    "profileIdsStableAndIndependentOfDeploymentNames": "passed",
+    "unknownAuthorityBearingFieldsFailClosed": "passed"
+  },
+  "blockers": [],
+  "inheritedBlockers": [
+    {
+      "id": "FND-002-AZURE-INPUTS",
+      "effect": "FND-010 is a contract-only task and is fully provable offline, so this blocker does not reduce its evidence. It does mean no profile fixture may name a real deployment. All fixture deployment names are obviously synthetic."
+    }
+  ],
+  "evidence": [
+    "artifacts/foundry/contracts/catalog-fixtures.json"
+  ],
+  "review": {
+    "verdict": "looks_good",
+    "reviewer": "Claude change review",
+    "completedAt": "2026-07-28T18:55:00Z",
+    "notes": [
+      "The desktop projection has no property capable of carrying a deployment name, project endpoint, subscription or resource ID, role assignment, managed-identity client ID, API version, or credential, and four invalid fixtures prove each rejection rather than asserting it in prose.",
+      "The seven availability states are split into a selectable pair and a blocked set so that a selectable projection is structurally incapable of describing itself as blocked.",
+      "Blocked-but-visible profiles are still named, with a recovery action and nothing else, because FND-041 and FND-051 both require the desktop to explain why a selected profile disappeared instead of silently switching models."
+    ]
+  },
+  "nextAction": "FND-011 versions the request, result, receipt, and stream contracts. The stream surface decision is recorded in run-state under decisions/STREAM-SURFACE: one separately fixed reviewed route, /desktop/v1/model-access/streams, encoded in the generated contracts and in SupportStageRoute."
+}

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/foundry-deployment.schema.json",
+  "title": "sapphirus.foundry-deployment.v1",
+  "description": "Canonical normalized inventory of the Microsoft Foundry project deployments that physically exist. This contract describes what exists, never how to reach it: the project endpoint, subscription, resource group, role assignment, and managed-identity client ID are deliberately unrepresentable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotHash",
+    "retrievedAt",
+    "deployments"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.foundry-deployment.v1" },
+    "snapshotHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "retrievedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "deployments": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/FoundryDeployment" }
+    }
+  },
+  "$defs": {
+    "DeploymentName": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,126}[A-Za-z0-9]$"
+    },
+    "ModelIdentityPart": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "FoundryDeployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deploymentName",
+        "deploymentType",
+        "modelPublisher",
+        "modelName",
+        "modelVersion",
+        "sku",
+        "capabilities",
+        "deploymentHash"
+      ],
+      "properties": {
+        "deploymentName": { "$ref": "#/$defs/DeploymentName" },
+        "deploymentType": { "const": "ModelDeployment" },
+        "modelPublisher": { "$ref": "#/$defs/ModelIdentityPart" },
+        "modelName": { "$ref": "#/$defs/ModelIdentityPart" },
+        "modelVersion": { "$ref": "#/$defs/ModelIdentityPart" },
+        "sku": { "$ref": "#/$defs/FoundryDeploymentSku" },
+        "capabilities": { "$ref": "#/$defs/FoundryDeploymentCapabilities" },
+        "deploymentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "FoundryDeploymentSku": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "tier",
+        "family",
+        "size",
+        "capacity"
+      ],
+      "properties": {
+        "name": { "$ref": "#/$defs/ModelIdentityPart" },
+        "tier": {
+          "oneOf": [
+            { "$ref": "#/$defs/ModelIdentityPart" },
+            { "type": "null" }
+          ]
+        },
+        "family": {
+          "oneOf": [
+            { "$ref": "#/$defs/ModelIdentityPart" },
+            { "type": "null" }
+          ]
+        },
+        "size": {
+          "oneOf": [
+            { "$ref": "#/$defs/ModelIdentityPart" },
+            { "type": "null" }
+          ]
+        },
+        "capacity": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 1000000 },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "FoundryDeploymentCapabilities": {
+      "description": "Allowlisted provider capability keys normalized to canonical names. Every key is required so the canonical ordering is total and hashable. A capability the provider did not advertise normalizes to false: deployment data may narrow a profile, never broaden it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "textInput",
+        "imageInput",
+        "pdfInput",
+        "attachments",
+        "toolCalling",
+        "structuredOutput",
+        "reasoning",
+        "streaming"
+      ],
+      "properties": {
+        "textInput": { "type": "boolean" },
+        "imageInput": { "type": "boolean" },
+        "pdfInput": { "type": "boolean" },
+        "attachments": { "type": "boolean" },
+        "toolCalling": { "type": "boolean" },
+        "structuredOutput": { "type": "boolean" },
+        "reasoning": { "type": "boolean" },
+        "streaming": { "type": "boolean" }
+      }
+    }
+  }
+}

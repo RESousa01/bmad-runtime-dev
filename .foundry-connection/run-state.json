@@ -286,6 +286,89 @@
         ]
       },
       "nextAction": "Checkpoint A is closed. FND-010 is active."
+    },
+    "FND-010": {
+      "state": "complete",
+      "attemptCount": 1,
+      "startedAt": "2026-07-28T18:20:00Z",
+      "redGate": {
+        "mode": "test_first",
+        "reason": "The catalog projection must be unable to carry Azure authority before any producer or consumer of it exists.",
+        "proofPlan": [
+          "Add invalid fixtures that put a deployment name, project endpoint, managed-identity client ID, and subscription ID into the desktop projection and prove each is rejected as an unknown property.",
+          "Add an invalid fixture that puts a blocked availability value on a selectable profile and prove the restricted enum rejects it.",
+          "Add an invalid fixture that removes qualification evidence from a profile and prove it fails closed.",
+          "Regenerate all three language bindings and prove a second generation run is byte-identical."
+        ]
+      },
+      "changedFiles": [
+        ".foundry-connection/run-state.json",
+        "packages/contracts/schemas/foundry-deployment.schema.json",
+        "packages/contracts/schemas/model-profile.schema.json",
+        "packages/contracts/schemas/model-catalog.schema.json",
+        "packages/contracts/scripts/generate.mjs",
+        "packages/contracts/scripts/check-typescript-bindings.mjs",
+        "packages/contracts/scripts/lib/native-codegen.mjs",
+        "tools/contract-codegen/tool-lock.json",
+        "packages/contracts/fixtures/**",
+        "packages/contracts/generated/**",
+        "packages/contracts/schema-lock.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @sapphirus/contracts lint",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "32 schemas, 200 closed objects, 13 discriminator refinements, 958 resolved refs."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts generate",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "CONTRACT_LOCK_BOOTSTRAP_UNREVIEWED-production-source-set",
+          "nextAction": "The reviewed production root set is pinned in a second place, the productionRoots constant in packages/contracts/scripts/lib/native-codegen.mjs, in addition to tools/contract-codegen/tool-lock.json. Both must list a new family."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts generate",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "generated-typescript-must-not-use-any",
+          "nextAction": "check-generated-bindings.mjs regexes the entire generated text including doc comments. Reword the schema description rather than weaken the check."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts generate",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "90 qualification files and 3232 production files generated, 318 updated; both native generators double-ran into separate clean staging roots and compared byte-identical."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts test",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "85 passed, 0 failed, 1 environment skip."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts verify:cross-language",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "104 passed, 0 failed, 1 environment skip, including the native generator artifact lane."
+        }
+      ],
+      "evidencePaths": [
+        "artifacts/foundry/tasks/FND-010.json",
+        "artifacts/foundry/contracts/catalog-fixtures.json"
+      ],
+      "reviewerVerdict": {
+        "verdict": "looks_good",
+        "reviewer": "Claude change review",
+        "runId": "FND-010-review-20260728T185500Z",
+        "completedAt": "2026-07-28T18:55:00Z",
+        "blockers": [],
+        "nonBlockers": [
+          "A new schema family must be registered in nine hand-maintained lists. Two of them fail before generation with opaque codes; both are recorded in artifacts/foundry/contracts/catalog-fixtures.json so FND-011 and FND-012 do not rediscover them."
+        ]
+      },
+      "nextAction": "FND-011 is active."
     }
   },
   "blockers": [
@@ -326,6 +409,81 @@
       ],
       "summary": "The plan package source-map hashes for four OpenCode files do not match the available clean pinned checkout at anomalyco/opencode@0a601cf334b9a83cc2854108a2b860f25e6e7e8e.",
       "nextAction": "Pin the available checkout and both hash sets without silently updating either reference."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "STREAM-SURFACE",
+      "decidedAt": "2026-07-28T18:45:00Z",
+      "decidedBy": "operator",
+      "question": "How do normalized model stream events reach the renderer, given that streaming does not exist anywhere in Rust or TypeScript today?",
+      "decision": "Follow the plan exactly. Expose one separately fixed, reviewed support route and encode it in the generated contracts and in SupportStageRoute; never accept a renderer-provided URL. Publish normalized stream events to the renderer through a reviewed host surface and update the Tauri capability allowlist with a machine-readable minimum-capability test, exactly as FND-044 requires.",
+      "route": "/desktop/v1/model-access/streams",
+      "routeVariant": "SupportStageRoute::ModelStream",
+      "rejectedAlternative": "Overloading the existing host_projection_events channel would have avoided any capability change, but the plan requires the streaming surface to be encoded in the generated contracts and the reviewed route allowlist.",
+      "consequences": [
+        "reqwest needs its stream feature enabled in the workspace dependency.",
+        "FND-044 must add the capability allowlist entry and the minimum-capability test; no generic HTTP, path, shell, or secret command may be added alongside it.",
+        "Rust never parses raw Foundry SSE. The support API normalizes first and Rust decodes only generated ModelStreamEvent values."
+      ]
+    }
+  ],
+  "planDivergences": [
+    {
+      "id": "UI-PATH-PREFIX",
+      "affects": ["FND-045", "FND-050", "FND-051", "FND-052", "FND-053"],
+      "planSays": "desktop-ui/src/**",
+      "repositoryIs": "apps/desktop-ui/src/**",
+      "resolution": "Use the repository path. Every Phase 4 file path in the plan needs the apps/ prefix."
+    },
+    {
+      "id": "NO-RUST-GENERATED-DIR",
+      "affects": ["FND-012", "FND-040"],
+      "planSays": "crates/desktop-cloud/src/generated/**",
+      "repositoryIs": "packages/contracts/generated/rust/contracts.rs, mounted once by crates/desktop-runtime/src/lib.rs via #[path] and re-exported as desktop_runtime::generated_contracts.",
+      "resolution": "Do not create a per-crate generated tree. desktop-cloud consumes the single mounted module, as support_contract.rs already does."
+    },
+    {
+      "id": "NO-SQL-STORE-MIGRATIONS",
+      "affects": ["FND-041"],
+      "planSays": "crates/desktop-store/migrations/*_model_catalog.sql",
+      "repositoryIs": "Migrations are inline Rust constants in crates/desktop-store/src/migrations.rs with LATEST_STORE_VERSION and a per-version exact table inventory that must match a HashSet equality check.",
+      "resolution": "Add a version step plus a new VN_TABLES inventory, and update the legacy-simulation drop batches. There is no .sql file to add."
+    },
+    {
+      "id": "NO-COMMAND-OR-STATE-DIRECTORIES",
+      "affects": ["FND-044"],
+      "planSays": "crates/desktop-app/src/commands/model.rs and src/state/model.rs",
+      "repositoryIs": "Flat modules: commands.rs and state.rs. Only four Tauri commands are registered; every other operation is a LocalCommand variant routed through host_dispatch.",
+      "resolution": "A new model operation is a LocalCommand variant, not a new #[tauri::command]. Adding a real Tauri command would additionally require build.rs, permissions/autogenerated/, capabilities/main.json, and the source-text lane test in lib.rs."
+    },
+    {
+      "id": "RENDERER-DOES-NOT-IMPORT-GENERATED-CONTRACTS",
+      "affects": ["FND-050"],
+      "planSays": "Create runtime validators using generated contract validation.",
+      "repositoryIs": "apps/desktop-ui does not depend on @sapphirus/contracts at all. Every wire type is hand-written in src/lib/hostClient/contracts.ts and re-validated in validation.ts. The map records this as deliberate defence in depth: the renderer re-validates the host's replies rather than trusting a shared type.",
+      "resolution": "Keep the repository's pattern. Hand-write the catalog validators against the canonical schema rather than importing generated types into the renderer."
+    },
+    {
+      "id": "STREAMING-DOES-NOT-EXIST",
+      "affects": ["FND-029", "FND-043", "FND-044", "FND-045", "FND-053"],
+      "planSays": "Normalize streaming events end to end.",
+      "repositoryIs": "There is no streaming anywhere in Rust or TypeScript today. host_dispatch is request/response, the renderer CSP allows only ipc:, and reqwest is pinned without the stream feature.",
+      "resolution": "Streaming is net-new transport, not a normalization of something existing. It must ride the existing projection-event channel or a new reviewed Tauri surface, and reqwest needs its stream feature."
+    },
+    {
+      "id": "DOTNET-FILE-LOCATIONS",
+      "affects": ["FND-030"],
+      "planSays": "services/desktop-support-api/Model/ModelAuthority.cs, Model/ModelResultGuards.cs, Signing/KeyVaultModelReceiptSigner.cs",
+      "repositoryIs": "ModelAuthority.cs is at the service root; ModelResultGuards is an internal static class inside Security.cs; receipt shaping is Signing/AzureModelReceiptSigner.cs and the raw ES256 signer is Signing/KeyVaultHashSigner.cs.",
+      "resolution": "Adding a receipt field requires four files in lockstep: the Contracts.cs record, ComputeReceiptDigest, ModelResultGuards.ValidateReceipt, and the cross-language receipt fixture."
+    },
+    {
+      "id": "TENTH-PINNED-ROOT-LIST",
+      "affects": ["FND-010", "FND-011", "FND-012"],
+      "planSays": "Regenerate bindings from canonical schemas.",
+      "repositoryIs": "A new schema family must be added to nine hand-maintained lists, including a productionRoots constant inside packages/contracts/scripts/lib/native-codegen.mjs that is compared against tools/contract-codegen/tool-lock.json. Missing it fails with CONTRACT_LOCK_BOOTSTRAP_UNREVIEWED before any generation runs.",
+      "resolution": "Recorded here so later contract tasks do not rediscover it."
     }
   ],
   "leases": [
@@ -371,6 +529,65 @@
       "acquiredAt": "2026-07-28T17:13:47.9139829+00:00",
       "state": "released",
       "releasedAt": "2026-07-28T18:05:00Z"
+    },
+    {
+      "owner": "claude",
+      "task": "FND-010",
+      "paths": [
+        ".foundry-connection/run-state.json",
+        "packages/contracts/**",
+        "tools/contract-codegen/tool-lock.json",
+        "artifacts/foundry/tasks/FND-010.json",
+        "artifacts/foundry/contracts/**"
+      ],
+      "acquiredAt": "2026-07-28T18:20:00Z",
+      "state": "active",
+      "note": "Phase 1 is the serialized single-writer lane. Shared schemas, generators, and wire types stay under one writer per runbook rule 4."
+    },
+    {
+      "owner": "claude-agent-infra",
+      "task": "FND-060,FND-062",
+      "paths": [
+        "infra/desktop-support/main.bicep",
+        "infra/desktop-support/main.json",
+        "infra/desktop-support/main.bicepparam.example",
+        "infra/desktop-support/main.example.bicepparam",
+        "infra/desktop-support/README.md",
+        "infra/desktop-support/local/docker-compose.yml",
+        "tools/foundry-smoke/network-smoke.ps1",
+        "tools/foundry-smoke/network-smoke.Tests.ps1"
+      ],
+      "acquiredAt": "2026-07-28T18:12:00Z",
+      "state": "active"
+    },
+    {
+      "owner": "claude-agent-dotnet",
+      "task": "FND-020,FND-021,FND-022,FND-023",
+      "paths": [
+        "services/desktop-support-api/Configuration/**",
+        "services/desktop-support-api/Foundry/**",
+        "services/desktop-support-api/Health/FoundryCatalogHealthCheck.cs",
+        "services/desktop-support-api/appsettings.json",
+        "services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj",
+        "services/desktop-support-api.Tests/Foundry/**",
+        "services/desktop-support-api.Tests/ProductionCompositionTests.cs",
+        "docs/operations/foundry-configuration.md"
+      ],
+      "acquiredAt": "2026-07-28T18:22:00Z",
+      "state": "active",
+      "note": "Explicitly forbidden from removing Azure.AI.OpenAI or the Chat Completions executor; that removal belongs to FND-028 and FND-065 and would break the build if done early."
+    },
+    {
+      "owner": "claude-agent-profiles",
+      "task": "FND-061",
+      "paths": [
+        "tools/foundry-profiles/**",
+        "infra/desktop-support/model-profiles.example.json",
+        "docs/operations/model-profile-rollout.md",
+        "artifacts/foundry/infra/profile-dry-run.json"
+      ],
+      "acquiredAt": "2026-07-28T18:22:00Z",
+      "state": "active"
     }
   ],
   "lastUpdatedAt": "2026-07-28T18:05:00Z"

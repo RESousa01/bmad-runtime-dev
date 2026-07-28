@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "sapphirus.foundry-deployment.v1",
+  "snapshotHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "retrievedAt": "2026-07-28T00:00:00.000Z",
+  "deployments": [
+    {
+      "deploymentName": "fixture-deployment-a",
+      "deploymentType": "ModelDeployment",
+      "modelPublisher": "FixturePublisher",
+      "modelName": "fixture-model",
+      "modelVersion": "2026-06-01",
+      "sku": {
+        "name": "FixtureStandard",
+        "tier": "Fixture",
+        "family": "FixturePublisher",
+        "size": null,
+        "capacity": 10
+      },
+      "capabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": false,
+        "attachments": false,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": true,
+        "streaming": true,
+        "jsonSchema": true
+      },
+      "deploymentHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ]
+}

@@ -133,6 +133,11 @@
           "typeName": "FilesystemCapabilitySnapshot"
         },
         {
+          "file": "foundry-deployment.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/foundry-deployment.schema.json",
+          "typeName": "FoundryDeploymentSnapshot"
+        },
+        {
           "file": "model-access-receipt.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
           "typeName": "ModelAccessReceipt"
@@ -148,9 +153,19 @@
           "typeName": "ModelAccessResult"
         },
         {
+          "file": "model-catalog.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-catalog.schema.json",
+          "typeName": "ModelCatalog"
+        },
+        {
           "file": "model-context-consent.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
           "typeName": "ModelContextConsent"
+        },
+        {
+          "file": "model-profile.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-profile.schema.json",
+          "typeName": "ModelProfile"
         },
         {
           "file": "package-compatibility.schema.json",
