@@ -24,7 +24,10 @@ import {
 import {
   appendDispatchExchange,
   applyRestoredHistory,
+  applySentTurn,
+  beginSend,
   failHistoryRestore,
+  failSend,
   useChatSessions,
 } from "./state/chatSessions";
 import {
@@ -2134,12 +2137,7 @@ export function App({
       : chatSessions.routingFor(sessionId);
     const contextPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
     const agentCode = chatLane.agentCode;
-    chatSessions.applyToLane(routing, (lane) => ({
-      ...lane,
-      sending: true,
-      pending: intent,
-      error: null,
-    }));
+    chatSessions.applyToLane(routing, (lane) => beginSend(lane, intent));
     try {
       const turn = await client.sendChatMessage({
         workspaceId: workspace.workspaceId,
@@ -2149,15 +2147,7 @@ export function App({
         text: intent,
         contextPaths,
       });
-      chatSessions.applyToLane(routing, (lane) => ({
-        ...lane,
-        messages: [...lane.messages, turn.userMessage, turn.assistantMessage],
-        agentCode: turn.agentCode,
-        sending: false,
-        pending: null,
-        error: null,
-        retryable: false,
-      }));
+      chatSessions.applyToLane(routing, (lane) => applySentTurn(lane, turn));
       // Attachments are spent by the send that carried them. Leaving them armed
       // meant the next message silently re-sent, re-billed and re-entered every
       // one of them into the reviewed-context manifest — consent given once,
@@ -2175,17 +2165,11 @@ export function App({
         );
       }
     } catch (error: unknown) {
-      // `pending` deliberately survives. Clearing it here destroyed what the
-      // user had typed, so a failed turn cost them the message as well as the
-      // answer — and the host can now tell them a rate limit or a provider
-      // outage is worth sending again, which is useless advice if the text is
-      // gone. The composer stays usable because it is gated on `sending`.
-      chatSessions.applyToLane(routing, (lane) => ({
-        ...lane,
-        sending: false,
-        error: getSafeHostMessage(error),
-        retryable: error instanceof HostCommandError && error.details.retryable,
-      }));
+      chatSessions.applyToLane(routing, (lane) => failSend(
+        lane,
+        getSafeHostMessage(error),
+        error instanceof HostCommandError && error.details.retryable,
+      ));
       throw error;
     }
   }

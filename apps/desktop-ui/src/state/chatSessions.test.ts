@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   appendDispatchExchange,
   applyRestoredHistory,
+  applySentTurn,
+  beginSend,
   beginHistoryRestore,
   bumpGeneration,
   clearAllLanes,
@@ -10,6 +12,7 @@ import {
   emptyChatLane,
   emptyChatSessionStore,
   failHistoryRestore,
+  failSend,
   generationForSession,
   laneForSession,
   retryHistoryRestore,
@@ -344,5 +347,64 @@ describe("appendDispatchExchange", () => {
     expect(lane.messages).toHaveLength(3);
     expect(lane.messages[0]?.text).toBe("hello");
     expect(lane.error).toBeNull();
+  });
+});
+
+describe("send transitions", () => {
+  const lane = { ...emptyChatLane, messages: [message("earlier")] };
+  const turn = {
+    userMessage: message("hello"),
+    assistantMessage: message("hi", "assistant"),
+    agentCode: "pm",
+  };
+
+  it("shows the question optimistically while the send is in flight", () => {
+    const next = beginSend(lane, "hello");
+    expect(next.sending).toBe(true);
+    expect(next.pending).toBe("hello");
+  });
+
+  it("clears a previous error when a new attempt starts", () => {
+    // The old failure stops being true the moment a new attempt begins.
+    // Leaving it up shows a stale complaint next to a live spinner.
+    const failed = failSend(lane, "rate limited", true);
+    expect(beginSend(failed, "again").error).toBeNull();
+  });
+
+  it("appends both halves of a completed turn to the transcript", () => {
+    const next = applySentTurn(beginSend(lane, "hello"), turn);
+    expect(next.messages).toHaveLength(3);
+    expect(next.messages.at(-1)).toBe(turn.assistantMessage);
+  });
+
+  it("adopts the agent the request was actually served under", () => {
+    // The lane's code is what the user selected; the host's is what happened,
+    // and the transcript has to describe what happened.
+    const selected = { ...beginSend(lane, "hello"), agentCode: "architect" };
+    expect(applySentTurn(selected, turn).agentCode).toBe("pm");
+  });
+
+  it("clears the pending question once it is answered", () => {
+    const next = applySentTurn(beginSend(lane, "hello"), turn);
+    expect(next.pending).toBeNull();
+    expect(next.sending).toBe(false);
+  });
+
+  /// The rule that costs the user their message if it regresses.
+  it("keeps what the user typed when the send fails", () => {
+    const next = failSend(beginSend(lane, "hello"), "rate limited", true);
+    expect(next.pending).toBe("hello");
+    expect(next.sending).toBe(false);
+    expect(next.error).toBe("rate limited");
+  });
+
+  it("records whether sending the same thing again could work", () => {
+    expect(failSend(lane, "rate limited", true).retryable).toBe(true);
+    expect(failSend(lane, "that key was rejected", false).retryable).toBe(false);
+  });
+
+  it("does not lose the transcript on a failed send", () => {
+    const next = failSend(beginSend(lane, "hello"), "boom", false);
+    expect(next.messages).toEqual(lane.messages);
   });
 });

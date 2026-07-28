@@ -180,6 +180,54 @@ export function failHistoryRestore(lane: ChatLaneState, message: string): ChatLa
   return { ...lane, error: message, historyStatus: "unavailable" };
 }
 
+/// Marks a send as in flight, showing the question optimistically.
+///
+/// `error` is cleared here rather than on success: the previous failure stops
+/// being true the moment a new attempt starts, and leaving it up while the
+/// spinner runs shows a stale complaint next to a live request.
+export function beginSend(lane: ChatLaneState, intent: string): ChatLaneState {
+  return { ...lane, sending: true, pending: intent, error: null };
+}
+
+/// Records a completed turn.
+///
+/// The host's `agentCode` wins over the lane's. The lane's is what the user
+/// selected; the host's is what the request was actually served under, and the
+/// transcript has to describe what happened rather than what was asked for.
+export function applySentTurn(
+  lane: ChatLaneState,
+  turn: {
+    readonly userMessage: ChatMessage;
+    readonly assistantMessage: ChatMessage;
+    readonly agentCode: string | null;
+  },
+): ChatLaneState {
+  return {
+    ...lane,
+    messages: [...lane.messages, turn.userMessage, turn.assistantMessage],
+    agentCode: turn.agentCode,
+    sending: false,
+    pending: null,
+    error: null,
+    retryable: false,
+  };
+}
+
+/// Records a failed send.
+///
+/// `pending` deliberately survives. Clearing it destroyed what the user had
+/// typed, so a failed turn cost them the message as well as the answer -- and
+/// the host can now say a rate limit or a provider outage is worth sending
+/// again, which is useless advice once the text is gone. Safe because the
+/// composer is gated on `sending`, never on `pending`.
+export function failSend(
+  lane: ChatLaneState,
+  message: string,
+  retryable: boolean,
+): ChatLaneState {
+  return { ...lane, sending: false, error: message, retryable };
+}
+
 export interface ChatSessionStore {
   readonly lanes: ReadonlyMap<string, ChatLaneState>;
   readonly generations: ReadonlyMap<string, number>;
