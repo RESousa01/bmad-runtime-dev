@@ -2,12 +2,9 @@ import { Button } from "@sapphirus/ui";
 import {
   ChevronDown,
   FileCode,
-  Pencil,
   Send,
   ShieldAlert,
   Terminal,
-  Trash2,
-  X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
@@ -486,11 +483,9 @@ export function TaskWorkspace({
         </div>
         <div className="task-header__actions">
           <Button onPress={onOpenChanges} size="small" variant="quiet">
-            <OpenCodeIcon name="review" />
             Review
           </Button>
           <Button onPress={onOpenRunDetails} size="small" variant="quiet">
-            <OpenCodeIcon name="status" />
             Run details
           </Button>
           {methodLibraryAvailable ? (
@@ -499,9 +494,8 @@ export function TaskWorkspace({
               className="method-library-trigger"
               onPress={onOpenMethodLibrary}
               size="small"
-              variant="secondary"
+              variant="quiet"
             >
-              <OpenCodeIcon name="grid-plus" />
               Skills and agents
             </Button>
           ) : null}
@@ -513,13 +507,11 @@ export function TaskWorkspace({
               size="small"
               variant="quiet"
             >
-              <Pencil aria-hidden="true" size={14} />
               Rename
             </Button>
           )}
           {onCloseTask === undefined ? null : (
             <Button onPress={onCloseTask} size="small" variant="quiet">
-              <X aria-hidden="true" size={14} />
               Close task
             </Button>
           )}
@@ -530,7 +522,6 @@ export function TaskWorkspace({
               size="small"
               variant="quiet"
             >
-              <Trash2 aria-hidden="true" size={14} />
               Delete task
             </Button>
           )}
