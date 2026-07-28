@@ -36,6 +36,15 @@ export interface TaskWorkspaceProps {
   hostStatusLabel: string;
   initialDraft?: string | undefined;
   interactionDisabled: boolean;
+  /**
+   * Whether an ordinary chat turn can be sent: a ready host, a granted
+   * workspace, and a model provider connected.
+   *
+   * Deliberately independent of `methodGuidanceAvailable`. Audit finding F-05
+   * is that the two were the same signal, so BMAD Help being incomplete
+   * disabled ordinary conversation.
+   */
+  chatSendAvailable: boolean;
   isBrowserDemo: boolean;
   isInert?: boolean;
   isReadOnlyRecovery: boolean;
@@ -303,6 +312,7 @@ export function TaskWorkspace({
   hostStatusLabel,
   initialDraft = "",
   interactionDisabled,
+  chatSendAvailable,
   isBrowserDemo,
   isInert = false,
   isReadOnlyRecovery,
@@ -434,7 +444,16 @@ export function TaskWorkspace({
   // request does: the transcript accepts one question at a time.
   const composerDisabled =
     interactionDisabled || guidancePending || failedSubmission || chatLane.sending;
-  const submitDisabled = composerDisabled || !methodGuidanceAvailable;
+  /*
+   * Sending gates on whether *chat* can be sent, not on whether BMAD Help is
+   * available. This used to read `|| !methodGuidanceAvailable`, which is audit
+   * finding F-05: an incomplete BMAD Help capability made a host perfectly able
+   * to hold an ordinary conversation present itself as unable to send anything.
+   *
+   * Ordinary conversation is not a Method feature. The two signals are separate
+   * props now so one cannot be reached for in place of the other.
+   */
+  const submitDisabled = composerDisabled || !chatSendAvailable;
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

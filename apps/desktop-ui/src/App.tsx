@@ -537,8 +537,20 @@ export function App({
     && hostRuntime.bootstrap.supportedCommands.includes("chat.history")
     ? hostRuntime.client
     : null;
-  const methodRequestAvailable = methodGuidanceClient !== null
+  /*
+   * Two signals, deliberately not one. Audit finding F-05 is that ordinary
+   * conversation was gated on the BMAD Help capability bundle, so a host able
+   * to hold a conversation reported itself unable when Help was incomplete.
+   *
+   * Sending a chat turn needs a ready host, a granted workspace and a model
+   * provider. It does not need the skills catalogue, and it must not start
+   * needing it again -- which is why these are separate names rather than one
+   * value passed to two props.
+   */
+  const chatSendAvailable = methodGuidanceClient !== null
     && modelAuthStatus?.status === "development_ready";
+  /* BMAD Help additionally needs the skills catalogue to have loaded. */
+  const methodGuidanceAvailableForRequests = chatSendAvailable && methodLibraryAvailable;
   const methodRequestInFlight = bmadHelpState.kind === "creating"
     || bmadHelpState.kind === "review_required"
     || bmadHelpState.kind === "approving"
@@ -594,7 +606,7 @@ export function App({
     providerId: modelAuthStatus?.providerId === "azure" ? "azure" : "openai",
     modelId: modelAuthStatus?.modelId ?? "gpt-5-mini",
   };
-  const methodStatusLabel = methodRequestAvailable
+  const methodStatusLabel = chatSendAvailable
     ? "Model ready"
     : methodGuidanceAvailable
       ? "Local only"
@@ -2370,7 +2382,7 @@ export function App({
       return bmadHelpCreationRef.current;
     }
     if (
-      !methodRequestAvailable
+      !methodGuidanceAvailableForRequests
       || !methodGuidanceClient
       || !activeWorkspace
       || !modelAuthStatus
@@ -3460,9 +3472,9 @@ export function App({
               onNewTask={() => { startNewSession(); }}
               onSelectTask={selectSession}
               onSubmitIntent={(intent) => {
-                const startedId = startNewSession(intent, !methodRequestAvailable);
+                const startedId = startNewSession(intent, !chatSendAvailable);
                 if (startedId !== null) {
-                  if (methodRequestAvailable) {
+                  if (chatSendAvailable) {
                     // The Home composer opens an ordinary conversation, like
                     // any other chat app. BMAD joins it only if asked for.
                     void sendChatMessage(intent, startedId).catch(() => undefined);
@@ -3473,7 +3485,7 @@ export function App({
               closedTasks={closedTasks}
               onReopenTask={reopenTaskById}
               onRetryHost={hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined}
-              statusHint={methodRequestAvailable
+              statusHint={chatSendAvailable
                 ? "Ready to send through the selected model."
                 : "Start locally, then connect OpenAI in Settings before sending."}
               workspaceStatusLabel={workspaceDescription}
@@ -3487,10 +3499,11 @@ export function App({
               hostStatusLabel={hostStatusLabel}
               initialDraft={taskDrafts.get(selectedTask.id) ?? ""}
               interactionDisabled={!localTaskDraftingAvailable}
+              chatSendAvailable={chatSendAvailable}
               isBrowserDemo={hostRuntime.kind === "browser_demo"}
               isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
               key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
-              methodGuidanceAvailable={methodRequestAvailable}
+              methodGuidanceAvailable={methodGuidanceAvailableForRequests}
               methodGuidanceState={bmadHelpState}
               methodLibraryAvailable={methodLibraryAvailable}
               modelAccessDetail={modelAccess.detail}

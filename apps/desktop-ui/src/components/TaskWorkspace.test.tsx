@@ -45,6 +45,7 @@ function createProps(
     contextSuggestionBusy: false,
     hostStatusLabel: "Desktop host ready",
     interactionDisabled: false,
+    chatSendAvailable: true,
     isBrowserDemo: false,
     isReadOnlyRecovery: false,
     methodGuidanceAvailable: true,
@@ -212,6 +213,49 @@ describe("TaskWorkspace Method guidance", () => {
     expect(container.querySelectorAll("textarea")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: /review context/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /session|inspector/i })).toBeNull();
+  });
+
+  // Audit finding F-05: ordinary conversation is not a Method feature, and a
+  // host able to hold one must not report itself unable because BMAD Help is
+  // incomplete. These two tests are the guard on that -- the coupling was a
+  // single `|| !methodGuidanceAvailable` and would be trivial to reintroduce.
+  it("sends plain chat when BMAD Help is unavailable", async () => {
+    const user = userEvent.setup();
+    const onSendRequest = vi.fn(async () => undefined);
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatSendAvailable: true,
+          methodGuidanceAvailable: false,
+          onSendRequest,
+        })}
+      />,
+    );
+
+    const composer = screen.getByRole("textbox");
+    await user.type(composer, "Explain the governed write path");
+    await user.click(screen.getByRole("button", { name: /Send/u }));
+
+    expect(onSendRequest).toHaveBeenCalledWith("Explain the governed write path");
+  });
+
+  it("refuses to send only when chat itself is unavailable", async () => {
+    const user = userEvent.setup();
+    const onSendRequest = vi.fn(async () => undefined);
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatSendAvailable: false,
+          methodGuidanceAvailable: true,
+          onSendRequest,
+        })}
+      />,
+    );
+
+    await user.type(screen.getByRole("textbox"), "Anything");
+    expect(screen.getByRole("button", { name: /Send/u })).toHaveProperty("disabled", true);
+    await user.click(screen.getByRole("button", { name: /Send/u }));
+    expect(onSendRequest).not.toHaveBeenCalled();
   });
 
   it("attaches files and folders directly without opening the Files page", async () => {
