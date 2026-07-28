@@ -136,42 +136,42 @@ defect the comment described as fixed was live. Closures are now data,
 BMAD's disjoint. The transport moved with the gate — fixing only the gate would
 have been worse, enabling a composer whose sends fail at the host.
 
-**FE-10 — two of three met; the third is closer but still short.**
+**FE-10 — two of three met; the third is a judgement call, stated below.**
 
-- *No circular dependencies* — met, and measured.
-  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and
-  is wired into `verify:source`. Type-only edges are excluded; an inline
+- *No circular dependencies* — met and measured.
+  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and is
+  wired into `verify:source`. Type-only edges are excluded; an inline
   `import { type A, b }` still counts. 104 modules, no cycles.
 - *Host bootstrap and recovery remain covered* — met.
-- *App.tsx becomes a readable composition map* — **not met, but much nearer.**
-  2,990 lines, down from 3,572. Twenty modules came out. What remains is a
-  307-line prelude, a 2,247-line logic body (12 state declarations, 12 effects,
-  38 mostly-small wiring functions), 276 lines of drawer and modal composition,
-  and a 161-line render. The composition is where FE-10's outcome statement
-  says it belongs; the logic body is what is still too large.
+- *App.tsx becomes a readable composition map* — **not met by line count, and
+  I stopped deliberately rather than shuffling lines to hit one.**
 
-Every extraction surfaced a real defect or a real duplication rather than
-moving code around:
+  2,900 lines: a 303-line prelude, a 2,160-line logic body (12 state
+  declarations, 12 effects, 38 functions), 276 lines of drawer and modal
+  composition, a 161-line render.
 
-| Module | What it fixed |
-|---|---|
-| `useAppBootstrap` | A stale host binding could still write to the screen |
-| `AppRouter` | "No task selected **is** Home" was hidden in a ternary |
-| `workspaceController` | Recovery classification in one place, not three |
-| `taskLifecycle` | Deleting an already-gone task left focus on `<body>` |
-| `modelController` | One of three actions had the authority reset copied inline |
-| `changesHistoryState` | Splitting the invalidation pair passed all 698 tests |
-| `capabilityController` | A run's result could land on another task's tab |
-| `changesRunner` | A superseded failure could blank the current review |
-| `hostProjection` | A revoked host's retention manifest could still land |
-| `contextSelection` | An attach failure survived a workspace switch |
-| `statusLabels` | "Connect a provider" shown while the host was still checking |
-| `guidanceRequest` | A concurrent caller got a failure while the first succeeded |
-| `recoveryReview` | The consent binding to what was displayed was unnamed |
-| `projectionPoller` | A cursor gap was one classification away from an outage |
-| `eraseLocalData` | The discard list had been wrong once and was unreviewable |
-| `menuDispatch` | A null-coded agent could hijack plain chat |
-| `deferredFocusReturn` | Three copies of a mechanism whose failure is silent |
+  What *is* done: the stateful domain logic is out. Twenty-five modules with
+  twenty-two test files, and of the 38 remaining functions, 18 are pure wiring
+  and the 20 with an `await` are thin host calls over an extracted controller —
+  the guards, classifications and orderings they used to carry now live in
+  modules with tests.
+
+  What is left, and why I left it:
+
+  - The 437 lines of drawer, modal and render composition. FE-10's own outcome
+    statement keeps shell composition in the root, and the drawer block
+    references 40 locals. `<AppDrawer {...forty} />` in one file and a 40-prop
+    interface in another is prop-drilling: you would read the call site and
+    learn nothing. It would shorten App.tsx and make the app harder to read.
+  - The derived-value block, for the same reason: ~40 values consumed
+    everywhere, so a `useAppDerivedState` hook returns 40 things and moves the
+    problem.
+  - The effects. Subscribing to host projections and invalidating on binding
+    changes *is* composition-root work.
+
+  If a future session wants the line count down, the honest lever is splitting
+  App into two composition roots along the drawer boundary — not extracting
+  props.
 
 Everything was mutation-verified: break the invariant, watch the test fail,
 restore. Four mutations *passed* and each exposed a weak test that was rewritten
@@ -201,22 +201,22 @@ selection, and a guard test that only checked the projection.
 
 ## Still open
 
-0. **FE-10's composition-root criterion is what phase 2 has left.** App.tsx is
-   2,990 lines. The 437 lines of drawer, modal and render composition belong
-   there — FE-10's own outcome statement keeps shell composition in the root.
-   The 2,247-line logic body does not: it still holds ~400 lines of derived
-   values, 12 effects, and 38 small wiring functions.
+0. **FE-10's composition-root criterion is phase 2's one open item**, and the
+   reasoning for stopping where I did is in the phase-2 section above. The
+   short version: what remained after twenty-two extractions was composition,
+   derived state and effects, and moving those would trade a smaller App.tsx
+   for a harder-to-read application.
 
-   The next honest step is the derived-value block, which is pure and would
-   move cleanly into a `useAppDerivedState` hook. The effects are genuinely the
-   composition root's work and should stay.
+   Two gates now hold the ground that was gained. `imports:cycles` fails on a
+   value-import cycle, which is exactly what decomposition introduces.
+   `recovery:classification` fails on a second implementation of "is this a
+   recovery failure" — there were seven, and the seventh was found by writing
+   the checker.
 
-   The rule that held for all twenty extractions: find the shape the sibling
-   functions repeat, name it once, and make the ports interface narrow enough
-   that the feature's whole authority is visible in it. Do not extract a
-   cluster whose only shared property is adjacency — every module above earned
-   its place by surfacing a defect, and one that would not is not worth the
-   indirection.
+   The rule that held for all twenty-two: find the shape the sibling functions
+   repeat, name it once, and make the ports interface narrow enough that the
+   feature's whole authority is visible in it. Do not extract a cluster whose
+   only shared property is adjacency.
 
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
