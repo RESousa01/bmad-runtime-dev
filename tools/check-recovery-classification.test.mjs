@@ -70,6 +70,56 @@ test("flags a negated comparison", () => {
   }
 });
 
+test("flags a switch arm", () => {
+  // A switch is as much a branch as a comparison. The first version of this
+  // checker matched only `===`, so this form passed silently -- which is the
+  // failure the checker exists to prevent, occurring in the checker itself.
+  const f = fixture({
+    "feature.ts": [
+      "switch (code) {",
+      '  case "recovery_required":',
+      '  case "integrity_failure":',
+      "    return true;",
+      "}",
+    ].join("\n"),
+  });
+  try {
+    const { report, status } = f.run();
+    assert.equal(status, 1);
+    assert.equal(report.offenders[0].lines.length, 2);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("flags a list holding only the two codes", () => {
+  // However it is later consulted -- `.includes`, `Set.has`, `.some`.
+  const f = fixture({
+    "feature.ts": [
+      'const R = ["recovery_required", "integrity_failure"];',
+      "export const is = (c) => R.includes(c);",
+    ].join("\n"),
+  });
+  try {
+    assert.equal(f.run().status, 1);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("allows a list carrying the two codes among the others", () => {
+  // That is the parser describing every host code, not a classifier.
+  const f = fixture({
+    "parser.ts":
+      'const codes = ["conflict", "recovery_required", "integrity_failure", "internal"];\n',
+  });
+  try {
+    assert.equal(f.run().status, 0);
+  } finally {
+    f.cleanup();
+  }
+});
+
 test("allows the owning module", () => {
   const f = fixture({
     "app/hostFailure.ts":
@@ -84,15 +134,22 @@ test("allows the owning module", () => {
   }
 });
 
-test("allows a declaration that only lists the codes", () => {
-  // `contracts.ts` declares the union of every host code and
-  // `workspaceProtocol.ts` parses it. Both name these two legitimately and
-  // neither decides anything with them.
+test("allows a declaration that lists the codes among the others", () => {
+  /*
+   * `contracts.ts` declares the union of every host code and
+   * `workspaceProtocol.ts` validates against all of them. Both name these two
+   * legitimately and neither decides anything with them.
+   *
+   * The parser fixture deliberately carries other codes. An earlier version of
+   * this test used a `Set` of *only* these two and asserted it was allowed --
+   * but that is a classifier, whatever it is called, and the rule that flags it
+   * is correct. The fixture was the thing that was wrong.
+   */
   const f = fixture({
     "contracts.ts":
       'export type Code = "conflict" | "recovery_required" | "integrity_failure";\n',
     "parser.ts":
-      'const codes = new Set(["recovery_required", "integrity_failure"]);\n',
+      'const codes = new Set(["conflict", "recovery_required", "integrity_failure", "internal"]);\n',
   });
   try {
     const { report, status } = f.run();

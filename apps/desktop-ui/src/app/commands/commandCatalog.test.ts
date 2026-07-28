@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   commandDefinitions,
   createCommandRegistry,
-  matchesQuery,
+  matchesTerms,
   type CommandActions,
   type CommandContext,
 } from "./commands";
@@ -219,29 +219,38 @@ describe("registry", () => {
   });
 });
 
-describe("matchesQuery", () => {
+describe("matchesTerms", () => {
+  /*
+   * The palette's real matcher. These used to exercise a `matchesQuery`
+   * wrapper that nothing outside this file called -- five green tests over
+   * dead code, which reads as coverage of the palette's search and was not.
+   */
   const definitions = commandDefinitions(context());
   const byId = (id: string) => definitions.find((d) => d.id === id)!;
+  const terms = (id: string) => {
+    const d = byId(id);
+    return [d.title, d.category, ...(d.keywords ?? [])];
+  };
 
   it("matches on the title", () => {
-    expect(matchesQuery(byId("app.settings"), "settings")).toBe(true);
+    expect(matchesTerms(terms("app.settings"), "settings")).toBe(true);
   });
 
   it("matches on a keyword the title does not contain", () => {
     // "preferences" is what a user coming from another editor types.
-    expect(matchesQuery(byId("app.settings"), "preferences")).toBe(true);
+    expect(matchesTerms(terms("app.settings"), "preferences")).toBe(true);
   });
 
   it("matches on the category", () => {
-    expect(matchesQuery(byId("view.files"), "view")).toBe(true);
+    expect(matchesTerms(terms("view.files"), "view")).toBe(true);
   });
 
   it("does not match unrelated text", () => {
-    expect(matchesQuery(byId("app.settings"), "zzz")).toBe(false);
+    expect(matchesTerms(terms("app.settings"), "zzz")).toBe(false);
   });
 
-  it("matches everything for an empty query", () => {
-    expect(definitions.every((d) => matchesQuery(d, "  "))).toBe(true);
+  it("matches everything for a blank query", () => {
+    expect(definitions.every((d) => matchesTerms([d.title], "  "))).toBe(true);
   });
 });
 

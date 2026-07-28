@@ -13,7 +13,7 @@
 import { DeleteTaskDialog } from "../components/DeleteTaskDialog";
 import { SettingsDialog } from "../components/settings/SettingsDialog";
 import { WorkspacePanel } from "../components/WorkspacePanel";
-import { useShell } from "./AppProviders";
+import { useShell, type ShellModel } from "./AppProviders";
 
 function WorkspaceManager() {
   const { host, workspace } = useShell();
@@ -65,6 +65,31 @@ function DeleteConfirmation() {
       taskTitle={deletion.taskTitle}
     />
   );
+}
+
+/**
+ * Whether a modal will actually render something.
+ *
+ * The caller needs this, not `modalKind !== null`. `AppShellLayout` decides
+ * focus containment and where Escape goes from whether it was *given* a modal,
+ * so handing it an element that renders nothing traps focus in an empty
+ * container and routes Escape to a dialog that is not there. `"account"` is a
+ * state with no dialog behind it yet, and `"delete-task"` renders nothing once
+ * the task is gone.
+ */
+export function hasRenderableModal(
+  modalKind: ShellModel["overlays"]["modalKind"],
+  deletion: ShellModel["deletion"],
+): boolean {
+  switch (modalKind) {
+    case "workspace-manager":
+    case "settings":
+      return true;
+    case "delete-task":
+      return deletion !== null;
+    default:
+      return false;
+  }
 }
 
 /** Renders nothing when no modal is open, so the caller can pass it straight through. */

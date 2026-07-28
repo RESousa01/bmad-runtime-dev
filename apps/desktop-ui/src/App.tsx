@@ -69,7 +69,7 @@ import { createCommandRegistry, type CommandContext } from "./app/commands/comma
 import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
 import { DRAWER_OVERLAY_QUERY } from "./components/redesign/AppShellLayout";
 import { AppDrawer } from "./app/AppDrawer";
-import { AppModals } from "./app/AppModals";
+import { AppModals, hasRenderableModal } from "./app/AppModals";
 import { AppMainView } from "./app/AppMainView";
 import { ShellProvider, type ShellModel } from "./app/AppProviders";
 import type { ContextDrawerKind } from "./components/redesign/ContextDrawer";
@@ -2710,7 +2710,15 @@ export function App({
 
   const drawer = contextDrawer ? <AppDrawer /> : undefined;
 
-  const modal = appModal === null ? undefined : <AppModals />;
+  /*
+   * `hasRenderableModal`, not `appModal !== null`. `AppShellLayout` decides
+   * focus containment and where Escape goes from whether it was given a modal
+   * at all, so an element that renders nothing would trap focus in an empty
+   * container -- reachable for `"account"`, which has no dialog yet.
+   */
+  const modal = hasRenderableModal(shellModel.overlays.modalKind, shellModel.deletion)
+    ? <AppModals />
+    : undefined;
 
   /*
    * FE-09: one catalog behind every entry point.

@@ -36,13 +36,38 @@ const DEFAULT_ROOT = "apps/desktop-ui/src";
 const OWNER = "app/hostFailure.ts";
 
 /**
- * A comparison against one of the two codes.
+ * A decision made on one of the two codes.
  *
- * `===` or `!==` against the literal. A `Set` of every code, or a union type
- * that lists them, does not match — those describe the codes rather than
+ * A branch, not a mention. A union type listing every host code, or a parser
+ * validating against all of them, does not match — those describe the codes rather than
  * deciding anything with them.
  */
-const CLASSIFICATION = /[=!]==\s*"(recovery_required|integrity_failure)"/u;
+const CODE = String.raw`"(?:recovery_required|integrity_failure)"`;
+
+/**
+ * Two line-level forms, because both are natural ways to write the same branch
+ * and the first version of this checker caught only the comparison:
+ *
+ *   `code === "recovery_required"`   a comparison
+ *   `case "recovery_required":`      a switch arm
+ */
+const CLASSIFICATION_PATTERNS = [
+  new RegExp(String.raw`[=!]==\s*${CODE}`, "u"),
+  new RegExp(String.raw`\bcase\s+${CODE}\s*:`, "u"),
+];
+
+/**
+ * A list holding *only* these two codes.
+ *
+ * That is a classifier however it is consulted -- `.includes(code)`,
+ * `new Set([...]).has(code)`, `.some(...)`. A list carrying them among the
+ * other host codes is a description and does not match. Applied to the whole
+ * file rather than a line, because such a list wraps.
+ */
+const CODE_PAIR_LIST = new RegExp(
+  String.raw`\[\s*${CODE}\s*,\s*${CODE}\s*,?\s*\]`,
+  "u",
+);
 
 function listSourceFiles(dir) {
   const found = [];
@@ -62,10 +87,20 @@ function listSourceFiles(dir) {
 }
 
 function offendingLines(file) {
-  return readFileSync(file, "utf8")
+  const source = readFileSync(file, "utf8");
+  const found = source
     .split(/\r?\n/u)
     .map((line, index) => ({ line: index + 1, text: line.trim() }))
-    .filter(({ text }) => CLASSIFICATION.test(text));
+    .filter(({ text }) => CLASSIFICATION_PATTERNS.some((p) => p.test(text)));
+
+  const pair = CODE_PAIR_LIST.exec(source);
+  if (pair !== null) {
+    const line = source.slice(0, pair.index).split(/\r?\n/u).length;
+    if (!found.some((entry) => entry.line === line)) {
+      found.push({ line, text: pair[0].replace(/\s+/gu, " ") });
+    }
+  }
+  return found.sort((a, b) => a.line - b.line);
 }
 
 function main() {

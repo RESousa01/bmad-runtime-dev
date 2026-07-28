@@ -22,8 +22,17 @@
  * something is impossible and nothing about what to change.
  */
 
-/** A host command name, as it appears in the bootstrap's `supportedCommands`. */
-export type HostCommandName = string;
+import type { DesktopHostCommand } from "../lib/hostClient";
+
+/**
+ * A host command name.
+ *
+ * The generated union, not `string`. With `string` a typo compiled cleanly and
+ * the feature went permanently unavailable with nothing to point at -- which is
+ * the FE-12 defect returning by a different route, since the composer would
+ * grey out and blame the model provider again.
+ */
+export type HostCommandName = DesktopHostCommand;
 
 export type FeatureAvailability =
   | { readonly kind: "available" }

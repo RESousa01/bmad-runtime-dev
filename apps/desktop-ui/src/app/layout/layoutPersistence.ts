@@ -28,7 +28,6 @@
  * than smuggled past the boundary here.
  */
 
-const STORAGE_KEY = "forge.workbench.layout";
 
 /**
  * Bumped when the shape changes. A stored layout from a different version is
@@ -55,7 +54,11 @@ const EMPTY: WorkbenchLayout = { sizes: {} };
 /**
  * Where a layout is kept.
  *
- * Deliberately narrower than Storage: two string operations are all this needs,
+ * Deliberately narrower than Storage: two string operations are all this needs.
+ * There is no key -- the port holds one layout, and a named slot only becomes
+ * meaningful when the host preferences contract can carry it.
+ *
+ * Two string operations are all this needs,
  * and a port this small is trivial for the host-backed implementation to
  * satisfy when the preferences contract can carry it.
  */
@@ -169,5 +172,4 @@ export function resolveRegionSize(
   return clampToBounds(stored, bounds);
 }
 
-export const layoutStorageKey = STORAGE_KEY;
 export const layoutSchemaVersion = SCHEMA_VERSION;

@@ -6,9 +6,10 @@ import {
   resolveCapabilities,
   unavailableReason,
   type CapabilityInput,
+  type HostCommandName,
 } from "./capabilityMatrix";
 
-const ALL_COMMANDS = [
+const ALL_COMMANDS: readonly HostCommandName[] = [
   ...featureCommands.chat,
   ...featureCommands.history,
   ...featureCommands.help,
@@ -29,7 +30,7 @@ function input(overrides: Partial<CapabilityInput> = {}): CapabilityInput {
   };
 }
 
-function without(...commands: readonly string[]): readonly string[] {
+function without(...commands: readonly HostCommandName[]): readonly HostCommandName[] {
   return ALL_COMMANDS.filter((command) => !commands.includes(command));
 }
 
@@ -38,23 +39,22 @@ describe("the closures are disjoint", () => {
   /// gated on the whole BMAD bundle, so a host that could hold a conversation
   /// reported itself unable to.
   it("shares no command between chat and BMAD", () => {
-    const bmad = new Set<string>([...featureCommands.help, ...featureCommands.run,
-      ...featureCommands.library]);
-    const overlap = (featureCommands.chat as readonly string[])
-      .filter((command) => bmad.has(command));
+    const bmad = new Set<HostCommandName>([...featureCommands.help,
+      ...featureCommands.run, ...featureCommands.library]);
+    const overlap = featureCommands.chat.filter((command) => bmad.has(command));
     expect(overlap).toEqual([]);
   });
 
   it("shares no command between help and capability runs", () => {
     // Two different review lifecycles. A host may implement one and not the
     // other, and neither should take the other down.
-    const runs = new Set<string>(featureCommands.run);
-    expect((featureCommands.help as readonly string[]).filter((c) => runs.has(c))).toEqual([]);
+    const runs = new Set<HostCommandName>(featureCommands.run);
+    expect(featureCommands.help.filter((c) => runs.has(c))).toEqual([]);
   });
 
   it("keeps reading a transcript out of the send closure", () => {
-    const send = new Set<string>(featureCommands.chat);
-    expect((featureCommands.history as readonly string[]).filter((c) => send.has(c))).toEqual([]);
+    const send = new Set<HostCommandName>(featureCommands.chat);
+    expect(featureCommands.history.filter((c) => send.has(c))).toEqual([]);
   });
 });
 

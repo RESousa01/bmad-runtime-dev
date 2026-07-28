@@ -207,14 +207,3 @@ export function matchesTerms(terms: readonly string[], query: string): boolean {
   if (needle.length === 0) return true;
   return terms.some((text) => text.toLocaleLowerCase("en-US").includes(needle));
 }
-
-/** Whether a command matches a palette query. */
-export function matchesQuery(
-  definition: CommandDefinition<CommandContext>,
-  query: string,
-): boolean {
-  return matchesTerms(
-    [definition.title, definition.category, ...(definition.keywords ?? [])],
-    query,
-  );
-}

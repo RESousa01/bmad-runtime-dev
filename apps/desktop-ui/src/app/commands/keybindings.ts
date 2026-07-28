@@ -12,7 +12,7 @@
  * happened to be drawn on.
  */
 
-import type { CommandDefinition, CommandRegistry, CommandSource } from "./commandRegistry";
+import type { CommandDefinition, CommandRegistry } from "./commandRegistry";
 
 export interface Chord {
   readonly key: string;
@@ -136,4 +136,3 @@ export function commandForEvent<Context>(
   return undefined;
 }
 
-export const keybindingSource: CommandSource = "keybinding";
