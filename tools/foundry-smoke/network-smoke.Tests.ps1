@@ -718,13 +718,13 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
                 $observed.clientId = $ClientId
                 return [pscustomobject]@{
                     source = 'synthetic'
-                    accessToken = 'synthetic-secret-token-must-not-leak'
+                    accessToken = 'must-not-cross-into-a-report'
                 }
             }.GetNewClosure() `
             -DeploymentProbe {
                 param([uri] $Uri, [string] $AccessToken)
                 $observed.routeUri = $Uri.AbsoluteUri
-                if ($AccessToken -cne 'synthetic-secret-token-must-not-leak') {
+                if ($AccessToken -cne 'must-not-cross-into-a-report') {
                     throw 'the token was not kept at the HTTP boundary'
                 }
                 return [pscustomobject]@{
@@ -781,7 +781,7 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
         $reportJson = $report | ConvertTo-Json -Depth 32 -Compress
         Assert-True -Name 'ready report redacts token, names, and addresses' `
             -Condition (
-                -not $reportJson.Contains('synthetic-secret-token-must-not-leak') -and
+                -not $reportJson.Contains('must-not-cross-into-a-report') -and
                 -not $reportJson.Contains('must-not-leak-deployment') -and
                 -not $reportJson.Contains('10.42.2.7') -and
                 -not $reportJson.Contains($identityClientId) -and
@@ -821,7 +821,7 @@ Invoke-TestCase -Name 'an unauthorized route keeps the smoke blocked' -Action {
                 param([string] $Scope, [string] $ClientId)
                 return [pscustomobject]@{
                     source = 'synthetic'
-                    accessToken = 'synthetic-secret-token-must-not-leak'
+                    accessToken = 'must-not-cross-into-a-report'
                 }
             } `
             -DeploymentProbe {

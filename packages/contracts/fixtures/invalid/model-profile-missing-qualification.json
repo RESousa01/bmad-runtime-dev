@@ -44,7 +44,7 @@
   "limits": {
     "contextTokens": 256000,
     "maxInputTokens": 220000,
-    "maxOutputTokens": 16000,
+    "maxOutputTokens": 32000,
     "maxAttachmentBytes": 0,
     "maxOutputBytes": 262144
   },

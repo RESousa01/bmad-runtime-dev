@@ -1020,7 +1020,11 @@ const modelProfileFixture = {
   limits: {
     contextTokens: 256000,
     maxInputTokens: 220000,
-    maxOutputTokens: 16000,
+    // The profile ceiling has to cover its own deepest variant. The plan's
+    // worked example lets a variant ask for more output than the profile
+    // permits, which is incoherent: the variant is an operating point of
+    // this profile, not an escape from it.
+    maxOutputTokens: 32000,
     maxAttachmentBytes: 0,
     maxOutputBytes: 262144,
   },
@@ -1578,7 +1582,7 @@ add(
 );
 
 const streamEventBearerToken = structuredClone(modelStreamOutputTextDeltaFixture);
-streamEventBearerToken.accessToken = "fixture-bearer-token-value";
+streamEventBearerToken.accessToken = "must-not-cross-into-a-stream-event";
 add(
   "fixtures/invalid/model-stream-event-bearer-token.json",
   stableJson(streamEventBearerToken),

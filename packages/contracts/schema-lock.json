@@ -25,7 +25,7 @@
     "dotnetRuntime": "Corvus.Text.Json@5.2.7"
   },
   "toolLockSha256": "sha256:a13e7d5654d5576509c7acee6dc109c8d40f9970b6121f0383c3f696c80706f4",
-  "generationConfigSha256": "sha256:6559f349df84e1bc9e23b6dacc9c711dbc3aeee4b8923cf0c165cc76c3969e12",
+  "generationConfigSha256": "sha256:964c1ff2fba725e7889ca06a5ae1f7f107f0f9c5116da34ac35f82986d51ce65",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
@@ -17677,7 +17677,7 @@
   },
   "fixtureTrees": {
     "production": {
-      "sha256": "sha256:3d86c0bb687cdb97d2d8d642ad8e27bd061b387e5f87dfdfdbc5788aeabd165b",
+      "sha256": "sha256:46ad39b4f6e50ba102373d6e806cbc2116feef9f60da555efe50b2a87809d34b",
       "files": [
         {
           "file": "fixtures/bmad/catalog.json",
@@ -18909,11 +18909,11 @@
         },
         {
           "file": "fixtures/invalid/model-profile-missing-qualification.json",
-          "sha256": "sha256:e1ebc8b120d0e8c00a6edd1dacb3001850661998054eb8f136ad87a1b1b5f4c2"
+          "sha256": "sha256:a1785801377548b677fb0a8255c4a220a3d1fd519e118117570bdd41fd98f378"
         },
         {
           "file": "fixtures/invalid/model-stream-event-bearer-token.json",
-          "sha256": "sha256:953f025a711311db38499aec970bd186d5322a6bf5042626bdb2f23f9886ba78"
+          "sha256": "sha256:5a2280b902ef6628ccf21656c803ab716e54759c85e21bd7f2bd353877bcf4d3"
         },
         {
           "file": "fixtures/invalid/model-stream-event-nonpositive-sequence.json",
@@ -19141,7 +19141,7 @@
         },
         {
           "file": "fixtures/valid/model-profile.json",
-          "sha256": "sha256:0c45556f3146a66f1e65d81d367cd9d20ac7a401938678198a77f2563674c503"
+          "sha256": "sha256:f89b962525fcdecc8088579761b23bbfdac612d6108f9cb6c9f9c800742f1774"
         },
         {
           "file": "fixtures/valid/model-stream-event-completed.json",
@@ -35507,7 +35507,7 @@
     ]
   },
   "fixtureTree": {
-    "sha256": "sha256:3d86c0bb687cdb97d2d8d642ad8e27bd061b387e5f87dfdfdbc5788aeabd165b",
+    "sha256": "sha256:46ad39b4f6e50ba102373d6e806cbc2116feef9f60da555efe50b2a87809d34b",
     "files": [
       {
         "file": "fixtures/bmad/catalog.json",
@@ -36739,11 +36739,11 @@
       },
       {
         "file": "fixtures/invalid/model-profile-missing-qualification.json",
-        "sha256": "sha256:e1ebc8b120d0e8c00a6edd1dacb3001850661998054eb8f136ad87a1b1b5f4c2"
+        "sha256": "sha256:a1785801377548b677fb0a8255c4a220a3d1fd519e118117570bdd41fd98f378"
       },
       {
         "file": "fixtures/invalid/model-stream-event-bearer-token.json",
-        "sha256": "sha256:953f025a711311db38499aec970bd186d5322a6bf5042626bdb2f23f9886ba78"
+        "sha256": "sha256:5a2280b902ef6628ccf21656c803ab716e54759c85e21bd7f2bd353877bcf4d3"
       },
       {
         "file": "fixtures/invalid/model-stream-event-nonpositive-sequence.json",
@@ -36971,7 +36971,7 @@
       },
       {
         "file": "fixtures/valid/model-profile.json",
-        "sha256": "sha256:0c45556f3146a66f1e65d81d367cd9d20ac7a401938678198a77f2563674c503"
+        "sha256": "sha256:f89b962525fcdecc8088579761b23bbfdac612d6108f9cb6c9f9c800742f1774"
       },
       {
         "file": "fixtures/valid/model-stream-event-completed.json",
