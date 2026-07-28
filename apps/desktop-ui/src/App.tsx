@@ -36,6 +36,7 @@ import {
   type TaskRecord,
 } from "./state/taskList";
 import { useTaskLifecycle } from "./app/task/taskLifecycle";
+import { createModelActions } from "./app/model/modelController";
 import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
@@ -107,7 +108,6 @@ import {
   type BmadRequestEvent,
   type BmadRequestState,
   type ModelAuthStatusProjection,
-  type ModelProviderConnection,
   type ModelSelection,
 } from "./lib/bmadModelProjection";
 import {
@@ -1371,42 +1371,21 @@ export function App({
     persistPreferences(theme, nextDensity);
   }
 
-  async function changeModelSelection(selection: ModelSelection) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !hostRuntime.bootstrap.supportedCommands.includes("model.selection.set")
-    ) {
-      setModelSelectionNotice("Model selection requires the Forge desktop host.");
-      return;
-    }
-    setModelSelectionBusy(true);
-    setModelSelectionNotice(null);
-    try {
-      const status = await hostRuntime.client.setModelSelection(
-        selection.providerId,
-        selection.modelId,
-      );
-      bmadHelpGenerationRef.current += 1;
-      bmadHelpCreationRef.current = null;
-      bmadHelpOperationRef.current = null;
-      bmadHelpStateRef.current = initialBmadRequestState;
-      setBmadHelpState(initialBmadRequestState);
-      setCurrentBmadIntent(null);
-      clearAllCapabilityRuns();
-      setModelAuthStatus(status);
-      setModelSelectionNotice(
-        status.status === "development_ready"
-          ? `${status.destinationLabel} is ready.`
-          : `${status.destinationLabel} is selected. Enter its API key below to connect.`,
-      );
-    } catch (error) {
-      setModelSelectionNotice(getSafeHostMessage(error));
-    } finally {
-      setModelSelectionBusy(false);
-    }
-  }
-
-  function resetModelBoundUi(status: ModelAuthStatusProjection) {
+  /*
+   * FE-10 step 3: the model provider actions.
+   *
+   * All three shared one shape and one obligation. The obligation is the
+   * important half: each of them changes the model authority -- which provider
+   * and model the host will send to, and whether it is authenticated -- so
+   * everything derived from the old authority has to be discarded with it. Two
+   * of them called `resetModelBoundUi`; the third had the same six lines copied
+   * inline. `adoptAuthority` is now the only way to publish a new status, so
+   * the reset cannot be forgotten.
+   */
+  function adoptModelAuthority(status: ModelAuthStatusProjection) {
+    // An approval granted against the previous model is not an approval of
+    // this one, and a capability result was produced by a model that is no
+    // longer selected.
     bmadHelpGenerationRef.current += 1;
     bmadHelpCreationRef.current = null;
     bmadHelpOperationRef.current = null;
@@ -1417,47 +1396,26 @@ export function App({
     setModelAuthStatus(status);
   }
 
-  async function connectModelProvider(connection: ModelProviderConnection) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_in")
-    ) {
-      setModelSelectionNotice("Provider connection requires the Forge desktop host.");
-      return;
-    }
-    setModelSelectionBusy(true);
-    setModelSelectionNotice(null);
-    try {
-      const status = await hostRuntime.client.modelAuthSignIn(connection);
-      resetModelBoundUi(status);
-      setModelSelectionNotice(`${status.destinationLabel} is connected for this session.`);
-    } catch (error) {
-      setModelSelectionNotice(getSafeHostMessage(error));
-    } finally {
-      setModelSelectionBusy(false);
-    }
-  }
-
-  async function disconnectModelProvider() {
-    if (
-      hostRuntime.kind !== "ready"
-      || !hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_out")
-    ) {
-      setModelSelectionNotice("Provider disconnection requires the Forge desktop host.");
-      return;
-    }
-    setModelSelectionBusy(true);
-    setModelSelectionNotice(null);
-    try {
-      const status = await hostRuntime.client.modelAuthSignOut();
-      resetModelBoundUi(status);
-      setModelSelectionNotice("Provider disconnected. The in-memory API key was cleared.");
-    } catch (error) {
-      setModelSelectionNotice(getSafeHostMessage(error));
-    } finally {
-      setModelSelectionBusy(false);
-    }
-  }
+  const {
+    changeModelSelection,
+    connectModelProvider,
+    disconnectModelProvider,
+  } = createModelActions({
+    adoptAuthority: adoptModelAuthority,
+    host: hostRuntime.kind === "ready"
+      ? {
+        canSelectModel: hostRuntime.bootstrap.supportedCommands.includes("model.selection.set"),
+        canSignIn: hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_in"),
+        canSignOut: hostRuntime.bootstrap.supportedCommands.includes("model.auth.sign_out"),
+        setModelSelection: (providerId, modelId) =>
+          hostRuntime.client.setModelSelection(providerId, modelId),
+        signIn: (connection) => hostRuntime.client.modelAuthSignIn(connection),
+        signOut: () => hostRuntime.client.modelAuthSignOut(),
+      }
+      : null,
+    setBusy: setModelSelectionBusy,
+    setNotice: setModelSelectionNotice,
+  });
 
   function dismissUtilityPanel(restoreFocus = true) {
     pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
