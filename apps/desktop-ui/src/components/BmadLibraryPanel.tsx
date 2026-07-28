@@ -1,14 +1,30 @@
 import { Button } from "@sapphirus/ui";
 import { useId } from "react";
+import {
+  type SkillVerdict,
+  capabilityCompatibility,
+  selectSkill,
+  skillVerdict,
+} from "../features/skills/skillAvailability";
 import { capabilityFidelity } from "../lib/bmadFidelity";
 import type {
+  BmadAgentMenuProjection,
   BmadAvailability,
+  BmadCoreSkillProjection,
   BmadHelpActionProjection,
   BmadInstalledSkillProjection,
   BmadLibraryProjection,
   BmadLibraryUiState,
   BmadMethodAgentProjection,
 } from "../lib/bmadProjection";
+import {
+  CapabilityCoverageDisclosure,
+  SkillBlockers,
+  SkillCompatibility,
+  SkillStartControl,
+  SkillVerdictChip,
+  SkillVerdictReason,
+} from "./skills/SkillCompatibility";
 
 export interface BmadPersonaPerspectiveView {
   readonly agentCode: string;
@@ -57,19 +73,15 @@ function availabilityLabel(availability: BmadAvailability): string {
   }
 }
 
-const blockerExplanations: Readonly<Record<string, string>> = {
-  bmad_capability_disabled:
-    "This capability is not enabled in the sealed foundation. Enabling it is a reviewed organization decision, not an error.",
-  bmad_dependency_unavailable:
-    "A skill this entry depends on is not part of the adopted foundation yet, so it stays disabled until adoption.",
-  bmad_help_catalog_orphan:
-    "This catalog row has no matching installed skill, so it cannot be started.",
-  bmad_network_reference_unavailable:
-    "The source references network content that is not adopted into the offline foundation.",
-  bmad_source_prompt_unavailable:
-    "The original source prompt has not been adopted into the sealed foundation, so nothing can be prepared from it.",
-};
-
+/**
+ * The agent's own projected state.
+ *
+ * Deliberately *not* a skill verdict. An agent is a persona a menu hangs off,
+ * not something this panel starts, and running it through `skillVerdict` would
+ * report every agent as "not known" — each one is normalized into a package
+ * that reaches no capability of its own, which is a fact about agents rather
+ * than a doubt about them. The verdicts belong on the rows that offer a start.
+ */
 function AvailabilityChip({ availability }: { readonly availability: BmadAvailability }) {
   return (
     <span className="bmad-availability" data-availability={availability}>
@@ -100,42 +112,59 @@ function FidelityBadge({ capabilityId }: { readonly capabilityId: string }) {
   );
 }
 
-/// What to say about a blocker the projection reports but this build has no
-/// wording for. The previous shape rendered the bare identifier and nothing
-/// else, which is the least actionable thing a panel can show a user.
-const UNKNOWN_BLOCKER_EXPLANATION =
-  "The sealed foundation reports this entry as unavailable and gives no further reason, so nothing here can be started. The identifier below is what to quote if you report it.";
+/**
+ * The verdict for one agent menu.
+ *
+ * `upstreamSkill` is null because a menu carries none: it has a code, a label
+ * and — when the build binds one — a capability. The matrix is keyed by upstream
+ * skill directory, so it is consulted by capability further down the row
+ * instead, and passing a name guessed off the capability id would be a claim
+ * about upstream identity that nothing here holds.
+ */
+function menuVerdict(menu: BmadAgentMenuProjection): SkillVerdict {
+  return skillVerdict({
+    upstreamSkill: null,
+    capabilityId: menu.capabilityId,
+    projected: {
+      availability: menu.availability,
+      blockerCodes: menu.availabilityReason === null ? [] : [menu.availabilityReason],
+    },
+  });
+}
 
-function Blockers({ codes }: { readonly codes: readonly string[] }) {
-  if (codes.length === 0) {
-    return null;
-  }
-  return (
-    <div className="bmad-blockers">
-      {/* Explanation first, identifier second. A raw code is evidence, not a
-          reason, and leading with it made every unavailable entry look like an
-          internal error the reader had done something to cause. */}
-      <span>Why this is unavailable</span>
-      <ul aria-label="Blockers">
-        {codes.map((code) => (
-          <li key={code}>
-            <p className="bmad-blockers__explanation">
-              {blockerExplanations[code] ?? UNKNOWN_BLOCKER_EXPLANATION}
-            </p>
-            <code>{code}</code>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+/**
+ * The verdict for one adopted Core-module skill.
+ *
+ * Membership of this list *is* the host's availability statement. The core-skill
+ * projection is built from the capability table itself, so a row only reaches
+ * here when this build binds a capability for it — which is why the projection
+ * carries no availability field to read. Passing `null` instead would report
+ * `bmm:bmad-shard-doc` and `bmm:bmad-index-docs` as not known and withdraw their
+ * start controls: they are Forge-native and the matrix, whose denominator is
+ * upstream directories, has no row for either.
+ */
+function coreSkillVerdict(skill: BmadCoreSkillProjection): SkillVerdict {
+  return skillVerdict({
+    upstreamSkill: skill.skill,
+    capabilityId: skill.capabilityId,
+    projected: { availability: "available", blockerCodes: [] },
+  });
 }
 
 function InstalledSkillRow({ skill }: { readonly skill: BmadInstalledSkillProjection }) {
+  // The skill directory name is the matrix's own key, and this row names no
+  // capability -- an installed skill carries a module and a name only, so the
+  // matrix's row is the one thing that knows what a start would run.
+  const verdict = skillVerdict({
+    upstreamSkill: skill.skillName,
+    capabilityId: null,
+    projected: { availability: skill.availability, blockerCodes: skill.blockerCodes },
+  });
   return (
     <li className="bmad-library-row">
       <div className="bmad-library-row__heading">
         <strong>{skill.displayName}</strong>
-        <AvailabilityChip availability={skill.availability} />
+        <SkillVerdictChip availability={verdict.availability} />
       </div>
       <p>{skill.description}</p>
       {skill.actions.length > 0 ? (
@@ -144,17 +173,27 @@ function InstalledSkillRow({ skill }: { readonly skill: BmadInstalledSkillProjec
         <p>No declared action alias.</p>
       )}
       {skill.hiddenFromHelp ? <p>Hidden from Help actions.</p> : null}
-      <Blockers codes={skill.blockerCodes} />
+      <SkillCompatibility blockerCodes={skill.blockerCodes} verdict={verdict} />
     </li>
   );
 }
 
 function HelpActionRow({ helpAction }: { readonly helpAction: BmadHelpActionProjection }) {
+  // Keyed by the skill, never by `skill:action`: the matrix records one row per
+  // upstream directory, and both of `bmad-create-story`'s actions belong to it.
+  const verdict = skillVerdict({
+    upstreamSkill: helpAction.skillName,
+    capabilityId: null,
+    projected: {
+      availability: helpAction.availability,
+      blockerCodes: helpAction.blockerCodes,
+    },
+  });
   return (
     <li className="bmad-library-row">
       <div className="bmad-library-row__heading">
         <strong>{helpAction.displayName}</strong>
-        <AvailabilityChip availability={helpAction.availability} />
+        <SkillVerdictChip availability={verdict.availability} />
       </div>
       <p>{helpAction.description}</p>
       {helpAction.menuCode === null ? <span>No menu code</span> : <span>Menu code {helpAction.menuCode}</span>}
@@ -164,7 +203,7 @@ function HelpActionRow({ helpAction }: { readonly helpAction: BmadHelpActionProj
       ) : (
         <p>No expected artifacts recorded.</p>
       )}
-      <Blockers codes={helpAction.blockerCodes} />
+      <SkillCompatibility blockerCodes={helpAction.blockerCodes} verdict={verdict} />
     </li>
   );
 }
@@ -184,18 +223,25 @@ function MethodAgentRow({
     | undefined;
   readonly reviewedRunHelpId: string;
 }) {
-  const runnableMenus = agent.menus.filter(
-    (menu) => menu.availability === "available" && menu.capabilityId !== null,
+  // Split by the verdict rather than by `availability === "available" &&
+  // capabilityId !== null` re-derived here. That inline test read a projection
+  // defect -- a menu the catalog calls available while naming nothing to start
+  // -- as a source-only prompt, and filed it under a heading that said so. The
+  // verdict calls that case `unknown`, and the row now says which of the two it
+  // is rather than the panel deciding for itself.
+  const menuRows = agent.menus.map((menu) => ({ menu, verdict: menuVerdict(menu) }));
+  const startable = menuRows.filter(
+    ({ menu, verdict }) => selectSkill(verdict, menu.displayLabel).kind === "start",
   );
-  const sourceOnlyMenus = agent.menus.filter(
-    (menu) => menu.availability !== "available" || menu.capabilityId === null,
+  const refused = menuRows.filter(
+    ({ menu, verdict }) => selectSkill(verdict, menu.displayLabel).kind === "refused",
   );
   // Two lists under one agent used to carry the same `${name} menu` label, so
-  // the reviewed actions and the source-only ones were indistinguishable to
+  // the reviewed actions and the refused ones were indistinguishable to
   // anything navigating by landmark or list name.
-  const renderMenus = (menus: typeof agent.menus, listLabel: string) => (
+  const renderMenus = (rows: typeof menuRows, listLabel: string) => (
     <ul aria-label={listLabel} className="bmad-agent-menu">
-      {menus.map((menu) => (
+      {rows.map(({ menu, verdict }) => (
         <li key={`${agent.moduleCode}\u0000${agent.agentCode}\u0000${menu.code}`}>
           <div>
             <strong>{menu.code}</strong>
@@ -206,26 +252,27 @@ function MethodAgentRow({
             </span>
           </div>
           <p>{menu.description}</p>
-          <AvailabilityChip availability={menu.availability} />
-          {menu.availability === "available" && menu.capabilityId !== null ? (
-            <FidelityBadge capabilityId={menu.capabilityId} />
+          <SkillVerdictChip availability={verdict.availability} />
+          {verdict.availability.kind === "available" ? (
+            <FidelityBadge capabilityId={verdict.availability.capabilityId} />
           ) : null}
-          {menu.availabilityReason === null ? null : <p>{menu.availabilityReason}</p>}
-          {onRunCapability === undefined
-            || menu.availability !== "available"
-            || menu.capabilityId === null ? null : (
-            <button
-              aria-describedby={reviewedRunHelpId}
-              type="button"
-              onClick={() => {
-                if (menu.capabilityId !== null) {
-                  onRunCapability(menu.capabilityId, menu.displayLabel);
-                }
-              }}
-            >
-              Start reviewed run
-            </button>
+          <SkillVerdictReason availability={verdict.availability} />
+          {/* Was `<p>{menu.availabilityReason}</p>`: the bare blocker code,
+              rendered in the position a reason belongs in. */}
+          <SkillBlockers
+            codes={menu.availabilityReason === null ? [] : [menu.availabilityReason]}
+          />
+          {menu.capabilityId === null ? null : (
+            <CapabilityCoverageDisclosure
+              compatibility={capabilityCompatibility(menu.capabilityId)}
+            />
           )}
+          <SkillStartControl
+            describedBy={reviewedRunHelpId}
+            label={menu.displayLabel}
+            onStart={onRunCapability}
+            verdict={verdict}
+          />
         </li>
       ))}
     </ul>
@@ -260,16 +307,20 @@ function MethodAgentRow({
           <pre>{perspective.instructionMarkdown}</pre>
         </section>
       )}
-      <Blockers codes={agent.blockerCodes} />
-      {runnableMenus.length > 0
-        ? renderMenus(runnableMenus, `${agent.name} reviewed actions`)
+      <SkillBlockers codes={agent.blockerCodes} />
+      {startable.length > 0
+        ? renderMenus(startable, `${agent.name} reviewed actions`)
         : null}
-      {sourceOnlyMenus.length > 0 ? (
+      {refused.length > 0 ? (
+        // "Source-only" was a claim about *why*, and it was wrong for every
+        // skill-target menu the build could not bind. The group now names only
+        // what is true of all of them -- no start is offered here -- and each
+        // row inside carries its own verdict and reason.
         <details className="bmad-source-actions">
-          <summary>{sourceOnlyMenus.length} source-only {sourceOnlyMenus.length === 1 ? "action" : "actions"}</summary>
-          {renderMenus(sourceOnlyMenus, `${agent.name} source-only actions`)}
+          <summary>{refused.length} {refused.length === 1 ? "action" : "actions"} that cannot be started here</summary>
+          {renderMenus(refused, `${agent.name} actions that cannot be started`)}
         </details>
-      ) : runnableMenus.length === 0 ? (
+      ) : startable.length === 0 ? (
         <p>No reviewed actions.</p>
       ) : (
         null
@@ -370,12 +421,16 @@ function ReadyLibrary({
 
   // The explanation is rendered only where a startable control actually exists.
   // A catalog with nothing startable should not carry instructions for a button
-  // that is not on the page.
+  // that is not on the page. Asked of `selectSkill`, the same gate the controls
+  // themselves go through, so the help text cannot appear over a catalog whose
+  // every start the verdict refused.
   const hasStartableCapability = (onRunCapability !== undefined
-    && (projection.coreSkills.length > 0
+    && (projection.coreSkills.some(
+      (skill) => selectSkill(coreSkillVerdict(skill), skill.displayName).kind === "start",
+    )
       || projection.methodAgents.some((agent) =>
         agent.menus.some(
-          (menu) => menu.availability === "available" && menu.capabilityId !== null,
+          (menu) => selectSkill(menuVerdict(menu), menu.displayLabel).kind === "start",
         ))))
     || (onRunBuilderCapability !== undefined && projection.builderPackages.length > 0);
 
@@ -424,25 +479,31 @@ function ReadyLibrary({
             skills; each also runs on its own.
           </p>
           <ul>
-            {projection.coreSkills.map((skill) => (
-              <li className="bmad-library-row" key={skill.capabilityId}>
-                <div>
-                  <strong>{skill.displayName}</strong>
-                  <span>Menu code {skill.menuCode}</span>
-                  <FidelityBadge capabilityId={skill.capabilityId} />
-                </div>
-                {onRunCapability ? (
-                  <Button
-                    aria-describedby={reviewedRunHelpId}
-                    onPress={() => onRunCapability(skill.capabilityId, skill.displayName)}
-                    size="small"
-                    variant="secondary"
-                  >
-                    Start reviewed run
-                  </Button>
-                ) : null}
-              </li>
-            ))}
+            {projection.coreSkills.map((skill) => {
+              const verdict = coreSkillVerdict(skill);
+              return (
+                <li className="bmad-library-row" key={skill.capabilityId}>
+                  <div>
+                    <strong>{skill.displayName}</strong>
+                    <span>Menu code {skill.menuCode}</span>
+                    <SkillVerdictChip availability={verdict.availability} />
+                    {verdict.availability.kind === "available" ? (
+                      <FidelityBadge capabilityId={verdict.availability.capabilityId} />
+                    ) : null}
+                  </div>
+                  <SkillCompatibility verdict={verdict} />
+                  {/* The start used to be unconditional here, so a core skill
+                      the matrix contradicts would have been offered and only
+                      failed once the user had spent a reviewed context on it. */}
+                  <SkillStartControl
+                    describedBy={reviewedRunHelpId}
+                    label={skill.displayName}
+                    onStart={onRunCapability}
+                    verdict={verdict}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

@@ -227,6 +227,124 @@ describe("BmadWorkflowPanel", () => {
     expect(onRefresh).toHaveBeenCalledOnce();
   });
 
+  /// FE-25. Seven of the 48 upstream skills are present in the pinned upstream
+  /// and absent from this build, and several of them are steps of the method
+  /// graph. They rendered as ordinary rows — with a start handler wired, the
+  /// panel offered a Start for a step nothing here could have run.
+  it("names a step this build cannot start, with the reason, instead of offering it", async () => {
+    const onStartStep = vi.fn();
+    const { container } = render(
+      <BmadWorkflowPanel
+        error={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onStartStep={onStartStep}
+        state={state({
+          steps: [
+            {
+              key: "bmad-sprint-status",
+              displayName: "Sprint status",
+              menuCode: "SS",
+              phaseCode: "4-implementation",
+              required: false,
+              // The ordering is satisfied: only the coverage matrix stands
+              // between this row and a Start it could not have honoured.
+              completed: false,
+              available: true,
+              evidencePath: null,
+            },
+          ],
+          nextRequired: null,
+        })}
+      />,
+    );
+
+    const row = screen.getByRole("listitem");
+    expect(within(row).getByText("Sprint status")).toBeTruthy();
+    expect(within(row).getByText("Cannot run here")).toBeTruthy();
+    expect(
+      within(row).getByText("Present in the pinned upstream and absent from this build."),
+    ).toBeTruthy();
+    expect(within(row).queryByRole("button")).toBeNull();
+    expect(onStartStep).not.toHaveBeenCalled();
+    await expectAccessible(container);
+  });
+
+  /// `unknown` is not a softer `unavailable`. A step nothing on hand records is
+  /// not a step this build has established it cannot run, and saying the
+  /// stronger of the two would be the invention this surface exists to stop.
+  it("says a step nothing records is not known, rather than that it cannot run", () => {
+    render(
+      <BmadWorkflowPanel
+        error={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onStartStep={vi.fn()}
+        state={state({
+          steps: [
+            {
+              key: "bmad-invented-by-nobody",
+              displayName: "Invented step",
+              menuCode: "IS",
+              phaseCode: "4-implementation",
+              required: false,
+              completed: false,
+              available: true,
+              evidencePath: null,
+            },
+          ],
+          nextRequired: null,
+        })}
+      />,
+    );
+
+    const row = screen.getByRole("listitem");
+    expect(within(row).getByText("Not known")).toBeTruthy();
+    expect(within(row).getByText(/bmad-invented-by-nobody/u)).toBeTruthy();
+    expect(within(row).getByText(/has no row for it/u)).toBeTruthy();
+    expect(within(row).queryByText("Cannot run here")).toBeNull();
+    expect(within(row).queryByRole("button")).toBeNull();
+  });
+
+  /// Upstream keys a multi-action skill as `skill:action` and the coverage
+  /// matrix records one row per upstream directory, so the action has to come
+  /// off before the matrix is asked. Otherwise every multi-action step of the
+  /// graph reads as a skill nobody recorded.
+  it("asks the coverage matrix about the skill behind a multi-action step key", async () => {
+    const onStartStep = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <BmadWorkflowPanel
+        error={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onStartStep={onStartStep}
+        state={state({
+          steps: [
+            {
+              key: "bmad-create-story:validate",
+              displayName: "Validate story",
+              menuCode: "VS",
+              phaseCode: "4-implementation",
+              required: false,
+              completed: false,
+              available: true,
+              evidencePath: null,
+            },
+          ],
+          nextRequired: null,
+        })}
+      />,
+    );
+
+    const row = screen.getByRole("listitem");
+    expect(within(row).queryByText("Not known")).toBeNull();
+    await user.click(within(row).getByRole("button", { name: "Start" }));
+    expect(onStartStep).toHaveBeenCalledWith(
+      expect.objectContaining({ key: "bmad-create-story:validate" }),
+    );
+  });
+
   /// Regression guard: an incomplete step that is not yet available rendered
   /// its name and nothing else — no control, no reason, no difference from a
   /// row whose button had failed to render.

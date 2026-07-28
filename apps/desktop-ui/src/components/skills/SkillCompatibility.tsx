@@ -10,6 +10,7 @@
 
 import { Button } from "@sapphirus/ui";
 import {
+  type CapabilityCompatibility,
   type SkillAvailability,
   type SkillCoverageNote,
   type SkillVerdict,
@@ -68,6 +69,37 @@ export function SkillCoverageDisclosure({ coverage }: { readonly coverage: Skill
             </p>
           </>
         ) : null}
+      </div>
+    </details>
+  );
+}
+
+/**
+ * The same disclosure for a surface that holds a capability id and no upstream
+ * skill name — an agent menu, or a run already in flight.
+ *
+ * Separate from `SkillCoverageDisclosure` because the two ask the matrix
+ * different questions and only one of them can be answered on a given row. The
+ * matrix is keyed by upstream skill directory, so a row with no upstream name
+ * has to be looked up by capability instead; rendering the by-skill note there
+ * would print "no row for this skill" over capabilities the matrix has four
+ * rows for.
+ */
+export function CapabilityCoverageDisclosure({
+  compatibility,
+}: {
+  readonly compatibility: CapabilityCompatibility;
+}) {
+  return (
+    <details className="skill-compat skill-compat__coverage">
+      <summary>Upstream coverage</summary>
+      <div>
+        <p>{compatibility.summary}</p>
+        <p className="skill-compat skill-compat__unreviewed">
+          {compatibility.decisionRecorded
+            ? "The coverage matrix records a compatibility decision for the upstream skills behind this capability."
+            : compatibilityDecisionNote(null)}
+        </p>
       </div>
     </details>
   );

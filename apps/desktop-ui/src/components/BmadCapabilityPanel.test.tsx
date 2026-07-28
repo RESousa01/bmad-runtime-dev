@@ -380,6 +380,37 @@ describe("BmadCapabilityPanel", () => {
     ).toBe(true);
   });
 
+  /// FE-25. A run spends one irreversible send on a capability whose
+  /// relationship to the pinned upstream nobody has reviewed. The panel said
+  /// nothing about either half, and the label "Create Brief" reads as upstream's
+  /// own skill.
+  it("states what the coverage matrix records about the capability being run", () => {
+    render(<BmadCapabilityPanel {...createProps({ kind: "selecting" })} />);
+
+    expect(
+      screen.getByText(/Projected from the upstream skill bmad-product-brief/u),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/No compatibility decision has been recorded/u),
+    ).toBeTruthy();
+  });
+
+  /// Silence from the matrix is silence. Its denominator is upstream BMAD
+  /// skills, so a Builder capability having no row is not a finding about the
+  /// capability — and the panel must not read it as one.
+  it("says the matrix is silent about a capability that was never an upstream skill", () => {
+    render(
+      <BmadCapabilityPanel
+        {...createProps({ kind: "selecting" })}
+        capabilityId="builder:agent.analyze"
+        capabilityLabel="Analyze agent"
+      />,
+    );
+
+    expect(screen.getByText(/has no row for builder:agent\.analyze/u)).toBeTruthy();
+    expect(screen.queryByText(/Not known/u)).toBeNull();
+  });
+
   it("says what a reviewed run does and where the context goes", () => {
     render(<BmadCapabilityPanel {...createProps({ kind: "selecting" })} />);
 

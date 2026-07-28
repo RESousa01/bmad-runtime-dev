@@ -179,7 +179,15 @@ describe("BmadLibraryPanel", () => {
 
     const paige = screen.getByRole("listitem", { name: "Paige, Technical Writer" });
     expect(within(paige).getAllByText("Source-only prompt")).toHaveLength(4);
-    expect(within(paige).getAllByText("Source prompt unavailable")).toHaveLength(5);
+    // FE-25 changed what the four menu rows say. The projection's own word for
+    // the state ("Source prompt unavailable") is now on the agent alone, and
+    // each menu carries the verdict plus the sentence that explains it — which
+    // is what the reader needed and what the state name never said.
+    expect(within(paige).getAllByText("Source prompt unavailable")).toHaveLength(1);
+    expect(within(paige).getAllByText("Cannot run here")).toHaveLength(4);
+    expect(
+      within(paige).getAllByText(/original source prompt has not been adopted/u).length,
+    ).toBeGreaterThanOrEqual(4);
     expect(within(paige).queryByRole("button", { name: "Start reviewed run" })).toBeNull();
     expect(within(paige).queryByRole("link")).toBeNull();
   });
@@ -496,8 +504,12 @@ describe("BmadLibraryPanel", () => {
     );
 
     expect(screen.getByRole("list", { name: "Winston reviewed actions" })).toBeTruthy();
-    fireEvent.click(screen.getByText(/1 source-only action/u));
-    expect(screen.getByRole("list", { name: "Winston source-only actions" })).toBeTruthy();
+    // Renamed with FE-25: "source-only" asserted *why* a menu was not startable,
+    // and it was wrong for every skill-target menu the build could not bind.
+    fireEvent.click(screen.getByText(/1 action that cannot be started here/u));
+    expect(
+      screen.getByRole("list", { name: "Winston actions that cannot be started" }),
+    ).toBeTruthy();
   });
 
   it("shows textual availability without execution, installation, or activation affordances", () => {
@@ -506,7 +518,12 @@ describe("BmadLibraryPanel", () => {
     expect(screen.getAllByText("Capability disabled").length).toBeGreaterThan(0);
     expect(screen.getByText(/Source catalog details/u).closest("details")).toHaveProperty("open", false);
     expect(container.querySelector("button, a, input, select, textarea")).toBeNull();
-    expect(document.body.textContent).not.toMatch(
+    // The verdict label is removed before the word check rather than dropped
+    // from it. "Cannot run here" is a refusal, not an affordance — but any
+    // *other* occurrence of these verbs still fails, which is what this guard
+    // was for.
+    const withoutRefusals = (document.body.textContent ?? "").replaceAll("Cannot run here", "");
+    expect(withoutRefusals).not.toMatch(
       /\b(?:Chat|Run|Execute|Install|Activate|Convert|Evaluate)\b|Approve & apply locally/i,
     );
   });
@@ -551,6 +568,243 @@ describe("BmadLibraryPanel", () => {
       "Create or rebuild agent",
     );
     expect(screen.getAllByRole("button", { name: /agent|workflow/i })).toHaveLength(5);
+  });
+
+  /// FE-25. The old panel split an agent's menus on `availability ===
+  /// "available" && capabilityId !== null`, so a menu the catalog calls
+  /// available while naming nothing to start was filed under "source-only
+  /// actions" — a heading that asserts *why*, about a case where nothing knows
+  /// why. A user cannot act on a row that says the wrong thing any more than on
+  /// a row that is not there.
+  it("says a menu with nothing to start is not known, rather than calling it source-only", () => {
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          methodAgents: [{
+            ...architect,
+            availability: "available",
+            blockerCodes: [],
+            menus: [{
+              ...architect.menus[0]!,
+              availability: "available" as const,
+              availabilityReason: null,
+              capabilityId: null,
+            }],
+          }],
+        })}
+      />,
+    );
+
+    const winston = screen.getByRole("listitem", { name: "Winston, System Architect" });
+    // Listed, with its own identity, not absent and not renamed.
+    expect(within(winston).getByText("CA")).toBeTruthy();
+    expect(within(winston).getByText("Skill target · Create Architecture")).toBeTruthy();
+    expect(within(winston).getByText("Not known")).toBeTruthy();
+    expect(
+      within(winston).getByText(/neither the catalog nor the recorded coverage matrix names a capability/u),
+    ).toBeTruthy();
+    // Not "Cannot run here": nothing here established that it cannot, only that
+    // the two sources contradict each other.
+    expect(within(winston).queryByText("Cannot run here")).toBeNull();
+    expect(within(winston).queryByRole("button", { name: "Start reviewed run" })).toBeNull();
+  });
+
+  /// The other half of the same guard: a verdict that *is* a denial says so,
+  /// with the sentence the host's own state name never carried — and keeps the
+  /// blocker code underneath as evidence rather than as the answer.
+  it("says a blocked menu cannot run, and why, where the menu is listed", () => {
+    render(<BmadLibraryPanel onRunCapability={vi.fn()} state={readyState()} />);
+
+    const winston = screen.getByRole("listitem", { name: "Winston, System Architect" });
+    fireEvent.click(within(winston).getByText(/1 action that cannot be started here/u));
+    const refused = within(winston).getByRole("list", {
+      name: "Winston actions that cannot be started",
+    });
+
+    expect(within(refused).getByText("Cannot run here")).toBeTruthy();
+    expect(
+      within(refused).getByText(/not enabled in the sealed foundation, so it cannot be started here/u),
+    ).toBeTruthy();
+    expect(within(refused).getByText("bmad_capability_disabled")).toBeTruthy();
+    expect(within(refused).queryByText("Not known")).toBeNull();
+    expect(within(refused).queryByRole("button", { name: "Start reviewed run" })).toBeNull();
+  });
+
+  /// A menu carries no upstream skill name — only a code, a label and, when the
+  /// build binds one, a capability — so the matrix is asked by capability here.
+  /// Asked by skill it would answer "no row for this skill" about a capability
+  /// it holds two rows for.
+  it("names the upstream skills behind a startable menu's capability", () => {
+    const architect = baseProjection.methodAgents[0]!;
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          methodAgents: [{
+            ...architect,
+            availability: "available",
+            blockerCodes: [],
+            menus: architect.menus.map((menu) => ({
+              ...menu,
+              capabilityId: "bmm:bmad-architecture",
+              availability: "available" as const,
+              availabilityReason: null,
+            })),
+          }],
+        })}
+      />,
+    );
+
+    const reviewed = screen.getByRole("list", { name: "Winston reviewed actions" });
+    expect(
+      within(reviewed).getByText(
+        /Projected from the upstream skill bmad-architecture; the legacy name bmad-create-architecture forwards to it/u,
+      ),
+    ).toBeTruthy();
+    expect(
+      within(reviewed).getByText(/No compatibility decision has been recorded/u),
+    ).toBeTruthy();
+  });
+
+  /// Two recorded sources disagreeing is not a tie broken by whichever is read
+  /// first. The core-skill start used to be unconditional, so a contradiction
+  /// like this one was discovered only after the user had chosen and approved a
+  /// context for it.
+  it("refuses a core skill the coverage matrix contradicts, without calling it broken", () => {
+    const onRunCapability = vi.fn();
+    render(
+      <BmadLibraryPanel
+        onRunCapability={onRunCapability}
+        state={readyState({
+          coreSkills: [
+            { capabilityId: "bmm:bmad-spec", skill: "bmad-spec", displayName: "Spec", menuCode: "SP" },
+            {
+              capabilityId: "bmm:bmad-sprint-status",
+              skill: "bmad-sprint-status",
+              displayName: "Sprint status",
+              menuCode: "SS",
+            },
+          ],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const core = screen.getByRole("region", { name: "Core skills" });
+    expect(within(core).getByText("Sprint status")).toBeTruthy();
+    expect(within(core).getByText("Not known")).toBeTruthy();
+    expect(within(core).getByText(/One of the two is out of date/u)).toBeTruthy();
+    // Exactly one start remains, and it is the skill both sources agree on.
+    const starts = within(core).getAllByRole("button", { name: "Start reviewed run" });
+    expect(starts).toHaveLength(1);
+    fireEvent.click(starts[0]!);
+    expect(onRunCapability).toHaveBeenCalledWith("bmm:bmad-spec", "Spec");
+  });
+
+  /// The matrix's denominator is upstream BMAD directories, so a Forge-native
+  /// core skill having no row is silence, not a denial. Reading it as one would
+  /// withdraw the start controls from `bmm:bmad-shard-doc` and
+  /// `bmm:bmad-index-docs` — two skills this build has always been able to run.
+  it("keeps a core skill the matrix never covered startable, and says the matrix is silent", () => {
+    const onRunCapability = vi.fn();
+    render(
+      <BmadLibraryPanel
+        onRunCapability={onRunCapability}
+        state={readyState({
+          coreSkills: [{
+            capabilityId: "bmm:bmad-shard-doc",
+            skill: "bmad-shard-doc",
+            displayName: "Shard document",
+            menuCode: "SD",
+          }],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const core = screen.getByRole("region", { name: "Core skills" });
+    expect(within(core).getByText("Runs here")).toBeTruthy();
+    expect(within(core).getByText(/no row for this skill/u)).toBeTruthy();
+    fireEvent.click(within(core).getByRole("button", { name: "Start reviewed run" }));
+    expect(onRunCapability).toHaveBeenCalledWith("bmm:bmad-shard-doc", "Shard document");
+  });
+
+  /// The help text explains a control. A catalog whose every start the verdict
+  /// refused has no such control, and instructions for a button that is not on
+  /// the page read as a button the reader has failed to find.
+  it("keeps the reviewed-run explanation off a catalog whose every start was refused", () => {
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          coreSkills: [{
+            capabilityId: "bmm:bmad-sprint-status",
+            skill: "bmad-sprint-status",
+            displayName: "Sprint status",
+            menuCode: "SS",
+          }],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Sprint status")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Start reviewed run" })).toBeNull();
+    expect(screen.queryByText(/does not send your workspace/u)).toBeNull();
+  });
+
+  /// BM-03 has recorded no compatibility decision for any of the 48 upstream
+  /// skills, so "Runs here" on its own would be read as a claim nobody made.
+  it("says the compatibility of a startable skill is unreviewed", () => {
+    render(
+      <BmadLibraryPanel
+        onRunCapability={vi.fn()}
+        state={readyState({
+          coreSkills: [{
+            capabilityId: "bmm:bmad-spec",
+            skill: "bmad-spec",
+            displayName: "Spec",
+            menuCode: "SP",
+          }],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const core = screen.getByRole("region", { name: "Core skills" });
+    expect(within(core).getByText("Runs here")).toBeTruthy();
+    expect(
+      within(core).getByText(/No compatibility decision has been recorded/u),
+    ).toBeTruthy();
+  });
+
+  /// A build with deterministic help activates `core/bmad-help`, and the matrix
+  /// records it as normalized into a package that reaches no capability. The
+  /// chip used to read "Available" off the projection alone.
+  it("reads a catalog entry the matrix projects nothing for as not known", () => {
+    render(
+      <BmadLibraryPanel
+        state={readyState({
+          installedSkills: [{
+            ...baseProjection.installedSkills[1]!,
+            availability: "available",
+            blockerCodes: [],
+          }],
+          helpActions: [],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    const sourceDetails = screen.getByText(/Source catalog details/u).closest("details");
+    fireEvent.click(within(sourceDetails!).getByText(/Source catalog details/u));
+    const skills = screen.getByRole("region", { name: "Installed skills" });
+
+    expect(within(skills).getByText("Not known")).toBeTruthy();
+    expect(within(skills).queryByText("Runs here")).toBeNull();
+    expect(within(skills).getByText(/One of the two is out of date/u)).toBeTruthy();
   });
 
   it("has no automated accessibility violations in the ready state", async () => {

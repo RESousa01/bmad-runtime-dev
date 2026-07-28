@@ -102,7 +102,10 @@
   color: var(--color-text-soft);
 }
 
+/* `--font-code` is the token the shell actually defines; `--font-mono` resolved
+   to nothing, so the recorded state pair rendered in the UI face beside every
+   other identifier in the panel rendered in the code face. */
 .skill-compat.skill-compat__state {
   color: var(--color-text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-code);
 }

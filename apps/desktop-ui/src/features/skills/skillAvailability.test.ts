@@ -5,6 +5,7 @@ import {
   type SkillVerdictInput,
   availabilityLabel,
   blockerExplanation,
+  capabilityCompatibility,
   compatibilityDecisionNote,
   selectSkill,
   skillVerdict,
@@ -240,6 +241,50 @@ describe("compatibilityDecisionNote", () => {
 
   it("names a decision once one is recorded", () => {
     expect(compatibilityDecisionNote("adapt")).toBe("Recorded compatibility decision: adapt.");
+  });
+});
+
+/// The surfaces that hold a capability id and no upstream name -- an agent
+/// menu, a run in flight -- ask the matrix this way instead. Untested until
+/// FE-25 wired them, and the first thing rendering it showed was a sentence
+/// whose verb did not agree with its subject.
+describe("capabilityCompatibility", () => {
+  it("names the canonical upstream skill and the legacy names that forward to it", () => {
+    const compatibility = capabilityCompatibility("bmm:bmad-architecture");
+
+    expect(compatibility.summary).toBe(
+      "Projected from the upstream skill bmad-architecture; the legacy name bmad-create-architecture forwards to it.",
+    );
+    expect(compatibility.upstreamSkills).toEqual([
+      "bmad-architecture",
+      "bmad-create-architecture",
+    ]);
+    expect(compatibility.decisionRecorded).toBe(false);
+  });
+
+  it("keeps the verb agreeing with the subject when several names forward", () => {
+    expect(capabilityCompatibility("bmm:bmad-prd").summary).toBe(
+      "Projected from the upstream skill bmad-prd; the legacy names bmad-create-prd, bmad-edit-prd, bmad-validate-prd forward to it.",
+    );
+  });
+
+  /// Reported as a different identity rather than as upstream's own: nothing
+  /// upstream carries this name, so calling it "projected from" it would be a
+  /// parity claim the matrix does not make.
+  it("says so when a capability is reached only through a legacy name", () => {
+    expect(capabilityCompatibility("bmm:bmad-domain-research").summary).toContain(
+      "Reached only through the legacy upstream name bmad-domain-research",
+    );
+  });
+
+  /// Silence, not a denial. The matrix counts upstream directories, and this
+  /// build also ships capabilities that were never upstream skills.
+  it("reports silence for a capability the matrix has no row for", () => {
+    const compatibility = capabilityCompatibility("builder:agent.analyze");
+
+    expect(compatibility.upstreamSkills).toEqual([]);
+    expect(compatibility.summary).toContain("no row for builder:agent.analyze");
+    expect(compatibility.decisionRecorded).toBe(false);
   });
 });
 

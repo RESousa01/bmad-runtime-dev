@@ -388,11 +388,18 @@ export function capabilityCompatibility(capabilityId: string): CapabilityCompati
   const aliases = rows
     .filter((row) => row !== canonical)
     .map((row) => row.upstreamSkill);
+  // The alias clause is written twice rather than interpolated once, because a
+  // singular subject needs a singular verb: "the legacy name X forwards to it",
+  // not "forward to it". Sentences shown verbatim to a user have to read as
+  // sentences, or the surface looks assembled rather than written.
+  const aliasClause = aliases.length === 1
+    ? `the legacy name ${aliases[0]} forwards to it`
+    : `the legacy names ${aliases.join(", ")} forward to it`;
   const summary = canonical === null
     ? `Reached only through the legacy upstream ${aliases.length === 1 ? "name" : "names"} ${aliases.join(", ")}, so it runs under a different identity than upstream's own.`
     : aliases.length === 0
       ? `Projected from the upstream skill ${canonical.upstreamSkill}.`
-      : `Projected from the upstream skill ${canonical.upstreamSkill}; the legacy ${aliases.length === 1 ? "name" : "names"} ${aliases.join(", ")} forward to it.`;
+      : `Projected from the upstream skill ${canonical.upstreamSkill}; ${aliasClause}.`;
   return {
     upstreamSkills: rows.map((row) => row.upstreamSkill),
     summary,

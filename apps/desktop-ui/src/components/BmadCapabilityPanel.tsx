@@ -1,12 +1,14 @@
 import { Button } from "@sapphirus/ui";
 import { ShieldCheck, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { capabilityCompatibility } from "../features/skills/skillAvailability";
 import type {
   CapabilityApprovedProjection,
   CapabilityCompletedProjection,
   CapabilityDocumentArtifact,
   CapabilityReviewProjection,
 } from "../lib/hostClient";
+import { CapabilityCoverageDisclosure } from "./skills/SkillCompatibility";
 
 /// One reviewed capability run's renderer phase. The renderer never holds
 /// authority: every transition is a host decision reflected back here.
@@ -234,6 +236,21 @@ export function BmadCapabilityPanel({
       </header>
 
       <StepProgress phase={phase} />
+
+      {/*
+        * What the recorded coverage matrix says about the capability this run
+        * spends its consent on -- including, on every capability, that nobody
+        * has reviewed how it compares with upstream.
+        *
+        * Keyed by capability, not by `skillVerdict`. A run reaches this panel
+        * because the catalogue's verdict already permitted it, and asking a
+        * second time from a surface that holds only an id would answer
+        * "unknown" for every Builder capability and every Forge-native one --
+        * manufacturing a doubt about a run the host has already accepted.
+        * Deciding availability twice, in two places, is the drift this model
+        * was built to end.
+        */}
+      <CapabilityCoverageDisclosure compatibility={capabilityCompatibility(capabilityId)} />
 
       {phase.kind === "selecting" || phase.kind === "preparing" || phase.kind === "error" ? (
         // The failure path shares the selection body on purpose. Recovering
