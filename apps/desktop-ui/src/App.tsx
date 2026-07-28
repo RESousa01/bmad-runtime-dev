@@ -37,6 +37,8 @@ import {
 import { useTaskLifecycle } from "./app/task/taskLifecycle";
 import { createModelActions } from "./app/model/modelController";
 import { useChangesHistoryState } from "./app/changes/changesHistoryState";
+import { createChangesRunner } from "./app/changes/changesRunner";
+import { isRecoveryFailure } from "./app/hostFailure";
 import {
   anyPhase,
   approved,
@@ -2633,10 +2635,10 @@ export function App({
   }
 
   function handleChangesFailure(client: DesktopHostClient, error: unknown, sequence: number) {
-    if (
-      error instanceof HostCommandError
-      && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-    ) {
+    // One definition of "recovery failure", shared with the workspace and
+    // changes runners. Reporting a host that demanded recovery as an ordinary
+    // error leaves the app running against one that has told it to stop.
+    if (isRecoveryFailure(error)) {
       markReadOnlyRecovery(client, sequence);
       return;
     }
@@ -2671,6 +2673,32 @@ export function App({
     }
   }
 
+  /*
+   * FE-10 step 3: the governed-changes flow actions.
+   *
+   * `runChangesAction` captures two things before the host is called, because
+   * all three actions need both and all three used to write them out:
+   *
+   *   `originTask` -- a governed change is a diff the user is being asked to
+   *   approve, and applying it to whichever task is on screen after the await
+   *   is asking them to approve edits they did not request.
+   *
+   *   `generation` -- the supersede mechanism. A slow proposal must not land on
+   *   top of a review the user is already reading.
+   */
+  const runChangesAction = createChangesRunner({
+    currentGeneration: () => changesGenerationRef.current,
+    enterReadOnlyRecovery: () => {
+      if (hostRuntime.kind === "ready") {
+        markReadOnlyRecovery(hostRuntime.client, hostRuntime.bootstrap.projectionSequence);
+      }
+    },
+    nextGeneration: () => ++changesGenerationRef.current,
+    originTask: selectedSessionId,
+    resetFlow: (originTask) => setChangesFlowForTask(originTask, { kind: "idle" }),
+    setError: setChangesError,
+  });
+
   async function proposeCapabilityChangeSet(capabilityId: string) {
     openContextDrawer("changes");
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
@@ -2678,26 +2706,16 @@ export function App({
     }
     const client = hostRuntime.client;
     const workspace = activeWorkspace;
-    const sequence = hostRuntime.bootstrap.projectionSequence;
-    const originTask = selectedSessionId;
-    const generation = ++changesGenerationRef.current;
-    setChangesFlowForTask(originTask, { kind: "preparing" });
-    setChangesError(null);
-    try {
+    await runChangesAction(async ({ isCurrent, originTask }) => {
+      setChangesFlowForTask(originTask, { kind: "preparing" });
       const review = await client.proposeCapabilityChanges(
         workspace.workspaceId,
         workspace.grantEpoch,
         capabilityId,
       );
-      if (generation === changesGenerationRef.current) {
-        setChangesFlowForTask(originTask, { kind: "review", busy: false, review });
-      }
-    } catch (error) {
-      if (generation === changesGenerationRef.current) {
-        setChangesFlowForTask(originTask, { kind: "idle" });
-        handleChangesFailure(client, error, sequence);
-      }
-    }
+      if (!isCurrent()) return;
+      setChangesFlowForTask(originTask, { kind: "review", busy: false, review });
+    });
   }
 
   async function decideGovernedChange(choice: ApprovalChoice) {
@@ -2705,17 +2723,11 @@ export function App({
       return;
     }
     const client = hostRuntime.client;
-    const sequence = hostRuntime.bootstrap.projectionSequence;
     const review = changesState.review;
-    const originTask = selectedSessionId;
-    const generation = ++changesGenerationRef.current;
-    setChangesFlowForTask(originTask, { kind: "review", busy: true, review });
-    setChangesError(null);
-    try {
+    await runChangesAction(async ({ isCurrent, originTask }) => {
+      setChangesFlowForTask(originTask, { kind: "review", busy: true, review });
       const decision = await client.decideApproval(review, choice);
-      if (generation !== changesGenerationRef.current) {
-        return;
-      }
+      if (!isCurrent()) return;
       if (decision.disposition === "applied" && decision.execution) {
         setChangesFlowForTask(originTask, {
           kind: "applied",
@@ -2728,14 +2740,7 @@ export function App({
       } else {
         setChangesFlowForTask(originTask, { kind: "idle" });
       }
-    } catch (error) {
-      if (generation === changesGenerationRef.current) {
-        // The host consumes a pending proposal on any decision attempt, so a
-        // failed apply requires a fresh review.
-        setChangesFlowForTask(originTask, { kind: "idle" });
-        handleChangesFailure(client, error, sequence);
-      }
-    }
+    });
   }
 
   async function undoGovernedChange(executionId: string) {
@@ -2743,32 +2748,22 @@ export function App({
       return;
     }
     const client = hostRuntime.client;
-    const sequence = hostRuntime.bootstrap.projectionSequence;
-    const originTask = selectedSessionId;
-    const generation = ++changesGenerationRef.current;
-    setChangesFlowForTask(
-      originTask,
-      changesState.kind === "applied"
-        ? { kind: "applied", busy: true, execution: changesState.execution }
-        : { kind: "preparing" },
-    );
-    setChangesError(null);
-    try {
+    const priorState = changesState;
+    await runChangesAction(async ({ isCurrent, originTask }) => {
+      setChangesFlowForTask(
+        originTask,
+        priorState.kind === "applied"
+          ? { kind: "applied", busy: true, execution: priorState.execution }
+          : { kind: "preparing" },
+      );
       const result = await client.requestRollback(executionId);
-      if (generation !== changesGenerationRef.current) {
-        return;
-      }
+      if (!isCurrent()) return;
       if (result.kind === "review") {
         setChangesFlowForTask(originTask, { kind: "review", busy: false, review: result.value });
       } else {
         setChangesFlowForTask(originTask, { kind: "undo_unavailable", value: result.value });
       }
-    } catch (error) {
-      if (generation === changesGenerationRef.current) {
-        setChangesFlowForTask(originTask, { kind: "idle" });
-        handleChangesFailure(client, error, sequence);
-      }
-    }
+    });
   }
 
   /*

@@ -27,10 +27,10 @@ import { useCallback, useRef, useState } from "react";
 
 import {
   getSafeHostMessage,
-  HostCommandError,
   type WorkspaceProjection,
   type WorkspaceSelection,
 } from "../../lib/hostClient";
+import { isRecoveryFailure } from "../hostFailure";
 
 export interface WorkspaceState {
   readonly workspaces: readonly WorkspaceProjection[];
@@ -177,18 +177,10 @@ export interface WorkspaceActions {
   readonly removeWorkspace: (workspaceId: string) => Promise<void>;
 }
 
-/**
- * Classifies a host failure. The single reason this module exists.
- *
- * `recovery_required` and `integrity_failure` are the host saying its own state
- * is not trustworthy. Showing those as an ordinary error leaves the app running
- * against a host that has told it to stop.
- */
-export function isRecoveryFailure(error: unknown): boolean {
-  return error instanceof HostCommandError
-    && (error.details.code === "recovery_required"
-      || error.details.code === "integrity_failure");
-}
+/// Re-exported so this controller's tests can name it alongside the actions
+/// that depend on it. The definition lives in `app/hostFailure.ts`, because
+/// three copies of "is this a recovery failure" is three chances to disagree.
+export { isRecoveryFailure };
 
 export function createWorkspaceActions(
   state: WorkspaceState,
