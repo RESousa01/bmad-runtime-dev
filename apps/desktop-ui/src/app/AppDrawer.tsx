@@ -22,9 +22,6 @@ import { SessionContextPanel } from "../components/SessionContextPanel";
 import { WorkspaceExplorer } from "../components/WorkspaceExplorer";
 import { useShell } from "./AppProviders";
 
-/** How much of a local review the model context panel measures against. */
-const LOCAL_REVIEW_BUDGET = 65_536;
-
 function FilesPanel() {
   const { context, overlays, workspace } = useShell();
   return (
@@ -92,7 +89,6 @@ function ModelContextPanel() {
     <SessionContextPanel
       createdAt={context.session.createdAt}
       inputTokens={context.session.inputTokens}
-      localReviewBudget={LOCAL_REVIEW_BUDGET}
       messages={context.session.messages}
       model={model.modelId}
       provider={model.providerLabel}

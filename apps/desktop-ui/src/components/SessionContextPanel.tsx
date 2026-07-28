@@ -20,7 +20,6 @@ export interface SessionContextPanelProps {
   readonly costUsd?: number | undefined;
   readonly createdAt?: number | undefined;
   readonly inputTokens?: number | undefined;
-  readonly localReviewBudget?: number | undefined;
   readonly messages: readonly SessionContextMessage[];
   readonly model?: string | undefined;
   readonly outputTokens?: number | undefined;
@@ -116,7 +115,6 @@ export function SessionContextPanel({
   costUsd,
   createdAt,
   inputTokens,
-  localReviewBudget,
   messages,
   model,
   outputTokens,
@@ -131,9 +129,18 @@ export function SessionContextPanel({
   const totalTokens = knownTokens.length === 0
     ? undefined
     : knownTokens.reduce((total, value) => total + value, 0);
-  const usage = localReviewBudget && totalTokens !== undefined
-    ? `${Math.min(100, (totalTokens / localReviewBudget) * 100).toFixed(1)}%`
-    : "—";
+  /*
+   * The total inherits the estimate-ness of its parts.
+   *
+   * `inputTokens` is the byte-derived figure the row below calls "Input
+   * Estimate"; output and reasoning are counts the provider reported. Summing
+   * them is useful, and printing the sum under a bare "Total Tokens" is not:
+   * the label launders an estimate into a measurement, and the one row that
+   * admitted the guess sits directly beneath it saying otherwise.
+   */
+  const totalLabel = inputTokens === undefined
+    ? "Total Tokens"
+    : "Total Tokens (input estimated)";
   const lastActivity = messages.reduce<number | undefined>((latest, message) => {
     if (message.createdAt === undefined) return latest;
     return latest === undefined ? message.createdAt : Math.max(latest, message.createdAt);
@@ -143,9 +150,17 @@ export function SessionContextPanel({
     ["Messages", formatNumber(messages.length)],
     ["Provider", provider || "—"],
     ["Model", model || "—"],
-    ["Local Review Budget", formatNumber(localReviewBudget)],
-    ["Total Tokens", formatNumber(totalTokens)],
-    ["Review Budget Used", usage],
+    /*
+     * "Local Review Budget" and "Review Budget Used" are gone.
+     *
+     * The budget was a constant 65,536 -- the workspace broker's file-read cap
+     * -- and the percentage was this session's tokens over it. Neither is a
+     * property of the model, so the percentage answered a question nobody
+     * asked and looked exactly like the answer to the one they did: how much
+     * of the model's context is left. FE-16 removed the same number from the
+     * Context surface; this was its second home.
+     */
+    [totalLabel, formatNumber(totalTokens)],
     ["Input Estimate", formatNumber(inputTokens)],
     ["Output Tokens", formatNumber(outputTokens)],
     ["Reasoning Tokens", formatNumber(reasoningTokens)],

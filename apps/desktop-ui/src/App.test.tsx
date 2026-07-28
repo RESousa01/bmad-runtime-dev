@@ -2440,7 +2440,12 @@ describe("Forge desktop workbench", () => {
 
     await user.click(screen.getByRole("button", { name: "Open context details" }));
 
-    expect(screen.getByText("Local Review Budget")).toBeTruthy();
+    // The budget rows this used to pin are gone. 65,536 was the workspace
+    // broker's file-read cap, and a percentage of it read as "how much of the
+    // model's context is left" -- which it never was. FE-16 removed the same
+    // number from the Context surface; this panel was its second home.
+    expect(screen.queryByText("Local Review Budget")).toBeNull();
+    expect(screen.queryByText("Review Budget Used")).toBeNull();
     expect(screen.getByText("Input Estimate")).toBeTruthy();
     expect(screen.queryByText("Context Limit")).toBeNull();
     // This test is named "without inventing provider cost" and used to pin

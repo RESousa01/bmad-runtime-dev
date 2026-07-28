@@ -10,7 +10,6 @@ describe("SessionContextPanel", () => {
       <SessionContextPanel
         createdAt={1_784_731_394_657}
         inputTokens={1_024}
-        localReviewBudget={65_536}
         messages={[
           {
             id: "msg_user_01",
@@ -25,10 +24,24 @@ describe("SessionContextPanel", () => {
       />,
     );
 
-    expect(screen.getByText("Local Review Budget")).toBeTruthy();
-    expect(screen.getByText("Review Budget Used")).toBeTruthy();
-    expect(screen.getByText("Input Estimate")).toBeTruthy();
+    /*
+     * The budget rows are gone, and this test used to require them.
+     *
+     * "Local Review Budget" was a constant 65,536 -- the workspace broker's
+     * file-read cap -- and "Review Budget Used" was this session's tokens over
+     * it. Neither is a property of the model, so the percentage answered a
+     * question nobody asked while looking exactly like the answer to the one
+     * they did. A test named "labels local estimates honestly" was pinning the
+     * opposite.
+     */
+    expect(screen.queryByText("Local Review Budget")).toBeNull();
+    expect(screen.queryByText("Review Budget Used")).toBeNull();
     expect(screen.queryByText("Context Limit")).toBeNull();
+
+    // What survives says where its numbers came from. The sum inherits the
+    // estimate-ness of its parts rather than laundering it into a measurement.
+    expect(screen.getByText("Input Estimate")).toBeTruthy();
+    expect(screen.getByText("Total Tokens (input estimated)")).toBeTruthy();
     expect(screen.getByText("Total Cost").parentElement?.textContent).toBe("Total Cost—");
     expect(screen.getByText("Raw messages")).toBeTruthy();
     expect(screen.getByText("Greeting and quick check-in")).toBeTruthy();

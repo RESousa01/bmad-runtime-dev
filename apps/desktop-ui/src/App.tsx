@@ -2694,9 +2694,25 @@ export function App({
           }
         },
         recentTasks: recentTaskList,
-        statusHint: chatSendAvailable
-          ? "Ready to send through the selected model."
-          : "Start locally, then connect OpenAI in Settings before sending.",
+        /*
+         * Names the blocker that is actually in the way.
+         *
+         * This read `chatSendAvailable` alone, so with no workspace bound it
+         * told the user to connect OpenAI -- and connecting one would not have
+         * enabled the composer, because what disabled it was the missing
+         * folder. Advice that cannot work is worse than none: the user follows
+         * it, nothing changes, and they have no reason to look elsewhere.
+         *
+         * Ordered the way the composer's own gate is ordered, so the hint and
+         * the disabled state can never disagree about why.
+         */
+        statusHint: !activeWorkspace
+          ? "Open a project folder to start a task."
+          : methodRequestInFlight
+            ? "Finishing the current request."
+            : chatSendAvailable
+              ? "Ready to send through the selected model."
+              : "Start locally, then connect OpenAI in Settings before sending.",
         workspaces: hostWorkspaces,
         workspaceStatusLabel: workspaceDescription,
       },
