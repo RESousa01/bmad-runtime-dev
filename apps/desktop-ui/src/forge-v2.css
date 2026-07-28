@@ -587,26 +587,30 @@
   box-shadow: none;
 }
 
+/*
+ * The composer is not a panel floating over the transcript. 3a ends the
+ * transcript with a hairline and puts the prompt below it, on the same canvas,
+ * so the eye reads one column rather than a column and a card. The raised
+ * background, border, radius and shadow are removed rather than softened.
+ */
 .app-shell--forge-v2 .composer {
   animation: none;
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
-  border-radius: var(--radius-overlay);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--color-border-subtle);
   box-shadow: none;
-  margin: 8px auto 10px;
+  margin: 0 auto;
   max-width: min(760px, calc(100% - 40px));
   min-height: 0;
-  padding: 10px 11px 9px;
+  padding: var(--space-3) 0 var(--space-4);
   transform: none;
   width: 100%;
 }
 
+/* Nothing to light up, and nothing should move. The caret is the feedback. */
 .app-shell--forge-v2 .composer:focus-within {
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-muted),
-    transparent 16%
-  );
+  border-top-color: var(--color-border);
   box-shadow: none;
   transform: none;
 }
@@ -616,22 +620,26 @@
 }
 
 .app-shell--forge-v2 .composer__input-row > .sapphirus-button.sapphirus-button--quiet,
+/*
+ * One rule, not two. This selector was declared twice in this file: the first
+ * made it transparent, the second put the pill back, and the second won. The
+ * composer readout in 3a is plain text -- "Plain chat", the model, the file
+ * and budget counts -- with a chevron to say it opens. Design specification
+ * 3.4 keeps the pill radius for true tags and statuses, and a menu trigger is
+ * neither.
+ */
 .app-shell--forge-v2 .agent-control__trigger.sapphirus-button {
   background: transparent;
   border-color: transparent;
   border-radius: var(--radius-control);
   box-shadow: none;
-}
-
-.app-shell--forge-v2 .agent-control__trigger.sapphirus-button {
-  background: var(--color-surface-selected);
-  border-radius: 999px;
-  padding-inline: 10px 8px;
+  padding-inline: 0 var(--space-1);
 }
 
 .app-shell--forge-v2 .agent-control__trigger.sapphirus-button[data-hovered],
 .app-shell--forge-v2 .agent-control__trigger[aria-expanded="true"] {
-  background: var(--color-surface-hover);
+  background: transparent;
+  color: var(--color-text);
 }
 
 .app-shell--forge-v2 .composer textarea {

@@ -149,14 +149,17 @@
     letter-spacing: -0.032em;
   }
 
+  /* 3a has no badges. "Browser preview" is a fact about the build, so it says
+     so in muted text beside the workspace name and keeps the accent for the
+     one decision that earns it. */
   .preview-badge {
-    background: var(--color-accent-soft);
-    border-color: color-mix(in srgb, var(--color-accent), transparent 64%);
-    color: var(--color-accent-strong);
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-muted);
     font-size: var(--text-label);
     letter-spacing: var(--label-tracking);
-    padding: 4px 9px;
-    text-transform: none;
+    padding: 0;
+    text-transform: uppercase;
   }
 
   .task-scroll-region {
@@ -361,16 +364,14 @@
     transform: rotate(180deg);
   }
 
+  /* The model and budget readout is text in 3a, not a pill inside a control.
+     Specification 3.4 reserves the pill radius for true tags and statuses. */
   .agent-control__summary {
-    background: color-mix(
-      in srgb,
-      var(--color-surface-selected),
-      transparent 15%
-    );
-    border-radius: 999px;
-    color: var(--color-text-soft);
+    background: transparent;
+    border-radius: 0;
+    color: var(--color-text-muted);
     max-width: 138px;
-    padding: 3px 7px;
+    padding: 0;
   }
 
   .agent-control__popover {

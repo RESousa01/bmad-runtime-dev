@@ -1,10 +1,15 @@
+/*
+ * A readout, not a panel. This sits on the composer's meta line beside the
+ * lane and the send control, and 3a writes that line as plain text. A filled,
+ * bordered box here re-introduced the container the composer just lost.
+ */
 .context-window {
   display: grid;
   gap: 8px;
-  padding: 11px 12px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-overlay);
-  background: color-mix(in srgb, var(--color-surface-raised) 92%, transparent);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .context-window__actions {
@@ -12,17 +17,19 @@
   align-items: center;
 }
 
+/* Pinned/Auto is a mode label, not a tag. Specification 3.4 keeps the pill
+   radius for true statuses; this one says which of two behaviours is on. */
 .context-window__mode {
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: var(--color-surface-selected);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--color-text-muted);
   font-size: var(--text-meta);
-  font-weight: 650;
+  font-weight: var(--fw-medium);
 }
 
 .context-window__mode--automatic {
-  background: color-mix(in srgb, var(--color-accent) 13%, transparent);
+  background: transparent;
   color: var(--color-accent);
 }
 

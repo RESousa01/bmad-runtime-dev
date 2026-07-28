@@ -724,18 +724,6 @@ export function TaskWorkspace({
       </div>
 
       <form aria-label="Task composer" className="composer" onSubmit={submitTask}>
-        <ContextWindow
-          canSuggest={canAttachFiles && draft.trim().length > 0}
-          onClear={onClearContext}
-          onOpen={onOpenContext}
-          onSuggest={() => {
-            const intent = draft.trim();
-            if (intent.length > 0) void onSuggestContext(intent);
-          }}
-          preview={contextPreview}
-          selectionMode={contextSelectionMode}
-          suggestionBusy={contextSuggestionBusy}
-        />
         {attachNotice ? (
           <p className="attach-notice" role="status">{attachNotice}</p>
         ) : null}
@@ -798,6 +786,22 @@ export function TaskWorkspace({
               ? () => void onAskMethodGuidance(draft.trim()).catch(() => undefined)
               : undefined}
           />
+          {/* 3a reads top to bottom: the prompt, then one line describing what
+              will be sent with it -- lane, model, files, budget -- then send.
+              This readout sat above the input, which put an accounting strip
+              between the user and the thing they came here to type. */}
+          <ContextWindow
+            canSuggest={canAttachFiles && draft.trim().length > 0}
+            onClear={onClearContext}
+            onOpen={onOpenContext}
+            onSuggest={() => {
+              const intent = draft.trim();
+              if (intent.length > 0) void onSuggestContext(intent);
+            }}
+            preview={contextPreview}
+            selectionMode={contextSelectionMode}
+            suggestionBusy={contextSuggestionBusy}
+          />
           <div className="composer__right">
             {/*
               The submit control stays mounted and goes disabled while a turn is
@@ -811,6 +815,9 @@ export function TaskWorkspace({
               `sendChatMessage`'s `sending` guard exists to prevent, so an abandon
               affordance must not occupy the submit slot.
             */}
+            {/* Quiet, not filled. 3a reserves its one accent for the
+                consequential decision -- Apply changes -- and sending a
+                message is not that. The glyph plus Enter is the affordance. */}
             <Button
               aria-label={methodGuidanceView ? "Send message" : "Send task"}
               className="composer__submit"
@@ -818,7 +825,7 @@ export function TaskWorkspace({
               size="icon"
               title={methodGuidanceView ? "Send message" : "Send task"}
               type="submit"
-              variant="primary"
+              variant="quiet"
             >
               <Send aria-hidden="true" size={16} />
             </Button>
