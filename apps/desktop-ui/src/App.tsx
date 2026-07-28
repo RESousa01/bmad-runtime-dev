@@ -4,7 +4,6 @@ import type { GitReviewSource } from "./components/GitReviewPanel";
 import type { ContextSelectionMode } from "./components/ContextWindow";
 import type { SessionContextMessage } from "./components/SessionContextPanel";
 import "./components/review-panel.css";
-import { TaskWorkspace } from "./components/TaskWorkspace";
 import {
   MAX_LANE_SESSIONS,
   useCapabilitySessions,
@@ -68,13 +67,12 @@ import "./components/settings/settings.css";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
 import { createCommandRegistry, type CommandContext } from "./app/commands/commands";
 import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
-import { HomeView } from "./components/HomeView";
 import { DRAWER_OVERLAY_QUERY } from "./components/redesign/AppShellLayout";
 import { AppDrawer } from "./app/AppDrawer";
 import { AppModals } from "./app/AppModals";
+import { AppMainView } from "./app/AppMainView";
 import { ShellProvider, type ShellModel } from "./app/AppProviders";
 import type { ContextDrawerKind } from "./components/redesign/ContextDrawer";
-import { NoWorkspaceState } from "./components/redesign/NoWorkspaceState";
 import "./components/panels/activity-panel.css";
 import "./components/redesign/app-shell.css";
 import "./components/redesign/context-drawer.css";
@@ -111,7 +109,6 @@ import type {
 } from "./lib/hostClient/clients";
 /// The full client, needed only where a runtime is published.
 import type { BootstrapReply, DesktopHostClient } from "./lib/hostClient";
-import { AppRouter } from "./app/AppRouter";
 import {
   createWorkspaceActions,
   useWorkspaceState,
@@ -2597,6 +2594,99 @@ export function App({
       },
       section: utilitySettingsPage,
     },
+    views: {
+      home: {
+        activeWorkspaceId,
+        canOpenFolder: canSelectWorkspace,
+        closedTasks,
+        composerDisabled: !localTaskDraftingAvailable
+          || !activeWorkspace
+          || methodRequestInFlight,
+        onActivateWorkspace: activateWorkspace,
+        onNewTask: () => { startNewSession(); },
+        onOpenWorkspace: () => void selectWorkspace(),
+        onOpenWorkspaceManager: openWorkspaceManager,
+        onReopenTask: reopenTaskById,
+        onRetryHost: hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined,
+        onSelectTask: selectSession,
+        onSubmitIntent: (intent: string) => {
+          const startedId = startNewSession(intent, !chatSendAvailable);
+          // The Home composer opens an ordinary conversation, like any other
+          // chat app. BMAD joins it only if asked for.
+          if (startedId !== null && chatSendAvailable) {
+            void sendChatMessage(intent, startedId).catch(() => undefined);
+          }
+        },
+        recentTasks: recentTaskList,
+        statusHint: chatSendAvailable
+          ? "Ready to send through the selected model."
+          : "Start locally, then connect OpenAI in Settings before sending.",
+        workspaces: hostWorkspaces,
+        workspaceStatusLabel: workspaceDescription,
+      },
+      noWorkspace: {
+        copy: explorerAvailabilityMessage,
+        mode: hostRuntime.kind,
+        onOpenWorkspace: () => void selectWorkspace(),
+        onRetryHost: hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined,
+      },
+      task: selectedTask === null || activeWorkspace === null ? null : {
+        // Remounts on a task switch *or* a guidance rebind: the composer and
+        // the transcript are per-task, and carrying either across a binding
+        // change would show one task's state under another's title.
+        key: `${selectedSessionId}:${methodGuidanceBindingKey}`,
+        props: {
+          agentLibrary: bmadLibraryState,
+          attachNotice,
+          canAttachFiles: canBrowseFiles || canBrowseFolder,
+          chatLane,
+          chatSendAvailable,
+          contextPreview,
+          contextSelectionMode,
+          contextSuggestionBusy,
+          hostStatusLabel,
+          initialDraft: taskDrafts.get(selectedTask.id) ?? "",
+          interactionDisabled: !localTaskDraftingAvailable,
+          isBrowserDemo: hostRuntime.kind === "browser_demo",
+          isReadOnlyRecovery: hostRuntime.kind === "read_only_recovery",
+          methodGuidanceAvailable: methodGuidanceAvailableForRequests,
+          methodGuidanceState: bmadHelpState,
+          methodLibraryAvailable,
+          modelAccessDetail: modelAccess.detail,
+          modelAccessLabel: modelAccess.label,
+          onAskMethodGuidance: sendBmadMessage,
+          onAttachFiles: canBrowseFiles ? browseAndAttachFiles : undefined,
+          onAttachFolder: canBrowseFolder ? browseAndAttachFolder : undefined,
+          onClearContext: clearContext,
+          onCloseTask: () => closeTaskById(selectedTask.id),
+          onDeleteTask: () => requestTaskDeletion(selectedTask.id),
+          onDraftChange: (draft: string) => {
+            setTaskDrafts((current) => {
+              const next = new Map(current);
+              if (draft) next.set(selectedTask.id, draft);
+              else next.delete(selectedTask.id);
+              return next;
+            });
+          },
+          onOpenChanges: () => openContextDrawer("changes"),
+          onOpenContext: () => openContextDrawer("context"),
+          onOpenMethodLibrary: openMethodLibrary,
+          onOpenProviders: () => openUtilityPanel("settings", "agent-model"),
+          onOpenRunDetails: () => openContextDrawer("activity"),
+          onOpenWorkspaceManager: openWorkspaceManager,
+          onRenameTask: renameSelectedTask,
+          onRetryHistory: () => retryChatHistoryRestore(selectedTask.id),
+          onSelectAgent: (agentCode: string | null) => {
+            chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
+          },
+          onSendRequest: sendChatMessage,
+          onSuggestContext: suggestContext,
+          sessionTitle: selectedTask.title,
+          workspaceName,
+          workspaceStatusLabel: workspaceDescription,
+        },
+      },
+    },
     workspace: {
       active: activeWorkspace,
       explorerAvailabilityMessage,
@@ -2700,125 +2790,7 @@ export function App({
         />
       }
       drawer={drawer}
-      main={
-        <AppRouter
-          hasSelectedTask={selectedTask !== null}
-          hasWorkspace={activeWorkspace !== null}
-          renderHome={() => (
-            <HomeView
-              activeWorkspaceId={activeWorkspaceId}
-              canOpenFolder={canSelectWorkspace}
-              composerDisabled={
-                !localTaskDraftingAvailable
-                || !activeWorkspace
-                || methodRequestInFlight
-              }
-              onActivateWorkspace={activateWorkspace}
-              workspaces={hostWorkspaces}
-              onOpenWorkspace={() => void selectWorkspace()}
-              onOpenWorkspaceManager={openWorkspaceManager}
-              onNewTask={() => { startNewSession(); }}
-              onSelectTask={selectSession}
-              onSubmitIntent={(intent) => {
-                const startedId = startNewSession(intent, !chatSendAvailable);
-                if (startedId !== null) {
-                  if (chatSendAvailable) {
-                    // The Home composer opens an ordinary conversation, like
-                    // any other chat app. BMAD joins it only if asked for.
-                    void sendChatMessage(intent, startedId).catch(() => undefined);
-                  }
-                }
-              }}
-              recentTasks={recentTaskList}
-              closedTasks={closedTasks}
-              onReopenTask={reopenTaskById}
-              onRetryHost={hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined}
-              statusHint={chatSendAvailable
-                ? "Ready to send through the selected model."
-                : "Start locally, then connect OpenAI in Settings before sending."}
-              workspaceStatusLabel={workspaceDescription}
-            />
-          )}
-          renderNoWorkspace={() => (
-            <main className="task-shell-empty">
-              <NoWorkspaceState
-                copy={explorerAvailabilityMessage}
-                mode={hostRuntime.kind}
-                onOpenWorkspace={() => void selectWorkspace()}
-                onRetryHost={hostRuntime.kind === "unavailable" ? retryHostRuntime : undefined}
-              />
-            </main>
-          )}
-          renderTask={() => {
-            // The router only reaches here with both present; narrowing again
-            // keeps that a type-level fact rather than an assertion.
-            if (selectedTask === null || activeWorkspace === null) return null;
-            return (
-              <TaskWorkspace
-                canAttachFiles={canBrowseFiles || canBrowseFolder}
-                contextPreview={contextPreview}
-                contextSelectionMode={contextSelectionMode}
-                contextSuggestionBusy={contextSuggestionBusy}
-                hostStatusLabel={hostStatusLabel}
-                initialDraft={taskDrafts.get(selectedTask.id) ?? ""}
-                interactionDisabled={!localTaskDraftingAvailable}
-                chatSendAvailable={chatSendAvailable}
-                isBrowserDemo={hostRuntime.kind === "browser_demo"}
-                isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
-                key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
-                methodGuidanceAvailable={methodGuidanceAvailableForRequests}
-                methodGuidanceState={bmadHelpState}
-                methodLibraryAvailable={methodLibraryAvailable}
-                modelAccessDetail={modelAccess.detail}
-                modelAccessLabel={modelAccess.label}
-                onAttachFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
-                onAttachFolder={canBrowseFolder ? browseAndAttachFolder : undefined}
-                onClearContext={clearContext}
-                attachNotice={attachNotice}
-                agentLibrary={bmadLibraryState}
-                onOpenChanges={() => {
-                  openContextDrawer("changes");
-                }}
-                onOpenContext={() => {
-                  openContextDrawer("context");
-                }}
-                onOpenMethodLibrary={openMethodLibrary}
-                onOpenProviders={() => openUtilityPanel("settings", "agent-model")}
-                onOpenWorkspaceManager={openWorkspaceManager}
-                workspaceStatusLabel={workspaceDescription}
-                onOpenRunDetails={() => {
-                  openContextDrawer("activity");
-                }}
-                onDraftChange={(draft) => {
-                  setTaskDrafts((current) => {
-                    const next = new Map(current);
-                    if (draft) {
-                      next.set(selectedTask.id, draft);
-                    } else {
-                      next.delete(selectedTask.id);
-                    }
-                    return next;
-                  });
-                }}
-                onSuggestContext={suggestContext}
-                onSendRequest={sendChatMessage}
-                chatLane={chatLane}
-                onRetryHistory={() => retryChatHistoryRestore(selectedTask.id)}
-                onAskMethodGuidance={sendBmadMessage}
-                onSelectAgent={(agentCode) => {
-                  chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
-                }}
-                onRenameTask={renameSelectedTask}
-                onCloseTask={() => closeTaskById(selectedTask.id)}
-                onDeleteTask={() => requestTaskDeletion(selectedTask.id)}
-                sessionTitle={selectedTask.title}
-                workspaceName={workspaceName}
-              />
-            );
-          }}
-          route={primaryRoute}
-        />
-      }
+      main={<AppMainView route={primaryRoute} />}
       modal={modal}
       onCloseDrawer={dismissContextDrawer}
       onCloseModal={() => {

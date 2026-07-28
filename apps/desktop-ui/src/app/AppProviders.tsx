@@ -44,6 +44,9 @@ import type { GovernedChangesUiState } from "../components/GovernedChangesPanel"
 import type { SessionContextMessage } from "../components/SessionContextPanel";
 import type { SettingsDialog, SettingsSection } from "../components/settings/SettingsDialog";
 import type { DeleteTaskDialog } from "../components/DeleteTaskDialog";
+import type { HomeView } from "../components/HomeView";
+import type { NoWorkspaceState } from "../components/redesign/NoWorkspaceState";
+import type { TaskWorkspace } from "../components/TaskWorkspace";
 import type { ContextDrawerKind } from "../components/redesign/ContextDrawer";
 import type { ReadonlyWorkspaceSource } from "../lib/workspaceReadSource";
 import type { ActiveCapabilityRunState } from "../state/taskSessions";
@@ -189,6 +192,22 @@ export type DeletionSlice =
   })
   | null;
 
+/**
+ * The three primary views' props.
+ *
+ * Pass-throughs for the same reason as Settings: one consumer each, and their
+ * props *are* their state. `ComponentProps` cannot drift from the component.
+ */
+export interface ViewsSlice {
+  readonly home: ComponentProps<typeof HomeView>;
+  readonly noWorkspace: ComponentProps<typeof NoWorkspaceState>;
+  /** Null on Home. The key remounts the workspace when the task or binding changes. */
+  readonly task: {
+    readonly props: ComponentProps<typeof TaskWorkspace>;
+    readonly key: string;
+  } | null;
+}
+
 export interface ShellModel {
   readonly bmad: BmadSlice;
   readonly changes: ChangesSlice;
@@ -196,6 +215,7 @@ export interface ShellModel {
   readonly deletion: DeletionSlice;
   readonly host: HostSlice;
   readonly settings: SettingsSlice;
+  readonly views: ViewsSlice;
   readonly model: ModelSlice;
   readonly overlays: OverlaySlice;
   readonly recovery: RecoverySlice;
