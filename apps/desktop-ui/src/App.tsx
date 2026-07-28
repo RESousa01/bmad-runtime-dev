@@ -57,6 +57,7 @@ import {
   workspaceDescription as describeWorkspace,
 } from "./app/statusLabels";
 import { useHostProjection } from "./app/projection/hostProjection";
+import { eraseLocalData } from "./app/offboarding/eraseLocalData";
 import {
   classifyProjectionFailure,
   decideProjectionOutcome,
@@ -1286,51 +1287,35 @@ export function App({
     });
   }
 
+  /**
+   * Discards the renderer's mirror of everything the host's erase destroyed.
+   *
+   * The list this satisfies is `localDataDiscards`, which exists so a reviewer
+   * can compare it against what the host actually erases. Leaving any of it up
+   * shows the user data they just asked to have destroyed.
+   */
+  function discardErasedLocalData() {
+    invalidateWorkspaceBoundUi();
+    setTasks([]);
+    adoptWorkspaces([], false);
+    setModelAuthStatus(null);
+    setTaskDrafts(new Map());
+    clearContext();
+    setContextDrawer(null);
+    setPrimaryRoute({ kind: "home" });
+  }
+
   async function eraseOffboardingData(confirm: string) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !hostRuntime.bootstrap.supportedCommands.includes("app.offboarding.erase")
-    ) {
-      setOffboardingNotice("Erasing local data is unavailable in this mode.");
-      return;
-    }
-    offboarding.setStatus("erasing");
-    setOffboardingNotice(null);
-    try {
-      await hostRuntime.client.eraseOffboarding(confirm);
-      offboarding.set(null, "erased");
-      // Erase destroyed the store. Leaving the renderer's copy on screen means
-      // the user looks at the tasks, transcripts, drafts and diffs they just
-      // asked to have destroyed, and can still read them — the bytes are gone
-      // from disk and the words are still in the window. Whatever the store
-      // no longer holds, this must not keep showing.
-      //
-      // `invalidateWorkspaceBoundUi` already discards everything scoped to a
-      // workspace binding, which is the same set. Tasks are not workspace-bound
-      // so they are dropped here explicitly; without it the tab strip still
-      // lists conversations whose transcripts no longer exist anywhere.
-      invalidateWorkspaceBoundUi();
-      setTasks([]);
-      // The host's erase does three more things than the workspace-bound reset
-      // covers: it signs the model out, revokes *every* workspace grant, and
-      // enters recovery. Leaving the renderer's mirrors of those in place meant
-      // Home still listed the folders as granted, the title bar still named an
-      // active one, and Settings still reported a connected provider and model —
-      // all revoked seconds earlier. The workbench looked operational and every
-      // action failed. The earlier comment here claimed this was "the same set";
-      // it was not.
-      adoptWorkspaces([], false);
-      setModelAuthStatus(null);
-      setTaskDrafts(new Map());
-      clearContext();
-      setContextDrawer(null);
-      // With no tasks left, Home is the empty state. Staying on a task route
-      // would render a workbench for a conversation that no longer exists.
-      setPrimaryRoute({ kind: "home" });
-    } catch (error) {
-      offboarding.setStatus("ready");
-      setOffboardingNotice(getSafeHostMessage(error));
-    }
+    await eraseLocalData(confirm, {
+      discardEverything: discardErasedLocalData,
+      erase: hostRuntime.kind === "ready"
+        && hostRuntime.bootstrap.supportedCommands.includes("app.offboarding.erase")
+        ? (confirmation) => hostRuntime.client.eraseOffboarding(confirmation)
+        : null,
+      safeMessage: getSafeHostMessage,
+      setNotice: setOffboardingNotice,
+      setStatus: offboarding.setStatus,
+    });
   }
 
   function persistPreferences(
