@@ -4,7 +4,7 @@ import {
   Send,
   ShieldAlert,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
@@ -22,6 +22,8 @@ import {
 } from "./ContextWindow";
 import { AgentSelector } from "./composer/AgentSelector";
 import { useComposer, type ImportOutcome } from "../features/composer/useComposer";
+import { buildTimeline, toolResultPreview } from "../features/timeline/timelineModel";
+import { taskStatus } from "../features/tasks/taskStatus";
 import "./composer/agent-selector.css";
 
 const STARTER_INTENTS = [
@@ -112,18 +114,6 @@ export interface TaskWorkspaceProps {
   sessionTitle: string;
   workspaceName: string;
   workspaceStatusLabel?: string | undefined;
-}
-
-/// How much of a tool result the collapsed summary shows. A result can be 8
-/// KiB, so the transcript stays readable by keeping the body behind a
-/// disclosure rather than inlining it.
-const TOOL_RESULT_PREVIEW_CHARS = 96;
-
-function toolResultPreview(text: string): string {
-  const firstLine = (text.split("\n", 1)[0] ?? "").trim();
-  return firstLine.length > TOOL_RESULT_PREVIEW_CHARS
-    ? `${firstLine.slice(0, TOOL_RESULT_PREVIEW_CHARS)}…`
-    : firstLine;
 }
 
 function MessageTime({ at }: { readonly at: number }) {
@@ -233,27 +223,54 @@ function ChatTranscript({
           older turns are dropped as it continues.
         </p>
       ) : null}
-      {lane.messages.map((message, index) => {
-        const key = `${message.createdAt}-${index}`;
+      {/*
+        Built by `buildTimeline` rather than read off the flat list.
+
+        Whether a call is still outstanding used to be `messages[index + 1]
+        ?.role !== "tool_result"` -- a lookahead standing in for a structure,
+        and wrong on exactly the transcripts this app produces. A retained
+        transcript is truncated to its last N messages, so a slice can start
+        with a result whose call was cut off, and the lookahead reported that
+        as a call still in flight. It also told two back-to-back calls they
+        were both waiting, because neither was immediately followed by a
+        result.
+      */}
+      {buildTimeline(lane.messages).map((entry, index) => {
         // The two tool roles are deliberately not folded into the assistant
         // branch. Falling through to `message--agent` would put the brand mark
         // on a file's contents and present it as Forge's own words.
-        if (message.role === "tool_call") {
+        if (entry.kind === "tool") {
+          // Two articles, still: the request and what came back are different
+          // kinds of content with different provenance, and the result's
+          // "workspace content, not Forge" labelling depends on it keeping its
+          // own container. Pairing them decides `awaitingResult`, not markup.
           return (
-            <ToolCallMessage
-              awaitingResult={lane.messages[index + 1]?.role !== "tool_result"}
-              key={key}
-              message={message}
+            <Fragment key={`tool-${entry.call.createdAt}-${index}`}>
+              <ToolCallMessage
+                awaitingResult={entry.result === null}
+                message={entry.call}
+              />
+              {entry.result === null
+                ? null
+                : <ToolResultMessage message={entry.result} />}
+            </Fragment>
+          );
+        }
+        if (entry.kind === "orphan_result") {
+          // Its call was truncated away, not cancelled. Dropping it would hide
+          // work the app actually did.
+          return (
+            <ToolResultMessage
+              key={`orphan-${entry.result.createdAt}-${index}`}
+              message={entry.result}
             />
           );
         }
-        if (message.role === "tool_result") {
-          return <ToolResultMessage key={key} message={message} />;
-        }
+        const { message } = entry;
         return (
           <article
-            className={message.role === "user" ? "message message--user" : "message message--agent"}
-            key={key}
+            className={entry.kind === "user" ? "message message--user" : "message message--agent"}
+            key={`${message.createdAt}-${index}`}
           >
             {/* 3a names the speaker in a label and puts the time opposite it,
                 then gives the text the whole column. Master audit 7.2 rules out
@@ -262,7 +279,7 @@ function ChatTranscript({
                 every message a 32px indent it did not need. */}
             <header className="message__meta">
               <span className="message__role">
-                {message.role === "user" ? "You" : brandIdentity.displayName}
+                {entry.kind === "user" ? "You" : brandIdentity.displayName}
               </span>
               <MessageTime at={message.createdAt} />
             </header>
@@ -407,6 +424,12 @@ export function TaskWorkspace({
 
   const composer = useComposer({ initialDraft, locked: composerDisabled, onDraftChange });
   const draft = composer.draft;
+  const status = taskStatus({
+    chatLane,
+    guidance: methodGuidanceState,
+    readOnlyRecovery: isReadOnlyRecovery,
+    selectingContext: attachments.suggesting,
+  });
 
   function startRename() {
     setRenameDraft(sessionTitle);
@@ -519,6 +542,25 @@ export function TaskWorkspace({
             <span className="workspace-status__folder" aria-hidden="true" />
             {hostStatusLabel}
             <span aria-hidden="true" className={`status-dot ${isReadOnlyRecovery ? "status-dot--warning" : ""}`} />
+          </span>
+          {/*
+            What *this task* is doing, beside what the host is.
+
+            The header carried only the host label, so a task waiting on an
+            approval and a task with nothing happening looked identical -- and
+            the one signal the header did carry described the connection rather
+            than the work. `taskStatus` owns the precedence between the several
+            states that are true at once; the only decision here is that a
+            state the user must act on is announced and the rest are not,
+            because a live region that reports every transition to "Working" is
+            one the important announcement arrives inside of.
+          */}
+          <span
+            className={`task-status task-status--${status.tone}`}
+            role={status.announce ? "status" : undefined}
+          >
+            <span aria-hidden="true" className="task-status__dot" />
+            {status.label}
           </span>
         </div>
         <div className="task-header__actions">

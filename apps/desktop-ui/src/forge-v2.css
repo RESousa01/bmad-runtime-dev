@@ -494,6 +494,39 @@
   display: none;
 }
 
+/* What this task is doing, beside what the host is.
+   The 10px uppercase label the rest of 3a uses for state, so it reads as a
+   status and not as another piece of the workspace name next to it. */
+.app-shell--forge-v2 .task-status {
+  align-items: center;
+  color: var(--color-text-soft);
+  display: inline-flex;
+  font-size: var(--text-label);
+  gap: 5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-shell--forge-v2 .task-status__dot {
+  background: currentColor;
+  border-radius: 50%;
+  height: 5px;
+  width: 5px;
+}
+
+/* Two tones carry colour, and both mean the user has something to look at.
+   `neutral` deliberately does not: a dot that is always lit is a dot nobody
+   reads, and then the one that means "your turn" arrives unnoticed. 3a spends
+   its accent on the consequential decision, which is exactly what
+   `awaiting_review` is. */
+.app-shell--forge-v2 .task-status--action {
+  color: var(--color-accent);
+}
+
+.app-shell--forge-v2 .task-status--warning {
+  color: var(--color-warning);
+}
+
 .app-shell--forge-v2 .task-header__actions {
   flex-wrap: nowrap;
   gap: 1px;

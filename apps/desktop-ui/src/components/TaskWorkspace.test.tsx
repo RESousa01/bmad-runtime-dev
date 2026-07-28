@@ -4,7 +4,19 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
-import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { ChatMessage, ContextPreviewProjection } from "../lib/hostClient";
+import type { BmadRequestState } from "../lib/bmadModelProjection";
+
+/// Enough of a review-required state to be recognised. The projections it
+/// carries are rendered by the guidance panels, not by the header, so the
+/// header's tests depend on the kind alone.
+const reviewRequiredGuidance = {
+  kind: "review_required",
+  run: { runId: "run-1", sessionId: "session-1" },
+  runProjection: null,
+  review: {},
+  authority: {},
+} as unknown as BmadRequestState;
 import { TaskWorkspace, type TaskWorkspaceProps } from "./TaskWorkspace";
 import {
   adoptPreview,
@@ -1084,5 +1096,137 @@ describe("TaskWorkspace composer flow", () => {
     await user.click(screen.getByRole("button", { name: /^Send/u }));
 
     await waitFor(() => { expect(onSendRequest).toHaveBeenCalledWith("spaced out"); });
+  });
+});
+
+/// FE-19, through the DOM. The pairing rules are proven in `timelineModel`'s
+/// own tests; these prove the transcript renders what the pairing decided
+/// rather than re-deriving it from adjacency.
+describe("TaskWorkspace transcript pairing", () => {
+  function withMessages(messages: readonly ChatMessage[]) {
+    return createProps({ chatLane: { ...emptyChatLane, messages } });
+  }
+
+  it("stops saying a call is awaiting a result once one arrives", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_call", text: "read a.ts", createdAt: 1_001 },
+      { role: "tool_result", text: "contents", createdAt: 1_002 },
+    ])} />);
+
+    expect(screen.queryByText(/awaiting result/u)).toBeNull();
+  });
+
+  /// The adjacency lookahead told both of these they were still waiting,
+  /// because neither is immediately followed by a result.
+  it("answers two back-to-back calls rather than reporting both as pending", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_call", text: "read a.ts", createdAt: 1_001 },
+      { role: "tool_call", text: "read b.ts", createdAt: 1_002 },
+      { role: "tool_result", text: "contents of a", createdAt: 1_003 },
+      { role: "tool_result", text: "contents of b", createdAt: 1_004 },
+    ])} />);
+
+    expect(screen.queryByText(/awaiting result/u)).toBeNull();
+    expect(screen.getByText("read a.ts")).toBeTruthy();
+    expect(screen.getByText("read b.ts")).toBeTruthy();
+  });
+
+  /**
+   * A retained transcript is truncated to its last N messages, so a slice can
+   * begin with a result whose call was cut off. The lookahead rendered that as
+   * a call still in flight -- the app claiming work is happening that finished
+   * before the slice even starts.
+   */
+  it("shows a result whose call was truncated away, and claims nothing is running", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_result", text: "contents from a truncated call", createdAt: 1_001 },
+      { role: "assistant", text: "here is what I found", createdAt: 1_002 },
+    ])} />);
+
+    expect(screen.getByText(/workspace content, not Forge/u)).toBeTruthy();
+    expect(screen.queryByText(/awaiting result/u)).toBeNull();
+  });
+
+  it("still says so while a call really is outstanding", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_call", text: "read a.ts", createdAt: 1_001 },
+    ])} />);
+
+    expect(screen.getByText(/awaiting result/u)).toBeTruthy();
+  });
+
+  /// Outstanding, but not the last message. The host narrates while a call is
+  /// in flight, and any rule that reads "is this the newest message" or "is
+  /// the next one a result" gets this backwards in one direction or the other.
+  it("reports a call still outstanding behind a later narration", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_call", text: "read a.ts", createdAt: 1_001 },
+      { role: "assistant", text: "looking at that now", createdAt: 1_002 },
+    ])} />);
+
+    expect(screen.getByText(/awaiting result/u)).toBeTruthy();
+  });
+
+  it("does not report one behind a narration that a result followed", () => {
+    render(<TaskWorkspace {...withMessages([
+      { role: "tool_call", text: "read a.ts", createdAt: 1_001 },
+      { role: "assistant", text: "looking at that now", createdAt: 1_002 },
+      { role: "tool_result", text: "contents", createdAt: 1_003 },
+    ])} />);
+
+    expect(screen.queryByText(/awaiting result/u)).toBeNull();
+  });
+});
+
+/// FE-20. The header carried only the host label, so a task waiting on an
+/// approval and a task with nothing happening looked identical.
+describe("TaskWorkspace task status", () => {
+  it("reads as ready when nothing is happening", () => {
+    render(<TaskWorkspace {...createProps()} />);
+    expect(screen.getByText("Ready")).toBeTruthy();
+  });
+
+  it("reads as working while a turn is in flight", () => {
+    render(<TaskWorkspace {...createProps({
+      chatLane: { ...emptyChatLane, pending: "ship it", sending: true },
+    })} />);
+    expect(screen.getByText("Working")).toBeTruthy();
+  });
+
+  it("reads as failed when the last send did not go through", () => {
+    render(<TaskWorkspace {...createProps({
+      chatLane: { ...emptyChatLane, error: "That did not go through.", pending: "ship it" },
+    })} />);
+    expect(screen.getByText("Failed")).toBeTruthy();
+  });
+
+  it("reads as read only in recovery", () => {
+    render(<TaskWorkspace {...createProps({ isReadOnlyRecovery: true })} />);
+    expect(screen.getByText("Read only")).toBeTruthy();
+  });
+
+  /// The one state that is about the user rather than about the app, and the
+  /// only one worth interrupting a screen reader for.
+  it("announces a decision waiting on the user, and nothing else", () => {
+    const { rerender } = render(<TaskWorkspace {...createProps({
+      chatLane: { ...emptyChatLane, sending: true },
+    })} />);
+    expect(screen.getByText("Working").closest("[role='status']")).toBeNull();
+
+    rerender(<TaskWorkspace {...createProps({
+      methodGuidanceState: reviewRequiredGuidance,
+    })} />);
+    const awaiting = screen.getByText("Awaiting your review");
+    expect(awaiting.closest("[role='status']")).toBeTruthy();
+  });
+
+  it("shows the review over a failure, because only one of them is the user's move", () => {
+    render(<TaskWorkspace {...createProps({
+      chatLane: { ...emptyChatLane, error: "That did not go through." },
+      methodGuidanceState: reviewRequiredGuidance,
+    })} />);
+
+    expect(screen.getByText("Awaiting your review")).toBeTruthy();
+    expect(screen.queryByText("Failed")).toBeNull();
   });
 });
