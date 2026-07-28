@@ -136,19 +136,42 @@ defect the comment described as fixed was live. Closures are now data,
 BMAD's disjoint. The transport moved with the gate — fixing only the gate would
 have been worse, enabling a composer whose sends fail at the host.
 
-**FE-10 — partly met.**
+**FE-10 — two of three met; the third is closer but still short.**
 
-- *No circular dependencies* — met, and now measured.
-  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and is
-  wired into `verify:source`. Type-only edges are excluded; an inline
-  `import { type A, b }` still counts.
+- *No circular dependencies* — met, and measured.
+  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and
+  is wired into `verify:source`. Type-only edges are excluded; an inline
+  `import { type A, b }` still counts. 104 modules, no cycles.
 - *Host bootstrap and recovery remain covered* — met.
-- *App.tsx becomes a readable composition map* — **not met.** 3,254 lines, down
-  from 3,572. Twelve modules came out, each surfacing a real defect rather than
-  moving code around: a delete confirmation that lost focus, a journal
-  invalidation that could be half-written, a workspace failure that misreported a
-  host demanding recovery, an attach failure that survived a workspace switch, a
-  status label that sent users to Settings while the host was still checking.
+- *App.tsx becomes a readable composition map* — **not met, but much nearer.**
+  2,990 lines, down from 3,572. Twenty modules came out. What remains is a
+  307-line prelude, a 2,247-line logic body (12 state declarations, 12 effects,
+  38 mostly-small wiring functions), 276 lines of drawer and modal composition,
+  and a 161-line render. The composition is where FE-10's outcome statement
+  says it belongs; the logic body is what is still too large.
+
+Every extraction surfaced a real defect or a real duplication rather than
+moving code around:
+
+| Module | What it fixed |
+|---|---|
+| `useAppBootstrap` | A stale host binding could still write to the screen |
+| `AppRouter` | "No task selected **is** Home" was hidden in a ternary |
+| `workspaceController` | Recovery classification in one place, not three |
+| `taskLifecycle` | Deleting an already-gone task left focus on `<body>` |
+| `modelController` | One of three actions had the authority reset copied inline |
+| `changesHistoryState` | Splitting the invalidation pair passed all 698 tests |
+| `capabilityController` | A run's result could land on another task's tab |
+| `changesRunner` | A superseded failure could blank the current review |
+| `hostProjection` | A revoked host's retention manifest could still land |
+| `contextSelection` | An attach failure survived a workspace switch |
+| `statusLabels` | "Connect a provider" shown while the host was still checking |
+| `guidanceRequest` | A concurrent caller got a failure while the first succeeded |
+| `recoveryReview` | The consent binding to what was displayed was unnamed |
+| `projectionPoller` | A cursor gap was one classification away from an outage |
+| `eraseLocalData` | The discard list had been wrong once and was unreviewable |
+| `menuDispatch` | A null-coded agent could hijack plain chat |
+| `deferredFocusReturn` | Three copies of a mechanism whose failure is silent |
 
 Everything was mutation-verified: break the invariant, watch the test fail,
 restore. Four mutations *passed* and each exposed a weak test that was rewritten
@@ -178,23 +201,22 @@ selection, and a guard test that only checked the projection.
 
 ## Still open
 
-0. **FE-10's composition-root criterion is the one thing phase 2 has left.**
-   App.tsx is 3,254 lines: a 289-line prelude, a 2,854-line component body with
-   53 named functions and 14 effects, and a 161-line JSX return. The remaining
-   bulk is the BMAD guidance authority flow (~450 lines), the recovery-review
-   flow (~150), and the effects.
+0. **FE-10's composition-root criterion is what phase 2 has left.** App.tsx is
+   2,990 lines. The 437 lines of drawer, modal and render composition belong
+   there — FE-10's own outcome statement keeps shell composition in the root.
+   The 2,247-line logic body does not: it still holds ~400 lines of derived
+   values, 12 effects, and 38 small wiring functions.
 
-   The BMAD flow was deliberately left. It is already factored around a named
-   authority predicate (`bmadRequestAuthorityIsCurrent`) and a reducer
-   (`transitionBmadRequest`), so an extraction there moves risk without
-   surfacing a defect — which every other extraction in this phase did.
+   The next honest step is the derived-value block, which is pure and would
+   move cleanly into a `useAppDerivedState` hook. The effects are genuinely the
+   composition root's work and should stay.
 
-   The rule that has held for all twelve: find the shape the sibling functions
-   repeat, name it once, and make the ports interface narrow enough that the
-   feature's whole authority is visible in it. Do not extract a cluster whose
-   only shared property is adjacency. FE-11's domain clients are what make a
-   further extraction worth doing now — a controller can take `ChatClient`
-   instead of the facade.
+   The rule that held for all twenty extractions: find the shape the sibling
+   functions repeat, name it once, and make the ports interface narrow enough
+   that the feature's whole authority is visible in it. Do not extract a
+   cluster whose only shared property is adjacency — every module above earned
+   its place by surfacing a defect, and one that would not is not worth the
+   indirection.
 
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
