@@ -90,6 +90,7 @@ function ModelContextPanel() {
       createdAt={context.session.createdAt}
       inputTokens={context.session.inputTokens}
       messages={context.session.messages}
+      modelContext={context.session.modelContext}
       model={model.modelId}
       provider={model.providerLabel}
       sessionTitle={selectedTaskTitle ?? "No task selected"}

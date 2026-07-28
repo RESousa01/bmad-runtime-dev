@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
 import { OpenCodeIcon } from "./OpenCodeIcon";
+import { projectContextUsage } from "../features/model-context/contextUsage";
+import {
+  unmeasuredModelContext,
+  type ModelContextState,
+} from "../features/model-context/modelContextTypes";
 import "./session-context-panel.css";
 
 /**
@@ -19,7 +24,25 @@ export interface SessionContextPanelProps {
   readonly cacheWriteTokens?: number | undefined;
   readonly costUsd?: number | undefined;
   readonly createdAt?: number | undefined;
+  /**
+   * The locally derived input figure, when there is one.
+   *
+   * Byte-derived on every path that supplies it -- a review's
+   * `totalTokenEstimate` or the attachment sum -- so it is an estimate, and
+   * `projectContextUsage` is what decides whether it is still the best number
+   * available or a measurement has superseded it.
+   */
   readonly inputTokens?: number | undefined;
+  /**
+   * What the host measured for this task's last assembled request.
+   *
+   * The same projection the Context surface reads, deliberately: this panel
+   * showed a "Review Budget Used" percentage against a constant 65,536 -- the
+   * workspace broker's file-read cap -- and a second, independently-written
+   * answer to "how much context is in use" is how one surface comes to
+   * contradict the other.
+   */
+  readonly modelContext?: ModelContextState | undefined;
   readonly messages: readonly SessionContextMessage[];
   readonly model?: string | undefined;
   readonly outputTokens?: number | undefined;
@@ -115,6 +138,7 @@ export function SessionContextPanel({
   costUsd,
   createdAt,
   inputTokens,
+  modelContext = unmeasuredModelContext,
   messages,
   model,
   outputTokens,
@@ -124,7 +148,25 @@ export function SessionContextPanel({
 }: SessionContextPanelProps) {
   const userMessages = messages.filter((message) => message.role === "user").length;
   const assistantMessages = messages.filter((message) => message.role === "assistant").length;
-  const knownTokens = [inputTokens, outputTokens, reasoningTokens]
+  /*
+   * The same projection the Context surface reads.
+   *
+   * It owns the two questions this panel used to answer for itself and get
+   * wrong: which figure is authoritative, and whether there is a window to
+   * measure it against. Answering them here as well is how the drawer and the
+   * composer come to disagree about the same session.
+   */
+  const usage = projectContextUsage(modelContext, inputTokens ?? 0);
+  const measured = usage.basis === "reported";
+  /*
+   * A measurement supersedes the local estimate rather than joining it. The
+   * host measures the whole assembled request, attachments included, so adding
+   * the byte-derived figure on top would count the same files twice.
+   */
+  const inputContribution = measured
+    ? usage.usedTokens
+    : inputTokens;
+  const knownTokens = [inputContribution, outputTokens, reasoningTokens]
     .filter((value): value is number => value !== undefined);
   const totalTokens = knownTokens.length === 0
     ? undefined
@@ -132,36 +174,69 @@ export function SessionContextPanel({
   /*
    * The total inherits the estimate-ness of its parts.
    *
-   * `inputTokens` is the byte-derived figure the row below calls "Input
-   * Estimate"; output and reasoning are counts the provider reported. Summing
-   * them is useful, and printing the sum under a bare "Total Tokens" is not:
-   * the label launders an estimate into a measurement, and the one row that
-   * admitted the guess sits directly beneath it saying otherwise.
+   * Output and reasoning are counts the provider reported. The input half is
+   * only a count once the host has measured it -- otherwise it is the
+   * byte-derived figure the row below calls "Input Estimate". Summing them is
+   * useful; printing the sum under a bare "Total Tokens" is not, because the
+   * label launders a guess into a measurement while the one row that admits
+   * the guess sits directly beneath it saying otherwise.
    */
-  const totalLabel = inputTokens === undefined
+  const totalLabel = measured || inputContribution === undefined
     ? "Total Tokens"
     : "Total Tokens (input estimated)";
+  /*
+   * Only when a window is actually known.
+   *
+   * This is the row that used to read "Local Review Budget 65,536". The host
+   * exposes no model context window anywhere -- `ModelAuthStatusProjection`
+   * carries no token count, `ContextPreviewProjection.modelTarget` is typed as
+   * the literal `null`, and the only `context_window` in the Rust host is a
+   * profile hash -- so absent is the truthful state, and the row is absent
+   * rather than showing a placeholder that reads like a measurement.
+   */
+  const windowRows: readonly (readonly [string, string])[] =
+    usage.window.kind === "known"
+      ? [
+        ["Model Context Window", formatNumber(usage.window.windowTokens)],
+        ["Context Used", `${(usage.window.fraction * 100).toFixed(1)}%`],
+      ]
+      : [];
   const lastActivity = messages.reduce<number | undefined>((latest, message) => {
     if (message.createdAt === undefined) return latest;
     return latest === undefined ? message.createdAt : Math.max(latest, message.createdAt);
   }, undefined);
-  const stats = [
+  const stats: readonly (readonly [string, string])[] = [
     ["Session", sessionTitle],
     ["Messages", formatNumber(messages.length)],
     ["Provider", provider || "—"],
     ["Model", model || "—"],
     /*
-     * "Local Review Budget" and "Review Budget Used" are gone.
+     * "Local Review Budget" and "Review Budget Used" are gone from this list.
      *
      * The budget was a constant 65,536 -- the workspace broker's file-read cap
      * -- and the percentage was this session's tokens over it. Neither is a
      * property of the model, so the percentage answered a question nobody
-     * asked and looked exactly like the answer to the one they did: how much
-     * of the model's context is left. FE-16 removed the same number from the
-     * Context surface; this was its second home.
+     * asked while looking exactly like the answer to the one they did: how
+     * much of the model's context is left. The rows above answer that question
+     * when it can be answered, and are absent when it cannot.
      */
+    ...windowRows,
     [totalLabel, formatNumber(totalTokens)],
-    ["Input Estimate", formatNumber(inputTokens)],
+    /*
+     * The input row says which it is.
+     *
+     * "Input Estimate" was honest while the figure was byte-derived, and would
+     * be a lie the moment a measurement arrived under the same label. `stale`
+     * is named rather than folded into "reported": a measurement the route has
+     * moved out from under is still the best number available, and its age is
+     * the thing that decides whether to trust it.
+     */
+    [
+      measured
+        ? usage.stale ? "Input (last reported)" : "Input (reported)"
+        : "Input Estimate",
+      formatNumber(inputContribution),
+    ],
     ["Output Tokens", formatNumber(outputTokens)],
     ["Reasoning Tokens", formatNumber(reasoningTokens)],
     ["Cache Tokens (read/write)", `${formatNumber(cacheReadTokens)} / ${formatNumber(cacheWriteTokens)}`],
@@ -170,7 +245,7 @@ export function SessionContextPanel({
     ["Total Cost", formatCost(costUsd)],
     ["Session Created", formatTime(createdAt)],
     ["Last Activity", formatTime(lastActivity)],
-  ] as const;
+  ];
 
   return (
     <section className="session-context" data-component="session-context" data-source="opencode">

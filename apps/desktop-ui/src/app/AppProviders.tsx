@@ -42,6 +42,7 @@ import type { BmadPersonaPerspectiveView } from "../components/BmadLibraryPanel"
 import type { GitReviewSource } from "../components/GitReviewPanel";
 import type { GovernedChangesUiState } from "../components/GovernedChangesPanel";
 import type { SessionContextMessage } from "../components/SessionContextPanel";
+import type { ModelContextState } from "../features/model-context/modelContextTypes";
 import type { SettingsDialog, SettingsSection } from "../components/settings/SettingsDialog";
 import type { DeleteTaskDialog } from "../components/DeleteTaskDialog";
 import type { HomeView } from "../components/HomeView";
@@ -141,6 +142,14 @@ export interface ContextSlice {
     readonly createdAt: number | undefined;
     readonly inputTokens: number | undefined;
     readonly messages: readonly SessionContextMessage[];
+    /**
+     * This task's last measured request, from the same store the composer's
+     * Context surface reads.
+     *
+     * Here rather than derived in the panel, because a second derivation is
+     * how the drawer comes to contradict the composer about one session.
+     */
+    readonly modelContext: ModelContextState;
   };
 }
 

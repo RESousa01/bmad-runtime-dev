@@ -2570,6 +2570,10 @@ export function App({
         createdAt: sessionContext.createdAt,
         inputTokens: sessionContext.inputTokens,
         messages: sessionContext.messages,
+        // The same per-task value the composer's Context surface reads, so the
+        // drawer and the composer cannot report different numbers for one
+        // session.
+        modelContext: taskSessions.session.modelContext,
       },
     },
     deletion: pendingDeleteTask === null ? null : {
