@@ -1,0 +1,108 @@
+/*
+ * Compatibility markers for the skills surfaces (FE-25).
+ *
+ * Everything here hangs off `.skill-compat`, one class deeper than the shared
+ * sheet's `.bmad-*` rules. This file is injected before `styles.css`, so
+ * matching its specificity would lose on source order and the markers would
+ * silently take the panel's generic row styling instead.
+ *
+ * No new colours or type scales: the three verdicts reuse the status tokens the
+ * rest of the shell already speaks, and the one accent stays on the single
+ * consequential control ("Start reviewed run"), which is not styled here.
+ */
+
+.skill-compat.skill-compat__verdict {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+  justify-self: start;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.skill-compat.skill-compat__verdict::before {
+  background: var(--color-status-inactive);
+  border-radius: 999px;
+  content: "";
+  flex: 0 0 auto;
+  height: 6px;
+  width: 6px;
+}
+
+.skill-compat.skill-compat__verdict[data-verdict="available"] {
+  color: var(--color-status-active);
+}
+
+.skill-compat.skill-compat__verdict[data-verdict="available"]::before {
+  background: var(--color-status-active);
+}
+
+.skill-compat.skill-compat__verdict[data-verdict="unavailable"] {
+  color: var(--color-status-pending);
+}
+
+.skill-compat.skill-compat__verdict[data-verdict="unavailable"]::before {
+  background: var(--color-status-pending);
+}
+
+/*
+ * "Not known" is deliberately the quietest of the three rather than the
+ * loudest. It is not a fault the user caused and not a warning they can act
+ * on; dressing it as one would train them to ignore the marker that is.
+ */
+.skill-compat.skill-compat__verdict[data-verdict="unknown"] {
+  color: var(--color-text-muted);
+}
+
+/* The reason a skill cannot run, or cannot be judged. Ruled rather than boxed:
+   it belongs to the row above it, and a second card inside a card is how this
+   panel came to look like a stack of errors. */
+.skill-compat.skill-compat__reason {
+  border-left: 2px solid var(--color-border);
+  color: var(--color-text-soft);
+  margin: 0;
+  padding: 2px 0 2px 10px;
+}
+
+.skill-compat.skill-compat__coverage {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.skill-compat.skill-compat__coverage > summary {
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.skill-compat.skill-compat__coverage > summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.skill-compat.skill-compat__coverage > div {
+  display: grid;
+  gap: 4px;
+  padding: 4px 0 2px 10px;
+}
+
+.skill-compat.skill-compat__coverage p {
+  margin: 0;
+}
+
+/* The unreviewed-compatibility line. It sits on every skill, runnable or not,
+   so it stays quiet — but it never inherits the surrounding row's muted size,
+   because it is the sentence the surface is least allowed to have skipped. */
+.skill-compat.skill-compat__unreviewed {
+  color: var(--color-text-soft);
+}
+
+.skill-compat.skill-compat__state {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
