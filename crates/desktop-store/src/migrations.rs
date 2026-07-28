@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 18;
+pub(crate) const LATEST_STORE_VERSION: u32 = 19;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -293,6 +293,116 @@ const V17_TO_V18_SQL: &str = "BEGIN IMMEDIATE;
  ALTER TABLE payloads ADD COLUMN verified_at TEXT;
  DELETE FROM store_meta WHERE key = 'payload_verification_watermark';
  PRAGMA user_version = 18;
+ COMMIT;";
+
+/// v19 adds the model catalog snapshot and the model selection history.
+pub(crate) const V19_TABLES: [&str; 28] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// Which model answers, and which catalog said so (FND-041).
+///
+/// Two tables, because they are two different authorities with two different
+/// lifetimes.
+///
+/// `model_catalog_snapshots` is **metadata only**. It deliberately carries no
+/// profile, no display text, and no `ETag`. That is the whole point: a restarted
+/// desktop can say "you were last on catalog `v7`, generated at `T`, expiring at
+/// `U`" and render that as stale while it refetches, but it cannot reconstruct a
+/// catalog from local state and it cannot authorize anything. A cached catalog
+/// that could authorize a request is exactly the failure this shape forbids —
+/// there is nothing here to authorize with. It carries no validator either, so a
+/// restart always refetches unconditionally rather than letting month-old local
+/// state shape a conditional request.
+///
+/// `model_profile_selections` is the user's own history. It stores only the
+/// stable organization-chosen identifiers and the identity of the catalog the
+/// choice was made from. A deployment name, an endpoint, a subscription, or a
+/// credential is not merely absent — there is no column that could hold one, so
+/// no future write can introduce one without a migration and a review.
+///
+/// Both are scoped by `workspace_id` like `chat_sessions` and
+/// `bmad_capability_runs`, each with a matching index, because a workspace is
+/// this product's unit of isolation and a model chosen in one workspace must not
+/// silently become the model of another.
+///
+/// `model_profile_selections_one_current` is a *partial* unique index rather
+/// than a flag the writer promises to maintain: at most one row per workspace
+/// may be current, and the database enforces it even if a future writer forgets
+/// to demote the previous one. History rows survive demotion, which is what lets
+/// "the profile you had selected is gone" be answered with the next best prior
+/// choice instead of an arbitrary one.
+const V18_TO_V19_SQL: &str = "BEGIN IMMEDIATE;
+ CREATE TABLE model_catalog_snapshots (
+   workspace_id TEXT NOT NULL CHECK(length(workspace_id) > 0),
+   subject_hash TEXT NOT NULL CHECK(length(subject_hash) > 0),
+   catalog_version TEXT NOT NULL
+     CHECK(length(catalog_version) >= 5 AND length(catalog_version) <= 40),
+   catalog_hash TEXT NOT NULL
+     CHECK(length(catalog_hash) = 71 AND catalog_hash GLOB 'sha256:*'),
+   catalog_state TEXT NOT NULL CHECK(catalog_state IN ('fresh', 'stale_usable')),
+   profile_count INTEGER NOT NULL CHECK(profile_count >= 0 AND profile_count <= 64),
+   default_profile_id TEXT
+     CHECK(default_profile_id IS NULL
+       OR (length(default_profile_id) >= 3 AND length(default_profile_id) <= 64)),
+   generated_at_ms INTEGER NOT NULL
+     CHECK(generated_at_ms >= 0 AND generated_at_ms <= 9007199254740991),
+   expires_at_ms INTEGER NOT NULL
+     CHECK(expires_at_ms >= 0 AND expires_at_ms <= 9007199254740991),
+   verified_at_ms INTEGER NOT NULL
+     CHECK(verified_at_ms >= 0 AND verified_at_ms <= 9007199254740991),
+   CHECK(expires_at_ms > generated_at_ms),
+   PRIMARY KEY(workspace_id, subject_hash)
+ ) STRICT;
+ CREATE INDEX model_catalog_snapshots_by_workspace
+   ON model_catalog_snapshots(workspace_id, verified_at_ms, subject_hash);
+ CREATE TABLE model_profile_selections (
+   workspace_id TEXT NOT NULL CHECK(length(workspace_id) > 0),
+   profile_id TEXT NOT NULL CHECK(length(profile_id) >= 3 AND length(profile_id) <= 64),
+   variant_id TEXT NOT NULL CHECK(length(variant_id) >= 2 AND length(variant_id) <= 32),
+   catalog_version TEXT NOT NULL
+     CHECK(length(catalog_version) >= 5 AND length(catalog_version) <= 40),
+   catalog_hash TEXT NOT NULL
+     CHECK(length(catalog_hash) = 71 AND catalog_hash GLOB 'sha256:*'),
+   selected_at_ms INTEGER NOT NULL
+     CHECK(selected_at_ms >= 0 AND selected_at_ms <= 9007199254740991),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   is_current INTEGER NOT NULL CHECK(is_current IN (0, 1)),
+   PRIMARY KEY(workspace_id, profile_id, variant_id)
+ ) STRICT;
+ CREATE INDEX model_profile_selections_by_workspace
+   ON model_profile_selections(workspace_id, selected_at_ms DESC, profile_id, variant_id);
+ CREATE UNIQUE INDEX model_profile_selections_one_current
+   ON model_profile_selections(workspace_id) WHERE is_current = 1;
+ PRAGMA user_version = 19;
  COMMIT;";
 
 /// Widens `chat_messages.role` to admit the two tool roles (ADR-0009).
@@ -989,8 +1099,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V17_TO_V18_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            18 => {
                 require_store_tables(connection, &V18_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V18_TO_V19_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V19_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

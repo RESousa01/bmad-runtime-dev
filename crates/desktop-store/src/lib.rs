@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 23] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 24] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -59,6 +59,7 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 23] = [
     ("execution_checkpoints", "execution_checkpoints"),
     ("execution_results", "execution_results"),
     ("help_runs", "bmad_help_run_creations"),
+    ("model_selections", "model_profile_selections"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -77,17 +78,20 @@ const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_architecture;
 mod bmad_builder;
 mod bmad_capability;
+mod bmad_config;
 mod bmad_method;
 mod chat;
 mod execution;
 mod memlog;
 mod migrations;
+mod model_catalog;
 mod retention;
 
 pub use retention::MAX_DURABLE_CHAT_MESSAGES;
 
 pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSession};
 pub use bmad_capability::BmadCapabilityRunRecord;
+pub use bmad_config::BmadConfigSnapshot;
 pub use bmad_method::{
     BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
@@ -104,6 +108,7 @@ pub use memlog::{
     MemlogAppend, MemlogAppendOutcome, StoredMemlogEntry, MAX_MEMLOG_ENTRIES_PER_DOC_WORKSPACE,
     MAX_MEMLOG_ENTRY_BYTES, MAX_MEMLOG_SUBJECT_BYTES,
 };
+pub use model_catalog::{StoredCatalogSnapshot, StoredModelSelection, MAX_RECENT_MODEL_SELECTIONS};
 
 #[cfg(test)]
 use migrations::LATEST_STORE_VERSION;
@@ -2164,10 +2169,18 @@ mod tests {
     fn retention_manifest_discloses_every_user_content_table(
     ) -> Result<(), Box<dyn std::error::Error>> {
         /// Tables that hold no user-originated content: schema bookkeeping, the
-        /// transient dispatch queue, and the quarantine ledger — which holds
-        /// hashes and a failure code, never content.
-        const NOT_USER_CONTENT: [&str; 4] =
-            ["store_meta", "user_version", "outbox", "payload_quarantine"];
+        /// transient dispatch queue, the quarantine ledger — which holds hashes
+        /// and a failure code, never content — and the model catalog snapshot,
+        /// which holds only the support plane's own published metadata about a
+        /// catalog the user neither wrote nor chose. The user's model *choice*
+        /// is user content and is disclosed, as `model_profile_selections`.
+        const NOT_USER_CONTENT: [&str; 5] = [
+            "store_meta",
+            "user_version",
+            "outbox",
+            "payload_quarantine",
+            "model_catalog_snapshots",
+        ];
 
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
@@ -2188,7 +2201,7 @@ mod tests {
         // Pinned to the *current* table set, not a frozen one: the list this
         // guards fell behind two migrations once already, and a guard that
         // checks a stale inventory cannot notice the next time.
-        for table in crate::migrations::V18_TABLES {
+        for table in crate::migrations::V19_TABLES {
             if NOT_USER_CONTENT.contains(&table) {
                 continue;
             }
@@ -2557,7 +2570,9 @@ mod tests {
             )?;
             let path = store.database_path();
             store.connection.lock().execute_batch(
-                "DROP TABLE payload_quarantine;
+                "DROP TABLE model_profile_selections;
+                 DROP TABLE model_catalog_snapshots;
+                 DROP TABLE payload_quarantine;
                  ALTER TABLE payloads DROP COLUMN verified_at;
                  PRAGMA user_version = 16;",
             )?;
@@ -2951,7 +2966,9 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE chat_messages;
+            "DROP TABLE model_profile_selections;
+             DROP TABLE model_catalog_snapshots;
+             DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
@@ -3005,7 +3022,9 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE chat_messages;
+            "DROP TABLE model_profile_selections;
+             DROP TABLE model_catalog_snapshots;
+             DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;
@@ -3112,7 +3131,9 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE chat_messages;
+            "DROP TABLE model_profile_selections;
+             DROP TABLE model_catalog_snapshots;
+             DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
              DROP TABLE bmad_architecture_session_steps;

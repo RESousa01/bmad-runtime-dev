@@ -1465,7 +1465,7 @@ fn method_repository_atomically_consumes_one_decision_and_recovers_after_restart
 fn fresh_store_reaches_compiled_v10_schema() -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(store.schema_version()?, 18);
+    assert_eq!(store.schema_version()?, 19);
     let tables = store.schema_table_names()?;
     assert!(tables.contains(&"bmad_method_decision_consumptions".to_owned()));
     assert!(tables.contains(&"bmad_method_sessions".to_owned()));
@@ -1488,7 +1488,9 @@ fn fresh_and_v4_upgraded_stores_have_identical_v10_catalogs(
     drop(upgraded);
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
-        "DROP TABLE chat_messages;
+        "DROP TABLE model_profile_selections;
+         DROP TABLE model_catalog_snapshots;
+         DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
          DROP TABLE bmad_memlog_entries;
          DROP TABLE bmad_architecture_session_steps;
@@ -1514,7 +1516,7 @@ fn fresh_and_v4_upgraded_stores_have_identical_v10_catalogs(
     drop(connection);
 
     let reopened = LocalStore::open(upgraded_directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 18);
+    assert_eq!(reopened.schema_version()?, 19);
     assert_eq!(reopened.schema_catalog()?, expected);
     Ok(())
 }
@@ -1972,7 +1974,7 @@ fn frozen_pre_lineage_created_v1_session_restores_without_a_schema_migration(
     drop(store);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 18);
+    assert_eq!(reopened.schema_version()?, 19);
     let restored = reopened
         .load_method_session(&frozen.scope(), &frozen.session_id())?
         .expect("frozen Created/unbound session");
@@ -1993,6 +1995,8 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v10(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE model_profile_selections;
+         DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
          DROP TABLE bmad_memlog_entries;
@@ -2033,6 +2037,8 @@ fn migration_interruptions_roll_back_and_reopen_to_complete_v10(
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "PRAGMA foreign_keys = OFF;
+         DROP TABLE model_profile_selections;
+         DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
          DROP TABLE bmad_memlog_entries;
@@ -2080,7 +2086,7 @@ fn migration_failure_can_open_retained_method_history_read_only(
     assert!(LocalStore::open(directory.path(), &TestProtector).is_err());
 
     let recovery = LocalStore::open_read_only_recovery(directory.path(), &TestProtector)?;
-    assert_eq!(recovery.schema_version()?, 18);
+    assert_eq!(recovery.schema_version()?, 19);
     assert!(!recovery
         .schema_table_names()?
         .contains(&"bmad_method_checkpoints".to_owned()));

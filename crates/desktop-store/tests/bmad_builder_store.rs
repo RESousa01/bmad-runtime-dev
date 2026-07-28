@@ -471,7 +471,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 18);
+    assert_eq!(fresh.schema_version()?, 19);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -481,6 +481,8 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         let connection = rusqlite::Connection::open(&database_path)?;
         connection.execute_batch(
             "PRAGMA foreign_keys = OFF;
+             DROP TABLE model_profile_selections;
+             DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
              DROP TABLE bmad_memlog_entries;
@@ -510,7 +512,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 18);
+        assert_eq!(reopened.schema_version()?, 19);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
