@@ -80,7 +80,6 @@ import {
   getDefaultHostRuntime,
   getSafeHostMessage,
   latestResultForRun,
-  resetDefaultHostRuntime,
   type AboutProjection,
   type BmadWorkflowStateProjection,
   type RetentionManifestProjection,
@@ -99,6 +98,7 @@ import {
   type WorkspaceFilePick,
   type WorkspaceSearchMatch,
 } from "./lib/hostClient";
+import { useAppBootstrap } from "./app/useAppBootstrap";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
   BmadLibrarySnapshot,
@@ -144,6 +144,11 @@ const browserDemoWorkspace: WorkspaceProjection = {
   contextReadEpoch: 1,
   governedEditEpoch: 1,
 };
+
+/// Module scope, not an inline literal: the bootstrap hook takes it as a
+/// dependency, and a fresh array every render would restart the loader effect
+/// on every render.
+const BROWSER_DEMO_WORKSPACES: readonly WorkspaceProjection[] = [browserDemoWorkspace];
 
 const browserDemoGitReviewSource: GitReviewSource = {
   async readStatus() {
@@ -238,8 +243,6 @@ function recoveryManualReviewMessage(
   }
 }
 
-type HostUiRuntime = HostRuntime | { kind: "loading" };
-
 export type PrimaryRoute =
   | { kind: "home" }
   | { kind: "task"; taskId: string | null };
@@ -296,12 +299,6 @@ export function App({
   // task session id) so a late completion routes to its owning task instead of
   // whichever tab is visible. Bound after `selectedSessionId` is derived.
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
-  const [hostRuntime, setHostRuntime] = useState<HostUiRuntime>({ kind: "loading" });
-  /// Bumped to re-run the bootstrap effect. `unavailable` is otherwise
-  /// terminal for the life of the window, because the default loader memoises
-  /// its promise — so a host that failed to verify once, or a persisted
-  /// projection this renderer could not parse, could never be retried.
-  const [hostRuntimeAttempt, setHostRuntimeAttempt] = useState(0);
   const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
@@ -364,8 +361,58 @@ export function App({
   const contextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
   const pendingContextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
   const focusContextDrawerOnOpenRef = useRef(false);
-  const hostBindingGenerationRef = useRef(0);
   const bmadProjectionGenerationRef = useRef(0);
+
+  /*
+   * The invalidator reaches the hook through a ref because it is defined below,
+   * after the projection clearers it composes, while the hook has to sit above
+   * everything derived from `hostRuntime` -- which is most of this component.
+   * Safe because the port is only ever called from an event handler or from a
+   * resolved promise, never during render, so `.current` is always the
+   * committed version by the time it runs.
+   */
+  const hostBoundUiInvalidatorRef = useRef<() => void>(() => undefined);
+  const invalidateHostBoundUiPort = useCallback(() => {
+    hostBoundUiInvalidatorRef.current();
+  }, []);
+  /*
+   * FE-10: the host runtime state machine lives in `useAppBootstrap`.
+   *
+   * The three transitions -- adopt, degrade to recovery, drop to unavailable --
+   * share one invariant: each bumps the binding generation before publishing,
+   * so every async read still in flight against the previous binding lands
+   * stale and is discarded. Keeping them in one place is what makes that
+   * invariant checkable; interleaved with forty other pieces of state it was
+   * not.
+   */
+  const {
+    adoptHostRuntime,
+    hostBindingGenerationRef,
+    hostRuntime,
+    markHostUnavailable,
+    markReadOnlyRecovery,
+    republishHostRuntime,
+    retryHostRuntime,
+  } = useAppBootstrap({
+    adoptWorkspaces: useCallback((
+      workspaces: readonly WorkspaceProjection[],
+      preserveActive: boolean,
+    ) => {
+      setHostWorkspaces([...workspaces]);
+      setActiveWorkspaceId((current) => (
+        preserveActive
+        && current !== null
+        && workspaces.some(({ workspaceId }) => workspaceId === current)
+          ? current
+          : workspaces[0]?.workspaceId ?? null
+      ));
+    }, []),
+    browserDemoWorkspaces: BROWSER_DEMO_WORKSPACES,
+    invalidateHostBoundUi: invalidateHostBoundUiPort,
+    loadRuntime: hostRuntimeLoader,
+    reportRecoveryNotice: setWorkspaceActionError,
+  });
+
   const bmadLibraryRequestedRef = useRef(false);
   const bmadHelpGenerationRef = useRef(0);
   const bmadHelpCreationRef = useRef<Promise<void> | null>(null);
@@ -876,11 +923,15 @@ export function App({
           && bootstrap.workspaces.some(({ workspaceId }) => workspaceId === current)
           ? current
           : bootstrap.workspaces[0]?.workspaceId ?? null);
+        // `republishHostRuntime`, not `adoptHostRuntime`: the new binding
+        // generation was claimed above, before the await, and adopting here
+        // would claim a second one -- invalidating the very read that is
+        // currently succeeding.
         if (bootstrap.bootMode !== "ready") {
-          setHostRuntime({ kind: "read_only_recovery", client, bootstrap });
+          republishHostRuntime({ kind: "read_only_recovery", client, bootstrap });
           return;
         }
-        setHostRuntime({ kind: "ready", client, bootstrap });
+        republishHostRuntime({ kind: "ready", client, bootstrap });
         if (!bootstrap.supportedCommands.includes("bmad.library.snapshot")) {
           return;
         }
@@ -900,7 +951,6 @@ export function App({
           || (error instanceof HostCommandError && error.details.code === "renderer_session_expired")
         )
       ) {
-        hostBindingGenerationRef.current += 1;
         bmadLibraryRequestedRef.current = false;
         bmadProjectionGenerationRef.current += 1;
         setBmadLibraryState({ kind: "idle" });
@@ -909,14 +959,11 @@ export function App({
         setContextSuggestionBusy(false);
         setContextPreview(null);
         setContextSelectionMode("manual");
-        setHostRuntime((current) => current.kind === "ready" && current.client === client
-          ? {
-            kind: "unavailable",
-            client: null,
-            bootstrap: null,
-            message: "Forge could not reach the Windows host. Local actions remain unavailable.",
-          }
-          : current);
+        // `markHostUnavailable` bumps the binding generation itself, so the
+        // explicit bump that used to sit at the top of this branch is gone --
+        // two bumps for one transition would have been harmless but is one
+        // more place the epoch could drift.
+        markHostUnavailable(client);
         return;
       }
       setBmadLibraryState({
@@ -925,7 +972,15 @@ export function App({
         retryable: error instanceof HostCommandError && error.details.retryable,
       });
     }
-  }, []);
+  }, [
+    // All three are stable for the life of the component -- a ref object and
+    // two `useCallback`s with stable dependencies -- so naming them keeps this
+    // callback stable while satisfying the exhaustive-deps rule honestly
+    // rather than by suppression.
+    hostBindingGenerationRef,
+    markHostUnavailable,
+    republishHostRuntime,
+  ]);
 
   const clearMethodLibraryProjection = useCallback(() => {
     bmadLibraryRequestedRef.current = false;
@@ -1007,88 +1062,10 @@ export function App({
     invalidateWorkspaceBoundUi,
   ]);
 
-  const adoptHostRuntime = useCallback((
-    runtime: HostRuntime,
-    preserveActiveWorkspace: boolean,
-  ) => {
-    hostBindingGenerationRef.current += 1;
-    invalidateHostBoundUi();
-    setHostRuntime(runtime);
-    const workspaces = runtime.kind === "browser_demo"
-      ? [browserDemoWorkspace]
-      : runtime.kind === "ready" || runtime.kind === "read_only_recovery"
-        ? runtime.bootstrap.workspaces
-        : [];
-    setHostWorkspaces(workspaces);
-    setActiveWorkspaceId((current) => (
-      preserveActiveWorkspace
-      && current !== null
-      && workspaces.some(({ workspaceId }) => workspaceId === current)
-        ? current
-        : workspaces[0]?.workspaceId ?? null
-    ));
-  }, [invalidateHostBoundUi]);
-
-  // `useCallback`, not a plain declaration, because both markers are captured
-  // by long-lived effects — the projection poller and the method-guidance
-  // recovery effect. A declaration is a new function on every render, so it can
-  // never be an honest dependency: naming it would restart the poller on every
-  // render, and omitting it (which is what the code did) leaves the poller
-  // holding the closure from whichever render happened to mount it. That
-  // closure reads `invalidateHostBoundUi` from a stale render, so the transition
-  // into read-only recovery could invalidate the wrong host binding's UI.
-  const markReadOnlyRecovery = useCallback((
-    client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"],
-    sequence: number,
-  ) => {
-    hostBindingGenerationRef.current += 1;
-    invalidateHostBoundUi();
-    setHostRuntime((current) => {
-      if (
-        (current.kind !== "ready" && current.kind !== "read_only_recovery")
-        || current.client !== client
-      ) {
-        return current;
-      }
-      return {
-        kind: "read_only_recovery",
-        client,
-        bootstrap: {
-          ...current.bootstrap,
-          bootMode: "read_only_recovery",
-          supportedCommands: current.bootstrap.supportedCommands.filter(
-            (command) => command === "app.get_boot_state" || command === "workspace.list",
-          ),
-          projectionSequence: Math.max(current.bootstrap.projectionSequence, sequence),
-        },
-      };
-    });
-    setWorkspaceActionError(
-      "Forge entered read-only recovery. Workspace access was not changed.",
-    );
-  }, [invalidateHostBoundUi]);
-
-  /// Stabilised for the same reason as `markReadOnlyRecovery` above.
-  const markHostUnavailable = useCallback((
-    client: Extract<HostRuntime, { kind: "ready" | "read_only_recovery" }>["client"],
-  ) => {
-    hostBindingGenerationRef.current += 1;
-    invalidateHostBoundUi();
-    setHostRuntime((current) => {
-      if (
-        (current.kind !== "ready" && current.kind !== "read_only_recovery")
-        || current.client !== client
-      ) {
-        return current;
-      }
-      return {
-        kind: "unavailable",
-        client: null,
-        bootstrap: null,
-        message: "Forge could not reach the Windows host. Local actions remain unavailable.",
-      };
-    });
-  }, [invalidateHostBoundUi]);
+  // Closes the loop opened by `invalidateHostBoundUiPort` above. Assigned
+  // during render, matching how this component already keeps
+  // `workspaceAuthorityKeyRef` and `bmadHelpStateRef` current.
+  hostBoundUiInvalidatorRef.current = invalidateHostBoundUi;
 
   function dismissWorkspacePanel() {
     setAppModal(null);
@@ -1551,40 +1528,6 @@ export function App({
   }, [contextDrawer]);
 
   useEffect(() => {
-    let isCurrent = true;
-    void hostRuntimeLoader()
-      .then((runtime) => {
-        if (!isCurrent) {
-          return;
-        }
-        adoptHostRuntime(runtime, false);
-      })
-      .catch(() => {
-        if (!isCurrent) {
-          return;
-        }
-        adoptHostRuntime({
-          kind: "unavailable",
-          client: null,
-          bootstrap: null,
-          message: "Forge could not reach the Windows host. Local actions remain unavailable.",
-        }, false);
-      });
-    return () => {
-      isCurrent = false;
-    };
-  }, [adoptHostRuntime, hostRuntimeAttempt, hostRuntimeLoader]);
-
-  /// The way back out of `unavailable`. Clearing the memoised default runtime
-  /// is what makes the retry real: without it the loader would hand back the
-  /// same settled failure forever.
-  const retryHostRuntime = useCallback(() => {
-    resetDefaultHostRuntime();
-    setHostRuntime({ kind: "loading" });
-    setHostRuntimeAttempt((attempt) => attempt + 1);
-  }, []);
-
-  useEffect(() => {
     invalidateWorkspaceBoundUi();
   }, [invalidateWorkspaceBoundUi, workspaceAuthorityKey]);
 
@@ -1935,6 +1878,10 @@ export function App({
     };
   }, [
     adoptHostRuntime,
+    // A ref object, so naming it never restarts the poller. The poller reads
+    // `.current` on every tick to decide whether its binding is still the live
+    // one, which is why it must be a dependency at all.
+    hostBindingGenerationRef,
     hostRuntime,
     loadMethodLibrary,
     markHostUnavailable,
