@@ -10,6 +10,7 @@ import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
 import type { ChatMessage } from "../lib/hostClient";
 import type { TaskAttachments } from "../features/attachments/attachmentTypes";
+import type { ModelContextState } from "../features/model-context/modelContextTypes";
 import {
   RETAINED_TRANSCRIPT_MESSAGES,
   type ChatLaneState,
@@ -71,6 +72,14 @@ export interface TaskWorkspaceProps {
   methodLibraryAvailable: boolean;
   modelAccessDetail: string;
   modelAccessLabel: string;
+  /**
+   * What this task's last measured request cost, if one has been measured.
+   *
+   * Optional because nothing constructs a snapshot yet -- no host command
+   * returns one -- so in production this stays `unmeasured` and the Context
+   * surface says so. That is the honest state, not a placeholder for one.
+   */
+  modelContext?: ModelContextState | undefined;
   /**
    * Opens the native file dialog and resolves to what was attached.
    *
@@ -337,6 +346,7 @@ export function TaskWorkspace({
   methodLibraryAvailable,
   modelAccessDetail,
   modelAccessLabel,
+  modelContext,
   onAttachFiles,
   onAttachFolder,
   onClearContext,
@@ -841,6 +851,7 @@ export function TaskWorkspace({
               if (intent.length > 0) void onSuggestContext(intent);
             }}
             attachments={attachments}
+            modelContext={modelContext}
           />
           <div className="composer__right">
             {/*

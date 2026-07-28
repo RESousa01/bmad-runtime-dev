@@ -2670,6 +2670,14 @@ export function App({
         composerDisabled: !localTaskDraftingAvailable
           || !activeWorkspace
           || methodRequestInFlight,
+        /*
+         * Home cannot tell "you have not opened a folder yet" from "Forge
+         * cannot reach the process that would open one" without this, and the
+         * two want opposite things from the user. Unwired it assumes `ready`
+         * and tells someone to open a folder while the host that would open it
+         * is still starting.
+         */
+        hostKind: hostRuntime.kind,
         onActivateWorkspace: activateWorkspace,
         onNewTask: () => { startNewSession(); },
         onOpenWorkspace: () => void selectWorkspace(),
@@ -2719,6 +2727,10 @@ export function App({
           methodLibraryAvailable,
           modelAccessDetail: modelAccess.detail,
           modelAccessLabel: modelAccess.label,
+          // This task's own measurement, not the app's. FE-13 keyed it per task
+          // precisely so a figure measured for one conversation cannot be shown
+          // beside another's attachments.
+          modelContext: taskSessions.session.modelContext,
           onAskMethodGuidance: sendBmadMessage,
           onAttachFiles: canBrowseFiles ? browseAndAttachFiles : undefined,
           onAttachFolder: canBrowseFolder ? browseAndAttachFolder : undefined,

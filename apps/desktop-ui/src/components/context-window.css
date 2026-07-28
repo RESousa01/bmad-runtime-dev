@@ -178,6 +178,22 @@
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   font-weight: 600;
+  /* The denominator can be a word now. "2K / Unavail-\nable" broken across two
+     lines in the middle of a 25px row is how it read before this. */
+  white-space: nowrap;
+}
+
+/* Where the figure came from -- Reported, Estimated, Last reported. The
+   product's standard 10px label, muted, because it qualifies the number beside
+   it rather than competing with it. No colour: a provenance that reads as a
+   warning would be read once and then ignored, and this one is permanent. */
+.context-window__basis {
+  color: var(--color-text-muted);
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .context-window__file-count {

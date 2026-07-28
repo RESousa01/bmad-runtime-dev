@@ -1,0 +1,28 @@
+/*
+ * Home index: the two rules the shared Home styles do not already cover.
+ *
+ * Everything else on this surface reuses the `.home-view__*` vocabulary in
+ * `styles.css` and `forge-v2.css`, so the index inherits the 3a rail, row and
+ * label treatment without restating it. Only the empty notice is new, and only
+ * because the same "open a folder" control now appears in the working column
+ * rather than in the 200px rail it was sized for.
+ *
+ * Both selectors are one class deeper than the rules they correct. This file is
+ * pulled in through `HomeView`, which the app imports before `forge-v2.css`, so
+ * an equal-specificity rule here would lose on source order — the same trap the
+ * correction block at the foot of `styles.css` documents.
+ */
+
+.app-shell--forge-v2 .home-view--opencode-v2 .home-index__empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+/* In the rail this button is a full-width row; in the working column that
+   stretches one short action across the whole surface. It is sized to its
+   label here, which is what makes it read as an offer rather than as a bar. */
+.app-shell--forge-v2 .home-view--opencode-v2 .home-index__empty .home-view__empty-action {
+  margin-top: 0;
+  width: auto;
+}

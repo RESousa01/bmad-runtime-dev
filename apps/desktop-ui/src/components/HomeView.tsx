@@ -2,7 +2,10 @@ import { Button } from "@sapphirus/ui";
 import { Send } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { WorkspaceProjection } from "../lib/hostClient";
-import { OpenCodeIcon } from "./OpenCodeIcon";
+import { homeEmptyState, type HomeHostKind } from "./home/homeEmptyState";
+import { ProjectRail } from "./home/ProjectRail";
+import { TaskIndex } from "./home/TaskIndex";
+import "./home/home-index.css";
 
 export interface HomeTaskSummary {
   readonly id: string;
@@ -14,6 +17,17 @@ export interface HomeViewProps {
   readonly activeWorkspaceId: string | null;
   readonly canOpenFolder: boolean;
   readonly composerDisabled: boolean;
+  /**
+   * What the host is doing, which is the only thing that can distinguish "you
+   * have not opened a folder yet" from "Forge cannot reach the process that
+   * would open one".
+   *
+   * Optional so the shell can be wired separately, and defaulted to `ready`
+   * because that is the state in which the rest of Home's copy is already
+   * correct: an unwired Home says "open a folder", which is right whenever the
+   * host can open one and merely imprecise while it is starting up.
+   */
+  readonly hostKind?: HomeHostKind | undefined;
   readonly onActivateWorkspace: (workspaceId: string) => void;
   readonly onOpenWorkspaceManager: () => void;
   readonly onOpenWorkspace: () => void;
@@ -37,13 +51,26 @@ export interface HomeViewProps {
 }
 
 /**
- * The landing view: projects on the left, a composer and recent tasks on the
- * right. Submitting routes into a fresh task.
+ * The landing surface, as an index rather than an introduction.
+ *
+ * A user opening Forge is almost always resuming, so Home answers the three
+ * questions that resuming needs — which projects exist, which one is live, what
+ * was I last doing — in one screen, with no disclosure to open and no card to
+ * read past. The projects rail and the task index are separate components
+ * because they are separate questions; this file owns only the composer, the
+ * layout, and the decision about what an empty index means.
+ *
+ * Tasks are listed flat rather than nested under their project on purpose. A
+ * `TaskRecord` carries no workspace id — the store keeps one list for the whole
+ * app — so grouping the rows under the rail would invent a relationship the
+ * data does not have, and the grouping would start lying the moment the user
+ * switched projects and the same rows reappeared under a different heading.
  */
 export function HomeView({
   activeWorkspaceId,
   canOpenFolder,
   composerDisabled,
+  hostKind = "ready",
   onActivateWorkspace,
   onOpenWorkspaceManager,
   onOpenWorkspace,
@@ -83,52 +110,16 @@ export function HomeView({
     >
       <h1 className="sr-only">Forge workspace</h1>
       <div className="home-view__overview">
-        <section className="home-view__projects">
-          <header className="home-view__section-header">
-            <h2>Projects</h2>
-            <button
-              aria-label="Open workspace"
-              disabled={!canOpenFolder}
-              onClick={onOpenWorkspace}
-              type="button"
-            >
-              <OpenCodeIcon name="folder-add-left" size={14} />
-            </button>
-          </header>
-          {workspaces.length === 0 ? (
-            <button className="home-view__empty-action" onClick={onOpenWorkspace} type="button">
-              <OpenCodeIcon name="folder" size={14} />
-              Open a local workspace
-            </button>
-          ) : (
-            <ul aria-label="Projects" className="home-view__project-list">
-              {workspaces.map((workspace) => (
-                <li key={workspace.workspaceId}>
-                  <button
-                    aria-current={workspace.workspaceId === activeWorkspaceId ? "page" : undefined}
-                    onClick={() => onActivateWorkspace(workspace.workspaceId)}
-                    type="button"
-                  >
-                    <span>{workspace.displayName}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="home-view__project-actions">
-            <button onClick={onOpenWorkspaceManager} type="button">
-              <OpenCodeIcon name="settings-gear" size={14} />
-              Manage workspaces
-            </button>
-            {onRetryHost ? (
-              <button onClick={onRetryHost} type="button">
-                <OpenCodeIcon name="reset" size={14} />
-                Retry host
-              </button>
-            ) : null}
-            <span>{workspaceStatusLabel}</span>
-          </div>
-        </section>
+        <ProjectRail
+          activeWorkspaceId={activeWorkspaceId}
+          canOpenFolder={canOpenFolder}
+          onActivateWorkspace={onActivateWorkspace}
+          onOpenWorkspace={onOpenWorkspace}
+          onOpenWorkspaceManager={onOpenWorkspaceManager}
+          onRetryHost={onRetryHost}
+          workspaces={workspaces}
+          workspaceStatusLabel={workspaceStatusLabel}
+        />
 
         <section className="home-view__tasks">
           <form aria-label="Start a task" className="home-view__composer" onSubmit={submit}>
@@ -162,52 +153,19 @@ export function HomeView({
             </div>
           </form>
 
-          <header className="home-view__section-header home-view__section-header--tasks">
-            <h2>Recent tasks</h2>
-            <button onClick={onNewTask} type="button">
-              <OpenCodeIcon name="edit" size={14} />
-              New task
-            </button>
-          </header>
-          {recentTasks.length === 0 ? (
-            <p className="home-view__task-empty">
-              No tasks yet. Describe what you want above, or start an empty one
-              with New task.
-            </p>
-          ) : (
-            <ul aria-label="Recent tasks" className="home-view__task-list">
-              {recentTasks.map((task) => (
-                <li key={task.id}>
-                  <button onClick={() => onSelectTask(task.id)} type="button">
-                    <span>{task.title}</span>
-                    <time>{task.updatedAt}</time>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {closedTasks.length === 0 ? null : (
-            <>
-              <header className="home-view__section-header home-view__section-header--tasks">
-                <h2>Closed tasks</h2>
-              </header>
-              <ul aria-label="Closed tasks" className="home-view__task-list home-view__task-list--closed">
-                {closedTasks.map((task) => (
-                  <li key={task.id}>
-                    <button
-                      aria-label={`Reopen task ${task.title}`}
-                      onClick={() => onReopenTask(task.id)}
-                      type="button"
-                    >
-                      <span>{task.title}</span>
-                      <time>Closed</time>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          <TaskIndex
+            closedTasks={closedTasks}
+            emptyState={homeEmptyState({
+              hostKind,
+              projectCount: workspaces.length,
+              taskCount: recentTasks.length,
+            })}
+            onNewTask={onNewTask}
+            onOpenWorkspace={onOpenWorkspace}
+            onReopenTask={onReopenTask}
+            onSelectTask={onSelectTask}
+            recentTasks={recentTasks}
+          />
         </section>
       </div>
     </main>
