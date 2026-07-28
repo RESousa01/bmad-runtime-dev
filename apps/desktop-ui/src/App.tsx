@@ -43,6 +43,7 @@ import { useChangesHistoryState } from "./app/changes/changesHistoryState";
 import { createChangesRunner } from "./app/changes/changesRunner";
 import { isRecoveryFailure } from "./app/hostFailure";
 import { isAvailable, resolveCapabilities } from "./app/capabilityMatrix";
+import { createGuidanceRequest } from "./app/guidance/guidanceRequest";
 import {
   explorerAvailabilityMessage as describeExplorerAvailability,
   hostStatusLabel as describeHostStatus,
@@ -133,7 +134,6 @@ import type {
   BmadLibraryUiState,
 } from "./lib/bmadProjection";
 import {
-  bmadRequestAuthorityIsCurrent,
   initialBmadRequestState,
   transitionBmadRequest,
   type BmadAuthoritySnapshot,
@@ -1954,85 +1954,56 @@ export function App({
     }
   }
 
-  async function approveAndSubmitBmadRequest(
-    prepared: Extract<BmadRequestState, { readonly kind: "review_required" }>,
-  ): Promise<void> {
-    if (
-      !methodGuidanceClient
-      || !activeWorkspace
-      || bmadHelpOperationRef.current !== null
-    ) {
-      throw new HostCapabilityError("The message can no longer be sent.");
-    }
-    const authority = currentBmadAuthority(prepared.run.runId);
-    if (!authority || !bmadRequestAuthorityIsCurrent(prepared, authority)) {
-      applyBmadEvent({ type: "authority_invalidated", reason: "authority_changed" });
-      throw new HostCapabilityError("The message authority changed. Send it again.");
-    }
+  /*
+   * FE-10 step 3: the method-guidance request lifecycle.
+   *
+   * Two ~90-line functions sharing three locks and a generation, all held as
+   * refs closed over from this body. The dependency set is the interesting
+   * part -- this flow spends the user's money and writes to their repository,
+   * and every await in it is a place the authority behind the request can
+   * change. It is now declared rather than captured.
+   */
+  const guidance = createGuidanceRequest({
+    applyEvent: applyBmadEvent,
+    client: methodGuidanceClient,
+    contextPaths: contextPreview?.items.map(({ relativePath }) => relativePath) ?? [],
+    creation: {
+      get: () => bmadHelpCreationRef.current,
+      set: (value) => { bmadHelpCreationRef.current = value; },
+    },
+    currentAuthority: currentBmadAuthority,
+    currentGeneration: () => bmadHelpGenerationRef.current,
+    currentState: () => bmadHelpStateRef.current,
+    enterReadOnlyRecovery: () => {
+      if (hostRuntime.kind === "ready") {
+        markReadOnlyRecovery(hostRuntime.client, hostRuntime.bootstrap.projectionSequence);
+      }
+    },
+    modelAuth: modelAuthStatus,
+    nextGeneration: () => ++bmadHelpGenerationRef.current,
+    now: () => Date.now(),
+    operation: {
+      get: () => bmadHelpOperationRef.current,
+      set: (value) => { bmadHelpOperationRef.current = value; },
+    },
+    recordIntent: (intent) => {
+      autoTitleFromMessage(selectedSessionId, intent);
+      setCurrentBmadIntent({ createdAt: Date.now(), text: intent });
+    },
+    workspace: activeWorkspace,
+  });
 
-    const client = methodGuidanceClient;
-    const workspace = activeWorkspace;
-    const generation = authority.rendererGeneration;
-    bmadHelpOperationRef.current = "approve";
-    applyBmadEvent({ type: "approve_started" });
-    try {
-      const approval = await client.approveBmadHelp(
-        workspace.workspaceId,
-        workspace.grantEpoch,
-        prepared.authority.manifestHash,
+  function sendBmadMessage(currentIntent: string): Promise<void> {
+    // The availability gate stays here: it is a property of the shell's
+    // capability matrix, not of the request lifecycle.
+    if (!methodGuidanceAvailableForRequests && bmadHelpCreationRef.current === null) {
+      return Promise.reject(
+        new HostCapabilityError("Skill guidance is unavailable for the active workspace grant."),
       );
-      const approving = bmadHelpStateRef.current;
-      const approvingAuthority = currentBmadAuthority(prepared.run.runId);
-      if (
-        generation !== bmadHelpGenerationRef.current
-        || approving.kind !== "approving"
-        || !approvingAuthority
-        || !bmadRequestAuthorityIsCurrent(approving, approvingAuthority)
-      ) {
-        throw new HostCapabilityError("The message authority changed before sending.");
-      }
-      const approved = applyBmadEvent({ type: "approved", approval });
-      if (approved.kind !== "approved") {
-        throw new HostCapabilityError("The message approval did not match this request.");
-      }
-
-      bmadHelpOperationRef.current = "submit";
-      applyBmadEvent({ type: "submit_started" });
-      const result = await client.submitBmadHelp(
-        workspace.workspaceId,
-        workspace.grantEpoch,
-        approved.authority.manifestHash,
-        approved.approval.decisionId,
-      );
-      if (
-        generation !== bmadHelpGenerationRef.current
-        || bmadHelpStateRef.current.kind !== "submitting"
-      ) {
-        throw new HostCapabilityError("The completed response no longer belongs to this task.");
-      }
-      applyBmadEvent({ type: "completed", result });
-    } catch (error: unknown) {
-      const current = bmadHelpStateRef.current;
-      if (
-        generation === bmadHelpGenerationRef.current
-        && (
-          current.kind === "approving"
-          || current.kind === "approved"
-          || current.kind === "submitting"
-        )
-      ) {
-        applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
-      }
-      throw error;
-    } finally {
-      bmadHelpOperationRef.current = null;
     }
+    return guidance.send(currentIntent);
   }
 
-  /// The composer's default action. An ordinary conversation turn: no BMAD
-  /// concept is required to say something. When the task has an agent bound,
-  /// that agent's sealed persona travels with the request, which is how the
-  /// method is practised here without a separate LLM runtime.
   async function sendChatMessage(intent: string, sessionId?: string): Promise<void> {
     const client = chatSendClient;
     const workspace = activeWorkspace;
@@ -2148,100 +2119,6 @@ export function App({
         error: getSafeHostMessage(error),
       }));
     }
-  }
-
-  function sendBmadMessage(currentIntent: string): Promise<void> {
-    if (bmadHelpCreationRef.current) {
-      return bmadHelpCreationRef.current;
-    }
-    if (
-      !methodGuidanceAvailableForRequests
-      || !methodGuidanceClient
-      || !activeWorkspace
-      || !modelAuthStatus
-      || modelAuthStatus.status !== "development_ready"
-      || bmadHelpOperationRef.current !== null
-    ) {
-      return Promise.reject(
-        new HostCapabilityError("Skill guidance is unavailable for the active workspace grant."),
-      );
-    }
-
-    const client = methodGuidanceClient;
-    const workspace = activeWorkspace;
-    const contextPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
-    const projectionSequence = hostRuntime.kind === "ready"
-      ? hostRuntime.bootstrap.projectionSequence
-      : 0;
-    const generation = ++bmadHelpGenerationRef.current;
-    // Asking BMAD Help is still the task's opening message, so it names the
-    // task the same way an ordinary chat turn does.
-    autoTitleFromMessage(selectedSessionId, currentIntent);
-    setCurrentBmadIntent({ createdAt: Date.now(), text: currentIntent });
-    applyBmadEvent({ type: "create_started" });
-
-    const creation = (async () => {
-      try {
-        const run = await client.createBmadHelpRun(
-          workspace.workspaceId,
-          workspace.grantEpoch,
-          currentIntent,
-        );
-        if (generation !== bmadHelpGenerationRef.current) {
-          throw new HostCapabilityError(
-            "The skill-guidance result no longer belongs to the active workspace grant.",
-          );
-        }
-        const review = await client.prepareBmadHelp(
-          workspace.workspaceId,
-          workspace.grantEpoch,
-          contextPaths,
-        );
-        if (
-          generation !== bmadHelpGenerationRef.current
-          || modelAuthStatus.status !== "development_ready"
-        ) {
-          throw new HostCapabilityError(
-            "The model connection changed before the message could be sent.",
-          );
-        }
-        const next = applyBmadEvent({
-          type: "review_ready",
-          run,
-          review,
-          authority: {
-            workspaceId: workspace.workspaceId,
-            workspaceGrantEpoch: workspace.grantEpoch,
-            runId: run.runId,
-            authEpoch: modelAuthStatus.authEpoch,
-            rendererGeneration: generation,
-            now: Date.now(),
-          },
-        });
-        if (next.kind !== "review_required") {
-          throw new HostCapabilityError("The prepared skill-guidance request failed closed.");
-        }
-        await approveAndSubmitBmadRequest(next);
-      } catch (error: unknown) {
-        if (generation === bmadHelpGenerationRef.current) {
-          if (
-            error instanceof HostCommandError
-            && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-          ) {
-            markReadOnlyRecovery(client, projectionSequence);
-          } else {
-            applyBmadEvent({ type: "unavailable", message: getSafeHostMessage(error) });
-          }
-        }
-        throw error;
-      }
-    })().finally(() => {
-      if (bmadHelpCreationRef.current === creation) {
-        bmadHelpCreationRef.current = null;
-      }
-    });
-    bmadHelpCreationRef.current = creation;
-    return creation;
   }
 
   const governedEditsCommandsAvailable = hostRuntime.kind === "ready"
