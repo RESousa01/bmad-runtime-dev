@@ -118,8 +118,8 @@ filing category as keyboard input; and bindings were spelled per platform,
 where `Mod+K` now resolves to Cmd or Ctrl and `findKeybindingConflicts` fails
 the build if two commands ever claim one chord.
 
-**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,302 lines across
-four commits, and each moved a real invariant somewhere it can be checked:
+**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,269 lines across
+seven commits, and each moved a real invariant somewhere it can be checked:
 
 - `app/useAppBootstrap.ts` — the host runtime state machine. Every transition
   claims the next binding generation *before* publishing, so an async read
@@ -139,6 +139,14 @@ four commits, and each moved a real invariant somewhere it can be checked:
 - `app/model/modelController.ts` — `adoptAuthority` is now the only way to
   publish a new model status, so the reset of everything derived from the old
   authority cannot be forgotten. One of the three actions had it copied inline.
+- `app/changes/changesHistoryState.ts` — the Activity journal's projection and
+  its read status now move together. Clearing one without the other left the
+  status `loaded`, so the load-on-open effect never fired and Activity said
+  "No activity yet" right after a change was applied. Four call sites carried a
+  comment about it; deleting the status reset passed all 698 tests.
+- `app/capability/capabilityController.ts` — the routing token is captured
+  before the host call, in one place. A run belongs to the task it started
+  from, and the call outlives the user's attention.
 
 Every one of these was mutation-verified: the invariant was broken, the
 failing test observed, the file restored. One test did *not* fail under
@@ -168,11 +176,11 @@ into one render, so the order is not observable. It now asserts what is.
 
 ## Still open
 
-0. **FE-10 is not finished.** App.tsx is 3,302 lines, not the "readable
+0. **FE-10 is not finished.** App.tsx is 3,269 lines, not the "readable
    composition map" the acceptance criteria ask for. What is left is the
-   changes/review cluster (~250 lines), the BMAD guidance and capability
-   actions (~400), the offboarding and about projections, and the context
-   attachment handlers. The pattern that has worked is: find the shape the
+   governed-changes decision cluster (~200 lines), the BMAD guidance actions
+   (~400), the offboarding and about projections, and the context attachment
+   handlers. The pattern that has worked is: find the shape the
    sibling functions repeat, name it once, and make the ports interface
    narrow enough that the feature's whole authority is visible in it. Do not
    extract a cluster whose only shared property is that it is adjacent.
