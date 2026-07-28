@@ -752,7 +752,8 @@
 }
 
 .app-shell--forge-v2 .context-drawer__tab[aria-current="page"] {
-  background: var(--color-surface-selected);
+  background: transparent;
+  font-weight: var(--fw-semibold);
 }
 
 .app-shell--forge-v2 .context-drawer__content:has(.review-panel) {
@@ -1452,8 +1453,12 @@
 }
 
 .app-shell--forge-v2 .workspace-explorer--panel .workspace-tree__entry.sapphirus-button:hover,
+/* The current file in the review rail: bold, as 3a draws it, not a filled row.
+   The +/- counts beside it already carry the rest of the information. */
 .app-shell--forge-v2 .workspace-explorer--panel .workspace-tree__entry[aria-current="true"] {
-  background: var(--color-surface-selected);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
 }
 
 .app-shell--forge-v2 .workspace-explorer--panel .workspace-tree__entry small {

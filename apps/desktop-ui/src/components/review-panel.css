@@ -336,8 +336,15 @@
 }
 
 .git-review__file:hover,
+/* 3a marks the file being read in bold, with its +/- counts beside it. A
+   filled row is a container carrying what the weight already carries. */
 .git-review__file[aria-pressed="true"] {
-  background: var(--color-surface-selected);
+  background: transparent;
+  font-weight: var(--fw-semibold);
+}
+
+.git-review__file[aria-pressed="true"] .git-review__file-name {
+  color: var(--color-text);
 }
 
 .git-review__file-name {

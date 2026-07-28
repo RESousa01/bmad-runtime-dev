@@ -1,9 +1,6 @@
 import { Button } from "@sapphirus/ui";
 import { useId, type ReactNode } from "react";
-import {
-  OpenCodeIcon,
-  type OpenCodeIconName,
-} from "../OpenCodeIcon";
+import { OpenCodeIcon } from "../OpenCodeIcon";
 
 export type ContextDrawerKind = "files" | "changes" | "context" | "activity" | "skills";
 
@@ -25,16 +22,21 @@ const drawerTitles = {
   skills: "Skills and agents",
 } satisfies Record<ContextDrawerKind, string>;
 
+/*
+ * Text, as 3a draws this row: Files, Review, Activity, Skills. The icons that
+ * were here made the case against themselves -- "context" and "activity"
+ * carried the same "status" glyph, so the picture distinguished four tabs
+ * where there are five, and the label was doing the work either way.
+ */
 const drawerTabs: Array<{
-  icon: OpenCodeIconName;
   id: ContextDrawerKind;
   label: string;
 }> = [
-  { icon: "filetree", id: "files", label: "Files" },
-  { icon: "review", id: "changes", label: "Review" },
-  { icon: "status", id: "context", label: "Context" },
-  { icon: "status", id: "activity", label: "Activity" },
-  { icon: "grid-plus", id: "skills", label: "Skills" },
+  { id: "files", label: "Files" },
+  { id: "changes", label: "Review" },
+  { id: "context", label: "Context" },
+  { id: "activity", label: "Activity" },
+  { id: "skills", label: "Skills" },
 ];
 
 export function ContextDrawer({
@@ -57,7 +59,6 @@ export function ContextDrawer({
           onClick={() => onSelectTab(tab.id)}
           type="button"
         >
-          <OpenCodeIcon name={tab.icon} size={14} />
           {tab.label}
         </button>
       ))}

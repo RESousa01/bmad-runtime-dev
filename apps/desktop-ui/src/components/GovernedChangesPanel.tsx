@@ -379,33 +379,38 @@ export function GovernedChangesPanel({
           </span>
         </div>
         <ReviewFiles files={review.files} />
+        {/*
+          Apply leads, as it does in 3a, and it is the only control here
+          wearing the accent -- this is the consequential decision that
+          specification 3.5 reserves it for. Revise and Discard are the
+          alternatives, so they are plain text beside it rather than three
+          equally weighted buttons. Discard moving last also puts the
+          irreversible-looking option furthest from the default focus.
+        */}
         <div className="change-actions">
-          <Button
-            isDisabled={state.busy}
-            onPress={() => onDecide("discard")}
-            size="large"
-            variant="secondary"
-          >
-            <Trash2 aria-hidden="true" size={17} />
-            Discard
-          </Button>
-          <Button
-            isDisabled={state.busy}
-            onPress={() => onDecide("revise")}
-            size="large"
-            variant="secondary"
-          >
-            <PencilLine aria-hidden="true" size={17} />
-            Revise
-          </Button>
           <Button
             isDisabled={state.busy}
             onPress={() => onDecide("apply")}
             size="large"
             variant="primary"
           >
-            <ShieldCheck aria-hidden="true" size={17} />
             Apply changes
+          </Button>
+          <Button
+            isDisabled={state.busy}
+            onPress={() => onDecide("revise")}
+            size="large"
+            variant="quiet"
+          >
+            Revise
+          </Button>
+          <Button
+            isDisabled={state.busy}
+            onPress={() => onDecide("discard")}
+            size="large"
+            variant="quiet"
+          >
+            Discard
           </Button>
         </div>
         {errorBanner}
