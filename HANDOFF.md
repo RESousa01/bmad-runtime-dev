@@ -133,9 +133,12 @@ that does nothing.
    harm was never the absence of `@layer`, it was that a declaration could do
    nothing and no one could tell. Retry FE-03 for the ability to reorder
    deliberately, not to find these.
-2. **146 recorded CSS conflicts.** Each is a declaration that does nothing.
-   `design-polish.css` holds roughly a third of them, and is the obvious place
-   to start — it is also the file that keeps re-adding what other files remove.
+2. **67 recorded CSS conflicts**, down from 146. The 79 that went were the ones
+   provably dead: same selector, same property, equal specificity, and the
+   winner unconditional. The 67 that remain are the harder half — their winner
+   sits inside a media query, so the loser may still be the only rule that
+   applies outside that range, and each needs its conditions read before it can
+   be removed. Do not batch those.
 2. **The four confirmed Critical findings**, none of them frontend: the
    `direct-model-providers` compile default, the empty updater key, the Bicep
    perimeter conflict (already tracked as NET-001), and 228-of-597 BMAD drift.
