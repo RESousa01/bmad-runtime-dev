@@ -67,10 +67,18 @@ Phase 4 lands.
 3. **No concurrent `pnpm`.** The pnpm store clashes when two invocations run at
    once. Lane R's verification is `cargo` plus bare `node tools/*.mjs`; anything
    needing `pnpm --filter` is serialized through the coordinating session.
-4. **Separate `target/` per worktree.** Parallel agents run in isolated git
-   worktrees with their own `target/`. Do not point them at a shared
-   `CARGO_TARGET_DIR` — stale fingerprints across concurrent lanes produce phantom
-   `rustc` "missing item" errors.
+4. **One shared checkout — no worktrees.** All lanes run in
+   `C:\Users\rodri\source\bmad-runtime-dev` on `main`, alongside the Phase 3/4
+   session. This has three consequences that shape the wave order:
+   - **Never switch branches.** The other session's checkout is this checkout.
+     Commit to `main`.
+   - **Never `git add -A` or `git commit -a`.** Stage only your own explicit
+     paths, or you will sweep up the other lane's in-flight work. (This already
+     happened once: commit `9a5e6d85` swept up this plan document.)
+   - **Only one Rust lane at a time.** Two `cargo` invocations serialize on the
+     target-dir lock, which is merely slow — but a mid-refactor tree does not
+     compile, so a second Rust lane would see failures that are not its own.
+     Non-building lanes (documents) may run in parallel with a Rust lane.
 
 ---
 
@@ -95,29 +103,36 @@ Phase 4 lands.
 
 ## Wave order
 
-```
-Wave A  (parallel, starts now)
-├── R1 = RT-03   split the command router          crates/desktop-app/src/commands{.rs,/}  + tools/check-boundaries.mjs
-├── R2 = RT-05   minimize Tauri capabilities       capabilities/, permissions/, tauri.conf.json, tools/check-tauri-capabilities.mjs (new)
-└── D1 = FE-27/28 governing contracts              docs/design/*.md (new files)
+One Rust lane at a time, plus any number of non-building document lanes.
 
-Wave B  (parallel, after R1 merges)
+```
+Wave A  (starts now)
+├── R1 = RT-03   split the command router          crates/desktop-app/src/commands{.rs,/}  + tools/check-boundaries.mjs
+└── D1 = FE-27/28 governing contracts              docs/design/*.md (new files, no build — safe in parallel)
+
+Wave B  (after R1)
+└── R2 = RT-05   minimize Tauri capabilities       capabilities/, permissions/, tauri.conf.json, tools/check-tauri-capabilities.mjs (new)
+
+Wave C  (after R2)
 ├── R3 = RT-04   IPC envelope / version / replay   crates/desktop-ipc/src/envelope.rs, crates/desktop-app/src/wire.rs, packages/contracts/schemas/*
 └── R4 = RT-06   split desktop state               crates/desktop-app/src/state{.rs,/}
 
-Wave C  (serial, after R4)
+Wave D  (after R4)
 └── R5 = RT-07   split chat orchestration          crates/desktop-app/src/chat{.rs,/}, desktop-runtime/src/chat.rs, desktop-store/src/chat.rs
 
-Wave D  (serial, after R5)
+Wave E  (after R5)
 └── R6 = RT-08   bounded chat tool registry        crates/desktop-app/src/chat_tools.rs, desktop-tools, desktop-execution, desktop-airlock
 
 Lane F  (blocked — unblocks when Phase 4 lands)
 └── FE-27 → FE-28 → FE-29 → FE-30
 ```
 
-`RT-04` and `RT-06` both declare `RT-03` as their dependency and touch disjoint
-files, so they are the genuine parallel pair. `RT-07` depends on `RT-06`, and
-`RT-08` on `RT-07`, so the tail is inherently serial.
+`RT-05` is dependency-independent of `RT-03` in the audit's graph and would run
+concurrently with it given isolated checkouts; in one shared checkout it is
+sequenced instead. `RT-04` and `RT-06` are likewise a logical parallel pair —
+both declare only `RT-03`, and they touch disjoint files — but they are run one
+after the other for the same reason. `RT-07` depends on `RT-06` and `RT-08` on
+`RT-07`, so that tail is inherently serial regardless.
 
 ---
 
