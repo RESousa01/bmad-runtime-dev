@@ -103,6 +103,49 @@ as they go. Re-record with `node tools/check-css-conflicts.mjs --write-baseline`
 — but read what it is about to record first, because a conflict is a declaration
 that does nothing.
 
+### Phase 2: the command registry and the composition root
+
+**FE-09 gave every command entry point one registry.** The palette built
+its own action array, Ctrl+K was an unrelated document listener, and task
+commands were *omitted* from the list whenever no task was open. Omission is
+the failure the task names: a command that disappears is indistinguishable
+from a feature the app does not have. `app/commands/commandRegistry.ts` makes
+`reason` a required field of the `unavailable` variant, so the compiler
+enforces the acceptance criterion — there is no way to mark a command
+unavailable without saying why. Two shipped defects fell out: `hint` was
+rendering category words like "drawer" inside `<kbd>`, which announces a
+filing category as keyboard input; and bindings were spelled per platform,
+where `Mod+K` now resolves to Cmd or Ctrl and `findKeybindingConflicts` fails
+the build if two commands ever claim one chord.
+
+**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,302 lines across
+four commits, and each moved a real invariant somewhere it can be checked:
+
+- `app/useAppBootstrap.ts` — the host runtime state machine. Every transition
+  claims the next binding generation *before* publishing, so an async read
+  from a replaced binding lands stale and is discarded. Two behaviour changes
+  were deliberate and are in the commit message.
+- `app/AppRouter.tsx` — the primary-view rule, which was a three-deep ternary
+  hiding a design decision: no task selected *is* Home. The order of its two
+  checks is load-bearing and covered.
+- `app/AppWorkbench.tsx` — the modal-containment contract, three facts that
+  have to change together and were three places apart.
+- `app/workspace/workspaceController.ts` — one `runWorkspaceAction`, so
+  `recovery_required` and `integrity_failure` are classified in one place
+  rather than three. Missing that branch reported a host demanding recovery
+  as an ordinary error while the app carried on believing it was healthy.
+- `app/task/taskLifecycle.ts` — fixed a real focus bug: confirming a deletion
+  of an already-gone task closed the dialog and left focus on `<body>`.
+- `app/model/modelController.ts` — `adoptAuthority` is now the only way to
+  publish a new model status, so the reset of everything derived from the old
+  authority cannot be forgotten. One of the three actions had it copied inline.
+
+Every one of these was mutation-verified: the invariant was broken, the
+failing test observed, the file restored. One test did *not* fail under
+mutation and was rewritten rather than kept — it asserted that
+`invalidateHostBoundUi` runs before `setHostRuntime`, which React batches
+into one render, so the order is not observable. It now asserts what is.
+
 ## Decisions taken, and what they cost
 
 - **Variant 3a is the target, exactly as drawn**, including its 10px uppercase
@@ -124,6 +167,16 @@ that does nothing.
   is a question for the next session rather than a silent change.
 
 ## Still open
+
+0. **FE-10 is not finished.** App.tsx is 3,302 lines, not the "readable
+   composition map" the acceptance criteria ask for. What is left is the
+   changes/review cluster (~250 lines), the BMAD guidance and capability
+   actions (~400), the offboarding and about projections, and the context
+   attachment handlers. The pattern that has worked is: find the shape the
+   sibling functions repeat, name it once, and make the ports interface
+   narrow enough that the feature's whole authority is visible in it. Do not
+   extract a cluster whose only shared property is that it is adjacent.
+
 
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
