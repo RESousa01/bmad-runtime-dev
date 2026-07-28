@@ -118,8 +118,8 @@ filing category as keyboard input; and bindings were spelled per platform,
 where `Mod+K` now resolves to Cmd or Ctrl and `findKeybindingConflicts` fails
 the build if two commands ever claim one chord.
 
-**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,269 lines across
-seven commits, and each moved a real invariant somewhere it can be checked:
+**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,264 lines across
+nine commits, and each moved a real invariant somewhere it can be checked:
 
 - `app/useAppBootstrap.ts` — the host runtime state machine. Every transition
   claims the next binding generation *before* publishing, so an async read
@@ -147,6 +147,20 @@ seven commits, and each moved a real invariant somewhere it can be checked:
 - `app/capability/capabilityController.ts` — the routing token is captured
   before the host call, in one place. A run belongs to the task it started
   from, and the call outlives the user's attention.
+- `app/changes/changesRunner.ts` — the same shape for governed changes: the
+  origin task and the supersede generation, captured once. Its catch path also
+  now sits inside the supersede guard, so a failure from an abandoned proposal
+  cannot blank the review the current flow just produced.
+- `app/hostFailure.ts` — one definition of "is this a recovery failure". It had
+  three. Getting it wrong is silent in the worst direction: the app keeps
+  running against a host that has told it to stop.
+
+The remaining work follows one rule that has held for all of these: find the
+shape the sibling functions repeat, name it once, and make the ports interface
+narrow enough that the feature's whole authority is visible in it. Do not
+extract a cluster whose only shared property is that it is adjacent. Every
+extraction so far surfaced a real defect or a real duplication; the ones that
+would not are not worth doing.
 
 Every one of these was mutation-verified: the invariant was broken, the
 failing test observed, the file restored. One test did *not* fail under
@@ -176,11 +190,10 @@ into one render, so the order is not observable. It now asserts what is.
 
 ## Still open
 
-0. **FE-10 is not finished.** App.tsx is 3,269 lines, not the "readable
+0. **FE-10 is not finished.** App.tsx is 3,264 lines, not the "readable
    composition map" the acceptance criteria ask for. What is left is the
-   governed-changes decision cluster (~200 lines), the BMAD guidance actions
-   (~400), the offboarding and about projections, and the context attachment
-   handlers. The pattern that has worked is: find the shape the
+   BMAD guidance actions (~400 lines), the offboarding and about projections,
+   the recovery-review flow, and the context attachment handlers. The pattern that has worked is: find the shape the
    sibling functions repeat, name it once, and make the ports interface
    narrow enough that the feature's whole authority is visible in it. Do not
    extract a cluster whose only shared property is that it is adjacent.
