@@ -58,6 +58,11 @@ import {
 } from "./app/statusLabels";
 import { useHostProjection } from "./app/projection/hostProjection";
 import {
+  classifyProjectionFailure,
+  decideProjectionOutcome,
+  shouldReloadLibraryAfterRebind,
+} from "./app/projection/projectionPoller";
+import {
   attachmentNotice,
   emptyPickNotice,
   mergeContextPaths,
@@ -1686,14 +1691,13 @@ export function App({
     const isStale = () => cancelled
       || hostBindingGeneration !== hostBindingGenerationRef.current;
     const handleProjectionFailure = (error: unknown) => {
-      if (
-        error instanceof HostCommandError
-        && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-      ) {
-        markReadOnlyRecovery(client, cursor);
-      } else if (!(error instanceof HostCommandError && error.details.retryable)) {
-        markHostUnavailable(client);
-      }
+      // One definition of "recovery failure", shared with every other host
+      // call site. This was a sixth inline copy.
+      const failure = classifyProjectionFailure(error);
+      if (failure.kind === "recovery") markReadOnlyRecovery(client, cursor);
+      // `retry` and `cursor_gap` both mean "try again on the next tick" by the
+      // time they reach here -- the gap is handled above, before this runs.
+      else if (failure.kind === "unavailable") markHostUnavailable(client);
     };
     const refreshWorkspaceProjection = async () => {
       const workspaces = await client.listWorkspaces();
@@ -1710,43 +1714,25 @@ export function App({
         if (isStale()) {
           return;
         }
-        if (events.length > 0) {
-          cursor = events.at(-1)!.sequence;
-        }
-        let refreshWorkspaces = false;
-        let refreshMethodLibrary = false;
-        let enterReadOnlyRecovery = false;
-        for (const { event } of events) {
-          if (event.type === "boot_state_changed" && event.projection.mode === "read_only_recovery") {
-            enterReadOnlyRecovery = true;
-          }
-          if (event.type === "workspace_changed") {
-            refreshWorkspaces = true;
-          }
-          if (event.type === "bmad.projection_changed") {
-            refreshMethodLibrary = true;
-          }
-        }
-        if (refreshWorkspaces) {
+        const outcome = decideProjectionOutcome(events);
+        if (outcome.cursor !== null) cursor = outcome.cursor;
+        if (outcome.refreshWorkspaces) {
           if (!(await refreshWorkspaceProjection())) {
             return;
           }
         }
-        if (enterReadOnlyRecovery) {
+        if (outcome.enterReadOnlyRecovery) {
           markReadOnlyRecovery(client, cursor);
           return;
         }
-        if (refreshMethodLibrary && bmadLibraryRequestedRef.current) {
+        if (outcome.refreshMethodLibrary && bmadLibraryRequestedRef.current) {
           await loadMethodLibrary(client, methodLibraryRebind(client));
         }
       } catch (error) {
         if (isStale()) {
           return;
         }
-        if (
-          error instanceof HostCommandError
-          && error.details.code === "conflict"
-        ) {
+        if (classifyProjectionFailure(error).kind === "cursor_gap") {
           try {
             const snapshot = await client.projectionSnapshot();
             if (isStale()) {
@@ -1773,9 +1759,11 @@ export function App({
             if (isStale()) {
               return;
             }
-            const reloadMethodLibrary = bmadLibraryRequestedRef.current
-              && reboundBootstrap.bootMode === "ready"
-              && reboundBootstrap.supportedCommands.includes("bmad.library.snapshot");
+            const reloadMethodLibrary = shouldReloadLibraryAfterRebind({
+              bootMode: reboundBootstrap.bootMode,
+              libraryWasRequested: bmadLibraryRequestedRef.current,
+              supportedCommands: reboundBootstrap.supportedCommands,
+            });
             adoptHostRuntime({
               kind: reboundBootstrap.bootMode === "ready"
                 ? "ready"
