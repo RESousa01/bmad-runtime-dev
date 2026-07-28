@@ -1,10 +1,8 @@
 import { Button } from "@sapphirus/ui";
 import {
   ChevronDown,
-  FileCode,
   Send,
   ShieldAlert,
-  Terminal,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
@@ -16,7 +14,6 @@ import {
   type ChatLaneState,
 } from "../state/chatSessions";
 import { brandIdentity } from "../lib/brand";
-import { BrandMark } from "./BrandMark";
 import { OpenCodeIcon } from "./OpenCodeIcon";
 import {
   ContextWindow,
@@ -120,9 +117,6 @@ function ToolCallMessage({
 }) {
   return (
     <article className="message message--tool message--tool-call">
-      <div className="message__avatar message__avatar--tool">
-        <Terminal size={15} />
-      </div>
       <div>
         <p className="message__label">
           {awaitingResult
@@ -147,9 +141,6 @@ function ToolResultMessage({ message }: { readonly message: ChatMessage }) {
   const preview = toolResultPreview(message.text);
   return (
     <article className="message message--tool message--tool-result">
-      <div className="message__avatar message__avatar--tool">
-        <FileCode size={15} />
-      </div>
       <div>
         <details className="tool-result">
           <summary>
@@ -232,29 +223,28 @@ function ChatTranscript({
             className={message.role === "user" ? "message message--user" : "message message--agent"}
             key={key}
           >
-            <div
-              className={
-                message.role === "user"
-                  ? "message__avatar message__avatar--user"
-                  : "message__avatar"
-              }
-            >
-              {message.role === "user" ? "You" : <BrandMark size={22} />}
-            </div>
-            <div>
-              <p>{message.text}</p>
+            {/* 3a names the speaker in a label and puts the time opposite it,
+                then gives the text the whole column. Master audit 7.2 rules out
+                chat avatars: a 31px circle repeated down the transcript was
+                saying who spoke in a way the label already says, and it cost
+                every message a 32px indent it did not need. */}
+            <header className="message__meta">
+              <span className="message__role">
+                {message.role === "user" ? "You" : brandIdentity.displayName}
+              </span>
               <MessageTime at={message.createdAt} />
-            </div>
+            </header>
+            <p>{message.text}</p>
           </article>
         );
       })}
       {lane.pending !== null ? (
         <>
           <article className="message message--user">
-            <div className="message__avatar message__avatar--user">You</div>
-            <div>
-              <p>{lane.pending}</p>
-            </div>
+            <header className="message__meta">
+              <span className="message__role">You</span>
+            </header>
+            <p>{lane.pending}</p>
           </article>
           {/*
             Gated on `sending`, not on `pending`. A failed send now leaves the
@@ -264,9 +254,6 @@ function ChatTranscript({
           */}
           {lane.sending ? (
           <article className="message message--agent message--compact" role="status">
-            <div className="message__avatar">
-              <BrandMark size={22} />
-            </div>
             <div>
               <p>Thinking…</p>
             </div>
@@ -603,9 +590,6 @@ export function TaskWorkspace({
           <>
             {methodGuidanceState.kind === "creating" ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar">
-                  <BrandMark size={22} />
-                </div>
                 <div>
                   <span className="message__label">
                     {checkingRetainedGuidance ? "Checking" : "Preparing"}
@@ -621,9 +605,6 @@ export function TaskWorkspace({
               || methodGuidanceState.kind === "approving"
               || methodGuidanceState.kind === "approved" ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar">
-                  <BrandMark size={22} />
-                </div>
                 <div>
                   <span className="message__label">
                     {methodGuidanceState.kind === "review_required"
@@ -639,12 +620,10 @@ export function TaskWorkspace({
               </article>
             ) : methodGuidanceState.kind === "submitting" ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div><span className="message__label">Sending</span><p>Waiting for the selected model…</p></div>
               </article>
             ) : methodGuidanceState.kind === "completed" ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div>
                   <span className="message__label">BMAD Help</span>
                   <p>
@@ -656,22 +635,18 @@ export function TaskWorkspace({
               </article>
             ) : methodGuidanceState.kind === "interrupted" ? (
               <article className="message message--agent message--compact" role="alert">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div><span className="message__label">Interrupted</span><p>This message cannot resume. Send it again.</p></div>
               </article>
             ) : methodGuidanceState.kind === "terminal" ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div><span className="message__label">Message cancelled</span><p>Nothing was sent. You can edit the message and try again.</p></div>
               </article>
             ) : methodGuidanceState.kind === "unavailable" ? (
               <article className="message message--agent message--compact" role="alert">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div><span className="message__label">Request unavailable</span><p>{methodGuidanceState.message}</p></div>
               </article>
             ) : methodGuidanceState.run ? (
               <article className="message message--agent message--compact" role="status">
-                <div className="message__avatar"><BrandMark size={22} /></div>
                 <div><span className="message__label">Created · Unbound</span><p>A retained local BMAD Help run is available in Skills and agents. No model request was made.</p></div>
               </article>
             ) : submittedTask ? null : (

@@ -234,19 +234,21 @@
     max-width: min(1100px, calc(100% - 24px));
   }
 
-  .message p {
-    font-size: var(--text-input);
+  /* Prose stays at the 13px both 3a and specification 3.3 call for. This also
+     has to exclude the label: tool messages render theirs as a <p>, and
+     `.message p` at (0,1,1) outranks `.message__label` at (0,1,0), so the
+     label was being typeset as prose. */
+  .message p:not(.message__label) {
+    font-size: var(--text-body);
   }
 
-  .message__avatar {
-    box-shadow: var(--shadow-control);
-  }
-
+  /* No bubble on the user's turn -- 3a distinguishes speakers by the label
+     above the text, not by giving one of them a container. */
   .message--user {
-    border-color: var(--color-border-subtle);
-    border-radius: var(--radius-overlay);
-    box-shadow: var(--shadow-control);
-    padding: 13px 15px;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
   }
 
   .recovery-banner {

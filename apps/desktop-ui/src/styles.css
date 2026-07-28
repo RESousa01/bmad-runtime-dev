@@ -304,40 +304,48 @@ code {
   line-height: 1.45;
 }
 
+/*
+ * One column, no avatar track. 3a labels the speaker and lets the text have
+ * the full measure; the 32px gutter existed only to hold a circle that
+ * repeated what the label says. Master audit 7.2 rules out chat avatars.
+ */
 .message {
   align-items: flex-start;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 32px minmax(0, 1fr);
+  display: block;
   margin: 0 auto 24px;
   max-width: 760px;
 }
 
-.message__avatar {
-  align-items: center;
-  background: var(--color-surface-selected);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 50%;
+/* Speaker on the left, time opposite, on one line above the message. */
+.message__meta {
+  align-items: baseline;
   display: flex;
-  height: 31px;
-  justify-content: center;
-  margin-top: 1px;
-  width: 31px;
+  gap: var(--space-3);
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
-.message__avatar--user {
-  background: var(--color-surface-raised);
-  color: var(--color-text-soft);
-  font-size: var(--text-meta);
-  font-weight: 650;
+.message__role {
+  color: var(--color-text-muted);
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
 }
 
-.message p {
+/*
+ * `:not(.message__label)` because tool messages render their label as a <p>.
+ * A bare `.message p` matches it at (0,1,1) and outranks `.message__label` at
+ * (0,1,0), so those labels rendered at prose size while every <span> label
+ * rendered correctly. Excluding them here keeps the label role intact without
+ * an escalation war over specificity.
+ */
+.message p:not(.message__label) {
   color: var(--color-text-soft);
   font-size: var(--text-body);
-  line-height: 1.65;
+  line-height: var(--lh-prose);
   margin: 0;
-  max-width: 620px;
+  max-width: 68ch;
 }
 
 .message__label {
@@ -350,11 +358,12 @@ code {
   text-transform: uppercase;
 }
 
+/* The time rides the meta row now, so it no longer trails the message. */
 .message time {
   color: var(--color-text-muted);
-  display: block;
+  flex: 0 0 auto;
   font-size: var(--text-meta);
-  margin-top: 5px;
+  margin-top: 0;
 }
 
 .message--compact {
@@ -362,11 +371,16 @@ code {
   margin-top: 20px;
 }
 
+/*
+ * No bubble. 3a distinguishes the user's turn by the label above it, not by
+ * putting it in a container the assistant's turn does not get -- which also
+ * stops the two speakers being typeset differently for no reason.
+ */
 .message--user {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--shell-radius-md);
-  padding: 11px 13px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .stage-rail {
@@ -3262,8 +3276,9 @@ code {
 }
 
 /* --- Message state labels: color the state, not just the text --- */
+/* The label role has one tracking value; this was a second one. */
 .message__label {
-  letter-spacing: 0.02em;
+  letter-spacing: var(--label-tracking);
 }
 
 .message[role="alert"] .message__label {
@@ -3961,15 +3976,20 @@ code {
 }
 
 /*
- * Type scales with the window. At 13px base a 2560px display renders
- * transcript prose at 12.8px, which is the other half of "this looks
- * unfinished on a large display". 74ch of 14px text is ~570px, so the
- * measure above stays comfortable as the size goes up.
+ * Transcript prose stays on the scale.
+ *
+ * This block used to raise it to 14px above 1024px, reasoning that "at 13px
+ * base a 2560px display renders transcript prose at 12.8px". That was true
+ * while the sizes were rem-based and scaled with a root that moved; the token
+ * contract made every step an absolute px, so 13px is 13px on any display and
+ * the correction has nothing left to correct. Since the breakpoint is met by
+ * effectively every window, the transcript had quietly been a size above the
+ * one both the 3a prototype and design specification 3.3 call for.
  */
 @media (min-width: 1024px) {
-  .app-shell--forge-v2 .task-workspace--opencode-v2 .message p {
-    font-size: var(--text-input);
-    line-height: 1.62;
+  .app-shell--forge-v2 .task-workspace--opencode-v2 .message p:not(.message__label) {
+    font-size: var(--text-body);
+    line-height: var(--lh-prose);
   }
 
   .app-shell--forge-v2 .task-workspace--opencode-v2 .preview-notice span {
