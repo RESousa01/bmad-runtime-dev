@@ -42,6 +42,22 @@ export type AttachmentSelectionMode = "manual" | "automatic";
  * memory spent to display a filename.
  */
 export interface AttachmentDescriptor {
+  /**
+   * What the UI calls this attachment.
+   *
+   * FE-15. Opaque on purpose: the path is a *label*, as the note above says,
+   * and using a label as an identity is how a list comes to act on the wrong
+   * row. Two entries can share a path spelling -- Windows resolves `Src/App.ts`
+   * and `src/app.ts` to one file, and a re-attach can produce either -- so
+   * "remove the row whose path is X" is ambiguous in exactly the case where
+   * being wrong destroys the user's selection.
+   *
+   * Derived from `contentHash`, which is what actually identifies the bytes,
+   * plus an ordinal for the case where one file's content appears twice. It
+   * carries no path, so it cannot be mistaken for something the renderer could
+   * open.
+   */
+  readonly attachmentId: string;
   readonly relativePath: string;
   /** Identifies the bytes. A descriptor whose hash has moved is stale. */
   readonly contentHash: string;
@@ -76,8 +92,12 @@ export const emptyTaskAttachments: TaskAttachments = {
   suggesting: false,
 };
 
-export function describeAttachment(item: ContextItemProjection): AttachmentDescriptor {
+export function describeAttachment(
+  item: ContextItemProjection,
+  ordinal = 0,
+): AttachmentDescriptor {
   return {
+    attachmentId: `att_${item.contentHash.slice(0, 16)}_${ordinal}`,
     byteCount: item.byteCount,
     contentHash: item.contentHash,
     endLine: item.endLine,
@@ -93,13 +113,43 @@ export function adoptPreview(
   selectionMode: AttachmentSelectionMode,
   notice: string | null = null,
 ): TaskAttachments {
+  // The ordinal only moves when one content hash appears more than once, so an
+  // id is stable across re-adopting the same set -- which is what stops a
+  // re-render from looking like every row being replaced.
+  const seen = new Map<string, number>();
+  const descriptors = projection.items.map((item) => {
+    const ordinal = seen.get(item.contentHash) ?? 0;
+    seen.set(item.contentHash, ordinal + 1);
+    return describeAttachment(item, ordinal);
+  });
   return {
-    descriptors: projection.items.map(describeAttachment),
+    descriptors,
     manifestHash: projection.manifestHash,
     notice,
     selectionMode,
     suggesting: false,
   };
+}
+
+/**
+ * Drops one attachment from a task's set.
+ *
+ * The manifest hash goes with it. It is the host's confirmation of *that exact
+ * set*, and keeping it against a set the user has edited would let a send name
+ * a reviewed manifest for files it is no longer carrying -- consent recorded
+ * for one selection, spent on another.
+ *
+ * An id that matches nothing returns the same value, not a throw: a row can be
+ * pressed twice, and the second press is not an error.
+ */
+export function removeAttachment(
+  attachments: TaskAttachments,
+  attachmentId: string,
+): TaskAttachments {
+  const descriptors = attachments.descriptors
+    .filter((descriptor) => descriptor.attachmentId !== attachmentId);
+  if (descriptors.length === attachments.descriptors.length) return attachments;
+  return { ...attachments, descriptors, manifestHash: null };
 }
 
 /**

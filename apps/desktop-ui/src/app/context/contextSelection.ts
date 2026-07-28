@@ -95,6 +95,26 @@ const rejectionReasons: Record<PickRejectionReason, string> = {
   unreadable: "Could not be read.",
 };
 
+/**
+ * Which refusals are worth attaching again.
+ *
+ * Only the I/O failure. A binary file will be binary next time, a `.env` will
+ * still be sensitive, a file outside the workspace will still be outside it --
+ * so a retry control on any of those is one that cannot succeed, and the user
+ * who presses it learns nothing except that the app is not working.
+ *
+ * A `Record` rather than a comparison, so a reason added to the contract has to
+ * be classified here before this compiles. The compiler asking the question is
+ * the only thing that stops a new reason silently defaulting to whichever
+ * answer the expression happened to give.
+ */
+const retryableReasons: Record<PickRejectionReason, boolean> = {
+  blocked: false,
+  not_text: false,
+  outside_workspace: false,
+  unreadable: true,
+};
+
 /** The grouped sentence for refusals the host could not name. */
 function anonymousReason(reason: PickRejectionReason, count: number): string {
   const files = count === 1 ? "file" : "files";
@@ -145,6 +165,7 @@ export function pickRejections(
       rejections.push({
         reason: rejectionReasons[refusal.reason],
         relativePath: refusal.relativePath,
+        retryable: retryableReasons[refusal.reason],
       });
     }
     const unnamed = new Map<PickRejectionReason, number>();
@@ -153,6 +174,8 @@ export function pickRejections(
       unnamed.set(refusal.reason, (unnamed.get(refusal.reason) ?? 0) + 1);
     }
     for (const [reason, count] of unnamed) {
+      // Never retryable, whatever the reason. Retrying needs a file to name,
+      // and these are exactly the refusals the host would not name.
       rejections.push({ reason: anonymousReason(reason, count), relativePath: "" });
     }
   }

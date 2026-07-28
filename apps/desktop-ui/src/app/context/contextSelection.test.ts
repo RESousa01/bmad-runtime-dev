@@ -167,10 +167,11 @@ describe("pickRejections with named refusals", () => {
     }));
 
     expect(rejections).toEqual([
-      { reason: "Not a readable text file.", relativePath: "src/image.bin" },
+      { reason: "Not a readable text file.", relativePath: "src/image.bin", retryable: false },
       {
         reason: "Not readable here: it is a link, a placeholder, or a protected file.",
         relativePath: ".env",
+        retryable: false,
       },
     ]);
   });
@@ -232,6 +233,41 @@ describe("pickRejections with named refusals", () => {
 
     expect(rejections).toHaveLength(2);
     expect(rejections[1]?.reason).toBe(`Only the first ${maxContextFiles} files were attached.`);
+  });
+
+  /**
+   * FE-15's per-file retry, and where it is allowed to appear.
+   *
+   * Only an I/O failure is worth attaching again. A binary file will be binary
+   * next time, a `.env` will still be sensitive, a file outside the workspace
+   * will still be outside it -- so a retry control on any of those is one that
+   * cannot succeed, and pressing it teaches the user only that the app is not
+   * working.
+   */
+  it("offers a retry only for a refusal that could go differently", () => {
+    const rejections = pickRejections(pick({
+      rejected: [
+        { relativePath: "src/locked.ts", reason: "unreadable" },
+        { relativePath: "src/image.bin", reason: "not_text" },
+        { relativePath: ".env", reason: "blocked" },
+      ],
+    }));
+
+    expect(rejections.map((rejection) => rejection.retryable))
+      .toEqual([true, false, false]);
+  });
+
+  it("never offers a retry for a refusal the host would not name", () => {
+    // Retrying needs a file to name, and these are exactly the ones it has no
+    // name for.
+    const rejections = pickRejections(pick({
+      rejected: [
+        { relativePath: null, reason: "unreadable" },
+        { relativePath: null, reason: "outside_workspace" },
+      ],
+    }));
+
+    expect(rejections.every((rejection) => rejection.retryable !== true)).toBe(true);
   });
 
   it("falls back to the counts for a host that does not send the list", () => {

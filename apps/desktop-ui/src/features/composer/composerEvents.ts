@@ -21,6 +21,22 @@ export interface AttachmentRejection {
    * wrong and nothing about which of their choices to revisit.
    */
   readonly reason: string;
+  /**
+   * Whether attaching this file again could plausibly work.
+   *
+   * FE-15 asks for per-file retry, and this is the half that decides where it
+   * is offered. Most refusals are deterministic: a binary file will be binary
+   * next time, a `.env` will still be sensitive, a file outside the workspace
+   * will still be outside it. Only an I/O failure is worth another attempt.
+   *
+   * Offering retry on the rest would be a control that cannot succeed, which
+   * is worse than no control -- the user presses it, nothing changes, and they
+   * have no reason to look for the real cause.
+   *
+   * Absent means the same as false. It is optional so callers that have no
+   * host classification to offer cannot accidentally claim one.
+   */
+  readonly retryable?: boolean | undefined;
 }
 
 export type ComposerEvent =
