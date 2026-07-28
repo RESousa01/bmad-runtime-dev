@@ -1,0 +1,26 @@
+<Solution>
+  <!--
+    The .NET half of the workspace, in one place.
+
+    Backlog item CL-01 asks that the auth broker and support API build from a
+    clean repository root. Without a solution file there was no single restore
+    or build target: the locked restore the plan names as CL-01's verification
+    had nothing to point at, and each project had to be named individually to
+    prove anything.
+
+    Every project below carries its own packages.lock.json, so a locked
+    restore is meaningful. It fails rather than silently resolving a version
+    other than the one that was reviewed.
+  -->
+  <Folder Name="/services/">
+    <Project Path="services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj" />
+    <Project Path="services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/helpers/">
+    <Project Path="helpers/windows-auth-broker/Sapphirus.WindowsAuthBroker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/conformance/dotnet/Sapphirus.Contracts.Conformance.Tests.csproj" />
+    <Project Path="tests/generator-qualification/dotnet/Sapphirus.GeneratorQualification.Tests.csproj" />
+  </Folder>
+</Solution>

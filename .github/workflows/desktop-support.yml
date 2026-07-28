@@ -69,8 +69,17 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
-      - run: dotnet restore services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --locked-mode
-      - run: dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj --no-restore
+      # Solution-level first, so CL-01's claim -- that the .NET half restores
+      # and builds from a clean root -- is what CI actually proves. Restoring
+      # one project at a time can pass while another is broken or unreferenced,
+      # which is the state this repository was in: there was no solution, and
+      # the conformance and generator-qualification suites were built by
+      # nothing here.
+      - name: Restore the whole solution against the reviewed locks
+        run: dotnet restore Sapphirus.slnx --locked-mode
+      - name: Build the whole solution
+        run: dotnet build Sapphirus.slnx -c Release --no-restore
+      - run: dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --no-build
       - run: dotnet publish services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release --no-restore
       - run: az bicep build --file infra/desktop-support/main.bicep
         shell: pwsh
