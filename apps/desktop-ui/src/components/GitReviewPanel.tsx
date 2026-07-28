@@ -22,6 +22,7 @@ import {
   SplitChangeDiff,
 } from "./ChangeDiff";
 import { OpenCodeIcon } from "./OpenCodeIcon";
+import { leadingDemand, reviewCenterState } from "../features/review/reviewCenter";
 
 export interface GitReviewSource {
   readStatus(): Promise<GitStatusProjection>;
@@ -502,43 +503,91 @@ export function GitReviewPanel({
   );
 }
 
+/**
+ * The Review Center: git changes and governed proposals in one surface.
+ *
+ * FE-22. This was a mode switch -- git *or* proposals -- and whichever was
+ * hidden shrank to a 14px icon with a dot on it. The view flipped from an
+ * effect watching `proposalAttention` rise, so a second proposal arriving while
+ * the flag was already true moved nothing, and a user who had navigated back to
+ * Git sat in front of an unanswered decision represented by a dot.
+ *
+ * Which section leads is now derived, not remembered. `reviewCenterState` ranks
+ * decisions above information and recovery above a proposal, so the surface
+ * opens on the highest-ranked thing present every time, with no effect having
+ * to notice a transition -- the noticing was where the bug lived.
+ *
+ * Navigating to Git is still allowed, and still refused while a decision
+ * stands: `isDismissible` is what stops the panel returning to exactly the
+ * state it had before.
+ */
 export function ReviewPanel({
   availabilityMessage,
   governedReview,
+  hasPreparedRecovery = false,
   isSampleData = false,
   proposalAttention = false,
   source,
 }: {
   readonly availabilityMessage?: string;
   readonly governedReview: ReactNode;
+  /// A prepared recovery outranks a proposal; see `reviewCenter`.
+  readonly hasPreparedRecovery?: boolean;
   readonly isSampleData?: boolean;
   readonly proposalAttention?: boolean;
   readonly source: GitReviewSource | null;
 }) {
-  const [view, setView] = useState<"git" | "proposals">("git");
-  const previousProposalAttention = useRef(false);
-  useEffect(() => {
-    if (proposalAttention && !previousProposalAttention.current) {
-      setView("proposals");
-    }
-    previousProposalAttention.current = proposalAttention;
-  }, [proposalAttention]);
+  const center = reviewCenterState({
+    hasGitSource: source !== null || availabilityMessage !== undefined,
+    hasPreparedRecovery,
+    hasProposal: proposalAttention,
+  });
+  const leading = leadingDemand(center);
+  /*
+   * A decision pins the surface to it. Everything else is the user's choice.
+   *
+   * A decision the user can walk away from is one they can lose track of,
+   * which is exactly what the dot used to let happen.
+   */
+  const pinned = center.needsAnswer;
+  const [browsingProposals, setBrowsingProposals] = useState(false);
+  const showGit = pinned ? false : !browsingProposals;
+  /// The header names what is actually there. It said "Agent proposals" over a
+  /// recovery review, which is a different question from a different source.
+  const governedTitle = leading?.kind === "recovery"
+    ? "Recovery review"
+    : "Agent proposals";
+
   return (
     <div className="review-panel">
-      {view === "git" ? (
+      {showGit ? (
         <GitReviewPanel
           availabilityMessage={availabilityMessage}
           isSampleData={isSampleData}
+          /*
+           * Always offered. The governed side is not only where decisions
+           * live -- it is also change history, enabling edits, and starting a
+           * proposal -- so gating the way in on there being a pending decision
+           * would make those unreachable whenever there was not one.
+           */
           secondaryAction={(
             <button
               aria-label="Agent proposals"
               className="git-review__proposals"
-              onClick={() => setView("proposals")}
+              onClick={() => setBrowsingProposals(true)}
               title="BMAD agent proposals"
               type="button"
             >
+              {/*
+                No attention dot any more, and it cannot come back: a pending
+                decision pins the surface to itself, so the git view is only
+                ever rendered when nothing is waiting. A marker here would be
+                unreachable code -- which is how a mutation found it.
+
+                The dot was the old answer to "a decision is somewhere else",
+                and being somewhere else was the defect.
+              */}
               <OpenCodeIcon name="edit" size={14} />
-              {proposalAttention ? <span aria-label="New proposal" className="git-review__attention" /> : null}
             </button>
           )}
           source={source}
@@ -546,10 +595,28 @@ export function ReviewPanel({
       ) : (
         <div className="review-panel__governed-shell">
           <header className="review-panel__governed-header">
-            <button aria-label="Back to Git changes" onClick={() => setView("git")} title="Back to Git changes" type="button">
-              <OpenCodeIcon name="arrow-left" size={16} />
-            </button>
-            <strong>Agent proposals</strong>
+            {/*
+              Offered only when nothing is waiting on an answer. A decision the
+              user can walk away from is a decision they can lose track of, and
+              the dot that used to represent it was not an answer to that.
+            */}
+            {pinned ? null : (
+              <button
+                aria-label="Back to Git changes"
+                onClick={() => setBrowsingProposals(false)}
+                title="Back to Git changes"
+                type="button"
+              >
+                <OpenCodeIcon name="arrow-left" size={16} />
+              </button>
+            )}
+            {/*
+              A heading, not a <strong>. This is the title of the section the
+              user was just sent to, and heading navigation is how a screen
+              reader user finds where they landed -- bold text is not reachable
+              that way.
+            */}
+            <h3 className="review-panel__governed-title">{governedTitle}</h3>
           </header>
           <div className="review-panel__governed">{governedReview}</div>
         </div>

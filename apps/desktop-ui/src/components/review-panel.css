@@ -223,6 +223,14 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+/* Inherits the weight and size the <strong> had, so promoting it to a heading
+   changed the semantics and not the drawing. */
+.review-panel__governed-title {
+  margin: 0;
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+
 .review-panel__governed-header button {
   display: grid;
   width: 28px;

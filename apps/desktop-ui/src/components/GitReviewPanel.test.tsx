@@ -170,3 +170,72 @@ describe("GitReviewPanel", () => {
     expect(await screen.findByRole("heading", { name: "Working tree" })).toBeTruthy();
   });
 });
+
+/**
+ * FE-22. The Review Center used to be a mode switch: git *or* proposals, with
+ * whichever was hidden shrunk to a 14px icon carrying a dot. The view flipped
+ * from an effect watching an attention flag rise, so a second proposal arriving
+ * while the flag was already true moved nothing, and a user who had navigated
+ * back to Git sat in front of an unanswered decision represented by a dot.
+ */
+describe("ReviewPanel — what leads", () => {
+  function panel(overrides: Partial<Parameters<typeof ReviewPanel>[0]> = {}) {
+    return (
+      <ReviewPanel
+        governedReview={<h3>Agent proposal body</h3>}
+        source={createSource()}
+        {...overrides}
+      />
+    );
+  }
+
+  it("shows git changes when nothing is waiting on an answer", async () => {
+    render(panel());
+    expect(await screen.findByRole("heading", { name: "Working tree" })).toBeTruthy();
+  });
+
+  /// The failure this replaces: a decision reachable only through a dot.
+  it("leads with the decision when a proposal is pending", () => {
+    render(panel({ proposalAttention: true }));
+    expect(screen.getByRole("heading", { name: "Agent proposal body" })).toBeTruthy();
+  });
+
+  it("refuses to be browsed away from while a decision stands", () => {
+    // A decision the user can walk away from is one they can lose track of.
+    render(panel({ proposalAttention: true }));
+    expect(screen.queryByRole("button", { name: "Back to Git changes" })).toBeNull();
+  });
+
+  it("still lets the user reach proposals when nothing is pending", async () => {
+    // The governed side is not only decisions -- it is change history,
+    // enabling edits, and starting a proposal.
+    render(panel());
+    await screen.findByRole("heading", { name: "Working tree" });
+    fireEvent.click(screen.getByRole("button", { name: "Agent proposals" }));
+
+    expect(screen.getByRole("heading", { name: "Agent proposal body" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Back to Git changes" })).toBeTruthy();
+  });
+
+  /*
+   * There is no attention-marker test, because there is no marker.
+   *
+   * A pending decision pins the surface to itself, so the git view renders
+   * only when nothing is waiting -- a dot there could never appear. The dot
+   * was the old answer to "your decision is somewhere else", and being
+   * somewhere else was the defect.
+   */
+
+  /// A recovery review is a different question from a different source, and
+  /// the header said "Agent proposals" over it.
+  it("names a recovery review rather than calling it a proposal", () => {
+    render(panel({ hasPreparedRecovery: true }));
+    expect(screen.getByRole("heading", { name: "Recovery review" })).toBeTruthy();
+  });
+
+  it("keeps naming it a recovery when a proposal is pending too", () => {
+    // Recovery outranks the proposal, so it is the one being answered.
+    render(panel({ hasPreparedRecovery: true, proposalAttention: true }));
+    expect(screen.getByRole("heading", { name: "Recovery review" })).toBeTruthy();
+  });
+});

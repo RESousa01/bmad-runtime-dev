@@ -75,9 +75,13 @@ function ChangesReviewPanel() {
         />
       )}
       isSampleData={host.runtimeKind === "browser_demo"}
-      // A pending review or a prepared recovery are both things the user has
-      // to answer, and the tab says so rather than waiting to be opened.
-      proposalAttention={changes.state.kind === "review" || recovery.review !== null}
+      // Both are things the user has to answer, and the surface says so rather
+      // than waiting to be opened. They travel separately: a recovery outranks a
+      // change proposal, because approving changes against a store that has
+      // said it cannot be trusted is a decision made on a disowned basis.
+      // Collapsing them into one boolean is what made that unrankable.
+      hasPreparedRecovery={recovery.review !== null}
+      proposalAttention={changes.state.kind === "review"}
       source={changes.gitReviewSource}
     />
   );
