@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-001",
+  "state": "complete",
+  "attemptCount": 1,
+  "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
+  "startedAt": "2026-07-28T16:09:46.447Z",
+  "completedAt": "2026-07-28T16:36:03.876Z",
+  "changedFiles": [
+    ".foundry-connection/run-state.json",
+    "docs/architecture/foundry-connection-baseline.md",
+    "artifacts/foundry/baseline/generate-source-map.mjs",
+    "artifacts/foundry/baseline/model-call-fixture.json",
+    "artifacts/foundry/baseline/safe-failure-outcomes.json",
+    "artifacts/foundry/baseline/source-map.json",
+    "artifacts/foundry/baseline/test-baseline.json",
+    "artifacts/foundry/tasks/FND-001.json"
+  ],
+  "commands": [
+    {
+      "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+      "exitCode": 1,
+      "classification": "failed",
+      "failureFingerprint": "windows-path-length-on-git-show-for-generated-dotnet-path",
+      "resolution": "Use git ls-tree plus git cat-file by object ID."
+    },
+    {
+      "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+      "exitCode": 0,
+      "classification": "superseded",
+      "result": "162 committed files hashed; read-only review found path-named model test and helper families missing."
+    },
+    {
+      "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "303 committed model-access files hashed; targeted renderer, Rust, support-API, contract, generated-binding, and infrastructure families are present."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts verify",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "85 passed, 0 failed, 1 environment skip.",
+      "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --filter \"Model|ProductionComposition\"",
+      "exitCode": 1,
+      "classification": "not_run",
+      "result": "Runner rejected legacy --filter before discovery; zero tests ran.",
+      "resolution": "Run the xUnit v3 runner-equivalent --filter-class options and retain both results.",
+      "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*Model*\" --filter-class \"*ProductionComposition*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "66 passed, 0 failed, 0 skipped.",
+      "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+    },
+    {
+      "command": "cargo test -p desktop-cloud --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "62 passed, 0 failed, 0 skipped, including five compile-fail documentation tests.",
+      "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+    },
+    {
+      "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+      "exitCode": 0,
+      "classification": "invalidated",
+      "result": "Five model-related files and 85 tests passed, but the moving shared checkout no longer represented the frozen commit."
+    },
+    {
+      "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Four model-related files passed with 44 tests, 0 failed, 0 skipped.",
+      "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+    }
+  ],
+  "acceptance": {
+    "exactCommitAndSourceHashes": "passed",
+    "everyCurrentModelAccessTestClassified": "passed",
+    "openCodeReferencePinned": "passed"
+  },
+  "evidence": [
+    "artifacts/foundry/baseline/source-map.json",
+    "artifacts/foundry/baseline/test-baseline.json",
+    "artifacts/foundry/baseline/model-call-fixture.json",
+    "artifacts/foundry/baseline/safe-failure-outcomes.json"
+  ],
+  "review": {
+    "verdict": "looks_good",
+    "reviewer": "Codex change-review self-review",
+    "runId": "FND-001-review-20260728T163603Z",
+    "notes": [
+      "Implementation self-check found the proof ledger incomplete before the Rust and renderer results were recorded.",
+      "Read-only review found that the shared checkout advanced during verification; every authoritative gate was replayed in an immutable Git archive of the frozen commit.",
+      "Read-only review found path-named model tests and helpers missing from content-only source discovery; targeted path-family rules now produce a 303-file map.",
+      "Final review replayed all 303 hashes, validated targeted families and fixture hashes, validated the supplied run-state schema, and found no secret-shaped content or unresolved findings."
+    ],
+    "blockers": [],
+    "nonBlockers": [
+      "The exact legacy dotnet --filter invocation is incompatible with the repository's xUnit v3 Microsoft.Testing.Platform runner; the 66-test --filter-class equivalent passes."
+    ]
+  },
+  "nextAction": "Commit only the eight FND-001 evidence paths, then begin FND-002."
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "forge.foundry-test-baseline.v1",
+  "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
+  "executionIsolation": {
+    "mode": "immutable_git_archive",
+    "sourceCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
+    "dependencyPreparation": "pnpm install --offline --frozen-lockfile",
+    "sharedWorktreeUsedForVerification": false
+  },
+  "toolchain": {
+    "node": "24.18.0",
+    "pnpm": "11.15.1",
+    "dotnetSdk": "10.0.302",
+    "rustc": "1.97.0",
+    "cargo": "1.97.0",
+    "powerShell": "7.6.4"
+  },
+  "commands": [
+    {
+      "command": "pnpm --filter @sapphirus/contracts verify",
+      "classification": "passed",
+      "exitCode": 0,
+      "tests": {
+        "total": 86,
+        "passed": 85,
+        "failed": 0,
+        "skipped": 1
+      },
+      "notes": [
+        "201 generated TypeScript files and 40 binding files were checked.",
+        "The one skipped filesystem-link test reports that file links are unavailable with EPERM on this Windows environment."
+      ]
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --filter \"Model|ProductionComposition\"",
+      "classification": "not_run",
+      "exitCode": 1,
+      "tests": {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0
+      },
+      "reason": "xUnit v3 Microsoft.Testing.Platform rejects the legacy --filter option before discovery (runner exit code 5).",
+      "supplementalEquivalent": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*Model*\" --filter-class \"*ProductionComposition*\""
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*Model*\" --filter-class \"*ProductionComposition*\"",
+      "classification": "passed",
+      "exitCode": 0,
+      "tests": {
+        "total": 66,
+        "passed": 66,
+        "failed": 0,
+        "skipped": 0
+      },
+      "reason": "Current-runner equivalent for the model and ProductionComposition class filter named by the plan."
+    },
+    {
+      "command": "cargo test -p desktop-cloud --locked",
+      "classification": "passed",
+      "exitCode": 0,
+      "tests": {
+        "total": 62,
+        "passed": 62,
+        "failed": 0,
+        "skipped": 0
+      },
+      "notes": [
+        "The total includes five compile-fail documentation tests."
+      ]
+    },
+    {
+      "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+      "classification": "passed",
+      "exitCode": 0,
+      "tests": {
+        "total": 44,
+        "passed": 44,
+        "failed": 0,
+        "skipped": 0
+      },
+      "notes": [
+        "Vitest selected four model-related test files in the immutable frozen-commit export."
+      ]
+    }
+  ],
+  "supersededEvidence": [
+    {
+      "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+      "result": "Five files and 85 tests passed in the moving shared checkout.",
+      "reason": "Claude advanced the shared checkout during baseline verification, so this result is not evidence for the frozen commit."
+    }
+  ],
+  "summary": {
+    "state": "passed_with_plan_command_exception",
+    "passed": 4,
+    "failed": 0,
+    "notRun": 1,
+    "notes": [
+      "All runnable FND-001 baseline gates passed in an immutable export of the frozen commit.",
+      "A runner-equivalent .NET filter is supplemental and cannot erase the exact plan command result."
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "forge.foundry-model-call-baseline.v1",
+  "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
+  "fixtureKind": "existing-valid-v1-call-family",
+  "description": "The canonical V1 request, consent, result, and signed receipt fixtures that characterize the pre-Foundry managed BMAD Help call.",
+  "files": [
+    {
+      "role": "request",
+      "path": "packages/contracts/fixtures/valid/model-access-request.json",
+      "bytes": 3754,
+      "sha256": "1a699197d3e05acf39124701b4e9ac0309d53cd2c7806f13d4a83ccbf0879af4"
+    },
+    {
+      "role": "consent",
+      "path": "packages/contracts/fixtures/valid/model-context-consent.json",
+      "bytes": 2666,
+      "sha256": "f84d8f4c629004c471c254e2db0922601685b82044f99a8094879471794eb145"
+    },
+    {
+      "role": "result",
+      "path": "packages/contracts/fixtures/valid/model-access-result.json",
+      "bytes": 3254,
+      "sha256": "77e86fa17180be8df7b811e65ce4b34d505d0e528f479f9abdc44a60994fc6f0"
+    },
+    {
+      "role": "receipt",
+      "path": "packages/contracts/fixtures/valid/model-access-receipt.json",
+      "bytes": 2812,
+      "sha256": "72e9dac145ba412631dbc8886e7079bfad58fee59bb75f92144868fac6c760b9"
+    }
+  ],
+  "invariants": [
+    "deliveryModel is windows_local",
+    "retentionMode is transient_no_store",
+    "purpose and model role are bound to the reviewed V1 request",
+    "consent binds exact context and one-time consumption",
+    "the successful result is schema validated before receipt signing",
+    "the desktop verifies request, result, authority, and receipt bindings"
+  ]
+}

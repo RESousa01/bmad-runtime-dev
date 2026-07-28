@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "forge.foundry-run-state.v1",
+  "planHash": "sha256:07ef06a719a5ecd9a4b044b00bd58d7ace43ea9d7407973c88456461391e5348",
+  "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
+  "currentTask": "FND-001",
+  "taskStates": {
+    "FND-001": {
+      "state": "complete",
+      "attemptCount": 1,
+      "startedAt": "2026-07-28T16:09:46.447Z",
+      "redGate": {
+        "mode": "characterization",
+        "reason": "FND-001 freezes current behavior and evidence without changing runtime behavior.",
+        "proofPlan": [
+          "Run every fresh verification command named by FND-001.",
+          "Preserve the exact failure of any incompatible plan command.",
+          "Run an equivalent current-runner filter only as supplemental characterization.",
+          "Hash the pinned repository and OpenCode reference files."
+        ]
+      },
+      "changedFiles": [
+        ".foundry-connection/run-state.json",
+        "docs/architecture/foundry-connection-baseline.md",
+        "artifacts/foundry/baseline/generate-source-map.mjs",
+        "artifacts/foundry/baseline/model-call-fixture.json",
+        "artifacts/foundry/baseline/safe-failure-outcomes.json",
+        "artifacts/foundry/baseline/source-map.json",
+        "artifacts/foundry/baseline/test-baseline.json",
+        "artifacts/foundry/tasks/FND-001.json"
+      ],
+      "commands": [
+        {
+          "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+          "exitCode": 1,
+          "classification": "failed",
+          "failureFingerprint": "windows-path-length-on-git-show-for-generated-dotnet-path",
+          "nextAction": "Read committed content by Git blob object ID instead of a commit:path argument."
+        },
+        {
+          "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+          "exitCode": 0,
+          "classification": "superseded",
+          "result": "162 committed files hashed; read-only review found path-named model test and helper families missing."
+        },
+        {
+          "command": "node artifacts/foundry/baseline/generate-source-map.mjs",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "303 committed model-access source, schema, test, generated-binding, tool, and infrastructure files hashed; all targeted families present and the OpenCode reference is clean and pinned."
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts verify",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "85 passed, 0 failed, 1 environment skip; generation and binding checks passed.",
+          "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+        },
+        {
+          "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --filter \"Model|ProductionComposition\"",
+          "exitCode": 1,
+          "classification": "not_run",
+          "result": "Runner rejected legacy --filter before discovery; zero tests ran.",
+          "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+        },
+        {
+          "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*Model*\" --filter-class \"*ProductionComposition*\"",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "66 passed, 0 failed, 0 skipped.",
+          "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+        },
+        {
+          "command": "cargo test -p desktop-cloud --locked",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "62 passed, 0 failed, 0 skipped, including five compile-fail documentation tests.",
+          "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+        },
+        {
+          "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+          "exitCode": 0,
+          "classification": "invalidated",
+          "result": "Five model-related files passed with 85 tests, but Claude advanced the moving shared checkout during verification."
+        },
+        {
+          "command": "pnpm --filter @forge/desktop-ui test -- --run model",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "Four model-related files passed with 44 tests, 0 failed, 0 skipped.",
+          "executionIsolation": "immutable_git_archive:7956da370b0f9f16c5aea3b21f6e39383fa3171d"
+        }
+      ],
+      "evidencePaths": [
+        "artifacts/foundry/tasks/FND-001.json",
+        "artifacts/foundry/baseline/source-map.json",
+        "artifacts/foundry/baseline/test-baseline.json",
+        "artifacts/foundry/baseline/model-call-fixture.json",
+        "artifacts/foundry/baseline/safe-failure-outcomes.json"
+      ],
+      "reviewerVerdict": {
+        "verdict": "looks_good",
+        "reviewer": "Codex change-review self-review",
+        "runId": "FND-001-review-20260728T163603Z",
+        "completedAt": "2026-07-28T16:36:03.876Z",
+        "blockers": [],
+        "nonBlockers": [
+          "The plan's legacy dotnet --filter syntax cannot run under xUnit v3 Microsoft.Testing.Platform; the exact failure and passing 66-test runner-equivalent are both preserved."
+        ]
+      },
+      "nextAction": "Commit only the eight FND-001 evidence paths, then begin FND-002."
+    }
+  },
+  "blockers": [
+    {
+      "id": "FND-002-AZURE-INPUTS",
+      "state": "anticipated",
+      "affects": [
+        "FND-002",
+        "FND-010",
+        "FND-064",
+        "FND-065"
+      ],
+      "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Azure resource group, or authenticated Azure CLI session is available.",
+      "nextAction": "Implement FND-002's safe prerequisite checker, run it, and preserve its exact redacted blocked report."
+    },
+    {
+      "id": "FND-001-DOTNET-FILTER",
+      "state": "workaround_validated",
+      "affects": [
+        "FND-001"
+      ],
+      "summary": "The plan's legacy dotnet --filter argument is rejected by this repository's xUnit v3 Microsoft.Testing.Platform runner.",
+      "nextAction": "Preserve the exact command failure and supplement it with --filter-class Model and ProductionComposition filters."
+    },
+    {
+      "id": "FND-001-OPENCODE-SNAPSHOT-DRIFT",
+      "state": "recorded",
+      "affects": [
+        "FND-001"
+      ],
+      "summary": "The plan package source-map hashes for four OpenCode files do not match the available clean pinned checkout at anomalyco/opencode@0a601cf334b9a83cc2854108a2b860f25e6e7e8e.",
+      "nextAction": "Pin the available checkout and both hash sets without silently updating either reference."
+    }
+  ],
+  "leases": [
+    {
+      "owner": "codex",
+      "task": "FND-001",
+      "paths": [
+        ".foundry-connection/run-state.json",
+        "docs/architecture/foundry-connection-baseline.md",
+        "artifacts/foundry/baseline/**",
+        "artifacts/foundry/tasks/FND-001.json"
+      ],
+      "acquiredAt": "2026-07-28T16:09:46.447Z",
+      "state": "released",
+      "releasedAt": "2026-07-28T16:36:03.876Z"
+    }
+  ],
+  "lastUpdatedAt": "2026-07-28T16:36:03.876Z"
+}
