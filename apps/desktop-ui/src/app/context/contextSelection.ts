@@ -11,6 +11,8 @@
  * attached, and were not.
  */
 
+import type { AttachmentRejection } from "../../features/composer/composerEvents";
+
 /**
  * The most files one message will carry.
  *
@@ -56,40 +58,61 @@ export function mergeContextPaths(
 }
 
 /**
- * What to tell the user after a pick, or null when there is nothing to say.
+ * A pick's refusals, as separate reasons rather than one merged sentence.
  *
- * Null is deliberate for the ordinary case: a notice that appears every time a
- * pick succeeds is one the user stops reading, and then the one that matters --
- * "some of your files were skipped" -- goes unread with it.
+ * Replaces the two notice builders that used to live here. Both collapsed
+ * every refusal into a single string -- "3 unsupported files were skipped" --
+ * which is the failure FE-14 names: it tells the user something went wrong and
+ * nothing about which of their choices to revisit.
+ *
+ * An empty result is the ordinary case and is deliberate. A notice that appears
+ * every time a pick succeeds is one the user stops reading, and then the one
+ * that matters goes unread with it.
+ *
+ * FE-14 asks for partial failure to be "visible per file". How far that can go
+ * is decided by the host, not here: `WorkspaceBroker` documents that only
+ * relative wire paths and rejection *counts* leave the broker, and a file
+ * rejected as outside the workspace has no workspace-relative path to report --
+ * naming it would mean shipping an absolute path from outside the grant into
+ * the renderer, which is the exact thing that boundary exists to prevent.
+ *
+ * So this is as far as the current contract reaches: the two rejection classes
+ * are separated, each with its own reason, because "outside the workspace" and
+ * "could not be read" are different problems with different fixes. Carrying
+ * per-file paths for the *inside-root* refusals -- a blocked or binary file,
+ * which does have a relative path -- needs a change to `PickedFilesProjection`
+ * and belongs with FE-15, which owns the attachment surface.
+ *
+ * `relativePath` is empty for both: neither is attributable to a named file
+ * yet, and inventing one would be worse than admitting it.
  */
-export function attachmentNotice(
+export function pickRejections(
   pick: FilePickOutcome,
-  merge: ContextMerge,
+  merge?: ContextMerge,
   limit: number = MAX_CONTEXT_FILES,
-): string | null {
-  const skipped = pick.rejectedOutsideRoot + pick.rejectedUnreadable;
-  if (skipped > 0) {
-    return `Added ${pick.selectedCount} files. ${skipped} unsupported files were skipped.`;
+): readonly AttachmentRejection[] {
+  const rejections: AttachmentRejection[] = [];
+  if (pick.rejectedOutsideRoot > 0) {
+    rejections.push({
+      reason: `${pick.rejectedOutsideRoot} ${pick.rejectedOutsideRoot === 1 ? "file was" : "files were"} outside this workspace.`,
+      relativePath: "",
+    });
   }
-  // The picker's own truncation and this module's cap both mean the same thing
-  // to the user, so they read the same.
-  if (pick.truncated || merge.cappedByLimit) {
-    return `Added the first ${limit} supported files.`;
+  if (pick.rejectedUnreadable > 0) {
+    rejections.push({
+      reason: `${pick.rejectedUnreadable} ${pick.rejectedUnreadable === 1 ? "file" : "files"} could not be read.`,
+      relativePath: "",
+    });
   }
-  return null;
-}
-
-/**
- * What to say when a pick attached nothing.
- *
- * Cancelling the dialog is not a failure and says nothing. Selecting files that
- * were all rejected *is* worth saying, because from the user's side those two
- * outcomes look identical: they chose files and nothing appeared.
- */
-export function emptyPickNotice(rejectedCount: number): string | null {
-  return rejectedCount > 0
-    ? `No files were attached. ${rejectedCount} were outside the workspace or unreadable.`
-    : null;
+  // The picker's own truncation and this module's cap mean the same thing to
+  // the user, and both are refusals: files they chose that are not attached.
+  if (pick.truncated || merge?.cappedByLimit === true) {
+    rejections.push({
+      reason: `Only the first ${limit} files were attached.`,
+      relativePath: "",
+    });
+  }
+  return rejections;
 }
 
 export const maxContextFiles = MAX_CONTEXT_FILES;

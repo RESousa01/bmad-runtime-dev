@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "../test/setup";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
@@ -836,5 +836,253 @@ describe("TaskWorkspace transcript delivery", () => {
     );
 
     expect(region.scrollTop).toBe(2_000);
+  });
+});
+
+/**
+ * FE-14, through the DOM.
+ *
+ * The machine's own tests prove the transition table. These prove the guards
+ * survive the trip through React -- which is the half that was broken, because
+ * every guard here used to be a `disabled` attribute, and a `disabled`
+ * attribute only lands on the *next* render. The second click of a
+ * double-click arrives before it.
+ */
+describe("TaskWorkspace composer flow", () => {
+  /// Lets a test hold the "dialog" or the send open for as long as it needs.
+  function deferred<T>() {
+    let settle: (value: T) => void = () => undefined;
+    const promise = new Promise<T>((resolve) => { settle = resolve; });
+    return { promise, settle };
+  }
+
+  it("opens one native dialog however many times Add file is pressed", () => {
+    const gate = deferred<undefined>();
+    const onAttachFiles = vi.fn(() => gate.promise);
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+
+    const addFile = screen.getByRole("button", { name: "Add file" });
+    // fireEvent, not userEvent: three clicks with nothing awaited between them
+    // is the impatient double-click. Awaiting each would let React re-render
+    // and apply the disabled attribute, hiding the very race under test.
+    fireEvent.click(addFile);
+    fireEvent.click(addFile);
+    fireEvent.click(addFile);
+
+    expect(onAttachFiles).toHaveBeenCalledTimes(1);
+    gate.settle(undefined);
+  });
+
+  /**
+   * The same double-press, with no render in between.
+   *
+   * The test above passes even against a guard read from render state,
+   * because React flushes a discrete click before the next one is dispatched
+   * and the `disabled` attribute lands in time. That is not a guarantee to
+   * rely on: inside one batch -- which is what `act` reproduces, and what a
+   * deferred or transition-wrapped render does in earnest -- no re-render
+   * happens between the two presses, and a guard read from render state sees
+   * the phase from before the first press.
+   *
+   * The ref is what closes it. This is the test that says so.
+   */
+  it("still opens one dialog when both presses land in a single batch", () => {
+    const gate = deferred<undefined>();
+    const onAttachFiles = vi.fn(() => gate.promise);
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+    const addFile = screen.getByRole("button", { name: "Add file" });
+
+    act(() => {
+      addFile.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      addFile.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    });
+
+    expect(onAttachFiles).toHaveBeenCalledTimes(1);
+    gate.settle(undefined);
+  });
+
+  it("sends once when both presses land in a single batch", async () => {
+    const gate = deferred<undefined>();
+    const onSendRequest = vi.fn(() => gate.promise);
+    await userEvent.setup().type(
+      (render(<TaskWorkspace {...createProps({ onSendRequest })} />),
+        screen.getByLabelText(/Describe/u)),
+      "ship it",
+    );
+    const send = screen.getByRole("button", { name: /^Send/u });
+
+    act(() => {
+      send.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      send.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    });
+
+    expect(onSendRequest).toHaveBeenCalledTimes(1);
+    gate.settle(undefined);
+  });
+
+  it("refuses Add folder while an Add file dialog is open", () => {
+    const gate = deferred<undefined>();
+    const onAttachFiles = vi.fn(() => gate.promise);
+    const onAttachFolder = vi.fn(async () => undefined);
+    render(<TaskWorkspace {...createProps({ onAttachFiles, onAttachFolder })} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add file" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add folder" }));
+
+    // One dialog is one dialog, whichever control opened it. Windows stacks
+    // two IFileOpenDialogs happily, and the user gets no clue which of them
+    // their selection went to.
+    expect(onAttachFolder).not.toHaveBeenCalled();
+    gate.settle(undefined);
+  });
+
+  it("allows another dialog once the first one closes", async () => {
+    const onAttachFiles = vi.fn(async () => undefined);
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+
+    const addFile = screen.getByRole("button", { name: "Add file" });
+    fireEvent.click(addFile);
+    await waitFor(() => { expect(addFile).toHaveProperty("disabled", false); });
+    fireEvent.click(addFile);
+
+    expect(onAttachFiles).toHaveBeenCalledTimes(2);
+  });
+
+  /// FE-14 acceptance: cancelling produces no toast and no state mutation.
+  it("says nothing when the dialog is cancelled", async () => {
+    // Resolving to undefined is the cancel signal.
+    const onAttachFiles = vi.fn(async () => undefined);
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Add file" }));
+
+    await waitFor(() => { expect(onAttachFiles).toHaveBeenCalled(); });
+    expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+    expect(screen.queryByText(/outside this workspace/u)).toBeNull();
+  });
+
+  /// FE-14 acceptance: partial attachment failure is visible per file.
+  it("lists each refusal separately and lets the user dismiss them", async () => {
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 2,
+      rejected: [
+        { relativePath: "vendor/blob.bin", reason: "Not a readable text file." },
+        { relativePath: "", reason: "1 file was outside this workspace." },
+      ],
+    }));
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+
+    expect(await screen.findByText(/Not a readable text file\./u)).toBeTruthy();
+    expect(screen.getByText("1 file was outside this workspace.")).toBeTruthy();
+    // The one that has a name is named. "2 files were skipped" is what this
+    // replaces, and it told the user nothing they could act on.
+    expect(screen.getByText("vendor/blob.bin")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByText(/Not a readable text file\./u)).toBeNull();
+  });
+
+  it("keeps a refusal on screen while the user carries on typing", async () => {
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 0,
+      rejected: [{ relativePath: "a.bin", reason: "Not a readable text file." }],
+    }));
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onAttachFiles })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    await screen.findByText(/Not a readable text file\./u);
+    await user.type(screen.getByLabelText(/Describe/u), "carry on");
+
+    // A rejection the user has not read is not made stale by them typing.
+    expect(screen.getByText(/Not a readable text file\./u)).toBeTruthy();
+  });
+
+  /// FE-14 acceptance: double-submit is impossible.
+  it("sends once however many times Send is pressed", async () => {
+    const gate = deferred<undefined>();
+    const onSendRequest = vi.fn(() => gate.promise);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onSendRequest })} />);
+
+    await user.type(screen.getByLabelText(/Describe/u), "ship it");
+    const send = screen.getByRole("button", { name: /^Send/u });
+    fireEvent.click(send);
+    fireEvent.click(send);
+    fireEvent.click(send);
+
+    expect(onSendRequest).toHaveBeenCalledTimes(1);
+    gate.settle(undefined);
+  });
+
+  it("refuses a send with nothing typed", () => {
+    const onSendRequest = vi.fn(async () => undefined);
+    render(<TaskWorkspace {...createProps({ onSendRequest })} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Send/u }));
+
+    expect(onSendRequest).not.toHaveBeenCalled();
+  });
+
+  /// FE-14 acceptance: a failed send preserves the draft, and retry is the
+  /// same control -- nothing to restore, because nothing was taken away.
+  it("keeps the draft when the send fails and allows another attempt", async () => {
+    const onSendRequest = vi.fn()
+      .mockRejectedValueOnce(new Error("The provider rate-limited this request."))
+      .mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onSendRequest })} />);
+
+    const composer = screen.getByLabelText(/Describe/u);
+    await user.type(composer, "ship it");
+    await user.click(screen.getByRole("button", { name: /^Send/u }));
+
+    await waitFor(() => { expect(onSendRequest).toHaveBeenCalledTimes(1); });
+    expect(composer).toHaveProperty("value", "ship it");
+
+    await user.click(screen.getByRole("button", { name: /^Send/u }));
+    expect(onSendRequest).toHaveBeenCalledTimes(2);
+    expect(onSendRequest.mock.calls[1]?.[0]).toBe("ship it");
+  });
+
+  it("clears the draft only once the host has taken the message", async () => {
+    const onSendRequest = vi.fn(async () => undefined);
+    const onDraftChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onSendRequest, onDraftChange })} />);
+
+    const composer = screen.getByLabelText(/Describe/u);
+    await user.type(composer, "ship it");
+    await user.click(screen.getByRole("button", { name: /^Send/u }));
+
+    await waitFor(() => { expect(composer).toHaveProperty("value", ""); });
+    // The task owns the draft, so it is told too -- otherwise switching away
+    // and back would restore a message that has already been sent.
+    expect(onDraftChange).toHaveBeenLastCalledWith("");
+  });
+
+  it("keeps Add file live while a reply is in flight", () => {
+    // Gathering context while waiting is ordinary. A busy lane is not a reason
+    // to take the file picker away.
+    render(<TaskWorkspace {...createProps({
+      chatLane: { ...emptyChatLane, pending: "ship it", sending: true },
+    })} />);
+
+    expect(screen.getByRole("button", { name: "Add file" }))
+      .toHaveProperty("disabled", false);
+  });
+
+  it("sends what was typed, not what a stale render remembered", async () => {
+    const onSendRequest = vi.fn(async () => undefined);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onSendRequest })} />);
+
+    await user.type(screen.getByLabelText(/Describe/u), "  spaced out  ");
+    await user.click(screen.getByRole("button", { name: /^Send/u }));
+
+    await waitFor(() => { expect(onSendRequest).toHaveBeenCalledWith("spaced out"); });
   });
 });

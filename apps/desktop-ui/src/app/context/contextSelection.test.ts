@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  attachmentNotice,
-  emptyPickNotice,
   maxContextFiles,
   mergeContextPaths,
+  pickRejections,
   type FilePickOutcome,
 } from "./contextSelection";
 
@@ -79,66 +78,71 @@ describe("mergeContextPaths", () => {
   });
 });
 
-describe("attachmentNotice", () => {
+describe("pickRejections", () => {
   it("says nothing when everything the user picked was attached", () => {
     // A notice on every success is one the user stops reading -- and then the
     // one that matters goes unread with it.
     const merge = mergeContextPaths([], ["a.ts"]);
-    expect(attachmentNotice(pick({ selectedCount: 1, relativePaths: ["a.ts"] }), merge))
-      .toBeNull();
+    expect(pickRejections(pick({ selectedCount: 1, relativePaths: ["a.ts"] }), merge))
+      .toEqual([]);
   });
 
-  it("reports files rejected by the host", () => {
+  /// FE-14. The predecessor collapsed these into "3 unsupported files were
+  /// skipped", which names a number and no cause -- and the two causes have
+  /// different fixes: move the file in, or fix why it cannot be read.
+  it("keeps the two rejection causes apart", () => {
     const merge = mergeContextPaths([], ["a.ts"]);
-    const notice = attachmentNotice(
+    const rejections = pickRejections(
       pick({ selectedCount: 1, rejectedOutsideRoot: 2, rejectedUnreadable: 1 }),
       merge,
     );
-    expect(notice).toBe("Added 1 files. 3 unsupported files were skipped.");
+    expect(rejections).toHaveLength(2);
+    expect(rejections[0]?.reason).toBe("2 files were outside this workspace.");
+    expect(rejections[1]?.reason).toBe("1 file could not be read.");
   });
 
-  it("counts both rejection reasons together", () => {
-    const merge = mergeContextPaths([], ["a.ts"]);
-    expect(attachmentNotice(pick({ rejectedOutsideRoot: 4 }), merge))
-      .toContain("4 unsupported");
-    expect(attachmentNotice(pick({ rejectedUnreadable: 4 }), merge))
-      .toContain("4 unsupported");
+  it("agrees with itself about singular and plural", () => {
+    const one = pickRejections(pick({ rejectedOutsideRoot: 1, rejectedUnreadable: 1 }));
+    expect(one[0]?.reason).toBe("1 file was outside this workspace.");
+    expect(one[1]?.reason).toBe("1 file could not be read.");
+  });
+
+  it("names no file it was not told the name of", () => {
+    // The host reports counts, not paths: a file outside the workspace has no
+    // workspace-relative path, and inventing one would be worse than the gap.
+    for (const rejection of pickRejections(pick({ rejectedOutsideRoot: 2 }))) {
+      expect(rejection.relativePath).toBe("");
+    }
   });
 
   it("reports the picker's own truncation", () => {
-    const merge = mergeContextPaths([], ["a.ts"]);
-    expect(attachmentNotice(pick({ truncated: true }), merge))
-      .toBe(`Added the first ${maxContextFiles} supported files.`);
+    expect(pickRejections(pick({ truncated: true }))[0]?.reason)
+      .toBe(`Only the first ${maxContextFiles} files were attached.`);
   });
 
   it("reports this module's cap the same way", () => {
     // Both mean the same thing to the user, so they read the same.
     const many = Array.from({ length: 150 }, (_, i) => `file-${i}.ts`);
     const merge = mergeContextPaths([], many);
-    expect(attachmentNotice(pick(), merge))
-      .toBe(`Added the first ${maxContextFiles} supported files.`);
+    expect(pickRejections(pick(), merge)[0]?.reason)
+      .toBe(`Only the first ${maxContextFiles} files were attached.`);
   });
 
-  it("prefers the rejection message over the truncation one", () => {
-    // Rejected files are the more surprising outcome: the user chose them and
-    // they are not there.
+  /// The predecessor returned one string, so a truncated pick that also had
+  /// rejected files reported only one of the two. They are independent facts.
+  it("reports a truncation and a rejection together", () => {
     const many = Array.from({ length: 150 }, (_, i) => `file-${i}.ts`);
     const merge = mergeContextPaths([], many);
-    expect(attachmentNotice(pick({ selectedCount: 150, rejectedUnreadable: 5 }), merge))
-      .toContain("skipped");
-  });
-});
-
-describe("emptyPickNotice", () => {
-  it("says nothing when the user cancelled the dialog", () => {
-    // Cancelling is not a failure.
-    expect(emptyPickNotice(0)).toBeNull();
+    const rejections = pickRejections(pick({ selectedCount: 150, rejectedUnreadable: 5 }), merge);
+    expect(rejections).toHaveLength(2);
+    expect(rejections.map((rejection) => rejection.reason).join(" "))
+      .toContain("could not be read");
   });
 
-  it("explains when everything the user chose was rejected", () => {
+  it("works without a merge, for a pick that attached nothing", () => {
     // From the user's side, cancelling and having every file rejected look
     // identical: they chose files and nothing appeared.
-    expect(emptyPickNotice(3))
-      .toBe("No files were attached. 3 were outside the workspace or unreadable.");
+    expect(pickRejections(pick({ rejectedOutsideRoot: 3 }))).toHaveLength(1);
+    expect(pickRejections(pick())).toEqual([]);
   });
 });

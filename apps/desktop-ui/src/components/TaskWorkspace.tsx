@@ -20,6 +20,7 @@ import {
   ContextWindow,
 } from "./ContextWindow";
 import { AgentSelector } from "./composer/AgentSelector";
+import { useComposer, type ImportOutcome } from "../features/composer/useComposer";
 import "./composer/agent-selector.css";
 
 const STARTER_INTENTS = [
@@ -70,8 +71,16 @@ export interface TaskWorkspaceProps {
   methodLibraryAvailable: boolean;
   modelAccessDetail: string;
   modelAccessLabel: string;
-  onAttachFiles?: (() => Promise<void>) | undefined;
-  onAttachFolder?: (() => Promise<void>) | undefined;
+  /**
+   * Opens the native file dialog and resolves to what was attached.
+   *
+   * Resolving to `undefined` means the user cancelled. That distinction is the
+   * whole of FE-14's "cancelling produces no toast and no state mutation": a
+   * handler that could only say "done" left the composer unable to tell a
+   * cancel from an import that attached nothing.
+   */
+  onAttachFiles?: (() => Promise<ImportOutcome | void>) | undefined;
+  onAttachFolder?: (() => Promise<ImportOutcome | void>) | undefined;
   onClearContext: () => void;
   agentLibrary: BmadLibraryUiState;
   onOpenChanges: () => void;
@@ -355,9 +364,39 @@ export function TaskWorkspace({
   /// Whether the user is reading the newest turn. Starts true so the first
   /// reply of a task is followed, and is re-evaluated on every scroll.
   const anchoredToBottomRef = useRef(true);
-  const [draft, setDraft] = useState(initialDraft);
   const [renameDraft, setRenameDraft] = useState<string | null>(null);
   const renaming = renameDraft !== null;
+  const [submittedTask, setSubmittedTask] = useState<string | null>(null);
+
+  const methodGuidanceView = methodGuidanceAvailable
+    || submittedTask !== null
+    || methodGuidanceState.kind !== "idle";
+  const guidancePending = methodGuidanceState.kind === "creating"
+    || methodGuidanceState.kind === "review_required"
+    || methodGuidanceState.kind === "approving"
+    || methodGuidanceState.kind === "approved"
+    || methodGuidanceState.kind === "submitting";
+  const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
+    && methodGuidanceState.activity === "recovering";
+  const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
+  /*
+   * Everything that withholds the composer from outside it.
+   *
+   * A chat turn in flight disables it for the same reason a Help request does:
+   * the transcript accepts one question at a time. These are permissions, not
+   * phases -- FE-14's machine owns what the composer is *doing*, and cannot be
+   * allowed to transition its way out of a lock the shell imposed.
+   *
+   * `chatLane.sending` stays in the list even though the machine has a
+   * `sending` phase of its own. They are not redundant: the lane is the host's
+   * view, which arrives a render late, and the machine is the synchronous one
+   * that closes the double-click window the lane leaves open.
+   */
+  const composerDisabled =
+    interactionDisabled || guidancePending || failedSubmission || chatLane.sending;
+
+  const composer = useComposer({ initialDraft, locked: composerDisabled, onDraftChange });
+  const draft = composer.draft;
 
   function startRename() {
     setRenameDraft(sessionTitle);
@@ -392,11 +431,6 @@ export function TaskWorkspace({
     }
   }, [renaming]);
 
-  function updateDraft(value: string) {
-    setDraft(value);
-    onDraftChange?.(value);
-  }
-
   /// A few pixels of slack, so a fractional scroll height or a sub-pixel
   /// rounding difference does not read as "the user scrolled up".
   const bottomAnchorSlackPx = 24;
@@ -407,18 +441,6 @@ export function TaskWorkspace({
     const distanceFromBottom = region.scrollHeight - region.scrollTop - region.clientHeight;
     anchoredToBottomRef.current = distanceFromBottom <= bottomAnchorSlackPx;
   }
-
-  const [submittedTask, setSubmittedTask] = useState<string | null>(null);
-  const methodGuidanceView = methodGuidanceAvailable
-    || submittedTask !== null
-    || methodGuidanceState.kind !== "idle";
-  const guidancePending = methodGuidanceState.kind === "creating"
-    || methodGuidanceState.kind === "review_required"
-    || methodGuidanceState.kind === "approving"
-    || methodGuidanceState.kind === "approved"
-    || methodGuidanceState.kind === "submitting";
-  const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
-    && methodGuidanceState.activity === "recovering";
 
   // Follow the conversation as it grows.
   //
@@ -441,11 +463,6 @@ export function TaskWorkspace({
     }
     region.scrollTop = region.scrollHeight;
   }, [transcriptSignature]);
-  const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
-  // A chat turn in flight disables the composer for the same reason a Help
-  // request does: the transcript accepts one question at a time.
-  const composerDisabled =
-    interactionDisabled || guidancePending || failedSubmission || chatLane.sending;
   /*
    * Sending gates on whether *chat* can be sent, not on whether BMAD Help is
    * available. This used to read `|| !methodGuidanceAvailable`, which is audit
@@ -455,24 +472,29 @@ export function TaskWorkspace({
    * Ordinary conversation is not a Method feature. The two signals are separate
    * props now so one cannot be reached for in place of the other.
    */
-  const submitDisabled = composerDisabled || !chatSendAvailable;
+  const canSubmit = composer.canSend && chatSendAvailable;
 
-  async function submitTask(event: FormEvent<HTMLFormElement>) {
+  function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitDisabled) {
-      return;
-    }
-    const value = draft.trim();
-    if (!value) {
-      return;
-    }
-    try {
-      await onSendRequest(value);
-      setSubmittedTask(value);
-      updateDraft("");
-    } catch {
-      updateDraft(value);
-    }
+    if (!chatSendAvailable) return;
+    /*
+     * The guard is inside `composer.send`, checked against a ref rather than
+     * this render's state. That is the whole double-submit fix: the second
+     * click of a double-click arrives before React has re-rendered with the
+     * first click's phase, so a check against `canSubmit` here would read the
+     * value from before the first click and let the second through.
+     */
+    composer.send(async (intent) => {
+      await onSendRequest(intent);
+      setSubmittedTask(intent);
+    });
+  }
+
+  /// Opens the native dialog under the machine's guard, so a second press
+  /// while one is open is dropped rather than stacking a second dialog.
+  function pickAttachments(open: (() => Promise<ImportOutcome | void>) | undefined) {
+    if (open === undefined) return;
+    composer.openFileDialog(open);
   }
 
   return (
@@ -682,7 +704,7 @@ export function TaskWorkspace({
                       <li key={intent}>
                         <button
                           onClick={() => {
-                            updateDraft(intent);
+                            composer.setDraft(intent);
                             composerRef.current?.focus();
                           }}
                           type="button"
@@ -714,6 +736,39 @@ export function TaskWorkspace({
         {attachments.notice ? (
           <p className="attach-notice" role="status">{attachments.notice}</p>
         ) : null}
+        {/* One line per refusal, not one merged sentence. "3 files were
+            skipped" tells the user something went wrong and nothing about
+            which of their choices to revisit. */}
+        {composer.rejections.length > 0 ? (
+          <div className="attach-rejections" role="status">
+            <ul>
+              {composer.rejections.map((rejection) => (
+                <li key={`${rejection.relativePath}|${rejection.reason}`}>
+                  {rejection.relativePath === ""
+                    ? rejection.reason
+                    : <><code>{rejection.relativePath}</code> — {rejection.reason}</>}
+                </li>
+              ))}
+            </ul>
+            <Button
+              onPress={composer.dismissRejections}
+              size="small"
+              variant="quiet"
+            >
+              Dismiss
+            </Button>
+          </div>
+        ) : null}
+        {/*
+          A failed send renders no line here on purpose.
+
+          The transcript already reports it, next to the question that failed,
+          which is where it belongs -- an error floating above the composer is
+          detached from the thing it is about. The machine still enters
+          `failed`: that is what keeps the draft, and what lets Send re-enable
+          so retrying is simply pressing it again. Rendering it twice was the
+          same two-channel mistake the import path just had removed.
+        */}
         <div className="composer__input-row">
           {/* Design specification 7.4: pressing the composer control invokes
               the native dialog immediately. No Forge popover, menu, workspace
@@ -724,8 +779,8 @@ export function TaskWorkspace({
           <div className="composer__attach">
             <Button
               aria-label="Add file"
-              isDisabled={!canAttachFiles || !onAttachFiles}
-              onPress={() => { void onAttachFiles?.(); }}
+              isDisabled={!canAttachFiles || !onAttachFiles || !composer.canOpenFileDialog}
+              onPress={() => { pickAttachments(onAttachFiles); }}
               size="small"
               variant="quiet"
             >
@@ -734,8 +789,8 @@ export function TaskWorkspace({
             </Button>
             <Button
               aria-label="Add folder"
-              isDisabled={!canAttachFiles || !onAttachFolder}
-              onPress={() => { void onAttachFolder?.(); }}
+              isDisabled={!canAttachFiles || !onAttachFolder || !composer.canOpenFileDialog}
+              onPress={() => { pickAttachments(onAttachFolder); }}
               size="small"
               variant="quiet"
             >
@@ -752,7 +807,7 @@ export function TaskWorkspace({
             ref={composerRef}
             aria-describedby="task-composer-availability"
             disabled={composerDisabled}
-            onChange={(event) => updateDraft(event.target.value)}
+            onChange={(event) => { composer.setDraft(event.target.value); }}
             placeholder={methodGuidanceView
               ? "Ask BMAD Help…"
               : "Ask Forge…"}
@@ -806,7 +861,7 @@ export function TaskWorkspace({
             <Button
               aria-label={methodGuidanceView ? "Send message" : "Send task"}
               className="composer__submit"
-              isDisabled={submitDisabled || !draft.trim()}
+              isDisabled={!canSubmit}
               size="icon"
               title={methodGuidanceView ? "Send message" : "Send task"}
               type="submit"

@@ -55,10 +55,10 @@ import { useTaskSessions } from "./features/tasks/taskSessionController";
 import { useDeferredFocusReturn } from "./app/focus/deferredFocusReturn";
 import { startProjectionSubscription } from "./app/projection/projectionPoller";
 import {
-  attachmentNotice,
-  emptyPickNotice,
   mergeContextPaths,
+  pickRejections,
 } from "./app/context/contextSelection";
+import type { ImportOutcome } from "./features/composer/useComposer";
 import {
   anyPhase,
   approved,
@@ -764,11 +764,19 @@ export function App({
     && workspaceSource !== null
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.pick_folder");
 
+  /**
+   * Picks files and reports what came of it.
+   *
+   * FE-14: the return value is what lets the composer tell a cancel from an
+   * import that attached nothing. `undefined` means "nothing to say" -- the
+   * user cancelled, or the result arrived for a task that has moved on -- and
+   * an outcome means the pick resolved, rejections and all.
+   */
   async function browseAndAttach(
     picker: (client: WorkspaceClient, workspaceId: string) => Promise<WorkspaceFilePick>,
-  ) {
+  ): Promise<ImportOutcome | undefined> {
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !workspaceSource) {
-      return;
+      return undefined;
     }
     const client = hostRuntime.client;
     const workspaceId = activeWorkspace.workspaceId;
@@ -798,33 +806,39 @@ export function App({
     patchAttachments({ notice: null });
     try {
       const pick = await picker(client, workspaceId);
-      if (pick.kind === "no_selection" || pick.value.relativePaths.length === 0) {
-        if (isStale()) return;
-        patchAttachments({
-          notice: emptyPickNotice(pick.kind === "picked"
-            ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
-            : 0),
-        });
-        return;
+      // A cancelled dialog is not an outcome. It is the user deciding not to
+      // attach anything, and it says nothing.
+      if (pick.kind === "no_selection") return undefined;
+      if (pick.value.relativePaths.length === 0) {
+        if (isStale()) return undefined;
+        // Chose files, got none. From the user's side that is identical to
+        // cancelling, so the refusals are the only way they learn otherwise.
+        return { attached: 0, rejected: pickRejections(pick.value) };
       }
       const merge = mergeContextPaths(existingPaths, pick.value.relativePaths);
       const projection = await workspaceSource.previewContext([...merge.relativePaths]);
-      if (isStale()) return;
+      if (isStale()) return undefined;
       taskSessions.route(routing, (session) => ({
         ...session,
-        attachments: adoptPreview(projection, "manual", attachmentNotice(pick.value, merge)),
+        attachments: adoptPreview(projection, "manual", null),
       }));
+      return { attached: merge.relativePaths.length, rejected: pickRejections(pick.value, merge) };
     } catch (error) {
-      if (isStale()) return;
-      patchAttachments({ notice: getSafeHostMessage(error) });
+      // A stale failure belongs to a task the user has left. Reporting it
+      // against the visible one is the same mistake `isStale` exists to stop.
+      if (isStale()) return undefined;
+      // Rethrown rather than written to the notice, so the composer machine is
+      // the single channel for what a pick did. Two channels is how a failed
+      // import ends up reported twice, or not at all.
+      throw error;
     }
   }
 
-  function browseAndAttachFiles(): Promise<void> {
+  function browseAndAttachFiles(): Promise<ImportOutcome | undefined> {
     return browseAndAttach((client, workspaceId) => client.pickWorkspaceFiles(workspaceId));
   }
 
-  function browseAndAttachFolder(): Promise<void> {
+  function browseAndAttachFolder(): Promise<ImportOutcome | undefined> {
     return browseAndAttach((client, workspaceId) => client.pickWorkspaceFolder(workspaceId));
   }
 
