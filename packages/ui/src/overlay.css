@@ -1,0 +1,158 @@
+/*
+ * Overlay presentation: Dialog, Popover, Tooltip and Toast.
+ *
+ * Design specification 3.1 gives overlays the `raised` surface role and 3.4
+ * gives them the 10px radius. Nothing here invents a colour or a radius --
+ * every value is a semantic token, so a theme change reaches all four.
+ */
+
+.sapphirus-modal-overlay {
+  align-items: center;
+  background: var(--color-scrim);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 100;
+}
+
+.sapphirus-modal {
+  max-height: calc(100dvh - var(--space-8));
+  max-width: min(560px, calc(100vw - var(--space-8)));
+  outline: none;
+  width: 100%;
+}
+
+.sapphirus-dialog {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--shadow-popover);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  outline: none;
+  padding: var(--space-4);
+}
+
+.sapphirus-dialog__title {
+  color: var(--color-text);
+  font-size: var(--text-title);
+  font-weight: var(--fw-semibold);
+  margin: 0;
+}
+
+.sapphirus-dialog__description {
+  color: var(--color-text-soft);
+  font-size: var(--text-body);
+  line-height: var(--lh-prose);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.sapphirus-popover {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--shadow-popover);
+  max-width: min(320px, calc(100vw - var(--space-6)));
+  outline: none;
+}
+
+.sapphirus-popover__dialog {
+  outline: none;
+  padding: var(--space-2);
+}
+
+.sapphirus-tooltip {
+  background: var(--color-surface-selected);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: var(--text-meta);
+  max-width: 28ch;
+  padding: var(--space-1) var(--space-2);
+}
+
+/* Bottom-right, above everything, and out of the way of the composer. */
+.sapphirus-toast-region {
+  bottom: var(--space-4);
+  display: flex;
+  position: fixed;
+  right: var(--space-4);
+  z-index: 200;
+}
+
+.sapphirus-toast-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sapphirus-toast {
+  align-items: flex-start;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--shadow-popover);
+  display: flex;
+  gap: var(--space-3);
+  max-width: 380px;
+  padding: var(--space-3);
+}
+
+.sapphirus-toast__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sapphirus-toast__title {
+  color: var(--color-text);
+  font-size: var(--text-body);
+}
+
+.sapphirus-toast__description {
+  color: var(--color-text-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-prose);
+}
+
+/*
+ * Tone is carried by a left rule and by the title's wording, never by colour
+ * alone -- design specification 3.5 requires text or a symbol alongside it.
+ */
+.sapphirus-toast--success {
+  box-shadow: inset 2px 0 0 var(--color-success), var(--shadow-popover);
+}
+
+.sapphirus-toast--error {
+  box-shadow: inset 2px 0 0 var(--color-danger), var(--shadow-popover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapphirus-toast,
+  .sapphirus-popover,
+  .sapphirus-tooltip {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .sapphirus-dialog,
+  .sapphirus-popover,
+  .sapphirus-tooltip,
+  .sapphirus-toast {
+    border: 1px solid CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  /* Inset rules disappear in forced colours, so tone falls back to the border
+     and to the text, which is where it should have been legible anyway. */
+  .sapphirus-toast--success,
+  .sapphirus-toast--error {
+    box-shadow: none;
+  }
+}
