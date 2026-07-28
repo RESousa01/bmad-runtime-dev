@@ -39,6 +39,7 @@ import { createModelActions } from "./app/model/modelController";
 import { useChangesHistoryState } from "./app/changes/changesHistoryState";
 import { createChangesRunner } from "./app/changes/changesRunner";
 import { isRecoveryFailure } from "./app/hostFailure";
+import { useHostProjection } from "./app/projection/hostProjection";
 import {
   anyPhase,
   approved,
@@ -287,15 +288,27 @@ export function App({
   const [appModal, setAppModal] = useState<AppModalKind>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [utilitySettingsPage, setUtilitySettingsPage] = useState<SettingsSection>("general");
-  const [aboutProjection, setAboutProjection] = useState<AboutProjection | null>(null);
-  const [aboutStatus, setAboutStatus] = useState<"loading" | "unavailable" | "ready">(
-    "unavailable",
-  );
+  /*
+   * FE-10 step 3: two host-read projections.
+   *
+   * Both outlive the binding they were started against, and `useHostProjection`
+   * captures the binding generation before it awaits so a result from a
+   * replaced host is discarded. The retention manifest is the sharper case: it
+   * lists what is still on disk, and a revoked host's answer tells the user
+   * their data is somewhere it is not.
+   */
+  const about = useHostProjection<AboutProjection>();
+  const offboarding = useHostProjection<RetentionManifestProjection, "erasing" | "erased">();
+  // The `set` callbacks are stable (`useCallback` with no dependencies), so
+  // naming them individually lets `invalidateHostBoundUi` list honest
+  // dependencies -- the projection objects themselves are new every render.
+  const { set: resetAboutProjection } = about;
+  const { set: resetOffboardingProjection } = offboarding;
+  const aboutProjection = about.projection;
+  const aboutStatus = about.status;
+  const offboardingManifest = offboarding.projection;
+  const offboardingStatus: OffboardingStatus = offboarding.status;
   const [preferencesNotice, setPreferencesNotice] = useState<string | null>(null);
-  const [offboardingManifest, setOffboardingManifest] =
-    useState<RetentionManifestProjection | null>(null);
-  const [offboardingStatus, setOffboardingStatus] =
-    useState<OffboardingStatus>("unavailable");
   const [offboardingNotice, setOffboardingNotice] = useState<string | null>(null);
   // Per-task capability execution state lives in `capabilitySessions` (keyed by
   // task session id) so a late completion routes to its owning task instead of
@@ -1045,10 +1058,8 @@ export function App({
     clearBmadHelpProjection();
     setPersonaPerspectives(new Map());
     clearAllCapabilityRuns();
-    setAboutProjection(null);
-    setAboutStatus("unavailable");
-    setOffboardingManifest(null);
-    setOffboardingStatus("unavailable");
+    resetAboutProjection(null, "unavailable");
+    resetOffboardingProjection(null, "unavailable");
     setOffboardingNotice(null);
     setModelSelectionBusy(false);
     setModelSelectionNotice(null);
@@ -1060,6 +1071,8 @@ export function App({
     clearBmadHelpProjection,
     clearMethodLibraryProjection,
     invalidateWorkspaceBoundUi,
+    resetAboutProjection,
+    resetOffboardingProjection,
     resetWorkspaceActionState,
   ]);
 
@@ -1107,21 +1120,19 @@ export function App({
       hostRuntime.kind !== "ready"
       || !hostRuntime.bootstrap.supportedCommands.includes("app.about")
     ) {
-      setAboutStatus("unavailable");
+      about.setStatus("unavailable");
       return;
     }
-    const hostBindingGeneration = hostBindingGenerationRef.current;
-    setAboutStatus("loading");
-    try {
-      const about = await hostRuntime.client.getAbout();
-      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
-      setAboutProjection(about);
-      setAboutStatus("ready");
-    } catch {
-      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
-      setAboutStatus("unavailable");
-    }
-    if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
+    const client = hostRuntime.client;
+    const generation = hostBindingGenerationRef.current;
+    await about.read({
+      generation: () => hostBindingGenerationRef.current,
+      load: () => client.getAbout(),
+    });
+    // The retention read is the second half of the same await chain, so it is
+    // guarded against the generation captured before the *first* one -- leaving
+    // it unguarded kept the hole open through the second call.
+    if (generation !== hostBindingGenerationRef.current) return;
     await loadRetentionManifest();
   }
 
@@ -1251,28 +1262,22 @@ export function App({
   }
 
   async function loadRetentionManifest() {
-    if (offboardingStatus === "erased") return;
+    // `erased` is terminal for the session: the store is gone, and re-reading
+    // it would replace "erased" with "unavailable" and lose the confirmation
+    // the user is looking at.
+    if (offboarding.status === "erased") return;
     if (
       hostRuntime.kind !== "ready"
       || !hostRuntime.bootstrap.supportedCommands.includes("app.offboarding.inspect")
     ) {
-      setOffboardingStatus("unavailable");
+      offboarding.setStatus("unavailable");
       return;
     }
-    // Same guard as `loadAboutProjection`: this is the second half of the same
-    // await chain, so leaving it unguarded would keep the hole open — the
-    // retention manifest of a revoked workspace's host would still land.
-    const hostBindingGeneration = hostBindingGenerationRef.current;
-    setOffboardingStatus("loading");
-    try {
-      const manifest = await hostRuntime.client.inspectOffboarding();
-      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
-      setOffboardingManifest(manifest);
-      setOffboardingStatus("ready");
-    } catch {
-      if (hostBindingGeneration !== hostBindingGenerationRef.current) return;
-      setOffboardingStatus("unavailable");
-    }
+    const client = hostRuntime.client;
+    await offboarding.read({
+      generation: () => hostBindingGenerationRef.current,
+      load: () => client.inspectOffboarding(),
+    });
   }
 
   async function eraseOffboardingData(confirm: string) {
@@ -1283,12 +1288,11 @@ export function App({
       setOffboardingNotice("Erasing local data is unavailable in this mode.");
       return;
     }
-    setOffboardingStatus("erasing");
+    offboarding.setStatus("erasing");
     setOffboardingNotice(null);
     try {
       await hostRuntime.client.eraseOffboarding(confirm);
-      setOffboardingManifest(null);
-      setOffboardingStatus("erased");
+      offboarding.set(null, "erased");
       // Erase destroyed the store. Leaving the renderer's copy on screen means
       // the user looks at the tasks, transcripts, drafts and diffs they just
       // asked to have destroyed, and can still read them — the bytes are gone
@@ -1318,7 +1322,7 @@ export function App({
       // would render a workbench for a conversation that no longer exists.
       setPrimaryRoute({ kind: "home" });
     } catch (error) {
-      setOffboardingStatus("ready");
+      offboarding.setStatus("ready");
       setOffboardingNotice(getSafeHostMessage(error));
     }
   }
