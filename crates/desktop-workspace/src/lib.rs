@@ -141,14 +141,76 @@ pub struct WorkspaceEntryPage {
     pub next_after: Option<String>,
 }
 
+/// Why one picked file is not attached.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PickRejection {
+    /// Not inside the granted root, or not addressable within it.
+    OutsideWorkspace,
+    /// Inside the root but refused by policy: sensitive, a symlink, a reparse
+    /// point, or a cloud placeholder.
+    Blocked,
+    /// Present and readable, but not UTF-8 text within the size bound.
+    NotText,
+    /// The filesystem would not give it up.
+    Unreadable,
+}
+
+/// One picked file that is not attached, and -- when it can be said safely --
+/// which file it was.
+///
+/// `relative_path` is `None` for every refusal decided *before* containment is
+/// proven. That is not a gap to be filled later: a candidate that failed
+/// `ensure_descendant` is by definition outside the granted root, so the only
+/// name it has is an absolute path from somewhere the renderer was never
+/// granted. Naming it would defeat the boundary this broker exists to hold.
+///
+/// Past containment the file is proven to be inside the grant and has a
+/// workspace-relative name, so a refusal can say exactly which file it was --
+/// which is the difference between "3 files were skipped" and something the
+/// user can act on.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RejectedPick {
+    pub relative_path: Option<String>,
+    pub reason: PickRejection,
+}
+
 /// Result of mapping host-picked absolute files to workspace-relative paths.
-/// Only relative wire paths and rejection counts leave the broker.
+/// Only relative wire paths and rejection reasons leave the broker.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PickedFiles {
     pub relative_paths: Vec<String>,
+    /// Every refusal, in the order the candidates were offered.
+    pub rejected: Vec<RejectedPick>,
     pub rejected_outside_root: u64,
     pub rejected_unreadable: u64,
     pub truncated: bool,
+}
+
+impl PickedFiles {
+    /// The counts the wire still carries, derived from the refusals.
+    ///
+    /// Derived rather than tallied alongside, because two independent
+    /// accumulators of the same fact are two things that can disagree -- and
+    /// the one that disagrees silently is the one the user sees.
+    ///
+    /// The grouping is deliberately the one that shipped: everything except an
+    /// I/O failure counted as an outside-root rejection, including a binary
+    /// file sitting inside the workspace. It is a mislabel, and `rejected` is
+    /// the field that does not have it.
+    fn with_derived_counts(mut self) -> Self {
+        self.rejected_outside_root = self
+            .rejected
+            .iter()
+            .filter(|pick| pick.reason != PickRejection::Unreadable)
+            .count() as u64;
+        self.rejected_unreadable = self
+            .rejected
+            .iter()
+            .filter(|pick| pick.reason == PickRejection::Unreadable)
+            .count() as u64;
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -624,24 +686,13 @@ impl WorkspaceBroker {
         let root = grant.root.clone();
 
         let mut relative_paths = BTreeSet::new();
-        let mut rejected_outside_root = 0_u64;
-        let mut rejected_unreadable = 0_u64;
+        let mut rejected = Vec::new();
         for candidate in candidates {
             match resolve_picked_file(&root, candidate) {
                 Ok(relative) => {
                     relative_paths.insert(relative);
                 }
-                Err(
-                    WorkspaceError::OutsideWorkspace
-                    | WorkspaceError::PathBlocked
-                    | WorkspaceError::InvalidRelativePath
-                    | WorkspaceError::UnsupportedText,
-                ) => {
-                    rejected_outside_root = rejected_outside_root.saturating_add(1);
-                }
-                Err(_) => {
-                    rejected_unreadable = rejected_unreadable.saturating_add(1);
-                }
+                Err(refusal) => rejected.push(refusal),
             }
         }
         self.ensure_grant_current(&authority, &grant)?;
@@ -655,10 +706,12 @@ impl WorkspaceBroker {
             .collect::<Vec<_>>();
         Ok(PickedFiles {
             relative_paths,
-            rejected_outside_root,
-            rejected_unreadable,
+            rejected,
+            rejected_outside_root: 0,
+            rejected_unreadable: 0,
             truncated,
-        })
+        }
+        .with_derived_counts())
     }
 
     /// Expands one host-picked directory into a bounded, sorted set of
@@ -690,25 +743,38 @@ impl WorkspaceBroker {
                 | WorkspaceError::InvalidRelativePath
                 | WorkspaceError::UnsupportedText,
             ) => {
+                // The folder itself was refused. It is named by the pick that
+                // asked for it, not by anything the broker can hand back, so
+                // this refusal stays anonymous.
                 return Ok(PickedFiles {
                     relative_paths: Vec::new(),
-                    rejected_outside_root: 1,
+                    rejected: vec![RejectedPick {
+                        relative_path: None,
+                        reason: PickRejection::OutsideWorkspace,
+                    }],
+                    rejected_outside_root: 0,
                     rejected_unreadable: 0,
                     truncated: false,
-                });
+                }
+                .with_derived_counts());
             }
             Err(_) => {
                 return Ok(PickedFiles {
                     relative_paths: Vec::new(),
+                    rejected: vec![RejectedPick {
+                        relative_path: None,
+                        reason: PickRejection::Unreadable,
+                    }],
                     rejected_outside_root: 0,
-                    rejected_unreadable: 1,
+                    rejected_unreadable: 0,
                     truncated: false,
-                });
+                }
+                .with_derived_counts());
             }
         };
 
         let mut relative_paths = BTreeSet::new();
-        let mut rejected_unreadable = 0_u64;
+        let mut rejected = Vec::new();
         let mut truncated = false;
         let mut walk_budget = WalkBudget::default();
         let walker = WalkBuilder::new(&selected)
@@ -725,7 +791,10 @@ impl WorkspaceBroker {
                 break;
             }
             let Ok(entry) = entry else {
-                rejected_unreadable = rejected_unreadable.saturating_add(1);
+                rejected.push(RejectedPick {
+                    relative_path: None,
+                    reason: PickRejection::Unreadable,
+                });
                 continue;
             };
             if !entry
@@ -738,15 +807,21 @@ impl WorkspaceBroker {
                 Ok(relative) => {
                     relative_paths.insert(relative);
                 }
-                Err(
-                    WorkspaceError::OutsideWorkspace
-                    | WorkspaceError::PathBlocked
-                    | WorkspaceError::InvalidRelativePath
-                    | WorkspaceError::UnsupportedText,
-                ) => {}
-                Err(_) => {
-                    rejected_unreadable = rejected_unreadable.saturating_add(1);
+                /*
+                 * A folder walk refuses far more than a file pick, and almost
+                 * all of it is uninteresting: every binary asset, every
+                 * `.env`, every ignored build output under the directory the
+                 * user chose. Listing them would bury the refusals that
+                 * matter under hundreds the user never asked about.
+                 *
+                 * A file pick is the opposite -- the user named each one, so
+                 * each refusal is a choice of theirs that did not take effect.
+                 * That is why only the unreadable ones are carried here.
+                 */
+                Err(refusal) if refusal.reason == PickRejection::Unreadable => {
+                    rejected.push(refusal);
                 }
+                Err(_) => {}
             }
         }
         self.ensure_grant_current(&authority, &grant)?;
@@ -755,10 +830,12 @@ impl WorkspaceBroker {
         truncated |= relative_paths.len() > bounded_limit;
         Ok(PickedFiles {
             relative_paths: relative_paths.into_iter().take(bounded_limit).collect(),
+            rejected,
             rejected_outside_root: 0,
-            rejected_unreadable,
+            rejected_unreadable: 0,
             truncated,
-        })
+        }
+        .with_derived_counts())
     }
 
     /// Reads a bounded UTF-8 preview from a policy-approved workspace file.
@@ -1355,34 +1432,60 @@ fn resolve_existing(root: &Path, relative_path: &str) -> Result<PathBuf, Workspa
     Ok(canonical)
 }
 
-fn resolve_picked_file(root: &Path, candidate: &Path) -> Result<String, WorkspaceError> {
+/// Maps one host-picked absolute path to a workspace-relative wire path.
+///
+/// The error side is the interesting half. Every refusal above the containment
+/// check is anonymous by construction, because the candidate is not known to be
+/// inside the grant and its only name is an absolute path from outside it.
+/// Below the check the file is proven to be a descendant with a relative name,
+/// so its refusal can say which file it was.
+///
+/// The two halves are separated by exactly one line for that reason: the moment
+/// `relative` exists is the moment naming becomes safe, and keeping the
+/// constructors distinct means a refusal cannot accidentally acquire a name it
+/// has not earned.
+fn resolve_picked_file(root: &Path, candidate: &Path) -> Result<String, RejectedPick> {
+    let unnamed = |reason| RejectedPick {
+        relative_path: None,
+        reason,
+    };
     if !candidate.is_absolute() {
-        return Err(WorkspaceError::InvalidRelativePath);
+        return Err(unnamed(PickRejection::OutsideWorkspace));
     }
-    let canonical = fs::canonicalize(candidate)?;
-    let metadata = fs::symlink_metadata(&canonical)?;
+    let canonical =
+        fs::canonicalize(candidate).map_err(|_| unnamed(PickRejection::Unreadable))?;
+    let metadata =
+        fs::symlink_metadata(&canonical).map_err(|_| unnamed(PickRejection::Unreadable))?;
     if !metadata.is_file()
         || metadata.file_type().is_symlink()
         || is_reparse_point(&metadata)
         || is_cloud_placeholder(&metadata)
     {
-        return Err(WorkspaceError::PathBlocked);
+        return Err(unnamed(PickRejection::Blocked));
     }
     // Component-wise containment: strip_prefix rejects the sibling-prefix trap
     // (`C:\root` vs `C:\rootx`) that a raw string prefix check would accept.
-    ensure_descendant(root, &canonical)?;
+    ensure_descendant(root, &canonical).map_err(|_| unnamed(PickRejection::OutsideWorkspace))?;
     if canonical == root {
-        return Err(WorkspaceError::InvalidRelativePath);
+        return Err(unnamed(PickRejection::OutsideWorkspace));
     }
-    reject_reparse_components(root, &canonical)?;
-    let relative = to_relative_wire_path(root, &canonical)?;
+    let relative = to_relative_wire_path(root, &canonical)
+        .map_err(|_| unnamed(PickRejection::OutsideWorkspace))?;
+
+    // Proven inside the grant, and named. Refusals from here can say so.
+    let named = |reason| RejectedPick {
+        relative_path: Some(relative.clone()),
+        reason,
+    };
+    reject_reparse_components(root, &canonical).map_err(|_| named(PickRejection::Blocked))?;
     if is_sensitive_relative_path(&relative) {
-        return Err(WorkspaceError::PathBlocked);
+        return Err(named(PickRejection::Blocked));
     }
-    let bytes = read_bounded_file(&canonical, DEFAULT_MAX_TEXT_BYTES)?
-        .ok_or(WorkspaceError::UnsupportedText)?;
+    let bytes = read_bounded_file(&canonical, DEFAULT_MAX_TEXT_BYTES)
+        .map_err(|_| named(PickRejection::Unreadable))?
+        .ok_or_else(|| named(PickRejection::NotText))?;
     if bytes.contains(&0) || std::str::from_utf8(&bytes).is_err() {
-        return Err(WorkspaceError::UnsupportedText);
+        return Err(named(PickRejection::NotText));
     }
     Ok(relative)
 }
@@ -2261,6 +2364,145 @@ mod tests {
         assert_eq!(picked.relative_paths, vec!["a.txt", "b.txt"]);
         assert!(picked.truncated);
         assert_eq!(picked.rejected_outside_root, 0);
+        Ok(())
+    }
+
+    /// The boundary, stated as a test.
+    ///
+    /// A file outside the granted root has no workspace-relative name, so its
+    /// refusal must carry none. If this ever fails, the renderer is being
+    /// handed a path from a directory the user never granted -- which is the
+    /// single thing this broker exists to prevent, and it would leak through
+    /// the most innocuous-looking surface there is: an error message.
+    #[test]
+    fn rejections_from_outside_the_root_are_never_named(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let sibling = tempfile::tempdir()?;
+        fs::write(root.path().join("keep.txt"), b"x")?;
+        fs::write(sibling.path().join("secret.txt"), b"x")?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_files(
+            &projection.workspace_id,
+            &[
+                root.path().join("keep.txt"),
+                sibling.path().join("secret.txt"),
+                root.path().join("does-not-exist.txt"),
+                PathBuf::from("relative/not/absolute.txt"),
+                root.path().to_path_buf(),
+            ],
+            100,
+        )?;
+
+        assert_eq!(picked.relative_paths, vec!["keep.txt"]);
+        assert_eq!(picked.rejected.len(), 4);
+        for refusal in &picked.rejected {
+            assert_eq!(refusal.relative_path, None, "{refusal:?} carried a name");
+        }
+        // And nothing anywhere in the result spells the sibling directory.
+        let rendered = format!("{picked:?}");
+        assert!(!rendered.contains("secret"), "{rendered}");
+        Ok(())
+    }
+
+    /// The other half: a refusal that *can* be named, is.
+    ///
+    /// These files are inside the grant and have a relative path, so declining
+    /// to name them would be withholding the one detail that makes the refusal
+    /// actionable -- which is the "3 files were skipped" failure the pick
+    /// surface had before this.
+    #[test]
+    fn rejections_from_inside_the_root_name_the_file(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        fs::create_dir_all(root.path().join("src"))?;
+        fs::write(root.path().join("src").join("image.bin"), [0, 1, 2, 3])?;
+        fs::write(root.path().join(".env"), b"SECRET=1\n")?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_files(
+            &projection.workspace_id,
+            &[
+                root.path().join("src").join("image.bin"),
+                root.path().join(".env"),
+            ],
+            100,
+        )?;
+
+        assert!(picked.relative_paths.is_empty());
+        assert_eq!(
+            picked.rejected,
+            vec![
+                RejectedPick {
+                    relative_path: Some("src/image.bin".to_owned()),
+                    reason: PickRejection::NotText,
+                },
+                RejectedPick {
+                    relative_path: Some(".env".to_owned()),
+                    reason: PickRejection::Blocked,
+                },
+            ]
+        );
+        Ok(())
+    }
+
+    /// The counts are derived from the refusals, so they cannot drift from
+    /// them. The grouping is the one that shipped, mislabel included: a binary
+    /// file inside the workspace still counts as an outside-root rejection,
+    /// because changing that is a wire change and `rejected` is the field that
+    /// does not have the problem.
+    #[test]
+    fn counts_are_derived_from_the_refusals() -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let sibling = tempfile::tempdir()?;
+        fs::write(root.path().join("image.bin"), [0, 1, 2, 3])?;
+        fs::write(sibling.path().join("outside.txt"), b"x")?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked = broker.resolve_picked_files(
+            &projection.workspace_id,
+            &[
+                root.path().join("image.bin"),
+                sibling.path().join("outside.txt"),
+                root.path().join("missing.txt"),
+            ],
+            100,
+        )?;
+
+        assert_eq!(picked.rejected.len(), 3);
+        assert_eq!(picked.rejected_outside_root, 2);
+        assert_eq!(picked.rejected_unreadable, 1);
+        assert_eq!(
+            picked.rejected_outside_root + picked.rejected_unreadable,
+            picked.rejected.len() as u64,
+        );
+        Ok(())
+    }
+
+    /// A folder walk refuses far more than a file pick, and almost all of it is
+    /// uninteresting: the binaries and dotfiles under the directory the user
+    /// chose, which they never named individually. Listing them would bury the
+    /// refusals that matter.
+    #[test]
+    fn a_folder_walk_does_not_list_every_file_it_skips(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        fs::create_dir_all(root.path().join("src"))?;
+        fs::write(root.path().join("src").join("a.ts"), b"export const a = 1;\n")?;
+        fs::write(root.path().join("src").join("image.bin"), [0, 1, 2, 3])?;
+        fs::write(root.path().join("src").join(".env"), b"SECRET=1\n")?;
+        let broker = WorkspaceBroker::new();
+        let projection = broker.grant("project_test", root.path())?;
+
+        let picked =
+            broker.resolve_picked_folder(&projection.workspace_id, &root.path().join("src"), 100)?;
+
+        assert_eq!(picked.relative_paths, vec!["src/a.ts"]);
+        assert!(picked.rejected.is_empty(), "{:?}", picked.rejected);
         Ok(())
     }
 
