@@ -41,7 +41,12 @@
   --color-status-active-soft: #14361d;
   --color-status-pending: #f6c251;
   --color-status-pending-soft: #4b4025;
-  --color-status-inactive: #777777;
+  /* Same correction as --color-text-muted above, for the same reason: #777777
+     is the literal that failed there and it failed here too, at 4.47:1 on the
+     canvas, 3.96:1 on raised, and 3.63:1 on its own #202020 chip. It labels the
+     inert-draft fidelity marker and the inactive availability chip, both at
+     12px, so 4.5:1 applies. #949494 reaches 6.6/5.85/5.37:1. */
+  --color-status-inactive: #949494;
   --color-status-inactive-soft: #202020;
 }
 
@@ -58,8 +63,14 @@
   --color-text: #171717;
   --color-text-soft: #555555;
   /* Light theme needs the inverse correction: #7a7a7a was too light against
-     the near-white canvas. #6e6e6e clears 4.5:1. */
-  --color-text-muted: #6e6e6e;
+     the near-white canvas. #6e6e6e clears 4.5:1 there (4.88:1) -- but the
+     canvas is the easiest background this token gets. It also lands on the
+     hover and selected greys and on the accent-tinted user bubble, where
+     #6e6e6e measured 4.35:1, 4.12:1 and 4.26:1. #656565 is the smallest step
+     that clears every one of them: 4.97/4.71/4.87:1, and 5.58:1 on the canvas.
+     It stays lighter than --color-text-soft (#555555), so the two-step
+     hierarchy still reads. */
+  --color-text-muted: #656565;
   --color-accent: #3b5cf6;
   --color-accent-strong: #3250df;
   --color-accent-soft: #ecf1fe;
@@ -69,6 +80,38 @@
   --color-removed: #fceceb;
   --color-removed-strong: #f6d5d3;
   --shadow-popover: 0 16px 40px rgb(0 0 0 / 0.16);
+
+  /*
+   * The semantic palette has to be restated here, not inherited.
+   *
+   * `main.tsx` sets data-app-shell unconditionally, so the forge-v2 block above
+   * (specificity 0,2,0) outranks the base light `:root` (0,1,0) for every token
+   * it declares. It declares these; this block did not. The light theme was
+   * therefore running the *dark* theme's semantic colours on near-white
+   * surfaces -- #f6c251 warning text measured 1.57:1 on the canvas, #49c970
+   * success 2.12:1 on a white surface, and the dark #14361d and #4b4025 chip
+   * fills put --color-text-soft at 1.78:1. Nothing in either block said so,
+   * because a token that is merely absent looks like a token that is inherited.
+   *
+   * The values are the base light palette darkened only as far as measurement
+   * required: that palette is tuned for its own #f4f7fb canvas and does not
+   * hold on forge-v2's lighter surfaces or inside the 7-9% tints these hues are
+   * used as backgrounds for. Worst measured case is given for each.
+   */
+  --color-success: #136e44; /* was #178451 at 4.02:1 on its own tint; now 5.29:1 */
+  --color-warning: #8a5300; /* was #a96700 at 3.89:1 in the recovery banner; now 5.33:1 */
+  /* Flipped with the warning it sits on: --color-warning is now dark, so the
+     near-black #241400 that the base palette pairs with it drops to 2.4:1 on
+     the .file-kind-icon chip. White is 6.32:1 there. */
+  --color-on-warning: #ffffff;
+  --color-danger: #b3313f; /* was #c33b4a at 4.33:1 on the danger tint; now 5.06:1 */
+  --color-focus: #366cf4; /* the dark #7698fd measured 2.21:1 on selected, under the 3:1 floor for a focus ring; now 3.68:1 worst case */
+  --color-status-active: #136e44;
+  --color-status-active-soft: #e2f5ea;
+  --color-status-pending: #8a5300;
+  --color-status-pending-soft: #fdf2df;
+  --color-status-inactive: #5f6d82;
+  --color-status-inactive-soft: #eef2f7;
 }
 
 :root[data-app-shell="forge-v2"] body {
