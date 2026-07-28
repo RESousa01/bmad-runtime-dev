@@ -41,6 +41,11 @@ import { createChangesRunner } from "./app/changes/changesRunner";
 import { isRecoveryFailure } from "./app/hostFailure";
 import { useHostProjection } from "./app/projection/hostProjection";
 import {
+  attachmentNotice,
+  emptyPickNotice,
+  mergeContextPaths,
+} from "./app/context/contextSelection";
+import {
   anyPhase,
   approved,
   createCapabilityRunner,
@@ -750,49 +755,34 @@ export function App({
     const existingPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
     const generation = ++contextSuggestionGenerationRef.current;
     const authorityKey = workspaceAuthorityKey;
+    /*
+     * Both halves, and the same predicate on every path including the failure
+     * one. The workspace-authority invalidation runs in an effect, so between
+     * the switch and that effect the generation has not moved yet -- a catch
+     * that checked only the generation would surface the old workspace's error
+     * against the new one.
+     */
+    const isStale = () => generation !== contextSuggestionGenerationRef.current
+      || authorityKey !== workspaceAuthorityKeyRef.current;
     setAttachNotice(null);
     try {
       const pick = await picker(client, workspaceId);
       if (pick.kind === "no_selection" || pick.value.relativePaths.length === 0) {
-        const rejected = pick.kind === "picked"
+        if (isStale()) return;
+        setAttachNotice(emptyPickNotice(pick.kind === "picked"
           ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
-          : 0;
-        if (rejected > 0) {
-          setAttachNotice(
-            `No files were attached. ${rejected} were outside the workspace or unreadable.`,
-          );
-        }
+          : 0));
         return;
       }
-      const combined = new Map<string, string>();
-      for (const relativePath of [...existingPaths, ...pick.value.relativePaths]) {
-        combined.set(relativePath.toLocaleLowerCase("en-US"), relativePath);
-      }
-      const relativePaths = [...combined.values()].slice(0, 100);
-      const projection = await workspaceSource.previewContext(
-        relativePaths,
-      );
-      if (
-        generation !== contextSuggestionGenerationRef.current
-        || authorityKey !== workspaceAuthorityKeyRef.current
-      ) {
-        return;
-      }
+      const merge = mergeContextPaths(existingPaths, pick.value.relativePaths);
+      const projection = await workspaceSource.previewContext([...merge.relativePaths]);
+      if (isStale()) return;
       setContextPreview(projection);
       setContextSelectionMode("manual");
-      const skipped = pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable;
-      const truncated = pick.value.truncated || combined.size > relativePaths.length;
-      setAttachNotice(
-        skipped > 0
-          ? `Added ${pick.value.selectedCount} files. ${skipped} unsupported files were skipped.`
-          : truncated
-            ? "Added the first 100 supported files."
-            : null,
-      );
+      setAttachNotice(attachmentNotice(pick.value, merge));
     } catch (error) {
-      if (generation === contextSuggestionGenerationRef.current) {
-        setAttachNotice(getSafeHostMessage(error));
-      }
+      if (isStale()) return;
+      setAttachNotice(getSafeHostMessage(error));
     }
   }
 
@@ -819,6 +809,9 @@ export function App({
     const source = workspaceSource;
     const authorityKey = workspaceAuthorityKey;
     const generation = ++contextSuggestionGenerationRef.current;
+    /// Same predicate on every path, for the same reason as `browseAndAttach`.
+    const isStale = () => generation !== contextSuggestionGenerationRef.current
+      || authorityKey !== workspaceAuthorityKeyRef.current;
     contextSuggestionInFlightRef.current = true;
     setContextSuggestionBusy(true);
     setAttachNotice(null);
@@ -826,34 +819,23 @@ export function App({
       const resultGroups: WorkspaceSearchMatch[][] = [];
       for (const term of terms) {
         resultGroups.push(await source.search(term, 20));
-        if (
-          generation !== contextSuggestionGenerationRef.current
-          || authorityKey !== workspaceAuthorityKeyRef.current
-        ) {
-          return;
-        }
+        if (isStale()) return;
       }
       const relativePaths = rankContextPaths(resultGroups, 8);
       if (relativePaths.length === 0) {
+        if (isStale()) return;
         setAttachNotice("Forge found no local files matching this task. Pin files from Files instead.");
         return;
       }
       const projection = await source.previewContext(relativePaths);
-      if (
-        generation !== contextSuggestionGenerationRef.current
-        || authorityKey !== workspaceAuthorityKeyRef.current
-      ) {
-        return;
-      }
+      if (isStale()) return;
       setContextPreview(projection);
       setContextSelectionMode("automatic");
       setAttachNotice(
         `Auto-selected ${projection.items.length} local ${projection.items.length === 1 ? "file" : "files"} for review.`,
       );
     } catch (error) {
-      if (generation === contextSuggestionGenerationRef.current) {
-        setAttachNotice(getSafeHostMessage(error));
-      }
+      if (!isStale()) setAttachNotice(getSafeHostMessage(error));
     } finally {
       // `contextSuggestionInFlightRef` guards against a second concurrent
       // suggestion, so no other suggestContext can be running when this one
