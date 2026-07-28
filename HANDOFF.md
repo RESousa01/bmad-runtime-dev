@@ -60,6 +60,20 @@ nine letter-spacings to one.
 
 **The composer reaches the native dialog in one press.** The popover is gone.
 
+**Then the product was made to look like 3a**, which the token work alone did
+not achieve. 3a has no cards, pills, badges or boxes; separation comes from
+spacing, weight and hairlines. Removed: the Home composer panel, the
+`repeat(auto-fill, minmax(280px, 1fr))` card grid of tasks, the dashed
+empty-state rectangle, the selected-project chip, the filled Start task button,
+the task composer panel, four pills in the composer, the "Browser preview"
+badge, the settings-row value pills, and six icons from the task header. The
+Context readout moved from above the input to the meta line beneath it, which
+is the order 3a reads in.
+
+Verified by walking the rendered DOM: nothing in Home has a fill or radius, and
+nothing on the task surface has a pill radius. The pills that remain are the
+ones specification 3.4 allows — status indicators and the usage meter.
+
 ## Decisions taken, and what they cost
 
 - **Variant 3a is the target, exactly as drawn**, including its 10px uppercase
