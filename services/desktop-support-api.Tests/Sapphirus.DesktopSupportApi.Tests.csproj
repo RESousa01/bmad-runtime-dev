@@ -24,5 +24,13 @@
     <Content Include="../../packages/contracts/fixtures/valid/model-access-receipt.json"
              Link="ContractFixtures/model-access-receipt.json"
              CopyToOutputDirectory="PreserveNewest" />
+    <!--
+      The canonical raw Foundry response shapes. Discovery is proved against
+      these exact bodies, so a fixture change breaks the tests instead of
+      quietly diverging from what the fake server serves.
+    -->
+    <Content Include="../../tools/foundry-fake/fixtures/foundry-fixtures.v1.json"
+             Link="ContractFixtures/foundry-fixtures.v1.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

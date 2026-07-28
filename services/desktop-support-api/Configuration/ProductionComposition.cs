@@ -1,5 +1,7 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
+using Sapphirus.DesktopSupportApi.Foundry;
 using Sapphirus.DesktopSupportApi.Health;
 using Sapphirus.DesktopSupportApi.Model;
 using Sapphirus.DesktopSupportApi.Sql;
@@ -38,21 +40,49 @@ public static class ProductionComposition
                 provider.GetRequiredService<IHashSigner>(),
                 supportPlane));
 
-        builder.Services.AddSingleton<IModelProviderExecutor>(provider =>
-            new AzureOpenAiProviderExecutor(
-                provider.GetRequiredService<ProductionAzureClients>().Model));
-        builder.Services.AddSingleton<IModelAccessBroker>(provider =>
-            new AzureOpenAiModelAccessBroker(
-                async cancellationToken => ModelAccessProfile.Resolve(
-                    await provider
-                        .GetRequiredService<AppConfigurationPolicyProvider>()
-                        .GetSnapshotAsync(cancellationToken)
-                        .ConfigureAwait(false),
-                    production,
-                    supportPlane),
-                provider.GetRequiredService<IModelProviderExecutor>(),
-                provider.GetRequiredService<IModelReceiptSigner>(),
-                TimeProvider.System));
+        // The legacy fixed Chat Completions broker is registered only when the
+        // legacy model path is configured. A Foundry-only revision composes
+        // and starts without it rather than failing at construction, which is
+        // what lets the template stop injecting the legacy values before the
+        // Responses adapter replaces the executor.
+        if (production.HasLegacyModelPath)
+        {
+            builder.Services.AddSingleton<IModelProviderExecutor>(provider =>
+                new AzureOpenAiProviderExecutor(
+                    provider.GetRequiredService<ProductionAzureClients>().Model
+                        ?? throw new InvalidOperationException(
+                            "The legacy model client is unavailable despite a configured legacy model path.")));
+            builder.Services.AddSingleton<IModelAccessBroker>(provider =>
+                new AzureOpenAiModelAccessBroker(
+                    async cancellationToken => ModelAccessProfile.Resolve(
+                        await provider
+                            .GetRequiredService<AppConfigurationPolicyProvider>()
+                            .GetSnapshotAsync(cancellationToken)
+                            .ConfigureAwait(false),
+                        production,
+                        supportPlane),
+                    provider.GetRequiredService<IModelProviderExecutor>(),
+                    provider.GetRequiredService<IModelReceiptSigner>(),
+                    TimeProvider.System));
+        }
+
+        // Foundry deployment catalog (FND-021..FND-023): discovery runs on its
+        // own user-assigned identity and its own bounded transport, and the
+        // cache is the only thing the rest of the plane reads. Warming happens
+        // in the background so a cold or unreachable provider shows up as an
+        // unhealthy catalog rather than a host that will not start.
+        builder.Services.AddSingleton(provider => new FoundryDeploymentCatalogCache(
+            provider.GetRequiredService<IFoundryDeploymentDiscovery>(),
+            TimeProvider.System,
+            production.FoundryDeploymentRefreshInterval,
+            production.FoundryCatalogMaximumStaleDuration));
+        builder.Services.AddHostedService(provider => new FoundryCatalogRefreshService(
+            provider.GetRequiredService<FoundryDeploymentCatalogCache>(),
+            TimeProvider.System,
+            production.FoundryDeploymentRefreshInterval));
+        builder.Services.AddSingleton<FoundryCatalogHealthCheck>(provider =>
+            new FoundryCatalogHealthCheck(
+                provider.GetRequiredService<FoundryDeploymentCatalogCache>()));
 
         // Durable SQL authority stores (Task 7): the transactional
         // active/epoch checks in these adapters are the cross-replica
@@ -78,7 +108,9 @@ public static class ProductionComposition
             .AddCheck<SqlAuthorityHealthCheck>(
                 AzureDependencyHealthChecks.SqlDependency)
             .AddCheck<PolicyConfigurationHealthCheck>(
-                AzureDependencyHealthChecks.ConfigurationDependency);
+                AzureDependencyHealthChecks.ConfigurationDependency)
+            .AddCheck<FoundryCatalogHealthCheck>(
+                FoundryCatalogHealthCheck.FoundryCatalogDependency);
         builder.Services.AddSingleton<SqlAuthorityHealthCheck>();
         builder.Services.AddSingleton<PolicyConfigurationHealthCheck>(provider =>
             new PolicyConfigurationHealthCheck(

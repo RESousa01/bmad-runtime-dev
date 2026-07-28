@@ -136,12 +136,15 @@ jobs:
             --env Sapphirus__ReceiptSigningKeyName=forge-contract-signing \
             --env Sapphirus__SqlServer=forge-contract.database.windows.net \
             --env Sapphirus__SqlDatabase=forge_contract \
-            --env Sapphirus__ModelEndpoint=https://forge-contract.openai.azure.com/ \
-            --env Sapphirus__ModelDeployment=forge-contract-model \
             --env Sapphirus__ProviderProfileHash=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
             --env Sapphirus__ModelProfileHash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
             --env Sapphirus__ModelCapabilityHash=sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc \
-            --env Sapphirus__DeploymentHash=sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd \
+            --env Sapphirus__FoundryProjectEndpoint=https://forge-contract.services.ai.azure.com/api/projects/forge-contract-project \
+            --env Sapphirus__FoundryModelIdentityClientId=55555555-5555-5555-5555-555555555555 \
+            --env Sapphirus__FoundryDeploymentRefreshSeconds=300 \
+            --env Sapphirus__FoundryCatalogMaximumStaleSeconds=1800 \
+            --env Sapphirus__ModelProfileConfigurationPrefix=desktop-support:model-profiles: \
+            --env Sapphirus__AllowSharedPilotIdentity=false \
             desktop-support-api:ci migrate-sql
           production_identity_exit=$?
           set -e

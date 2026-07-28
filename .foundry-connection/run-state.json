@@ -421,7 +421,10 @@
     },
     {
       "id": "FND-060-SERVICE-CONFIG-SKEW",
-      "state": "active",
+      "state": "resolved",
+      "resolvedAt": "2026-07-28T21:05:00Z",
+      "resolution": "The legacy triple became optional rather than being deleted, because the Chat Completions executor is deliberately alive until the Responses adapter replaces it. It is now all-or-nothing: supplying part of it is a configuration error, supplying none of it is a valid Foundry-only revision. The legacy broker and the Azure OpenAI client are registered only when it is configured, and ModelAccessProfile.Resolve fails closed with a specific message if the legacy profile is requested without it. The Production migrate-sql CI step now runs the Foundry-only shape, so continuous integration exercises exactly what the template injects.",
+      "resolutionEvidence": "dotnet test 335 passed, 0 failed, up from 331; four new tests cover a Foundry-only configuration validating and three partial legacy configurations being rejected. Repo infra gates 12 passed, workflow gate 7 passed.",
       "affects": ["FND-020", "FND-060", "FND-064"],
       "summary": "infra/desktop-support/main.bicep no longer injects Sapphirus__ModelEndpoint, Sapphirus__ModelDeployment, or Sapphirus__DeploymentHash, but ProductionOptions.Validate still requires all three. A deployment with deployApi=true would fail configuration validation at startup.",
       "detectedAt": "2026-07-28T19:45:00Z",

@@ -40,6 +40,11 @@ public sealed record ModelAccessProfile(
         ArgumentNullException.ThrowIfNull(policy);
         ArgumentNullException.ThrowIfNull(production);
         ArgumentNullException.ThrowIfNull(supportPlane);
+        if (!production.HasLegacyModelPath)
+        {
+            throw new InvalidOperationException(
+                "The legacy fixed model profile was requested but the legacy model path is not configured. A Foundry-only revision must resolve a model profile from the effective catalog instead.");
+        }
         if (!policy.ApprovedModelDeployments.Contains(
             production.ModelDeployment,
             StringComparer.Ordinal))

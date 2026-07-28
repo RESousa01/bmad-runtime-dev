@@ -11,6 +11,11 @@ public sealed class ProductionCompositionTests
 {
     private const string Hash =
         "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    private const string RuntimeIdentity = "44444444-4444-4444-4444-444444444444";
+    private const string FoundryIdentity = "66666666-6666-6666-6666-666666666666";
+    private const string MigrationIdentity = "55555555-5555-5555-5555-555555555555";
+    private const string ProjectEndpoint =
+        "https://account.services.ai.azure.com/api/projects/forge-project";
 
     [Fact]
     public void Production_options_validate_private_service_endpoints_and_profile_bindings()
@@ -23,7 +28,50 @@ public sealed class ProductionCompositionTests
 
         Assert.Equal("configuration.azconfig.io", options.ValidatedAppConfigurationEndpoint.Host);
         Assert.Equal("signing.vault.azure.net", options.ValidatedKeyVaultUri.Host);
+        Assert.True(options.HasLegacyModelPath);
+        Assert.NotNull(options.ValidatedModelEndpoint);
         Assert.Equal("models.openai.azure.com", options.ValidatedModelEndpoint.Host);
+        Assert.Equal(
+            "account.services.ai.azure.com",
+            options.ValidatedFoundryProjectEndpoint.Host);
+    }
+
+    [Fact]
+    public void A_foundry_only_configuration_validates_without_the_legacy_model_path()
+    {
+        SupportPlaneOptions supportPlane = CreateSupportPlane();
+        supportPlane.Validate(new ProductionHostEnvironment());
+        ProductionOptions options = CreateProductionOptions(
+            modelEndpoint: "",
+            modelDeployment: "",
+            deploymentHash: "");
+
+        options.Validate(supportPlane);
+
+        Assert.False(options.HasLegacyModelPath);
+        Assert.Null(options.ValidatedModelEndpoint);
+        Assert.Equal(
+            "account.services.ai.azure.com",
+            options.ValidatedFoundryProjectEndpoint.Host);
+    }
+
+    [Theory]
+    [InlineData("", "fixture-deployment", Hash)]
+    [InlineData("https://models.openai.azure.com/", "", Hash)]
+    [InlineData("https://models.openai.azure.com/", "fixture-deployment", "")]
+    public void A_partially_configured_legacy_model_path_is_rejected(
+        string modelEndpoint,
+        string modelDeployment,
+        string deploymentHash)
+    {
+        SupportPlaneOptions supportPlane = CreateSupportPlane();
+        supportPlane.Validate(new ProductionHostEnvironment());
+        ProductionOptions options = CreateProductionOptions(
+            modelEndpoint: modelEndpoint,
+            modelDeployment: modelDeployment,
+            deploymentHash: deploymentHash);
+
+        Assert.Throws<InvalidOperationException>(() => options.Validate(supportPlane));
     }
 
     [Theory]
@@ -87,6 +135,171 @@ public sealed class ProductionCompositionTests
     }
 
     [Theory]
+    // Account-only host with no project path.
+    [InlineData("https://account.services.ai.azure.com/")]
+    [InlineData("https://account.services.ai.azure.com")]
+    // The retired Azure OpenAI account host is not a Foundry project host.
+    [InlineData("https://account.openai.azure.com/api/projects/forge-project")]
+    [InlineData("https://account.cognitiveservices.azure.com/api/projects/forge-project")]
+    // Suffix lookalikes and bare suffix.
+    [InlineData("https://account.services.ai.azure.com.evil.test/api/projects/forge-project")]
+    [InlineData("https://services.ai.azure.com/api/projects/forge-project")]
+    [InlineData("https://accountservices.ai.azure.com/api/projects/forge-project")]
+    // Dot-segment traversal, even when it normalizes to a legal-looking path.
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge-project/../evil")]
+    [InlineData("https://account.services.ai.azure.com/api/../api/projects/forge-project")]
+    // Percent-encoding, whether or not it decodes to the canonical spelling.
+    [InlineData("https://account.services.ai.azure.com/api/projects/for%67e-project")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/%2e%2e%2fadmin")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge%2Fdeployments")]
+    // Mixed case in the host and in the fixed path segments.
+    [InlineData("https://Account.services.ai.azure.com/api/projects/forge-project")]
+    [InlineData("https://account.services.ai.azure.com/API/projects/forge-project")]
+    [InlineData("https://account.services.ai.azure.com/api/Projects/forge-project")]
+    // Extra trailing path beyond the project.
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge-project/deployments")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge-project/openai/v1/")]
+    [InlineData("https://account.services.ai.azure.com/api/projects//forge-project")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/")]
+    // Explicit port, query, fragment, user info, and plaintext scheme.
+    [InlineData("https://account.services.ai.azure.com:443/api/projects/forge-project")]
+    [InlineData("https://account.services.ai.azure.com:8443/api/projects/forge-project")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge-project?api-version=v1")]
+    [InlineData("https://account.services.ai.azure.com/api/projects/forge-project#fragment")]
+    [InlineData("https://user:pass@account.services.ai.azure.com/api/projects/forge-project")]
+    [InlineData("http://account.services.ai.azure.com/api/projects/forge-project")]
+    // Homograph hosts, in both their Unicode and punycode spellings.
+    [InlineData("https://\u00e1ccount.services.ai.azure.com/api/projects/forge-project")]
+    [InlineData("https://xn--ccount-2va.services.ai.azure.com/api/projects/forge-project")]
+    [InlineData("https://account.services.ai.azure.\u0441om/api/projects/forge-project")]
+    [InlineData("")]
+    public void Production_options_reject_untrusted_foundry_project_endpoints(string endpoint)
+    {
+        ProductionOptions options = CreateProductionOptions(foundryProjectEndpoint: endpoint);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            options.Validate(CreateSupportPlane()));
+    }
+
+    [Theory]
+    [InlineData(
+        "https://account.services.ai.azure.com/api/projects/forge-project",
+        "https://account.services.ai.azure.com/api/projects/forge-project/")]
+    [InlineData(
+        "https://account.services.ai.azure.com/api/projects/forge-project/",
+        "https://account.services.ai.azure.com/api/projects/forge-project/")]
+    [InlineData(
+        "https://account.services.ai.azure.com/api/projects/_project",
+        "https://account.services.ai.azure.com/api/projects/_project/")]
+    // The shape-valid placeholder the local production-configuration contract
+    // and main.bicep inject. It is a project name, never a deployment name.
+    [InlineData(
+        "https://forge-contract.services.ai.azure.com/api/projects/forge-contract",
+        "https://forge-contract.services.ai.azure.com/api/projects/forge-contract/")]
+    public void Production_options_normalize_the_foundry_project_endpoint_to_one_trailing_slash(
+        string configured,
+        string expected)
+    {
+        ProductionOptions options = CreateProductionOptions(foundryProjectEndpoint: configured);
+
+        options.Validate(CreateSupportPlane());
+
+        Assert.Equal(expected, options.ValidatedFoundryProjectEndpoint.AbsoluteUri);
+    }
+
+    [Fact]
+    public void Foundry_responses_endpoint_is_derived_and_never_configured_separately()
+    {
+        ProductionOptions options = CreateProductionOptions();
+
+        options.Validate(CreateSupportPlane());
+
+        Assert.Equal(
+            "https://account.services.ai.azure.com/api/projects/forge-project/openai/v1/",
+            options.FoundryResponsesEndpoint.AbsoluteUri);
+        Assert.DoesNotContain(
+            typeof(ProductionOptions).GetProperties(),
+            property => property.Name == nameof(ProductionOptions.FoundryResponsesEndpoint)
+                && property.SetMethod is { IsPublic: true });
+    }
+
+    [Fact]
+    public void Foundry_model_identity_must_be_present_and_distinct_from_the_other_identities()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProductionOptions(foundryModelIdentity: Guid.Empty)
+                .Validate(CreateSupportPlane()));
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProductionOptions(foundryModelIdentity: Guid.Parse(RuntimeIdentity))
+                .Validate(CreateSupportPlane()));
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProductionOptions(
+                foundryModelIdentity: Guid.Parse(MigrationIdentity),
+                sqlMigrationIdentity: Guid.Parse(MigrationIdentity))
+                .Validate(CreateSupportPlane()));
+
+        CreateProductionOptions(sqlMigrationIdentity: Guid.Parse(MigrationIdentity))
+            .Validate(CreateSupportPlane());
+    }
+
+    [Fact]
+    public void A_shared_foundry_identity_needs_an_explicit_flag_and_the_pilot_channel()
+    {
+        ProductionOptions shared = CreateProductionOptions(
+            foundryModelIdentity: Guid.Parse(RuntimeIdentity),
+            allowSharedPilotIdentity: true);
+
+        shared.Validate(CreateSupportPlane("beta"));
+
+        Assert.False(CreateProductionOptions().AllowSharedPilotIdentity);
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProductionOptions(
+                foundryModelIdentity: Guid.Parse(RuntimeIdentity),
+                allowSharedPilotIdentity: true)
+                .Validate(CreateSupportPlane("stable")));
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProductionOptions(
+                foundryModelIdentity: Guid.Parse(MigrationIdentity),
+                sqlMigrationIdentity: Guid.Parse(MigrationIdentity),
+                allowSharedPilotIdentity: true)
+                .Validate(CreateSupportPlane("beta")));
+    }
+
+    [Theory]
+    [InlineData(0, 1_800)]
+    [InlineData(29, 1_800)]
+    [InlineData(3_601, 7_200)]
+    [InlineData(300, 299)]
+    [InlineData(300, 86_401)]
+    [InlineData(-1, 1_800)]
+    public void Production_options_reject_unbounded_catalog_refresh_windows(
+        int refreshSeconds,
+        int maximumStaleSeconds)
+    {
+        ProductionOptions options = CreateProductionOptions(
+            refreshSeconds: refreshSeconds,
+            maximumStaleSeconds: maximumStaleSeconds);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            options.Validate(CreateSupportPlane()));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("desktop-support:model-profiles")]
+    [InlineData("Desktop-Support:model-profiles:")]
+    [InlineData("desktop support:")]
+    [InlineData("../secrets:")]
+    public void Production_options_reject_unsafe_model_profile_configuration_prefixes(
+        string prefix)
+    {
+        ProductionOptions options = CreateProductionOptions(modelProfilePrefix: prefix);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            options.Validate(CreateSupportPlane()));
+    }
+
+    [Theory]
     [InlineData(true, false, "")]
     [InlineData(false, true, "")]
     [InlineData(false, false, "C:/store/consent")]
@@ -123,37 +336,59 @@ public sealed class ProductionCompositionTests
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.AppConfiguration);
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.KeyVault);
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.Model);
+        Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.FoundryModel);
         Assert.NotSame(credentials.AppConfiguration, credentials.KeyVault);
         Assert.NotSame(credentials.KeyVault, credentials.Model);
         Assert.NotSame(credentials.AppConfiguration, credentials.Model);
+        Assert.NotSame(credentials.Model, credentials.FoundryModel);
+        Assert.NotSame(credentials.AppConfiguration, credentials.FoundryModel);
+        Assert.NotSame(credentials.KeyVault, credentials.FoundryModel);
     }
 
-    private static SupportPlaneOptions CreateSupportPlane() => new()
+    private static SupportPlaneOptions CreateSupportPlane(string releaseChannel = "beta") => new()
     {
         Authority =
             "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
         Audience = "api://22222222-2222-2222-2222-222222222222",
         ApprovedDesktopClientId = "33333333-3333-3333-3333-333333333333",
         Region = "westeurope",
+        ReleaseChannel = releaseChannel,
     };
 
-    private static ProductionOptions CreateProductionOptions(
+    internal static ProductionOptions CreateProductionOptions(
         string appConfigurationEndpoint = "https://configuration.azconfig.io/",
         string keyVaultUri = "https://signing.vault.azure.net/",
-        string modelEndpoint = "https://models.openai.azure.com/") => new()
+        string modelEndpoint = "https://models.openai.azure.com/",
+        string modelDeployment = "desktop-planner",
+        string deploymentHash = Hash,
+        string foundryProjectEndpoint = ProjectEndpoint,
+        Guid? foundryModelIdentity = null,
+        Guid? sqlMigrationIdentity = null,
+        bool allowSharedPilotIdentity = false,
+        int refreshSeconds = 300,
+        int maximumStaleSeconds = 1_800,
+        string modelProfilePrefix = "desktop-support:model-profiles:") => new()
     {
-        ManagedIdentityClientId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+        ManagedIdentityClientId = Guid.Parse(RuntimeIdentity),
+        SqlMigrationIdentityClientId = sqlMigrationIdentity ?? Guid.Empty,
         AppConfigurationEndpoint = appConfigurationEndpoint,
         KeyVaultUri = keyVaultUri,
         ReceiptSigningKeyName = "model-receipt-signing",
         SqlServer = "authority.database.windows.net",
         SqlDatabase = "desktop-authority",
         ModelEndpoint = modelEndpoint,
-        ModelDeployment = "desktop-planner",
+        ModelDeployment = modelDeployment,
         ProviderProfileHash = Hash,
         ModelProfileHash = Hash,
         ModelCapabilityHash = Hash,
-        DeploymentHash = Hash,
+        DeploymentHash = deploymentHash,
+        FoundryProjectEndpoint = foundryProjectEndpoint,
+        FoundryModelIdentityClientId =
+            foundryModelIdentity ?? Guid.Parse(FoundryIdentity),
+        AllowSharedPilotIdentity = allowSharedPilotIdentity,
+        FoundryDeploymentRefreshSeconds = refreshSeconds,
+        FoundryCatalogMaximumStaleSeconds = maximumStaleSeconds,
+        ModelProfileConfigurationPrefix = modelProfilePrefix,
     };
 
     private sealed class ProductionHostEnvironment : IHostEnvironment
