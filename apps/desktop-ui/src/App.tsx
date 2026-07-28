@@ -29,20 +29,13 @@ import {
   useChatSessions,
 } from "./state/chatSessions";
 import {
-  appendTask,
-  autoTitleTask,
-  closeTask,
   closedTasks as closedTaskList,
-  createTask,
   createTaskId,
-  deleteTask,
   findTask,
-  nextSelectionAfter,
   openTasks as openTaskList,
-  renameTask,
-  reopenTask,
   type TaskRecord,
 } from "./state/taskList";
+import { useTaskLifecycle } from "./app/task/taskLifecycle";
 import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
@@ -1922,172 +1915,80 @@ export function App({
     document.documentElement.dataset.density = density;
   }, [density]);
 
-  function selectSession(id: string) {
-    if (findTask(tasks, id) === null) {
-      return;
-    }
-    if (id !== selectedSessionId) {
-      // Attached context is scoped to the message about to be sent, and the
-      // projection is app-global. Without this, files pinned in one task stayed
-      // pinned after switching and were sent with the next task's message —
-      // files the user never attached there.
-      clearContext();
-    }
-    setPrimaryRoute({ kind: "task", taskId: id });
-    setContextDrawer(null);
-  }
-
-  function startNewSession(intent?: string, preserveIntentAsDraft = false): string | null {
-    const currentRequest = bmadHelpStateRef.current;
-    if (
-      currentRequest.kind === "creating"
-      || currentRequest.kind === "approving"
-      || currentRequest.kind === "approved"
-      || currentRequest.kind === "submitting"
-    ) return null;
-    // The id becomes the host's `client_session_ref`, from which the durable
-    // chat session identity is derived. It must never repeat — see
-    // `createTaskId` — or a fresh task silently adopts an older task's
-    // persisted transcript, including one the user deleted.
-    const session = createTask(createTaskId(), intent);
-    bmadHelpGenerationRef.current += 1;
-    bmadHelpCreationRef.current = null;
-    bmadHelpOperationRef.current = null;
-    bmadHelpStateRef.current = initialBmadRequestState;
-    setBmadHelpState(initialBmadRequestState);
-    setCurrentBmadIntent(null);
-    clearContext();
-    if (preserveIntentAsDraft && intent?.trim()) {
-      setTaskDrafts((current) => {
+  /*
+   * FE-10 step 3: the task lifecycle.
+   *
+   * Twelve closures over App state became one controller with a declared
+   * dependency set. The set is large and genuinely so -- opening or deleting a
+   * task touches the list, the route, drafts, chat lanes, capability runs,
+   * changes flows, context and the drawer -- but it is now countable, and a new
+   * dependency has to be declared rather than captured.
+   */
+  const {
+    autoTitleFromMessage,
+    closeTaskById,
+    confirmTaskDeletion: confirmTaskDeletionFor,
+    dismissTaskDeletion,
+    renameSelectedTask,
+    reopenTaskById,
+    requestTaskDeletion,
+    selectSession,
+    startNewSession,
+  } = useTaskLifecycle({
+    canStartTask: () => {
+      // A task started mid-request would leave the in-flight approval pointing
+      // at a task the user is no longer looking at.
+      const current = bmadHelpStateRef.current;
+      return current.kind !== "creating"
+        && current.kind !== "approving"
+        && current.kind !== "approved"
+        && current.kind !== "submitting";
+    },
+    clearContext,
+    closeDrawer: () => setContextDrawer(null),
+    closeModal: () => setAppModal(null),
+    createTaskId,
+    drafts: {
+      drop: (taskId) => setTaskDrafts((current) => {
+        if (!current.has(taskId)) return current;
         const next = new Map(current);
-        next.set(session.id, intent.trim());
+        next.delete(taskId);
         return next;
-      });
-    }
-    setTasks((current) => appendTask(current, session));
-    setPrimaryRoute({ kind: "task", taskId: session.id });
-    setContextDrawer(null);
-    // The new task starts with no capability run of its own; other tasks keep
-    // theirs (per-task isolation), so no global capability reset here.
-    return session.id;
-  }
+      }),
+      set: (taskId, draft) => setTaskDrafts((current) => {
+        const next = new Map(current);
+        next.set(taskId, draft);
+        return next;
+      }),
+    },
+    dropChatSession: (taskId) => chatSessions.dropSession(taskId),
+    openDeleteConfirmation: () => setAppModal("delete-task"),
+    releaseRunState: (taskId) => {
+      // A capability run and a governed-changes flow are in-progress work, not
+      // a record of what was said, so neither survives the task leaving the
+      // open list. `closeCapabilitySession` also makes a late result for that
+      // task drop instead of reappearing.
+      capabilitySessions.closeCapabilitySession(taskId);
+      setChangesFlowForTask(taskId, null);
+    },
+    resetGuidanceForNewTask: () => {
+      bmadHelpGenerationRef.current += 1;
+      bmadHelpCreationRef.current = null;
+      bmadHelpOperationRef.current = null;
+      bmadHelpStateRef.current = initialBmadRequestState;
+      setBmadHelpState(initialBmadRequestState);
+      setCurrentBmadIntent(null);
+    },
+    routedTaskId,
+    selectedSessionId,
+    setPendingDeleteTaskId,
+    setPrimaryRoute,
+    setTasks,
+    tasks,
+  });
 
-  /// Names a task from the first message sent in it.
-  ///
-  /// Most tasks never get named by hand, so the opening message is the only
-  /// honest label available. `autoTitleTask` is a no-op once the task has any
-  /// title, which is what keeps a name the user typed from being overwritten.
-  function autoTitleFromMessage(taskId: string, message: string) {
-    setTasks((current) => autoTitleTask(current, taskId, message));
-  }
-
-  function renameSelectedTask(title: string) {
-    if (routedTaskId === null) return;
-    setTasks((current) => renameTask(current, routedTaskId, title));
-  }
-
-  /// Drops the transient run state a task owns, leaving its transcript alone.
-  ///
-  /// Shared by close and delete. A capability run and a governed-changes flow
-  /// are in-progress work, not a record of what was said, so neither survives
-  /// the task leaving the open list; `closeCapabilitySession` also makes a late
-  /// result for that task drop instead of reappearing.
-  function releaseTaskRunState(taskId: string) {
-    capabilitySessions.closeCapabilitySession(taskId);
-    setChangesFlowForTask(taskId, null);
-  }
-
-  function dropTaskDraft(taskId: string) {
-    setTaskDrafts((current) => {
-      if (!current.has(taskId)) return current;
-      const next = new Map(current);
-      next.delete(taskId);
-      return next;
-    });
-  }
-
-  /// Moves the route off a task that is leaving the open list.
-  function reselectAfterRemoval(taskId: string) {
-    const next = nextSelectionAfter(tasks, taskId, routedTaskId);
-    if (routedTaskId !== taskId) {
-      return;
-    }
-    clearContext();
-    setContextDrawer(null);
-    // No phantom task to land on: with nothing open, Home *is* the empty
-    // state.
-    setPrimaryRoute(next === null ? { kind: "home" } : { kind: "task", taskId: next });
-  }
-
-  /// Closes a task: it leaves the tab strip but keeps its transcript and its
-  /// unsent draft, so reopening it from Home restores the conversation.
-  /// Non-destructive, hence no confirmation.
-  function closeTaskById(taskId: string) {
-    if (findTask(tasks, taskId) === null) return;
-    reselectAfterRemoval(taskId);
-    releaseTaskRunState(taskId);
-    setTasks((current) => closeTask(current, taskId));
-  }
-
-  function reopenTaskById(taskId: string) {
-    if (findTask(tasks, taskId) === null) return;
-    setTasks((current) => reopenTask(current, taskId));
-    clearContext();
-    setContextDrawer(null);
-    setPrimaryRoute({ kind: "task", taskId });
-  }
-
-  function requestTaskDeletion(taskId: string) {
-    if (findTask(tasks, taskId) === null) return;
-    workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
-    setPendingDeleteTaskId(taskId);
-    setContextDrawer(null);
-    setAppModal("delete-task");
-  }
-
-  function dismissTaskDeletion() {
-    setPendingDeleteTaskId(null);
-    setAppModal(null);
-    const returnFocus = workspaceReturnFocusRef.current;
-    workspaceReturnFocusRef.current = null;
-    window.requestAnimationFrame(() => {
-      if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
-        returnFocus.focus();
-      }
-    });
-  }
-
-  /// Destroys a task. Irreversible from Forge's side, which is why it is only
-  /// reachable through the confirmation dialog.
-  ///
-  /// This drops the renderer's record and its conversation lane. The host's
-  /// durable transcript is *not* deleted: the command catalog exposes no
-  /// per-session chat delete, and the store (`crates/desktop-store/src/chat.rs`)
-  /// offers no removal at all. Because task ids are never reused, the orphaned
-  /// row can no longer be addressed by any task; erasing it from disk is
-  /// Settings → Local data. `DeleteTaskDialog` says exactly this rather than
-  /// promising an erase that does not happen.
   function confirmTaskDeletion() {
-    const taskId = pendingDeleteTaskId;
-    setPendingDeleteTaskId(null);
-    setAppModal(null);
-    if (taskId === null || findTask(tasks, taskId) === null) return;
-    reselectAfterRemoval(taskId);
-    releaseTaskRunState(taskId);
-    dropTaskDraft(taskId);
-    // Discards the conversation and supersedes it, so a reply already in
-    // flight is dropped rather than resurrecting the transcript.
-    chatSessions.dropSession(taskId);
-    setTasks((current) => deleteTask(current, taskId));
-    const returnFocus = workspaceReturnFocusRef.current;
-    workspaceReturnFocusRef.current = null;
-    window.requestAnimationFrame(() => {
-      if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
-        returnFocus.focus();
-      }
-    });
+    confirmTaskDeletionFor(pendingDeleteTaskId);
   }
 
   function openMethodLibrary() {
