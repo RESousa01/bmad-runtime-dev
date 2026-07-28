@@ -1,22 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  BmadLibraryPanel,
-  type BmadPersonaPerspectiveView,
-} from "./components/BmadLibraryPanel";
-import { GovernedChangesPanel } from "./components/GovernedChangesPanel";
-import {
-  ReviewPanel,
-  type GitReviewSource,
-} from "./components/GitReviewPanel";
+import type { BmadPersonaPerspectiveView } from "./components/BmadLibraryPanel";
+import type { GitReviewSource } from "./components/GitReviewPanel";
 import type { ContextSelectionMode } from "./components/ContextWindow";
-import {
-  SessionContextPanel,
-  type SessionContextMessage,
-} from "./components/SessionContextPanel";
+import type { SessionContextMessage } from "./components/SessionContextPanel";
 import "./components/review-panel.css";
 import { TaskWorkspace } from "./components/TaskWorkspace";
-import { BmadCapabilityPanel } from "./components/BmadCapabilityPanel";
-import { BmadWorkflowPanel } from "./components/BmadWorkflowPanel";
 import {
   MAX_LANE_SESSIONS,
   useCapabilitySessions,
@@ -72,26 +60,21 @@ import {
   createCapabilityRunner,
   underReview,
 } from "./app/capability/capabilityController";
-import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
-import {
-  type OffboardingStatus,
-  SettingsDialog,
-  type SettingsSection,
+import type {
+  OffboardingStatus,
+  SettingsSection,
 } from "./components/settings/SettingsDialog";
 import "./components/settings/settings.css";
-import { WorkspacePanel } from "./components/WorkspacePanel";
-import { WorkspaceExplorer } from "./components/WorkspaceExplorer";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
 import { createCommandRegistry, type CommandContext } from "./app/commands/commands";
 import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
 import { HomeView } from "./components/HomeView";
 import { DRAWER_OVERLAY_QUERY } from "./components/redesign/AppShellLayout";
-import {
-  ContextDrawer,
-  type ContextDrawerKind,
-} from "./components/redesign/ContextDrawer";
+import { AppDrawer } from "./app/AppDrawer";
+import { AppModals } from "./app/AppModals";
+import { ShellProvider, type ShellModel } from "./app/AppProviders";
+import type { ContextDrawerKind } from "./components/redesign/ContextDrawer";
 import { NoWorkspaceState } from "./components/redesign/NoWorkspaceState";
-import { ActivityPanel } from "./components/panels/ActivityPanel";
 import "./components/panels/activity-panel.css";
 import "./components/redesign/app-shell.css";
 import "./components/redesign/context-drawer.css";
@@ -2461,214 +2444,183 @@ export function App({
     || paletteOpen
     || (drawerIsOverlay && contextDrawer !== null);
 
-  const drawer = contextDrawer ? (
-    <ContextDrawer
-      kind={contextDrawer}
-      onClose={dismissContextDrawer}
-      onSelectTab={(tab) => setContextDrawer(tab)}
-      presentation={drawerIsOverlay ? "overlay" : "pane"}
-    >
-      {contextDrawer === "files" ? (
-        <WorkspaceExplorer
-          asPanel
-          availabilityMessage={explorerAvailabilityMessage}
-          key={`${workspaceSource?.provenance ?? "unavailable"}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`}
-          onContextReview={(projection) => {
-            contextSuggestionGenerationRef.current += 1;
-            contextSuggestionInFlightRef.current = false;
-            setContextSuggestionBusy(false);
-            setContextPreview(projection);
-            setContextSelectionMode("manual");
-            dismissContextDrawer();
-          }}
-          source={workspaceSource}
-          workspaceName={workspaceName}
-        />
-      ) : contextDrawer === "changes" ? (
-        <ReviewPanel
-          availabilityMessage={gitReviewAvailabilityMessage}
-          governedReview={(
-            <GovernedChangesPanel
-              canEnableEdits={canEnableEdits}
-              enableEditsBusy={enableEditsBusy}
-              errorMessage={changesError}
-              history={changesHistory}
-              historyBusy={changesHistoryBusy}
-              onDecide={(choice) => void decideGovernedChange(choice)}
-              onEnableEdits={() => void enableGovernedEdits()}
-              onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
-              onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
-              onRefreshHistory={() => void refreshChangesHistory()}
-              onStartNewProposal={resetChangesFlow}
-              onUndo={(executionId) => void undoGovernedChange(executionId)}
-              recoveryBusy={recoveryBusy}
-              recoveryReturnFocusTarget={recoveryReturnFocusTarget}
-              recoveryReview={recoveryReview}
-              state={changesState}
-            />
-          )}
-          isSampleData={hostRuntime.kind === "browser_demo"}
-          proposalAttention={changesState.kind === "review" || recoveryReview !== null}
-          source={gitReviewSource}
-        />
-      ) : contextDrawer === "context" ? (
-        <SessionContextPanel
-          createdAt={sessionContext.createdAt}
-          inputTokens={sessionContext.inputTokens}
-          localReviewBudget={65_536}
-          messages={sessionContext.messages}
-          model={sessionContextModelId}
-          provider={modelProviderLabel}
-          sessionTitle={selectedTask?.title ?? "No task selected"}
-        />
-      ) : contextDrawer === "skills" ? (
-        <div className="method-library-panel">
-          {capabilityRun === null ? null : (
-            <BmadCapabilityPanel
-              capabilityId={capabilityRun.capabilityId}
-              capabilityLabel={capabilityRun.label}
-              destinationLabel={modelAccess.label}
-              onApprove={(manifestHash) => void approveCapabilityRun(manifestHash)}
-              onCancel={(manifestHash, decisionId) =>
-                void cancelCapabilityRun(manifestHash, decisionId)}
-              onClose={() => capabilitySessions.setActiveCapabilityRun(null)}
-              onPrepare={(contextPaths) => void prepareCapabilityRun(contextPaths)}
-              onReviewChangeSet={() =>
-                void proposeCapabilityChangeSet(capabilityRun.capabilityId)}
-              onSubmit={(manifestHash, decisionId) =>
-                void submitCapabilityRun(manifestHash, decisionId)}
-              phase={capabilityRun.phase}
-            />
-          )}
-          <BmadWorkflowPanel
-            error={workflowState.error}
-            loading={workflowState.loading}
-            onRefresh={() => void refreshWorkflowState()}
-            state={workflowState.state}
-          />
-          <BmadLibraryPanel
-            onRunBuilderCapability={openCapabilityRun}
-            onRunCapability={openCapabilityRun}
-            onReload={() => {
-              if (methodLibraryClient) {
-                void loadMethodLibrary(methodLibraryClient, methodLibraryRebind(methodLibraryClient));
-              }
-            }}
-            onViewPersona={(agentCode) => {
-              void viewPersonaPerspective(agentCode);
-            }}
-            personaPerspectives={personaPerspectives}
-            state={bmadLibraryState}
-          />
-        </div>
-      ) : (
-        <ActivityPanel
-          helpState={bmadHelpState}
-          history={changesHistory}
-          historyAvailable={changesHistoryAvailable}
-          historyError={changesError}
-          historyStatus={changesHistoryStatus}
-          historyBusy={changesHistoryBusy}
-          onRefreshHistory={() => void refreshChangesHistory()}
-          onDecideRecovery={(choice) => void decideChangesRecovery(choice)}
-          onPrepareRecovery={(journalId, trigger) => void prepareChangesRecovery(journalId, trigger)}
-          onUndo={(executionId) => void undoGovernedChange(executionId)}
-          recoveryBusy={recoveryBusy}
-          recoveryReturnFocusTarget={recoveryReturnFocusTarget}
-          recoveryReview={recoveryReview}
-        />
-      )}
-    </ContextDrawer>
-  ) : undefined;
-
-  const modal = appModal === "workspace-manager" ? (
-    <WorkspacePanel
-      activeWorkspaceId={activeWorkspace?.workspaceId ?? null}
-      busyWorkspaceId={workspaceRemovalBusyId}
-      canActivate={canActivateWorkspace}
-      canRemove={canRemoveWorkspace}
-      canSelect={canSelectWorkspace}
-      isSelecting={workspaceSelectionBusy}
-      mode={hostRuntime.kind}
-      onActivate={activateWorkspace}
-      onClose={dismissWorkspacePanel}
-      onRemove={(workspaceId) => void removeWorkspace(workspaceId)}
-      onSelect={() => void selectWorkspace()}
-      workspaceError={workspaceActionError}
-      workspaces={hostWorkspaces}
-    />
-  ) : appModal === "settings" ? (
-    <SettingsDialog
-      about={aboutProjection}
-      aboutStatus={aboutStatus}
-      agentStatusLabel={methodStatusLabel}
-      density={density}
-      initialSection={utilitySettingsPage}
-      key={`${appModal}:${utilitySettingsPage}`}
-      modelAccessDetail={modelAccess.detail}
-      modelAccessLabel={modelAccess.label}
-      modelAuthStatus={modelAuthStatus}
-      modelSelection={modelSelection}
-      modelSelectionBusy={modelSelectionBusy}
-      modelSelectionNotice={modelSelectionNotice}
-      offboardingManifest={offboardingManifest}
-      offboardingNotice={offboardingNotice}
-      offboardingStatus={offboardingStatus}
-      onClose={() => dismissUtilityPanel()}
-      onDensityChange={changeDensity}
-      onEraseOffboarding={(confirm) => void eraseOffboardingData(confirm)}
-      onManageWorkspaces={openWorkspaceManagerFromUtilityPanel}
-      onModelConnect={connectModelProvider}
-      onModelDisconnect={disconnectModelProvider}
-      onModelSelectionChange={changeModelSelection}
-      onOpenSkillsAndAgents={openMethodLibrary}
-      onThemeChange={changeTheme}
-      preferencesNotice={preferencesNotice}
-      runtimeLabel={hostStatusLabel}
-      skillsAgentsAvailable={methodLibraryAvailable}
-      skillsAgentsStatusLabel={skillsAgentsStatusLabel}
-      theme={theme}
-      updateStatusLabel={
-        aboutProjection === null
-          ? "Managed by your organization"
-          : aboutProjection.updateConfigured
-            ? "Managed release channel"
-            : "Not configured for this build"
-      }
-      workspaceDetail={workspaceDescription}
-      workspaceLabel={workspaceName}
-    />
-  ) : appModal === "delete-task" && pendingDeleteTask !== null ? (
-    <DeleteTaskDialog
-      // Browser preview never dispatches the read — `chatHistoryClient`
-      // requires a ready host — so the lane sits at `unread` for the session and
-      // the dialog would say "Forge has not finished reading this task's
-      // messages". There is no host, nothing to read, and the count is provably
-      // right. `loaded` is the honest status for a surface with no store behind
-      // it, and it is the same reasoning `mayHaveDurableCopy` already applies.
-      historyStatus={
-        hostRuntime.kind === "browser_demo"
-          ? "loaded"
-          : chatSessions.historyStatusFor(pendingDeleteTask.id)
-      }
-      // A browser preview has no host and no store, so nothing was ever
-      // written. A task proven to hold no messages never reached `chat.send`,
-      // so no durable row exists for it either. Anything else — including a
-      // history read that has not finished or failed — might have one, and the
-      // warning stands.
-      mayHaveDurableCopy={
-        hostRuntime.kind !== "browser_demo"
+  /*
+   * FE-10: the shell model.
+   *
+   * Grouped by feature so the composition reads as a map of what the app is
+   * made of. The surfaces below take no props -- between them they need 122 of
+   * this component's locals, and a hundred-parameter interface is not a
+   * boundary.
+   */
+  const shellModel: ShellModel = {
+    bmad: {
+      approveRun: (manifestHash) => void approveCapabilityRun(manifestHash),
+      cancelRun: (manifestHash, decisionId) => void cancelCapabilityRun(manifestHash, decisionId),
+      closeRun: () => capabilitySessions.setActiveCapabilityRun(null),
+      helpState: bmadHelpState,
+      library: bmadLibraryState,
+      openRun: openCapabilityRun,
+      personaPerspectives,
+      prepareRun: (contextPaths) => void prepareCapabilityRun(contextPaths),
+      proposeChangeSet: (capabilityId) => void proposeCapabilityChangeSet(capabilityId),
+      refreshWorkflow: () => void refreshWorkflowState(),
+      reloadLibrary: () => {
+        if (methodLibraryClient) {
+          void loadMethodLibrary(methodLibraryClient, methodLibraryRebind(methodLibraryClient));
+        }
+      },
+      run: capabilityRun,
+      submitRun: (manifestHash, decisionId) => void submitCapabilityRun(manifestHash, decisionId),
+      viewPersona: (agentCode) => void viewPersonaPerspective(agentCode),
+      workflow: workflowState,
+    },
+    changes: {
+      canEnableEdits,
+      decide: (choice) => void decideGovernedChange(choice),
+      enableEdits: () => void enableGovernedEdits(),
+      enableEditsBusy,
+      error: changesError,
+      gitReviewAvailabilityMessage,
+      gitReviewSource,
+      history: changesHistory,
+      historyAvailable: changesHistoryAvailable,
+      historyBusy: changesHistoryBusy,
+      historyStatus: changesHistoryStatus,
+      refreshHistory: () => void refreshChangesHistory(),
+      startNewProposal: resetChangesFlow,
+      state: changesState,
+      undo: (executionId) => void undoGovernedChange(executionId),
+    },
+    context: {
+      adoptReviewed: (projection) => {
+        // A reviewed selection supersedes any auto-suggestion in flight, and
+        // becomes a manual one: the user chose these files.
+        contextSuggestionGenerationRef.current += 1;
+        contextSuggestionInFlightRef.current = false;
+        setContextSuggestionBusy(false);
+        setContextPreview(projection);
+        setContextSelectionMode("manual");
+      },
+      session: {
+        createdAt: sessionContext.createdAt,
+        inputTokens: sessionContext.inputTokens,
+        messages: sessionContext.messages,
+      },
+    },
+    deletion: pendingDeleteTask === null ? null : {
+      cancel: dismissTaskDeletion,
+      confirm: confirmTaskDeletion,
+      /*
+       * Browser preview never dispatches the read -- `chatHistoryClient`
+       * requires a ready host -- so the lane sits at `unread` for the session
+       * and the dialog would say Forge has not finished reading this task's
+       * messages. There is no host, nothing to read, and the count is provably
+       * right. `loaded` is the honest status for a surface with no store
+       * behind it.
+       */
+      historyStatus: hostRuntime.kind === "browser_demo"
+        ? "loaded"
+        : chatSessions.historyStatusFor(pendingDeleteTask.id),
+      /*
+       * A browser preview has no host and no store, so nothing was ever
+       * written. A task proven to hold no messages never reached `chat.send`,
+       * so no durable row exists for it either. Anything else -- including a
+       * history read that has not finished or failed -- might have one, and
+       * the warning stands.
+       */
+      mayHaveDurableCopy: hostRuntime.kind !== "browser_demo"
         && !(
           chatSessions.historyStatusFor(pendingDeleteTask.id) === "loaded"
           && chatSessions.messageCountFor(pendingDeleteTask.id) === 0
-        )
-      }
-      messageCount={chatSessions.messageCountFor(pendingDeleteTask.id)}
-      onCancel={dismissTaskDeletion}
-      onConfirm={confirmTaskDeletion}
-      taskTitle={pendingDeleteTask.title}
-    />
-  ) : undefined;
+        ),
+      messageCount: chatSessions.messageCountFor(pendingDeleteTask.id),
+      taskTitle: pendingDeleteTask.title,
+    },
+    host: { runtimeKind: hostRuntime.kind },
+    model: {
+      destinationLabel: modelAccess.label,
+      modelId: sessionContextModelId,
+      providerLabel: modelProviderLabel,
+    },
+    overlays: {
+      closeDrawer: dismissContextDrawer,
+      drawerIsOverlay,
+      drawerKind: contextDrawer,
+      modalKind: appModal,
+      selectDrawerTab: (tab) => setContextDrawer(tab),
+    },
+    recovery: {
+      busy: recoveryBusy,
+      decide: (choice) => void decideChangesRecovery(choice),
+      prepare: (journalId, trigger) => void prepareChangesRecovery(journalId, trigger),
+      returnFocusTarget: recoveryReturnFocusTarget,
+      review: recoveryReview,
+    },
+    selectedTaskTitle: selectedTask?.title ?? null,
+    settings: {
+      props: {
+        about: aboutProjection,
+        aboutStatus,
+        agentStatusLabel: methodStatusLabel,
+        density,
+        initialSection: utilitySettingsPage,
+        modelAccessDetail: modelAccess.detail,
+        modelAccessLabel: modelAccess.label,
+        modelAuthStatus,
+        modelSelection,
+        modelSelectionBusy,
+        modelSelectionNotice,
+        offboardingManifest,
+        offboardingNotice,
+        offboardingStatus,
+        onClose: () => dismissUtilityPanel(),
+        onDensityChange: changeDensity,
+        onEraseOffboarding: (confirm: string) => void eraseOffboardingData(confirm),
+        onManageWorkspaces: openWorkspaceManagerFromUtilityPanel,
+        onModelConnect: connectModelProvider,
+        onModelDisconnect: disconnectModelProvider,
+        onModelSelectionChange: changeModelSelection,
+        onOpenSkillsAndAgents: openMethodLibrary,
+        onThemeChange: changeTheme,
+        preferencesNotice,
+        runtimeLabel: hostStatusLabel,
+        skillsAgentsAvailable: methodLibraryAvailable,
+        skillsAgentsStatusLabel,
+        theme,
+        updateStatusLabel: aboutProjection === null
+          ? "Managed by your organization"
+          : aboutProjection.updateConfigured
+            ? "Managed release channel"
+            : "Not configured for this build",
+        workspaceDetail: workspaceDescription,
+        workspaceLabel: workspaceName,
+      },
+      section: utilitySettingsPage,
+    },
+    workspace: {
+      active: activeWorkspace,
+      explorerAvailabilityMessage,
+      manager: {
+        activate: activateWorkspace,
+        canActivate: canActivateWorkspace,
+        canRemove: canRemoveWorkspace,
+        canSelect: canSelectWorkspace,
+        close: dismissWorkspacePanel,
+        error: workspaceActionError,
+        remove: (workspaceId) => void removeWorkspace(workspaceId),
+        removalBusyId: workspaceRemovalBusyId,
+        select: () => void selectWorkspace(),
+        selectionBusy: workspaceSelectionBusy,
+        workspaces: hostWorkspaces,
+      },
+      name: workspaceName,
+      source: workspaceSource,
+    },
+  };
+
+  const drawer = contextDrawer ? <AppDrawer /> : undefined;
+
+  const modal = appModal === null ? undefined : <AppModals />;
 
   /*
    * FE-09: one catalog behind every entry point.
@@ -2738,7 +2690,8 @@ export function App({
     }));
 
   return (
-    <AppWorkbench
+    <ShellProvider model={shellModel}>
+      <AppWorkbench
       commandPalette={
         <CommandPalette
           actions={paletteActions}
@@ -2895,5 +2848,6 @@ export function App({
         taskTabs: openTaskTabs,
       }}
     />
+    </ShellProvider>
   );
 }
