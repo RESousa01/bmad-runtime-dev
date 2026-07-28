@@ -18,7 +18,6 @@ import { TaskWorkspace } from "./components/TaskWorkspace";
 import { BmadCapabilityPanel } from "./components/BmadCapabilityPanel";
 import { BmadWorkflowPanel } from "./components/BmadWorkflowPanel";
 import {
-  type CapabilityRouting,
   MAX_LANE_SESSIONS,
   useCapabilitySessions,
 } from "./state/taskSessions";
@@ -38,6 +37,12 @@ import {
 import { useTaskLifecycle } from "./app/task/taskLifecycle";
 import { createModelActions } from "./app/model/modelController";
 import { useChangesHistoryState } from "./app/changes/changesHistoryState";
+import {
+  anyPhase,
+  approved,
+  createCapabilityRunner,
+  underReview,
+} from "./app/capability/capabilityController";
 import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
@@ -1129,130 +1134,106 @@ export function App({
     });
   }
 
-  function capabilityWorkspace(): { workspaceId: string; grantEpoch: number } | null {
-    if (hostRuntime.kind !== "ready" || activeWorkspace === null) return null;
-    return {
-      workspaceId: activeWorkspace.workspaceId,
-      grantEpoch: activeWorkspace.grantEpoch,
-    };
-  }
+  /*
+   * FE-10 step 3: the reviewed capability run.
+   *
+   * All four actions go through `runCapabilityAction`, which captures the
+   * routing token before awaiting the host. That ordering is the point: a run
+   * belongs to the task it was started from, and the host call outlives the
+   * user's attention. Re-reading the active session after the await would offer
+   * one task's manifest for approval under another task's work.
+   */
+  const runCapabilityAction = createCapabilityRunner({
+    run: capabilityRun,
+    sessions: {
+      captureActive: capabilitySessions.captureActive,
+      route: capabilitySessions.routeCapabilityRun,
+    },
+    workspace: hostRuntime.kind === "ready" && activeWorkspace !== null
+      ? {
+        grantEpoch: activeWorkspace.grantEpoch,
+        workspaceId: activeWorkspace.workspaceId,
+      }
+      : null,
+  });
 
-  function failCapabilityRun(routing: CapabilityRouting, error: unknown) {
-    capabilitySessions.routeCapabilityRun(routing, (current) =>
-      current === null
-        ? null
-        : { ...current, phase: { kind: "error", message: getSafeHostMessage(error) } },
-    );
-  }
+  /// Narrows the runtime for the closures below, which need the typed client.
+  const capabilityClient = hostRuntime.kind === "ready" ? hostRuntime.client : null;
 
   async function prepareCapabilityRun(contextPaths: readonly string[]) {
-    const run = capabilityRun;
-    const workspace = capabilityWorkspace();
-    if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
-    const routing = capabilitySessions.captureActive();
-    capabilitySessions.setActiveCapabilityRun({ ...run, phase: { kind: "preparing" } });
-    try {
-      const review = await hostRuntime.client.prepareCapabilityRun(
+    await runCapabilityAction(anyPhase, async ({ route, run, workspace }) => {
+      if (capabilityClient === null) return;
+      capabilitySessions.setActiveCapabilityRun({ ...run, phase: { kind: "preparing" } });
+      const review = await capabilityClient.prepareCapabilityRun(
         workspace.workspaceId,
         workspace.grantEpoch,
         run.capabilityId,
         [...contextPaths],
       );
-      capabilitySessions.routeCapabilityRun(routing, (current) =>
-        current === null
-          ? null
-          : { ...current, phase: { kind: "review", review, contextPaths } },
-      );
-    } catch (error) {
-      failCapabilityRun(routing, error);
-    }
+      route((current) => current === null
+        ? null
+        : { ...current, phase: { kind: "review", review, contextPaths } });
+    });
   }
 
   async function approveCapabilityRun(manifestHash: string) {
-    const run = capabilityRun;
-    const workspace = capabilityWorkspace();
-    if (
-      run === null
-      || workspace === null
-      || hostRuntime.kind !== "ready"
-      || run.phase.kind !== "review"
-    ) {
-      return;
-    }
-    const routing = capabilitySessions.captureActive();
-    const reviewPhase = run.phase;
-    try {
-      const approved = await hostRuntime.client.approveCapabilityRun(
+    await runCapabilityAction(underReview, async ({ route, run, workspace }) => {
+      if (capabilityClient === null || run.phase.kind !== "review") return;
+      const reviewPhase = run.phase;
+      const approvedRun = await capabilityClient.approveCapabilityRun(
         workspace.workspaceId,
         workspace.grantEpoch,
         run.capabilityId,
         manifestHash,
       );
-      capabilitySessions.routeCapabilityRun(routing, (current) =>
-        current === null
-          ? null
-          : {
-              ...current,
-              phase: {
-                kind: "approved",
-                review: reviewPhase.review,
-                approved,
-                contextPaths: reviewPhase.contextPaths,
-                sending: false,
-              },
-            },
-      );
-    } catch (error) {
-      failCapabilityRun(routing, error);
-    }
+      route((current) => current === null
+        ? null
+        : {
+          ...current,
+          phase: {
+            approved: approvedRun,
+            contextPaths: reviewPhase.contextPaths,
+            kind: "approved",
+            review: reviewPhase.review,
+            sending: false,
+          },
+        });
+    });
   }
 
   async function cancelCapabilityRun(manifestHash: string, decisionId: string) {
-    const run = capabilityRun;
-    const workspace = capabilityWorkspace();
-    if (run === null || workspace === null || hostRuntime.kind !== "ready") return;
-    const routing = capabilitySessions.captureActive();
-    try {
-      await hostRuntime.client.cancelCapabilityRun(
+    await runCapabilityAction(anyPhase, async ({ route, run, workspace }) => {
+      if (capabilityClient === null) return;
+      await capabilityClient.cancelCapabilityRun(
         workspace.workspaceId,
         workspace.grantEpoch,
         run.capabilityId,
         manifestHash,
         decisionId,
       );
-      capabilitySessions.routeCapabilityRun(routing, null);
-    } catch (error) {
-      failCapabilityRun(routing, error);
-    }
+      route(null);
+    });
   }
 
   async function submitCapabilityRun(manifestHash: string, decisionId: string) {
-    const run = capabilityRun;
-    const workspace = capabilityWorkspace();
-    if (
-      run === null
-      || workspace === null
-      || hostRuntime.kind !== "ready"
-      || run.phase.kind !== "approved"
-    ) {
-      return;
-    }
-    const routing = capabilitySessions.captureActive();
-    capabilitySessions.setActiveCapabilityRun({
-      ...run,
-      phase: { ...run.phase, sending: true },
-    });
-    try {
-      const completed = await hostRuntime.client.submitCapabilityRun(
+    await runCapabilityAction(approved, async ({ route, run, workspace }) => {
+      if (capabilityClient === null || run.phase.kind !== "approved") return;
+      capabilitySessions.setActiveCapabilityRun({
+        ...run,
+        phase: { ...run.phase, sending: true },
+      });
+      const completed = await capabilityClient.submitCapabilityRun(
         workspace.workspaceId,
         workspace.grantEpoch,
         run.capabilityId,
         manifestHash,
         decisionId,
       );
+      // The result read is best-effort: the run has already completed, and
+      // failing to fetch its output must not report the run itself as failed.
       let resultJson: string | null = null;
       try {
-        const latest = await hostRuntime.client.latestCapabilityRun(
+        const latest = await capabilityClient.latestCapabilityRun(
           workspace.workspaceId,
           workspace.grantEpoch,
           run.capabilityId,
@@ -1261,14 +1242,10 @@ export function App({
       } catch {
         resultJson = null;
       }
-      capabilitySessions.routeCapabilityRun(routing, (current) =>
-        current === null
-          ? null
-          : { ...current, phase: { kind: "completed", completed, resultJson } },
-      );
-    } catch (error) {
-      failCapabilityRun(routing, error);
-    }
+      route((current) => current === null
+        ? null
+        : { ...current, phase: { kind: "completed", completed, resultJson } });
+    });
   }
 
   async function loadRetentionManifest() {
