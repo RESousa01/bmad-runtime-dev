@@ -15,7 +15,6 @@ import {
 } from "./components/SessionContextPanel";
 import "./components/review-panel.css";
 import { TaskWorkspace } from "./components/TaskWorkspace";
-import { TitleBar } from "./components/TitleBar";
 import { BmadCapabilityPanel } from "./components/BmadCapabilityPanel";
 import { BmadWorkflowPanel } from "./components/BmadWorkflowPanel";
 import {
@@ -58,10 +57,7 @@ import { CommandPalette, type PaletteAction } from "./components/CommandPalette"
 import { createCommandRegistry, type CommandContext } from "./app/commands/commands";
 import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
 import { HomeView } from "./components/HomeView";
-import {
-  AppShellLayout,
-  DRAWER_OVERLAY_QUERY,
-} from "./components/redesign/AppShellLayout";
+import { DRAWER_OVERLAY_QUERY } from "./components/redesign/AppShellLayout";
 import {
   ContextDrawer,
   type ContextDrawerKind,
@@ -99,6 +95,8 @@ import {
   type WorkspaceSearchMatch,
 } from "./lib/hostClient";
 import { useAppBootstrap } from "./app/useAppBootstrap";
+import { AppRouter } from "./app/AppRouter";
+import { AppWorkbench } from "./app/AppWorkbench";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
   BmadLibrarySnapshot,
@@ -3358,43 +3356,20 @@ export function App({
     }));
 
   return (
-    <div className="app-shell app-shell--forge-v2">
-      <CommandPalette
-        actions={paletteActions}
-        onClose={() => setPaletteOpen(false)}
-        open={paletteOpen}
-      />
-      <TitleBar
-        isInert={shellOverlayOpen}
-        onHome={() => {
-          setContextDrawer(null);
-          setPrimaryRoute({ kind: "home" });
-        }}
-        onMenu={() => setPaletteOpen(true)}
-        onNewTask={() => { startNewSession(); }}
-        onCloseTask={closeTaskById}
-        onOpenSettings={() => openUtilityPanel("settings")}
-        activeTaskId={routedTaskId ?? undefined}
-        onSelectTask={selectSession}
-        taskTabs={openTaskTabs}
-      />
-      {/*
-        The palette is rendered outside `AppShellLayout`, so its own modal
-        bookkeeping does not cover it. Marking the workbench inert is the other
-        half of honouring `aria-modal` on the palette — `AppShellLayout` already
-        does the equivalent for the drawer and the utility panels.
-      */}
-      <div
-        aria-hidden={paletteOpen || undefined}
-        className="workbench workbench--task-shell"
-        inert={paletteOpen || undefined}
-      >
-        <AppShellLayout
-          drawer={drawer}
-          main={primaryRoute.kind === "home" || selectedTask === null ? (
-            // No task selected *is* Home. There is no phantom task to fall
-            // back onto any more, so an empty list and a deleted last task
-            // both land here rather than on a tab that cannot be acted on.
+    <AppWorkbench
+      commandPalette={
+        <CommandPalette
+          actions={paletteActions}
+          onClose={() => setPaletteOpen(false)}
+          open={paletteOpen}
+        />
+      }
+      drawer={drawer}
+      main={
+        <AppRouter
+          hasSelectedTask={selectedTask !== null}
+          hasWorkspace={activeWorkspace !== null}
+          renderHome={() => (
             <HomeView
               activeWorkspaceId={activeWorkspaceId}
               canOpenFolder={canSelectWorkspace}
@@ -3428,68 +3403,8 @@ export function App({
                 : "Start locally, then connect OpenAI in Settings before sending."}
               workspaceStatusLabel={workspaceDescription}
             />
-          ) : activeWorkspace ? (
-            <TaskWorkspace
-              canAttachFiles={canBrowseFiles || canBrowseFolder}
-              contextPreview={contextPreview}
-              contextSelectionMode={contextSelectionMode}
-              contextSuggestionBusy={contextSuggestionBusy}
-              hostStatusLabel={hostStatusLabel}
-              initialDraft={taskDrafts.get(selectedTask.id) ?? ""}
-              interactionDisabled={!localTaskDraftingAvailable}
-              chatSendAvailable={chatSendAvailable}
-              isBrowserDemo={hostRuntime.kind === "browser_demo"}
-              isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
-              key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
-              methodGuidanceAvailable={methodGuidanceAvailableForRequests}
-              methodGuidanceState={bmadHelpState}
-              methodLibraryAvailable={methodLibraryAvailable}
-              modelAccessDetail={modelAccess.detail}
-              modelAccessLabel={modelAccess.label}
-              onAttachFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
-              onAttachFolder={canBrowseFolder ? browseAndAttachFolder : undefined}
-              onClearContext={clearContext}
-              attachNotice={attachNotice}
-              agentLibrary={bmadLibraryState}
-              onOpenChanges={() => {
-                openContextDrawer("changes");
-              }}
-              onOpenContext={() => {
-                openContextDrawer("context");
-              }}
-              onOpenMethodLibrary={openMethodLibrary}
-              onOpenProviders={() => openUtilityPanel("settings", "agent-model")}
-              onOpenWorkspaceManager={openWorkspaceManager}
-              workspaceStatusLabel={workspaceDescription}
-              onOpenRunDetails={() => {
-                openContextDrawer("activity");
-              }}
-              onDraftChange={(draft) => {
-                setTaskDrafts((current) => {
-                  const next = new Map(current);
-                  if (draft) {
-                    next.set(selectedTask.id, draft);
-                  } else {
-                    next.delete(selectedTask.id);
-                  }
-                  return next;
-                });
-              }}
-              onSuggestContext={suggestContext}
-              onSendRequest={sendChatMessage}
-              chatLane={chatLane}
-              onRetryHistory={() => retryChatHistoryRestore(selectedTask.id)}
-              onAskMethodGuidance={sendBmadMessage}
-              onSelectAgent={(agentCode) => {
-                chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
-              }}
-              onRenameTask={renameSelectedTask}
-              onCloseTask={() => closeTaskById(selectedTask.id)}
-              onDeleteTask={() => requestTaskDeletion(selectedTask.id)}
-              sessionTitle={selectedTask.title}
-              workspaceName={workspaceName}
-            />
-          ) : (
+          )}
+          renderNoWorkspace={() => (
             <main className="task-shell-empty">
               <NoWorkspaceState
                 copy={explorerAvailabilityMessage}
@@ -3499,21 +3414,104 @@ export function App({
               />
             </main>
           )}
-          modal={modal}
-          onCloseDrawer={dismissContextDrawer}
-          onCloseModal={() => {
-            if (appModal === "workspace-manager") {
-              dismissWorkspacePanel();
-            } else if (appModal === "delete-task") {
-              // Escape and the scrim both mean "no". Dismissing a destructive
-              // confirmation must never be the thing that runs it.
-              dismissTaskDeletion();
-            } else {
-              dismissUtilityPanel();
-            }
+          renderTask={() => {
+            // The router only reaches here with both present; narrowing again
+            // keeps that a type-level fact rather than an assertion.
+            if (selectedTask === null || activeWorkspace === null) return null;
+            return (
+              <TaskWorkspace
+                canAttachFiles={canBrowseFiles || canBrowseFolder}
+                contextPreview={contextPreview}
+                contextSelectionMode={contextSelectionMode}
+                contextSuggestionBusy={contextSuggestionBusy}
+                hostStatusLabel={hostStatusLabel}
+                initialDraft={taskDrafts.get(selectedTask.id) ?? ""}
+                interactionDisabled={!localTaskDraftingAvailable}
+                chatSendAvailable={chatSendAvailable}
+                isBrowserDemo={hostRuntime.kind === "browser_demo"}
+                isReadOnlyRecovery={hostRuntime.kind === "read_only_recovery"}
+                key={`${selectedSessionId}:${methodGuidanceBindingKey}`}
+                methodGuidanceAvailable={methodGuidanceAvailableForRequests}
+                methodGuidanceState={bmadHelpState}
+                methodLibraryAvailable={methodLibraryAvailable}
+                modelAccessDetail={modelAccess.detail}
+                modelAccessLabel={modelAccess.label}
+                onAttachFiles={canBrowseFiles ? browseAndAttachFiles : undefined}
+                onAttachFolder={canBrowseFolder ? browseAndAttachFolder : undefined}
+                onClearContext={clearContext}
+                attachNotice={attachNotice}
+                agentLibrary={bmadLibraryState}
+                onOpenChanges={() => {
+                  openContextDrawer("changes");
+                }}
+                onOpenContext={() => {
+                  openContextDrawer("context");
+                }}
+                onOpenMethodLibrary={openMethodLibrary}
+                onOpenProviders={() => openUtilityPanel("settings", "agent-model")}
+                onOpenWorkspaceManager={openWorkspaceManager}
+                workspaceStatusLabel={workspaceDescription}
+                onOpenRunDetails={() => {
+                  openContextDrawer("activity");
+                }}
+                onDraftChange={(draft) => {
+                  setTaskDrafts((current) => {
+                    const next = new Map(current);
+                    if (draft) {
+                      next.set(selectedTask.id, draft);
+                    } else {
+                      next.delete(selectedTask.id);
+                    }
+                    return next;
+                  });
+                }}
+                onSuggestContext={suggestContext}
+                onSendRequest={sendChatMessage}
+                chatLane={chatLane}
+                onRetryHistory={() => retryChatHistoryRestore(selectedTask.id)}
+                onAskMethodGuidance={sendBmadMessage}
+                onSelectAgent={(agentCode) => {
+                  chatSessions.setActiveLane((lane) => ({ ...lane, agentCode }));
+                }}
+                onRenameTask={renameSelectedTask}
+                onCloseTask={() => closeTaskById(selectedTask.id)}
+                onDeleteTask={() => requestTaskDeletion(selectedTask.id)}
+                sessionTitle={selectedTask.title}
+                workspaceName={workspaceName}
+              />
+            );
           }}
+          route={primaryRoute}
         />
-      </div>
-    </div>
+      }
+      modal={modal}
+      onCloseDrawer={dismissContextDrawer}
+      onCloseModal={() => {
+        if (appModal === "workspace-manager") {
+          dismissWorkspacePanel();
+        } else if (appModal === "delete-task") {
+          // Escape and the scrim both mean "no". Dismissing a destructive
+          // confirmation must never be the thing that runs it.
+          dismissTaskDeletion();
+        } else {
+          dismissUtilityPanel();
+        }
+      }}
+      paletteOpen={paletteOpen}
+      shellOverlayOpen={shellOverlayOpen}
+      titleBar={{
+        activeTaskId: routedTaskId ?? undefined,
+        onCloseTask: closeTaskById,
+        onHome: () => {
+          setContextDrawer(null);
+          setPrimaryRoute({ kind: "home" });
+        },
+        onMenu: () => setPaletteOpen(true),
+        onNewTask: () => { startNewSession(); },
+        onOpenSettings: () => openUtilityPanel("settings"),
+        onSelectTask: selectSession,
+        taskTabs: openTaskTabs,
+      }}
+    />
   );
 }
