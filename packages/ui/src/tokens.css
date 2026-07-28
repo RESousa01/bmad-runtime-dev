@@ -96,6 +96,27 @@
   --shadow-popover: 0 20px 55px rgb(26 38 58 / 0.18);
   --shadow-control: 0 1px 1px rgb(20 34 54 / 0.08);
 
+  /* ---- semantic: the roles component CSS was hardcoding ---------------- */
+  /* A scrim is the dimming behind an overlay, not a colour a panel picks. */
+  --color-scrim: rgb(26 38 58 / 0.28);
+  --shadow-drawer: -18px 0 45px rgb(26 38 58 / 0.16);
+  --shadow-raised: 0 8px 24px rgb(26 38 58 / 0.10);
+
+  /* Text on a filled warning surface, which is not --color-text: the fill is
+     amber in both themes, so the ink stays dark in both. */
+  --color-on-warning: #241400;
+
+  /* Windows draws its own close button red on hover, and it is the same red in
+     light and dark. This is that convention, not the product's danger colour. */
+  --color-window-close: #c42b1c;
+  --color-on-window-close: #ffffff;
+
+  /* Structural JSON colouring in the raw-message inspector. Named by what the
+     token is, not by hue, so a theme can restate them. */
+  --color-syntax-key: #a3306f;
+  --color-syntax-string: #1c7a4a;
+  --color-syntax-literal: #2f5bd0;
+
   /* Semantic availability language: green = runnable now, amber = awaiting a
      reviewed decision (by design, not an error), neutral = descriptive only. */
   --color-status-active: #178451;
@@ -135,6 +156,18 @@
   --color-focus: #fab283;
   --shadow-popover: 0 24px 65px rgb(0 0 0 / 0.42);
   --shadow-control: 0 1px 0 rgb(255 255 255 / 0.04);
+
+  --color-scrim: rgb(0 0 0 / 0.38);
+  --shadow-drawer: -18px 0 45px rgb(0 0 0 / 0.28);
+  --shadow-raised: 0 8px 24px rgb(0 0 0 / 0.28);
+
+  --color-on-warning: #241400;
+  --color-window-close: #c42b1c;
+  --color-on-window-close: #ffffff;
+
+  --color-syntax-key: #f06aa8;
+  --color-syntax-string: #73d49a;
+  --color-syntax-literal: #82aaff;
 
   --color-status-active: #4fd08c;
   --color-status-active-soft: #10291e;

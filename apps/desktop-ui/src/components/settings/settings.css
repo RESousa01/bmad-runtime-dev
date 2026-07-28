@@ -191,7 +191,7 @@
 }
 
 .provider-row__status em[data-connected] {
-  color: var(--color-success, #54d488);
+  color: var(--color-success);
 }
 
 .provider-row__status code {
@@ -325,7 +325,7 @@
 }
 
 .provider-connection__connected > span svg {
-  color: var(--color-success, #54d488);
+  color: var(--color-success);
   grid-row: 1 / span 2;
 }
 

@@ -64,7 +64,7 @@
 }
 
 .task-shell-layout__scrim {
-  background: rgb(9 15 27 / 0.48);
+  background: var(--color-scrim);
   border: 0;
   cursor: default;
   inset: 0;
@@ -121,7 +121,7 @@
   .task-shell-layout__drawer {
     background: var(--color-surface, Canvas);
     bottom: 0;
-    box-shadow: -18px 0 44px rgb(9 15 27 / 0.24);
+    box-shadow: var(--shadow-drawer);
     max-width: 100%;
     position: absolute;
     right: 0;

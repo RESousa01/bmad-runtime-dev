@@ -61,10 +61,10 @@
     );
     --polish-shadow-card:
       0 1px 0 color-mix(in srgb, var(--color-surface), transparent 42%),
-      0 8px 24px rgb(3 12 22 / 0.08);
+      var(--shadow-raised);
     --polish-shadow-float:
       0 1px 0 color-mix(in srgb, var(--color-surface), transparent 32%),
-      0 22px 64px rgb(2 9 18 / 0.28);
+      var(--shadow-popover);
     background: var(--color-canvas);
   }
 
@@ -212,7 +212,7 @@
     border-radius: var(--radius-overlay);
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--color-surface), transparent 35%),
-      0 14px 42px rgb(1 9 18 / 0.13);
+      var(--shadow-raised);
     margin: 10px auto 18px;
     max-width: calc(100% - 48px);
     min-height: 132px;
@@ -404,7 +404,7 @@
   }
 
   .context-drawer--overlay {
-    box-shadow: -20px 0 64px rgb(2 9 18 / 0.3);
+    box-shadow: var(--shadow-drawer);
   }
 
   .context-drawer__header {
@@ -438,7 +438,7 @@
   .task-shell-layout__scrim {
     animation: sapphirus-polish-fade-in 160ms ease-out both;
     backdrop-filter: blur(5px);
-    background: rgb(3 10 19 / 0.58);
+    background: var(--color-scrim);
   }
 
   .task-shell-layout__modal > * {
