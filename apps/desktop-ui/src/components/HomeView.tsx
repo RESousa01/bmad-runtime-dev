@@ -109,7 +109,6 @@ export function HomeView({
                     onClick={() => onActivateWorkspace(workspace.workspaceId)}
                     type="button"
                   >
-                    <OpenCodeIcon name="folder" size={14} />
                     <span>{workspace.displayName}</span>
                   </button>
                 </li>
@@ -145,6 +144,10 @@ export function HomeView({
               type="text"
               value={intent}
             />
+            {/* 3a spends its one accent on the consequential decision, which
+                on Home is not "start a task" -- it is Apply changes, later.
+                So this is a quiet send glyph on the readout row, the way the
+                prototype draws it, and the hint carries the state. */}
             <div className="home-view__composer-row">
               <span className="home-view__hint">{statusHint}</span>
               <Button
@@ -152,10 +155,9 @@ export function HomeView({
                 isDisabled={composerDisabled || trimmed.length === 0}
                 size="small"
                 type="submit"
-                variant="primary"
+                variant="quiet"
               >
                 <Send aria-hidden="true" size={14} />
-                Start task
               </Button>
             </div>
           </form>
@@ -177,7 +179,6 @@ export function HomeView({
               {recentTasks.map((task) => (
                 <li key={task.id}>
                   <button onClick={() => onSelectTask(task.id)} type="button">
-                    <OpenCodeIcon name="edit" size={14} />
                     <span>{task.title}</span>
                     <time>{task.updatedAt}</time>
                   </button>
@@ -199,7 +200,6 @@ export function HomeView({
                       onClick={() => onReopenTask(task.id)}
                       type="button"
                     >
-                      <OpenCodeIcon name="edit" size={14} />
                       <span>{task.title}</span>
                       <time>Closed</time>
                     </button>

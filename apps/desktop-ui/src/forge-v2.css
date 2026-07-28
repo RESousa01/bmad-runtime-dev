@@ -215,25 +215,33 @@
   margin: 0;
 }
 
+/*
+ * 3a draws no box here. The prompt sits directly on the canvas at title size,
+ * with one hairline marking where typing ends and the readout begins. The
+ * raised panel, border and radius are removed rather than restyled -- a box
+ * that has to be quietened is still a box.
+ */
 .app-shell--forge-v2 .home-view__composer {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
-  border-radius: var(--radius-overlay);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
   box-shadow: none;
-  gap: 8px;
-  padding: 12px;
+  gap: var(--space-2);
+  padding: 0 0 var(--space-2);
   width: 100%;
 }
 
+/* Focus moves the hairline, because there is no longer a ring to light up. */
 .app-shell--forge-v2 .home-view__composer:focus-within {
-  border-color: var(--color-border-focus, var(--color-focus));
-  box-shadow: 0 0 0 1px var(--color-focus);
+  border-bottom-color: var(--color-border);
+  box-shadow: none;
 }
 
 .app-shell--forge-v2 .home-view__input {
-  font-size: var(--text-input);
-  min-height: 34px;
-  padding: 4px 2px;
+  font-size: var(--text-title);
+  min-height: 30px;
+  padding: 0;
 }
 
 .app-shell--forge-v2 .home-view__hint {
@@ -270,11 +278,18 @@
   min-height: 30px;
 }
 
+/*
+ * PROJECTS and RECENT are section labels in 3a, not headings competing with
+ * the prompt above them. Same role, same tokens as every other uppercase
+ * label in the product -- see --text-label in the token contract.
+ */
 .app-shell--forge-v2 .home-view__section-header h2 {
-  color: var(--color-text-soft);
-  font-size: var(--text-ui);
-  font-weight: 540;
+  color: var(--color-text-muted);
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
   margin: 0;
+  text-transform: uppercase;
 }
 
 .app-shell--forge-v2 .home-view__section-header button,
@@ -300,11 +315,12 @@
 }
 
 .app-shell--forge-v2 .home-view__section-header button:not(:disabled):hover,
+/* Hover is a colour change, not a panel appearing under the pointer. */
 .app-shell--forge-v2 .home-view__project-list button:hover,
 .app-shell--forge-v2 .home-view__task-list button:hover,
 .app-shell--forge-v2 .home-view__project-actions button:hover,
 .app-shell--forge-v2 .home-view__empty-action:hover {
-  background: var(--color-surface-hover);
+  background: transparent;
   color: var(--color-text);
 }
 
@@ -339,9 +355,15 @@
   width: 100%;
 }
 
+/*
+ * 3a marks the active project by bringing its name forward, not by filling a
+ * row behind it. A selected chip in a four-item rail is a container carrying
+ * one bit of information that weight and colour already carry.
+ */
 .app-shell--forge-v2 .home-view__project-list button[aria-current="page"] {
-  background: var(--color-surface-selected);
+  background: transparent;
   color: var(--color-text);
+  font-weight: var(--fw-semibold);
 }
 
 .app-shell--forge-v2 .home-view__project-list button span,

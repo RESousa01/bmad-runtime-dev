@@ -4125,69 +4125,78 @@ code {
 }
 
 /*
- * Recent and closed tasks as cards on an auto-fit track. A 34px row
- * repeated four times left a 1389px window almost entirely empty; the
- * same four tasks now occupy a real band of it, and a wider window shows
- * more of them side by side instead of more emptiness.
- */
-/*
- * `auto-fill`, not `auto-fit`: with one recent task `auto-fit` collapses the
- * empty tracks and stretches that single card across the whole column, which
- * looks like a bug. `auto-fill` keeps the track, so one task is one card.
+ * Recent and closed tasks are rows, not cards.
+ *
+ * These were a `repeat(auto-fill, minmax(280px, 1fr))` track of 70px bordered
+ * cards. That filled a wide window, but it is the decorative card grid the
+ * master audit rules out in 7.2, and it is not what the approved 3a prototype
+ * draws. 3a puts one task on one line -- title, then when it last moved -- so
+ * five tasks read as five facts rather than five containers. The width goes to
+ * the columns instead of to the box.
  */
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list {
-  gap: 9px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  grid-template-columns: none;
+  margin-top: var(--space-2);
 }
 
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button {
-  align-items: center;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-overlay);
-  column-gap: 11px;
-  grid-template-columns: 18px minmax(0, 1fr);
-  min-height: 70px;
-  padding: 13px 14px;
-  row-gap: 3px;
-  transition: background-color 140ms ease, border-color 140ms ease;
+  align-items: baseline;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  column-gap: var(--space-4);
+  display: flex;
+  grid-template-columns: none;
+  min-height: 0;
+  padding: 7px 0;
+  row-gap: 0;
+  transition: color 140ms ease;
+  width: 100%;
 }
 
-.app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button:hover {
-  border-color: var(--color-border);
-}
-
-.app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button > :first-child {
-  grid-area: 1 / 1 / span 2 / span 1;
+/* A row answers the pointer by bringing its title forward, not by growing a
+   container around itself. */
+.app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button:hover > span {
+  color: var(--color-text);
 }
 
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list button > span {
-  color: var(--color-text);
-  font-size: var(--text-ui);
-  grid-area: 1 / 2;
+  color: var(--color-text-soft);
+  flex: 1 1 auto;
+  font-size: var(--text-body);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-list time {
-  grid-area: 2 / 2;
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: var(--text-meta);
 }
 
 /*
- * An empty list should read as a state, not as a stray sentence. It also
- * takes the free height, because "no tasks yet" is exactly what the lower
- * two thirds of this window were silently saying already.
+ * An empty list is a sentence, not a dashed rectangle. The old treatment drew
+ * a container around the absence of content and stretched it to fill the
+ * column; 3a draws no such box anywhere.
  */
 .app-shell--forge-v2 .home-view--opencode-v2 .home-view__task-empty {
-  align-content: center;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-overlay);
-  display: grid;
-  flex: 1 1 auto;
-  margin-top: 14px;
-  max-width: none;
-  min-height: 150px;
-  padding: 26px 20px;
-  text-align: center;
+  align-content: normal;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-text-muted);
+  display: block;
+  flex: 0 0 auto;
+  font-size: var(--text-meta);
+  margin-top: var(--space-3);
+  max-width: 60ch;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
 }
 
 /*
