@@ -2,7 +2,7 @@
   "schemaVersion": "forge.foundry-run-state.v1",
   "planHash": "sha256:07ef06a719a5ecd9a4b044b00bd58d7ace43ea9d7407973c88456461391e5348",
   "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
-  "currentTask": "FND-001",
+  "currentTask": "FND-002",
   "taskStates": {
     "FND-001": {
       "state": "complete",
@@ -107,21 +107,133 @@
           "The plan's legacy dotnet --filter syntax cannot run under xUnit v3 Microsoft.Testing.Platform; the exact failure and passing 66-test runner-equivalent are both preserved."
         ]
       },
-      "nextAction": "Commit only the eight FND-001 evidence paths, then begin FND-002."
+      "nextAction": "FND-002 is active."
+    },
+    "FND-002": {
+      "state": "blocked",
+      "attemptCount": 1,
+      "startedAt": "2026-07-28T16:48:33.222Z",
+      "redGate": {
+        "mode": "test_first",
+        "reason": "Endpoint, pagination, identity, role, and report-redaction behavior must fail closed before any live Azure probe.",
+        "proofPlan": [
+          "Run the checker tests and preserve the missing-feature failures.",
+          "Implement strict endpoint and same-origin pagination validation.",
+          "Prove deployment, identity, role, and report redaction through injected external boundaries.",
+          "Run the exact plan command and preserve a redacted blocked report when Azure inputs are unavailable."
+        ]
+      },
+      "changedFiles": [
+        ".foundry-connection/run-state.json",
+        "docs/operations/foundry-prerequisites.md",
+        "tools/foundry-smoke/check-prerequisites.ps1",
+        "tools/foundry-smoke/check-prerequisites.Tests.ps1",
+        "artifacts/foundry/prerequisites.json",
+        "artifacts/foundry/tasks/FND-002.json"
+      ],
+      "commands": [
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "missing-check-prerequisites-script"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "20-endpoint-pagination-redaction-identity-role-assertions-failed"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "missing-paged-inventory-and-blocked-report"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "missing-resource-id-parser-and-full-azure-orchestration"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "empty-inventory-hash-and-selection-not-supported"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 0,
+          "classification": "superseded",
+          "result": "54 behavior checks passed."
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "deployment-projection-stream-identity-role-and-default-project-hardening"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 1,
+          "classification": "expected_red",
+          "failureFingerprint": "content-read-cancellation-not-enforced"
+        },
+        {
+          "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "65 behavior checks passed, including strict deployment projection, bounded and cancellable response reads, exact identity attachment, subscription-pinned RBAC lookup, and _project scope binding."
+        },
+        {
+          "command": "PowerShell AST parse for checker and tests",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "Checker and test scripts parsed without errors."
+        },
+        {
+          "command": "pwsh -File tools/foundry-smoke/check-prerequisites.ps1 -ProjectEndpoint \"$env:FOUNDRY_PROJECT_ENDPOINT\" -ManagedIdentityClientId \"$env:FOUNDRY_MODEL_IDENTITY_CLIENT_ID\"",
+          "exitCode": 2,
+          "hostObservedExitCode": 1,
+          "classification": "blocked_external",
+          "result": "A redacted ready=false report was refreshed with Azure CLI authentication and five operator-input blockers."
+        }
+      ],
+      "evidencePaths": [
+        "artifacts/foundry/tasks/FND-002.json",
+        "artifacts/foundry/prerequisites.json"
+      ],
+      "reviewerVerdict": {
+        "verdict": "looks_good",
+        "reviewer": "independent Codex security/change review",
+        "runId": "FND-002-review-20260728T171011Z",
+        "completedAt": "2026-07-28T17:10:11.5893985+00:00",
+        "reviewedHashes": {
+          "checker": "sha256:2f4d798cb4671c5f14ac7d5fb8febe08b0f462729d7baffaba5bcdda9b9ead37",
+          "tests": "sha256:89196fa5f17971e26e4ee1a3d6de8e63a52ad9984a614e519dbb6061d41a2d04"
+        },
+        "blockers": [],
+        "nonBlockers": [
+          "A future ready report could additionally hash the supplied Container App resource ID for stronger retrospective binding; runtime validation already uses the exact supplied resource."
+        ]
+      },
+      "nextAction": "FND-003 may proceed independently; FND-010 and all other FND-002 dependents remain blocked until a fresh prerequisite report says ready=true."
     }
   },
   "blockers": [
     {
       "id": "FND-002-AZURE-INPUTS",
-      "state": "anticipated",
+      "state": "active",
       "affects": [
         "FND-002",
         "FND-010",
         "FND-064",
         "FND-065"
       ],
-      "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Azure resource group, or authenticated Azure CLI session is available.",
-      "nextAction": "Implement FND-002's safe prerequisite checker, run it, and preserve its exact redacted blocked report."
+      "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Container App resource ID, Foundry role scope, intended deployment list, or authenticated Azure CLI session is available.",
+      "nextAction": "Authenticate Azure CLI and supply FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_MODEL_IDENTITY_CLIENT_ID, FOUNDRY_CONTAINER_APP_RESOURCE_ID, FOUNDRY_PROJECT_RESOURCE_ID, and FOUNDRY_PROFILE_DEPLOYMENTS, then rerun the checker.",
+      "evidencePath": "artifacts/foundry/prerequisites.json"
     },
     {
       "id": "FND-001-DOTNET-FILTER",
@@ -155,7 +267,21 @@
       "acquiredAt": "2026-07-28T16:09:46.447Z",
       "state": "released",
       "releasedAt": "2026-07-28T16:36:03.876Z"
+    },
+    {
+      "owner": "codex",
+      "task": "FND-002",
+      "paths": [
+        ".foundry-connection/run-state.json",
+        "docs/operations/foundry-prerequisites.md",
+        "tools/foundry-smoke/**",
+        "artifacts/foundry/prerequisites.json",
+        "artifacts/foundry/tasks/FND-002.json"
+      ],
+      "acquiredAt": "2026-07-28T16:48:33.222Z",
+      "state": "released",
+      "releasedAt": "2026-07-28T17:10:11.5893985+00:00"
     }
   ],
-  "lastUpdatedAt": "2026-07-28T16:36:03.876Z"
+  "lastUpdatedAt": "2026-07-28T17:10:11.5893985+00:00"
 }

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-002",
+  "state": "blocked",
+  "attemptCount": 1,
+  "repositoryCommit": "ed1f420bbc914593d2f9d698d425c17cf392513e",
+  "startedAt": "2026-07-28T16:48:33.222Z",
+  "completedAt": null,
+  "changedFiles": [
+    ".foundry-connection/run-state.json",
+    "docs/operations/foundry-prerequisites.md",
+    "tools/foundry-smoke/check-prerequisites.ps1",
+    "tools/foundry-smoke/check-prerequisites.Tests.ps1",
+    "artifacts/foundry/prerequisites.json",
+    "artifacts/foundry/tasks/FND-002.json"
+  ],
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+      "exitCode": 1,
+      "classification": "expected_red",
+      "result": "Endpoint, pagination, redaction, identity, role, inventory, report, and orchestration behaviors failed before implementation."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+      "exitCode": 0,
+      "classification": "superseded",
+      "result": "54 behavior checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+      "exitCode": 1,
+      "classification": "expected_red",
+      "result": "Final review regressions failed before hardening deployment projection, streamed-body bounds and cancellation, exact identity matching, role lookup binding, inherited-scope handling, and _project scope binding."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "65 behavior checks passed."
+    },
+    {
+      "command": "PowerShell AST parse for checker and tests",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Checker and test scripts parsed without errors."
+    },
+    {
+      "command": "pwsh -File tools/foundry-smoke/check-prerequisites.ps1 -ProjectEndpoint \"$env:FOUNDRY_PROJECT_ENDPOINT\" -ManagedIdentityClientId \"$env:FOUNDRY_MODEL_IDENTITY_CLIENT_ID\"",
+      "exitCode": 2,
+      "hostObservedExitCode": 1,
+      "classification": "blocked_external",
+      "result": "A redacted ready=false report was written with six stable prerequisite blockers."
+    }
+  ],
+  "acceptance": {
+    "completeProjectEndpointProved": "blocked",
+    "realDeploymentInventoryCaptured": "blocked",
+    "noGuessedDeploymentName": "passed",
+    "managedIdentityAttachmentProved": "blocked",
+    "foundryRoleProved": "blocked",
+    "tokenAndReportRedaction": "passed"
+  },
+  "blockers": [
+    "azure_cli_authentication_missing",
+    "container_app_resource_id_missing",
+    "foundry_role_scope_missing",
+    "intended_deployments_missing",
+    "managed_identity_client_id_missing",
+    "project_endpoint_missing"
+  ],
+  "evidence": [
+    "artifacts/foundry/prerequisites.json",
+    "tools/foundry-smoke/check-prerequisites.Tests.ps1"
+  ],
+  "review": {
+    "verdict": "looks_good",
+    "reviewer": "independent Codex security/change review",
+    "completedAt": "2026-07-28T17:10:11.5893985+00:00",
+    "reviewedHashes": {
+      "checker": "sha256:2f4d798cb4671c5f14ac7d5fb8febe08b0f462729d7baffaba5bcdda9b9ead37",
+      "tests": "sha256:89196fa5f17971e26e4ee1a3d6de8e63a52ad9984a614e519dbb6061d41a2d04"
+    },
+    "notes": [
+      "No P0-P2 code findings remain.",
+      "Optional P3: a future ready report may also hash the supplied Container App resource ID for stronger retrospective binding."
+    ]
+  },
+  "nextAction": "Authenticate Azure CLI and provide the five operator inputs before rerunning FND-002; do not start FND-002-dependent tasks until the report says ready=true."
+}

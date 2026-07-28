@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "forge.foundry-prerequisites.v1",
+  "generatedAt": "2026-07-28T17:08:32.2974539+00:00",
+  "ready": false,
+  "projectEndpoint": null,
+  "intendedDeploymentNames": [],
+  "selectedDeploymentNames": [],
+  "checks": {
+    "endpointValidated": false,
+    "entraTokenAcquired": false,
+    "deploymentInventoryCaptured": false,
+    "managedIdentityAttached": false,
+    "foundryRoleAssigned": false
+  },
+  "azureContext": {
+    "subscriptionIdHash": null,
+    "tenantIdHash": null
+  },
+  "managedIdentity": {
+    "attached": false,
+    "clientIdHash": null,
+    "resourceIdHash": null,
+    "principalIdHash": null
+  },
+  "authorization": {
+    "assigned": false,
+    "roleDefinitionId": "53ca6127-db72-4b80-b1b0-d745d6d5456d",
+    "scopeHash": null
+  },
+  "deploymentInventory": {
+    "pageCount": 0,
+    "inventoryHash": null,
+    "deployments": []
+  },
+  "blockers": [
+    "azure_cli_authentication_missing",
+    "container_app_resource_id_missing",
+    "foundry_role_scope_missing",
+    "intended_deployments_missing",
+    "managed_identity_client_id_missing",
+    "project_endpoint_missing"
+  ]
+}
